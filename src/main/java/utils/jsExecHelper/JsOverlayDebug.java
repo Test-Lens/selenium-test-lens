@@ -419,8 +419,6 @@ public final class JsOverlayDebug {
                             + " ? window.__seleniumWaitHud.stop(arguments[0], arguments[1]) : null;",
                     prefix, elapsedMs
             );
-            Object v = ((JavascriptExecutor) driver).executeScript("return window.__seleniumLastWaitElapsedMs;");
-            logWraper.infoLog("Last wait elapsed (ms) = " + v);
         } catch (Exception ignored) {}
     }
 
