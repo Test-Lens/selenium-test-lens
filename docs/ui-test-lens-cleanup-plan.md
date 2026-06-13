@@ -265,9 +265,32 @@ selenium/scroll-arrow.js
 Scroll arrow runtime rejestruje sie pod primary namespace `window.__uiTestLens.modules.scrollArrow`.
 Semantyka scrollowania, wyrownanie elementu wzgledem viewportu oraz enumy `ScrollElementEdge` / `ScrollViewportEdge` pozostaja bez zmian.
 
+## HUD panel JavaScript extraction
+
+Kolejny fragment runtime JS zostal przeniesiony do realnego resource file:
+
+```text
+src/main/resources/uitestlens/runtime/hud-panel.js
+```
+
+Loader `HudPanelJs` preferuje teraz:
+
+```text
+uitestlens/runtime/hud-panel.js
+```
+
+i zachowuje legacy fallback:
+
+```text
+selenium/hud-panel.js
+```
+
+HUD panel runtime rejestruje sie pod primary namespace `window.__uiTestLens.modules.hud`.
+Zachowanie `init`, `setStep` oraz dodawania logow do HUD zostaje bez zmian.
+Legacy DOM ID, takie jak `selenium-hud-panel`, `selenium-hud-step` i `selenium-hud-logs`, zostaly zachowane dla kompatybilnosci.
+
 Kolejne fragmenty inline JS do ekstrakcji:
 
-- HUD panel,
 - visual assertion badges.
 
 ## Preferowany styl nazw klas Java

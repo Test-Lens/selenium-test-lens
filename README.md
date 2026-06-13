@@ -206,13 +206,15 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - Highlight JavaScript is loaded from `src/main/resources/uitestlens/runtime/highlight.js`.
 - Type hint JavaScript is loaded from `src/main/resources/uitestlens/runtime/type-hint.js`.
 - Scroll arrow JavaScript is loaded from `src/main/resources/uitestlens/runtime/scroll-arrow.js`.
+- HUD panel JavaScript is loaded from `src/main/resources/uitestlens/runtime/hud-panel.js`.
 - Legacy `selenium/api-overlay.js` remains a loader fallback for compatibility.
 - Legacy `selenium/wait/WaitHud.js` remains a loader fallback for compatibility.
 - Legacy `selenium/highlight.js` remains a loader fallback for compatibility.
 - Legacy `selenium/type-hint.js` remains a loader fallback for compatibility.
 - Legacy `selenium/scroll-arrow.js` remains a loader fallback for compatibility.
+- Legacy `selenium/hud-panel.js` remains a loader fallback for compatibility.
 - Type hints may still display the typed value in the browser overlay; value masking is planned for a later stage.
-- HUD panel and visual assertion badge JavaScript still need extraction from inline Java strings.
+- Visual assertion badge JavaScript still needs extraction from inline Java strings.
 - API is not final.
 - No multi-module split yet.
 - No Maven Central publication yet.
@@ -223,7 +225,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 ## Roadmap
 
 1. Extract remaining inline runtime JavaScript into `uitestlens/runtime/` resources.
-2. Extract HUD panel and visual assertion badge JavaScript.
+2. Extract visual assertion badge JavaScript.
 3. Split into `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`.
 4. Selenium `WebDriverListener` adapter.
 5. Selenide adapter.

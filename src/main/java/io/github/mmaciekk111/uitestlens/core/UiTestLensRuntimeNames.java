@@ -24,6 +24,8 @@ public final class UiTestLensRuntimeNames {
     public static final String LEGACY_TYPE_HINT_RESOURCE = LEGACY_SELENIUM_RESOURCE_ROOT + "type-hint.js";
     public static final String SCROLL_ARROW_RESOURCE = RUNTIME_RESOURCE_ROOT + "scroll-arrow.js";
     public static final String LEGACY_SCROLL_ARROW_RESOURCE = LEGACY_SELENIUM_RESOURCE_ROOT + "scroll-arrow.js";
+    public static final String HUD_PANEL_RESOURCE = RUNTIME_RESOURCE_ROOT + "hud-panel.js";
+    public static final String LEGACY_HUD_PANEL_RESOURCE = LEGACY_SELENIUM_RESOURCE_ROOT + "hud-panel.js";
 
     private UiTestLensRuntimeNames() {}
 

@@ -77,6 +77,18 @@ class JsResourcesTest {
     }
 
     @Test
+    void readFirstExistingReturnsHudPanelResourceContent() {
+        String script = JsResources.readFirstExisting(
+                "uitestlens/runtime/hud-panel.js",
+                "missing/legacy.js"
+        );
+
+        assertTrue(script.contains("__uiTestLens"));
+        assertTrue(script.contains("modules.hud"));
+        assertTrue(script.contains("setStep"));
+    }
+
+    @Test
     void readFirstExistingFallsBackToLegacyPath() {
         assertDoesNotThrow(() -> JsResources.readFirstExisting(
                 "missing/preferred.js",
