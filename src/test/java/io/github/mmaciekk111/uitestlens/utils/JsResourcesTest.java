@@ -41,6 +41,18 @@ class JsResourcesTest {
     }
 
     @Test
+    void readFirstExistingReturnsHighlightResourceContent() {
+        String script = JsResources.readFirstExisting(
+                "uitestlens/runtime/highlight.js",
+                "missing/legacy.js"
+        );
+
+        assertTrue(script.contains("__uiTestLens"));
+        assertTrue(script.contains("modules.highlight"));
+        assertTrue(script.contains("element: element"));
+    }
+
+    @Test
     void readFirstExistingFallsBackToLegacyPath() {
         assertDoesNotThrow(() -> JsResources.readFirstExisting(
                 "missing/preferred.js",

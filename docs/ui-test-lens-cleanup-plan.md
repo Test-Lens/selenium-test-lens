@@ -187,10 +187,35 @@ Dla kompatybilnosci pozostaja aliasy:
 - `window.__seleniumLastWaitMessage`,
 - `window.__seleniumLastWaitElapsedMs`.
 
+## Highlight JavaScript extraction
+
+Trzeci fragment runtime JS zostal przeniesiony do realnego resource file:
+
+```text
+src/main/resources/uitestlens/runtime/highlight.js
+```
+
+Loader `HighlightJs` preferuje teraz:
+
+```text
+uitestlens/runtime/highlight.js
+```
+
+i zachowuje legacy fallback:
+
+```text
+selenium/highlight.js
+```
+
+Highlight runtime rejestruje sie pod primary namespace `window.__uiTestLens.modules.highlight`.
+Warstwa JS nadal uzywa kompatybilnego overlay root:
+
+- primary state: `window.__uiTestLens.state.overlay.root`,
+- legacy alias: `window.__seleniumOverlayRoot`.
+
 Kolejne fragmenty inline JS do ekstrakcji:
 
 - HUD panel,
-- highlight,
 - scroll arrow,
 - visual assertion badges.
 

@@ -3,6 +3,7 @@ package io.github.mmaciekk111.uitestlens.actions;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import io.github.mmaciekk111.uitestlens.OverlayConfig;
+import io.github.mmaciekk111.uitestlens.core.HighlightJs;
 import io.github.mmaciekk111.uitestlens.core.OverlayLogger;
 import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
 import io.github.mmaciekk111.uitestlens.core.logging.TargetDescriptor;
@@ -57,59 +58,8 @@ public class HighlightActions {
 
         // 1) ZAWSZE dekoruj overlay (bez klikania w JS)
         js.executeScript(
-                "var target = arguments[0];" +
-                        "var label = arguments[1];" +
-                        "var duration = arguments[2];" +
-                        "var highlightColor = arguments[3];" +
-                        "if (!target || !target.getBoundingClientRect) return;" +
-                        "var shadow = window.__seleniumOverlayRoot;" +
-                        "if (!shadow) return;" +
-
-                        "var container = document.createElement('div');" +
-                        "container.className = 'selenium-overlay-highlight';" +
-                        "container.style.position = 'fixed';" +
-                        "container.style.border = '2px solid ' + (highlightColor || '#ffeb3b');" +
-                        "container.style.borderRadius = '4px';" +
-                        "container.style.boxSizing = 'border-box';" +
-                        "container.style.pointerEvents = 'none';" +
-                        "container.style.zIndex = '2147483647';" +
-
-                        "var badge = document.createElement('div');" +
-                        "badge.textContent = label || '';" +
-                        "badge.style.position = 'absolute';" +
-                        "badge.style.top = '-18px';" +
-                        "badge.style.left = '0';" +
-                        "badge.style.padding = '2px 6px';" +
-                        "badge.style.fontSize = '10px';" +
-                        "badge.style.background = (highlightColor || '#ffeb3b');" +
-                        "badge.style.color = '#000';" +
-                        "badge.style.borderRadius = '3px';" +
-                        "badge.style.whiteSpace = 'nowrap';" +
-                        "container.appendChild(badge);" +
-                        "shadow.appendChild(container);" +
-
-                        "function update() {" +
-                        "  try {" +
-                        "    if (!document.body.contains(target)) return;" +
-                        "    var rect = target.getBoundingClientRect();" +
-                        "    container.style.left = rect.left + 'px';" +
-                        "    container.style.top = rect.top + 'px';" +
-                        "    container.style.width = rect.width + 'px';" +
-                        "    container.style.height = rect.height + 'px';" +
-                        "  } catch(e) {}" +
-                        "}" +
-
-                        "function onScroll(){ update(); }" +
-                        "function cleanup(){" +
-                        "  window.removeEventListener('scroll', onScroll, true);" +
-                        "  window.removeEventListener('resize', onScroll, true);" +
-                        "  if (container && container.parentNode) container.parentNode.removeChild(container);" +
-                        "}" +
-
-                        "window.addEventListener('scroll', onScroll, true);" +
-                        "window.addEventListener('resize', onScroll, true);" +
-                        "update();" +
-                        "setTimeout(cleanup, duration);",
+                HighlightJs.INIT +
+                        "return window.__uiTestLens.modules.highlight.element(arguments[0], arguments[1], { duration: arguments[2], color: arguments[3] });",
                 element, label, duration, color
         );
         emitHighlight("highlightClick", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null);
@@ -191,74 +141,9 @@ public class HighlightActions {
         String color = config.getHighlightColor();
 
         js.executeScript(
-                "var el = arguments[0];" +
-                        "var label = arguments[1];" +
-                        "var levels = arguments[2] || 1;" +
-                        "var duration = arguments[3];" +
-                        "var highlightColor = arguments[4];" +
-                        "if (!el) return;" +
-
-                        // szukamy rodzica
-                        "while (levels > 0 && el && el.parentElement) {" +
-                        "  el = el.parentElement;" +
-                        "  levels--;" +
-                        "}" +
-                        "var target = el;" +
-                        "if (!target || !target.getBoundingClientRect) return;" +
-
-                        "var shadow = window.__seleniumOverlayRoot;" +
-                        "if (!shadow) return;" +
-
-                        "var container = document.createElement('div');" +
-                        "container.className = 'selenium-overlay-highlight-parent';" +
-                        "container.style.position = 'fixed';" +
-                        "container.style.border = '2px solid ' + (highlightColor || '#ffeb3b');" +
-                        "container.style.borderRadius = '4px';" +
-                        "container.style.boxSizing = 'border-box';" +
-                        "container.style.pointerEvents = 'none';" +
-                        "container.style.zIndex = '2147483647';" +
-
-                        "var badge = document.createElement('div');" +
-                        "badge.textContent = label || '';" +
-                        "badge.style.position = 'absolute';" +
-                        "badge.style.top = '-18px';" +
-                        "badge.style.left = '0';" +
-                        "badge.style.padding = '2px 6px';" +
-                        "badge.style.fontSize = '10px';" +
-                        "badge.style.background = (highlightColor || '#ffeb3b');" +
-                        "badge.style.color = '#000';" +
-                        "badge.style.borderRadius = '3px';" +
-                        "badge.style.whiteSpace = 'nowrap';" +
-                        "container.appendChild(badge);" +
-
-                        "shadow.appendChild(container);" +
-
-                        "function update() {" +
-                        "  if (!document.body.contains(target)) { return; }" +
-                        "  var rect = target.getBoundingClientRect();" +
-                        "  container.style.left = rect.left + 'px';" +
-                        "  container.style.top = rect.top + 'px';" +
-                        "  container.style.width = rect.width + 'px';" +
-                        "  container.style.height = rect.height + 'px';" +
-                        "}" +
-
-                        "function onScroll() {" +
-                        "  update();" +
-                        "}" +
-
-                        "function cleanup() {" +
-                        "  window.removeEventListener('scroll', onScroll, true);" +
-                        "  window.removeEventListener('resize', onScroll, true);" +
-                        "  if (container && container.parentNode) {" +
-                        "    container.parentNode.removeChild(container);" +
-                        "  }" +
-                        "}" +
-
-                        "window.addEventListener('scroll', onScroll, true);" +
-                        "window.addEventListener('resize', onScroll, true);" +
-                        "update();" +
-                        "setTimeout(cleanup, duration);",
-                element, label, levelsUp, duration, color
+                HighlightJs.INIT +
+                        "return window.__uiTestLens.modules.highlight.parent(arguments[0], arguments[1], arguments[2], { duration: arguments[3], color: arguments[4] });",
+                element, levelsUp, label, duration, color
         );
         emitHighlight("highlightParent", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null);
     }
@@ -276,79 +161,9 @@ public class HighlightActions {
         String color = config.getHighlightColor();
 
         js.executeScript(
-                "var el = arguments[0];" +
-                        "var label = arguments[1];" +
-                        "var selector = arguments[2];" +
-                        "var duration = arguments[3];" +
-                        "var highlightColor = arguments[4];" +
-                        "if (!el || !selector) return;" +
-
-                        "var target = null;" +
-                        "if (el.closest) {" +
-                        "  target = el.closest(selector);" +
-                        "} else {" +
-                        "  var node = el;" +
-                        "  while (node && node !== document.body) {" +
-                        "    if (node.matches && node.matches(selector)) { target = node; break; }" +
-                        "    node = node.parentElement;" +
-                        "  }" +
-                        "}" +
-
-                        "if (!target || !target.getBoundingClientRect) return;" +
-
-                        "var shadow = window.__seleniumOverlayRoot;" +
-                        "if (!shadow) return;" +
-
-                        "var container = document.createElement('div');" +
-                        "container.className = 'selenium-overlay-highlight-closest';" +
-                        "container.style.position = 'fixed';" +
-                        "container.style.border = '2px solid ' + (highlightColor || '#ffeb3b');" +
-                        "container.style.borderRadius = '4px';" +
-                        "container.style.boxSizing = 'border-box';" +
-                        "container.style.pointerEvents = 'none';" +
-                        "container.style.zIndex = '2147483647';" +
-
-                        "var badge = document.createElement('div');" +
-                        "badge.textContent = label || '';" +
-                        "badge.style.position = 'absolute';" +
-                        "badge.style.top = '-18px';" +
-                        "badge.style.left = '0';" +
-                        "badge.style.padding = '2px 6px';" +
-                        "badge.style.fontSize = '10px';" +
-                        "badge.style.background = (highlightColor || '#ffeb3b');" +
-                        "badge.style.color = '#000';" +
-                        "badge.style.borderRadius = '3px';" +
-                        "badge.style.whiteSpace = 'nowrap';" +
-                        "container.appendChild(badge);" +
-
-                        "shadow.appendChild(container);" +
-
-                        "function update() {" +
-                        "  if (!document.body.contains(target)) { return; }" +
-                        "  var rect = target.getBoundingClientRect();" +
-                        "  container.style.left = rect.left + 'px';" +
-                        "  container.style.top = rect.top + 'px';" +
-                        "  container.style.width = rect.width + 'px';" +
-                        "  container.style.height = rect.height + 'px';" +
-                        "}" +
-
-                        "function onScroll() {" +
-                        "  update();" +
-                        "}" +
-
-                        "function cleanup() {" +
-                        "  window.removeEventListener('scroll', onScroll, true);" +
-                        "  window.removeEventListener('resize', onScroll, true);" +
-                        "  if (container && container.parentNode) {" +
-                        "    container.parentNode.removeChild(container);" +
-                        "  }" +
-                        "}" +
-
-                        "window.addEventListener('scroll', onScroll, true);" +
-                        "window.addEventListener('resize', onScroll, true);" +
-                        "update();" +
-                        "setTimeout(cleanup, duration);",
-                element, label, cssSelector, duration, color
+                HighlightJs.INIT +
+                        "return window.__uiTestLens.modules.highlight.closest(arguments[0], arguments[1], arguments[2], { duration: arguments[3], color: arguments[4] });",
+                element, cssSelector, label, duration, color
         );
         emitHighlight("highlightClosest", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null);
     }
