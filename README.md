@@ -201,7 +201,9 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 ## Current Limitations
 
 - Runtime JavaScript still keeps legacy `window.__selenium...` aliases for compatibility.
-- Some JavaScript is still inline or loaded through legacy `selenium/...` resource fallbacks.
+- API overlay JavaScript is loaded from `src/main/resources/uitestlens/runtime/api-overlay.js`.
+- Legacy `selenium/api-overlay.js` remains a loader fallback for compatibility.
+- Wait HUD, HUD panel, highlight, scroll arrow, and visual assertion badge JavaScript still need extraction from inline Java strings.
 - API is not final.
 - No multi-module split yet.
 - No Maven Central publication yet.
@@ -212,12 +214,13 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 ## Roadmap
 
 1. Extract remaining inline runtime JavaScript into `uitestlens/runtime/` resources.
-2. Split into `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`.
-3. Selenium `WebDriverListener` adapter.
-4. Selenide adapter.
-5. Allure/TeamCity exporters and adapters.
-6. HTML report improvements.
-7. Maven publication.
+2. Extract wait HUD, HUD panel, highlight, scroll arrow, and visual assertion badge JavaScript.
+3. Split into `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`.
+4. Selenium `WebDriverListener` adapter.
+5. Selenide adapter.
+6. Allure/TeamCity exporters and adapters.
+7. HTML report improvements.
+8. Maven publication.
 
 ## Development
 

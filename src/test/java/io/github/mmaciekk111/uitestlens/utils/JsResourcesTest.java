@@ -3,6 +3,7 @@ package io.github.mmaciekk111.uitestlens.utils;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JsResourcesTest {
@@ -10,9 +11,21 @@ class JsResourcesTest {
     @Test
     void readFirstExistingUsesPreferredPathWhenPresent() {
         assertDoesNotThrow(() -> JsResources.readFirstExisting(
-                "uitestlens/runtime/.gitkeep",
+                "uitestlens/runtime/api-overlay.js",
                 "missing/legacy.js"
         ));
+    }
+
+    @Test
+    void readFirstExistingReturnsApiOverlayResourceContent() {
+        String script = JsResources.readFirstExisting(
+                "uitestlens/runtime/api-overlay.js",
+                "missing/legacy.js"
+        );
+
+        assertTrue(script.contains("__uiTestLens"));
+        assertTrue(script.contains("__seleniumApiModal"));
+        assertTrue(script.contains("showRequest"));
     }
 
     @Test

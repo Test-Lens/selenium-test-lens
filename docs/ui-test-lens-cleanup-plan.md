@@ -137,6 +137,37 @@ Wykonano kompatybilny etap migracji runtime:
 
 Nie wykonano jeszcze pelnego przeniesienia wszystkich inline JS do plikow resources.
 
+## API overlay JavaScript extraction
+
+Pierwszy fragment runtime JS zostal przeniesiony do realnego resource file:
+
+```text
+src/main/resources/uitestlens/runtime/api-overlay.js
+```
+
+Loader `ApiOverlayJs` preferuje teraz:
+
+```text
+uitestlens/runtime/api-overlay.js
+```
+
+i zachowuje legacy fallback:
+
+```text
+selenium/api-overlay.js
+```
+
+API overlay rejestruje sie pod primary namespace `window.__uiTestLens.modules.apiOverlay`.
+Dla kompatybilnosci pozostaje alias `window.__seleniumApiModal`, poniewaz obecne klasy Java nadal korzystaja z tego globalnego mostka.
+
+Kolejne fragmenty inline JS do ekstrakcji:
+
+- wait HUD,
+- HUD panel,
+- highlight,
+- scroll arrow,
+- visual assertion badges.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:

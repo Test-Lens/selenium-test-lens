@@ -11,6 +11,7 @@ public final class ApiOverlayJs {
                             UiTestLensRuntimeNames.API_OVERLAY_RESOURCE,
                             UiTestLensRuntimeNames.LEGACY_API_OVERLAY_RESOURCE
                     ) +
-                    "if (window.__seleniumApiModal) { window.__uiTestLens.modules.apiModal = window.__seleniumApiModal; }" +
-                    "if (window.__uiTestLens.modules.apiModal) { window.__seleniumApiModal = window.__uiTestLens.modules.apiModal; }";
+                    "if (window.__uiTestLens.modules.apiOverlay) { window.__uiTestLens.modules.apiModal = window.__uiTestLens.modules.apiOverlay; }" +
+                    "if (window.__seleniumApiModal) { window.__uiTestLens.modules.apiOverlay = window.__seleniumApiModal; window.__uiTestLens.modules.apiModal = window.__seleniumApiModal; }" +
+                    "if (window.__uiTestLens.modules.apiOverlay) { window.__seleniumApiModal = window.__uiTestLens.modules.apiOverlay; }";
 }
