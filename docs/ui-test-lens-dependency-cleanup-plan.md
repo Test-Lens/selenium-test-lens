@@ -254,3 +254,29 @@ Docelowo:
 - `OverlayWait` ma już odcięty prywatny logger, ale nadal powinien docelowo emitować eventy zamiast pisać bezpośrednio do HUD/loggera.
 - `Guards` ma neutralny logger, ale powinien docelowo emitować `guard.tripped`.
 - Runtime JS nadal używa historycznych nazw `window.__selenium...`; namespace `window.__uiTestLens` jest odłożony na późniejszy etap.
+
+## Stage 4: Minimal logging model
+
+Dodano minimalny model logowania/event-busa w `utils.jsExecHelper.core.logging`:
+
+- `UiTestLensLogger`,
+- `UiTestLensLogEntry`,
+- `UiTestLensLogSink`,
+- `UiTestLensLogLevel`,
+- `UiTestLensEventType`,
+- `UiTestLensStatus`,
+- `TargetDescriptor`,
+- `InMemoryLogSink`,
+- `ConsoleLogSink`,
+- `ConsumerLogSink`.
+
+`OverlayLogger` nie jest już osobnym systemem logowania. Został uproszczony do internal bridge, który deleguje do `UiTestLensLogger`.
+
+Decyzje:
+
+- nie dodano SLF4J do core,
+- nie dodano prywatnych loggerów projektowych,
+- `ConsoleLogSink` jest opt-in i jako jedyny element core może pisać do `System.out`/`System.err`,
+- HUD, Allure, TeamCity, eksportery i projektowe loggery powinny być później sinkami albo adapterami.
+
+Szczegóły są w `docs/ui-test-lens-logging-model.md`.
