@@ -103,7 +103,7 @@ public final class JsOverlayDebug {
         this.pageWaits = new PageWaits(driver, config);
         this.popupDetector = new PopupDetector(driver, config, rootManager, highlightActions);
         this.scrollActions = new ScrollActions(driver, config, rootManager, this.logger);
-        this.assertActions = new AssertActions(driver, rootManager, config, hudPanel);
+        this.assertActions = new AssertActions(driver, rootManager, config, hudPanel, this.logger);
         this.targetResolverActions = new TargetResolverActions(driver, this.logger);
     }
 
@@ -1264,6 +1264,7 @@ public final class JsOverlayDebug {
         SoftAssertions soft = new SoftAssertions(assertActions, summary, null);
 
         consumer.accept(soft);
+        emitAssertionSummary(summary, false);
 
         if (failTestOnErrors && summary.hasFailures()) {
             throw new AssertionError(summary.formatForException());
@@ -1285,12 +1286,33 @@ public final class JsOverlayDebug {
         SoftAssertions soft = new SoftAssertions(assertActions, summary, reactSafeExecutor);
 
         consumer.accept(soft);
+        emitAssertionSummary(summary, true);
 
         if (failTestOnErrors && summary.hasFailures()) {
             throw new AssertionError(summary.formatForException());
         }
 
         return summary;
+    }
+
+    private void emitAssertionSummary(AssertionSummary summary, boolean reactSafe) {
+        if (summary == null) return;
+        int total = summary.getAllResults().size();
+        int failed = summary.getFailuresObjects().size();
+        int passed = Math.max(0, total - failed);
+        emit(UiTestLensLogEntry.builder()
+                .level(failed > 0 ? UiTestLensLogLevel.WARN : UiTestLensLogLevel.INFO)
+                .eventType(UiTestLensEventType.ASSERTION)
+                .status(failed > 0 ? UiTestLensStatus.FAILED : UiTestLensStatus.PASSED)
+                .message("Assertion group " + safeString(summary.getGroupName()) + " total=" + total + " failed=" + failed)
+                .action("assertGroup")
+                .metadata("groupName", safeString(summary.getGroupName()))
+                .metadata("total", String.valueOf(total))
+                .metadata("passed", String.valueOf(passed))
+                .metadata("failed", String.valueOf(failed))
+                .metadata("soft", "true")
+                .metadata("reactSafe", String.valueOf(reactSafe))
+                .build());
     }
 
     // ======================================================================

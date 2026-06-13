@@ -4,7 +4,13 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import utils.jsExecHelper.OverlayConfig;
+import utils.jsExecHelper.core.OverlayLogger;
 import utils.jsExecHelper.core.OverlayRootManager;
+import utils.jsExecHelper.core.logging.TargetDescriptor;
+import utils.jsExecHelper.core.logging.UiTestLensEventType;
+import utils.jsExecHelper.core.logging.UiTestLensLogEntry;
+import utils.jsExecHelper.core.logging.UiTestLensLogLevel;
+import utils.jsExecHelper.core.logging.UiTestLensStatus;
 import utils.jsExecHelper.hud.HudPanel;
 
 import java.util.Objects;
@@ -16,11 +22,20 @@ public class AssertActions {
     private final OverlayRootManager rootManager;
     private final OverlayConfig config;
     private final HudPanel hudPanel;
+    private final OverlayLogger logger;
 
     public AssertActions(WebDriver driver,
                          OverlayRootManager rootManager,
                          OverlayConfig config,
                          HudPanel hudPanel) {
+        this(driver, rootManager, config, hudPanel, OverlayLogger.noop());
+    }
+
+    public AssertActions(WebDriver driver,
+                         OverlayRootManager rootManager,
+                         OverlayConfig config,
+                         HudPanel hudPanel,
+                         OverlayLogger logger) {
         if (!(driver instanceof JavascriptExecutor)) {
             throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
         }
@@ -28,6 +43,7 @@ public class AssertActions {
         this.rootManager = rootManager;
         this.config = config;
         this.hudPanel = hudPanel;
+        this.logger = logger != null ? logger : OverlayLogger.noop();
     }
 
     // ========== PUBLIC ASSERTIONS ==========
@@ -466,7 +482,7 @@ public class AssertActions {
         String msg = "[ASSERT FAIL] " + safe(context) +
                 " | element == null, expected='" + safe(expected) + "'";
         hudUpdate(msg);
-        return new OverlayAssertionResult(
+        OverlayAssertionResult result = new OverlayAssertionResult(
                 false,
                 type,
                 safe(context),
@@ -475,6 +491,8 @@ public class AssertActions {
                 msg,
                 System.currentTimeMillis()
         );
+        emitAssertion(result, false);
+        return result;
     }
 
     private OverlayAssertionResult buildResult(boolean ok,
@@ -489,7 +507,7 @@ public class AssertActions {
                 safe(expected),
                 safe(actual)
         );
-        return new OverlayAssertionResult(
+        OverlayAssertionResult result = new OverlayAssertionResult(
                 ok,
                 type,
                 safe(context),
@@ -498,6 +516,35 @@ public class AssertActions {
                 msg,
                 System.currentTimeMillis()
         );
+        emitAssertion(result, true);
+        return result;
+    }
+
+    private void emitAssertion(OverlayAssertionResult result, boolean badge) {
+        if (result == null) return;
+        try {
+            logger.emit(UiTestLensLogEntry.builder()
+                    .level(result.isSuccess() ? UiTestLensLogLevel.INFO : UiTestLensLogLevel.WARN)
+                    .eventType(UiTestLensEventType.ASSERTION)
+                    .status(result.isSuccess() ? UiTestLensStatus.PASSED : UiTestLensStatus.FAILED)
+                    .message(result.getMessage())
+                    .action("assert")
+                    .target(TargetDescriptor.label(result.getContext()))
+                    .metadata("assertionName", truncate(result.getAssertionType()))
+                    .metadata("expected", truncate(result.getExpected()))
+                    .metadata("actual", truncate(result.getActual()))
+                    .metadata("label", truncate(result.getContext()))
+                    .metadata("badge", String.valueOf(badge))
+                    .build());
+        } catch (Exception ignored) {}
+    }
+
+    private static String truncate(String value) {
+        if (value == null) {
+            return "";
+        }
+        int max = 500;
+        return value.length() <= max ? value : value.substring(0, max) + "...";
     }
 
     private void drawOverlayBadge(WebElement element, boolean ok) {

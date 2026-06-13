@@ -182,6 +182,49 @@ Podpięte klasy:
 
 `AssertActions` nie został w tym etapie przebudowany. Ma własny model `OverlayAssertionResult` i powinien dostać osobny etap dla pełnego modelu `ASSERTION`.
 
+## Stage: Assertion and visual check event instrumentation
+
+`AssertActions` został minimalnie podpięty do loggera/event-busa bez zmiany semantyki asercji i bez dodawania JUnit/TestNG/AssertJ. Stary konstruktor został zachowany, a nowy overload przyjmuje `OverlayLogger`. `JsOverlayDebug` przekazuje do `AssertActions` ten sam logger, którego używają pozostałe akcje.
+
+Eventy emitują teraz wszystkie metody, które budują `OverlayAssertionResult`, w tym:
+
+- text equals / contains,
+- modified text equals / contains,
+- attribute / CSS / color equals,
+- class / visibility / enabled / selected checks,
+- generic equals / notEquals / contains / notContains / true / false,
+- null-element failure path.
+
+Statusy:
+
+- sukces: `ASSERTION` / `PASSED`,
+- porażka: `ASSERTION` / `FAILED`,
+- summary grupy z błędami: `ASSERTION` / `FAILED`,
+- summary grupy bez błędów: `ASSERTION` / `PASSED`.
+
+Metadata assertion eventów zawiera:
+
+- `assertionName`,
+- `expected`,
+- `actual`,
+- `label`,
+- `badge`.
+
+`expected` i `actual` są przycinane do 500 znaków. Nie zmienia to treści `OverlayAssertionResult`, komunikatów HUD ani wyjątków downstream; truncation dotyczy tylko event metadata.
+
+`assertGroup(...)` i `assertGroupReactSafe(...)` emitują summary event po wykonaniu consumerów. Metadata summary zawiera `groupName`, `total`, `passed`, `failed`, `soft=true` i `reactSafe`.
+
+`OverlayAssertionResult` pozostał w obecnym miejscu. Docelowo powinien zostać przeanalizowany jako kandydat do przyszłego `ui-test-lens-assertions` albo `ui-test-lens-overlay`.
+
+Na później zostają:
+
+- pełny moduł `ui-test-lens-assertions`,
+- integracje JUnit/TestNG/AssertJ,
+- private adapter `ContentIssueCollector`,
+- eksport raportu assertion/checks,
+- lepszy model `OverlayAssertionResult`,
+- dokładniejsze oznaczanie, które assertion eventy fizycznie narysowały badge.
+
 Na później zostają:
 
 - Selenium `WebDriverListener`,

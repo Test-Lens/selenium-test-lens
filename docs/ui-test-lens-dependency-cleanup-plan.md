@@ -320,3 +320,23 @@ Celowo odłożono:
 - adaptery Selenide/Allure/TeamCity,
 - pełny opis targetu Selenium,
 - eksportery logów.
+
+## Stage 7: Instrument visual assertions with logging events
+
+`AssertActions` został podpięty do `OverlayLogger` bez nowych zależności i bez zmiany publicznych metod asercji.
+
+Wykonano:
+
+- dodano overload konstruktora `AssertActions` z `OverlayLogger`,
+- `JsOverlayDebug` przekazuje ten sam logger do `AssertActions`,
+- centralne tworzenie `OverlayAssertionResult` emituje eventy `ASSERTION/PASSED` albo `ASSERTION/FAILED`,
+- `assertGroup(...)` i `assertGroupReactSafe(...)` emitują summary eventy grupy,
+- metadata `expected` i `actual` jest przycinana do 500 znaków tylko na potrzeby eventów.
+
+Odłożono:
+
+- osobny artifact `ui-test-lens-assertions`,
+- integracje JUnit/TestNG/AssertJ,
+- adapter `ContentIssueCollector`,
+- eksport assertion report,
+- przeniesienie lub rename `OverlayAssertionResult`.
