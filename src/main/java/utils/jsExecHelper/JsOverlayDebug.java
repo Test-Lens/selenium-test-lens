@@ -95,16 +95,16 @@ public final class JsOverlayDebug {
         this.config = config;
 
         this.rootManager = new OverlayRootManager(driver, config);
-        this.highlightActions = new HighlightActions(driver, rootManager, config);
-        this.typingActions = new TypingActions(driver, rootManager, config);
-        this.smartClickActions = new SmartClickActions(driver, config, rootManager, highlightActions);
-        this.smartInputActions = new SmartInputActions(driver, config, rootManager, typingActions);
+        this.highlightActions = new HighlightActions(driver, rootManager, config, this.logger);
+        this.typingActions = new TypingActions(driver, rootManager, config, this.logger);
+        this.smartClickActions = new SmartClickActions(driver, config, rootManager, highlightActions, this.logger);
+        this.smartInputActions = new SmartInputActions(driver, config, rootManager, typingActions, this.logger);
         this.hudPanel = new HudPanel(driver, rootManager, config);
         this.pageWaits = new PageWaits(driver, config);
         this.popupDetector = new PopupDetector(driver, config, rootManager, highlightActions);
-        this.scrollActions = new ScrollActions(driver, config, rootManager);
+        this.scrollActions = new ScrollActions(driver, config, rootManager, this.logger);
         this.assertActions = new AssertActions(driver, rootManager, config, hudPanel);
-        this.targetResolverActions = new TargetResolverActions(driver);
+        this.targetResolverActions = new TargetResolverActions(driver, this.logger);
     }
 
     // ======================================================================
@@ -1342,17 +1342,57 @@ public final class JsOverlayDebug {
      * - send file path via sendKeys(path).
      */
     public void smartUploadFile(WebElement containerOrLabel, String absoluteFilePath) {
+        emit(UiTestLensLogEntry.builder()
+                .level(UiTestLensLogLevel.INFO)
+                .eventType(UiTestLensEventType.ACTION)
+                .status(UiTestLensStatus.STARTED)
+                .message("Upload file action started")
+                .action("upload")
+                .metadata("method", "smartUploadFile")
+                .metadata("pathLength", absoluteFilePath == null ? "0" : String.valueOf(absoluteFilePath.length()))
+                .build());
         WebElement fileInput = resolveFileInputTarget(containerOrLabel);
         if (fileInput == null) {
             if (config.isShowHudPanel()) {
                 hudPanel.updateStep("smartUploadFile: file input not found for given element");
             }
+            emit(UiTestLensLogEntry.builder()
+                    .level(UiTestLensLogLevel.WARN)
+                    .eventType(UiTestLensEventType.ERROR)
+                    .status(UiTestLensStatus.FAILED)
+                    .message("Upload file input not found")
+                    .action("upload")
+                    .metadata("method", "smartUploadFile")
+                    .build());
             return;
         }
-        highlightActions.highlightClick(fileInput, "UPLOAD");
-        fileInput.sendKeys(absoluteFilePath);
-        if (config.isShowHudPanel()) {
-            hudPanel.updateStep("File sent to <input type='file'>");
+        try {
+            highlightActions.highlightClick(fileInput, "UPLOAD");
+            fileInput.sendKeys(absoluteFilePath);
+            if (config.isShowHudPanel()) {
+                hudPanel.updateStep("File sent to <input type='file'>");
+            }
+            emit(UiTestLensLogEntry.builder()
+                    .level(UiTestLensLogLevel.INFO)
+                    .eventType(UiTestLensEventType.ACTION)
+                    .status(UiTestLensStatus.PASSED)
+                    .message("Upload file action passed")
+                    .action("upload")
+                    .metadata("method", "smartUploadFile")
+                    .metadata("pathLength", absoluteFilePath == null ? "0" : String.valueOf(absoluteFilePath.length()))
+                    .build());
+        } catch (RuntimeException e) {
+            emit(UiTestLensLogEntry.builder()
+                    .level(UiTestLensLogLevel.ERROR)
+                    .eventType(UiTestLensEventType.ERROR)
+                    .status(UiTestLensStatus.FAILED)
+                    .message("Upload file action failed")
+                    .action("upload")
+                    .metadata("method", "smartUploadFile")
+                    .metadata("pathLength", absoluteFilePath == null ? "0" : String.valueOf(absoluteFilePath.length()))
+                    .throwable(e)
+                    .build());
+            throw e;
         }
     }
 

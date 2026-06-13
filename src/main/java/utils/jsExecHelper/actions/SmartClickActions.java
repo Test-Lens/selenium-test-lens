@@ -2,7 +2,13 @@ package utils.jsExecHelper.actions;
 
 import utils.jsExecHelper.OverlayConfig;
 import utils.jsExecHelper.core.BlockingOverlayHelper;
+import utils.jsExecHelper.core.OverlayLogger;
 import utils.jsExecHelper.core.OverlayRootManager;
+import utils.jsExecHelper.core.logging.TargetDescriptor;
+import utils.jsExecHelper.core.logging.UiTestLensEventType;
+import utils.jsExecHelper.core.logging.UiTestLensLogEntry;
+import utils.jsExecHelper.core.logging.UiTestLensLogLevel;
+import utils.jsExecHelper.core.logging.UiTestLensStatus;
 import utils.jsExecHelper.react.ReactSafeExecutor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -17,11 +23,20 @@ public class SmartClickActions {
     private final OverlayConfig config;
     private final HighlightActions highlightActions;
     private final BlockingOverlayHelper blockingHelper;
+    private final OverlayLogger logger;
 
     public SmartClickActions(WebDriver driver,
                              OverlayConfig config,
                              OverlayRootManager rootManager,
                              HighlightActions highlightActions) {
+        this(driver, config, rootManager, highlightActions, OverlayLogger.noop());
+    }
+
+    public SmartClickActions(WebDriver driver,
+                             OverlayConfig config,
+                             OverlayRootManager rootManager,
+                             HighlightActions highlightActions,
+                             OverlayLogger logger) {
         if (!(driver instanceof JavascriptExecutor)) {
             throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
         }
@@ -30,6 +45,7 @@ public class SmartClickActions {
         this.config = config;
         this.highlightActions = highlightActions;
         this.blockingHelper = new BlockingOverlayHelper(driver, config, rootManager, highlightActions);
+        this.logger = logger != null ? logger : OverlayLogger.noop();
     }
 
     /**
@@ -40,6 +56,8 @@ public class SmartClickActions {
         if (target == null) {
             return;
         }
+        emitClick("clickWithOverlayHandling", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null, false, null, false);
+        try {
 
         // ✨ NAJPIERW spróbuj globalnie zamknąć znany overlay (np. cookies)
         blockingHelper.handleGlobalOverlayIfPresent("OVERLAY", "CLOSE");
@@ -50,6 +68,7 @@ public class SmartClickActions {
             } else {
                 target.click();
             }
+            emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, false, null, true);
             return;
         } catch (WebDriverException e) {
             if (!isClickInterceptError(e)) {
@@ -70,8 +89,14 @@ public class SmartClickActions {
             } else {
                 target.click();
             }
+            emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, true, "blockingOverlay", true);
         } else {
             target.click();
+            emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, true, "directRetry", false);
+        }
+        } catch (RuntimeException e) {
+            emitClick("clickWithOverlayHandling", label, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR, e, false, null, false);
+            throw e;
         }
     }
 
@@ -101,7 +126,9 @@ public class SmartClickActions {
                 locator,
                 "SMART_CLICK_REACT_SAFE: " + label,
                 element -> {
+                    emitClick("clickReactSafe", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null, false, null, false);
                     clickWithOverlayHandling(element, label);
+                    emitClick("clickReactSafe", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, false, null, true);
                     return null;
                 }
         );
@@ -114,5 +141,33 @@ public class SmartClickActions {
         return msg.contains("other element would receive the click")
                 || msg.contains("is not clickable at point")
                 || msg.contains("intercepted");
+    }
+
+    private void emitClick(String method,
+                           String label,
+                           UiTestLensStatus status,
+                           UiTestLensLogLevel level,
+                           Throwable throwable,
+                           boolean fallback,
+                           String fallbackType,
+                           boolean popupHandled) {
+        try {
+            UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder()
+                    .level(level)
+                    .eventType(status == UiTestLensStatus.FAILED ? UiTestLensEventType.ERROR : UiTestLensEventType.ACTION)
+                    .status(status)
+                    .message("Click action " + method + " " + status)
+                    .action(method)
+                    .target(TargetDescriptor.label(label))
+                    .metadata("method", method)
+                    .metadata("label", label == null ? "" : label)
+                    .metadata("fallback", String.valueOf(fallback))
+                    .metadata("popupHandled", String.valueOf(popupHandled))
+                    .throwable(throwable);
+            if (fallbackType != null) {
+                builder.metadata("fallbackType", fallbackType);
+            }
+            logger.emit(builder.build());
+        } catch (Exception ignored) {}
     }
 }

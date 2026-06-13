@@ -3,7 +3,13 @@ package utils.jsExecHelper.actions;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import utils.jsExecHelper.OverlayConfig;
+import utils.jsExecHelper.core.OverlayLogger;
 import utils.jsExecHelper.core.OverlayRootManager;
+import utils.jsExecHelper.core.logging.TargetDescriptor;
+import utils.jsExecHelper.core.logging.UiTestLensEventType;
+import utils.jsExecHelper.core.logging.UiTestLensLogEntry;
+import utils.jsExecHelper.core.logging.UiTestLensLogLevel;
+import utils.jsExecHelper.core.logging.UiTestLensStatus;
 
 public class HighlightActions {
 
@@ -11,10 +17,18 @@ public class HighlightActions {
         private final JavascriptExecutor js;
         private final OverlayRootManager rootManager;
         private final OverlayConfig config;
+        private final OverlayLogger logger;
 
         public HighlightActions(WebDriver driver,
                                 OverlayRootManager rootManager,
                                 OverlayConfig config) {
+            this(driver, rootManager, config, OverlayLogger.noop());
+        }
+
+        public HighlightActions(WebDriver driver,
+                                OverlayRootManager rootManager,
+                                OverlayConfig config,
+                                OverlayLogger logger) {
             if (driver == null) throw new IllegalArgumentException("driver must not be null");
             if (!(driver instanceof JavascriptExecutor)) {
                 throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
@@ -23,6 +37,7 @@ public class HighlightActions {
             this.js = (JavascriptExecutor) driver;
             this.rootManager = rootManager;
             this.config = config;
+            this.logger = logger != null ? logger : OverlayLogger.noop();
         }
 
     /**
@@ -35,6 +50,7 @@ public class HighlightActions {
     public void highlightClick(WebElement element, String label) {
         if (!config.isEnabled() || element == null) return;
 
+        emitHighlight("highlightClick", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null);
         rootManager.ensureRootExists();
         long duration = config.getDecorationDurationMs();
         String color = config.getHighlightColor();
@@ -96,10 +112,12 @@ public class HighlightActions {
                         "setTimeout(cleanup, duration);",
                 element, label, duration, color
         );
+        emitHighlight("highlightClick", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null);
 
         // 2) Klik: selenium -> fallback JS
         try {
             element.click();
+            emitAction("click", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, null, null);
             return;
         } catch (ElementNotInteractableException | StaleElementReferenceException e) {
             // fallback poniżej
@@ -136,17 +154,21 @@ public class HighlightActions {
         // 5) jeszcze jedna próba “normalnego” kliku (czasem po scrollu przechodzi)
         try {
             target.click();
+            emitAction("click", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, "true", "seleniumClickAfterScroll");
             return;
         } catch (Exception ignored) {}
 
         // 6) ostateczność: JS click
         try {
             js.executeScript("arguments[0].click();", target);
+            emitAction("click", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, "true", "jsClick");
         } catch (Exception ignored) {
             // 7) naprawdę last-last resort: Actions click (czasem pomaga)
             try {
                 new Actions(driver).moveToElement(target).click().perform();
+                emitAction("click", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, "true", "actionsClick");
             } catch (Exception ex) {
+                emitAction("click", label, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR, ex, "true", "actionsClick");
                 throw ex instanceof RuntimeException ? (RuntimeException) ex : new RuntimeException(ex);
             }
         }
@@ -163,6 +185,7 @@ public class HighlightActions {
         if (!config.isEnabled() || element == null) return;
         if (levelsUp < 1) levelsUp = 1;
 
+        emitHighlight("highlightParent", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null);
         rootManager.ensureRootExists();
         long duration = config.getDecorationDurationMs();
         String color = config.getHighlightColor();
@@ -237,6 +260,7 @@ public class HighlightActions {
                         "setTimeout(cleanup, duration);",
                 element, label, levelsUp, duration, color
         );
+        emitHighlight("highlightParent", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null);
     }
 
     /**
@@ -246,6 +270,7 @@ public class HighlightActions {
     public void highlightClosest(WebElement element, String cssSelector, String label) {
         if (!config.isEnabled() || element == null || cssSelector == null) return;
 
+        emitHighlight("highlightClosest", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null);
         rootManager.ensureRootExists();
         long duration = config.getDecorationDurationMs();
         String color = config.getHighlightColor();
@@ -325,5 +350,58 @@ public class HighlightActions {
                         "setTimeout(cleanup, duration);",
                 element, label, cssSelector, duration, color
         );
+        emitHighlight("highlightClosest", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null);
+    }
+
+    private void emitHighlight(String method,
+                               String label,
+                               UiTestLensStatus status,
+                               UiTestLensLogLevel level,
+                               Throwable throwable) {
+        try {
+            logger.emit(UiTestLensLogEntry.builder()
+                    .level(level)
+                    .eventType(status == UiTestLensStatus.FAILED ? UiTestLensEventType.ERROR : UiTestLensEventType.HIGHLIGHT)
+                    .status(status)
+                    .message("Highlight " + method + " " + status)
+                    .action(method)
+                    .target(TargetDescriptor.label(label))
+                    .metadata("method", method)
+                    .metadata("label", safe(label))
+                    .throwable(throwable)
+                    .build());
+        } catch (Exception ignored) {}
+    }
+
+    private void emitAction(String action,
+                            String label,
+                            UiTestLensStatus status,
+                            UiTestLensLogLevel level,
+                            Throwable throwable,
+                            String fallback,
+                            String fallbackType) {
+        try {
+            UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder()
+                    .level(level)
+                    .eventType(status == UiTestLensStatus.FAILED ? UiTestLensEventType.ERROR : UiTestLensEventType.ACTION)
+                    .status(status)
+                    .message("Action " + action + " " + status)
+                    .action(action)
+                    .target(TargetDescriptor.label(label))
+                    .metadata("method", action)
+                    .metadata("label", safe(label))
+                    .throwable(throwable);
+            if (fallback != null) {
+                builder.metadata("fallback", fallback);
+            }
+            if (fallbackType != null) {
+                builder.metadata("fallbackType", fallbackType);
+            }
+            logger.emit(builder.build());
+        } catch (Exception ignored) {}
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value;
     }
 }

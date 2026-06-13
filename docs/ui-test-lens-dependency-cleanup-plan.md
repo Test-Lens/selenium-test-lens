@@ -298,3 +298,25 @@ Decyzje odłożone:
 - highlight/actions nie emitują jeszcze kompletnego modelu action events,
 - adaptery SLF4J, Allure i TeamCity pozostają poza core,
 - docelowy namespace `window.__uiTestLens` nadal jest odłożony na osobny etap.
+
+## Stage 6: Instrument Selenium actions with logging events
+
+Event-bus został podpięty do głównych akcji Selenium/overlay bez nowych zależności i bez zmiany publicznej fasady:
+
+- `HighlightActions`,
+- `TypingActions`,
+- `SmartClickActions`,
+- `SmartInputActions`,
+- `ScrollActions`,
+- `TargetResolverActions`,
+- `JsOverlayDebug.smartUploadFile`.
+
+Stare konstruktory klas akcji zostały zachowane. Nowe overloady przyjmują `OverlayLogger`, a `JsOverlayDebug` przekazuje ten sam logger do tworzonych akcji.
+
+Celowo odłożono:
+
+- pełny model `ASSERTION` w `AssertActions`,
+- integrację przez `WebDriverListener`,
+- adaptery Selenide/Allure/TeamCity,
+- pełny opis targetu Selenium,
+- eksportery logów.

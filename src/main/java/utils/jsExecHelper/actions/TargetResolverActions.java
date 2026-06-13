@@ -3,6 +3,12 @@ package utils.jsExecHelper.actions;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import utils.jsExecHelper.core.OverlayLogger;
+import utils.jsExecHelper.core.logging.TargetDescriptor;
+import utils.jsExecHelper.core.logging.UiTestLensEventType;
+import utils.jsExecHelper.core.logging.UiTestLensLogEntry;
+import utils.jsExecHelper.core.logging.UiTestLensLogLevel;
+import utils.jsExecHelper.core.logging.UiTestLensStatus;
 
 /**
  * Szuka "prawdziwego" celu akcji na podstawie podanego elementu:
@@ -14,13 +20,19 @@ public class TargetResolverActions {
 
     private final WebDriver driver;
     private final JavascriptExecutor js;
+    private final OverlayLogger logger;
 
     public TargetResolverActions(WebDriver driver) {
+        this(driver, OverlayLogger.noop());
+    }
+
+    public TargetResolverActions(WebDriver driver, OverlayLogger logger) {
         if (!(driver instanceof JavascriptExecutor)) {
             throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
         }
         this.driver = driver;
         this.js = (JavascriptExecutor) driver;
+        this.logger = logger != null ? logger : OverlayLogger.noop();
     }
 
     /**
@@ -32,6 +44,7 @@ public class TargetResolverActions {
      */
     public WebElement resolveClickTarget(WebElement base) {
         if (base == null) {
+            emitResolve("resolveClickTarget", null, false);
             return null;
         }
 
@@ -97,8 +110,10 @@ public class TargetResolverActions {
         );
 
         if (result instanceof WebElement) {
+            emitResolve("resolveClickTarget", null, true);
             return (WebElement) result;
         }
+        emitResolve("resolveClickTarget", null, true);
         return base;
     }
 
@@ -111,6 +126,7 @@ public class TargetResolverActions {
      */
     public WebElement resolveFileInputTarget(WebElement base) {
         if (base == null) {
+            emitResolve("resolveFileInputTarget", null, false);
             return null;
         }
 
@@ -164,8 +180,10 @@ public class TargetResolverActions {
         );
 
         if (result instanceof WebElement) {
+            emitResolve("resolveFileInputTarget", null, true);
             return (WebElement) result;
         }
+        emitResolve("resolveFileInputTarget", null, false);
         return null;
     }
 
@@ -202,12 +220,32 @@ public class TargetResolverActions {
     /** Selektor CSS dla targetu kliknięcia (albo null). */
     public String resolveClickTargetSelector(WebElement base) {
         WebElement target = resolveClickTarget(base);
-        return (target != null) ? buildCssSelector(target) : null;
+        String selector = (target != null) ? buildCssSelector(target) : null;
+        emitResolve("resolveClickTargetSelector", selector, selector != null);
+        return selector;
     }
 
     /** Selektor CSS dla input[type=file] powiązanego z base (albo null). */
     public String resolveFileInputSelector(WebElement base) {
         WebElement target = resolveFileInputTarget(base);
-        return (target != null) ? buildCssSelector(target) : null;
+        String selector = (target != null) ? buildCssSelector(target) : null;
+        emitResolve("resolveFileInputSelector", selector, selector != null);
+        return selector;
+    }
+
+    private void emitResolve(String method, String selector, boolean resolved) {
+        try {
+            logger.emit(UiTestLensLogEntry.builder()
+                    .level(resolved ? UiTestLensLogLevel.DEBUG : UiTestLensLogLevel.WARN)
+                    .eventType(resolved ? UiTestLensEventType.ACTION : UiTestLensEventType.ERROR)
+                    .status(resolved ? UiTestLensStatus.PASSED : UiTestLensStatus.FAILED)
+                    .message("Target resolver " + method + " " + (resolved ? "resolved" : "not resolved"))
+                    .action(method)
+                    .target(selector == null ? TargetDescriptor.none() : TargetDescriptor.selector(selector))
+                    .metadata("method", method)
+                    .metadata("selector", selector == null ? "" : selector)
+                    .metadata("resolved", String.valueOf(resolved))
+                    .build());
+        } catch (Exception ignored) {}
     }
 }

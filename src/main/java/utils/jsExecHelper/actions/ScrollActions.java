@@ -1,7 +1,13 @@
 package utils.jsExecHelper.actions;
 
 import utils.jsExecHelper.OverlayConfig;
+import utils.jsExecHelper.core.OverlayLogger;
 import utils.jsExecHelper.core.OverlayRootManager;
+import utils.jsExecHelper.core.logging.TargetDescriptor;
+import utils.jsExecHelper.core.logging.UiTestLensEventType;
+import utils.jsExecHelper.core.logging.UiTestLensLogEntry;
+import utils.jsExecHelper.core.logging.UiTestLensLogLevel;
+import utils.jsExecHelper.core.logging.UiTestLensStatus;
 import utils.jsExecHelper.scroll.ScrollElementEdge;
 import utils.jsExecHelper.scroll.ScrollViewportEdge;
 import org.openqa.selenium.JavascriptExecutor;
@@ -21,16 +27,25 @@ public class ScrollActions {
     private final JavascriptExecutor js;
     private final OverlayConfig config;
     private final OverlayRootManager rootManager;
+    private final OverlayLogger logger;
 
     public ScrollActions(WebDriver driver,
                          OverlayConfig config,
                          OverlayRootManager rootManager) {
+        this(driver, config, rootManager, OverlayLogger.noop());
+    }
+
+    public ScrollActions(WebDriver driver,
+                         OverlayConfig config,
+                         OverlayRootManager rootManager,
+                         OverlayLogger logger) {
         if (!(driver instanceof JavascriptExecutor)) {
             throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
         }
         this.js = (JavascriptExecutor) driver;
         this.config = config;
         this.rootManager = rootManager;
+        this.logger = logger != null ? logger : OverlayLogger.noop();
     }
 
     /**
@@ -83,6 +98,8 @@ public class ScrollActions {
         if (viewportEdge == null) {
             viewportEdge = ScrollViewportEdge.CENTER;
         }
+        emitScroll(UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null, durationMs, elementEdge, viewportEdge, config.isEnabled());
+        try {
 
         // jeśli overlay wyłączony – prosty scroll z wyrównaniem, ale nadal blokujący
         if (!config.isEnabled()) {
@@ -119,6 +136,7 @@ public class ScrollActions {
                             "done();",
                     element, elementEdge.name(), viewportEdge.name()
             );
+            emitScroll(UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, durationMs, elementEdge, viewportEdge, false);
             return;
         }
 
@@ -212,6 +230,35 @@ public class ScrollActions {
                         "window.requestAnimationFrame(step);",
                 element, durationMs, elementEdge.name(), viewportEdge.name()
         );
+        emitScroll(UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, durationMs, elementEdge, viewportEdge, true);
+        } catch (RuntimeException e) {
+            emitScroll(UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR, e, durationMs, elementEdge, viewportEdge, config.isEnabled());
+            throw e;
+        }
     }
 
+    private void emitScroll(UiTestLensStatus status,
+                            UiTestLensLogLevel level,
+                            Throwable throwable,
+                            long durationMs,
+                            ScrollElementEdge elementEdge,
+                            ScrollViewportEdge viewportEdge,
+                            boolean withArrow) {
+        try {
+            logger.emit(UiTestLensLogEntry.builder()
+                    .level(level)
+                    .eventType(status == UiTestLensStatus.FAILED ? UiTestLensEventType.ERROR : UiTestLensEventType.ACTION)
+                    .status(status)
+                    .message("Scroll action " + status)
+                    .action("scroll")
+                    .target(TargetDescriptor.none())
+                    .metadata("method", "scrollToElementWithArrow")
+                    .metadata("durationMs", String.valueOf(durationMs))
+                    .metadata("elementEdge", elementEdge == null ? "" : elementEdge.name())
+                    .metadata("viewportEdge", viewportEdge == null ? "" : viewportEdge.name())
+                    .metadata("withArrow", String.valueOf(withArrow))
+                    .throwable(throwable)
+                    .build());
+        } catch (Exception ignored) {}
+    }
 }

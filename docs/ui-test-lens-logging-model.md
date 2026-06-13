@@ -151,6 +151,47 @@ Na później zostają:
 - eksport JSON/TXT/HTML,
 - docelowy podział modułów i ewentualne bezpośrednie użycie `UiTestLensLogger` zamiast bridge `OverlayLogger`.
 
+## Stage: Action and highlight event instrumentation
+
+Akcje Selenium/overlay zaczęły emitować eventy przez ten sam `OverlayLogger`, który jest bridge do `UiTestLensLogger`. Stare konstruktory klas akcji zostały zachowane; nowe overloady przyjmują `OverlayLogger`, a `JsOverlayDebug` przekazuje do nich własny logger.
+
+Podpięte klasy:
+
+- `HighlightActions`
+  - emituje `HIGHLIGHT/STARTED` i `HIGHLIGHT/PASSED` dla `highlightClick`, `highlightParent`, `highlightClosest`,
+  - emituje `ACTION/PASSED` dla kliknięcia wykonanego przez `highlightClick`,
+  - przy ostatnim fallbacku kliknięcia emituje `ERROR/FAILED`.
+- `TypingActions`
+  - emituje `ACTION/STARTED`, `ACTION/PASSED`, `ERROR/FAILED` dla `typeWithHint` i `clearAndType`,
+  - eventy nie zapisują pełnej wpisywanej wartości; metadata zawiera tylko `valueLength`.
+- `SmartClickActions`
+  - emituje `ACTION/STARTED`, `ACTION/PASSED`, `ERROR/FAILED` dla `clickWithOverlayHandling`,
+  - metadata zawiera `fallback`, `fallbackType` i `popupHandled`, jeśli ścieżka weszła w fallback.
+- `SmartInputActions`
+  - emituje `ACTION/STARTED`, `ACTION/PASSED`, `ERROR/FAILED` dla `smartTypeWithHint`,
+  - eventy nie zapisują pełnej wartości inputu; metadata zawiera tylko `valueLength`.
+- `ScrollActions`
+  - emituje `ACTION/STARTED`, `ACTION/PASSED`, `ERROR/FAILED` dla `scrollToElementWithArrow`,
+  - metadata zawiera `durationMs`, `elementEdge`, `viewportEdge`, `withArrow`.
+- `TargetResolverActions`
+  - emituje diagnostyczne `ACTION/PASSED` lub `ERROR/FAILED` dla resolve targetów i selectorów,
+  - `TargetDescriptor` jest nadal minimalny: selector, label albo `none()`.
+- `JsOverlayDebug.smartUploadFile`
+  - emituje `ACTION/STARTED`, `ACTION/PASSED`, `ERROR/FAILED`,
+  - event nie zapisuje pełnej ścieżki pliku; metadata zawiera tylko `pathLength`.
+
+`AssertActions` nie został w tym etapie przebudowany. Ma własny model `OverlayAssertionResult` i powinien dostać osobny etap dla pełnego modelu `ASSERTION`.
+
+Na później zostają:
+
+- Selenium `WebDriverListener`,
+- Selenide adapter,
+- pełniejszy target descriptor oparty o bezpieczne atrybuty elementu,
+- eksport JSON/TXT/HTML,
+- HUD/highlight jako sinki,
+- pełny assertion model,
+- spójne eventy dla wszystkich react-safe find helpers.
+
 ## Następne kroki
 
 - rozszerzyć eventy action/assertion z istniejących klas,

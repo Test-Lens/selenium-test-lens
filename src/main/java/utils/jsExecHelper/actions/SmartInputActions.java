@@ -2,7 +2,13 @@ package utils.jsExecHelper.actions;
 
 import utils.jsExecHelper.OverlayConfig;
 import utils.jsExecHelper.core.BlockingOverlayHelper;
+import utils.jsExecHelper.core.OverlayLogger;
 import utils.jsExecHelper.core.OverlayRootManager;
+import utils.jsExecHelper.core.logging.TargetDescriptor;
+import utils.jsExecHelper.core.logging.UiTestLensEventType;
+import utils.jsExecHelper.core.logging.UiTestLensLogEntry;
+import utils.jsExecHelper.core.logging.UiTestLensLogLevel;
+import utils.jsExecHelper.core.logging.UiTestLensStatus;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
@@ -21,11 +27,20 @@ public class SmartInputActions {
     private final OverlayConfig config;
     private final TypingActions typingActions;
     private final BlockingOverlayHelper blockingHelper;
+    private final OverlayLogger logger;
 
     public SmartInputActions(WebDriver driver,
                              OverlayConfig config,
                              OverlayRootManager rootManager,
                              TypingActions typingActions) {
+        this(driver, config, rootManager, typingActions, OverlayLogger.noop());
+    }
+
+    public SmartInputActions(WebDriver driver,
+                             OverlayConfig config,
+                             OverlayRootManager rootManager,
+                             TypingActions typingActions,
+                             OverlayLogger logger) {
         if (!(driver instanceof JavascriptExecutor)) {
             throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
         }
@@ -34,12 +49,14 @@ public class SmartInputActions {
         this.config = config;
         this.typingActions = typingActions;
         this.blockingHelper = new BlockingOverlayHelper(driver, config, rootManager, null);
+        this.logger = logger != null ? logger : OverlayLogger.noop();
         // Uwaga: tu możesz pominąć highlightActions w helperze,
         // jeśli nie chcesz highlightować overlaya przy wpisywaniu.
     }
 
     public void smartTypeWithHint(WebElement element, String value, String labelForOverlay) {
         if (element == null) return;
+        emitSmartInput(labelForOverlay, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null, value, false);
 
         // ✨ najpierw spróbuj globalnie zamknąć overlay (cookies itp.)
         blockingHelper.handleGlobalOverlayIfPresent(
@@ -49,9 +66,11 @@ public class SmartInputActions {
 
         try {
             typingActions.typeWithHint(element, value);
+            emitSmartInput(labelForOverlay, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, value, false);
             return;
         } catch (WebDriverException e) {
             if (!isInputInterceptError(e)) {
+                emitSmartInput(labelForOverlay, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR, e, value, false);
                 throw e;
             }
         }
@@ -64,7 +83,13 @@ public class SmartInputActions {
         );
 
         // w obu przypadkach ponów wpisanie
-        typingActions.typeWithHint(element, value);
+        try {
+            typingActions.typeWithHint(element, value);
+            emitSmartInput(labelForOverlay, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, value, handled);
+        } catch (WebDriverException e) {
+            emitSmartInput(labelForOverlay, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR, e, value, handled);
+            throw e;
+        }
     }
 
 
@@ -77,5 +102,28 @@ public class SmartInputActions {
                 || msg.contains("not interactable")
                 || msg.contains("is not clickable at point")
                 || msg.contains("intercepted");
+    }
+
+    private void emitSmartInput(String label,
+                                UiTestLensStatus status,
+                                UiTestLensLogLevel level,
+                                Throwable throwable,
+                                String value,
+                                boolean fallback) {
+        try {
+            logger.emit(UiTestLensLogEntry.builder()
+                    .level(level)
+                    .eventType(status == UiTestLensStatus.FAILED ? UiTestLensEventType.ERROR : UiTestLensEventType.ACTION)
+                    .status(status)
+                    .message("Input action smartType " + status)
+                    .action("smartType")
+                    .target(TargetDescriptor.label(label))
+                    .metadata("method", "smartTypeWithHint")
+                    .metadata("label", label == null ? "" : label)
+                    .metadata("valueLength", value == null ? "0" : String.valueOf(value.length()))
+                    .metadata("fallback", String.valueOf(fallback))
+                    .throwable(throwable)
+                    .build());
+        } catch (Exception ignored) {}
     }
 }
