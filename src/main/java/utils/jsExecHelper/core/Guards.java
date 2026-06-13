@@ -2,7 +2,6 @@ package utils.jsExecHelper.core;
 
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
-import utils.logs.LogWraper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +10,7 @@ import java.util.Locale;
 public class Guards {
 
     private final WebDriver driver;
-    private final LogWraper log;
+    private final OverlayLogger logger;
 
     private boolean enabled = boolProp("guard.enabled", true);
     private boolean failFast = boolProp("guard.failFast", true);
@@ -36,9 +35,13 @@ public class Guards {
             "failed to fetch"
     ));
 
-    public Guards(WebDriver driver, LogWraper log) {
+    public Guards(WebDriver driver, OverlayLogger logger) {
         this.driver = driver;
-        this.log = log;
+        this.logger = logger != null ? logger : OverlayLogger.noop();
+    }
+
+    public Guards(WebDriver driver) {
+        this(driver, OverlayLogger.noop());
     }
 
     public Guards setEnabled(boolean enabled) {
@@ -96,7 +99,7 @@ public class Guards {
         if (r.isProblem) {
             String msg = r.formatForException();
             try {
-                if (log != null) log.errorLog(msg);
+                logger.error(msg);
             } catch (Exception ignored) {}
 
             if (failFast) throw new AssertionError(msg);

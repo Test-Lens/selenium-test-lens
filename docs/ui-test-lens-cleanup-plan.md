@@ -253,3 +253,20 @@ Zależności blokujące czystą publikację:
 - `ContentIssueCollector` i `LocalDateTimeUtils` w `OverlayContentAssertions` powinny trafić do examples albo prywatnego adaptera, nie do publicznego core.
 
 Szczegóły decyzji są w `docs/ui-test-lens-dependency-cleanup-plan.md`.
+
+## Etap 3: izolacja zewnętrznych blockerów
+
+Wykonane zmiany:
+
+- RestAssured został usunięty z głównego kodu `ApiCallActions`; przyszły adapter powinien trafić do `ui-test-lens-restassured`,
+- prywatny `LogWraper` został zastąpiony neutralnym `OverlayLogger` z noop implementacją,
+- prywatny `TimeStamp` został zastąpiony przez JDK `Clock` i `DateTimeFormatter`,
+- `OverlayContentAssertions` przeniesiono z `src/main/java` do `docs/examples/OverlayContentAssertions.java.example`, bo zależy od prywatnego `ContentIssueCollector` i `LocalDateTimeUtils`.
+
+Decyzje odłożone:
+
+- docelowa nazwa `OverlayLogger` jako `UiTestLensLogger`,
+- pełny event-bus,
+- adapter RestAssured,
+- adapter prywatnego content collectora,
+- namespace runtime `window.__uiTestLens`.

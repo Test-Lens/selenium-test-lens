@@ -167,3 +167,90 @@ Spodziewane kategorie błędów kompilacji:
 - potencjalne braki zasobów JS dopiero runtime, nie compile-time,
 - ewentualne problemy składni, jeśli build nie użyje Java 17.
 
+## Stage 3: Isolate external dependency blockers
+
+W etapie 3 odcięto główny artifact od znanych zależności zewnętrznych/prywatnych bez package rename, bez multi-module split i bez zmiany runtime namespace.
+
+### RestAssured
+
+Wykonano:
+
+- usunięto import `io.restassured.response.Response` z `ApiCallActions`,
+- usunięto metodę convenience `callWithModalRA(...)` z głównego kodu,
+- usunięto specjalne sprawdzanie `result instanceof io.restassured.response.Response`,
+- pozostawiono neutralne `callWithModal(...)`, które przyjmuje `Callable<T>` i `Function<T, String>`.
+
+Rozwiązanie tymczasowe:
+
+- neutralny `callWithModal(...)` ustawia status `200`, tak jak dotychczas robił fallback dla wyników innych niż RestAssured `Response`,
+- użytkownik może nadal przekazać `responsePreview`, ale nie ma już typu zależnego od RestAssured w głównym artifactcie.
+
+Docelowo:
+
+- adapter RestAssured powinien trafić do `ui-test-lens-restassured`,
+- główny moduł API overlay powinien dostać neutralny model request/response preview, jeśli będzie potrzebny dokładny status/header/body bez zależności od klienta HTTP.
+
+### `LogWraper`
+
+Wykonano:
+
+- dodano mały neutralny kontrakt `utils.jsExecHelper.core.OverlayLogger`,
+- dodano package-private noop implementację `NoopOverlayLogger`,
+- `OverlayWait` używa teraz `OverlayLogger`,
+- `Guards` używa teraz `OverlayLogger`,
+- usunięto importy `utils.logs.LogWraper` z `src/main/java`.
+
+Rozwiązanie tymczasowe:
+
+- domyślny logger to `OverlayLogger.noop()`,
+- nie dodano SLF4J ani projektowego loggera,
+- nie zaimplementowano jeszcze pełnego event-busa.
+
+Docelowo:
+
+- `OverlayLogger` jest kandydatem na pomost do `UiTestLensLogger`,
+- właściwy kierunek to `UiTestLensEventBus` + sinki: HUD, in-memory, console/consumer, SLF4J, TeamCity.
+
+### `TimeStamp`
+
+Wykonano:
+
+- usunięto zależność od `utils.time.TimeStamp`,
+- `OverlayWait` używa teraz `Clock.systemDefaultZone()` oraz `DateTimeFormatter`,
+- dodano package-private konstruktor z `Clock`, żeby ułatwić przyszłe testy timestampów.
+
+Rozwiązanie tymczasowe:
+
+- timestamp HUD jest formatowany przez JDK jako `yyyy-MM-dd HH:mm:ss.SSS z`,
+- semantyka waitów nie została zmieniona.
+
+Docelowo:
+
+- timestamp powinien być częścią neutralnego `UiTestLensLogEntry`,
+- formatowanie powinno być odpowiedzialnością sinka/HUD/exportera.
+
+### `OverlayContentAssertions`
+
+Wykonano:
+
+- `OverlayContentAssertions.java` usunięto z `src/main/java`,
+- kod zachowano jako przykład referencyjny w `docs/examples/OverlayContentAssertions.java.example`,
+- główny artifact nie importuje już `ContentIssueCollector` ani `LocalDateTimeUtils`.
+
+Rozwiązanie tymczasowe:
+
+- przykład nie jest kompilowany,
+- prywatne zależności pozostają opisane jako private adapter/example.
+
+Docelowo:
+
+- jeśli adapter będzie potrzebny, powinien trafić do prywatnego modułu albo `ui-test-lens-examples`,
+- publiczne assertions powinny emitować neutralne wyniki/failure events, które projekty downstream mogą mapować na własne collectory.
+
+### Klasy nadal wymagające refaktoru
+
+- `JsOverlayDebug` nadal jest dużą fasadą z wieloma odpowiedzialnościami.
+- `ApiCallActions` nadal ma uproszczony model response i wymaga neutralnego modelu API overlay.
+- `OverlayWait` ma już odcięty prywatny logger, ale nadal powinien docelowo emitować eventy zamiast pisać bezpośrednio do HUD/loggera.
+- `Guards` ma neutralny logger, ale powinien docelowo emitować `guard.tripped`.
+- Runtime JS nadal używa historycznych nazw `window.__selenium...`; namespace `window.__uiTestLens` jest odłożony na późniejszy etap.

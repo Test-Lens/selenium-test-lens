@@ -1,7 +1,5 @@
 package utils.jsExecHelper.api;
 
-import io.restassured.response.Response;
-
 public final class ApiCallActions {
     private final ApiOverlayPanel panel;
 
@@ -28,10 +26,6 @@ public final class ApiCallActions {
             long dur = System.currentTimeMillis() - start;
 
             int status = 200;
-            if (result instanceof io.restassured.response.Response r) {
-                status = r.statusCode();
-            }
-
             String body = responsePreview != null ? responsePreview.apply(result) : String.valueOf(result);
 
             panel.setResponse(id, status, dur, "", safeTrim(body));
@@ -56,14 +50,6 @@ public final class ApiCallActions {
         return sw.toString();
     }
 
-    public Response callWithModalRA(String title,
-                                    String method,
-                                    String url,
-                                    String payloadPreview,
-                                    long timeoutMs,
-                                    java.util.concurrent.Callable<Response> call) {
-        return callWithModal(title, method, url, payloadPreview, timeoutMs, call,
-                resp -> resp != null ? resp.asString() : "<null>");
-    }
+    // HTTP-client-specific convenience should live in a future adapter module.
 }
 

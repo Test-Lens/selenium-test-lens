@@ -2,9 +2,12 @@ package utils.jsExecHelper;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import utils.logs.LogWraper;
+import utils.jsExecHelper.core.OverlayLogger;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.function.Function;
 
 public class OverlayWait {
@@ -12,16 +15,34 @@ public class OverlayWait {
     private final WebDriver driver;
     private final WebDriverWait wait;
     private final JsOverlayDebug overlay;
-    private final LogWraper logWraper;
+    private final OverlayLogger logger;
+    private final Clock clock;
+    private static final DateTimeFormatter HUD_TIMESTAMP_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS z");
 
     public OverlayWait(WebDriver driver,
                        Duration timeout,
                        JsOverlayDebug overlay,
-                       LogWraper logWraper) {
+                       OverlayLogger logger) {
+        this(driver, timeout, overlay, logger, Clock.systemDefaultZone());
+    }
+
+    public OverlayWait(WebDriver driver,
+                       Duration timeout,
+                       JsOverlayDebug overlay) {
+        this(driver, timeout, overlay, OverlayLogger.noop(), Clock.systemDefaultZone());
+    }
+
+    OverlayWait(WebDriver driver,
+                Duration timeout,
+                JsOverlayDebug overlay,
+                OverlayLogger logger,
+                Clock clock) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, timeout);
         this.overlay = overlay;
-        this.logWraper = logWraper;
+        this.logger = logger != null ? logger : OverlayLogger.noop();
+        this.clock = clock != null ? clock : Clock.systemDefaultZone();
     }
 
 
@@ -114,14 +135,17 @@ public class OverlayWait {
             safeOverlay(() -> overlay.hudLog(
                     finalStatus.hudLevel,
                     msg,
-                    utils.time.TimeStamp.getDtfToStamp()
+                    timestamp()
             ));
 
-            // LogWraper (sb + TeamCity)
-            safeLogWraper(finalStatus, desc + " | duration=" + duration, elapsedMs);
+            safeLog(finalStatus, desc + " | duration=" + duration, elapsedMs);
 
         }
 
+    }
+
+    private String timestamp() {
+        return HUD_TIMESTAMP_FORMATTER.format(ZonedDateTime.now(clock));
     }
 
     private static String formatDuration(long ms) {
@@ -139,14 +163,13 @@ public class OverlayWait {
         try { r.run(); } catch (Exception ignored) {}
     }
 
-    private void safeLogWraper(Status status, String desc, long elapsedMs) {
-        if (logWraper == null) return;
+    private void safeLog(Status status, String desc, long elapsedMs) {
         String msg = "WAIT " + status.prefix + " | " + desc + " | elapsedMs=" + elapsedMs;
         try {
             switch (status) {
-                case DONE -> logWraper.successLog(msg);
-                case TIMEOUT -> logWraper.warnLog(msg);
-                default -> logWraper.errorLog(msg);
+                case DONE -> logger.info(msg);
+                case TIMEOUT -> logger.warn(msg);
+                default -> logger.error(msg);
             }
         } catch (Exception ignored) {}
     }
