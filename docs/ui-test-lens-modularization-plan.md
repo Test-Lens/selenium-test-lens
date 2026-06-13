@@ -539,7 +539,7 @@ API powinno ukrywać klasy `*Actions`, `OverlayRootManager`, `HudPanel` i zasoby
 - `OverlayRootManager` - dobry element runtime; primary root state jest już `window.__uiTestLens.state.overlay.root`, a `window.__seleniumOverlayRoot` pozostaje aliasem kompatybilnościowym. Nadal powinien docelowo używać abstrakcji wykonania JS.
 - `PageWaits` - użyteczne waity; runtime state dla network/wait/dom jest już normalizowany pod `window.__uiTestLens.state`, ale nadal trzeba odseparować raportowanie HUD od samego waitowania.
 - `ScrollActions` - sensowna domena, ale JS powinien być osobnym zasobem.
-- `TargetResolverActions` - przydatne, ale `buildCssSelector` powinien poprawnie escapować CSS i nie obiecywać unikalności.
+- `TargetResolverActions` - przydatne; skrypty click/file input resolvera są już wydzielone do testowalnych helperów, ale `buildCssSelector` powinien poprawnie escapować CSS i nie obiecywać unikalności.
 - `ReactSafeExecutor` - wartościowy, ale powinien zależeć od interfejsów `StepReporter`/`ElementHighlighter`, nie od `JsOverlayDebug`.
 
 ### C. Wymaga większego refaktoru przed publikacją

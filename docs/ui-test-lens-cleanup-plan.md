@@ -360,6 +360,19 @@ Semantyka waitow, timeouty, tracking `fetch` / `XMLHttpRequest` oraz algorytm DO
 DOM stable nadal trzyma `MutationObserver` i znaczniki mutacji lokalnie na obserwowanym elemencie root, bo przeniesienie tego stanu do globalnego obiektu nie jest konieczne do obecnego cleanupu.
 Pelna ekstrakcja JS z `PageWaits` do resource zostaje na pozniejszy etap.
 
+## Target resolver cleanup
+
+`TargetResolverActions` zostal uporzadkowany bez zmiany algorytmu resolve:
+
+- skrypt resolve click target jest wydzielony do `clickTargetResolverScript()`,
+- skrypt resolve file input target jest wydzielony do `fileInputResolverScript()`,
+- publiczne metody, fallbacki i wyniki pozostaja bez zmian,
+- resolver nie zapisuje runtime state, wiec nie wprowadzono nowych kluczy `window.__uiTestLens.state`,
+- nie ma tez potrzeby utrzymywania legacy aliasow `window.__selenium...` w tym obszarze.
+
+Skrypty pozostaja inline w Javie jako page-query snippets, poniewaz sa nadal scisle zwiazane z argumentami Selenium `WebElement`.
+Przeniesienie do resource powinno nastapic dopiero po udokumentowaniu semantyki target resolvera, zasad escapowania selektorow i zachowania przy niejednoznacznych dopasowaniach.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:

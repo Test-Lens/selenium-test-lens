@@ -48,66 +48,7 @@ public class TargetResolverActions {
             return null;
         }
 
-        Object result = js.executeScript(
-                "var el = arguments[0];" +
-                        "if (!el) return null;" +
-
-                        "function isClickable(e) {" +
-                        "  if (!e) return false;" +
-                        "  var tag = (e.tagName || '').toLowerCase();" +
-                        "  if (tag === 'button') return true;" +
-                        "  if (tag === 'a' && e.hasAttribute('href')) return true;" +
-                        "  if (tag === 'input') {" +
-                        "    var type = (e.type || '').toLowerCase();" +
-                        "    if (['button','submit','reset','radio','checkbox','file','image'].indexOf(type) !== -1) return true;" +
-                        "  }" +
-                        "  var role = (e.getAttribute && e.getAttribute('role')) || '';" +
-                        "  if (role.toLowerCase() === 'button') return true;" +
-                        "  if (typeof e.onclick === 'function') return true;" +
-                        "  return false;" +
-                        "}" +
-
-                        "function findClickableInSubtree(root) {" +
-                        "  if (!root || !root.querySelectorAll) return null;" +
-                        "  var candidates = root.querySelectorAll(" +
-                        "    'button, input, a[href], [role=\"button\"], [data-test-click-target]' " +
-                        "  );" +
-                        "  for (var i = 0; i < candidates.length; i++) {" +
-                        "    if (isClickable(candidates[i])) return candidates[i];" +
-                        "  }" +
-                        "  return null;" +
-                        "}" +
-
-                        "// 1) jeśli sam el jest klikalny -> zwróć go" +
-                        "if (isClickable(el)) return el;" +
-
-                        "// 2) potomkowie" +
-                        "var sub = findClickableInSubtree(el);" +
-                        "if (sub) return sub;" +
-
-                        "// 3) jeśli to <label>, spróbuj po atrybucie for" +
-                        "var tagName = (el.tagName || '').toLowerCase();" +
-                        "if (tagName === 'label') {" +
-                        "  var id = el.getAttribute('for');" +
-                        "  if (id) {" +
-                        "    var forEl = document.getElementById(id);" +
-                        "    if (forEl && isClickable(forEl)) return forEl;" +
-                        "  }" +
-                        "}" +
-
-                        "// 4) przodkowie" +
-                        "var parent = el.parentElement;" +
-                        "while (parent && parent !== document.body) {" +
-                        "  if (isClickable(parent)) return parent;" +
-                        "  var inner = findClickableInSubtree(parent);" +
-                        "  if (inner) return inner;" +
-                        "  parent = parent.parentElement;" +
-                        "}" +
-
-                        "// 5) nic lepszego nie znaleźliśmy -> zwróć bazowy" +
-                        "return el;",
-                base
-        );
+        Object result = js.executeScript(clickTargetResolverScript(), base);
 
         if (result instanceof WebElement) {
             emitResolve("resolveClickTarget", null, true);
@@ -130,54 +71,7 @@ public class TargetResolverActions {
             return null;
         }
 
-        Object result = js.executeScript(
-                "var el = arguments[0];" +
-                        "if (!el) return null;" +
-
-                        "function isFileInput(e) {" +
-                        "  if (!e) return false;" +
-                        "  var tag = (e.tagName || '').toLowerCase();" +
-                        "  if (tag !== 'input') return false;" +
-                        "  var type = (e.type || '').toLowerCase();" +
-                        "  return type === 'file';" +
-                        "}" +
-
-                        "function findFileInputInSubtree(root) {" +
-                        "  if (!root || !root.querySelectorAll) return null;" +
-                        "  var inputs = root.querySelectorAll('input[type=\"file\"]');" +
-                        "  if (inputs.length > 0) return inputs[0];" +
-                        "  return null;" +
-                        "}" +
-
-                        "// 1) sam element" +
-                        "if (isFileInput(el)) return el;" +
-
-                        "// 2) potomkowie" +
-                        "var sub = findFileInputInSubtree(el);" +
-                        "if (sub) return sub;" +
-
-                        "// 3) label for=..." +
-                        "var tagName = (el.tagName || '').toLowerCase();" +
-                        "if (tagName === 'label') {" +
-                        "  var id = el.getAttribute('for');" +
-                        "  if (id) {" +
-                        "    var forEl = document.getElementById(id);" +
-                        "    if (isFileInput(forEl)) return forEl;" +
-                        "  }" +
-                        "}" +
-
-                        "// 4) przodkowie" +
-                        "var parent = el.parentElement;" +
-                        "while (parent && parent !== document.body) {" +
-                        "  if (isFileInput(parent)) return parent;" +
-                        "  var inner = findFileInputInSubtree(parent);" +
-                        "  if (inner) return inner;" +
-                        "  parent = parent.parentElement;" +
-                        "}" +
-
-                        "return null;",
-                base
-        );
+        Object result = js.executeScript(fileInputResolverScript(), base);
 
         if (result instanceof WebElement) {
             emitResolve("resolveFileInputTarget", null, true);
@@ -186,6 +80,90 @@ public class TargetResolverActions {
         emitResolve("resolveFileInputTarget", null, false);
         return null;
     }
+
+    static String clickTargetResolverScript() {
+        return "var el = arguments[0];" +
+                "if (!el) return null;" +
+                "function isClickable(e) {" +
+                "  if (!e) return false;" +
+                "  var tag = (e.tagName || '').toLowerCase();" +
+                "  if (tag === 'button') return true;" +
+                "  if (tag === 'a' && e.hasAttribute('href')) return true;" +
+                "  if (tag === 'input') {" +
+                "    var type = (e.type || '').toLowerCase();" +
+                "    if (['button','submit','reset','radio','checkbox','file','image'].indexOf(type) !== -1) return true;" +
+                "  }" +
+                "  var role = (e.getAttribute && e.getAttribute('role')) || '';" +
+                "  if (role.toLowerCase() === 'button') return true;" +
+                "  if (typeof e.onclick === 'function') return true;" +
+                "  return false;" +
+                "}" +
+                "function findClickableInSubtree(root) {" +
+                "  if (!root || !root.querySelectorAll) return null;" +
+                "  var candidates = root.querySelectorAll('button, input, a[href], [role=\"button\"], [data-test-click-target]');" +
+                "  for (var i = 0; i < candidates.length; i++) {" +
+                "    if (isClickable(candidates[i])) return candidates[i];" +
+                "  }" +
+                "  return null;" +
+                "}" +
+                "if (isClickable(el)) return el;" +
+                "var sub = findClickableInSubtree(el);" +
+                "if (sub) return sub;" +
+                "var tagName = (el.tagName || '').toLowerCase();" +
+                "if (tagName === 'label') {" +
+                "  var id = el.getAttribute('for');" +
+                "  if (id) {" +
+                "    var forEl = document.getElementById(id);" +
+                "    if (forEl && isClickable(forEl)) return forEl;" +
+                "  }" +
+                "}" +
+                "var parent = el.parentElement;" +
+                "while (parent && parent !== document.body) {" +
+                "  if (isClickable(parent)) return parent;" +
+                "  var inner = findClickableInSubtree(parent);" +
+                "  if (inner) return inner;" +
+                "  parent = parent.parentElement;" +
+                "}" +
+                "return el;";
+    }
+
+    static String fileInputResolverScript() {
+        return "var el = arguments[0];" +
+                "if (!el) return null;" +
+                "function isFileInput(e) {" +
+                "  if (!e) return false;" +
+                "  var tag = (e.tagName || '').toLowerCase();" +
+                "  if (tag !== 'input') return false;" +
+                "  var type = (e.type || '').toLowerCase();" +
+                "  return type === 'file';" +
+                "}" +
+                "function findFileInputInSubtree(root) {" +
+                "  if (!root || !root.querySelectorAll) return null;" +
+                "  var inputs = root.querySelectorAll('input[type=\"file\"]');" +
+                "  if (inputs.length > 0) return inputs[0];" +
+                "  return null;" +
+                "}" +
+                "if (isFileInput(el)) return el;" +
+                "var sub = findFileInputInSubtree(el);" +
+                "if (sub) return sub;" +
+                "var tagName = (el.tagName || '').toLowerCase();" +
+                "if (tagName === 'label') {" +
+                "  var id = el.getAttribute('for');" +
+                "  if (id) {" +
+                "    var forEl = document.getElementById(id);" +
+                "    if (isFileInput(forEl)) return forEl;" +
+                "  }" +
+                "}" +
+                "var parent = el.parentElement;" +
+                "while (parent && parent !== document.body) {" +
+                "  if (isFileInput(parent)) return parent;" +
+                "  var inner = findFileInputInSubtree(parent);" +
+                "  if (inner) return inner;" +
+                "  parent = parent.parentElement;" +
+                "}" +
+                "return null;";
+    }
+
 
     // === WERSJE ZWRACAJĄCE SELEKTOR CSS ===
 

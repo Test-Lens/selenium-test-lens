@@ -27,7 +27,7 @@ All listed resources are non-empty, use the primary `window.__uiTestLens` namesp
 | `PageWaits` | DOM stable mutation observer | DOM stability helper | Temporarily yes | `window.__uiTestLens.state.dom` is initialized, but observer state remains element-local to preserve semantics; extract to `dom-stability.js` only if it grows. |
 | `PopupDetector` | popup scanning and close-button detection | popup/blocking overlay heuristic | Not long term | Move to a dedicated heuristics runtime or Selenium adapter helper. |
 | `BlockingOverlayHelper` | overlay detection and configured close button | popup/blocking overlay heuristic | Not long term | Merge conceptually with `PopupDetector` or create a `blocking-overlay.js` helper. |
-| `TargetResolverActions` | label/input and file-input resolution | target resolver | Not long term | Extract to a target resolver runtime after stabilizing selector/label semantics. |
+| `TargetResolverActions` | click/file input resolution scripts | target resolver page query | Temporarily yes | Cleanup completed: scripts are named helper methods with unit marker tests; extract to a target resolver runtime only after selector/label semantics are documented. |
 | `ReactSelectHelper` | react-select probing and option selection | React/SPA helper | Temporarily yes | Keep in React helper for now; later move to `ui-test-lens-react` adapter. |
 | `HighlightActions` | module calls and click fallback snippets | bridge call / Selenium action | Yes | Bridge calls are fine; click fallback snippets can remain action-specific. |
 | `TypingActions` | type hint call and small input focus/click snippets | bridge call / Selenium action | Yes | Bridge call is fine; keep small input actions inline unless they become shared. |
@@ -77,11 +77,34 @@ Fallbacks stay for now because the project is still in a compatibility migration
 - release notes identify the first version without legacy paths/globals,
 - tests cover every runtime resource through the primary path.
 
+## Target resolver cleanup
+
+`TargetResolverActions` was reviewed after the runtime namespace migration.
+
+Changes made:
+
+- the click target resolver script was moved from the public method body into `clickTargetResolverScript()`,
+- the file input resolver script was moved from the public method body into `fileInputResolverScript()`,
+- unit tests now verify the script markers and fallback intent without Selenium or a browser.
+
+What intentionally stayed the same:
+
+- the resolver algorithm,
+- fallback order,
+- public methods,
+- returned values,
+- exception behavior,
+- logger event semantics.
+
+The resolver scripts do not currently need browser-global runtime state. They remain page-query snippets that inspect the supplied element, its descendants, label association, and ancestors. Because they do not store state, no `window.__uiTestLens.state...` key was introduced here, and no legacy `window.__selenium...` alias is needed.
+
+The scripts were not moved to `src/main/resources/uitestlens/runtime/` in this stage because they are still tightly coupled to Selenium `WebElement` arguments and the current resolver semantics are not yet a stable runtime contract. A future extraction should first document target resolver semantics, selector escaping rules, privacy constraints for labels/text, and expected behavior for ambiguous matches.
+
 ## Recommended next extraction/refactor steps
 
 1. Optional `PageWaits` resource extraction: move network tracker and DOM stability scripts to resources only if they grow or need browser-level tests.
 2. `PopupDetector` / `BlockingOverlayHelper` as a dedicated heuristics module, with a shared JS runtime helper if needed.
-3. `TargetResolverActions` JS cleanup: extract label/input/file target resolution only after target semantics are documented.
+3. Optional `TargetResolverActions` resource extraction only after target semantics and selector escaping rules are documented.
 4. API overlay bridge cleanup: move Java bridge calls from `window.__seleniumApiModal` to `window.__uiTestLens.modules.apiOverlay` while preserving alias fallback.
 5. Optional `overlay-root.js` only if root bootstrap grows beyond the current tiny `OverlayRootManager` script.
 6. Selenium `WebDriverListener` adapter for action-level observability without requiring direct helper calls.
