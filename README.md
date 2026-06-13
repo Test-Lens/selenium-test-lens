@@ -202,6 +202,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 - Runtime JavaScript still keeps legacy `window.__selenium...` aliases for compatibility.
 - Overlay root primary state is `window.__uiTestLens.state.overlay.root`; `window.__seleniumOverlayRoot` is kept as a legacy alias.
+- Page wait helpers use primary state under `window.__uiTestLens.state.network`, `window.__uiTestLens.state.dom`, and `window.__uiTestLens.state.wait`; legacy wait/network globals remain compatibility aliases.
 - API overlay JavaScript is loaded from `src/main/resources/uitestlens/runtime/api-overlay.js`.
 - Wait HUD JavaScript is loaded from `src/main/resources/uitestlens/runtime/wait-hud.js`.
 - Highlight JavaScript is loaded from `src/main/resources/uitestlens/runtime/highlight.js`.

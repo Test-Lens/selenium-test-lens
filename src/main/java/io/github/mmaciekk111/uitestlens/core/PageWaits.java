@@ -43,15 +43,17 @@ public class PageWaits {
 
     private void rememberLastWaitMessage(String message) {
         try {
-            js.executeScript(
-                    UiTestLensRuntimeNames.ensureNamespaceScript() +
-                            "window.__uiTestLens.state.wait.lastMessage = arguments[0];" +
-                            "window.__seleniumLastWaitMessage = window.__uiTestLens.state.wait.lastMessage;",
-                    message
-            );
+            js.executeScript(rememberLastWaitMessageScript(), message);
         } catch (Exception ignored) {
             // brak okna / błąd JS – trudno, po prostu bez HUD info
         }
+    }
+
+    static String rememberLastWaitMessageScript() {
+        return UiTestLensRuntimeNames.ensureNamespaceScript() +
+                "var waitState = window.__uiTestLens.state.wait;" +
+                "waitState.lastMessage = arguments[0];" +
+                "window.__seleniumLastWaitMessage = waitState.lastMessage;";
     }
 
     private long nowMs() {
@@ -139,10 +141,7 @@ public class PageWaits {
         while (true) {
             Long active = null;
             try {
-                active = ((Number) js.executeScript(
-                        UiTestLensRuntimeNames.ensureNamespaceScript() +
-                                "return window.__uiTestLens.state.network.activeRequests || window.__seleniumActiveRequests || 0;"
-                )).longValue();
+                active = ((Number) js.executeScript(networkActiveRequestsScript())).longValue();
             } catch (Exception ignored) {
             }
 
@@ -195,53 +194,69 @@ public class PageWaits {
      * Wstrzykuje prosty tracker XHR/fetch do strony (jeśli jeszcze nie istnieje).
      */
     private void injectNetworkTrackerIfNeeded() {
-        js.executeScript(
-                UiTestLensRuntimeNames.ensureNamespaceScript() +
-                        "if (window.__uiTestLens.state.network.trackerInstalled || window.__seleniumNetworkTrackerInstalled) {" +
-                        "  window.__uiTestLens.state.network.trackerInstalled = true;" +
-                        "  window.__seleniumNetworkTrackerInstalled = true;" +
-                        "  window.__uiTestLens.state.network.activeRequests = window.__uiTestLens.state.network.activeRequests || window.__seleniumActiveRequests || 0;" +
-                        "  window.__seleniumActiveRequests = window.__uiTestLens.state.network.activeRequests;" +
-                        "  return;" +
-                        "}" +
-                        "window.__uiTestLens.state.network.trackerInstalled = true;" +
-                        "window.__seleniumNetworkTrackerInstalled = true;" +
-                        "window.__uiTestLens.state.network.activeRequests = 0;" +
-                        "window.__seleniumActiveRequests = 0;" +
+        js.executeScript(networkTrackerScript());
+    }
 
-                        // hook na XHR
-                        "(function() {" +
-                        "  var origOpen = XMLHttpRequest.prototype.open;" +
-                        "  var origSend = XMLHttpRequest.prototype.send;" +
-                        "  XMLHttpRequest.prototype.open = function() {" +
-                        "    origOpen.apply(this, arguments);" +
-                        "  };" +
-                        "  XMLHttpRequest.prototype.send = function() {" +
-                        "    window.__uiTestLens.state.network.activeRequests++;" +
-                        "    window.__seleniumActiveRequests = window.__uiTestLens.state.network.activeRequests;" +
-                        "    this.addEventListener('loadend', function() {" +
-                        "      window.__uiTestLens.state.network.activeRequests--;" +
-                        "      window.__seleniumActiveRequests = window.__uiTestLens.state.network.activeRequests;" +
-                        "    });" +
-                        "    origSend.apply(this, arguments);" +
-                        "  };" +
-                        "})();" +
+    static String networkActiveRequestsScript() {
+        return UiTestLensRuntimeNames.ensureNamespaceScript() +
+                "var networkState = window.__uiTestLens.state.network;" +
+                "if (typeof networkState.activeRequests !== 'number') {" +
+                "  networkState.activeRequests = window.__seleniumActiveRequests || 0;" +
+                "}" +
+                "window.__seleniumActiveRequests = networkState.activeRequests;" +
+                "return networkState.activeRequests || 0;";
+    }
 
-                        // hook na fetch
-                        "(function() {" +
-                        "  if (!window.fetch) { return; }" +
-                        "  var origFetch = window.fetch;" +
-                        "  window.fetch = function() {" +
-                        "    window.__uiTestLens.state.network.activeRequests++;" +
-                        "    window.__seleniumActiveRequests = window.__uiTestLens.state.network.activeRequests;" +
-                        "    return origFetch.apply(this, arguments)" +
-                        "      .finally(function() {" +
-                        "        window.__uiTestLens.state.network.activeRequests--;" +
-                        "        window.__seleniumActiveRequests = window.__uiTestLens.state.network.activeRequests;" +
-                        "      });" +
-                        "  };" +
-                        "})();"
-        );
+    static String networkTrackerScript() {
+        return UiTestLensRuntimeNames.ensureNamespaceScript() +
+                "var networkState = window.__uiTestLens.state.network;" +
+                "function syncLegacyActiveRequests() {" +
+                "  window.__seleniumActiveRequests = networkState.activeRequests || 0;" +
+                "}" +
+                "if (networkState.trackerInstalled || window.__seleniumNetworkTrackerInstalled) {" +
+                "  networkState.trackerInstalled = true;" +
+                "  window.__seleniumNetworkTrackerInstalled = true;" +
+                "  networkState.activeRequests = networkState.activeRequests || window.__seleniumActiveRequests || 0;" +
+                "  syncLegacyActiveRequests();" +
+                "  return;" +
+                "}" +
+                "networkState.trackerInstalled = true;" +
+                "window.__seleniumNetworkTrackerInstalled = true;" +
+                "networkState.activeRequests = 0;" +
+                "syncLegacyActiveRequests();" +
+
+                // hook na XHR
+                "(function() {" +
+                "  var origOpen = XMLHttpRequest.prototype.open;" +
+                "  var origSend = XMLHttpRequest.prototype.send;" +
+                "  XMLHttpRequest.prototype.open = function() {" +
+                "    origOpen.apply(this, arguments);" +
+                "  };" +
+                "  XMLHttpRequest.prototype.send = function() {" +
+                "    networkState.activeRequests++;" +
+                "    syncLegacyActiveRequests();" +
+                "    this.addEventListener('loadend', function() {" +
+                "      networkState.activeRequests--;" +
+                "      syncLegacyActiveRequests();" +
+                "    });" +
+                "    origSend.apply(this, arguments);" +
+                "  };" +
+                "})();" +
+
+                // hook na fetch
+                "(function() {" +
+                "  if (!window.fetch) { return; }" +
+                "  var origFetch = window.fetch;" +
+                "  window.fetch = function() {" +
+                "    networkState.activeRequests++;" +
+                "    syncLegacyActiveRequests();" +
+                "    return origFetch.apply(this, arguments)" +
+                "      .finally(function() {" +
+                "        networkState.activeRequests--;" +
+                "        syncLegacyActiveRequests();" +
+                "      });" +
+                "  };" +
+                "})();";
     }
 
     // === REACT / SPA WAITY ===
@@ -308,25 +323,7 @@ public class PageWaits {
             }
             if (root == null) return false;
 
-            Long lastMut = (Long) js.executeScript(
-                    "var root = arguments[0];" +
-                            "if (!root) return -1;" +
-                            "if (!root.__seleniumDomStableInit) {" +
-                            "  root.__seleniumDomStableInit = true;" +
-                            "  root.__seleniumLastMutation = Date.now();" +
-                            "  var obs = new MutationObserver(function(mutations) {" +
-                            "    root.__seleniumLastMutation = Date.now();" +
-                            "  });" +
-                            "  obs.observe(root, {" +
-                            "    childList: true," +
-                            "    subtree: true," +
-                            "    attributes: true," +
-                            "    characterData: true" +
-                            "  });" +
-                            "}" +
-                            "return root.__seleniumLastMutation || Date.now();",
-                    root
-            );
+            Long lastMut = (Long) js.executeScript(domStableMutationScript(), root);
 
             long now = System.currentTimeMillis();
             if (lastMut == null || lastMut <= 0L) {
@@ -348,6 +345,27 @@ public class PageWaits {
 
     public void waitForSpaDomStableUnder(By rootLocator) {
         waitForSpaDomStableUnder(rootLocator, Duration.ofMillis(300), defaultTimeout);
+    }
+
+    static String domStableMutationScript() {
+        return UiTestLensRuntimeNames.ensureNamespaceScript() +
+                "var domState = window.__uiTestLens.state.dom;" +
+                "var root = arguments[0];" +
+                "if (!root) return -1;" +
+                "if (!root.__seleniumDomStableInit) {" +
+                "  root.__seleniumDomStableInit = true;" +
+                "  root.__seleniumLastMutation = Date.now();" +
+                "  var obs = new MutationObserver(function(mutations) {" +
+                "    root.__seleniumLastMutation = Date.now();" +
+                "  });" +
+                "  obs.observe(root, {" +
+                "    childList: true," +
+                "    subtree: true," +
+                "    attributes: true," +
+                "    characterData: true" +
+                "  });" +
+                "}" +
+                "return root.__seleniumLastMutation || Date.now();";
     }
 
     /**

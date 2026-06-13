@@ -21,10 +21,10 @@ All listed resources are non-empty, use the primary `window.__uiTestLens` namesp
 | Class | Method/area | Inline JS type | Keep inline? | Recommended next action |
 | ----- | ----------- | -------------- | ------------ | ----------------------- |
 | `OverlayRootManager` | `ensureRootExists`, `clearRoot` | overlay runtime bootstrap, legacy alias sync | Yes | Cleanup completed: primary root state is `window.__uiTestLens.state.overlay.root`; consider `overlay-root.js` only if bootstrap grows. |
-| `PageWaits` | wait message writes | legacy alias / state bridge | Temporarily yes | Centralize wait state writes behind a small helper or wait runtime bridge. |
+| `PageWaits` | wait message writes | wait state bridge | Yes | Cleanup completed: primary state is `window.__uiTestLens.state.wait.lastMessage`; legacy alias remains synchronized. |
 | `PageWaits` | `waitForReadyState*` | Selenium page query | Yes | Keep inline; these are simple browser state reads. |
-| `PageWaits` | network tracker install | candidate for extraction | Not long term | Extract to `network-tracker.js` or a page-observability helper. |
-| `PageWaits` | DOM stable mutation observer | candidate for extraction | Not long term | Extract to a small `dom-stability.js` helper if it grows or needs tests. |
+| `PageWaits` | network tracker install | network state bridge / candidate for extraction | Not long term | State cleanup completed: primary state is `window.__uiTestLens.state.network.activeRequests`; extract to `network-tracker.js` only if the script grows. |
+| `PageWaits` | DOM stable mutation observer | DOM stability helper | Temporarily yes | `window.__uiTestLens.state.dom` is initialized, but observer state remains element-local to preserve semantics; extract to `dom-stability.js` only if it grows. |
 | `PopupDetector` | popup scanning and close-button detection | popup/blocking overlay heuristic | Not long term | Move to a dedicated heuristics runtime or Selenium adapter helper. |
 | `BlockingOverlayHelper` | overlay detection and configured close button | popup/blocking overlay heuristic | Not long term | Merge conceptually with `PopupDetector` or create a `blocking-overlay.js` helper. |
 | `TargetResolverActions` | label/input and file-input resolution | target resolver | Not long term | Extract to a target resolver runtime after stabilizing selector/label semantics. |
@@ -47,10 +47,10 @@ All listed resources are non-empty, use the primary `window.__uiTestLens` namesp
 | ----------- | ------------- | -------------------- | ------------------ |
 | `window.__seleniumOverlayRoot` | Legacy alias synchronized from `window.__uiTestLens.state.overlay.root`; used by runtime resources and older Java snippets. | Existing inline snippets and downstream code may still read it. | Yes, after all Java snippets use `state.overlay.root` or runtime APIs. |
 | `window.__seleniumWaitHud` | Alias for `window.__uiTestLens.modules.waitHud`. | Current wait bridge and legacy consumers. | Yes, after wait HUD callers use `modules.waitHud`. |
-| `window.__seleniumLastWaitMessage` | Alias for `window.__uiTestLens.state.wait.lastMessage`. | HUD/wait diagnostics still synchronize with it. | Yes, after `PageWaits` and `JsOverlayDebug` use only primary state. |
+| `window.__seleniumLastWaitMessage` | Alias synchronized from `window.__uiTestLens.state.wait.lastMessage`. | HUD/wait diagnostics still synchronize with it. | Yes, after all wait diagnostics use only primary state. |
 | `window.__seleniumLastWaitElapsedMs` | Alias for `window.__uiTestLens.state.wait.lastElapsedMs`. | Wait elapsed diagnostics still synchronize with it. | Yes, after wait state bridge cleanup. |
-| `window.__seleniumActiveRequests` | Alias for `window.__uiTestLens.state.network.activeRequests`. | Network wait tracker still exposes legacy state. | Yes, after network tracker extraction. |
-| `window.__seleniumNetworkTrackerInstalled` | Alias for `window.__uiTestLens.state.network.trackerInstalled`. | Prevents double-installing the network tracker across old/new code paths. | Yes, after network tracker extraction. |
+| `window.__seleniumActiveRequests` | Alias synchronized from `window.__uiTestLens.state.network.activeRequests`. | Network wait tracker still exposes legacy state. | Yes, after network tracker extraction and a compatibility window. |
+| `window.__seleniumNetworkTrackerInstalled` | Alias synchronized from `window.__uiTestLens.state.network.trackerInstalled`. | Prevents double-installing the network tracker across old/new code paths. | Yes, after network tracker extraction and a compatibility window. |
 | `window.__seleniumApiModal` | Alias for `window.__uiTestLens.modules.apiOverlay`. | `ApiOverlayPanel` and some `JsOverlayDebug` methods still call the legacy name. | Yes, after Java bridge calls move to `modules.apiOverlay`. |
 | `selenium-hud-panel`, `selenium-hud-step`, `selenium-hud-logs` | Legacy HUD DOM IDs kept inside `hud-panel.js`. | CSS/DOM compatibility and existing direct lookups in a few snippets. | Maybe; rename only with migration aliases. |
 | `selenium-assert-badge`, `selenium-overlay-assert` | Legacy assertion badge class names kept inside `assertion-badges.js`. | Visual compatibility and downstream selectors. | Maybe; rename only with migration aliases. |
@@ -79,7 +79,7 @@ Fallbacks stay for now because the project is still in a compatibility migration
 
 ## Recommended next extraction/refactor steps
 
-1. `PageWaits` state write cleanup: centralize wait/network state bridge and reduce direct legacy writes.
+1. Optional `PageWaits` resource extraction: move network tracker and DOM stability scripts to resources only if they grow or need browser-level tests.
 2. `PopupDetector` / `BlockingOverlayHelper` as a dedicated heuristics module, with a shared JS runtime helper if needed.
 3. `TargetResolverActions` JS cleanup: extract label/input/file target resolution only after target semantics are documented.
 4. API overlay bridge cleanup: move Java bridge calls from `window.__seleniumApiModal` to `window.__uiTestLens.modules.apiOverlay` while preserving alias fallback.

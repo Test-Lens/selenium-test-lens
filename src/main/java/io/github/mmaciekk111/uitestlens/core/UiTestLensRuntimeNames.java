@@ -37,6 +37,7 @@ public final class UiTestLensRuntimeNames {
                 "window.__uiTestLens.state = window.__uiTestLens.state || {};" +
                 "window.__uiTestLens.state.wait = window.__uiTestLens.state.wait || {};" +
                 "window.__uiTestLens.state.network = window.__uiTestLens.state.network || {};" +
+                "window.__uiTestLens.state.dom = window.__uiTestLens.state.dom || {};" +
                 "window.__uiTestLens.state.overlay = window.__uiTestLens.state.overlay || {};" +
                 "window.__uiTestLens.state.api = window.__uiTestLens.state.api || {};";
     }

@@ -341,6 +341,25 @@ Dodano testy skryptow root managera bez uruchamiania Selenium ani przegladarki.
 
 Osobny `overlay-root.js` pozostaje opcja na pozniejszy etap tylko wtedy, gdy bootstrap root zacznie rosnac albo bedzie potrzebny poza Selenium.
 
+## PageWaits runtime state cleanup
+
+`PageWaits` uzywa teraz primary runtime state pod `window.__uiTestLens.state`:
+
+- `window.__uiTestLens.state.network.activeRequests` jest primary licznikiem aktywnych requestow,
+- `window.__uiTestLens.state.network.trackerInstalled` jest primary flaga instalacji network trackera,
+- `window.__uiTestLens.state.wait.lastMessage` jest primary stanem ostatniego komunikatu wait,
+- `window.__uiTestLens.state.dom` jest inicjalizowany jako primary namespace dla przyszlych helperow DOM.
+
+Legacy globale pozostaja synchronizowane kompatybilnosciowo:
+
+- `window.__seleniumActiveRequests`,
+- `window.__seleniumNetworkTrackerInstalled`,
+- `window.__seleniumLastWaitMessage`.
+
+Semantyka waitow, timeouty, tracking `fetch` / `XMLHttpRequest` oraz algorytm DOM stable nie zostaly zmienione.
+DOM stable nadal trzyma `MutationObserver` i znaczniki mutacji lokalnie na obserwowanym elemencie root, bo przeniesienie tego stanu do globalnego obiektu nie jest konieczne do obecnego cleanupu.
+Pelna ekstrakcja JS z `PageWaits` do resource zostaje na pozniejszy etap.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:
