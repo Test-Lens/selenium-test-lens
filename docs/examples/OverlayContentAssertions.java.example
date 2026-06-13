@@ -1,9 +1,9 @@
-package utils.jsExecHelper;
+package io.github.mmaciekk111.uitestlens;
 
 import tests.fe.utils.contentassertions.ContentIssueCollector;
 import utils.datetime.LocalDateTimeUtils;
-import utils.jsExecHelper.actions.AssertActions;
-import utils.jsExecHelper.react.ReactSafeExecutor;
+import io.github.mmaciekk111.uitestlens.actions.AssertActions;
+import io.github.mmaciekk111.uitestlens.react.ReactSafeExecutor;
 
 import java.time.LocalDateTime;
 import java.util.List;

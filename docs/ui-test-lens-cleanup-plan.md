@@ -201,9 +201,9 @@ Powod: te zmiany dotykaja publicznego API, zasobow runtime i potencjalnych testo
    - Ograniczyc stare globale do aliasow kompatybilnosciowych albo usunac po decyzji.
 
 6. Commit 6: package rename.
-   - Mechanicznie przeniesc obecny kod do wybranego base package.
-   - Nie zmieniac logiki.
-   - Zweryfikowac importy i kompilacje.
+   - Wykonane: kod Java przeniesiono mechanicznie do `io.github.mmaciekk111.uitestlens`.
+   - Nie zmieniono logiki.
+   - Importy, testy i kompilacja pozostaja do weryfikacji w commicie rename.
 
 7. Commit 7: facade/API rename.
    - Zmienic publiczne nazwy na styl `UiTestLens*`.
@@ -241,7 +241,7 @@ Wykonane zmiany POM:
 Decyzje odłożone:
 
 - `groupId` nadal jest historyczny, dopóki nie zapadnie decyzja publiczne `io.github.mmaciekk111` kontra prywatne `pl.mmaciekk111`,
-- brak package rename,
+- package rename wykonano pozniej mechanicznie do `io.github.mmaciekk111.uitestlens`,
 - brak multi-module split,
 - brak zmiany namespace runtime JS,
 - brak refaktoru `JsOverlayDebug`.

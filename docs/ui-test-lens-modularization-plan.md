@@ -68,7 +68,7 @@ Elementy wyglądające na implementację wewnętrzną:
 
 Odpowiedzialność katalogów:
 
-- root package `utils.jsExecHelper`: fasada (`JsOverlayDebug`), konfiguracja (`OverlayConfig`), wait wrapper (`OverlayWait`), adapter content assertions.
+- root package `io.github.mmaciekk111.uitestlens`: fasada (`JsOverlayDebug`), konfiguracja (`OverlayConfig`), wait wrapper (`OverlayWait`), adapter content assertions.
 - `actions`: akcje Selenium + overlay, czyli highlight, typing, smart click/input, scroll, target resolver i overlay assertions.
 - `core`: techniczny runtime overlaya, page waits, popup/overlay heuristics, guards.
 - `hud`: panel HUD i pozycje HUD.
@@ -637,7 +637,7 @@ Zasoby JS:
 - Czy biblioteki mają być tylko dla Selenium, czy docelowo też dla Playwright/Cypress/innych driverów?
 - Czy overlay/HUD ma być niezależny od Selenium przez abstrakcję wykonywania skryptów?
 - Czy runtime JavaScript ma być wersjonowany jako osobny kontrakt i czy dopuszczamy breaking changes?
-- Jaki ma być docelowy groupId i base package? Obecne `utils.jsExecHelper` wygląda roboczo.
+- Jaki ma być docelowy groupId? Base package został ustawiony na `io.github.mmaciekk111.uitestlens`, ale Maven coordinates nadal wymagają osobnej decyzji.
 - Czy API ma być stabilne od pierwszej publikacji, czy oznaczamy je jako eksperymentalne?
 - Jaki minimalny Java version: 11, 17 czy nowszy?
 - Jaki minimalny Selenium version i czy używać `selenium-java`, czy węższych artefaktów?

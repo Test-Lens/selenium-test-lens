@@ -329,3 +329,10 @@ Na później zostają:
 - dodać adapter SLF4J,
 - dodać adaptery Allure i TeamCity,
 - dopiero później przepiąć runtime/HUD/highlight na centralny event-bus.
+## Stage: Java package rename
+
+Model loggera/event-busa zostal mechanicznie przeniesiony do pakietu
+`io.github.mmaciekk111.uitestlens.core.logging`.
+
+Zmiana dotyczy tylko deklaracji pakietow, importow i sciezek plikow Java.
+Nie zmieniono nazw klas, publicznych metod, runtime namespace JS ani modelu eventow.

@@ -4,14 +4,14 @@ Visual observability and debug layer for UI/browser automation tests.
 
 ## Status
 
-This project is currently being migrated from an internal Selenium helper project into UI Test Lens. The artifact name and documentation already use UI Test Lens, but Java packages are still historical and will be renamed in a separate migration step.
+This project is currently being migrated from an internal Selenium helper project into UI Test Lens. The artifact name, documentation, and Java package namespace now use UI Test Lens naming, while Maven coordinates are still being cleaned up incrementally.
 
 Current state:
 
 - Maven artifactId is `ui-test-lens`.
-- Java packages are still under historical `utils.jsExecHelper`.
+- Java packages use `io.github.mmaciekk111.uitestlens`.
 - The project is currently a single-module Maven project.
-- Package rename to `io.github.mmaciekk111.uitestlens` or `pl.mmaciekk111.uitestlens` is planned as a separate migration step.
+- Maven `groupId` is still historical and will be updated in a separate coordinates cleanup step.
 - Multi-module split is planned later.
 - Runtime JavaScript namespace still uses historical Selenium-oriented names.
 
@@ -79,18 +79,18 @@ Use the current local coordinates:
 
 ## Minimal Selenium Usage
 
-The current API still exposes historical constructor dependencies. The example below matches the current codebase.
+The current API still exposes low-level constructor dependencies. The example below matches the current codebase.
 
 ```java
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import utils.jsExecHelper.JsOverlayDebug;
-import utils.jsExecHelper.OverlayConfig;
-import utils.jsExecHelper.api.ApiCallActions;
-import utils.jsExecHelper.api.ApiOverlayPanel;
-import utils.jsExecHelper.core.Guards;
-import utils.jsExecHelper.core.OverlayRootManager;
+import io.github.mmaciekk111.uitestlens.JsOverlayDebug;
+import io.github.mmaciekk111.uitestlens.OverlayConfig;
+import io.github.mmaciekk111.uitestlens.api.ApiCallActions;
+import io.github.mmaciekk111.uitestlens.api.ApiOverlayPanel;
+import io.github.mmaciekk111.uitestlens.core.Guards;
+import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
 
 WebDriver driver = /* existing Selenium driver */;
 
@@ -129,16 +129,16 @@ lens.clearDebugArtifacts();
 
 ```java
 import java.util.List;
-import utils.jsExecHelper.JsOverlayDebug;
-import utils.jsExecHelper.OverlayConfig;
-import utils.jsExecHelper.api.ApiCallActions;
-import utils.jsExecHelper.api.ApiOverlayPanel;
-import utils.jsExecHelper.core.Guards;
-import utils.jsExecHelper.core.OverlayLogger;
-import utils.jsExecHelper.core.OverlayRootManager;
-import utils.jsExecHelper.core.logging.InMemoryLogSink;
-import utils.jsExecHelper.core.logging.UiTestLensLogEntry;
-import utils.jsExecHelper.core.logging.UiTestLensLogger;
+import io.github.mmaciekk111.uitestlens.JsOverlayDebug;
+import io.github.mmaciekk111.uitestlens.OverlayConfig;
+import io.github.mmaciekk111.uitestlens.api.ApiCallActions;
+import io.github.mmaciekk111.uitestlens.api.ApiOverlayPanel;
+import io.github.mmaciekk111.uitestlens.core.Guards;
+import io.github.mmaciekk111.uitestlens.core.OverlayLogger;
+import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
+import io.github.mmaciekk111.uitestlens.core.logging.InMemoryLogSink;
+import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
+import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogger;
 
 InMemoryLogSink memorySink = new InMemoryLogSink();
 
@@ -174,7 +174,7 @@ List<UiTestLensLogEntry> entries = memorySink.entries();
 `InMemoryLogSink` can export collected events directly.
 
 ```java
-import utils.jsExecHelper.core.logging.export.PlainTextLogExporter;
+import io.github.mmaciekk111.uitestlens.core.logging.export.PlainTextLogExporter;
 
 String text = memorySink.exportAsText();
 String json = memorySink.exportAsJson();
@@ -190,8 +190,8 @@ The JSON and HTML exporters use only the JDK. There is no Jackson, Gson, or temp
 Use `ConsumerLogSink` to forward UI Test Lens events into an existing project logger without a compile-time dependency from this library.
 
 ```java
-import utils.jsExecHelper.core.logging.ConsumerLogSink;
-import utils.jsExecHelper.core.logging.UiTestLensLogger;
+import io.github.mmaciekk111.uitestlens.core.logging.ConsumerLogSink;
+import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogger;
 
 UiTestLensLogger logger = UiTestLensLogger.builder()
         .sink(new ConsumerLogSink(entry -> existingLogger.info(entry.message())))
@@ -202,7 +202,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 ## Current Limitations
 
-- Java package names are still historical.
+- Maven `groupId` is still historical.
 - Runtime JavaScript namespace is still historical.
 - Some JavaScript is still inline or stored under historical resource paths.
 - API is not final.
@@ -214,7 +214,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 ## Roadmap
 
-1. Package rename.
+1. Maven coordinates cleanup.
 2. Runtime namespace and resource cleanup.
 3. Split into `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`.
 4. Selenium `WebDriverListener` adapter.
@@ -238,10 +238,11 @@ mvn -q -DskipTests compile
 
 ## Notes On Project Migration
 
-The current project deliberately keeps historical packages and runtime names while the internal architecture is cleaned up. This keeps the migration incremental:
+The current project deliberately keeps Maven coordinates and runtime names separate from the Java package migration. This keeps the migration incremental:
 
 - first stabilize Maven layout, dependencies, logger/event model, exporters, and documentation,
-- then rename packages and browser namespace,
+- then rename Java packages,
+- then clean up Maven coordinates and browser namespace,
 - then split modules and publish artifacts.
 
 ## Future API Direction

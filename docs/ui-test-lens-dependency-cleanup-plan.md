@@ -19,7 +19,7 @@ Wniosek: obecny blocker jest środowiskowy, związany z truststore/proxy/certyfi
 
 | Dependency/import | Gdzie występuje | Problem | Decyzja na etap 2 | Docelowa decyzja |
 | --- | --- | --- | --- | --- |
-| `org.seleniumhq.selenium:selenium-java` | większość klas w `src/main/java/utils/jsExecHelper/**` | Główna zależność obecnego adaptera Selenium. | Zostaje w POM. Wersja ujednolicona przez `${selenium.version}`. | Przenieść do `ui-test-lens-selenium`; `core` i `overlay runtime` nie powinny zależeć od Selenium bezpośrednio. |
+| `org.seleniumhq.selenium:selenium-java` | większość klas w `src/main/java/io/github/mmaciekk111/uitestlens/**` | Główna zależność obecnego adaptera Selenium. | Zostaje w POM. Wersja ujednolicona przez `${selenium.version}`. | Przenieść do `ui-test-lens-selenium`; `core` i `overlay runtime` nie powinny zależeć od Selenium bezpośrednio. |
 | `org.projectlombok:lombok` / `lombok.Getter` | `JsOverlayDebug` | Użycie minimalne: `@Getter` dla `driver` i `config`. | Zostaje `provided`, żeby nie zmieniać kodu. | Zdecydować później: usunąć Lombok z publicznego API albo zostawić jako compile-only/provided. |
 | `io.restassured.response.Response` | `api/ApiCallActions.java` | RestAssured nie jest w POM i nie powinien być główną zależnością core. | Nie dodawać do głównego POM. Znany blocker kompilacji po naprawie PKIX. | Wydzielić do `ui-test-lens-restassured` albo zastąpić neutralnym modelem response. |
 | `utils.logs.LogWraper` | `OverlayWait.java`, `core/Guards.java` | Prywatna/projektowa zależność, niedostępna w publicznym POM. | Nie dodawać do POM. Znany blocker kompilacji po naprawie PKIX. | Zastąpić `UiTestLensLogger`/sinkami albo przenieść do prywatnego adaptera. |
@@ -32,8 +32,8 @@ Wniosek: obecny blocker jest środowiskowy, związany z truststore/proxy/certyfi
 ### `utils.logs.LogWraper`
 
 - Występuje w:
-  - `src/main/java/utils/jsExecHelper/OverlayWait.java`
-  - `src/main/java/utils/jsExecHelper/core/Guards.java`
+  - `src/main/java/io/github/mmaciekk111/uitestlens/OverlayWait.java`
+  - `src/main/java/io/github/mmaciekk111/uitestlens/core/Guards.java`
 - Blokuje compile: tak, po usunięciu blokera PKIX.
 - Publicznie akceptowalne w bibliotece: nie jako dependency głównego artifactu.
 - Decyzja: zostawić tymczasowo jako opisany blocker; nie dodawać do POM.
@@ -45,7 +45,7 @@ Wniosek: obecny blocker jest środowiskowy, związany z truststore/proxy/certyfi
 ### `utils.time.TimeStamp`
 
 - Występuje w:
-  - `src/main/java/utils/jsExecHelper/OverlayWait.java`
+  - `src/main/java/io/github/mmaciekk111/uitestlens/OverlayWait.java`
 - Blokuje compile: tak, po usunięciu blokera PKIX.
 - Publicznie akceptowalne w bibliotece: nie.
 - Decyzja: zostawić tymczasowo jako opisany blocker.
@@ -57,7 +57,7 @@ Wniosek: obecny blocker jest środowiskowy, związany z truststore/proxy/certyfi
 ### `tests.fe.utils.contentassertions.ContentIssueCollector`
 
 - Występuje w:
-  - `src/main/java/utils/jsExecHelper/OverlayContentAssertions.java`
+  - `src/main/java/io/github/mmaciekk111/uitestlens/OverlayContentAssertions.java`
 - Blokuje compile: tak, po usunięciu blokera PKIX.
 - Publicznie akceptowalne w bibliotece: nie, bo wskazuje na konkretny projekt testowy.
 - Decyzja: nie dodawać do POM.
@@ -69,7 +69,7 @@ Wniosek: obecny blocker jest środowiskowy, związany z truststore/proxy/certyfi
 ### `utils.datetime.LocalDateTimeUtils`
 
 - Występuje w:
-  - `src/main/java/utils/jsExecHelper/OverlayContentAssertions.java`
+  - `src/main/java/io/github/mmaciekk111/uitestlens/OverlayContentAssertions.java`
 - Blokuje compile: tak, po usunięciu blokera PKIX.
 - Publicznie akceptowalne w bibliotece: nie.
 - Decyzja: nie dodawać do POM.
@@ -81,7 +81,7 @@ Wniosek: obecny blocker jest środowiskowy, związany z truststore/proxy/certyfi
 
 RestAssured występuje w:
 
-- `src/main/java/utils/jsExecHelper/api/ApiCallActions.java`
+- `src/main/java/io/github/mmaciekk111/uitestlens/api/ApiCallActions.java`
   - `import io.restassured.response.Response`
   - `if (result instanceof io.restassured.response.Response r)`
   - `callWithModalRA(...)`
@@ -194,7 +194,7 @@ Docelowo:
 
 Wykonano:
 
-- dodano mały neutralny kontrakt `utils.jsExecHelper.core.OverlayLogger`,
+- dodano mały neutralny kontrakt `io.github.mmaciekk111.uitestlens.core.OverlayLogger`,
 - dodano package-private noop implementację `NoopOverlayLogger`,
 - `OverlayWait` używa teraz `OverlayLogger`,
 - `Guards` używa teraz `OverlayLogger`,
@@ -257,7 +257,7 @@ Docelowo:
 
 ## Stage 4: Minimal logging model
 
-Dodano minimalny model logowania/event-busa w `utils.jsExecHelper.core.logging`:
+Dodano minimalny model logowania/event-busa w `io.github.mmaciekk111.uitestlens.core.logging`:
 
 - `UiTestLensLogger`,
 - `UiTestLensLogEntry`,
