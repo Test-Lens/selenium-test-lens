@@ -225,6 +225,48 @@ Na później zostają:
 - lepszy model `OverlayAssertionResult`,
 - dokładniejsze oznaczanie, które assertion eventy fizycznie narysowały badge.
 
+## Stage: Logging model unit tests
+
+Dodano pierwsze testy jednostkowe dla modelu loggera/event-busa. Testy nie wymagają Selenium, WebDrivera, przeglądarki ani runtime JS.
+
+Pokrycie obejmuje:
+
+- `UiTestLensLogEntry`:
+  - factory methods `info`, `warn`, `error`,
+  - builder,
+  - defensywne kopiowanie i niemutowalność metadata,
+  - `toBuilder()` bez mutowania oryginału.
+- `TargetDescriptor`:
+  - `none`,
+  - `selector`,
+  - `label`,
+  - `withMetadata` jako niemutujący helper.
+- sinki:
+  - `InMemoryLogSink`,
+  - `ConsumerLogSink`,
+  - `ConsoleLogSink`.
+- `UiTestLensLogger`:
+  - `noop`,
+  - kolejność eventów,
+  - wiele sinków,
+  - izolowanie wyjątku jednego sinka,
+  - `withSink`.
+- `OverlayLogger`:
+  - noop bridge,
+  - delegowanie `info/warn/error`,
+  - delegowanie typowanego `emit(UiTestLensLogEntry)`,
+  - bezpieczne `from(null)`.
+
+Te testy stabilizują neutralny model eventów przed dalszym refaktorem pakietów i modułów.
+
+Na później zostają:
+
+- Selenium integration tests,
+- overlay runtime tests,
+- exporter tests,
+- HUD/highlight sink tests,
+- testy przyszłych adapterów Selenide/Allure/TeamCity.
+
 Na później zostają:
 
 - Selenium `WebDriverListener`,
