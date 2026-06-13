@@ -506,7 +506,8 @@ API powinno ukrywać klasy `*Actions`, `OverlayRootManager`, `HudPanel` i zasoby
 - Statyczne `ThreadLocal` w `ApiOverlayContext`, `ApiOverlayPlan`, `ApiOverlayRule` utrudniają czytelny lifecycle, równoległość i testowanie.
 - Brakuje abstrakcji dla wykonywania JS, np. `BrowserScriptExecutor`/`ScriptExecutor`; obecny `core.ScriptExecutor` jest pusty.
 - API overlay JS został wydzielony do `src/main/resources/uitestlens/runtime/api-overlay.js`; loader zachowuje fallback `selenium/api-overlay.js`.
-- Wait HUD i pozostałe fragmenty runtime nadal wymagają ekstrakcji z inline JavaScript albo legacy resource paths.
+- Wait HUD JS został wydzielony do `src/main/resources/uitestlens/runtime/wait-hud.js`; loader zachowuje fallback `selenium/wait/WaitHud.js`.
+- HUD panel, highlight, scroll arrow i visual assertion badges nadal wymagają ekstrakcji z inline JavaScript albo legacy resource paths.
 - POM deklaruje Selenium `4.39.0`, ale property `selenium.version` ma wartość `4.40.0` i nie jest używane.
 - POM nie deklaruje RestAssured mimo importu w `ApiCallActions`.
 - POM nie deklaruje prywatnych zależności: `utils.logs.LogWraper`, `utils.time.TimeStamp`, `utils.datetime.LocalDateTimeUtils`, `tests.fe.utils.contentassertions.ContentIssueCollector`.
@@ -634,6 +635,8 @@ Zasoby JS:
 - stare `window.__selenium...` globale pozostaja przejsciowo jako compatibility aliases,
 - API overlay jest pierwszym wydzielonym runtime resource: `src/main/resources/uitestlens/runtime/api-overlay.js`,
 - legacy path `selenium/api-overlay.js` pozostaje fallbackiem loadera,
+- Wait HUD jest drugim wydzielonym runtime resource: `src/main/resources/uitestlens/runtime/wait-hud.js`,
+- legacy path `selenium/wait/WaitHud.js` pozostaje fallbackiem loadera,
 - nowe resource paths `uitestlens/runtime/...` sa preferowane, a stare `selenium/...` moga zostac fallbackiem do czasu pelnej ekstrakcji runtime,
 - klasy Java nie powinny znać szczegółów DOM/CSS poza wywołaniem publicznych funkcji runtime JS.
 

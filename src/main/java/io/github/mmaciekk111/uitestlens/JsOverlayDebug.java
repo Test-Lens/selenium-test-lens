@@ -12,6 +12,7 @@ import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
 import io.github.mmaciekk111.uitestlens.core.PageWaits;
 import io.github.mmaciekk111.uitestlens.core.PopupDetector;
 import io.github.mmaciekk111.uitestlens.core.UiTestLensRuntimeNames;
+import io.github.mmaciekk111.uitestlens.core.WaitHudJs;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensEventType;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
@@ -21,7 +22,6 @@ import io.github.mmaciekk111.uitestlens.hud.HudPanel;
 import io.github.mmaciekk111.uitestlens.react.ReactSafeExecutor;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollElementEdge;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollViewportEdge;
-import io.github.mmaciekk111.uitestlens.utils.JsResources;
 
 
 import java.time.Duration;
@@ -464,9 +464,7 @@ public final class JsOverlayDebug {
     public void ensureWaitHudInjected() {
         try {
             Object present = ((JavascriptExecutor) driver).executeScript(
-                    UiTestLensRuntimeNames.ensureNamespaceScript() +
-                            "var waitHud = window.__uiTestLens.modules.waitHud || window.__seleniumWaitHud;" +
-                            "if (waitHud) { window.__uiTestLens.modules.waitHud = waitHud; window.__seleniumWaitHud = waitHud; }" +
+                    WaitHudJs.bridgeScript() +
                             "return !!(waitHud && waitHud.start && waitHud.stop);"
             );
             if (present instanceof Boolean && (Boolean) present) {
@@ -474,16 +472,7 @@ public final class JsOverlayDebug {
             }
         } catch (Exception ignored) {}
 
-        String jsCode = JsResources.readFirstExisting(
-                UiTestLensRuntimeNames.WAIT_HUD_RESOURCE,
-                UiTestLensRuntimeNames.LEGACY_WAIT_HUD_RESOURCE
-        );
-        ((JavascriptExecutor) driver).executeScript(jsCode);
-        ((JavascriptExecutor) driver).executeScript(
-                UiTestLensRuntimeNames.ensureNamespaceScript() +
-                        "if (window.__seleniumWaitHud) { window.__uiTestLens.modules.waitHud = window.__seleniumWaitHud; }" +
-                        "if (window.__uiTestLens.modules.waitHud) { window.__seleniumWaitHud = window.__uiTestLens.modules.waitHud; }"
-        );
+        ((JavascriptExecutor) driver).executeScript(WaitHudJs.INIT);
     }
 
 
@@ -491,9 +480,7 @@ public final class JsOverlayDebug {
         try {
             ensureWaitHudInjected();
             ((JavascriptExecutor) driver).executeScript(
-                    UiTestLensRuntimeNames.ensureNamespaceScript() +
-                            "var waitHud = window.__uiTestLens.modules.waitHud || window.__seleniumWaitHud;" +
-                            "if (waitHud) { window.__uiTestLens.modules.waitHud = waitHud; window.__seleniumWaitHud = waitHud; }" +
+                    WaitHudJs.bridgeScript() +
                             "if (waitHud && waitHud.start) { waitHud.start(arguments[0]); }",
                     label
             );
@@ -512,11 +499,9 @@ public final class JsOverlayDebug {
         try {
             ensureWaitHudInjected();
             ((JavascriptExecutor) driver).executeScript(
-                    UiTestLensRuntimeNames.ensureNamespaceScript() +
+                    WaitHudJs.bridgeScript() +
                             "window.__uiTestLens.state.wait.lastElapsedMs = arguments[1];" +
                             "window.__seleniumLastWaitElapsedMs = window.__uiTestLens.state.wait.lastElapsedMs;" +
-                            "var waitHud = window.__uiTestLens.modules.waitHud || window.__seleniumWaitHud;" +
-                            "if (waitHud) { window.__uiTestLens.modules.waitHud = waitHud; window.__seleniumWaitHud = waitHud; }" +
                             "return waitHud && waitHud.stop ? waitHud.stop(arguments[0], arguments[1]) : null;",
                     prefix, elapsedMs
             );
@@ -534,18 +519,10 @@ public final class JsOverlayDebug {
 
     public void forceHideWaitHud() {
         try {
+            ensureWaitHudInjected();
             ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
-                    UiTestLensRuntimeNames.ensureNamespaceScript() +
-                            "try {" +
-                            "  var shadow = window.__uiTestLens.state.overlay.root || window.__seleniumOverlayRoot;" +
-                            "  if (shadow) { window.__uiTestLens.state.overlay.root = shadow; window.__seleniumOverlayRoot = shadow; }" +
-                            "  if (shadow) {" +
-                            "    var el = shadow.querySelector('#selenium-wait-indicator, #selenium-wait-hud, [data-selenium-wait=\"1\"]');" +
-                            "    if (el && el.parentNode) el.parentNode.removeChild(el);" +
-                            "  }" +
-                            "  var el2 = document.querySelector('#selenium-wait-indicator, #selenium-wait-hud, [data-selenium-wait=\"1\"]');" +
-                            "  if (el2 && el2.parentNode) el2.parentNode.removeChild(el2);" +
-                            "} catch(e) {}"
+                    WaitHudJs.bridgeScript() +
+                            "if (waitHud && waitHud.forceHide) { waitHud.forceHide(); }"
             );
         } catch (Exception ignored) {}
     }
@@ -558,33 +535,14 @@ public final class JsOverlayDebug {
     /** Pokazuje prosty indykator "czekam" w overlay (klepsydra). */
     public void showWaitIndicator(String label) {
         try {
+            ensureWaitHudInjected();
             ((JavascriptExecutor) driver).executeScript(
-                    UiTestLensRuntimeNames.ensureNamespaceScript() +
-                            "var shadow = window.__uiTestLens.state.overlay.root || window.__seleniumOverlayRoot;" +
-                            "if (shadow) { window.__uiTestLens.state.overlay.root = shadow; window.__seleniumOverlayRoot = shadow; }" +
-                            "if (!shadow) { return; }" +
-                            "var existing = shadow.querySelector('#selenium-wait-indicator');" +
-                            "if (!existing) {" +
-                            "  existing = document.createElement('div');" +
-                            "  existing.id = 'selenium-wait-indicator';" +
-                            "  existing.style.position = 'fixed';" +
-                            "  existing.style.bottom = '8px';" +
-                            "  existing.style.left = '50%';" +
-                            "  existing.style.transform = 'translateX(-50%)';" +
-                            "  existing.style.padding = '4px 10px';" +
-                            "  existing.style.background = 'rgba(0,0,0,0.8)';" +
-                            "  existing.style.color = '#ffffff';" +
-                            "  existing.style.fontSize = '11px';" +
-                            "  existing.style.borderRadius = '12px';" +
-                            "  existing.style.zIndex = '2147483647';" +
-                            "  existing.style.pointerEvents = 'none';" +
-                            "  shadow.appendChild(existing);" +
-                            "}" +
-                            "existing.textContent = '⏳ ' + (arguments[0] || 'Waiting...');",
+                    WaitHudJs.bridgeScript() +
+                            "if (waitHud && waitHud.showIndicator) { waitHud.showIndicator(arguments[0]); }",
                     label
             );
         } catch (Exception ignored) {
-            // HUD nie powinien wysadzać testów
+            // HUD nie powinien wysadzac testow
         }
         emit(UiTestLensLogEntry.builder()
                 .level(UiTestLensLogLevel.INFO)
@@ -599,18 +557,13 @@ public final class JsOverlayDebug {
     /** Chowa indykator "czekam". */
     public void hideWaitIndicator() {
         try {
+            ensureWaitHudInjected();
             ((JavascriptExecutor) driver).executeScript(
-                    UiTestLensRuntimeNames.ensureNamespaceScript() +
-                            "var shadow = window.__uiTestLens.state.overlay.root || window.__seleniumOverlayRoot;" +
-                            "if (shadow) { window.__uiTestLens.state.overlay.root = shadow; window.__seleniumOverlayRoot = shadow; }" +
-                            "if (!shadow) { return; }" +
-                            "var existing = shadow.querySelector('#selenium-wait-indicator');" +
-                            "if (existing && existing.parentNode) {" +
-                            "  existing.parentNode.removeChild(existing);" +
-                            "}"
+                    WaitHudJs.bridgeScript() +
+                            "if (waitHud && waitHud.hideIndicator) { waitHud.hideIndicator(); }"
             );
         } catch (Exception ignored) {
-            // HUD nie powinien wysadzać testów
+            // HUD nie powinien wysadzac testow
         }
         emit(UiTestLensLogEntry.builder()
                 .level(UiTestLensLogLevel.INFO)

@@ -160,9 +160,35 @@ selenium/api-overlay.js
 API overlay rejestruje sie pod primary namespace `window.__uiTestLens.modules.apiOverlay`.
 Dla kompatybilnosci pozostaje alias `window.__seleniumApiModal`, poniewaz obecne klasy Java nadal korzystaja z tego globalnego mostka.
 
+## Wait HUD JavaScript extraction
+
+Drugi fragment runtime JS zostal przeniesiony do realnego resource file:
+
+```text
+src/main/resources/uitestlens/runtime/wait-hud.js
+```
+
+Loader `WaitHudJs` preferuje teraz:
+
+```text
+uitestlens/runtime/wait-hud.js
+```
+
+i zachowuje legacy fallback:
+
+```text
+selenium/wait/WaitHud.js
+```
+
+Wait HUD rejestruje sie pod primary namespace `window.__uiTestLens.modules.waitHud`.
+Dla kompatybilnosci pozostaja aliasy:
+
+- `window.__seleniumWaitHud`,
+- `window.__seleniumLastWaitMessage`,
+- `window.__seleniumLastWaitElapsedMs`.
+
 Kolejne fragmenty inline JS do ekstrakcji:
 
-- wait HUD,
 - HUD panel,
 - highlight,
 - scroll arrow,

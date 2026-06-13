@@ -29,6 +29,18 @@ class JsResourcesTest {
     }
 
     @Test
+    void readFirstExistingReturnsWaitHudResourceContent() {
+        String script = JsResources.readFirstExisting(
+                "uitestlens/runtime/wait-hud.js",
+                "missing/legacy.js"
+        );
+
+        assertTrue(script.contains("__uiTestLens"));
+        assertTrue(script.contains("modules.waitHud"));
+        assertTrue(script.contains("__seleniumWaitHud"));
+    }
+
+    @Test
     void readFirstExistingFallsBackToLegacyPath() {
         assertDoesNotThrow(() -> JsResources.readFirstExisting(
                 "missing/preferred.js",
