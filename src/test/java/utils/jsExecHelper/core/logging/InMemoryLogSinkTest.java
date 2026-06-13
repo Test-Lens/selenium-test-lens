@@ -1,6 +1,7 @@
 package utils.jsExecHelper.core.logging;
 
 import org.junit.jupiter.api.Test;
+import utils.jsExecHelper.core.logging.export.PlainTextLogExporter;
 
 import java.util.List;
 
@@ -42,5 +43,34 @@ class InMemoryLogSinkTest {
         sink.clear();
 
         assertTrue(sink.entries().isEmpty());
+    }
+
+    @Test
+    void exportDelegatesToExporterAndKeepsEntries() {
+        InMemoryLogSink sink = new InMemoryLogSink();
+        sink.accept(UiTestLensLogEntry.info("entry"));
+
+        String text = sink.export(new PlainTextLogExporter());
+
+        assertTrue(text.contains("entry"));
+        assertEquals(1, sink.entries().size());
+    }
+
+    @Test
+    void exportRejectsNullExporter() {
+        InMemoryLogSink sink = new InMemoryLogSink();
+
+        assertThrows(IllegalArgumentException.class, () -> sink.export(null));
+    }
+
+    @Test
+    void convenienceExportsReturnStringsAndKeepEntries() {
+        InMemoryLogSink sink = new InMemoryLogSink();
+        sink.accept(UiTestLensLogEntry.info("entry"));
+
+        assertTrue(sink.exportAsText().contains("entry"));
+        assertTrue(sink.exportAsJson().contains("\"message\""));
+        assertTrue(sink.exportAsHtml().contains("<html"));
+        assertEquals(1, sink.entries().size());
     }
 }

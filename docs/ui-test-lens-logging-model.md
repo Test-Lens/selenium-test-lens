@@ -267,6 +267,50 @@ Na później zostają:
 - HUD/highlight sink tests,
 - testy przyszłych adapterów Selenide/Allure/TeamCity.
 
+## Stage: Log exporters
+
+Dodano pierwsze eksportery logów z `InMemoryLogSink`. Eksportery nie wymagają Selenium, WebDrivera, przeglądarki ani runtime JS.
+
+Dostępne formaty:
+
+- plain text przez `PlainTextLogExporter`,
+- JSON przez `JsonLogExporter`,
+- prosty samodzielny HTML przez `HtmlLogExporter`.
+
+JSON i HTML są generowane bez zewnętrznych bibliotek, bez Jacksona, Gsona i template engine. Eksportery używają tylko standardowego JDK.
+
+Przykład:
+
+```java
+InMemoryLogSink memorySink = new InMemoryLogSink();
+
+UiTestLensLogger logger = UiTestLensLogger.builder()
+        .sink(memorySink)
+        .build();
+
+// test flow...
+
+String text = memorySink.exportAsText();
+String json = memorySink.exportAsJson();
+String html = memorySink.exportAsHtml();
+```
+
+`LogExportOptions` pozwala kontrolować:
+
+- dołączanie metadata,
+- dołączanie throwable,
+- pretty print,
+- maksymalną długość pól tekstowych.
+
+Na później zostają:
+
+- zapis do pliku,
+- attachmenty do Allure/TeamCity,
+- streaming logów,
+- filtrowanie po typie eventu,
+- maskowanie danych wrażliwych na poziomie eksportu,
+- gotowe raporty HTML ze screenshotami.
+
 Na później zostają:
 
 - Selenium `WebDriverListener`,
