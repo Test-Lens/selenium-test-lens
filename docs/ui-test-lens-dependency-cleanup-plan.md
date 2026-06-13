@@ -340,3 +340,13 @@ Odłożono:
 - adapter `ContentIssueCollector`,
 - eksport assertion report,
 - przeniesienie lub rename `OverlayAssertionResult`.
+
+## Current Maven coordinates
+
+Aktualne single-module Maven coordinates po cleanupie groupId:
+
+```text
+io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT
+```
+
+Java package pozostaje `io.github.mmaciekk111.uitestlens`.

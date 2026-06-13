@@ -4,14 +4,14 @@ Visual observability and debug layer for UI/browser automation tests.
 
 ## Status
 
-This project is currently being migrated from an internal Selenium helper project into UI Test Lens. The artifact name, documentation, and Java package namespace now use UI Test Lens naming, while Maven coordinates are still being cleaned up incrementally.
+This project is currently being migrated from an internal Selenium helper project into UI Test Lens. The artifact name, Java package namespace, and Maven coordinates now use UI Test Lens naming.
 
 Current state:
 
 - Maven artifactId is `ui-test-lens`.
+- Maven groupId is `io.github.mmaciekk111`.
 - Java packages use `io.github.mmaciekk111.uitestlens`.
 - The project is currently a single-module Maven project.
-- Maven `groupId` is still historical and will be updated in a separate coordinates cleanup step.
 - Multi-module split is planned later.
 - Runtime JavaScript namespace still uses historical Selenium-oriented names.
 
@@ -69,13 +69,11 @@ Use the current local coordinates:
 
 ```xml
 <dependency>
-    <groupId>utils.jsExecHelper</groupId>
+    <groupId>io.github.mmaciekk111</groupId>
     <artifactId>ui-test-lens</artifactId>
     <version>1.0-SNAPSHOT</version>
 </dependency>
 ```
-
-`groupId` is historical and will change after the public/private Maven coordinates decision.
 
 ## Minimal Selenium Usage
 
@@ -202,7 +200,6 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 ## Current Limitations
 
-- Maven `groupId` is still historical.
 - Runtime JavaScript namespace is still historical.
 - Some JavaScript is still inline or stored under historical resource paths.
 - API is not final.
@@ -214,14 +211,13 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 ## Roadmap
 
-1. Maven coordinates cleanup.
-2. Runtime namespace and resource cleanup.
-3. Split into `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`.
-4. Selenium `WebDriverListener` adapter.
-5. Selenide adapter.
-6. Allure/TeamCity exporters and adapters.
-7. HTML report improvements.
-8. Maven publication.
+1. Runtime namespace and resource cleanup.
+2. Split into `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`.
+3. Selenium `WebDriverListener` adapter.
+4. Selenide adapter.
+5. Allure/TeamCity exporters and adapters.
+6. HTML report improvements.
+7. Maven publication.
 
 ## Development
 
@@ -238,11 +234,12 @@ mvn -q -DskipTests compile
 
 ## Notes On Project Migration
 
-The current project deliberately keeps Maven coordinates and runtime names separate from the Java package migration. This keeps the migration incremental:
+The current project deliberately keeps runtime names separate from the completed Java package and Maven coordinates migration. This keeps the migration incremental:
 
 - first stabilize Maven layout, dependencies, logger/event model, exporters, and documentation,
 - then rename Java packages,
-- then clean up Maven coordinates and browser namespace,
+- then clean up Maven coordinates,
+- next clean up browser namespace,
 - then split modules and publish artifacts.
 
 ## Future API Direction

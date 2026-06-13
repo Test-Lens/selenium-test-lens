@@ -637,7 +637,7 @@ Zasoby JS:
 - Czy biblioteki mają być tylko dla Selenium, czy docelowo też dla Playwright/Cypress/innych driverów?
 - Czy overlay/HUD ma być niezależny od Selenium przez abstrakcję wykonywania skryptów?
 - Czy runtime JavaScript ma być wersjonowany jako osobny kontrakt i czy dopuszczamy breaking changes?
-- Jaki ma być docelowy groupId? Base package został ustawiony na `io.github.mmaciekk111.uitestlens`, ale Maven coordinates nadal wymagają osobnej decyzji.
+- Base package został ustawiony na `io.github.mmaciekk111.uitestlens`, a aktualne single-module Maven coordinates to `io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT`.
 - Czy API ma być stabilne od pierwszej publikacji, czy oznaczamy je jako eksperymentalne?
 - Jaki minimalny Java version: 11, 17 czy nowszy?
 - Jaki minimalny Selenium version i czy używać `selenium-java`, czy węższych artefaktów?

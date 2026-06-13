@@ -36,7 +36,7 @@ Moduly przyszle/opcjonalne:
 
 Dla obecnego jednego modulu przejsciowego rekomendacja: nie zmieniac artifactId razem z przenosinami layoutu Maven. Zmiana na przejsciowe `ui-test-lens` albo od razu parent/module coordinates powinna byc osobnym commitem po uporzadkowaniu zaleznosci POM.
 
-## Rekomendowany groupId
+## Wybrany groupId
 
 Dla publikacji publicznej:
 
@@ -62,7 +62,12 @@ Alternatywa firmowa dla wewnetrznego Nexus/Artifactory:
 pl.<organization>.uitestlens
 ```
 
-Obecny groupId w POM nalezy traktowac jako historyczny/roboczy, nie jako docelowe koordynaty biblioteki.
+GroupId w POM zostal ustawiony na publiczne koordynaty GitHub namespace.
+Aktualne single-module Maven coordinates:
+
+```text
+io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT
+```
 
 ## Rekomendowany base package
 
@@ -187,7 +192,7 @@ Powod: te zmiany dotykaja publicznego API, zasobow runtime i potencjalnych testo
    - Uzgodnic namespace `window.__uiTestLens`.
 
 3. Commit 3: POM cleanup.
-   - Uporzadkowac `groupId`, `artifactId`, `name`, `description`.
+   - Uporzadkowac `artifactId`, `name`, `description`.
    - Uzyc jednej wersji Selenium z property.
    - Udokumentowac lub wydzielic brakujace zaleznosci prywatne i RestAssured.
 
@@ -205,21 +210,25 @@ Powod: te zmiany dotykaja publicznego API, zasobow runtime i potencjalnych testo
    - Nie zmieniono logiki.
    - Importy, testy i kompilacja pozostaja do weryfikacji w commicie rename.
 
-7. Commit 7: facade/API rename.
+7. Commit 7: Maven coordinates cleanup.
+   - Wykonane: `groupId` ustawiono na `io.github.mmaciekk111`.
+   - Aktualne coordinates: `io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT`.
+
+8. Commit 8: facade/API rename.
    - Zmienic publiczne nazwy na styl `UiTestLens*`.
    - Jesli trzeba, zostawic deprecated aliases na okres przejsciowy.
 
-8. Commit 8: multi-module split.
+9. Commit 9: multi-module split.
    - Wydzielic `core`, `overlay`, `selenium`, `react`, `selenide`, `examples`.
    - Moduly opcjonalne wydzielac dopiero po ustabilizowaniu core event/log/runtime API.
 
-## Decyzja dla aktualnego etapu
+## Decyzja dla pierwszego etapu cleanupu
 
 Aktualny etap powinien pozostac bezpieczny:
 
 - dokumentacja wskazuje `ui-test-lens` jako nazwe docelowa,
 - standardowy layout Maven zostaje,
-- nie ma globalnego rename pakietow,
+- package rename zostal wykonany pozniej w osobnym commicie,
 - nie ma zmiany runtime JS,
 - nie ma rozbijania modulu,
 - nie ma refaktoru klas i API.
@@ -231,6 +240,7 @@ Aktualny single-module POM pozostaje projektem przejściowym przed multi-module 
 Wykonane zmiany POM:
 
 - `artifactId` ustawiony na `ui-test-lens`,
+- `groupId` ustawiony na `io.github.mmaciekk111`,
 - dodane `name`: `UI Test Lens`,
 - dodane `description`: `Visual observability and debug layer for UI/browser automation tests.`,
 - dodane `project.reporting.outputEncoding=UTF-8`,
@@ -240,7 +250,6 @@ Wykonane zmiany POM:
 
 Decyzje odłożone:
 
-- `groupId` nadal jest historyczny, dopóki nie zapadnie decyzja publiczne `io.github.mmaciekk111` kontra prywatne `pl.mmaciekk111`,
 - package rename wykonano pozniej mechanicznie do `io.github.mmaciekk111.uitestlens`,
 - brak multi-module split,
 - brak zmiany namespace runtime JS,

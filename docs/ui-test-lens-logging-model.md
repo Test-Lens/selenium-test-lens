@@ -336,3 +336,13 @@ Model loggera/event-busa zostal mechanicznie przeniesiony do pakietu
 
 Zmiana dotyczy tylko deklaracji pakietow, importow i sciezek plikow Java.
 Nie zmieniono nazw klas, publicznych metod, runtime namespace JS ani modelu eventow.
+
+## Current artifact coordinates
+
+Logger/event-bus jest czescia aktualnego single-module artifactu:
+
+```text
+io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT
+```
+
+Pakiet Java loggera pozostaje `io.github.mmaciekk111.uitestlens.core.logging`.
