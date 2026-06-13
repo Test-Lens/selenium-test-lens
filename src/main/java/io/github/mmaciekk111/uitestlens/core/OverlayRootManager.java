@@ -27,7 +27,15 @@ public class OverlayRootManager {
         }
 
         js.executeScript(
-                "if (window.__seleniumOverlayRoot) { return; }" +
+                UiTestLensRuntimeNames.ensureNamespaceScript() +
+                        "if (window.__uiTestLens.state.overlay.root) {" +
+                        "  window.__seleniumOverlayRoot = window.__uiTestLens.state.overlay.root;" +
+                        "  return;" +
+                        "}" +
+                        "if (window.__seleniumOverlayRoot) {" +
+                        "  window.__uiTestLens.state.overlay.root = window.__seleniumOverlayRoot;" +
+                        "  return;" +
+                        "}" +
                         "var host = document.createElement('div');" +
                         "host.id = 'selenium-overlay-host';" +
                         "host.style.position = 'fixed';" +
@@ -39,13 +47,16 @@ public class OverlayRootManager {
                         "host.style.pointerEvents = 'none';" +
                         "var shadow = host.attachShadow({ mode: 'open' });" +
                         "document.body.appendChild(host);" +
+                        "window.__uiTestLens.state.overlay.root = shadow;" +
                         "window.__seleniumOverlayRoot = shadow;"
         );
     }
 
     public void clearAll() {
         js.executeScript(
-                "var shadow = window.__seleniumOverlayRoot;" +
+                UiTestLensRuntimeNames.ensureNamespaceScript() +
+                        "var shadow = window.__uiTestLens.state.overlay.root || window.__seleniumOverlayRoot;" +
+                        "if (shadow) { window.__uiTestLens.state.overlay.root = shadow; window.__seleniumOverlayRoot = shadow; }" +
                         "if (!shadow) { return; }" +
                         "while (shadow.firstChild) {" +
                         "  shadow.removeChild(shadow.firstChild);" +

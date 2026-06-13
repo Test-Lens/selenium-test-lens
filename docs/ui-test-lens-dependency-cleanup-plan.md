@@ -253,7 +253,7 @@ Docelowo:
 - `ApiCallActions` nadal ma uproszczony model response i wymaga neutralnego modelu API overlay.
 - `OverlayWait` ma już odcięty prywatny logger, ale nadal powinien docelowo emitować eventy zamiast pisać bezpośrednio do HUD/loggera.
 - `Guards` ma neutralny logger, ale powinien docelowo emitować `guard.tripped`.
-- Runtime JS nadal używa historycznych nazw `window.__selenium...`; namespace `window.__uiTestLens` jest odłożony na późniejszy etap.
+- Runtime JS inicjalizuje teraz `window.__uiTestLens`; historyczne `window.__selenium...` nazwy pozostaja jako compatibility aliases.
 
 ## Stage 4: Minimal logging model
 
@@ -297,7 +297,7 @@ Decyzje odłożone:
 - HUD nie jest jeszcze pełnym sinkiem,
 - highlight/actions nie emitują jeszcze kompletnego modelu action events,
 - adaptery SLF4J, Allure i TeamCity pozostają poza core,
-- docelowy namespace `window.__uiTestLens` nadal jest odłożony na osobny etap.
+- namespace `window.__uiTestLens` zostal wprowadzony jako primary runtime namespace, z legacy aliasami `window.__selenium...`.
 
 ## Stage 6: Instrument Selenium actions with logging events
 

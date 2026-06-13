@@ -13,7 +13,7 @@ Current state:
 - Java packages use `io.github.mmaciekk111.uitestlens`.
 - The project is currently a single-module Maven project.
 - Multi-module split is planned later.
-- Runtime JavaScript namespace still uses historical Selenium-oriented names.
+- Runtime JavaScript state is initialized under `window.__uiTestLens`; legacy `window.__selenium...` globals remain as compatibility aliases.
 
 ## What It Does
 
@@ -200,8 +200,8 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 ## Current Limitations
 
-- Runtime JavaScript namespace is still historical.
-- Some JavaScript is still inline or stored under historical resource paths.
+- Runtime JavaScript still keeps legacy `window.__selenium...` aliases for compatibility.
+- Some JavaScript is still inline or loaded through legacy `selenium/...` resource fallbacks.
 - API is not final.
 - No multi-module split yet.
 - No Maven Central publication yet.
@@ -211,7 +211,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 ## Roadmap
 
-1. Runtime namespace and resource cleanup.
+1. Extract remaining inline runtime JavaScript into `uitestlens/runtime/` resources.
 2. Split into `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`.
 3. Selenium `WebDriverListener` adapter.
 4. Selenide adapter.

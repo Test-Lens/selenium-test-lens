@@ -124,6 +124,19 @@ src/main/resources/uitestlens/runtime/
 
 W etapie przejsciowym mozna zachowac kompatybilne sciezki zasobow Selenium, jesli istnieja downstream consumers. Docelowo nowe zasoby powinny byc ladowane z `uitestlens/runtime/`.
 
+## Runtime namespace migration
+
+Wykonano kompatybilny etap migracji runtime:
+
+- primary browser namespace: `window.__uiTestLens`,
+- stan wait/network/overlay jest inicjalizowany pod `window.__uiTestLens.state`,
+- moduly runtime moga byc aliasowane pod `window.__uiTestLens.modules`,
+- stare globale `window.__selenium...` zostaja jako legacy compatibility aliases,
+- preferowany resource root to `uitestlens/runtime/`,
+- stare sciezki `selenium/...` zostaja jako fallback w loaderach.
+
+Nie wykonano jeszcze pelnego przeniesienia wszystkich inline JS do plikow resources.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:

@@ -11,6 +11,7 @@ import io.github.mmaciekk111.uitestlens.core.OverlayLogger;
 import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
 import io.github.mmaciekk111.uitestlens.core.PageWaits;
 import io.github.mmaciekk111.uitestlens.core.PopupDetector;
+import io.github.mmaciekk111.uitestlens.core.UiTestLensRuntimeNames;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensEventType;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
@@ -20,9 +21,9 @@ import io.github.mmaciekk111.uitestlens.hud.HudPanel;
 import io.github.mmaciekk111.uitestlens.react.ReactSafeExecutor;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollElementEdge;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollViewportEdge;
+import io.github.mmaciekk111.uitestlens.utils.JsResources;
 
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -463,15 +464,26 @@ public final class JsOverlayDebug {
     public void ensureWaitHudInjected() {
         try {
             Object present = ((JavascriptExecutor) driver).executeScript(
-                    "return !!(window.__seleniumWaitHud && window.__seleniumWaitHud.start && window.__seleniumWaitHud.stop);"
+                    UiTestLensRuntimeNames.ensureNamespaceScript() +
+                            "var waitHud = window.__uiTestLens.modules.waitHud || window.__seleniumWaitHud;" +
+                            "if (waitHud) { window.__uiTestLens.modules.waitHud = waitHud; window.__seleniumWaitHud = waitHud; }" +
+                            "return !!(waitHud && waitHud.start && waitHud.stop);"
             );
             if (present instanceof Boolean && (Boolean) present) {
                 return;
             }
         } catch (Exception ignored) {}
 
-        String jsCode = loadResource("/selenium/wait/WaitHud.js");
+        String jsCode = JsResources.readFirstExisting(
+                UiTestLensRuntimeNames.WAIT_HUD_RESOURCE,
+                UiTestLensRuntimeNames.LEGACY_WAIT_HUD_RESOURCE
+        );
         ((JavascriptExecutor) driver).executeScript(jsCode);
+        ((JavascriptExecutor) driver).executeScript(
+                UiTestLensRuntimeNames.ensureNamespaceScript() +
+                        "if (window.__seleniumWaitHud) { window.__uiTestLens.modules.waitHud = window.__seleniumWaitHud; }" +
+                        "if (window.__uiTestLens.modules.waitHud) { window.__seleniumWaitHud = window.__uiTestLens.modules.waitHud; }"
+        );
     }
 
 
@@ -479,7 +491,10 @@ public final class JsOverlayDebug {
         try {
             ensureWaitHudInjected();
             ((JavascriptExecutor) driver).executeScript(
-                    "window.__seleniumWaitHud && window.__seleniumWaitHud.start && window.__seleniumWaitHud.start(arguments[0]);",
+                    UiTestLensRuntimeNames.ensureNamespaceScript() +
+                            "var waitHud = window.__uiTestLens.modules.waitHud || window.__seleniumWaitHud;" +
+                            "if (waitHud) { window.__uiTestLens.modules.waitHud = waitHud; window.__seleniumWaitHud = waitHud; }" +
+                            "if (waitHud && waitHud.start) { waitHud.start(arguments[0]); }",
                     label
             );
         } catch (Exception ignored) {}
@@ -497,8 +512,12 @@ public final class JsOverlayDebug {
         try {
             ensureWaitHudInjected();
             ((JavascriptExecutor) driver).executeScript(
-                    "return window.__seleniumWaitHud && window.__seleniumWaitHud.stop"
-                            + " ? window.__seleniumWaitHud.stop(arguments[0], arguments[1]) : null;",
+                    UiTestLensRuntimeNames.ensureNamespaceScript() +
+                            "window.__uiTestLens.state.wait.lastElapsedMs = arguments[1];" +
+                            "window.__seleniumLastWaitElapsedMs = window.__uiTestLens.state.wait.lastElapsedMs;" +
+                            "var waitHud = window.__uiTestLens.modules.waitHud || window.__seleniumWaitHud;" +
+                            "if (waitHud) { window.__uiTestLens.modules.waitHud = waitHud; window.__seleniumWaitHud = waitHud; }" +
+                            "return waitHud && waitHud.stop ? waitHud.stop(arguments[0], arguments[1]) : null;",
                     prefix, elapsedMs
             );
         } catch (Exception ignored) {}
@@ -516,8 +535,10 @@ public final class JsOverlayDebug {
     public void forceHideWaitHud() {
         try {
             ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
-                    "try {" +
-                            "  var shadow = window.__seleniumOverlayRoot;" +
+                    UiTestLensRuntimeNames.ensureNamespaceScript() +
+                            "try {" +
+                            "  var shadow = window.__uiTestLens.state.overlay.root || window.__seleniumOverlayRoot;" +
+                            "  if (shadow) { window.__uiTestLens.state.overlay.root = shadow; window.__seleniumOverlayRoot = shadow; }" +
                             "  if (shadow) {" +
                             "    var el = shadow.querySelector('#selenium-wait-indicator, #selenium-wait-hud, [data-selenium-wait=\"1\"]');" +
                             "    if (el && el.parentNode) el.parentNode.removeChild(el);" +
@@ -529,20 +550,6 @@ public final class JsOverlayDebug {
         } catch (Exception ignored) {}
     }
 
-    private String loadResource(String path) {
-        try (var is = getClass().getResourceAsStream(path)) {
-            if (is == null) throw new IllegalStateException("Missing resource: " + path);
-            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load resource " + path, e);
-        }
-    }
-
-
-
-
-
-
 
     // ======================================================================
     //  WAIT INDICATOR (klepsydra)
@@ -552,7 +559,9 @@ public final class JsOverlayDebug {
     public void showWaitIndicator(String label) {
         try {
             ((JavascriptExecutor) driver).executeScript(
-                    "var shadow = window.__seleniumOverlayRoot;" +
+                    UiTestLensRuntimeNames.ensureNamespaceScript() +
+                            "var shadow = window.__uiTestLens.state.overlay.root || window.__seleniumOverlayRoot;" +
+                            "if (shadow) { window.__uiTestLens.state.overlay.root = shadow; window.__seleniumOverlayRoot = shadow; }" +
                             "if (!shadow) { return; }" +
                             "var existing = shadow.querySelector('#selenium-wait-indicator');" +
                             "if (!existing) {" +
@@ -591,7 +600,9 @@ public final class JsOverlayDebug {
     public void hideWaitIndicator() {
         try {
             ((JavascriptExecutor) driver).executeScript(
-                    "var shadow = window.__seleniumOverlayRoot;" +
+                    UiTestLensRuntimeNames.ensureNamespaceScript() +
+                            "var shadow = window.__uiTestLens.state.overlay.root || window.__seleniumOverlayRoot;" +
+                            "if (shadow) { window.__uiTestLens.state.overlay.root = shadow; window.__seleniumOverlayRoot = shadow; }" +
                             "if (!shadow) { return; }" +
                             "var existing = shadow.querySelector('#selenium-wait-indicator');" +
                             "if (existing && existing.parentNode) {" +
@@ -665,11 +676,14 @@ public final class JsOverlayDebug {
         // 1) HUD – best effort (nie może wysadzić testu)
         try {
             ((JavascriptExecutor) driver).executeScript(
-                    "var shadow = window.__seleniumOverlayRoot;" +
+                    UiTestLensRuntimeNames.ensureNamespaceScript() +
+                            "var shadow = window.__uiTestLens.state.overlay.root || window.__seleniumOverlayRoot;" +
+                            "if (shadow) { window.__uiTestLens.state.overlay.root = shadow; window.__seleniumOverlayRoot = shadow; }" +
                             "if (!shadow) { return; }" +
                             "var step = shadow.querySelector('#selenium-hud-step');" +
                             "if (!step) { return; }" +
-                            "var msg = window.__seleniumLastWaitMessage || '';" +
+                            "var msg = (window.__uiTestLens.state.wait && window.__uiTestLens.state.wait.lastMessage) || window.__seleniumLastWaitMessage || '';" +
+                            "window.__seleniumLastWaitMessage = msg;" +
                             "if (!msg) {" +
                             "  step.innerHTML = '<b>Step:</b> -';" +
                             "} else {" +

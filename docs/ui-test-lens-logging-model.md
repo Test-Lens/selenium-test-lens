@@ -346,3 +346,10 @@ io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT
 ```
 
 Pakiet Java loggera pozostaje `io.github.mmaciekk111.uitestlens.core.logging`.
+
+## Runtime namespace migration
+
+Runtime JS inicjalizuje teraz primary namespace `window.__uiTestLens` z sekcjami `modules` i `state`.
+Eventy Java pozostaja bez zmian, ale wait/network/overlay state moze byc odczytywany z `window.__uiTestLens.state` przez przyszle HUD/highlight sinki.
+
+Stare `window.__selenium...` globale pozostaja jako legacy compatibility aliases. Pelne przepisanie HUD/highlight na publiczne funkcje runtime JS zostaje na pozniejszy etap.

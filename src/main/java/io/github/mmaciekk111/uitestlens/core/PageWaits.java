@@ -44,7 +44,9 @@ public class PageWaits {
     private void rememberLastWaitMessage(String message) {
         try {
             js.executeScript(
-                    "window.__seleniumLastWaitMessage = arguments[0];",
+                    UiTestLensRuntimeNames.ensureNamespaceScript() +
+                            "window.__uiTestLens.state.wait.lastMessage = arguments[0];" +
+                            "window.__seleniumLastWaitMessage = window.__uiTestLens.state.wait.lastMessage;",
                     message
             );
         } catch (Exception ignored) {
@@ -138,7 +140,8 @@ public class PageWaits {
             Long active = null;
             try {
                 active = ((Number) js.executeScript(
-                        "return window.__seleniumActiveRequests || 0;"
+                        UiTestLensRuntimeNames.ensureNamespaceScript() +
+                                "return window.__uiTestLens.state.network.activeRequests || window.__seleniumActiveRequests || 0;"
                 )).longValue();
             } catch (Exception ignored) {
             }
@@ -193,8 +196,17 @@ public class PageWaits {
      */
     private void injectNetworkTrackerIfNeeded() {
         js.executeScript(
-                "if (window.__seleniumNetworkTrackerInstalled) { return; }" +
+                UiTestLensRuntimeNames.ensureNamespaceScript() +
+                        "if (window.__uiTestLens.state.network.trackerInstalled || window.__seleniumNetworkTrackerInstalled) {" +
+                        "  window.__uiTestLens.state.network.trackerInstalled = true;" +
+                        "  window.__seleniumNetworkTrackerInstalled = true;" +
+                        "  window.__uiTestLens.state.network.activeRequests = window.__uiTestLens.state.network.activeRequests || window.__seleniumActiveRequests || 0;" +
+                        "  window.__seleniumActiveRequests = window.__uiTestLens.state.network.activeRequests;" +
+                        "  return;" +
+                        "}" +
+                        "window.__uiTestLens.state.network.trackerInstalled = true;" +
                         "window.__seleniumNetworkTrackerInstalled = true;" +
+                        "window.__uiTestLens.state.network.activeRequests = 0;" +
                         "window.__seleniumActiveRequests = 0;" +
 
                         // hook na XHR
@@ -205,9 +217,11 @@ public class PageWaits {
                         "    origOpen.apply(this, arguments);" +
                         "  };" +
                         "  XMLHttpRequest.prototype.send = function() {" +
-                        "    window.__seleniumActiveRequests++;" +
+                        "    window.__uiTestLens.state.network.activeRequests++;" +
+                        "    window.__seleniumActiveRequests = window.__uiTestLens.state.network.activeRequests;" +
                         "    this.addEventListener('loadend', function() {" +
-                        "      window.__seleniumActiveRequests--;" +
+                        "      window.__uiTestLens.state.network.activeRequests--;" +
+                        "      window.__seleniumActiveRequests = window.__uiTestLens.state.network.activeRequests;" +
                         "    });" +
                         "    origSend.apply(this, arguments);" +
                         "  };" +
@@ -218,10 +232,12 @@ public class PageWaits {
                         "  if (!window.fetch) { return; }" +
                         "  var origFetch = window.fetch;" +
                         "  window.fetch = function() {" +
-                        "    window.__seleniumActiveRequests++;" +
+                        "    window.__uiTestLens.state.network.activeRequests++;" +
+                        "    window.__seleniumActiveRequests = window.__uiTestLens.state.network.activeRequests;" +
                         "    return origFetch.apply(this, arguments)" +
                         "      .finally(function() {" +
-                        "        window.__seleniumActiveRequests--;" +
+                        "        window.__uiTestLens.state.network.activeRequests--;" +
+                        "        window.__seleniumActiveRequests = window.__uiTestLens.state.network.activeRequests;" +
                         "      });" +
                         "  };" +
                         "})();"

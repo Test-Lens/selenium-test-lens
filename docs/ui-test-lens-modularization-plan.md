@@ -629,7 +629,9 @@ Zasoby JS:
 - powinny mieć stabilne nazwy i wersję runtime zgodną z wersją artefaktu Maven,
 - Java powinna ładować je przez `ClassLoader` z jednego miejsca,
 - warto rozważyć składanie runtime z małych plików w buildzie, ale publikować gotowe zasoby,
-- namespace w przeglądarce powinien być jeden i wersjonowany, np. `window.__uiTestLens = { version, overlay, hud, wait, api }`,
+- namespace w przegladarce jest wprowadzany jako `window.__uiTestLens = { version, modules, state }`,
+- stare `window.__selenium...` globale pozostaja przejsciowo jako compatibility aliases,
+- nowe resource paths `uitestlens/runtime/...` sa preferowane, a stare `selenium/...` moga zostac fallbackiem do czasu pelnej ekstrakcji runtime,
 - klasy Java nie powinny znać szczegółów DOM/CSS poza wywołaniem publicznych funkcji runtime JS.
 
 ## 10. Pytania decyzyjne dla właściciela projektu
