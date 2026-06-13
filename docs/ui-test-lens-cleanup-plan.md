@@ -373,6 +373,18 @@ Pelna ekstrakcja JS z `PageWaits` do resource zostaje na pozniejszy etap.
 Skrypty pozostaja inline w Javie jako page-query snippets, poniewaz sa nadal scisle zwiazane z argumentami Selenium `WebElement`.
 Przeniesienie do resource powinno nastapic dopiero po udokumentowaniu semantyki target resolvera, zasad escapowania selektorow i zachowania przy niejednoznacznych dopasowaniach.
 
+## Popup and blocking overlay cleanup
+
+`PopupDetector` i `BlockingOverlayHelper` zostaly uporzadkowane bez zmiany heurystyk:
+
+- skrypty popup detection, global close button, overlay at viewport center i close button inside overlay sa nazwanymi helperami w `PopupDetector`,
+- skrypty global overlay close button, blocking overlay for target i close button inside overlay sa nazwanymi helperami w `BlockingOverlayHelper`,
+- listy selektorow, keywordy tekstowe, kolejnosc fallbackow i sleep po dismiss pozostaja bez zmian,
+- nie dodano runtime state ani nowych globali `window.__uiTestLens` / `window.__selenium...`.
+
+Heurystyki pozostaja inline w Javie jako Selenium helper snippets.
+Pelne wydzielenie do resource lub osobnego modulu powinno nastapic dopiero po skonsolidowaniu `PopupDetector` i `BlockingOverlayHelper` oraz opisaniu polityki selektorow/keywordow.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:

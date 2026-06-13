@@ -32,79 +32,173 @@ public PopupDetector(WebDriver driver,
  * Szuka potencjalnego popupa na wierzchu i zwraca go jako WebElement (jeśli jest).
  */
 public Optional<WebElement> findTopMostPopup() {
-    Object result = js.executeScript(
-            "var selectors = [" +
-                    "  '[role=\"dialog\"]'," +
-                    "  '[role=\"alertdialog\"]'," +
-                    "  '[aria-modal=\"true\"]'," +
-                    "  '.modal'," +
-                    "  '.dialog'," +
-                    "  '.popup'," +
-                    "  '.MuiDialog-root'," +
-                    "  '.ant-modal'," +
-                    "  '.cdk-overlay-pane'" +
-                    "];" +
-
-                    // zbierz kandydatów po selektorach
-                    "var candidates = [];" +
-                    "selectors.forEach(function(sel) {" +
-                    "  try {" +
-                    "    var nodes = document.querySelectorAll(sel);" +
-                    "    for (var i = 0; i < nodes.length; i++) {" +
-                    "      candidates.push(nodes[i]);" +
-                    "    }" +
-                    "  } catch (e) {}" +
-                    "});" +
-
-                    // jeśli nic nie znaleziono po selektorach, zrób fallback:
-                    "if (candidates.length === 0) {" +
-                    "  candidates = Array.prototype.slice.call(document.body.getElementsByTagName('*'));" +
-                    "}" +
-
-                    "var best = null;" +
-                    "var bestScore = 0;" +
-
-                    "for (var i = 0; i < candidates.length; i++) {" +
-                    "  var el = candidates[i];" +
-                    "  if (!el || !el.getBoundingClientRect) continue;" +
-
-                    "  var style = window.getComputedStyle(el);" +
-                    "  if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') continue;" +
-
-                    "  if (!(style.position === 'fixed' || style.position === 'absolute')) continue;" +
-
-                    "  var z = parseInt(style.zIndex, 10);" +
-                    "  if (isNaN(z)) { z = 0; }" +
-
-                    "  var rect = el.getBoundingClientRect();" +
-                    "  if (rect.width <= 0 || rect.height <= 0) continue;" +
-
-                    // minimalny rozmiar: np. >= 30% szerokości i >= 20% wysokości viewportu
-                    "  var minWidth = window.innerWidth * 0.3;" +
-                    "  var minHeight = window.innerHeight * 0.2;" +
-                    "  if (rect.width < minWidth || rect.height < minHeight) continue;" +
-
-                    // musi być przynajmniej częściowo w viewport
-                    "  if (rect.right < 0 || rect.bottom < 0 || rect.left > window.innerWidth || rect.top > window.innerHeight) continue;" +
-
-                    // score: rozmiar * z-index (prosto, ale działa)
-                    "  var area = rect.width * rect.height;" +
-                    "  var score = area + z * 1000;" +
-
-                    "  if (score > bestScore) {" +
-                    "    bestScore = score;" +
-                    "    best = el;" +
-                    "  }" +
-                    "}" +
-
-                    "return best;"
-    );
-
+    Object result = js.executeScript(detectPopupScript());
     if (result instanceof WebElement) {
         return Optional.of((WebElement) result);
     }
     return Optional.empty();
 }
+
+    static String detectPopupScript() {
+        return "var selectors = [" +
+                "  '[role=\"dialog\"]'," +
+                "  '[role=\"alertdialog\"]'," +
+                "  '[aria-modal=\"true\"]'," +
+                "  '.modal'," +
+                "  '.dialog'," +
+                "  '.popup'," +
+                "  '.MuiDialog-root'," +
+                "  '.ant-modal'," +
+                "  '.cdk-overlay-pane'" +
+                "];" +
+                "var candidates = [];" +
+                "selectors.forEach(function(sel) {" +
+                "  try {" +
+                "    var nodes = document.querySelectorAll(sel);" +
+                "    for (var i = 0; i < nodes.length; i++) {" +
+                "      candidates.push(nodes[i]);" +
+                "    }" +
+                "  } catch (e) {}" +
+                "});" +
+                "if (candidates.length === 0) {" +
+                "  candidates = Array.prototype.slice.call(document.body.getElementsByTagName('*'));" +
+                "}" +
+                "var best = null;" +
+                "var bestScore = 0;" +
+                "for (var i = 0; i < candidates.length; i++) {" +
+                "  var el = candidates[i];" +
+                "  if (!el || !el.getBoundingClientRect) continue;" +
+                "  var style = window.getComputedStyle(el);" +
+                "  if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') continue;" +
+                "  if (!(style.position === 'fixed' || style.position === 'absolute')) continue;" +
+                "  var z = parseInt(style.zIndex, 10);" +
+                "  if (isNaN(z)) { z = 0; }" +
+                "  var rect = el.getBoundingClientRect();" +
+                "  if (rect.width <= 0 || rect.height <= 0) continue;" +
+                "  var minWidth = window.innerWidth * 0.3;" +
+                "  var minHeight = window.innerHeight * 0.2;" +
+                "  if (rect.width < minWidth || rect.height < minHeight) continue;" +
+                "  if (rect.right < 0 || rect.bottom < 0 || rect.left > window.innerWidth || rect.top > window.innerHeight) continue;" +
+                "  var area = rect.width * rect.height;" +
+                "  var score = area + z * 1000;" +
+                "  if (score > bestScore) {" +
+                "    bestScore = score;" +
+                "    best = el;" +
+                "  }" +
+                "}" +
+                "return best;";
+    }
+
+    static String globalCloseButtonScript() {
+        return "var sel = arguments[0];" +
+                "function isVisible(el) {" +
+                "  if (!el || !el.getBoundingClientRect) return false;" +
+                "  var style = window.getComputedStyle(el);" +
+                "  if (style.display === 'none' || style.visibility === 'hidden') return false;" +
+                "  if (parseFloat(style.opacity || '1') < 0.05) return false;" +
+                "  var rect = el.getBoundingClientRect();" +
+                "  if (rect.width <= 0 || rect.height <= 0) return false;" +
+                "  return true;" +
+                "}" +
+                "try {" +
+                "  var btn = document.querySelector(sel);" +
+                "  if (!btn) return null;" +
+                "  return isVisible(btn) ? btn : null;" +
+                "} catch (e) {" +
+                "  return null;" +
+                "}";
+    }
+
+    static String overlayAtViewportCenterScript() {
+        return "var cx = (window.innerWidth || document.documentElement.clientWidth || 800) / 2;" +
+                "var cy = (window.innerHeight || document.documentElement.clientHeight || 600) / 2;" +
+                "var topEl = document.elementFromPoint(cx, cy);" +
+                "if (!topEl) return null;" +
+                "function isOverlayCandidate(node) {" +
+                "  if (!node || !node.getBoundingClientRect) return false;" +
+                "  var style = window.getComputedStyle(node);" +
+                "  var pos = style.position;" +
+                "  if (!(pos === 'fixed' || pos === 'absolute' || pos === 'sticky')) return false;" +
+                "  var rect = node.getBoundingClientRect();" +
+                "  if (rect.width < 80 || rect.height < 50) return false;" +
+                "  var z = parseInt(style.zIndex, 10);" +
+                "  if (isNaN(z)) z = 0;" +
+                "  if (z < 10) return false;" +
+                "  return true;" +
+                "}" +
+                "var overlay = topEl;" +
+                "while (overlay && overlay !== document.body) {" +
+                "  if (isOverlayCandidate(overlay)) {" +
+                "    return overlay;" +
+                "  }" +
+                "  overlay = overlay.parentElement;" +
+                "}" +
+                "return null;";
+    }
+
+    static String closeButtonInsideScript() {
+        return "var root = arguments[0];" +
+                "if (!root) return null;" +
+                "var selectors = [" +
+                "  'button', 'a', '[role=\"button\"]'," +
+                "  'button[id*=\"close\" i]'," +
+                "  'button[id*=\"accept\" i]'," +
+                "  'button[id*=\"agree\" i]'," +
+                "  'button[id*=\"ok\" i]'," +
+                "  '[class*=\"close\" i]'," +
+                "  '[class*=\"accept\" i]'," +
+                "  '[class*=\"consent\" i]'," +
+                "  '[data-test*=\"close\" i]'," +
+                "  '[data-testid*=\"close\" i]'," +
+                "  '[aria-label*=\"close\" i]'," +
+                "  '[aria-label*=\"zamknij\" i]'" +
+                "];" +
+                "var candidates = [];" +
+                "for (var s = 0; s < selectors.length; s++) {" +
+                "  try {" +
+                "    var nodes = root.querySelectorAll(selectors[s]);" +
+                "    for (var i = 0; i < nodes.length; i++) {" +
+                "      candidates.push(nodes[i]);" +
+                "    }" +
+                "  } catch (e) {}" +
+                "}" +
+                "function isVisible(el) {" +
+                "  if (!el || !el.getBoundingClientRect) return false;" +
+                "  var style = window.getComputedStyle(el);" +
+                "  if (style.display === 'none' || style.visibility === 'hidden') return false;" +
+                "  if (parseFloat(style.opacity || '1') < 0.05) return false;" +
+                "  var rect = el.getBoundingClientRect();" +
+                "  if (rect.width <= 0 || rect.height <= 0) return false;" +
+                "  return true;" +
+                "}" +
+                "var best = null;" +
+                "var bestScore = 0;" +
+                "for (var i = 0; i < candidates.length; i++) {" +
+                "  var el = candidates[i];" +
+                "  if (!isVisible(el)) continue;" +
+                "  var text = (el.textContent || '').toLowerCase();" +
+                "  var score = 0;" +
+                "  if (text.indexOf('akceptuj') !== -1 || text.indexOf('akceptuję') !== -1 ||" +
+                "      text.indexOf('accept') !== -1 || text.indexOf('agree') !== -1) {" +
+                "    score += 50;" +
+                "  }" +
+                "  if (text.indexOf('zamknij') !== -1 || text.indexOf('close') !== -1 ||" +
+                "      text === 'ok' || text.indexOf('ok') !== -1) {" +
+                "    score += 40;" +
+                "  }" +
+                "  if (score === 0) {" +
+                "    score += 10;" +
+                "  }" +
+                "  var rect = el.getBoundingClientRect();" +
+                "  score += rect.width * rect.height / 1000;" +
+                "  if (score > bestScore) {" +
+                "    bestScore = score;" +
+                "    best = el;" +
+                "  }" +
+                "}" +
+                "return best;";
+    }
+
 
 /**
  * Wykrywa potencjalny popup i jeśli jest, podświetla go overlayem.
@@ -194,26 +288,7 @@ public boolean highlightPopupIfPresent(String label) {
             return null;
         }
 
-        Object result = js.executeScript(
-                "var sel = arguments[0];" +
-                        "function isVisible(el) {" +
-                        "  if (!el || !el.getBoundingClientRect) return false;" +
-                        "  var style = window.getComputedStyle(el);" +
-                        "  if (style.display === 'none' || style.visibility === 'hidden') return false;" +
-                        "  if (parseFloat(style.opacity || '1') < 0.05) return false;" +
-                        "  var rect = el.getBoundingClientRect();" +
-                        "  if (rect.width <= 0 || rect.height <= 0) return false;" +
-                        "  return true;" +
-                        "}" +
-                        "try {" +
-                        "  var btn = document.querySelector(sel);" +
-                        "  if (!btn) return null;" +
-                        "  return isVisible(btn) ? btn : null;" +
-                        "} catch (e) {" +
-                        "  return null;" +
-                        "}",
-                selector
-        );
+        Object result = js.executeScript(globalCloseButtonScript(), selector);
 
         if (result instanceof WebElement) {
             return (WebElement) result;
@@ -226,41 +301,13 @@ public boolean highlightPopupIfPresent(String label) {
      * bierzemy element spod środka ekranu i idziemy po parentach w górę.
      */
     private WebElement findOverlayAtViewportCenter() {
-        Object result = js.executeScript(
-                "var cx = (window.innerWidth || document.documentElement.clientWidth || 800) / 2;" +
-                        "var cy = (window.innerHeight || document.documentElement.clientHeight || 600) / 2;" +
-                        "var topEl = document.elementFromPoint(cx, cy);" +
-                        "if (!topEl) return null;" +
-
-                        "function isOverlayCandidate(node) {" +
-                        "  if (!node || !node.getBoundingClientRect) return false;" +
-                        "  var style = window.getComputedStyle(node);" +
-                        "  var pos = style.position;" +
-                        "  if (!(pos === 'fixed' || pos === 'absolute' || pos === 'sticky')) return false;" +
-                        "  var rect = node.getBoundingClientRect();" +
-                        "  if (rect.width < 80 || rect.height < 50) return false;" +
-                        "  var z = parseInt(style.zIndex, 10);" +
-                        "  if (isNaN(z)) z = 0;" +
-                        "  if (z < 10) return false;" +
-                        "  return true;" +
-                        "}" +
-
-                        "var overlay = topEl;" +
-                        "while (overlay && overlay !== document.body) {" +
-                        "  if (isOverlayCandidate(overlay)) {" +
-                        "    return overlay;" +
-                        "  }" +
-                        "  overlay = overlay.parentElement;" +
-                        "}" +
-                        "return null;"
-        );
+        Object result = js.executeScript(overlayAtViewportCenterScript());
 
         if (result instanceof WebElement) {
             return (WebElement) result;
         }
         return null;
     }
-
     /**
      * Szuka przycisku zamykającego/akceptującego w środku overlaya
      * (close / accept / akceptuję / ok itp.).
@@ -270,77 +317,7 @@ public boolean highlightPopupIfPresent(String label) {
             return null;
         }
 
-        Object result = js.executeScript(
-                "var root = arguments[0];" +
-                        "if (!root) return null;" +
-
-                        "var selectors = [" +
-                        "  'button', 'a', '[role=\"button\"]'," +
-                        "  'button[id*=\"close\" i]'," +
-                        "  'button[id*=\"accept\" i]'," +
-                        "  'button[id*=\"agree\" i]'," +
-                        "  'button[id*=\"ok\" i]'," +
-                        "  '[class*=\"close\" i]'," +
-                        "  '[class*=\"accept\" i]'," +
-                        "  '[class*=\"consent\" i]'," +
-                        "  '[data-test*=\"close\" i]'," +
-                        "  '[data-testid*=\"close\" i]'," +
-                        "  '[aria-label*=\"close\" i]'," +
-                        "  '[aria-label*=\"zamknij\" i]'" +
-                        "];" +
-
-                        "var candidates = [];" +
-                        "for (var s = 0; s < selectors.length; s++) {" +
-                        "  try {" +
-                        "    var nodes = root.querySelectorAll(selectors[s]);" +
-                        "    for (var i = 0; i < nodes.length; i++) {" +
-                        "      candidates.push(nodes[i]);" +
-                        "    }" +
-                        "  } catch (e) {}" +
-                        "}" +
-
-                        "function isVisible(el) {" +
-                        "  if (!el || !el.getBoundingClientRect) return false;" +
-                        "  var style = window.getComputedStyle(el);" +
-                        "  if (style.display === 'none' || style.visibility === 'hidden') return false;" +
-                        "  if (parseFloat(style.opacity || '1') < 0.05) return false;" +
-                        "  var rect = el.getBoundingClientRect();" +
-                        "  if (rect.width <= 0 || rect.height <= 0) return false;" +
-                        "  return true;" +
-                        "}" +
-
-                        "var best = null;" +
-                        "var bestScore = 0;" +
-                        "for (var i = 0; i < candidates.length; i++) {" +
-                        "  var el = candidates[i];" +
-                        "  if (!isVisible(el)) continue;" +
-                        "  var text = (el.textContent || '').toLowerCase();" +
-                        "  var score = 0;" +
-
-                        "  if (text.indexOf('akceptuj') !== -1 || text.indexOf('akceptuję') !== -1 ||" +
-                        "      text.indexOf('accept') !== -1 || text.indexOf('agree') !== -1) {" +
-                        "    score += 50;" +
-                        "  }" +
-                        "  if (text.indexOf('zamknij') !== -1 || text.indexOf('close') !== -1 ||" +
-                        "      text === 'ok' || text.indexOf('ok') !== -1) {" +
-                        "    score += 40;" +
-                        "  }" +
-                        "  if (score === 0) {" +
-                        "    score += 10;" +
-                        "  }" +
-
-                        "  var rect = el.getBoundingClientRect();" +
-                        "  score += rect.width * rect.height / 1000;" +
-
-                        "  if (score > bestScore) {" +
-                        "    bestScore = score;" +
-                        "    best = el;" +
-                        "  }" +
-                        "}" +
-                        "return best;"
-                ,
-                overlayRoot
-        );
+        Object result = js.executeScript(closeButtonInsideScript(), overlayRoot);
 
         if (result instanceof WebElement) {
             return (WebElement) result;

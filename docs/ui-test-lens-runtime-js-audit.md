@@ -25,8 +25,8 @@ All listed resources are non-empty, use the primary `window.__uiTestLens` namesp
 | `PageWaits` | `waitForReadyState*` | Selenium page query | Yes | Keep inline; these are simple browser state reads. |
 | `PageWaits` | network tracker install | network state bridge / candidate for extraction | Not long term | State cleanup completed: primary state is `window.__uiTestLens.state.network.activeRequests`; extract to `network-tracker.js` only if the script grows. |
 | `PageWaits` | DOM stable mutation observer | DOM stability helper | Temporarily yes | `window.__uiTestLens.state.dom` is initialized, but observer state remains element-local to preserve semantics; extract to `dom-stability.js` only if it grows. |
-| `PopupDetector` | popup scanning and close-button detection | popup/blocking overlay heuristic | Not long term | Move to a dedicated heuristics runtime or Selenium adapter helper. |
-| `BlockingOverlayHelper` | overlay detection and configured close button | popup/blocking overlay heuristic | Not long term | Merge conceptually with `PopupDetector` or create a `blocking-overlay.js` helper. |
+| `PopupDetector` | popup scanning and close-button detection | popup/blocking overlay heuristic | Not long term | Cleanup completed: scripts are named helper methods with unit marker tests; move to a dedicated heuristics runtime only after behavior is documented. |
+| `BlockingOverlayHelper` | overlay detection and configured close button | popup/blocking overlay heuristic | Not long term | Cleanup completed: scripts are named helper methods with unit marker tests; merge conceptually with `PopupDetector` or create a `blocking-overlay.js` helper later. |
 | `TargetResolverActions` | click/file input resolution scripts | target resolver page query | Temporarily yes | Cleanup completed: scripts are named helper methods with unit marker tests; extract to a target resolver runtime only after selector/label semantics are documented. |
 | `ReactSelectHelper` | react-select probing and option selection | React/SPA helper | Temporarily yes | Keep in React helper for now; later move to `ui-test-lens-react` adapter. |
 | `HighlightActions` | module calls and click fallback snippets | bridge call / Selenium action | Yes | Bridge calls are fine; click fallback snippets can remain action-specific. |
@@ -100,10 +100,35 @@ The resolver scripts do not currently need browser-global runtime state. They re
 
 The scripts were not moved to `src/main/resources/uitestlens/runtime/` in this stage because they are still tightly coupled to Selenium `WebElement` arguments and the current resolver semantics are not yet a stable runtime contract. A future extraction should first document target resolver semantics, selector escaping rules, privacy constraints for labels/text, and expected behavior for ambiguous matches.
 
+## Popup and blocking overlay cleanup
+
+`PopupDetector` and `BlockingOverlayHelper` were reviewed after the runtime namespace and event logger work.
+
+Changes made:
+
+- `PopupDetector` now exposes named script helpers for popup detection, global close button lookup, viewport-center overlay lookup, and close button lookup inside an overlay,
+- `BlockingOverlayHelper` now exposes named script helpers for configured close button lookup, blocking overlay lookup over a target, and close button lookup inside the blocking overlay,
+- unit tests verify key selectors, text keywords, visibility checks, and overlay heuristics without Selenium or a browser.
+
+What intentionally stayed the same:
+
+- popup and blocking overlay heuristics,
+- selector lists,
+- text keywords,
+- fallback order,
+- sleep duration after dismiss,
+- public methods,
+- coupling to `SmartClickActions`, `SmartInputActions`, and `HighlightActions`,
+- exception handling behavior.
+
+No new runtime globals were introduced. These scripts do not currently store browser state, so they do not need a `window.__uiTestLens.state...` key or a legacy `window.__selenium...` alias.
+
+The scripts were not moved to `src/main/resources/uitestlens/runtime/` in this stage because they are still Selenium helper heuristics rather than a stable browser runtime contract. A future extraction should first consolidate `PopupDetector` and `BlockingOverlayHelper`, document selector and keyword policy, and decide whether popup/blocking overlay behavior belongs in Selenium adapter code or a shared heuristics runtime.
+
 ## Recommended next extraction/refactor steps
 
 1. Optional `PageWaits` resource extraction: move network tracker and DOM stability scripts to resources only if they grow or need browser-level tests.
-2. `PopupDetector` / `BlockingOverlayHelper` as a dedicated heuristics module, with a shared JS runtime helper if needed.
+2. Optional `PopupDetector` / `BlockingOverlayHelper` consolidation as a dedicated heuristics module, with a shared JS runtime helper if needed.
 3. Optional `TargetResolverActions` resource extraction only after target semantics and selector escaping rules are documented.
 4. API overlay bridge cleanup: move Java bridge calls from `window.__seleniumApiModal` to `window.__uiTestLens.modules.apiOverlay` while preserving alias fallback.
 5. Optional `overlay-root.js` only if root bootstrap grows beyond the current tiny `OverlayRootManager` script.

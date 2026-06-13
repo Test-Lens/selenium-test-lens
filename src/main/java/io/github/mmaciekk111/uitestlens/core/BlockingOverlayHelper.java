@@ -36,22 +36,7 @@ public class BlockingOverlayHelper {
             return false;
         }
 
-        Object result = js.executeScript(
-                "var sel = arguments[0];" +
-                        "var btn = document.querySelector(sel);" +
-                        "if (!btn) return null;" +
-                        "function isVisible(el) {" +
-                        "  if (!el || !el.getBoundingClientRect) return false;" +
-                        "  var style = window.getComputedStyle(el);" +
-                        "  if (style.display === 'none' || style.visibility === 'hidden') return false;" +
-                        "  if (parseFloat(style.opacity || '1') < 0.05) return false;" +
-                        "  var rect = el.getBoundingClientRect();" +
-                        "  if (rect.width <= 0 || rect.height <= 0) return false;" +
-                        "  return true;" +
-                        "}" +
-                        "return isVisible(btn) ? btn : null;",
-                selector
-        );
+        Object result = js.executeScript(globalOverlayCloseButtonScript(), selector);
 
         if (!(result instanceof WebElement btn)) {
             return false;
@@ -124,6 +109,115 @@ public class BlockingOverlayHelper {
         return true;
     }
 
+    static String globalOverlayCloseButtonScript() {
+        return "var sel = arguments[0];" +
+                "var btn = document.querySelector(sel);" +
+                "if (!btn) return null;" +
+                "function isVisible(el) {" +
+                "  if (!el || !el.getBoundingClientRect) return false;" +
+                "  var style = window.getComputedStyle(el);" +
+                "  if (style.display === 'none' || style.visibility === 'hidden') return false;" +
+                "  if (parseFloat(style.opacity || '1') < 0.05) return false;" +
+                "  var rect = el.getBoundingClientRect();" +
+                "  if (rect.width <= 0 || rect.height <= 0) return false;" +
+                "  return true;" +
+                "}" +
+                "return isVisible(btn) ? btn : null;";
+    }
+
+    static String blockingOverlayForTargetScript() {
+        return "var el = arguments[0];" +
+                "if (!el || !el.getBoundingClientRect) return null;" +
+                "var rect = el.getBoundingClientRect();" +
+                "var cx = rect.left + rect.width / 2;" +
+                "var cy = rect.top + rect.height / 2;" +
+                "var topEl = document.elementFromPoint(cx, cy);" +
+                "if (!topEl) return null;" +
+                "function isOverlayCandidate(node) {" +
+                "  if (!node || !node.getBoundingClientRect) return false;" +
+                "  var style = window.getComputedStyle(node);" +
+                "  var pos = style.position;" +
+                "  if (!(pos === 'fixed' || pos === 'absolute' || pos === 'sticky')) return false;" +
+                "  var rect = node.getBoundingClientRect();" +
+                "  if (rect.width < 50 || rect.height < 40) return false;" +
+                "  var z = parseInt(style.zIndex, 10);" +
+                "  if (isNaN(z)) z = 0;" +
+                "  if (z < 10) return false;" +
+                "  return true;" +
+                "}" +
+                "var overlay = topEl;" +
+                "while (overlay && overlay !== document.body) {" +
+                "  if (isOverlayCandidate(overlay)) {" +
+                "    return overlay;" +
+                "  }" +
+                "  overlay = overlay.parentElement;" +
+                "}" +
+                "return null;";
+    }
+
+    static String closeButtonInsideScript() {
+        return "var root = arguments[0];" +
+                "if (!root) return null;" +
+                "var selectors = [" +
+                "  'button', 'a', '[role=\"button\"]'," +
+                "  'button[id*=\"close\" i]'," +
+                "  'button[id*=\"accept\" i]'," +
+                "  'button[id*=\"agree\" i]'," +
+                "  'button[id*=\"ok\" i]'," +
+                "  '[class*=\"close\" i]'," +
+                "  '[class*=\"accept\" i]'," +
+                "  '[class*=\"consent\" i]'," +
+                "  '[data-test*=\"close\" i]'," +
+                "  '[data-testid*=\"close\" i]'," +
+                "  '[aria-label*=\"close\" i]'," +
+                "  '[aria-label*=\"zamknij\" i]'" +
+                "];" +
+                "var candidates = [];" +
+                "selectors.forEach(function(sel) {" +
+                "  try {" +
+                "    var nodes = root.querySelectorAll(sel);" +
+                "    for (var i = 0; i < nodes.length; i++) {" +
+                "      candidates.push(nodes[i]);" +
+                "    }" +
+                "  } catch (e) {}" +
+                "});" +
+                "function isVisible(el) {" +
+                "  if (!el || !el.getBoundingClientRect) return false;" +
+                "  var style = window.getComputedStyle(el);" +
+                "  if (style.display === 'none' || style.visibility === 'hidden') return false;" +
+                "  if (parseFloat(style.opacity || '1') < 0.1) return false;" +
+                "  var rect = el.getBoundingClientRect();" +
+                "  if (rect.width <= 0 || rect.height <= 0) return false;" +
+                "  return true;" +
+                "}" +
+                "var best = null;" +
+                "var bestScore = 0;" +
+                "for (var i = 0; i < candidates.length; i++) {" +
+                "  var el = candidates[i];" +
+                "  if (!isVisible(el)) continue;" +
+                "  var text = (el.textContent || '').toLowerCase();" +
+                "  var score = 0;" +
+                "  if (text.indexOf('akceptuj') !== -1 || text.indexOf('akceptuję') !== -1 ||" +
+                "      text.indexOf('accept') !== -1 || text.indexOf('agree') !== -1) {" +
+                "    score += 50;" +
+                "  }" +
+                "  if (text.indexOf('zamknij') !== -1 || text.indexOf('close') !== -1 ||" +
+                "      text === 'ok' || text.indexOf('ok') !== -1) {" +
+                "    score += 40;" +
+                "  }" +
+                "  if (score === 0) {" +
+                "    score += 10;" +
+                "  }" +
+                "  var rect = el.getBoundingClientRect();" +
+                "  score += rect.width * rect.height / 1000;" +
+                "  if (score > bestScore) {" +
+                "    bestScore = score;" +
+                "    best = el;" +
+                "  }" +
+                "}" +
+                "return best;";
+    }
+
     /**
      * JS:
      * - bierze środek targetu,
@@ -132,38 +226,7 @@ public class BlockingOverlayHelper {
      *   fixed/absolute/sticky, większy element, z sensownym z-index.
      */
     private WebElement findBlockingOverlay(WebElement target) {
-        Object result = js.executeScript(
-                "var el = arguments[0];" +
-                        "if (!el || !el.getBoundingClientRect) return null;" +
-                        "var rect = el.getBoundingClientRect();" +
-                        "var cx = rect.left + rect.width / 2;" +
-                        "var cy = rect.top + rect.height / 2;" +
-                        "var topEl = document.elementFromPoint(cx, cy);" +
-                        "if (!topEl) return null;" +
-
-                        "function isOverlayCandidate(node) {" +
-                        "  if (!node || !node.getBoundingClientRect) return false;" +
-                        "  var style = window.getComputedStyle(node);" +
-                        "  var pos = style.position;" +
-                        "  if (!(pos === 'fixed' || pos === 'absolute' || pos === 'sticky')) return false;" +
-                        "  var rect = node.getBoundingClientRect();" +
-                        "  if (rect.width < 50 || rect.height < 40) return false;" +
-                        "  var z = parseInt(style.zIndex, 10);" +
-                        "  if (isNaN(z)) z = 0;" +
-                        "  if (z < 10) return false;" +
-                        "  return true;" +
-                        "}" +
-
-                        "var overlay = topEl;" +
-                        "while (overlay && overlay !== document.body) {" +
-                        "  if (isOverlayCandidate(overlay)) {" +
-                        "    return overlay;" +
-                        "  }" +
-                        "  overlay = overlay.parentElement;" +
-                        "}" +
-                        "return null;",
-                target
-        );
+        Object result = js.executeScript(blockingOverlayForTargetScript(), target);
 
         if (result instanceof WebElement) {
             return (WebElement) result;
@@ -177,76 +240,7 @@ public class BlockingOverlayHelper {
      * - po tekście (PL/EN).
      */
     private WebElement findCloseButtonInside(WebElement overlay) {
-        Object result = js.executeScript(
-                "var root = arguments[0];" +
-                        "if (!root) return null;" +
-
-                        "var selectors = [" +
-                        "  'button', 'a', '[role=\"button\"]'," +
-                        "  'button[id*=\"close\" i]'," +
-                        "  'button[id*=\"accept\" i]'," +
-                        "  'button[id*=\"agree\" i]'," +
-                        "  'button[id*=\"ok\" i]'," +
-                        "  '[class*=\"close\" i]'," +
-                        "  '[class*=\"accept\" i]'," +
-                        "  '[class*=\"consent\" i]'," +
-                        "  '[data-test*=\"close\" i]'," +
-                        "  '[data-testid*=\"close\" i]'," +
-                        "  '[aria-label*=\"close\" i]'," +
-                        "  '[aria-label*=\"zamknij\" i]'" +
-                        "];" +
-
-                        "var candidates = [];" +
-                        "selectors.forEach(function(sel) {" +
-                        "  try {" +
-                        "    var nodes = root.querySelectorAll(sel);" +
-                        "    for (var i = 0; i < nodes.length; i++) {" +
-                        "      candidates.push(nodes[i]);" +
-                        "    }" +
-                        "  } catch (e) {}" +
-                        "});" +
-
-                        "function isVisible(el) {" +
-                        "  if (!el || !el.getBoundingClientRect) return false;" +
-                        "  var style = window.getComputedStyle(el);" +
-                        "  if (style.display === 'none' || style.visibility === 'hidden') return false;" +
-                        "  if (parseFloat(style.opacity || '1') < 0.1) return false;" +
-                        "  var rect = el.getBoundingClientRect();" +
-                        "  if (rect.width <= 0 || rect.height <= 0) return false;" +
-                        "  return true;" +
-                        "}" +
-
-                        "var best = null;" +
-                        "var bestScore = 0;" +
-                        "for (var i = 0; i < candidates.length; i++) {" +
-                        "  var el = candidates[i];" +
-                        "  if (!isVisible(el)) continue;" +
-                        "  var text = (el.textContent || '').toLowerCase();" +
-                        "  var score = 0;" +
-
-                        "  if (text.indexOf('akceptuj') !== -1 || text.indexOf('akceptuję') !== -1 ||" +
-                        "      text.indexOf('accept') !== -1 || text.indexOf('agree') !== -1) {" +
-                        "    score += 50;" +
-                        "  }" +
-                        "  if (text.indexOf('zamknij') !== -1 || text.indexOf('close') !== -1 ||" +
-                        "      text === 'ok' || text.indexOf('ok') !== -1) {" +
-                        "    score += 40;" +
-                        "  }" +
-                        "  if (score === 0) {" +
-                        "    score += 10;" +
-                        "  }" +
-
-                        "  var rect = el.getBoundingClientRect();" +
-                        "  score += rect.width * rect.height / 1000;" +
-
-                        "  if (score > bestScore) {" +
-                        "    bestScore = score;" +
-                        "    best = el;" +
-                        "  }" +
-                        "}" +
-                        "return best;",
-                overlay
-        );
+        Object result = js.executeScript(closeButtonInsideScript(), overlay);
 
         if (result instanceof WebElement) {
             return (WebElement) result;

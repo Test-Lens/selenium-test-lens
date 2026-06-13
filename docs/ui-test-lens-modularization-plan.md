@@ -547,7 +547,7 @@ API powinno ukrywać klasy `*Actions`, `OverlayRootManager`, `HudPanel` i zasoby
 - `JsOverlayDebug` - wymaga rozbicia na fasadę i serwisy domenowe.
 - `HighlightActions` - trzeba rozdzielić highlight od click/fallback click.
 - `AssertActions` - warto oddzielić czystą logikę wyniku asercji od renderowania badge w overlay.
-- `BlockingOverlayHelper` i `PopupDetector` - duplikują heurystyki close/accept i są sprzężone z highlightem.
+- `BlockingOverlayHelper` i `PopupDetector` - skrypty heurystyk są już wydzielone do nazwanych helperów i testów markerów, ale klasy nadal duplikują heurystyki close/accept i są sprzężone z highlightem.
 - `OverlayWait` - wymaga odcięcia `LogWraper` i `TimeStamp`.
 - `ApiCallActions` - wymaga wydzielenia RestAssured do adaptera.
 - `ApiOverlayContext`, `ApiOverlayPlan`, `ApiOverlayRule` - statyczne ThreadLocal trzeba zastąpić jawnie przekazywanym kontekstem lub opakować jako internal.
