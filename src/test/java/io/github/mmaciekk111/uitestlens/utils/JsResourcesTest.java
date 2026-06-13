@@ -65,6 +65,18 @@ class JsResourcesTest {
     }
 
     @Test
+    void readFirstExistingReturnsScrollArrowResourceContent() {
+        String script = JsResources.readFirstExisting(
+                "uitestlens/runtime/scroll-arrow.js",
+                "missing/legacy.js"
+        );
+
+        assertTrue(script.contains("__uiTestLens"));
+        assertTrue(script.contains("modules.scrollArrow"));
+        assertTrue(script.contains("scrollToElementWithArrow"));
+    }
+
+    @Test
     void readFirstExistingFallsBackToLegacyPath() {
         assertDoesNotThrow(() -> JsResources.readFirstExisting(
                 "missing/preferred.js",

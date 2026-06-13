@@ -3,6 +3,7 @@ package io.github.mmaciekk111.uitestlens.actions;
 import io.github.mmaciekk111.uitestlens.OverlayConfig;
 import io.github.mmaciekk111.uitestlens.core.OverlayLogger;
 import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
+import io.github.mmaciekk111.uitestlens.core.ScrollArrowJs;
 import io.github.mmaciekk111.uitestlens.core.logging.TargetDescriptor;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensEventType;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
@@ -143,91 +144,9 @@ public class ScrollActions {
         rootManager.ensureRootExists();
 
         js.executeAsyncScript(
-                "var target = arguments[0];" +
-                        "var duration = arguments[1] || 800;" +
-                        "var elemEdge = arguments[2];" +
-                        "var viewEdge = arguments[3];" +
+                ScrollArrowJs.INIT +
                         "var done = arguments[arguments.length - 1];" +
-                        "if (!target || !target.getBoundingClientRect) { done(); return; }" +
-                        "var shadow = window.__seleniumOverlayRoot;" +
-                        "if (!shadow) { done(); return; }" +
-
-                        "var existing = shadow.querySelector('#selenium-scroll-indicator');" +
-                        "if (existing && existing.parentNode) { existing.parentNode.removeChild(existing); }" +
-
-                        "var rect = target.getBoundingClientRect();" +
-                        "var startY = window.scrollY || window.pageYOffset || 0;" +
-                        "var vh = window.innerHeight || document.documentElement.clientHeight || 800;" +
-
-                        "var elemAnchor;" +
-                        "if (elemEdge === 'TOP') {" +
-                        "  elemAnchor = rect.top + startY;" +
-                        "} else if (elemEdge === 'BOTTOM') {" +
-                        "  elemAnchor = rect.bottom + startY;" +
-                        "} else {" +
-                        "  elemAnchor = rect.top + startY + rect.height / 2;" +
-                        "}" +
-
-                        "var viewportOffset;" +
-                        "if (viewEdge === 'TOP') {" +
-                        "  viewportOffset = 0;" +
-                        "} else if (viewEdge === 'BOTTOM') {" +
-                        "  viewportOffset = vh;" +
-                        "} else {" +
-                        "  viewportOffset = vh / 2;" +
-                        "}" +
-
-                        "var targetY = elemAnchor - viewportOffset;" +
-                        "var dirDown = targetY > startY;" +
-
-                        "var arrow = document.createElement('div');" +
-                        "arrow.id = 'selenium-scroll-indicator';" +
-                        "arrow.style.position = 'fixed';" +
-                        "arrow.style.width = '0';" +
-                        "arrow.style.height = '0';" +
-                        "arrow.style.zIndex = '2147483647';" +
-                        "arrow.style.pointerEvents = 'none';" +
-                        "arrow.style.borderLeft = '10px solid transparent';" +
-                        "arrow.style.borderRight = '10px solid transparent';" +
-                        "if (dirDown) {" +
-                        "  arrow.style.borderTop = '14px solid #ffeb3b';" +
-                        "  arrow.style.top = 'calc(100vh - 40px)';" +
-                        "} else {" +
-                        "  arrow.style.borderBottom = '14px solid #ffeb3b';" +
-                        "  arrow.style.top = '40px';" +
-                        "}" +
-                        "arrow.style.left = '50%';" +
-                        "arrow.style.transform = 'translateX(-50%)';" +
-                        "shadow.appendChild(arrow);" +
-
-                        "var startTime = null;" +
-                        "function step(ts) {" +
-                        "  if (!startTime) { startTime = ts; }" +
-                        "  var progress = (ts - startTime) / duration;" +
-                        "  if (progress > 1) { progress = 1; }" +
-                        "  var y = startY + (targetY - startY) * progress;" +
-                        "  window.scrollTo(0, y);" +
-                        "  var current = window.scrollY || window.pageYOffset || 0;" +
-                        "  if (progress >= 1 || Math.abs(current - targetY) < 2) {" +
-                        "    var r = target.getBoundingClientRect();" +
-                        "    var arrowY;" +
-                        "    if (dirDown) {" +
-                        "      arrowY = r.top - 18;" +
-                        "    } else {" +
-                        "      arrowY = r.bottom + 4;" +
-                        "    }" +
-                        "    arrow.style.top = arrowY + 'px';" +
-                        "    arrow.style.left = (r.left + r.width / 2) + 'px';" +
-                        "    arrow.style.transform = 'translateX(-50%)';" +
-                        "    window.setTimeout(function() {" +
-                        "      if (arrow && arrow.parentNode) { arrow.parentNode.removeChild(arrow); }" +
-                        "      done();" +
-                        "    }, 1000);" +
-                        "    return;" +
-                        "  }" +
-                        "  window.requestAnimationFrame(step);" +
-                        "}" +
-                        "window.requestAnimationFrame(step);",
+                        "window.__uiTestLens.modules.scrollArrow.scrollToElementWithArrow(arguments[0], arguments[1], arguments[2], arguments[3], done);",
                 element, durationMs, elementEdge.name(), viewportEdge.name()
         );
         emitScroll(UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, durationMs, elementEdge, viewportEdge, true);

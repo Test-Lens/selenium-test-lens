@@ -242,10 +242,32 @@ Warstwa JS nadal uzywa kompatybilnego overlay root:
 Semantyka `typeWithHint` pozostaje bez zmian: dymek w overlay moze nadal prezentowac wpisywana wartosc jako `SET: ...`.
 Pelne maskowanie wartosci inputow zostaje na pozniejszy etap.
 
+## Scroll arrow JavaScript extraction
+
+Kolejny fragment runtime JS zostal przeniesiony do realnego resource file:
+
+```text
+src/main/resources/uitestlens/runtime/scroll-arrow.js
+```
+
+Loader `ScrollArrowJs` preferuje teraz:
+
+```text
+uitestlens/runtime/scroll-arrow.js
+```
+
+i zachowuje legacy fallback:
+
+```text
+selenium/scroll-arrow.js
+```
+
+Scroll arrow runtime rejestruje sie pod primary namespace `window.__uiTestLens.modules.scrollArrow`.
+Semantyka scrollowania, wyrownanie elementu wzgledem viewportu oraz enumy `ScrollElementEdge` / `ScrollViewportEdge` pozostaja bez zmian.
+
 Kolejne fragmenty inline JS do ekstrakcji:
 
 - HUD panel,
-- scroll arrow,
 - visual assertion badges.
 
 ## Preferowany styl nazw klas Java

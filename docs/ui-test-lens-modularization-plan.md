@@ -509,7 +509,8 @@ API powinno ukrywać klasy `*Actions`, `OverlayRootManager`, `HudPanel` i zasoby
 - Wait HUD JS został wydzielony do `src/main/resources/uitestlens/runtime/wait-hud.js`; loader zachowuje fallback `selenium/wait/WaitHud.js`.
 - Highlight JS został wydzielony do `src/main/resources/uitestlens/runtime/highlight.js`; loader zachowuje fallback `selenium/highlight.js`.
 - Type hint JS został wydzielony do `src/main/resources/uitestlens/runtime/type-hint.js`; loader zachowuje fallback `selenium/type-hint.js`.
-- HUD panel, scroll arrow i visual assertion badges nadal wymagają ekstrakcji z inline JavaScript albo legacy resource paths.
+- Scroll arrow JS został wydzielony do `src/main/resources/uitestlens/runtime/scroll-arrow.js`; loader zachowuje fallback `selenium/scroll-arrow.js`.
+- HUD panel i visual assertion badges nadal wymagają ekstrakcji z inline JavaScript albo legacy resource paths.
 - POM deklaruje Selenium `4.39.0`, ale property `selenium.version` ma wartość `4.40.0` i nie jest używane.
 - POM nie deklaruje RestAssured mimo importu w `ApiCallActions`.
 - POM nie deklaruje prywatnych zależności: `utils.logs.LogWraper`, `utils.time.TimeStamp`, `utils.datetime.LocalDateTimeUtils`, `tests.fe.utils.contentassertions.ContentIssueCollector`.
