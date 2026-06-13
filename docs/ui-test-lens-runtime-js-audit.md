@@ -20,7 +20,7 @@ All listed resources are non-empty, use the primary `window.__uiTestLens` namesp
 
 | Class | Method/area | Inline JS type | Keep inline? | Recommended next action |
 | ----- | ----------- | -------------- | ------------ | ----------------------- |
-| `OverlayRootManager` | `ensureRootExists`, `clearRoot` | overlay runtime, legacy alias | Temporarily yes | Extract an `overlay-root.js` resource or keep as the lowest-level bootstrap helper with tests. |
+| `OverlayRootManager` | `ensureRootExists`, `clearRoot` | overlay runtime bootstrap, legacy alias sync | Yes | Cleanup completed: primary root state is `window.__uiTestLens.state.overlay.root`; consider `overlay-root.js` only if bootstrap grows. |
 | `PageWaits` | wait message writes | legacy alias / state bridge | Temporarily yes | Centralize wait state writes behind a small helper or wait runtime bridge. |
 | `PageWaits` | `waitForReadyState*` | Selenium page query | Yes | Keep inline; these are simple browser state reads. |
 | `PageWaits` | network tracker install | candidate for extraction | Not long term | Extract to `network-tracker.js` or a page-observability helper. |
@@ -45,7 +45,7 @@ All listed resources are non-empty, use the primary `window.__uiTestLens` namesp
 
 | Legacy name | Current usage | Compatibility reason | Removal candidate? |
 | ----------- | ------------- | -------------------- | ------------------ |
-| `window.__seleniumOverlayRoot` | Alias for `window.__uiTestLens.state.overlay.root`; used by runtime resources and older Java snippets. | Existing inline snippets and downstream code may still read it. | Yes, after all Java snippets use `state.overlay.root` or runtime APIs. |
+| `window.__seleniumOverlayRoot` | Legacy alias synchronized from `window.__uiTestLens.state.overlay.root`; used by runtime resources and older Java snippets. | Existing inline snippets and downstream code may still read it. | Yes, after all Java snippets use `state.overlay.root` or runtime APIs. |
 | `window.__seleniumWaitHud` | Alias for `window.__uiTestLens.modules.waitHud`. | Current wait bridge and legacy consumers. | Yes, after wait HUD callers use `modules.waitHud`. |
 | `window.__seleniumLastWaitMessage` | Alias for `window.__uiTestLens.state.wait.lastMessage`. | HUD/wait diagnostics still synchronize with it. | Yes, after `PageWaits` and `JsOverlayDebug` use only primary state. |
 | `window.__seleniumLastWaitElapsedMs` | Alias for `window.__uiTestLens.state.wait.lastElapsedMs`. | Wait elapsed diagnostics still synchronize with it. | Yes, after wait state bridge cleanup. |
@@ -79,10 +79,10 @@ Fallbacks stay for now because the project is still in a compatibility migration
 
 ## Recommended next extraction/refactor steps
 
-1. `OverlayRootManager` root helper cleanup: decide whether overlay root stays a tiny Java bootstrap or becomes `overlay-root.js`.
-2. `PageWaits` state write cleanup: centralize wait/network state bridge and reduce direct legacy writes.
-3. `PopupDetector` / `BlockingOverlayHelper` as a dedicated heuristics module, with a shared JS runtime helper if needed.
-4. `TargetResolverActions` JS cleanup: extract label/input/file target resolution only after target semantics are documented.
-5. API overlay bridge cleanup: move Java bridge calls from `window.__seleniumApiModal` to `window.__uiTestLens.modules.apiOverlay` while preserving alias fallback.
+1. `PageWaits` state write cleanup: centralize wait/network state bridge and reduce direct legacy writes.
+2. `PopupDetector` / `BlockingOverlayHelper` as a dedicated heuristics module, with a shared JS runtime helper if needed.
+3. `TargetResolverActions` JS cleanup: extract label/input/file target resolution only after target semantics are documented.
+4. API overlay bridge cleanup: move Java bridge calls from `window.__seleniumApiModal` to `window.__uiTestLens.modules.apiOverlay` while preserving alias fallback.
+5. Optional `overlay-root.js` only if root bootstrap grows beyond the current tiny `OverlayRootManager` script.
 6. Selenium `WebDriverListener` adapter for action-level observability without requiring direct helper calls.
 7. Multi-module split after runtime/resource contracts and package-level boundaries are stable.

@@ -536,7 +536,7 @@ API powinno ukrywać klasy `*Actions`, `OverlayRootManager`, `HudPanel` i zasoby
 ### B. Warto przenieść, ale po lekkim refaktorze
 
 - `HudPanel` - działa jako komponent HUD, ale JS powinien trafić do zasobu.
-- `OverlayRootManager` - dobry element runtime, ale powinien używać abstrakcji wykonania JS.
+- `OverlayRootManager` - dobry element runtime; primary root state jest już `window.__uiTestLens.state.overlay.root`, a `window.__seleniumOverlayRoot` pozostaje aliasem kompatybilnościowym. Nadal powinien docelowo używać abstrakcji wykonania JS.
 - `PageWaits` - użyteczne waity, ale trzeba odseparować raportowanie HUD od samego waitowania.
 - `ScrollActions` - sensowna domena, ale JS powinien być osobnym zasobem.
 - `TargetResolverActions` - przydatne, ale `buildCssSelector` powinien poprawnie escapować CSS i nie obiecywać unikalności.

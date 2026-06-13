@@ -331,6 +331,16 @@ docs/ui-test-lens-runtime-js-audit.md
 
 Legacy aliasy `window.__selenium...` pozostaja celowo utrzymywane do czasu osobnego etapu migracji kompatybilnosciowej.
 
+## Overlay root runtime state cleanup
+
+`OverlayRootManager` traktuje teraz `window.__uiTestLens.state.overlay.root` jako primary reference dla overlay root.
+Legacy `window.__seleniumOverlayRoot` jest nadal synchronizowany jako alias kompatybilnosciowy.
+
+Cleanup zachowuje publiczne API `OverlayRootManager` i nie zmienia zachowania HUD/highlight/assertion badges/type hint/scroll arrow.
+Dodano testy skryptow root managera bez uruchamiania Selenium ani przegladarki.
+
+Osobny `overlay-root.js` pozostaje opcja na pozniejszy etap tylko wtedy, gdy bootstrap root zacznie rosnac albo bedzie potrzebny poza Selenium.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:
