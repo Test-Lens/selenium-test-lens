@@ -353,3 +353,27 @@ Runtime JS inicjalizuje teraz primary namespace `window.__uiTestLens` z sekcjami
 Eventy Java pozostaja bez zmian, ale wait/network/overlay state moze byc odczytywany z `window.__uiTestLens.state` przez przyszle HUD/highlight sinki.
 
 Stare `window.__selenium...` globale pozostaja jako legacy compatibility aliases. Pelne przepisanie HUD/highlight na publiczne funkcje runtime JS zostaje na pozniejszy etap.
+
+## Stage: Assertion badges runtime extraction
+
+Visual assertion badges sa teraz renderowane przez runtime resource:
+
+```text
+src/main/resources/uitestlens/runtime/assertion-badges.js
+```
+
+Primary browser API to `window.__uiTestLens.modules.assertionBadges`.
+Loader zachowuje fallback `selenium/assertion-badges.js`.
+
+Ta zmiana nie zmienia eventow `ASSERTION`, semantyki pass/fail ani modelu `OverlayAssertionResult`.
+Java nadal emituje eventy z `AssertActions`, a runtime JS odpowiada tylko za wizualny badge/check marker.
+
+Glowne znane runtime resources obejmuja teraz:
+
+- API overlay,
+- Wait HUD,
+- Highlight,
+- Type hint,
+- Scroll arrow,
+- HUD panel,
+- Assertion badges.

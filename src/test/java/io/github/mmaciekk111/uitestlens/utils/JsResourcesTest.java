@@ -89,6 +89,18 @@ class JsResourcesTest {
     }
 
     @Test
+    void readFirstExistingReturnsAssertionBadgesResourceContent() {
+        String script = JsResources.readFirstExisting(
+                "uitestlens/runtime/assertion-badges.js",
+                "missing/legacy.js"
+        );
+
+        assertTrue(script.contains("__uiTestLens"));
+        assertTrue(script.contains("modules.assertionBadges"));
+        assertTrue(script.contains("selenium-overlay-assert"));
+    }
+
+    @Test
     void readFirstExistingFallsBackToLegacyPath() {
         assertDoesNotThrow(() -> JsResources.readFirstExisting(
                 "missing/preferred.js",

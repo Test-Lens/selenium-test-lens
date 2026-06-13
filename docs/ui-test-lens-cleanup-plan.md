@@ -289,9 +289,39 @@ HUD panel runtime rejestruje sie pod primary namespace `window.__uiTestLens.modu
 Zachowanie `init`, `setStep` oraz dodawania logow do HUD zostaje bez zmian.
 Legacy DOM ID, takie jak `selenium-hud-panel`, `selenium-hud-step` i `selenium-hud-logs`, zostaly zachowane dla kompatybilnosci.
 
-Kolejne fragmenty inline JS do ekstrakcji:
+## Assertion badges JavaScript extraction
 
-- visual assertion badges.
+Kolejny fragment runtime JS zostal przeniesiony do realnego resource file:
+
+```text
+src/main/resources/uitestlens/runtime/assertion-badges.js
+```
+
+Loader `AssertionBadgesJs` preferuje teraz:
+
+```text
+uitestlens/runtime/assertion-badges.js
+```
+
+i zachowuje legacy fallback:
+
+```text
+selenium/assertion-badges.js
+```
+
+Assertion badge runtime rejestruje sie pod primary namespace `window.__uiTestLens.modules.assertionBadges`.
+Legacy klasy i wlasciwosci DOM, takie jak `selenium-overlay-assert`, `selenium-assert-badge` i `target.__seleniumAssertContainer`, zostaly zachowane dla kompatybilnosci.
+Semantyka assertion pass/fail oraz model `OverlayAssertionResult` pozostaja bez zmian.
+
+Glowne znane runtime resources obejmuja teraz:
+
+- API overlay,
+- Wait HUD,
+- Highlight,
+- Type hint,
+- Scroll arrow,
+- HUD panel,
+- Assertion badges.
 
 ## Preferowany styl nazw klas Java
 

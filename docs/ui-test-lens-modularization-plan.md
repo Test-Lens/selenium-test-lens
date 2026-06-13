@@ -511,7 +511,7 @@ API powinno ukrywać klasy `*Actions`, `OverlayRootManager`, `HudPanel` i zasoby
 - Type hint JS został wydzielony do `src/main/resources/uitestlens/runtime/type-hint.js`; loader zachowuje fallback `selenium/type-hint.js`.
 - Scroll arrow JS został wydzielony do `src/main/resources/uitestlens/runtime/scroll-arrow.js`; loader zachowuje fallback `selenium/scroll-arrow.js`.
 - HUD panel JS został wydzielony do `src/main/resources/uitestlens/runtime/hud-panel.js`; loader zachowuje fallback `selenium/hud-panel.js`.
-- Visual assertion badges nadal wymagają ekstrakcji z inline JavaScript albo legacy resource paths.
+- Assertion badge JS został wydzielony do `src/main/resources/uitestlens/runtime/assertion-badges.js`; loader zachowuje fallback `selenium/assertion-badges.js`.
 - POM deklaruje Selenium `4.39.0`, ale property `selenium.version` ma wartość `4.40.0` i nie jest używane.
 - POM nie deklaruje RestAssured mimo importu w `ApiCallActions`.
 - POM nie deklaruje prywatnych zależności: `utils.logs.LogWraper`, `utils.time.TimeStamp`, `utils.datetime.LocalDateTimeUtils`, `tests.fe.utils.contentassertions.ContentIssueCollector`.
@@ -649,6 +649,8 @@ Zasoby JS:
 - legacy path `selenium/scroll-arrow.js` pozostaje fallbackiem loadera,
 - HUD panel jest kolejnym wydzielonym runtime resource: `src/main/resources/uitestlens/runtime/hud-panel.js`,
 - legacy path `selenium/hud-panel.js` pozostaje fallbackiem loadera,
+- Assertion badges sa kolejnym wydzielonym runtime resource: `src/main/resources/uitestlens/runtime/assertion-badges.js`,
+- legacy path `selenium/assertion-badges.js` pozostaje fallbackiem loadera,
 - nowe resource paths `uitestlens/runtime/...` sa preferowane, a stare `selenium/...` moga zostac fallbackiem do czasu pelnej ekstrakcji runtime,
 - klasy Java nie powinny znać szczegółów DOM/CSS poza wywołaniem publicznych funkcji runtime JS.
 

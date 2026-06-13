@@ -26,6 +26,8 @@ public final class UiTestLensRuntimeNames {
     public static final String LEGACY_SCROLL_ARROW_RESOURCE = LEGACY_SELENIUM_RESOURCE_ROOT + "scroll-arrow.js";
     public static final String HUD_PANEL_RESOURCE = RUNTIME_RESOURCE_ROOT + "hud-panel.js";
     public static final String LEGACY_HUD_PANEL_RESOURCE = LEGACY_SELENIUM_RESOURCE_ROOT + "hud-panel.js";
+    public static final String ASSERTION_BADGES_RESOURCE = RUNTIME_RESOURCE_ROOT + "assertion-badges.js";
+    public static final String LEGACY_ASSERTION_BADGES_RESOURCE = LEGACY_SELENIUM_RESOURCE_ROOT + "assertion-badges.js";
 
     private UiTestLensRuntimeNames() {}
 

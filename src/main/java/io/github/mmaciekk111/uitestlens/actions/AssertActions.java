@@ -4,6 +4,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import io.github.mmaciekk111.uitestlens.OverlayConfig;
+import io.github.mmaciekk111.uitestlens.core.AssertionBadgesJs;
 import io.github.mmaciekk111.uitestlens.core.OverlayLogger;
 import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
 import io.github.mmaciekk111.uitestlens.core.logging.TargetDescriptor;
@@ -564,85 +565,8 @@ public class AssertActions {
         long duration = config.getDecorationDurationMs();
 
         js.executeScript(
-                "var target = arguments[0];" +
-                        "var ok = arguments[1];" +
-                        "var duration = arguments[2];" +
-                        "var label = arguments[3];" +
-                        "if (!target || !target.getBoundingClientRect) { return; }" +
-                        "var shadow = window.__seleniumOverlayRoot;" +
-                        "if (!shadow) { return; }" +
-
-                        // wspólny kontener dla wszystkich asercji na tym elemencie
-                        "var container = target.__seleniumAssertContainer;" +
-                        "if (!container) {" +
-                        "  container = document.createElement('div');" +
-                        "  container.className = 'selenium-overlay-assert';" +
-                        "  container.style.position = 'fixed';" +
-                        "  container.style.pointerEvents = 'none';" +
-                        "  container.style.zIndex = '2147483647';" +
-                        "  container.style.boxSizing = 'border-box';" +
-                        "  container.style.borderRadius = '4px';" +
-                        "  target.__seleniumAssertContainer = container;" +
-                        "  shadow.appendChild(container);" +
-                        "}" +
-
-                        // kolor bazowy / błędu
-                        "var baseColor = '#4caf50';" +
-                        "var failColor = '#f44336';" +
-                        "if (!ok) {" +
-                        "  container.dataset.hasFail = 'true';" +
-                        "}" +
-                        "var color = (container.dataset.hasFail === 'true') ? failColor : baseColor;" +
-                        "container.style.border = '2px solid ' + color;" +
-
-                        // tworzymy badge
-                        "var badge = document.createElement('div');" +
-                        "badge.className = 'selenium-assert-badge';" +
-                        "badge.textContent = label || (ok ? 'ASSERT OK' : 'ASSERT FAIL');" +
-                        "badge.style.position = 'absolute';" +
-                        "badge.style.left = '0';" +
-                        "badge.style.padding = '2px 6px';" +
-                        "badge.style.fontSize = '10px';" +
-                        "badge.style.background = color;" +
-                        "badge.style.color = '#fff';" +
-                        "badge.style.borderRadius = '3px';" +
-                        "badge.style.whiteSpace = 'nowrap';" +
-
-                        // offset w pionie – każdy badge osobny „wiersz”
-                        "var existingBadges = container.querySelectorAll('.selenium-assert-badge');" +
-                        "var count = existingBadges.length;" +
-                        "var offset = (count + 1) * 18;" +
-                        "badge.style.top = '-' + offset + 'px';" +
-
-                        "container.appendChild(badge);" +
-
-                        // pozycjonowanie kontenera nad elementem
-                        "function update() {" +
-                        "  if (!document.body.contains(target)) { return; }" +
-                        "  var rect = target.getBoundingClientRect();" +
-                        "  container.style.left = rect.left + 'px';" +
-                        "  container.style.top = rect.top + 'px';" +
-                        "  container.style.width = rect.width + 'px';" +
-                        "  container.style.height = rect.height + 'px';" +
-                        "}" +
-
-                        "function onScroll() { update(); }" +
-
-                        "function cleanup() {" +
-                        "  window.removeEventListener('scroll', onScroll, true);" +
-                        "  window.removeEventListener('resize', onScroll, true);" +
-                        "  if (container && container.parentNode) {" +
-                        "    container.parentNode.removeChild(container);" +
-                        "    if (target) {" +
-                        "      try { delete target.__seleniumAssertContainer; } catch(e) {}" +
-                        "    }" +
-                        "  }" +
-                        "}" +
-
-                        "window.addEventListener('scroll', onScroll, true);" +
-                        "window.addEventListener('resize', onScroll, true);" +
-                        "update();" +
-                        "setTimeout(cleanup, duration);",
+                AssertionBadgesJs.INIT +
+                        "window.__uiTestLens.modules.assertionBadges.show(arguments[0], { ok: arguments[1], label: arguments[3] }, { duration: arguments[2] });",
                 element, ok, duration, label
         );
     }
