@@ -217,6 +217,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - Legacy `selenium/assertion-badges.js` remains a loader fallback for compatibility.
 - Type hints may still display the typed value in the browser overlay; value masking is planned for a later stage.
 - Main known runtime JavaScript resources now cover API overlay, Wait HUD, Highlight, Type hint, Scroll arrow, HUD panel, and Assertion badges.
+- Runtime JavaScript audit: [`docs/ui-test-lens-runtime-js-audit.md`](docs/ui-test-lens-runtime-js-audit.md).
 - API is not final.
 - No multi-module split yet.
 - No Maven Central publication yet.
@@ -226,7 +227,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 ## Roadmap
 
-1. Review remaining small inline JavaScript snippets and decide which should become runtime resources.
+1. Use the runtime JS audit to review remaining small inline JavaScript snippets and decide which should become runtime resources.
 2. Split into `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`.
 3. Selenium `WebDriverListener` adapter.
 4. Selenide adapter.

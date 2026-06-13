@@ -323,6 +323,14 @@ Glowne znane runtime resources obejmuja teraz:
 - HUD panel,
 - Assertion badges.
 
+Szczegolowy audyt pozostalego inline JavaScript, namespace i fallbackow znajduje sie w:
+
+```text
+docs/ui-test-lens-runtime-js-audit.md
+```
+
+Legacy aliasy `window.__selenium...` pozostaja celowo utrzymywane do czasu osobnego etapu migracji kompatybilnosciowej.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:

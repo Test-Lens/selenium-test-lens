@@ -104,7 +104,7 @@ class JsResourcesTest {
     void readFirstExistingFallsBackToLegacyPath() {
         assertDoesNotThrow(() -> JsResources.readFirstExisting(
                 "missing/preferred.js",
-                "uitestlens/runtime/.gitkeep"
+                "uitestlens/runtime/api-overlay.js"
         ));
     }
 
