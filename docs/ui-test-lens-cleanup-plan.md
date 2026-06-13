@@ -224,3 +224,32 @@ Aktualny etap powinien pozostac bezpieczny:
 - nie ma rozbijania modulu,
 - nie ma refaktoru klas i API.
 
+## Etap 2: POM cleanup i zależności
+
+Aktualny single-module POM pozostaje projektem przejściowym przed multi-module split.
+
+Wykonane zmiany POM:
+
+- `artifactId` ustawiony na `ui-test-lens`,
+- dodane `name`: `UI Test Lens`,
+- dodane `description`: `Visual observability and debug layer for UI/browser automation tests.`,
+- dodane `project.reporting.outputEncoding=UTF-8`,
+- Selenium ujednolicone przez `${selenium.version}`,
+- Lombok ujednolicony przez `${lombok.version}`,
+- kompilator ustawiony na `maven.compiler.release=17`, bo obecny kod używa składni nowszej niż Java 11 (`record`, pattern matching `instanceof`, switch arrows).
+
+Decyzje odłożone:
+
+- `groupId` nadal jest historyczny, dopóki nie zapadnie decyzja publiczne `io.github.mmaciekk111` kontra prywatne `pl.mmaciekk111`,
+- brak package rename,
+- brak multi-module split,
+- brak zmiany namespace runtime JS,
+- brak refaktoru `JsOverlayDebug`.
+
+Zależności blokujące czystą publikację:
+
+- RestAssured w `ApiCallActions` nie powinien trafić do głównego artifactu; docelowo osobny adapter `ui-test-lens-restassured`,
+- `LogWraper` i `TimeStamp` są prywatnymi zależnościami i powinny zostać zastąpione przez `UiTestLensLogger`, `UiTestLensEventBus`, `Clock` i sinki logów,
+- `ContentIssueCollector` i `LocalDateTimeUtils` w `OverlayContentAssertions` powinny trafić do examples albo prywatnego adaptera, nie do publicznego core.
+
+Szczegóły decyzji są w `docs/ui-test-lens-dependency-cleanup-plan.md`.
