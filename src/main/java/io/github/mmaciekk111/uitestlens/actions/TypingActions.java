@@ -3,6 +3,7 @@ package io.github.mmaciekk111.uitestlens.actions;
 import io.github.mmaciekk111.uitestlens.OverlayConfig;
 import io.github.mmaciekk111.uitestlens.core.OverlayLogger;
 import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
+import io.github.mmaciekk111.uitestlens.core.TypeHintJs;
 import io.github.mmaciekk111.uitestlens.core.logging.TargetDescriptor;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensEventType;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
@@ -68,36 +69,9 @@ public class TypingActions {
             String hintText = "SET: " + (value == null ? "null" : value);
 
             js.executeScript(
-                    "var el = arguments[0];" +
-                            "var msg = arguments[1];" +
-                            "if (!el) { return; }" +
-                            "var rect = el.getBoundingClientRect();" +
-                            "var shadow = window.__seleniumOverlayRoot;" +
-                            "if (!shadow) { return; }" +
-
-                            "var hint = document.createElement('div');" +
-                            "hint.textContent = msg;" +
-                            "hint.style.position = 'fixed';" +
-                            "hint.style.left = (rect.right + 6) + 'px';" +
-                            "hint.style.top = rect.top + 'px';" +
-                            "hint.style.padding = '2px 6px';" +
-                            "hint.style.fontSize = '10px';" +
-                            "hint.style.background = 'rgba(0,0,0,0.8)';" +
-                            "hint.style.color = '#ffffff';" +
-                            "hint.style.borderRadius = '3px';" +
-                            "hint.style.maxWidth = '200px';" +
-                            "hint.style.zIndex = '2147483647';" +
-                            "hint.style.pointerEvents = 'none';" +
-                            "hint.style.boxShadow = '0 0 4px rgba(0,0,0,0.4)';" +
-
-                            "shadow.appendChild(hint);" +
-
-                            "window.setTimeout(function () {" +
-                            "  if (hint && hint.parentNode) {" +
-                            "    hint.parentNode.removeChild(hint);" +
-                            "  }" +
-                            "}, " + duration + ");",
-                    element, hintText
+                    TypeHintJs.INIT +
+                            "return window.__uiTestLens.modules.typeHint.show(arguments[0], arguments[1], { duration: arguments[2] });",
+                    element, hintText, duration
             );
 
             element.clear();

@@ -508,6 +508,7 @@ API powinno ukrywać klasy `*Actions`, `OverlayRootManager`, `HudPanel` i zasoby
 - API overlay JS został wydzielony do `src/main/resources/uitestlens/runtime/api-overlay.js`; loader zachowuje fallback `selenium/api-overlay.js`.
 - Wait HUD JS został wydzielony do `src/main/resources/uitestlens/runtime/wait-hud.js`; loader zachowuje fallback `selenium/wait/WaitHud.js`.
 - Highlight JS został wydzielony do `src/main/resources/uitestlens/runtime/highlight.js`; loader zachowuje fallback `selenium/highlight.js`.
+- Type hint JS został wydzielony do `src/main/resources/uitestlens/runtime/type-hint.js`; loader zachowuje fallback `selenium/type-hint.js`.
 - HUD panel, scroll arrow i visual assertion badges nadal wymagają ekstrakcji z inline JavaScript albo legacy resource paths.
 - POM deklaruje Selenium `4.39.0`, ale property `selenium.version` ma wartość `4.40.0` i nie jest używane.
 - POM nie deklaruje RestAssured mimo importu w `ApiCallActions`.
@@ -640,6 +641,8 @@ Zasoby JS:
 - legacy path `selenium/wait/WaitHud.js` pozostaje fallbackiem loadera,
 - Highlight jest trzecim wydzielonym runtime resource: `src/main/resources/uitestlens/runtime/highlight.js`,
 - legacy path `selenium/highlight.js` pozostaje fallbackiem loadera,
+- Type hint jest kolejnym wydzielonym runtime resource: `src/main/resources/uitestlens/runtime/type-hint.js`,
+- legacy path `selenium/type-hint.js` pozostaje fallbackiem loadera,
 - nowe resource paths `uitestlens/runtime/...` sa preferowane, a stare `selenium/...` moga zostac fallbackiem do czasu pelnej ekstrakcji runtime,
 - klasy Java nie powinny znać szczegółów DOM/CSS poza wywołaniem publicznych funkcji runtime JS.
 

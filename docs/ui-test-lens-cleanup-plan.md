@@ -213,6 +213,35 @@ Warstwa JS nadal uzywa kompatybilnego overlay root:
 - primary state: `window.__uiTestLens.state.overlay.root`,
 - legacy alias: `window.__seleniumOverlayRoot`.
 
+## Type hint JavaScript extraction
+
+Kolejny fragment runtime JS zostal przeniesiony do realnego resource file:
+
+```text
+src/main/resources/uitestlens/runtime/type-hint.js
+```
+
+Loader `TypeHintJs` preferuje teraz:
+
+```text
+uitestlens/runtime/type-hint.js
+```
+
+i zachowuje legacy fallback:
+
+```text
+selenium/type-hint.js
+```
+
+Type hint runtime rejestruje sie pod primary namespace `window.__uiTestLens.modules.typeHint`.
+Warstwa JS nadal uzywa kompatybilnego overlay root:
+
+- primary state: `window.__uiTestLens.state.overlay.root`,
+- legacy alias: `window.__seleniumOverlayRoot`.
+
+Semantyka `typeWithHint` pozostaje bez zmian: dymek w overlay moze nadal prezentowac wpisywana wartosc jako `SET: ...`.
+Pelne maskowanie wartosci inputow zostaje na pozniejszy etap.
+
 Kolejne fragmenty inline JS do ekstrakcji:
 
 - HUD panel,

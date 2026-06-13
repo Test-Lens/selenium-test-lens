@@ -20,6 +20,8 @@ public final class UiTestLensRuntimeNames {
     public static final String LEGACY_WAIT_HUD_RESOURCE = LEGACY_SELENIUM_RESOURCE_ROOT + "wait/WaitHud.js";
     public static final String HIGHLIGHT_RESOURCE = RUNTIME_RESOURCE_ROOT + "highlight.js";
     public static final String LEGACY_HIGHLIGHT_RESOURCE = LEGACY_SELENIUM_RESOURCE_ROOT + "highlight.js";
+    public static final String TYPE_HINT_RESOURCE = RUNTIME_RESOURCE_ROOT + "type-hint.js";
+    public static final String LEGACY_TYPE_HINT_RESOURCE = LEGACY_SELENIUM_RESOURCE_ROOT + "type-hint.js";
 
     private UiTestLensRuntimeNames() {}
 

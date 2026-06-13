@@ -53,6 +53,18 @@ class JsResourcesTest {
     }
 
     @Test
+    void readFirstExistingReturnsTypeHintResourceContent() {
+        String script = JsResources.readFirstExisting(
+                "uitestlens/runtime/type-hint.js",
+                "missing/legacy.js"
+        );
+
+        assertTrue(script.contains("__uiTestLens"));
+        assertTrue(script.contains("modules.typeHint"));
+        assertTrue(script.contains("show: show"));
+    }
+
+    @Test
     void readFirstExistingFallsBackToLegacyPath() {
         assertDoesNotThrow(() -> JsResources.readFirstExisting(
                 "missing/preferred.js",
