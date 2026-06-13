@@ -1,5 +1,6 @@
 package utils.jsExecHelper.core;
 
+import utils.jsExecHelper.core.logging.UiTestLensLogEntry;
 import utils.jsExecHelper.core.logging.UiTestLensLogger;
 
 public final class OverlayLogger {
@@ -35,5 +36,9 @@ public final class OverlayLogger {
 
     public void error(String message, Throwable throwable) {
         delegate.error(message, throwable);
+    }
+
+    public void emit(UiTestLensLogEntry entry) {
+        delegate.emit(entry);
     }
 }

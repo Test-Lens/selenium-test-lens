@@ -87,9 +87,73 @@ Obecny `OverlayLogger` jest internal bridge używany przez istniejące klasy, ta
 
 W kolejnych etapach `OverlayLogger` może zostać zastąpiony bezpośrednim użyciem `UiTestLensLogger` albo `UiTestLensEventBus`, kiedy zostanie ustalony finalny podział modułów.
 
+## Stage: Logger integration with existing overlay flow
+
+Minimalna integracja podpina event-bus do obecnego przepływu bez zmiany package names, runtime namespace ani publicznych metod `JsOverlayDebug`.
+
+Eventy emitują teraz:
+
+- `OverlayWait`:
+  - `WAIT` / `STARTED` na początku `until(...)`,
+  - `WAIT` / `PASSED` po udanym wait,
+  - `WAIT` / `FAILED` po timeout,
+  - `ERROR` / `FAILED` po innym błędzie.
+- `Guards`:
+  - `GENERAL` / `PASSED` dla udanego `checkpoint(...)`,
+  - `ERROR` / `FAILED` dla wykrytej strony błędu, bez zmiany tekstu rzucanego `AssertionError`.
+- `JsOverlayDebug`:
+  - `STEP` dla `setStep(...)`,
+  - `HUD` dla `hudLog(...)`,
+  - `WAIT` dla `waitHudStart(...)`, `waitHudStop(...)`, `showWaitIndicator(...)` i `hideWaitIndicator(...)`.
+
+Domyślne zachowanie pozostaje `noop`. Użytkownik musi jawnie przekazać logger/sinki, żeby zbierać zdarzenia.
+
+```java
+InMemoryLogSink memorySink = new InMemoryLogSink();
+
+UiTestLensLogger logger = UiTestLensLogger.builder()
+        .sink(memorySink)
+        .sink(new ConsoleLogSink())
+        .build();
+
+OverlayLogger overlayLogger = OverlayLogger.from(logger);
+Guards guards = new Guards(driver, overlayLogger);
+
+JsOverlayDebug overlay = new JsOverlayDebug(
+        driver,
+        config,
+        apiPanel,
+        apiCalls,
+        guards,
+        overlayLogger
+);
+
+overlay.setStep("Open checkout page");
+overlay.hudLog("info", "Checkout opened", "2026-06-13 10:00:00.000 CEST");
+
+List<UiTestLensLogEntry> entries = memorySink.entries();
+```
+
+Istniejący logger projektowy można podpiąć bez zależności compile-time:
+
+```java
+UiTestLensLogger logger = UiTestLensLogger.builder()
+        .sink(new ConsumerLogSink(entry -> existingProjectLogger.info(entry.message())))
+        .build();
+```
+
+Na później zostają:
+
+- HUD jako pełny sink, zamiast równoległego emitowania z fasady,
+- highlight jako sink/event consumer,
+- adaptery Allure i TeamCity,
+- pełne eventy akcji click/type/scroll,
+- eksport JSON/TXT/HTML,
+- docelowy podział modułów i ewentualne bezpośrednie użycie `UiTestLensLogger` zamiast bridge `OverlayLogger`.
+
 ## Następne kroki
 
-- emitować zdarzenia wait/action/assertion z istniejących klas,
+- rozszerzyć eventy action/assertion z istniejących klas,
 - dodać sink HUD,
 - dodać eksport JSON/TXT/HTML,
 - dodać adapter SLF4J,

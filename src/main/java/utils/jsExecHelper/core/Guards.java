@@ -2,6 +2,10 @@ package utils.jsExecHelper.core;
 
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import utils.jsExecHelper.core.logging.UiTestLensEventType;
+import utils.jsExecHelper.core.logging.UiTestLensLogEntry;
+import utils.jsExecHelper.core.logging.UiTestLensLogLevel;
+import utils.jsExecHelper.core.logging.UiTestLensStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,11 +102,11 @@ public class Guards {
 
         if (r.isProblem) {
             String msg = r.formatForException();
-            try {
-                logger.error(msg);
-            } catch (Exception ignored) {}
+            emitCheckpoint(r, UiTestLensLogLevel.ERROR, UiTestLensEventType.ERROR, UiTestLensStatus.FAILED, msg);
 
             if (failFast) throw new AssertionError(msg);
+        } else {
+            emitCheckpoint(r, UiTestLensLogLevel.DEBUG, UiTestLensEventType.GENERAL, UiTestLensStatus.PASSED, "GUARD OK");
         }
 
         return r;
@@ -168,6 +172,30 @@ public class Guards {
         } catch (Exception e) {
             return def;
         }
+    }
+
+    private void emitCheckpoint(GuardResult result,
+                                UiTestLensLogLevel level,
+                                UiTestLensEventType eventType,
+                                UiTestLensStatus status,
+                                String message) {
+        try {
+            logger.emit(UiTestLensLogEntry.builder()
+                    .level(level)
+                    .eventType(eventType)
+                    .status(status)
+                    .message(message)
+                    .action("guard.checkpoint")
+                    .metadata("label", valueOrEmpty(result.label))
+                    .metadata("hit", valueOrEmpty(result.hit))
+                    .metadata("url", valueOrEmpty(result.url))
+                    .metadata("title", valueOrEmpty(result.title))
+                    .build());
+        } catch (Exception ignored) {}
+    }
+
+    private static String valueOrEmpty(String value) {
+        return value == null ? "" : value;
     }
 
     @FunctionalInterface

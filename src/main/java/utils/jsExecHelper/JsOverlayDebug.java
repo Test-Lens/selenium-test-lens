@@ -7,9 +7,15 @@ import utils.jsExecHelper.api.ApiCallActions;
 import utils.jsExecHelper.api.ApiOverlayJs;
 import utils.jsExecHelper.api.ApiOverlayPanel;
 import utils.jsExecHelper.core.Guards;
+import utils.jsExecHelper.core.OverlayLogger;
 import utils.jsExecHelper.core.OverlayRootManager;
 import utils.jsExecHelper.core.PageWaits;
 import utils.jsExecHelper.core.PopupDetector;
+import utils.jsExecHelper.core.logging.UiTestLensEventType;
+import utils.jsExecHelper.core.logging.UiTestLensLogEntry;
+import utils.jsExecHelper.core.logging.UiTestLensLogLevel;
+import utils.jsExecHelper.core.logging.UiTestLensLogger;
+import utils.jsExecHelper.core.logging.UiTestLensStatus;
 import utils.jsExecHelper.hud.HudPanel;
 import utils.jsExecHelper.react.ReactSafeExecutor;
 import utils.jsExecHelper.scroll.ScrollElementEdge;
@@ -48,6 +54,7 @@ public final class JsOverlayDebug {
     private final ApiCallActions apiCalls;
     private boolean waitHudInjected = false;
     private final Guards guards;
+    private final OverlayLogger logger;
 
     // ======================================================================
     //  CTOR
@@ -56,9 +63,28 @@ public final class JsOverlayDebug {
 
 
     public JsOverlayDebug(WebDriver driver, OverlayConfig config, ApiOverlayPanel apiPanel, ApiCallActions apiCalls, Guards guards) {
+        this(driver, config, apiPanel, apiCalls, guards, OverlayLogger.noop());
+    }
+
+    public JsOverlayDebug(WebDriver driver,
+                          OverlayConfig config,
+                          ApiOverlayPanel apiPanel,
+                          ApiCallActions apiCalls,
+                          Guards guards,
+                          UiTestLensLogger logger) {
+        this(driver, config, apiPanel, apiCalls, guards, OverlayLogger.from(logger));
+    }
+
+    public JsOverlayDebug(WebDriver driver,
+                          OverlayConfig config,
+                          ApiOverlayPanel apiPanel,
+                          ApiCallActions apiCalls,
+                          Guards guards,
+                          OverlayLogger logger) {
         this.apiPanel = apiPanel;
         this.apiCalls = apiCalls;
         this.guards = guards;
+        this.logger = logger != null ? logger : OverlayLogger.noop();
         if (driver == null) {
             throw new IllegalArgumentException("driver must not be null");
         }
@@ -93,10 +119,58 @@ public final class JsOverlayDebug {
     /** Updates the description of the current step in the HUD. */
     public void setStep(String stepDescription) {
         hudPanel.updateStep(stepDescription);
+        emit(UiTestLensLogEntry.builder()
+                .level(UiTestLensLogLevel.INFO)
+                .eventType(UiTestLensEventType.STEP)
+                .status(UiTestLensStatus.INFO)
+                .message(stepDescription)
+                .step(stepDescription)
+                .action("hud.setStep")
+                .build());
     }
 
     public void hudLog(String level, String message, String timestamp) {
         hudPanel.appendLog(level, message, timestamp);
+        emit(UiTestLensLogEntry.builder()
+                .level(toLogLevel(level))
+                .eventType(UiTestLensEventType.HUD)
+                .status(toStatus(level))
+                .message(message)
+                .action("hud.log")
+                .metadata("hudLevel", safeString(level))
+                .metadata("timestamp", safeString(timestamp))
+                .build());
+    }
+
+    private void emit(UiTestLensLogEntry entry) {
+        try {
+            logger.emit(entry);
+        } catch (Exception ignored) {}
+    }
+
+    private static UiTestLensLogLevel toLogLevel(String level) {
+        String normalized = safeString(level).toLowerCase();
+        return switch (normalized) {
+            case "trace" -> UiTestLensLogLevel.TRACE;
+            case "debug" -> UiTestLensLogLevel.DEBUG;
+            case "warn", "warning" -> UiTestLensLogLevel.WARN;
+            case "error", "failed", "fail" -> UiTestLensLogLevel.ERROR;
+            default -> UiTestLensLogLevel.INFO;
+        };
+    }
+
+    private static UiTestLensStatus toStatus(String level) {
+        String normalized = safeString(level).toLowerCase();
+        return switch (normalized) {
+            case "success", "done", "passed", "pass" -> UiTestLensStatus.PASSED;
+            case "warn", "warning" -> UiTestLensStatus.WARN;
+            case "error", "failed", "fail" -> UiTestLensStatus.FAILED;
+            default -> UiTestLensStatus.INFO;
+        };
+    }
+
+    private static String safeString(String value) {
+        return value == null ? "" : value;
     }
 
     // ======================================================================
@@ -409,6 +483,14 @@ public final class JsOverlayDebug {
                     label
             );
         } catch (Exception ignored) {}
+        emit(UiTestLensLogEntry.builder()
+                .level(UiTestLensLogLevel.INFO)
+                .eventType(UiTestLensEventType.WAIT)
+                .status(UiTestLensStatus.STARTED)
+                .message("Wait HUD started: " + safeString(label))
+                .action("waitHud.start")
+                .metadata("label", safeString(label))
+                .build());
     }
 
     public void waitHudStop(String prefix, long elapsedMs) {
@@ -420,6 +502,15 @@ public final class JsOverlayDebug {
                     prefix, elapsedMs
             );
         } catch (Exception ignored) {}
+        emit(UiTestLensLogEntry.builder()
+                .level(UiTestLensLogLevel.INFO)
+                .eventType(UiTestLensEventType.WAIT)
+                .status(UiTestLensStatus.PASSED)
+                .message("Wait HUD stopped: " + safeString(prefix))
+                .action("waitHud.stop")
+                .metadata("prefix", safeString(prefix))
+                .metadata("elapsedMs", String.valueOf(elapsedMs))
+                .build());
     }
 
     public void forceHideWaitHud() {
@@ -486,6 +577,14 @@ public final class JsOverlayDebug {
         } catch (Exception ignored) {
             // HUD nie powinien wysadzać testów
         }
+        emit(UiTestLensLogEntry.builder()
+                .level(UiTestLensLogLevel.INFO)
+                .eventType(UiTestLensEventType.WAIT)
+                .status(UiTestLensStatus.STARTED)
+                .message("Wait indicator shown: " + safeString(label))
+                .action("waitIndicator.show")
+                .metadata("label", safeString(label))
+                .build());
     }
 
     /** Chowa indykator "czekam". */
@@ -502,6 +601,13 @@ public final class JsOverlayDebug {
         } catch (Exception ignored) {
             // HUD nie powinien wysadzać testów
         }
+        emit(UiTestLensLogEntry.builder()
+                .level(UiTestLensLogLevel.INFO)
+                .eventType(UiTestLensEventType.WAIT)
+                .status(UiTestLensStatus.INFO)
+                .message("Wait indicator hidden")
+                .action("waitIndicator.hide")
+                .build());
     }
 
     // ======================================================================

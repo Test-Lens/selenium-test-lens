@@ -3,6 +3,10 @@ package utils.jsExecHelper;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import utils.jsExecHelper.core.OverlayLogger;
+import utils.jsExecHelper.core.logging.UiTestLensEventType;
+import utils.jsExecHelper.core.logging.UiTestLensLogEntry;
+import utils.jsExecHelper.core.logging.UiTestLensLogLevel;
+import utils.jsExecHelper.core.logging.UiTestLensStatus;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -102,6 +106,16 @@ public class OverlayWait {
         final String desc = (description == null || description.isBlank()) ? "waiting..." : description;
         final long startedMs = System.currentTimeMillis();
 
+        safeLog(UiTestLensLogEntry.builder()
+                .level(UiTestLensLogLevel.INFO)
+                .eventType(UiTestLensEventType.WAIT)
+                .status(UiTestLensStatus.STARTED)
+                .message("WAIT STARTED | " + desc)
+                .step("WAIT: " + desc)
+                .action("wait")
+                .metadata("description", desc)
+                .build());
+
         safeOverlay(() -> {
             overlay.ensureWaitHudInjected();
             overlay.setStep("WAIT: " + desc);
@@ -138,7 +152,7 @@ public class OverlayWait {
                     timestamp()
             ));
 
-            safeLog(finalStatus, desc + " | duration=" + duration, elapsedMs);
+            safeLog(finalStatus, desc, duration, elapsedMs);
 
         }
 
@@ -163,14 +177,37 @@ public class OverlayWait {
         try { r.run(); } catch (Exception ignored) {}
     }
 
-    private void safeLog(Status status, String desc, long elapsedMs) {
-        String msg = "WAIT " + status.prefix + " | " + desc + " | elapsedMs=" + elapsedMs;
+    private void safeLog(Status status, String desc, String duration, long elapsedMs) {
+        String msg = "WAIT " + status.prefix + " | " + desc + " | duration=" + duration + " | elapsedMs=" + elapsedMs;
+        UiTestLensLogLevel level = switch (status) {
+            case DONE -> UiTestLensLogLevel.INFO;
+            case TIMEOUT -> UiTestLensLogLevel.WARN;
+            case ERROR -> UiTestLensLogLevel.ERROR;
+        };
+        UiTestLensEventType eventType = status == Status.ERROR
+                ? UiTestLensEventType.ERROR
+                : UiTestLensEventType.WAIT;
+        UiTestLensStatus lensStatus = status == Status.DONE
+                ? UiTestLensStatus.PASSED
+                : UiTestLensStatus.FAILED;
+
+        safeLog(UiTestLensLogEntry.builder()
+                .level(level)
+                .eventType(eventType)
+                .status(lensStatus)
+                .message(msg)
+                .step("WAIT: " + desc)
+                .action("wait")
+                .metadata("description", desc)
+                .metadata("duration", duration)
+                .metadata("elapsedMs", String.valueOf(elapsedMs))
+                .metadata("status", status.prefix)
+                .build());
+    }
+
+    private void safeLog(UiTestLensLogEntry entry) {
         try {
-            switch (status) {
-                case DONE -> logger.info(msg);
-                case TIMEOUT -> logger.warn(msg);
-                default -> logger.error(msg);
-            }
+            logger.emit(entry);
         } catch (Exception ignored) {}
     }
 

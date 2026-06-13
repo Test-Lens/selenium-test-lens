@@ -280,3 +280,21 @@ Decyzje:
 - HUD, Allure, TeamCity, eksportery i projektowe loggery powinny być później sinkami albo adapterami.
 
 Szczegóły są w `docs/ui-test-lens-logging-model.md`.
+
+## Stage 5: Wire logging model into overlay flow
+
+Model logowania został minimalnie podpięty do istniejącego przepływu bez package rename, bez multi-module split i bez zmiany runtime namespace JS.
+
+Wykonano:
+
+- `OverlayLogger` dostał metodę `emit(UiTestLensLogEntry)` i pozostaje internal bridge do `UiTestLensLogger`,
+- `OverlayWait` emituje eventy `WAIT`/`ERROR` dla startu, sukcesu, timeoutu i błędu waita,
+- `Guards` emituje eventy dla `checkpoint(...)`: `GENERAL`/`PASSED` albo `ERROR`/`FAILED`,
+- `JsOverlayDebug` emituje eventy `STEP`, `HUD` i `WAIT` równolegle do dotychczasowych aktualizacji HUD.
+
+Decyzje odłożone:
+
+- HUD nie jest jeszcze pełnym sinkiem,
+- highlight/actions nie emitują jeszcze kompletnego modelu action events,
+- adaptery SLF4J, Allure i TeamCity pozostają poza core,
+- docelowy namespace `window.__uiTestLens` nadal jest odłożony na osobny etap.
