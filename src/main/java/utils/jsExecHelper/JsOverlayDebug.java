@@ -14,7 +14,7 @@ import utils.jsExecHelper.hud.HudPanel;
 import utils.jsExecHelper.react.ReactSafeExecutor;
 import utils.jsExecHelper.scroll.ScrollElementEdge;
 import utils.jsExecHelper.scroll.ScrollViewportEdge;
-import utils.logs.LogWraper;
+
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -46,7 +46,6 @@ public final class JsOverlayDebug {
     private ReactSafeExecutor reactSafeExecutor;
     private final ApiOverlayPanel apiPanel;
     private final ApiCallActions apiCalls;
-    private final LogWraper logWraper;
     private boolean waitHudInjected = false;
     private final Guards guards;
 
@@ -56,10 +55,9 @@ public final class JsOverlayDebug {
 
 
 
-    public JsOverlayDebug(WebDriver driver, OverlayConfig config, ApiOverlayPanel apiPanel, ApiCallActions apiCalls, LogWraper logWraper, Guards guards) {
+    public JsOverlayDebug(WebDriver driver, OverlayConfig config, ApiOverlayPanel apiPanel, ApiCallActions apiCalls, Guards guards) {
         this.apiPanel = apiPanel;
         this.apiCalls = apiCalls;
-        this.logWraper = logWraper;
         this.guards = guards;
         if (driver == null) {
             throw new IllegalArgumentException("driver must not be null");
@@ -108,7 +106,6 @@ public final class JsOverlayDebug {
     /** Draws a click decoration around an element (border + label). */
     public void highlightClick(WebElement element, String label) {
         highlightActions.highlightClick(element, label);
-        logWraper.infoLog(label+" [CLICK]");
     }
 
     /** Alias for highlightClick – “highlight the element” without clicking. */
