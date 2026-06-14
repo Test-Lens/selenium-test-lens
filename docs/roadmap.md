@@ -30,10 +30,9 @@ This roadmap tracks follow-up work after the 0.1 feature consolidation.
 ## Packaging and release readiness
 
 1. Decide final public groupId/artifact naming.
-2. Choose and add a license.
-3. Prepare Maven Central metadata when the API is stable enough.
-4. Revisit Maven Wrapper once the local environment can generate it reliably.
-5. Add a compact API migration note for any final pre-1.0 renames.
+2. Prepare Maven Central publishing configuration when the API is stable enough.
+3. Revisit Maven Wrapper once the local environment can generate it reliably.
+4. Add a compact API migration note for any final pre-1.0 renames.
 
 ## Possible future modules
 

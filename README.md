@@ -105,7 +105,7 @@ mvn -q -pl ui-test-lens -am test
 
 ## License
 
-No license file is included yet. Choose and add a license before making the repository public or publishing artifacts.
+UI Test Lens is licensed under the [Apache License 2.0](LICENSE).
 
 ## Current Scope
 

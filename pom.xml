@@ -10,6 +10,34 @@
     <packaging>pom</packaging>
     <name>UI Test Lens Parent</name>
     <description>Observability and reliability toolkit for browser-based UI automation.</description>
+    <url>https://github.com/mmaciekk111/ui-test-lens</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>mmaciekk111</id>
+            <name>Maciej</name>
+            <url>https://github.com/mmaciekk111</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/mmaciekk111/ui-test-lens.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/mmaciekk111/ui-test-lens.git</developerConnection>
+        <url>https://github.com/mmaciekk111/ui-test-lens</url>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/mmaciekk111/ui-test-lens/issues</url>
+    </issueManagement>
 
     <modules>
         <module>ui-test-lens-core</module>
