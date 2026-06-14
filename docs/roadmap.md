@@ -35,7 +35,7 @@ This roadmap tracks follow-up work after the 0.1 feature consolidation.
 
 ## Maven Central release checklist
 
-The `central-release` Maven profile is configured for release-time source jars, Javadoc jars, GPG signing and Central Portal deployment. It is inactive by default and does not include credentials.
+The `central-release` Maven profile is configured for release-time source jars, Javadoc jars, GPG signing and Central Portal deployment. It is inactive by default and does not include credentials. See [release verification](release.md) for the current CI and manual release-check commands.
 
 Before publishing:
 

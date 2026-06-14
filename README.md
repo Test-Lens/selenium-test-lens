@@ -101,6 +101,7 @@ mvn -q -pl ui-test-lens -am test
 - [Examples](docs/examples.md)
 - [Architecture](docs/architecture.md)
 - [Migration](docs/migration.md)
+- [Release verification](docs/release.md)
 - [Roadmap](docs/roadmap.md)
 
 ## License
