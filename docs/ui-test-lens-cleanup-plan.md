@@ -471,7 +471,13 @@ Czwarty punkt roadmapy Playwright-inspired reliability zostal zaimplementowany p
 
 Locator trzyma `By` i opis zamiast dlugo przechowywac `WebElement`. Akcje `click`, `fill`, `clear`, `pressEnter`, `textContent`, `isVisible`, `isEnabled`, `resolve` i `checkActionability` resolve'uja swiezy element tuz przed uzyciem. `click()` deleguje do istniejacego smart click i overlay policy flow, a akcje retry'uja transient stale/intercept/not-interactable problemy do skonfigurowanego limitu. Publiczne wejscia to `JsOverlayDebug.locator(...)` i `JsOverlayDebug.getByTestId(...)`.
 
-Pelne web-first assertions oraz bogatsze factory typu `getByRole`, `getByLabel`, `getByText` zostaja na kolejny etap.
+Pelne web-first assertions zostaly dodane w kolejnym etapie. Bogatsze factory locatorow maja teraz pierwsza pragmatyczna implementacje opisana ponizej.
+
+## Playwright-style locator helpers
+
+`ui-test-lens-selenium` udostepnia pragmatyczne helpery inspirowane Playwrightem: `getByText(...)`, `getByTextContaining(...)`, `getByLabel(...)`, `getByPlaceholder(...)` i `getByRole(...)`. Wszystkie zwracaja `UiLocator`, wiec korzystaja z retry/actionability/overlay policy/assertion flow.
+
+To nie jest pelny Playwright locator engine. `getByRole(...)` nie implementuje kompletnego ARIA accessible name algorithm, a `getByText(...)` moze dopasowac kontener rodzica w zlozonym DOM. Dla krytycznych flow nadal preferowane jest `getByTestId(...)`, jesli aplikacja ma stabilne test IDs.
 
 ## Retryable web assertions
 

@@ -52,6 +52,7 @@ import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidenceOptions;
 import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidenceResult;
 import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidenceStatus;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocator;
+import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocatorSelectors;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocatorOptions;
 import io.github.mmaciekk111.uitestlens.selenium.network.NetworkDiagnostics;
 import io.github.mmaciekk111.uitestlens.selenium.network.NetworkDiagnosticsResult;
@@ -208,7 +209,71 @@ public final class JsOverlayDebug {
     }
 
     public UiLocator getByTestId(String testId, String label) {
-        return locator(By.cssSelector("[data-testid='" + cssString(testId) + "']"), label);
+        return locator(By.cssSelector(UiLocatorSelectors.cssAttributeEquals("data-testid", testId)), label);
+    }
+
+    public UiLocator getByPlaceholder(String placeholder) {
+        return getByPlaceholder(placeholder, "placeholder: " + safeLabelValue(placeholder));
+    }
+
+    public UiLocator getByPlaceholder(String placeholder, String label) {
+        return locator(By.xpath("//*[@placeholder = " + UiLocatorSelectors.xpathLiteral(placeholder) + "]"), label);
+    }
+
+    public UiLocator getByText(String text) {
+        return getByText(text, "text: " + safeLabelValue(text));
+    }
+
+    public UiLocator getByText(String text, String label) {
+        String literal = UiLocatorSelectors.xpathLiteral(text);
+        return locator(By.xpath("//*[" + UiLocatorSelectors.normalizeSpaceExpression(".") + " = " + literal + "]"), label);
+    }
+
+    public UiLocator getByTextContaining(String text) {
+        return getByTextContaining(text, "text contains: " + safeLabelValue(text));
+    }
+
+    public UiLocator getByTextContaining(String text, String label) {
+        String literal = UiLocatorSelectors.xpathLiteral(text);
+        return locator(By.xpath("//*[contains(" + UiLocatorSelectors.normalizeSpaceExpression(".") + ", " + literal + ")]"), label);
+    }
+
+    public UiLocator getByLabel(String labelText) {
+        return getByLabel(labelText, "label: " + safeLabelValue(labelText));
+    }
+
+    public UiLocator getByLabel(String labelText, String label) {
+        String literal = UiLocatorSelectors.xpathLiteral(labelText);
+        String normalized = UiLocatorSelectors.normalizeSpaceExpression(".");
+        String xpath = "//*[" +
+                "(@aria-label = " + literal + " and (self::input or self::textarea or self::select or self::button or @contenteditable='true' or @role='textbox' or @role='combobox' or @role='checkbox' or @role='radio'))" +
+                " or (self::input or self::textarea or self::select or self::button or @contenteditable='true' or @role='textbox' or @role='combobox' or @role='checkbox' or @role='radio')" +
+                " and (@id = //label[" + normalized + " = " + literal + "]/@for" +
+                " or ancestor::label[" + normalized + " = " + literal + "]" +
+                " or @aria-labelledby = //*[" + normalized + " = " + literal + "]/@id)" +
+                "]";
+        return locator(By.xpath(xpath), label);
+    }
+
+    public UiLocator getByRole(String role) {
+        return getByRole(role, "");
+    }
+
+    public UiLocator getByRole(String role, String accessibleName) {
+        String roleLiteral = UiLocatorSelectors.xpathLiteral(role);
+        String rolePredicate = "@role = " + roleLiteral + " or " + implicitRolePredicate(role);
+        String xpath = "//*[" + rolePredicate + "]";
+        if (accessibleName != null && !accessibleName.isBlank()) {
+            String nameLiteral = UiLocatorSelectors.xpathLiteral(accessibleName);
+            xpath = "//*[" + rolePredicate + "][" +
+                    "@aria-label = " + nameLiteral +
+                    " or " + UiLocatorSelectors.normalizeSpaceExpression(".") + " = " + nameLiteral +
+                    "]";
+        }
+        String label = accessibleName == null || accessibleName.isBlank()
+                ? "role: " + safeLabelValue(role)
+                : "role: " + safeLabelValue(role) + ", name: " + safeLabelValue(accessibleName);
+        return locator(By.xpath(xpath), label);
     }
 
     public UiExpect expect(By by) {
@@ -440,13 +505,21 @@ public final class JsOverlayDebug {
         return new ActionabilityChecker(driver, policyExecutor, logger);
     }
 
-    private static String cssString(String value) {
-        String input = value == null ? "" : value;
-        return input
-                .replace("\\", "\\\\")
-                .replace("'", "\\'")
-                .replace("\n", "\\A ")
-                .replace("\r", "");
+    private static String safeLabelValue(String value) {
+        String input = value == null ? "" : value.trim();
+        return input.length() <= 80 ? input : input.substring(0, 77) + "...";
+    }
+
+    private static String implicitRolePredicate(String role) {
+        String normalized = role == null ? "" : role.trim().toLowerCase();
+        return switch (normalized) {
+            case "button" -> "self::button or (self::input and (@type='button' or @type='submit' or @type='reset'))";
+            case "link" -> "self::a[@href]";
+            case "textbox" -> "self::textarea or (self::input and (not(@type) or @type='text' or @type='email' or @type='search' or @type='password' or @type='tel' or @type='url'))";
+            case "checkbox" -> "self::input[@type='checkbox']";
+            case "radio" -> "self::input[@type='radio']";
+            default -> "false()";
+        };
     }
 
     // ======================================================================

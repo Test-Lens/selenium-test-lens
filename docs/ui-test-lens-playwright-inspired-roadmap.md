@@ -129,7 +129,9 @@ Retries should cover:
 
 Every retry should emit action logs with attempt number, reason, elapsed time, and the last known target metadata. This is the foundation for useful trace reports.
 
-The first implementation provides `UiLocator`, `UiLocatorOptions`, `UiLocatorResolver`, result/status/failure models, `JsOverlayDebug.locator(...)`, and `JsOverlayDebug.getByTestId(...)`. It supports click, fill, clear, pressEnter, textContent, isVisible, isEnabled, resolve, and checkActionability. It is not yet the full web-first assertions API.
+The first implementation provides `UiLocator`, `UiLocatorOptions`, `UiLocatorResolver`, result/status/failure models, `JsOverlayDebug.locator(...)`, and `JsOverlayDebug.getByTestId(...)`. It supports click, fill, clear, pressEnter, textContent, isVisible, isEnabled, resolve, and checkActionability. The locator layer also includes pragmatic Playwright-style helpers: `getByText(...)`, `getByTextContaining(...)`, `getByLabel(...)`, `getByPlaceholder(...)`, and `getByRole(...)`.
+
+These helpers return `UiLocator` and therefore reuse retry, actionability, overlay-policy, and assertion behavior. They are not a full Playwright locator engine: `getByRole(...)` does not implement the complete ARIA accessible-name algorithm, and `getByText(...)` can match parent containers in complex DOM trees. Prefer `getByTestId(...)` for critical flows when stable test IDs are available.
 
 ### 1.4 React-aware readiness
 
@@ -468,7 +470,7 @@ Role labels should appear in trace/session metadata to help diagnose authorizati
 3. Add React-aware actionability checks.
    Initial implementation exists in `ui-test-lens-react`. Continue by using it as the readiness layer for future locator/actions without adding a Selenium-to-React dependency.
 4. Add retryable UI locator API.
-   Initial implementation exists. Continue with richer locator factories such as getByRole/getByLabel/getByText and then web-first assertions.
+   Initial implementation exists, including pragmatic Playwright-style helpers for test id, text, label, placeholder, and role lookups. Continue by hardening semantics and documenting edge cases before adding more locator factories.
 5. Add retryable web assertions.
    Assertions should reuse locator resolution and retry semantics rather than inventing separate wait behavior.
 6. Add business step DSL.

@@ -75,9 +75,9 @@ Current limitation: React heuristics are best-effort and intentionally stay in t
 
 `ui-test-lens-selenium` provides `UiLocator`, `UiLocatorOptions`, `UiLocatorResolver`, and supporting result/failure models.
 
-Public entry points include `JsOverlayDebug.locator(...)` and `JsOverlayDebug.getByTestId(...)`. A locator stores `By` and a description, resolves a fresh `WebElement` before each action, retries stale/intercept/not-interactable cases, and can run actionability before click.
+Public entry points include `JsOverlayDebug.locator(...)`, `JsOverlayDebug.getByTestId(...)`, `getByText(...)`, `getByTextContaining(...)`, `getByLabel(...)`, `getByPlaceholder(...)`, and `getByRole(...)`. A locator stores `By` and a description, resolves a fresh `WebElement` before each action, retries stale/intercept/not-interactable cases, and can run actionability before click.
 
-Current limitation: `getByRole`, `getByLabel`, and `getByText` are not implemented yet.
+Current limitation: Playwright-style helpers are pragmatic XPath/CSS-based helpers, not a full Playwright locator engine. `getByRole(...)` does not implement the complete ARIA accessible-name algorithm, and `getByText(...)` can match parent containers in complex DOM trees. Prefer `getByTestId(...)` for critical flows when stable test IDs are available.
 
 ### 5.8 Retryable web assertions
 
@@ -222,7 +222,7 @@ overlay.network().expectResponse().urlContains("/api/orders").status(201).within
 - Network interception and mocking are not implemented.
 - Provider-specific video download is not implemented.
 - Built-in video recording is not implemented.
-- `getByRole`, `getByLabel`, and `getByText` are not implemented.
+- Playwright-style locator helpers are initial/pragmatic and do not implement the full Playwright locator or ARIA accessible-name algorithms.
 - The HTML trace report is not a full interactive trace viewer.
 - Auth state encryption is not implemented.
 - Cross-origin auth storage is not implemented.
@@ -231,7 +231,7 @@ overlay.network().expectResponse().urlContains("/api/orders").status(201).within
 ## Recommended next steps
 
 1. Polish and stabilize public API names before a 0.1 release.
-2. Add `getByText`, `getByLabel`, and `getByRole` locator helpers.
+2. Harden Playwright-style locator helper semantics and document edge cases.
 3. Improve HTML trace report UX.
 4. Map more logger/action/assertion events into trace sessions.
 5. Add optional real browser network capture providers:

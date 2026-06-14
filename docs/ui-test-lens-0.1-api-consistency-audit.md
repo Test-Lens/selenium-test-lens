@@ -152,7 +152,7 @@ README and examples use the current public API shape:
 - Video docs describe attachments only and do not promise recording or provider download.
 - Auth docs warn that state files can contain cookies/tokens and do not promise encryption.
 - Trace docs describe the HTML report as static, not a full interactive trace viewer.
-- Locator docs describe `getByRole`, `getByLabel`, and `getByText` as future work, not current API.
+- Locator docs describe `getByRole`, `getByLabel`, `getByPlaceholder`, and `getByText` as pragmatic initial helpers, not a complete Playwright locator or ARIA engine.
 
 Examples:
 
@@ -201,7 +201,7 @@ Safety scan results:
 
 ### Future feature work
 
-- Add `getByText`, `getByLabel`, and `getByRole` locator helpers.
+- Treat the first Playwright-style locator helpers as pragmatic APIs and harden their documented matching semantics before expanding them.
 - Improve trace event mapping from locator/assertion/actionability/network operations into `UiTestLensSession`.
 - Improve HTML trace UX.
 - Add optional real browser network capture providers behind guarded support.
@@ -210,9 +210,9 @@ Safety scan results:
 
 ## Recommended follow-up tasks
 
-1. Add `getByText`, `getByLabel`, and `getByRole` locators.
-2. Improve trace event mapping from logger to session.
-3. Polish HTML trace UX.
+1. Improve trace event mapping from logger to session.
+2. Polish HTML trace UX.
+3. Expand Playwright-style locator helpers only after documenting exact matching semantics.
 4. Add a real browser network capture provider behind optional/guarded support.
 5. Add Maven Wrapper.
 6. Review public helper/reporter/exporter visibility before the first non-SNAPSHOT release.

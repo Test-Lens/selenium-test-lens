@@ -118,6 +118,17 @@ Or:
 overlay.locator(By.cssSelector("[data-testid='save']")).click();
 ```
 
+For ergonomic Playwright-inspired lookups, use the locator helpers when their matching semantics fit the page:
+
+```java
+overlay.getByText("Save").click();
+overlay.getByLabel("Email").fill("test@example.com");
+overlay.getByPlaceholder("Search").fill("invoice");
+overlay.getByRole("button", "Save").click();
+```
+
+These helpers still return `UiLocator`, so they use the same retry, actionability, overlay-policy, and assertion flow. They are pragmatic helpers, not a full Playwright locator engine. Prefer `getByTestId(...)` for critical flows when stable test IDs are available.
+
 ### 6.3 Replace one-off assertion with retryable assertion
 
 Before:
@@ -311,6 +322,6 @@ RestAssured is removed from the main artifact path. The overlay module no longer
 - Some helper visibility may be reduced.
 - Legacy helper classes may be moved or internalized.
 - `attachVideo(...)` naming may be cleaned up in favor of explicit video file/URL APIs.
-- `getByRole`, `getByLabel`, and `getByText` are not implemented yet.
+- Playwright-style locator helpers are initial/pragmatic and do not implement the full Playwright locator engine or complete ARIA accessible-name algorithm.
 - Real browser network capture is not implemented yet.
 - Maven Central release is not configured yet.

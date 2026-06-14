@@ -285,7 +285,22 @@ String toast = overlay.getByTestId("toast").textContent();
 boolean visible = overlay.getByTestId("modal").isVisible();
 ```
 
-Initial methods include `locator(By)`, `getByTestId(...)`, `click`, `fill`, `clear`, `pressEnter`, `textContent`, `isVisible`, `isEnabled`, `resolve`, and `checkActionability`. Click delegates to the existing smart click/overlay policy path; fill and reads resolve fresh elements directly. Richer `getByRole`/`getByLabel`/`getByText` helpers are planned later.
+Initial methods include `locator(By)`, `getByTestId(...)`, `click`, `fill`, `clear`, `pressEnter`, `textContent`, `isVisible`, `isEnabled`, `resolve`, and `checkActionability`. Click delegates to the existing smart click/overlay policy path; fill and reads resolve fresh elements directly. Playwright-style helpers include `getByText(...)`, `getByTextContaining(...)`, `getByLabel(...)`, `getByPlaceholder(...)`, and `getByRole(...)`.
+
+## Playwright-Style Locator Helpers
+
+The Selenium module includes pragmatic Playwright-inspired locator helpers. They all return `UiLocator`, so they reuse the same retry, actionability, overlay-policy, and assertion flow as `locator(By)` and `getByTestId(...)`.
+
+```java
+overlay.getByTestId("save").click();
+overlay.getByText("Save").click();
+overlay.getByTextContaining("Saved").expect().toBeVisible();
+overlay.getByLabel("Email").fill("test@example.com");
+overlay.getByPlaceholder("Search").fill("invoice");
+overlay.getByRole("button", "Save").click();
+```
+
+These helpers are an initial ergonomic layer, not a full Playwright locator engine. `getByRole(...)` does not implement the full ARIA accessible-name algorithm, and `getByText(...)` can match parent containers in complex DOM trees. Prefer `getByTestId(...)` for critical flows when stable test IDs are available.
 
 ## Retryable Web Assertions
 
