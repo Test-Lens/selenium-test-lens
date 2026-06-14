@@ -342,7 +342,7 @@ Nie zmieniono nazw klas, publicznych metod, runtime namespace JS ani modelu even
 Logger/event-bus jest czescia aktualnego single-module artifactu:
 
 ```text
-io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT
+io.github.mmaciekk111:ui-test-lens:0.1.0-SNAPSHOT
 ```
 
 Pakiet Java loggera pozostaje `io.github.mmaciekk111.uitestlens.core.logging`.

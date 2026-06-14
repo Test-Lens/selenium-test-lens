@@ -346,7 +346,7 @@ Odłożono:
 Aktualne single-module Maven coordinates po cleanupie groupId:
 
 ```text
-io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT
+io.github.mmaciekk111:ui-test-lens:0.1.0-SNAPSHOT
 ```
 
 Java package pozostaje `io.github.mmaciekk111.uitestlens`.
