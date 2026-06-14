@@ -19,7 +19,7 @@ ui-test-lens-parent
 └── ui-test-lens-examples
 ```
 
-Pierwszy commit implementacyjny po audycie powinien wprowadzic abstrakcje `BrowserScriptExecutor`, bo obecne overlay bridge i czesc klas core nadal sa zwiazane z Selenium `JavascriptExecutor`.
+Abstrakcja `BrowserScriptExecutor` zostala wprowadzona razem z adapterem `SeleniumBrowserScriptExecutor`. Kolejne commity powinny przepinac pozostale runtime bridge call sites na neutralny kontrakt, zanim pliki zostana przeniesione do modulow.
 
 ## 1. Obecny projekt
 

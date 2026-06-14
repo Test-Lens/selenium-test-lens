@@ -2,6 +2,8 @@
 
 This audit captures the state after extracting the main browser runtime pieces into `src/main/resources/uitestlens/runtime/`.
 
+`BrowserScriptExecutor` now provides a neutral Java contract for browser script execution. `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor`. Runtime bridge loaders expose overloads that accept the neutral executor, while Selenium action/PageWaits/popup helpers still use direct Selenium execution until a later refactor.
+
 ## Current runtime resources
 
 | Resource | Module namespace | Loader class | Legacy fallback | Tests |
@@ -134,3 +136,25 @@ The scripts were not moved to `src/main/resources/uitestlens/runtime/` in this s
 5. Optional `overlay-root.js` only if root bootstrap grows beyond the current tiny `OverlayRootManager` script.
 6. Selenium `WebDriverListener` adapter for action-level observability without requiring direct helper calls.
 7. Multi-module split after runtime/resource contracts and package-level boundaries are stable.
+
+## Browser script executor abstraction
+
+The first split preparation step introduced:
+
+- `io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor`,
+- `io.github.mmaciekk111.uitestlens.core.browser.SeleniumBrowserScriptExecutor`.
+
+Runtime bridge loaders now have `inject(BrowserScriptExecutor)` overloads while preserving existing Selenium-facing overloads. `OverlayRootManager` stores the neutral executor internally and keeps the existing `WebDriver` constructor by delegating through the Selenium adapter.
+
+Direct Selenium script execution intentionally remains in:
+
+- `PageWaits`,
+- `PopupDetector`,
+- `BlockingOverlayHelper`,
+- `TargetResolverActions`,
+- Selenium actions,
+- `JsOverlayDebug`,
+- `ApiOverlayPanel`,
+- React helpers.
+
+Those areas are behavior-heavy and should be migrated in smaller commits after the bridge layer is stable.

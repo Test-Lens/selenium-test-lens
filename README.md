@@ -221,6 +221,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - Main known runtime JavaScript resources now cover API overlay, Wait HUD, Highlight, Type hint, Scroll arrow, HUD panel, and Assertion badges.
 - Runtime JavaScript audit: [`docs/ui-test-lens-runtime-js-audit.md`](docs/ui-test-lens-runtime-js-audit.md).
 - Module split plan: [`docs/ui-test-lens-module-split-plan.md`](docs/ui-test-lens-module-split-plan.md).
+- `BrowserScriptExecutor` is now the neutral browser JavaScript execution contract; `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor`.
 - API is not final.
 - No multi-module split yet.
 - No Maven Central publication yet.
@@ -231,7 +232,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 ## Roadmap
 
 1. Use the runtime JS audit to review remaining small inline JavaScript snippets and decide which should become runtime resources.
-2. Introduce a `BrowserScriptExecutor` abstraction before moving files.
+2. Continue moving runtime bridge classes toward `BrowserScriptExecutor`.
 3. Split into `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`, and `ui-test-lens-examples`.
 4. Selenium `WebDriverListener` adapter.
 5. Selenide adapter.

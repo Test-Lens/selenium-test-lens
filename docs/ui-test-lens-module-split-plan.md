@@ -25,13 +25,15 @@ The project already has:
 
 The current module still mixes neutral model code, Selenium integration, runtime resource loading, visual overlay bridge code, React helpers, API overlay support, and examples/documentation. The first split should separate those concerns without changing public behavior.
 
+`BrowserScriptExecutor` now exists as the neutral browser JavaScript execution contract, with `SeleniumBrowserScriptExecutor` as the Selenium adapter. Runtime bridge loaders can call this contract directly while existing Selenium-facing methods remain available.
+
 ## Proposed first module layout
 
 | Module | Responsibility | Dependencies | Should publish? |
 | ------ | -------------- | ------------ | --------------- |
 | `ui-test-lens-parent` | Parent POM, dependency management, plugin management, common version properties. | None at runtime. | No runtime artifact. |
 | `ui-test-lens-core` | Logger/event model, log exporters, neutral constants, neutral config/enums, non-Selenium utilities where possible. | JDK only. | Yes. |
-| `ui-test-lens-overlay` | Runtime JS resources and overlay bridge abstractions for HUD, highlight, wait HUD, type hint, scroll arrow, assertion badges. | `ui-test-lens-core`; currently may need Selenium until `BrowserScriptExecutor` exists. | Yes. |
+| `ui-test-lens-overlay` | Runtime JS resources and overlay bridge abstractions for HUD, highlight, wait HUD, type hint, scroll arrow, assertion badges. | `ui-test-lens-core`; should use `BrowserScriptExecutor` and avoid Selenium after adapter placement is cleaned up. | Yes. |
 | `ui-test-lens-selenium` | Current Selenium facade and integrations: `JsOverlayDebug`, waits, actions, guards, popup/blocking overlay helpers, target resolver. | `ui-test-lens-core`, `ui-test-lens-overlay`, `selenium-java`. | Yes. |
 | `ui-test-lens-react` | React/SPA retry helpers and `react-select` support. | `ui-test-lens-selenium`, possibly `ui-test-lens-overlay` and `ui-test-lens-core`. | Yes. |
 | `ui-test-lens-examples` | Examples, private adapter examples, sample tests, old `OverlayContentAssertions.java.example`. | Test/example scope dependencies only. | Usually no. |
@@ -72,6 +74,7 @@ Current blockers:
 - `OverlayConfig` imports `HudPosition`, so config placement depends on whether `HudPosition` is core or overlay.
 - `JsResources` is JDK-only, but semantically belongs to runtime/overlay if it only loads browser runtime scripts.
 - `UiTestLensRuntimeNames` is neutral enough for core, but many constants describe overlay/runtime behavior.
+- `SeleniumBrowserScriptExecutor` imports Selenium and should move with the Selenium adapter module, not core, once modules exist.
 
 ### `ui-test-lens-overlay`
 
@@ -104,8 +107,8 @@ Dependencies:
 
 Future alternative:
 
-- Introduce `BrowserScriptExecutor` in core or overlay.
-- Provide a Selenium implementation in `ui-test-lens-selenium`.
+- Keep `BrowserScriptExecutor` in core or overlay.
+- Keep `SeleniumBrowserScriptExecutor` in `ui-test-lens-selenium`.
 - Then overlay can avoid Selenium imports.
 
 ### `ui-test-lens-selenium`
@@ -185,15 +188,17 @@ Should not be a runtime dependency of published modules.
 | `api/ApiOverlayContext` | `api` | future `ui-test-lens-api-overlay` | ThreadLocal API overlay context. | Static lifecycle needs review before publishing as core. |
 | `api/ApiOverlayPlan` | `api` | future `ui-test-lens-api-overlay` | API overlay plan model. | JDK-only but API-overlay-specific. |
 | `api/ApiOverlayRule` | `api` | future `ui-test-lens-api-overlay` | API overlay rule model. | JDK-only but API-overlay-specific. |
-| `core/OverlayRootManager` | `core` | `ui-test-lens-overlay` after executor abstraction; otherwise `ui-test-lens-selenium` | Creates primary overlay root runtime state. | Selenium `JavascriptExecutor`. |
+| `core/OverlayRootManager` | `core` | `ui-test-lens-overlay` after executor abstraction; otherwise `ui-test-lens-selenium` | Creates primary overlay root runtime state. | Stores `BrowserScriptExecutor`; existing WebDriver constructor delegates through Selenium adapter for compatibility. |
 | `core/PageWaits` | `core` | `ui-test-lens-selenium` | Selenium wait logic, network tracker, DOM/React waits. | Selenium waits and browser JS execution. |
 | `core/PopupDetector` | `core` | `ui-test-lens-selenium` | Selenium popup detection and close heuristics. | Selenium and `HighlightActions`. |
 | `core/BlockingOverlayHelper` | `core` | `ui-test-lens-selenium` | Selenium blocking overlay heuristics. | Selenium and `HighlightActions`. |
 | `core/Guards` | `core` | `ui-test-lens-selenium` | Reads browser page state through Selenium. | Selenium `JavascriptExecutor`, `WebDriver`. |
-| `core/*Js` loader classes | `core` | `ui-test-lens-overlay` | Runtime script resource loaders. | JDK-only now; semantically overlay runtime. |
+| `core/*Js` loader classes | `core` | `ui-test-lens-overlay` | Runtime script resource loaders. | Expose `BrowserScriptExecutor` inject overloads; existing WebDriver overloads remain for compatibility. |
 | `core/UiTestLensRuntimeNames` | `core` | `ui-test-lens-core` | Neutral runtime names/constants. | None, but constant ownership must be decided. |
 | `core/OverlayLogger` | `core` | `ui-test-lens-core` or `ui-test-lens-selenium` bridge | Bridge to `UiTestLensLogger`. | No Selenium; name is overlay-specific but implementation is neutral. |
-| `core/ScriptExecutor` | `core` | replace with `BrowserScriptExecutor` in `ui-test-lens-core` or `ui-test-lens-overlay` | Current placeholder for script execution abstraction. | Empty/incomplete. |
+| `core/browser/BrowserScriptExecutor` | `core.browser` | `ui-test-lens-core` or `ui-test-lens-overlay` | Neutral browser script execution contract. | Placement depends on whether core should know browser concepts. |
+| `core/browser/SeleniumBrowserScriptExecutor` | `core.browser` | `ui-test-lens-selenium` | Selenium adapter for `JavascriptExecutor`. | Imports Selenium and must not remain in pure core after the split. |
+| `core/ScriptExecutor` | `core` | remove or replace after migration | Historical empty placeholder. | Empty/incomplete and superseded by `BrowserScriptExecutor`. |
 | `core/logging/*` | `core.logging` | `ui-test-lens-core` | Event model and sinks are JDK-only. | `ConsoleLogSink` writes to `System.out/err` only when explicitly used. |
 | `core/logging/export/*` | `core.logging.export` | `ui-test-lens-core` | Text/JSON/HTML exporters are JDK-only. | None. |
 | `hud/HudPanel` | `hud` | `ui-test-lens-overlay` after executor abstraction; otherwise `ui-test-lens-selenium` | HUD bridge into browser runtime. | Selenium `WebDriver`, `JavascriptExecutor`, `OverlayRootManager`. |
@@ -211,8 +216,9 @@ Should not be a runtime dependency of published modules.
 
 ## Split blockers
 
-- Several classes currently under `core` import Selenium: `OverlayRootManager`, `PageWaits`, `PopupDetector`, `BlockingOverlayHelper`, and `Guards`.
-- Overlay bridge classes still assume Selenium `JavascriptExecutor` through callers such as `HudPanel`, `HighlightActions`, `AssertActions`, `TypingActions`, and `ScrollActions`.
+- Several classes currently under `core` import Selenium: `PageWaits`, `PopupDetector`, `BlockingOverlayHelper`, `Guards`, and `SeleniumBrowserScriptExecutor`.
+- `OverlayRootManager` now stores `BrowserScriptExecutor`, but its existing WebDriver constructor remains Selenium-bound for compatibility.
+- Runtime bridge loader classes expose `BrowserScriptExecutor` overloads, but callers such as `HudPanel`, `HighlightActions`, `AssertActions`, `TypingActions`, and `ScrollActions` still use Selenium execution directly.
 - `JsResources` is technically JDK-only but semantically tied to runtime resources; decide whether it is core utility or overlay/runtime utility.
 - `OverlayConfig` currently imports `HudPosition`; decide if `HudPosition` is core, overlay, or if HUD config becomes a separate overlay config object.
 - `HudPosition` and scroll enums are neutral, but they describe overlay behavior. Their module affects dependency direction.
@@ -221,21 +227,21 @@ Should not be a runtime dependency of published modules.
 - `JsOverlayDebug` should remain in `ui-test-lens-selenium` as the compatibility facade.
 - `ReactSafeExecutor` and `ReactSelectHelper` depend directly on `JsOverlayDebug`; they need small interfaces before `ui-test-lens-react` is clean.
 - `BlockingOverlayHelper` and `PopupDetector` depend on `HighlightActions`; this keeps heuristics tied to Selenium action/overlay behavior.
-- A real `BrowserScriptExecutor` abstraction is needed before overlay can avoid Selenium.
-- Current `ScriptExecutor` is empty and should either be replaced or completed.
+- `BrowserScriptExecutor` exists, but adoption is partial.
+- Current `ScriptExecutor` is empty and should be removed or replaced in a separate cleanup.
 - ThreadLocal API overlay context needs lifecycle review before a standalone API overlay module.
 - Optional adapters must not leak dependencies like RestAssured, Allure, TeamCity, or private project utilities into core or selenium modules.
 
 ## Proposed split commit sequence
 
-### 1. Introduce `BrowserScriptExecutor`
+### 1. Continue `BrowserScriptExecutor` adoption
 
 Scope:
 
-- Replace or complete the current empty `ScriptExecutor`.
-- Add a small interface for script execution, for example `execute(String script, Object... args)`.
-- Add Selenium implementation that wraps `JavascriptExecutor`.
+- Keep the new neutral `BrowserScriptExecutor` contract.
+- Move more runtime bridge call sites to the contract where it does not change public behavior.
 - Keep existing public APIs intact.
+- Decide whether the old empty `ScriptExecutor` should be removed or deprecated in a separate cleanup.
 
 Risk:
 
@@ -250,7 +256,7 @@ Verification:
 Expected commit title:
 
 ```text
-Introduce browser script executor abstraction
+Adopt browser script executor in runtime bridges
 ```
 
 ### 2. Separate resource loading and runtime bridge ownership
@@ -513,10 +519,10 @@ Examples/private adapters:
 
 ## Recommended first commit after this audit
 
-The first implementation commit should introduce the executor abstraction before moving files. That reduces risk because the overlay module boundary currently depends on Selenium.
+The executor abstraction has been introduced. The next implementation commit should adopt it in remaining runtime bridge call sites before moving files. That reduces risk because the overlay module boundary still has Selenium-bound callers.
 
 Recommended commit title:
 
 ```text
-Introduce browser script executor abstraction
+Adopt browser script executor in runtime bridges
 ```

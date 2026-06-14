@@ -1,21 +1,26 @@
 package io.github.mmaciekk111.uitestlens.core;
 
 import io.github.mmaciekk111.uitestlens.OverlayConfig;
-import org.openqa.selenium.JavascriptExecutor;
+import io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor;
+import io.github.mmaciekk111.uitestlens.core.browser.SeleniumBrowserScriptExecutor;
 import org.openqa.selenium.WebDriver;
 
 public class OverlayRootManager {
 
     static final String LEGACY_OVERLAY_HOST_ID = "selenium-overlay-host";
 
-    private final JavascriptExecutor js;
+    private final BrowserScriptExecutor executor;
     private final OverlayConfig config;
 
     public OverlayRootManager(WebDriver driver, OverlayConfig config) {
-        if (!(driver instanceof JavascriptExecutor)) {
-            throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
+        this(new SeleniumBrowserScriptExecutor(driver), config);
+    }
+
+    public OverlayRootManager(BrowserScriptExecutor executor, OverlayConfig config) {
+        if (executor == null) {
+            throw new IllegalArgumentException("BrowserScriptExecutor must not be null.");
         }
-        this.js = (JavascriptExecutor) driver;
+        this.executor = executor;
         this.config = config;
     }
 
@@ -24,11 +29,11 @@ public class OverlayRootManager {
             return;
         }
 
-        js.executeScript(ensureRootScript());
+        executor.execute(ensureRootScript());
     }
 
     public void clearAll() {
-        js.executeScript(clearRootScript());
+        executor.execute(clearRootScript());
     }
 
     static String ensureRootScript() {
