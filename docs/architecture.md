@@ -58,7 +58,7 @@ The project avoids:
 - Selenium imports in `ui-test-lens-core`
 - Selenium imports in `ui-test-lens-overlay`
 - React imports in `ui-test-lens-selenium`
-- private historical utility imports such as `LogWraper`, `TimeStamp`, `ContentIssueCollector` or `LocalDateTimeUtils`
+- legacy utility imports outside the public module APIs
 - framework-specific automation dependencies outside the intended module boundary
 - runtime/test dependencies for documentation-only features
 

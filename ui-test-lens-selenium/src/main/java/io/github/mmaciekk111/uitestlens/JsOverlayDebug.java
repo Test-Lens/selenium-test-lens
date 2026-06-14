@@ -681,7 +681,7 @@ public final class JsOverlayDebug {
         smartTypeWithHintHighlighted(element, value, "SET");
     }
 
-    /** Smart typing + highlight with a custom label (e.g. “EMAIL”, “PASSWORD”). */
+    /** Smart typing and highlight with a custom label. */
     public void smartTypeWithHintHighlighted(WebElement element, String value, String label) {
         String effectiveLabel = (label == null || label.isBlank()) ? "SET" : label;
         highlightActions.highlightClick(element, effectiveLabel);

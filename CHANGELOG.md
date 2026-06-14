@@ -14,14 +14,14 @@ All notable changes to UI Test Lens will be documented in this file.
 - Runtime JavaScript resources for API overlay, Wait HUD, Highlight, Type hint, Scroll arrow, HUD panel, and Assertion badges.
 
 ### Changed
-- Migrated project naming from the historical JsTestTools codebase to UI Test Lens.
+- Migrated project naming from the historical helper codebase to UI Test Lens.
 - Moved Java packages to `io.github.mmaciekk111.uitestlens`.
 - Changed project version to `0.1.0-SNAPSHOT` to reflect pre-1.0 API status.
 - Split core, overlay, selenium, react, examples, and all-in-one compatibility responsibilities.
 - Introduced `window.__uiTestLens` as the primary browser runtime namespace while preserving legacy aliases.
 
 ### Removed
-- Removed direct dependencies on private project utilities.
+- Removed direct dependencies on legacy utility classes.
 - Removed RestAssured from the main artifact path.
 - Removed Selenium dependency from the overlay module.
 - Removed React dependency from the Selenium module.

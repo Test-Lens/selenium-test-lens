@@ -48,6 +48,6 @@ class UiAssertionOptionsTest {
 
     @Test
     void valuePreviewDoesNotExposeValue() {
-        assertEquals("length=12", UiAssertionText.valuePreview("secret-token"));
+        assertEquals("length=12", UiAssertionText.valuePreview("masked-input"));
     }
 }

@@ -103,6 +103,10 @@ mvn -q -pl ui-test-lens -am test
 - [Migration](docs/migration.md)
 - [Roadmap](docs/roadmap.md)
 
+## License
+
+No license file is included yet. Choose and add a license before making the repository public or publishing artifacts.
+
 ## Current Scope
 
 UI Test Lens runs on top of Selenium/WebDriver and adds diagnostic APIs:

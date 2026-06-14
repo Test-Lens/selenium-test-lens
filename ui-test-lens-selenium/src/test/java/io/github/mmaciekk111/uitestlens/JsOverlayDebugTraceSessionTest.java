@@ -112,7 +112,7 @@ class JsOverlayDebugTraceSessionTest {
 
         VideoEvidenceResult result = overlay.attachVideoUrl(
                 "CI video",
-                "https://ci.example.com/artifacts/checkout.mp4?token=secret",
+                "https://ci.example.com/artifacts/checkout.mp4?signed=sample",
                 VideoEvidenceOptions.builder()
                         .source(VideoEvidenceSource.CI_ARTIFACT)
                         .metadata("job", "checkout-ui-tests")

@@ -1,6 +1,6 @@
 # Migration
 
-This guide summarizes the practical migration from historical JsTestTools-style helpers to the current UI Test Lens `0.1.0-SNAPSHOT` API.
+This guide summarizes the practical migration from the historical Selenium helper API to the current UI Test Lens `0.1.0-SNAPSHOT` API.
 
 UI Test Lens is pre-1.0. This guide describes the current state, not a Maven Central release process.
 
@@ -8,7 +8,7 @@ UI Test Lens is pre-1.0. This guide describes the current state, not a Maven Cen
 
 | Historical concept | Current UI Test Lens concept |
 |---|---|
-| JsTestTools | UI Test Lens |
+| historical helper codebase | UI Test Lens |
 | historical helper package | `io.github.mmaciekk111.uitestlens` |
 | old one-module helper layout | multi-module Maven layout |
 | Selenium-only helper | WebDriver reliability and diagnostics layer |

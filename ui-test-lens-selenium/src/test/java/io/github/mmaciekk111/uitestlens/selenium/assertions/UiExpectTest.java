@@ -60,11 +60,11 @@ class UiExpectTest {
 
     @Test
     void valuePreviewDoesNotExposeInputValue() {
-        FakeBrowser browser = FakeBrowser.withValue("secret-token");
-        UiLocator locator = fastOverlay(browser.driver()).locator(By.id("token"), fastLocatorOptions());
+        FakeBrowser browser = FakeBrowser.withValue("masked-input");
+        UiLocator locator = fastOverlay(browser.driver()).locator(By.id("masked-field"), fastLocatorOptions());
         UiExpect expect = new UiExpect(locator, fastAssertionOptions(), null);
 
-        UiAssertionError error = assertThrows(UiAssertionError.class, () -> expect.toHaveValue("different-secret"));
+        UiAssertionError error = assertThrows(UiAssertionError.class, () -> expect.toHaveValue("different-sample"));
 
         assertEquals("length=16", error.result().expectedPreview());
         assertEquals("length=12", error.result().actualPreview());

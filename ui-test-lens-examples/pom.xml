@@ -13,6 +13,7 @@
     <artifactId>ui-test-lens-examples</artifactId>
     <packaging>jar</packaging>
     <name>UI Test Lens Examples</name>
+    <description>Documentation and compile-check examples for UI Test Lens.</description>
 
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>

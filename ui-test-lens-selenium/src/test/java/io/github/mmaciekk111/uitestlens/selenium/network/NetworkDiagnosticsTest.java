@@ -60,7 +60,7 @@ class NetworkDiagnosticsTest {
     void headersAreOmittedByDefaultAndCanBeMasked() {
         NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver()).start(NetworkDiagnosticsOptions.defaults());
         diagnostics.addManualEvent(NetworkEvent.request(new NetworkRequest("1", "GET", "/api", "", null,
-                Map.of("Authorization", "Bearer secret", "X-Test", "ok"))));
+                Map.of("Authorization", "Bearer sample-value", "X-Test", "ok"))));
 
         assertTrue(diagnostics.events().get(1).request().headers().isEmpty());
 
@@ -69,7 +69,7 @@ class NetworkDiagnosticsTest {
                 .maskSensitiveHeaders(true)
                 .build());
         withHeaders.addManualEvent(NetworkEvent.request(new NetworkRequest("1", "GET", "/api", "", null,
-                Map.of("Authorization", "Bearer secret", "X-Test", "ok"))));
+                Map.of("Authorization", "Bearer sample-value", "X-Test", "ok"))));
 
         assertEquals("***", withHeaders.events().get(1).request().headers().get("Authorization"));
         assertEquals("ok", withHeaders.events().get(1).request().headers().get("X-Test"));

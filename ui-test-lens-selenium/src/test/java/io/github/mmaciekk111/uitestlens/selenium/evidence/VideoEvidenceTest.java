@@ -77,7 +77,7 @@ class VideoEvidenceTest {
 
         VideoEvidenceResult result = new VideoEvidence().attachUrl(
                 "CI video",
-                "https://ci.example.com/artifacts/checkout.mp4?token=secret",
+                "https://ci.example.com/artifacts/checkout.mp4?signed=sample",
                 VideoEvidenceOptions.builder()
                         .source(VideoEvidenceSource.CI_ARTIFACT)
                         .metadata("job", "checkout-ui-tests")
@@ -87,7 +87,7 @@ class VideoEvidenceTest {
 
         assertEquals(VideoEvidenceStatus.ATTACHED, result.status());
         assertEquals(TraceArtifactType.VIDEO, result.artifact().type());
-        assertEquals("https://ci.example.com/artifacts/checkout.mp4?token=secret", result.artifact().url());
+        assertEquals("https://ci.example.com/artifacts/checkout.mp4?signed=sample", result.artifact().url());
         assertEquals("checkout-ui-tests", result.artifact().metadata().get("job"));
     }
 
