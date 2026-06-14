@@ -31,6 +31,86 @@
     return value || '-';
   }
 
+  var DEFAULT_THEME = {
+    background: 'rgba(0, 0, 0, 0.75)',
+    foreground: '#ffffff',
+    mutedForeground: 'rgba(255,255,255,0.78)',
+    accent: '#4ca3ff',
+    success: '#00ff7f',
+    warning: '#ffd93b',
+    danger: '#ff4c4c',
+    borderColor: 'rgba(255,255,255,0.2)',
+    borderRadiusPx: 4,
+    fontSizePx: 11,
+    fontFamily: 'Arial, sans-serif',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+    opacity: 1,
+    paddingPx: 8,
+    gapPx: 6
+  };
+
+  function themeValue(theme, key) {
+    if (theme && theme[key] !== undefined && theme[key] !== null && theme[key] !== '') {
+      return theme[key];
+    }
+    return DEFAULT_THEME[key];
+  }
+
+  function setVar(panel, name, value) {
+    if (value !== undefined && value !== null && value !== '') {
+      panel.style.setProperty(name, String(value));
+    }
+  }
+
+  function applyTheme(panel, config) {
+    var theme = (config && config.theme) || {};
+    var borderRadius = themeValue(theme, 'borderRadiusPx');
+    var fontSize = themeValue(theme, 'fontSizePx');
+    var padding = themeValue(theme, 'paddingPx');
+    var gap = themeValue(theme, 'gapPx');
+
+    setVar(panel, '--ui-test-lens-hud-bg', themeValue(theme, 'background'));
+    setVar(panel, '--ui-test-lens-hud-fg', themeValue(theme, 'foreground'));
+    setVar(panel, '--ui-test-lens-hud-muted-fg', themeValue(theme, 'mutedForeground'));
+    setVar(panel, '--ui-test-lens-hud-accent', themeValue(theme, 'accent'));
+    setVar(panel, '--ui-test-lens-hud-success', themeValue(theme, 'success'));
+    setVar(panel, '--ui-test-lens-hud-warning', themeValue(theme, 'warning'));
+    setVar(panel, '--ui-test-lens-hud-danger', themeValue(theme, 'danger'));
+    setVar(panel, '--ui-test-lens-hud-border', themeValue(theme, 'borderColor'));
+    setVar(panel, '--ui-test-lens-hud-radius', borderRadius + 'px');
+    setVar(panel, '--ui-test-lens-hud-font-size', fontSize + 'px');
+    setVar(panel, '--ui-test-lens-hud-font-family', themeValue(theme, 'fontFamily'));
+    setVar(panel, '--ui-test-lens-hud-shadow', themeValue(theme, 'boxShadow'));
+    setVar(panel, '--ui-test-lens-hud-opacity', themeValue(theme, 'opacity'));
+    setVar(panel, '--ui-test-lens-hud-padding-y', padding + 'px');
+    setVar(panel, '--ui-test-lens-hud-padding-x', (padding + 2) + 'px');
+    setVar(panel, '--ui-test-lens-hud-gap', gap + 'px');
+
+    panel.style.background = 'var(--ui-test-lens-hud-bg, ' + DEFAULT_THEME.background + ')';
+    panel.style.color = 'var(--ui-test-lens-hud-fg, ' + DEFAULT_THEME.foreground + ')';
+    panel.style.fontSize = 'var(--ui-test-lens-hud-font-size, 11px)';
+    panel.style.fontFamily = 'var(--ui-test-lens-hud-font-family, Arial, sans-serif)';
+    panel.style.padding = 'var(--ui-test-lens-hud-padding-y, 8px) var(--ui-test-lens-hud-padding-x, 10px)';
+    panel.style.borderRadius = 'var(--ui-test-lens-hud-radius, 4px)';
+    panel.style.boxShadow = 'var(--ui-test-lens-hud-shadow, 0 2px 6px rgba(0,0,0,0.4))';
+    panel.style.opacity = 'var(--ui-test-lens-hud-opacity, 1)';
+    panel.style.border = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
+
+    if (theme.backdropFilter) {
+      panel.style.backdropFilter = theme.backdropFilter;
+      panel.style.webkitBackdropFilter = theme.backdropFilter;
+    } else {
+      panel.style.backdropFilter = '';
+      panel.style.webkitBackdropFilter = '';
+    }
+
+    if (theme.zIndex !== undefined && theme.zIndex !== null) {
+      panel.style.zIndex = String(theme.zIndex);
+    }
+
+    panel.setAttribute('data-ui-test-lens-theme', config && config.themeName ? config.themeName : 'custom');
+  }
+
   function positionPanel(panel, config) {
     var position = config.position || 'BOTTOM_RIGHT';
     var offsetX = config.offsetX == null ? 10 : config.offsetX;
@@ -61,10 +141,10 @@
     if (!logs) {
       logs = document.createElement('div');
       logs.id = 'selenium-hud-logs';
-      logs.style.marginTop = '6px';
+      logs.style.marginTop = 'var(--ui-test-lens-hud-gap, 6px)';
       logs.style.maxHeight = '160px';
       logs.style.overflowY = 'auto';
-      logs.style.borderTop = '1px solid rgba(255,255,255,0.2)';
+      logs.style.borderTop = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
       logs.style.paddingTop = '4px';
       panel.appendChild(logs);
     }
@@ -82,17 +162,12 @@
       panel = document.createElement('div');
       panel.id = 'selenium-hud-panel';
       panel.style.position = 'fixed';
-      panel.style.background = 'rgba(0, 0, 0, 0.75)';
-      panel.style.color = '#ffffff';
-      panel.style.fontSize = '11px';
-      panel.style.padding = '8px 10px';
-      panel.style.borderRadius = '4px';
-      panel.style.boxShadow = '0 2px 6px rgba(0,0,0,0.4)';
       panel.style.pointerEvents = 'auto';
       panel.style.lineHeight = '1.4';
       shadow.appendChild(panel);
     }
 
+    applyTheme(panel, config);
     positionPanel(panel, config);
     panel.style.maxWidth = (config.maxWidth || 280) + 'px';
     return panel;
@@ -127,7 +202,7 @@
     if (!step) {
       step = document.createElement('div');
       step.id = 'selenium-hud-step';
-      step.style.marginTop = '4px';
+      step.style.marginTop = 'var(--ui-test-lens-hud-gap, 4px)';
       panel.appendChild(step);
     }
     if (!step.innerHTML) {
@@ -165,18 +240,18 @@
     row.style.wordBreak = 'break-word';
 
     var lvl = (level || '').toLowerCase();
-    var color = '#ffffff';
+    var color = 'var(--ui-test-lens-hud-fg, #ffffff)';
     if (lvl === 'warn') {
-      color = '#ffd93b';
+      color = 'var(--ui-test-lens-hud-warning, #ffd93b)';
     }
     if (lvl === 'error' || lvl === 'failed') {
-      color = '#ff4c4c';
+      color = 'var(--ui-test-lens-hud-danger, #ff4c4c)';
     }
     if (lvl === 'success') {
-      color = '#00ff7f';
+      color = 'var(--ui-test-lens-hud-success, #00ff7f)';
     }
     if (lvl === 'royal') {
-      color = '#4ca3ff';
+      color = 'var(--ui-test-lens-hud-accent, #4ca3ff)';
     }
     row.style.color = color;
 

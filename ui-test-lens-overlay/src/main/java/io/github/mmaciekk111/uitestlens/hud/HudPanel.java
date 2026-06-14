@@ -83,14 +83,18 @@ public class HudPanel {
                         "position: arguments[2]," +
                         "offsetX: arguments[3]," +
                         "offsetY: arguments[4]," +
-                        "maxWidth: arguments[5]" +
+                        "maxWidth: arguments[5]," +
+                        "theme: arguments[6]," +
+                        "themeName: arguments[7]" +
                         "}); }",
                 lastTestName,
                 lastPipelineId,
                 config.getHudPosition().name(),
                 config.getHudOffsetX(),
                 config.getHudOffsetY(),
-                config.getHudMaxWidthPx()
+                config.getHudMaxWidthPx(),
+                config.getHudTheme().toMap(),
+                config.getHudThemePreset() == null ? "CUSTOM" : config.getHudThemePreset().name()
         );
     }
 }

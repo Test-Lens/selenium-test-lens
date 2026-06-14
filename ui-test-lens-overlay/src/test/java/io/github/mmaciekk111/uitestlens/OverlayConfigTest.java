@@ -1,0 +1,48 @@
+package io.github.mmaciekk111.uitestlens;
+
+import io.github.mmaciekk111.uitestlens.hud.HudTheme;
+import io.github.mmaciekk111.uitestlens.hud.HudThemePreset;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+class OverlayConfigTest {
+
+    @Test
+    void defaultsIncludeDefaultHudTheme() {
+        OverlayConfig config = OverlayConfig.builder().build();
+
+        assertEquals(HudThemePreset.DEFAULT, config.getHudThemePreset());
+        assertNotNull(config.getHudTheme());
+        assertEquals("rgba(0, 0, 0, 0.75)", config.getHudTheme().background());
+    }
+
+    @Test
+    void presetSetsHudTheme() {
+        OverlayConfig config = OverlayConfig.builder()
+                .hudTheme(HudThemePreset.GLASS)
+                .build();
+
+        assertEquals(HudThemePreset.GLASS, config.getHudThemePreset());
+        assertEquals("#38bdf8", config.getHudTheme().accent());
+    }
+
+    @Test
+    void customThemeClearsPresetMarker() {
+        HudTheme custom = HudTheme.builder()
+                .background("#111")
+                .foreground("#eee")
+                .build();
+
+        OverlayConfig config = OverlayConfig.builder()
+                .hudTheme(HudThemePreset.DARK)
+                .hudTheme(custom)
+                .build();
+
+        assertNull(config.getHudThemePreset());
+        assertEquals("#111", config.getHudTheme().background());
+        assertEquals("#eee", config.getHudTheme().foreground());
+    }
+}

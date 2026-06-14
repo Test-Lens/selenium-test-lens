@@ -52,6 +52,8 @@ overlay.exportTraceHtml(...);
 
 Visual debugging entry points remain intentionally separate from the newer locator/assertion APIs. `setStep(...)` and `hudLog(...)` update the HUD directly, while `step(...)` executes measured steps and can also log to the HUD. `attachScreenshot(...)` attaches an existing path, while `captureScreenshot(...)` captures through Selenium.
 
+HUD visual styling is now exposed through `OverlayConfig.hudTheme(HudThemePreset)` and `OverlayConfig.hudTheme(HudTheme)`. The scope is intentionally HUD-panel focused; wait HUD, assertion badges, API overlay, and type hints do not yet have a complete shared theme system.
+
 Assessment:
 
 - The names are broadly consistent with the implemented concepts.

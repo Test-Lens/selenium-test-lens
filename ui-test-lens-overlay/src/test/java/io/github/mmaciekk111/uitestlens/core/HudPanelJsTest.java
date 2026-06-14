@@ -17,6 +17,9 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("log: log"));
         assertTrue(HudPanelJs.INIT.contains("clear: clear"));
         assertTrue(HudPanelJs.INIT.contains("remove: remove"));
+        assertTrue(HudPanelJs.INIT.contains("--ui-test-lens-hud-bg"));
+        assertTrue(HudPanelJs.INIT.contains("--ui-test-lens-hud-fg"));
+        assertTrue(HudPanelJs.INIT.contains("--ui-test-lens-hud-accent"));
     }
 
     @Test

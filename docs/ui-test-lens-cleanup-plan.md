@@ -10,6 +10,8 @@ Opis: UI Test Lens to visual observability/debug layer for UI/browser automation
 
 Aktualny audyt visual overlay/HUD i konfiguracji jest w [`ui-test-lens-visual-overlay-hud.md`](ui-test-lens-visual-overlay-hud.md).
 
+HUD panel ma teraz presety `DEFAULT`, `DARK`, `LIGHT`, `GLASS`, `COMPACT`, `HIGH_CONTRAST`, `MINIMAL` oraz custom styling przez `HudTheme.builder()`. Theme przechodzi przez `OverlayConfig` i runtime HUD uzywa CSS variables z fallbackami zachowujacymi dotychczasowy default. Pelny theme system dla wait HUD, assertion badges, API overlay, type hints i scroll arrows pozostaje osobnym follow-upem.
+
 Uzasadnienie:
 
 - nazwa jest bardziej informatywna niz ogolne `testtools`,

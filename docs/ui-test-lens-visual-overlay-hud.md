@@ -146,6 +146,7 @@ OverlayConfig config = OverlayConfig.builder()
         .hudPosition(HudPosition.TOP_RIGHT)
         .hudOffset(16, 16)
         .hudMaxWidthPx(320)
+        .hudTheme(HudThemePreset.GLASS)
         .decorationDurationMs(1200)
         .highlightColor("#ffeb3b")
         .build();
@@ -160,6 +161,7 @@ Currently configurable:
 - HUD position through `hudPosition(...)`,
 - HUD offset through `hudOffset(...)`,
 - HUD max width through `hudMaxWidthPx(...)`,
+- HUD theme preset or custom values through `hudTheme(...)`,
 - visual decoration duration through `decorationDurationMs(...)`,
 - highlight frame/badge color through `highlightColor(...)`,
 - legacy global popup close selector through `globalOverlayCloseButtonSelector(...)`.
@@ -173,15 +175,73 @@ Current defaults:
 | `hudPosition` | `BOTTOM_RIGHT` |
 | `hudOffset` | `10, 10` |
 | `hudMaxWidthPx` | `280` |
+| `hudTheme` | `DEFAULT` |
 | `decorationDurationMs` | `1500` |
 | `highlightColor` | `#ffeb3b` |
 | `globalOverlayCloseButtonSelector` | `null` |
 
+## HUD themes
+
+The HUD panel supports built-in presets:
+
+- `DEFAULT`
+- `DARK`
+- `LIGHT`
+- `GLASS`
+- `COMPACT`
+- `HIGH_CONTRAST`
+- `MINIMAL`
+
+Preset usage:
+
+```java
+OverlayConfig config = OverlayConfig.builder()
+        .hudPosition(HudPosition.TOP_RIGHT)
+        .hudTheme(HudThemePreset.GLASS)
+        .build();
+```
+
+Custom theme usage:
+
+```java
+HudTheme customTheme = HudTheme.builder()
+        .background("rgba(15, 23, 42, 0.92)")
+        .foreground("#f8fafc")
+        .mutedForeground("#cbd5e1")
+        .accent("#38bdf8")
+        .success("#22c55e")
+        .warning("#facc15")
+        .danger("#fb7185")
+        .borderColor("rgba(148, 163, 184, 0.35)")
+        .borderRadiusPx(16)
+        .fontSizePx(13)
+        .fontFamily("Inter, system-ui, sans-serif")
+        .boxShadow("0 18px 45px rgba(15, 23, 42, 0.35)")
+        .backdropFilter("blur(14px)")
+        .paddingPx(12)
+        .gapPx(8)
+        .build();
+
+OverlayConfig config = OverlayConfig.builder()
+        .hudTheme(customTheme)
+        .build();
+```
+
+The HUD runtime applies theme values with CSS variables such as:
+
+- `--ui-test-lens-hud-bg`
+- `--ui-test-lens-hud-fg`
+- `--ui-test-lens-hud-muted-fg`
+- `--ui-test-lens-hud-accent`
+- `--ui-test-lens-hud-success`
+- `--ui-test-lens-hud-warning`
+- `--ui-test-lens-hud-danger`
+- `--ui-test-lens-hud-border`
+
+Fallback values preserve the previous default HUD appearance. This theme integration currently focuses on the HUD panel. Wait HUD and assertion badges still have mostly runtime-defined styling and should be handled in a separate visual theme pass if they need stable customization.
+
 Not currently exposed as full public configuration:
 
-- full HUD theme,
-- HUD opacity,
-- HUD font and density,
 - assertion badge theme,
 - API overlay theme/layout,
 - wait HUD theme,
@@ -191,7 +251,7 @@ Not currently exposed as full public configuration:
 ## Current limitations
 
 - The visual overlay is pragmatic diagnostics, not a full visual trace viewer.
-- `OverlayConfig` covers key placement/visibility/duration/color settings, but full theme configuration is still hardcoded in runtime JS.
+- `OverlayConfig` covers key placement/visibility/duration/color settings and HUD panel themes, but not every runtime overlay element has a full theme API yet.
 - Assertion badge styling is mostly runtime-defined; only duration and highlight color are shared through current config paths.
 - Type hints can display the typed value in the browser overlay; sensitive value masking is a future hardening item.
 - API overlay Java bridge still has compatibility calls through `window.__seleniumApiModal`.

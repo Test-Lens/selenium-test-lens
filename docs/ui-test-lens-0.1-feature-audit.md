@@ -43,7 +43,7 @@ Text, JSON, and HTML log exporters are available for basic evidence generation. 
 
 The overlay module uses `BrowserScriptExecutor` and stays Selenium-free. Selenium-specific construction lives in the Selenium module.
 
-Visual runtime resources include API overlay, wait HUD, highlight, type hint, scroll arrow, HUD panel, and assertion badges. Current public visual configuration is intentionally limited to `OverlayConfig` settings such as enablement, HUD visibility/position/offset/max width, decoration duration, highlight color, and a legacy global popup close selector.
+Visual runtime resources include API overlay, wait HUD, highlight, type hint, scroll arrow, HUD panel, and assertion badges. Current public visual configuration is intentionally limited to `OverlayConfig` settings such as enablement, HUD visibility/position/offset/max width, HUD theme preset/custom theme values, decoration duration, highlight color, and a legacy global popup close selector.
 
 ### 5.3 Selenium facade
 

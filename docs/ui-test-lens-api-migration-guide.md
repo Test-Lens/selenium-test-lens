@@ -15,6 +15,7 @@ For visual overlay/HUD configuration and runtime resource details, see [`ui-test
 | old one-module layout | multi-module Maven layout |
 | Selenium-only helper | Selenium-compatible diagnostics/reliability layer |
 | ad-hoc HUD/highlight scripts | documented visual overlay/HUD layer with `OverlayConfig` |
+| hardcoded HUD appearance | `HudThemePreset` or custom `HudTheme` through `OverlayConfig` |
 | hardcoded overlay/popup handling | configurable `OverlayPolicy` |
 | one-off Selenium element click | retryable `UiLocator` |
 | one-off assertions | retryable `UiExpect` |

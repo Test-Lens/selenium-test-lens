@@ -1,6 +1,8 @@
 package io.github.mmaciekk111.uitestlens;
 
 import io.github.mmaciekk111.uitestlens.hud.HudPosition;
+import io.github.mmaciekk111.uitestlens.hud.HudTheme;
+import io.github.mmaciekk111.uitestlens.hud.HudThemePreset;
 
 /**
  * Konfiguracja overlaya – steruje tym, czy overlay jest włączony,
@@ -28,6 +30,8 @@ public final class OverlayConfig {
     private final int hudOffsetX;
     private final int hudOffsetY;
     private final int hudMaxWidthPx;
+    private final HudTheme hudTheme;
+    private final HudThemePreset hudThemePreset;
 
     // Highlight (ramki, badge'e)
     /**
@@ -47,6 +51,8 @@ public final class OverlayConfig {
         this.hudOffsetX = builder.hudOffsetX;
         this.hudOffsetY = builder.hudOffsetY;
         this.hudMaxWidthPx = builder.hudMaxWidthPx;
+        this.hudTheme = builder.hudTheme;
+        this.hudThemePreset = builder.hudThemePreset;
         this.highlightColor = builder.highlightColor;
     }
 
@@ -93,6 +99,14 @@ public final class OverlayConfig {
         return hudMaxWidthPx;
     }
 
+    public HudTheme getHudTheme() {
+        return hudTheme;
+    }
+
+    public HudThemePreset getHudThemePreset() {
+        return hudThemePreset;
+    }
+
     /**
      * Zwraca kolor highlighta używany do ramek i badge'y.
      */
@@ -116,6 +130,8 @@ public final class OverlayConfig {
         private int hudOffsetX = 10;   // od krawędzi poziomej (px)
         private int hudOffsetY = 10;   // od krawędzi pionowej (px)
         private int hudMaxWidthPx = 280;
+        private HudTheme hudTheme = HudTheme.defaultTheme();
+        private HudThemePreset hudThemePreset = HudThemePreset.DEFAULT;
 
         // Highlight – domyślnie żółty
         private String highlightColor = "#ffeb3b";
@@ -177,6 +193,22 @@ public final class OverlayConfig {
         public Builder hudMaxWidthPx(int hudMaxWidthPx) {
             if (hudMaxWidthPx > 0) {
                 this.hudMaxWidthPx = hudMaxWidthPx;
+            }
+            return this;
+        }
+
+        public Builder hudTheme(HudTheme hudTheme) {
+            if (hudTheme != null) {
+                this.hudTheme = hudTheme;
+                this.hudThemePreset = null;
+            }
+            return this;
+        }
+
+        public Builder hudTheme(HudThemePreset preset) {
+            if (preset != null) {
+                this.hudThemePreset = preset;
+                this.hudTheme = HudTheme.fromPreset(preset);
             }
             return this;
         }

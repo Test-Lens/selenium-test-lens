@@ -166,6 +166,9 @@ import io.github.mmaciekk111.uitestlens.api.ApiCallActions;
 import io.github.mmaciekk111.uitestlens.api.ApiOverlayPanel;
 import io.github.mmaciekk111.uitestlens.core.Guards;
 import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
+import io.github.mmaciekk111.uitestlens.hud.HudPosition;
+import io.github.mmaciekk111.uitestlens.hud.HudTheme;
+import io.github.mmaciekk111.uitestlens.hud.HudThemePreset;
 import io.github.mmaciekk111.uitestlens.selenium.SeleniumOverlayFactory;
 
 WebDriver driver = /* existing Selenium driver */;
@@ -209,6 +212,7 @@ Basic HUD and highlight usage:
 OverlayConfig config = OverlayConfig.builder()
         .showHudPanel(true)
         .hudPosition(HudPosition.TOP_RIGHT)
+        .hudTheme(HudThemePreset.GLASS)
         .hudOffset(16, 16)
         .hudMaxWidthPx(320)
         .decorationDurationMs(1200)
@@ -224,9 +228,37 @@ overlay.highlightElement(driver.findElement(By.id("submit")), "Submit");
 overlay.clearDebugArtifacts();
 ```
 
-`setStep(...)` updates the HUD label only. `step(...)` executes a measured step, emits events, and can also write to the HUD. Current public visual configuration covers overlay enablement, HUD visibility/position/offset/max width, visual decoration duration, highlight color, and a legacy global popup close selector. Full HUD theming, badge theming, wait HUD styling, API overlay layout, and type-hint masking are future work, not current API.
+`setStep(...)` updates the HUD label only. `step(...)` executes a measured step, emits events, and can also write to the HUD. Current public visual configuration covers overlay enablement, HUD visibility/position/offset/max width, HUD theme presets/custom theme values, visual decoration duration, highlight color, and a legacy global popup close selector. Badge theming, wait HUD styling, API overlay layout, and type-hint masking are future work.
 
 See [`docs/ui-test-lens-visual-overlay-hud.md`](docs/ui-test-lens-visual-overlay-hud.md) for the visual resource inventory and configuration details.
+
+## HUD Themes
+
+The HUD panel supports theme presets and custom styling through `OverlayConfig`.
+
+```java
+OverlayConfig glassConfig = OverlayConfig.builder()
+        .hudPosition(HudPosition.TOP_RIGHT)
+        .hudTheme(HudThemePreset.GLASS)
+        .build();
+
+HudTheme customTheme = HudTheme.builder()
+        .background("rgba(15, 23, 42, 0.92)")
+        .foreground("#f8fafc")
+        .accent("#38bdf8")
+        .borderColor("rgba(148, 163, 184, 0.35)")
+        .borderRadiusPx(16)
+        .fontFamily("Inter, system-ui, sans-serif")
+        .fontSizePx(13)
+        .boxShadow("0 18px 45px rgba(15, 23, 42, 0.35)")
+        .build();
+
+OverlayConfig customConfig = OverlayConfig.builder()
+        .hudTheme(customTheme)
+        .build();
+```
+
+Available presets are `DEFAULT`, `DARK`, `LIGHT`, `GLASS`, `COMPACT`, `HIGH_CONTRAST`, and `MINIMAL`. The HUD runtime applies theme values through CSS variables such as `--ui-test-lens-hud-bg`, `--ui-test-lens-hud-fg`, and `--ui-test-lens-hud-accent`, with fallbacks that preserve the previous default look. This theme support currently focuses on the HUD panel; wait HUD and assertion badge theming remain limited and are tracked as follow-up work.
 
 ## Blocking Overlay Policy
 
