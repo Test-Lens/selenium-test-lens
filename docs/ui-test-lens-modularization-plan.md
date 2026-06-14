@@ -55,6 +55,12 @@ ui-test-lens-parent
 `ui-test-lens-react` zawiera React-safe helpers i `react-select` support.
 `ui-test-lens` pozostaje kompatybilnym artefaktem all-in-one zaleznym od core, overlay, selenium i react.
 
+## Blocking overlay policy
+
+Konfigurowalna polityka overlayow jest wlasnoscia `ui-test-lens-selenium`, bo jej publiczny model uzywa Selenium `By`, a executor pracuje na `WebDriver`. `ui-test-lens-overlay` pozostaje Selenium-free i nie zawiera tej polityki.
+
+Aktualny zakres obejmuje `OverlayPolicy`, `OverlayHandler`, `OverlayAction`, `OverlayPolicyExecutor`, `JsOverlayDebug.setOverlayPolicy(...)` oraz integracje ze smart click. Przyszle actionability checks i React-aware readiness powinny uzyc tego samego mechanizmu zamiast tworzyc osobne heurystyki popupow.
+
 Dalszy docelowy zakres splitu to:
 
 ```text

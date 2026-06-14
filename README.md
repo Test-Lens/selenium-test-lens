@@ -195,6 +195,32 @@ lens.smartClickWithOverlayHandler(button, "Submit");
 lens.clearDebugArtifacts();
 ```
 
+## Blocking Overlay Policy
+
+Known popups and blocking overlays can be configured in the Selenium module with `OverlayPolicy`. This is intended for predictable UI blockers such as cookie banners, newsletter modals, session-expired dialogs, and focus-lock overlays.
+
+Handlers define how to detect the overlay, which actions to run, whether the overlay is optional or fatal, and whether it must disappear after handling. Smart click uses the configured policy before clicking and once more after a click interception before falling back to the legacy blocking overlay heuristics.
+
+```java
+OverlayPolicy policy = OverlayPolicy.builder()
+        .handler(OverlayHandler.builder("Cookie consent")
+                .detect(By.cssSelector("[data-testid='cookie-banner']"))
+                .action(OverlayAction.click(By.cssSelector("[data-testid='accept-cookies']")))
+                .optional(true)
+                .build())
+        .handler(OverlayHandler.builder("Session expired")
+                .detect(By.cssSelector("[data-testid='session-expired']"))
+                .action(OverlayAction.fail("Session expired popup detected"))
+                .optional(false)
+                .build())
+        .build();
+
+JsOverlayDebug overlay = new JsOverlayDebug(driver);
+overlay.setOverlayPolicy(policy);
+```
+
+`OverlayAction.fail(...)` marks the handler as fatal and prevents the click from continuing. The policy executor emits overlay policy events into the existing logger/event model. Future actionability checks and React-aware readiness should reuse the same policy executor.
+
 ## Logging And Event Bus
 
 `UiTestLensLogger` is the central event bus. `OverlayLogger` is the current bridge used by existing overlay/Selenium classes.

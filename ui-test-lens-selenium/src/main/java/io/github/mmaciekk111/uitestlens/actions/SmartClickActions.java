@@ -9,19 +9,25 @@ import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensEventType;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensStatus;
+import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayHandlingResult;
+import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayHandlingStatus;
+import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicy;
+import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicyExecutor;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 
+import java.util.List;
+
 public class SmartClickActions {
 
     private final WebDriver driver;
-    private final JavascriptExecutor js;
     private final OverlayConfig config;
     private final HighlightActions highlightActions;
     private final BlockingOverlayHelper blockingHelper;
     private final OverlayLogger logger;
+    private OverlayPolicy overlayPolicy = OverlayPolicy.none();
 
     public SmartClickActions(WebDriver driver,
                              OverlayConfig config,
@@ -39,16 +45,18 @@ public class SmartClickActions {
             throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
         }
         this.driver = driver;
-        this.js = (JavascriptExecutor) driver;
         this.config = config;
         this.highlightActions = highlightActions;
         this.blockingHelper = new BlockingOverlayHelper(driver, config, rootManager, highlightActions);
         this.logger = logger != null ? logger : OverlayLogger.noop();
     }
 
+    public void setOverlayPolicy(OverlayPolicy overlayPolicy) {
+        this.overlayPolicy = overlayPolicy != null ? overlayPolicy : OverlayPolicy.none();
+    }
+
     /**
-     * Główna implementacja klika z obsługą overlayów/popupów.
-     * (wcześniej to było w smartClick).
+     * Main click implementation with configurable overlay policy and existing legacy overlay heuristics.
      */
     public void clickWithOverlayHandling(WebElement target, String label) {
         if (target == null) {
@@ -56,42 +64,38 @@ public class SmartClickActions {
         }
         emitClick("clickWithOverlayHandling", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null, false, null, false);
         try {
+            boolean policyHandledBeforeClick = handleConfiguredOverlayPolicy();
 
-        // ✨ NAJPIERW spróbuj globalnie zamknąć znany overlay (np. cookies)
-        blockingHelper.handleGlobalOverlayIfPresent("OVERLAY", "CLOSE");
+            blockingHelper.handleGlobalOverlayIfPresent("OVERLAY", "CLOSE");
 
-        try {
-            if (config.isEnabled()) {
-                highlightActions.highlightClick(target, label);
+            try {
+                clickTarget(target, label);
+                emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, false, null, true);
+                return;
+            } catch (WebDriverException e) {
+                if (!isClickInterceptError(e)) {
+                    throw e;
+                }
+                if (handleConfiguredOverlayPolicy()) {
+                    clickTarget(target, label);
+                    emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, true, "overlayPolicy", true);
+                    return;
+                }
+            }
+
+            boolean handled = blockingHelper.handleBlockingOverlayFor(
+                    target,
+                    "BLOCKING OVERLAY",
+                    "CLOSE"
+            );
+
+            if (handled) {
+                clickTarget(target, label);
+                emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, true, "blockingOverlay", true);
             } else {
                 target.click();
+                emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, true, "directRetry", policyHandledBeforeClick);
             }
-            emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, false, null, true);
-            return;
-        } catch (WebDriverException e) {
-            if (!isClickInterceptError(e)) {
-                throw e;
-            }
-        }
-
-        // dopiero jeśli mimo wszystko jest błąd, lecimy w logikę "overlay blokuje target"
-        boolean handled = blockingHelper.handleBlockingOverlayFor(
-                target,
-                "BLOCKING OVERLAY",
-                "CLOSE"
-        );
-
-        if (handled) {
-            if (config.isEnabled()) {
-                highlightActions.highlightClick(target, label);
-            } else {
-                target.click();
-            }
-            emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, true, "blockingOverlay", true);
-        } else {
-            target.click();
-            emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, true, "directRetry", false);
-        }
         } catch (RuntimeException e) {
             emitClick("clickWithOverlayHandling", label, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR, e, false, null, false);
             throw e;
@@ -99,7 +103,7 @@ public class SmartClickActions {
     }
 
     /**
-     * Stara nazwa – zostawiamy dla kompatybilności.
+     * Legacy name kept for compatibility.
      */
     @Deprecated
     public void smartClick(WebElement target, String label) {
@@ -113,6 +117,29 @@ public class SmartClickActions {
         return msg.contains("other element would receive the click")
                 || msg.contains("is not clickable at point")
                 || msg.contains("intercepted");
+    }
+
+    private void clickTarget(WebElement target, String label) {
+        if (config.isEnabled()) {
+            highlightActions.highlightClick(target, label);
+        } else {
+            target.click();
+        }
+    }
+
+    private boolean handleConfiguredOverlayPolicy() {
+        if (overlayPolicy == null || overlayPolicy.isEmpty()) {
+            return false;
+        }
+        List<OverlayHandlingResult> results = new OverlayPolicyExecutor(driver, overlayPolicy, logger)
+                .handleKnownOverlays();
+        for (OverlayHandlingResult result : results) {
+            if (result.status() == OverlayHandlingStatus.FAILED) {
+                throw new IllegalStateException("Overlay policy failed for handler " + result.handlerName()
+                        + ": " + result.message(), result.exception());
+            }
+        }
+        return results.stream().anyMatch(OverlayHandlingResult::detected);
     }
 
     private void emitClick(String method,

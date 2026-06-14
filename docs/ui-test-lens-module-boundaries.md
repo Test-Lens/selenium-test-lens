@@ -57,6 +57,7 @@ Current artifact usage matrix:
 - `actions`, including highlight, typing, smart click/input, scroll, target resolver, and visual assertions.
 - Selenium wait and guard helpers: `PageWaits`, `Guards`.
 - Popup and overlay heuristics: `PopupDetector`, `BlockingOverlayHelper`.
+- Configurable blocking overlay policy: `selenium.overlay.OverlayPolicy`, `OverlayHandler`, `OverlayAction`, and `OverlayPolicyExecutor`.
 - `SeleniumBrowserScriptExecutor`, `OverlayBrowserScriptExecutors`, and `SeleniumOverlayFactory` are in `ui-test-lens-selenium`.
 - React-safe call sites moved to `ReactSupport` in `ui-test-lens-react`.
 

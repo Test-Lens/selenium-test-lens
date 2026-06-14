@@ -433,6 +433,14 @@ Dalszy plan dokumentuje docelowy uklad:
 
 `ui-test-lens-core` juz istnieje i musi pozostac Selenium-free. `ui-test-lens-overlay` istnieje i nie zalezy juz bezposrednio od Selenium; jego primary API uzywa `BrowserScriptExecutor`. WebDriver-compatible construction jest po stronie `ui-test-lens-selenium` przez `SeleniumOverlayFactory`. `ui-test-lens-selenium` istnieje jako glowny modul Selenium i nie zalezy juz od `ui-test-lens-react`. React-safe helpers sa dostepne po stronie `ui-test-lens-react` przez `ReactSupport`.
 
+## Blocking overlay policy
+
+Pierwszy punkt roadmapy Playwright-inspired reliability zostal zaimplementowany po stronie `ui-test-lens-selenium`. Uzytkownik moze zdefiniowac znane overlaye/popupy przez `OverlayPolicy`, np. cookie banner, newsletter modal albo session expired modal.
+
+Polityka rozroznia overlaye opcjonalne i fatalne. `OverlayAction.fail(...)` przerywa obsluge jako blad, a smart click uruchamia polityke przed kliknieciem i jeszcze raz po Selenium click interception, zanim przejdzie do starych heurystyk `BlockingOverlayHelper`.
+
+`OverlayConfig` pozostaje Selenium-free w module overlay; konfiguracja polityki jest ustawiana na fasadzie Selenium przez `JsOverlayDebug.setOverlayPolicy(...)`. Ten sam executor powinien zostac pozniej wykorzystany przez actionability checks i React-aware readiness.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:

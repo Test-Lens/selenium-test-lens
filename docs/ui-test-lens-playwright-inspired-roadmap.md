@@ -31,6 +31,8 @@ The reliability layer is responsible for reducing flaky UI tests before adding b
 
 ### 1.1 Configurable blocking overlay policy
 
+Status: initial implementation exists in `ui-test-lens-selenium`.
+
 Users should be able to define known blocking popups and overlays instead of relying only on built-in heuristics. Typical examples:
 
 - cookie banner,
@@ -82,6 +84,8 @@ overlay.setOverlayPolicy(policy);
 - React-aware checks.
 
 This keeps popup handling explicit, configurable, and testable without changing the action semantics in multiple places.
+
+The first implementation provides `OverlayPolicy`, `OverlayHandler`, `OverlayAction`, `OverlayPolicyExecutor`, `JsOverlayDebug.setOverlayPolicy(...)`, and integration with smart click. The policy is intentionally Selenium-side and does not move any API into the Selenium-free overlay module.
 
 ### 1.2 Actionability checks
 

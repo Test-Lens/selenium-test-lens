@@ -23,6 +23,8 @@ import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensStatus;
 import io.github.mmaciekk111.uitestlens.hud.HudPanel;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollElementEdge;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollViewportEdge;
+import io.github.mmaciekk111.uitestlens.selenium.SeleniumOverlayFactory;
+import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicy;
 
 
 import java.time.Duration;
@@ -56,12 +58,25 @@ public final class JsOverlayDebug {
     private boolean waitHudInjected = false;
     private final Guards guards;
     private final OverlayLogger logger;
+    private OverlayPolicy overlayPolicy = OverlayPolicy.none();
 
     // ======================================================================
     //  CTOR
     // ======================================================================
 
 
+
+    public JsOverlayDebug(WebDriver driver) {
+        this(driver, OverlayConfig.builder().build());
+    }
+
+    public JsOverlayDebug(WebDriver driver, OverlayConfig config) {
+        this(driver, config, createDefaultComponents(driver, config, OverlayLogger.noop()));
+    }
+
+    private JsOverlayDebug(WebDriver driver, OverlayConfig config, DefaultComponents components) {
+        this(driver, config, components.apiPanel(), components.apiCalls(), components.guards(), components.logger());
+    }
 
     public JsOverlayDebug(WebDriver driver, OverlayConfig config, ApiOverlayPanel apiPanel, ApiCallActions apiCalls, Guards guards) {
         this(driver, config, apiPanel, apiCalls, guards, OverlayLogger.noop());
@@ -108,6 +123,19 @@ public final class JsOverlayDebug {
         this.scrollActions = new ScrollActions(driver, config, rootManager, this.logger);
         this.assertActions = new AssertActions(driver, rootManager, config, hudPanel, this.logger);
         this.targetResolverActions = new TargetResolverActions(driver, this.logger);
+    }
+
+    private static DefaultComponents createDefaultComponents(WebDriver driver, OverlayConfig config, OverlayLogger logger) {
+        OverlayRootManager rootManager = SeleniumOverlayFactory.overlayRoot(driver, config);
+        ApiOverlayPanel apiPanel = SeleniumOverlayFactory.apiOverlayPanel(driver, rootManager, config);
+        return new DefaultComponents(apiPanel, new ApiCallActions(apiPanel), new Guards(driver, logger), logger);
+    }
+
+    private record DefaultComponents(ApiOverlayPanel apiPanel, ApiCallActions apiCalls, Guards guards, OverlayLogger logger) {}
+
+    public void setOverlayPolicy(OverlayPolicy overlayPolicy) {
+        this.overlayPolicy = overlayPolicy != null ? overlayPolicy : OverlayPolicy.none();
+        this.smartClickActions.setOverlayPolicy(this.overlayPolicy);
     }
 
     // ======================================================================

@@ -23,6 +23,8 @@ UI Test Lens is still pre-1.0. Public APIs may change between 0.x releases. Mave
 
 `ui-test-lens-selenium` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, Selenium, Lombok in provided scope, and JUnit in test scope. This is currently the main module for Selenium users who do not want the all-in-one artifact.
 
+The Selenium module owns configurable blocking overlay policy: `OverlayPolicy`, `OverlayHandler`, `OverlayAction`, `OverlayPolicyExecutor`, and smart click integration. This keeps Selenium `By`/`WebDriver` types out of `ui-test-lens-overlay`.
+
 `ui-test-lens-react` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium, and JUnit in test scope. This direction keeps the base Selenium module independent from React helpers.
 
 `ui-test-lens` depends on core, overlay, selenium, and react modules. It is intentionally an aggregate compatibility artifact.
