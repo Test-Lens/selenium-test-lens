@@ -14,6 +14,22 @@ Macierz obecnych granic pakietow i zaleznosci Selenium jest w:
 docs/ui-test-lens-module-boundaries.md
 ```
 
+Raport stabilizacji po splitach modulow jest w:
+
+```text
+docs/ui-test-lens-module-stabilization-report.md
+```
+
+Aktualna macierz uzycia artefaktow:
+
+| Use case | Artifact |
+| -------- | -------- |
+| Event logging/export model only | `ui-test-lens-core` |
+| Browser overlay runtime bridge only | `ui-test-lens-overlay` |
+| Selenium tests with overlay/actions/waits | `ui-test-lens-selenium` |
+| React-safe Selenium helpers | `ui-test-lens-react` |
+| Simple all-in-one local usage | `ui-test-lens` |
+
 Ten dokument pozostaje historycznym/szerszym planem modularyzacji. Pierwszy minimalny split zostal wykonany:
 
 ```text

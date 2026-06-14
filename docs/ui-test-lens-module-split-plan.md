@@ -49,6 +49,22 @@ The current package-level boundary matrix is tracked in:
 docs/ui-test-lens-module-boundaries.md
 ```
 
+The current post-split stabilization status, dependency graph summary, duplicate scans, resource scans, and verification results are tracked in:
+
+```text
+docs/ui-test-lens-module-stabilization-report.md
+```
+
+Use that stabilization report as the current source of truth for which artifact to depend on:
+
+| Use case | Artifact |
+| -------- | -------- |
+| Event logging/export model only | `ui-test-lens-core` |
+| Browser overlay runtime bridge only | `ui-test-lens-overlay` |
+| Selenium tests with overlay/actions/waits | `ui-test-lens-selenium` |
+| React-safe Selenium helpers | `ui-test-lens-react` |
+| Simple all-in-one local usage | `ui-test-lens` |
+
 ## Proposed first module layout
 
 | Module | Responsibility | Dependencies | Should publish? |

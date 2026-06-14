@@ -10,6 +10,22 @@ The first Maven split is now in place:
 - `ui-test-lens-react` contains React-safe helpers.
 - `ui-test-lens` is now an all-in-one compatibility artifact that depends on core, overlay, selenium, and react modules.
 
+The latest post-split stabilization report is:
+
+```text
+docs/ui-test-lens-module-stabilization-report.md
+```
+
+Current artifact usage matrix:
+
+| Use case | Artifact |
+| -------- | -------- |
+| Event logging/export model only | `ui-test-lens-core` |
+| Browser overlay runtime bridge only | `ui-test-lens-overlay` |
+| Selenium tests with overlay/actions/waits | `ui-test-lens-selenium` |
+| React-safe Selenium helpers | `ui-test-lens-react` |
+| Simple all-in-one local usage | `ui-test-lens` |
+
 | Package | Classes | Selenium dependency? | Runtime JS dependency? | Proposed module | Notes |
 | ------- | ------: | -------------------: | ---------------------: | --------------- | ----- |
 | `io.github.mmaciekk111.uitestlens` | 3 | Mixed across modules | Yes | `ui-test-lens-overlay` plus `ui-test-lens-selenium` | `OverlayConfig` moved to overlay. `JsOverlayDebug` and `OverlayWait` moved to `ui-test-lens-selenium`. |

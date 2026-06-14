@@ -1,0 +1,121 @@
+# UI Test Lens module stabilization report
+
+## Current modules
+
+| Module | Purpose | Main dependencies | Notes |
+| ------ | ------- | ----------------- | ----- |
+| `ui-test-lens-core` | Selenium-free logging/event model, exporters, neutral `BrowserScriptExecutor`, and neutral `JsResources`. | JDK for production; JUnit for tests. | Boundary scan found no Selenium imports. |
+| `ui-test-lens-overlay` | Runtime JavaScript resources and browser overlay bridge/loaders, including HUD, API overlay, root manager, highlight, wait HUD, type hint, scroll arrow, and assertion badges. | `ui-test-lens-core`, Selenium, JUnit for tests. | Selenium dependency is transitional and exists for WebDriver-compatible constructors and the internal `OverlayBrowserScriptExecutors` compatibility helper. |
+| `ui-test-lens-selenium` | Selenium facade, actions, waits, popup/blocking overlay helpers, target resolver, API call helpers, and Selenium executor adapter. | `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-react`, Selenium, Lombok provided, JUnit for tests. | Selenium dependency is expected. Dependency on React is transitional through the public facade/API surface. |
+| `ui-test-lens-react` | React-safe helpers and `react-select` support. | `ui-test-lens-core`, `ui-test-lens-overlay`, Selenium, JUnit for tests. | React production classes live only in this module. |
+| `ui-test-lens` | All-in-one compatibility artifact for current local usage. | `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`, JUnit for tests. | Keeps `io.github.mmaciekk111:ui-test-lens` usable as the simple aggregate dependency. |
+
+## Dependency graph summary
+
+`ui-test-lens-core` has no production dependencies outside the JDK. Its only declared dependency is JUnit 5 in test scope.
+
+`ui-test-lens-overlay` depends on `ui-test-lens-core` and Selenium. Selenium is still present because the overlay bridge classes keep public or compatibility constructors that accept Selenium `WebDriver`.
+
+`ui-test-lens-selenium` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-react`, Selenium, Lombok in provided scope, and JUnit in test scope. This is currently the main module for Selenium users who do not want the all-in-one artifact.
+
+`ui-test-lens-react` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, Selenium, and JUnit in test scope. It does not depend on `ui-test-lens-selenium`.
+
+`ui-test-lens` depends on core, overlay, selenium, and react modules. It is intentionally an aggregate compatibility artifact.
+
+## Transitional dependencies
+
+| Dependency | Current reason | Removal path |
+| ---------- | -------------- | ------------ |
+| `ui-test-lens-overlay -> selenium-java` | WebDriver-compatible constructors remain in bridge/loaders, `HudPanel`, `ApiOverlayPanel`, and `OverlayRootManager`; overlay also has `OverlayBrowserScriptExecutors` as a compatibility adapter. | Move Selenium compatibility wrappers to `ui-test-lens-selenium` or introduce factory adapters that preserve source compatibility without direct Selenium imports in overlay. |
+| `ui-test-lens-selenium -> ui-test-lens-react` | `JsOverlayDebug` still exposes React-safe helpers and Selenium actions can reference `ReactSafeExecutor`. | Move `reactSafe()` behind an extension facade or smaller interface so Selenium does not need a compile dependency on the React module. |
+| `ui-test-lens-react -> selenium-java` | React helpers operate directly on Selenium `WebDriver`, `WebElement`, and `By`. | Keep as-is unless a future non-Selenium React adapter is introduced. |
+
+## Artifact usage matrix
+
+| Use case | Dependency |
+| -------- | ---------- |
+| Event logging/export model only | `io.github.mmaciekk111:ui-test-lens-core:1.0-SNAPSHOT` |
+| Browser overlay runtime bridge only | `io.github.mmaciekk111:ui-test-lens-overlay:1.0-SNAPSHOT` |
+| Selenium tests with overlay/actions/waits | `io.github.mmaciekk111:ui-test-lens-selenium:1.0-SNAPSHOT` |
+| React-safe Selenium helpers | `io.github.mmaciekk111:ui-test-lens-react:1.0-SNAPSHOT` |
+| Simple all-in-one local usage | `io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT` |
+
+## Duplicate and resource scans
+
+Production class duplicate scan: no duplicate `.java` relative paths were found under `src/main/java`.
+
+Test class duplicate scan: no duplicate `.java` relative paths were found under `src/test/java`.
+
+Runtime resource scan found exactly seven JavaScript resources, all under `ui-test-lens-overlay/src/main/resources/uitestlens/runtime/`:
+
+- `api-overlay.js`
+- `assertion-badges.js`
+- `highlight.js`
+- `hud-panel.js`
+- `scroll-arrow.js`
+- `type-hint.js`
+- `wait-hud.js`
+
+## Boundary scans
+
+Core Selenium scan: no Selenium imports or Selenium type usages were found in `ui-test-lens-core/src/main/java`.
+
+Overlay Selenium scan: Selenium usages remain only in overlay bridge compatibility APIs and `OverlayBrowserScriptExecutors`:
+
+- `ApiOverlayPanel`
+- `ApiOverlayJs`
+- `AssertionBadgesJs`
+- `HighlightJs`
+- `HudPanel`
+- `HudPanelJs`
+- `OverlayRootManager`
+- `OverlayBrowserScriptExecutors`
+- `ScrollArrowJs`
+- `TypeHintJs`
+- `WaitHudJs`
+
+Selenium module scan: Selenium usages are expected in facade, actions, waits, popup/blocking overlay helpers, target resolver, and `SeleniumBrowserScriptExecutor`.
+
+React package location scan: production React classes are only in `ui-test-lens-react`.
+
+Forbidden import scan: no matches for `LogWraper`, `TimeStamp`, `ContentIssueCollector`, `LocalDateTimeUtils`, or `io.restassured`.
+
+`System.out/System.err` scan: the only production usage is `ConsoleLogSink` in `ui-test-lens-core`.
+
+## Verification
+
+Passed:
+
+- `mvn -q test`
+- `mvn -q -DskipTests compile`
+- `mvn -q -pl ui-test-lens-core test`
+- `mvn -q -pl ui-test-lens-overlay -am test`
+- `mvn -q -pl ui-test-lens-selenium -am test`
+- `mvn -q -pl ui-test-lens-react -am test`
+- `mvn -q -pl ui-test-lens -am test`
+
+Blocked by local Maven/plugin resolution:
+
+- `mvn -q install`
+
+`mvn install` failed while resolving `org.apache.maven.plugins:maven-install-plugin:3.1.4` from Maven Central with a PKIX certificate validation error:
+
+```text
+certificate_unknown
+PKIX path building failed
+```
+
+The same failure occurred after retrying with elevated network permissions, so this is recorded as an environment/trust-store blocker rather than a project compilation failure.
+
+Dependency tree checks:
+
+- `mvn -q dependency:tree` and module-specific `-q dependency:tree` commands completed successfully but produced no tree output due quiet logging.
+- The same dependency tree commands without `-q` completed successfully and confirmed the dependency graph summarized above.
+
+## Next recommended steps
+
+1. Remove Selenium dependency from overlay by moving WebDriver compatibility constructors/wrappers to the Selenium module, or by introducing non-breaking factories.
+2. Remove `ui-test-lens-selenium -> ui-test-lens-react` coupling by moving `reactSafe()` out of `JsOverlayDebug` or introducing an extension facade.
+3. Add `ui-test-lens-examples`.
+4. Add Maven Wrapper.
+5. Consider version reset to `0.1.0-SNAPSHOT` before external publication.

@@ -115,6 +115,18 @@ For React-safe helpers directly, depend on the React module:
 </dependency>
 ```
 
+### Module Dependency Matrix
+
+| Use case | Maven artifact |
+| -------- | -------------- |
+| Event logging/export model only | `io.github.mmaciekk111:ui-test-lens-core:1.0-SNAPSHOT` |
+| Browser overlay runtime bridge only | `io.github.mmaciekk111:ui-test-lens-overlay:1.0-SNAPSHOT` |
+| Selenium tests with overlay/actions/waits | `io.github.mmaciekk111:ui-test-lens-selenium:1.0-SNAPSHOT` |
+| React-safe Selenium helpers | `io.github.mmaciekk111:ui-test-lens-react:1.0-SNAPSHOT` |
+| Simple all-in-one local usage | `io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT` |
+
+`ui-test-lens` is intentionally kept as an all-in-one compatibility artifact. Current module stabilization notes are tracked in [`docs/ui-test-lens-module-stabilization-report.md`](docs/ui-test-lens-module-stabilization-report.md).
+
 ## Minimal Selenium Usage
 
 The current API still exposes low-level constructor dependencies. The example below matches the current codebase.
