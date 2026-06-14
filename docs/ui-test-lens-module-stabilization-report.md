@@ -4,6 +4,8 @@ Current project version: `0.1.0-SNAPSHOT`.
 
 UI Test Lens is still pre-1.0. Public APIs may change between 0.x releases. Maven Central publication is not configured yet; local usage currently relies on `mvn install`.
 
+For a consolidated 0.1 feature inventory, public entry points, limitations, and recommended next steps, see [`ui-test-lens-0.1-feature-audit.md`](ui-test-lens-0.1-feature-audit.md).
+
 ## Current modules
 
 | Module | Purpose | Main dependencies | Notes |
@@ -130,13 +132,14 @@ Dependency tree checks:
 
 ## Next recommended steps
 
-1. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
-2. Improve trace event mapping for locator/assertion/actionability events.
-3. Add provider-specific video artifact discovery/download helpers only if they can stay optional.
-4. Add stricter auth-state safety guidance or optional encryption integration outside core.
-5. Improve real browser network capture providers behind safe optional fallbacks.
-6. Add screenshot capture policies for before/after action or per-step capture if needed.
-7. Add richer locator factories such as getByRole/getByLabel/getByText.
-8. Add Maven Wrapper.
-9. Add publication metadata once the public API is ready.
-10. Revisit API stability before the first non-SNAPSHOT release.
+1. Use [`ui-test-lens-0.1-feature-audit.md`](ui-test-lens-0.1-feature-audit.md) as the current feature baseline.
+2. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
+3. Improve trace event mapping for locator/assertion/actionability events.
+4. Add provider-specific video artifact discovery/download helpers only if they can stay optional.
+5. Add stricter auth-state safety guidance or optional encryption integration outside core.
+6. Improve real browser network capture providers behind safe optional fallbacks.
+7. Add screenshot capture policies for before/after action or per-step capture if needed.
+8. Add richer locator factories such as getByRole/getByLabel/getByText.
+9. Add Maven Wrapper.
+10. Add publication metadata once the public API is ready.
+11. Revisit API stability before the first non-SNAPSHOT release.

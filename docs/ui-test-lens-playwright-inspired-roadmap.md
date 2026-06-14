@@ -1,5 +1,7 @@
 # UI Test Lens Playwright-inspired roadmap
 
+Current 0.1 implementation status is summarized in [`ui-test-lens-0.1-feature-audit.md`](ui-test-lens-0.1-feature-audit.md).
+
 ## Product direction
 
 UI Test Lens should not replace Selenium and should not add a Playwright dependency. Playwright is an inspiration for UX, API shape, and reliability patterns, not a runtime dependency or migration target.

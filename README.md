@@ -148,6 +148,8 @@ ReactSupport.smartClick(overlay, By.cssSelector("[data-testid='save']"), "SAVE")
 
 `ui-test-lens` is intentionally kept as an all-in-one compatibility artifact. Current module stabilization notes are tracked in [`docs/ui-test-lens-module-stabilization-report.md`](docs/ui-test-lens-module-stabilization-report.md).
 
+The current 0.1 feature set, public entry points, limitations and recommended next steps are summarized in [`docs/ui-test-lens-0.1-feature-audit.md`](docs/ui-test-lens-0.1-feature-audit.md).
+
 ## Minimal Selenium Usage
 
 The current API still exposes low-level constructor dependencies. The example below matches the current codebase.
@@ -583,6 +585,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - Module split plan: [`docs/ui-test-lens-module-split-plan.md`](docs/ui-test-lens-module-split-plan.md).
 - Module boundary matrix: [`docs/ui-test-lens-module-boundaries.md`](docs/ui-test-lens-module-boundaries.md).
 - [Playwright-inspired roadmap](docs/ui-test-lens-playwright-inspired-roadmap.md).
+- [0.1 feature audit](docs/ui-test-lens-0.1-feature-audit.md).
 - `BrowserScriptExecutor` is now the neutral browser JavaScript execution contract; `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor` in the `ui-test-lens-selenium` module.
 - `HudPanel` uses `BrowserScriptExecutor` internally; Selenium `WebDriver` construction is provided by `SeleniumOverlayFactory`.
 - `ApiOverlayPanel` uses `BrowserScriptExecutor` internally; Selenium `WebDriver` construction is provided by `SeleniumOverlayFactory`.

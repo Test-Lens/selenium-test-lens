@@ -421,6 +421,12 @@ Roadmapa kolejnych epikow reliability/diagnostics jest w:
 docs/ui-test-lens-playwright-inspired-roadmap.md
 ```
 
+Audyt aktualnego zakresu 0.1, entrypointow publicznych, ograniczen i rekomendowanych nastepnych krokow jest w:
+
+```text
+docs/ui-test-lens-0.1-feature-audit.md
+```
+
 Pierwsze minimalne splity zostaly wykonane: root POM jest parentem, neutralne logging/export oraz `BrowserScriptExecutor` sa w `ui-test-lens-core`, runtime resources i overlay bridge classes sa w `ui-test-lens-overlay`, fasada/akcje Selenium oraz `SeleniumBrowserScriptExecutor` sa w `ui-test-lens-selenium`, a React-safe helpers sa w `ui-test-lens-react`.
 
 Dalszy plan dokumentuje docelowy uklad:
