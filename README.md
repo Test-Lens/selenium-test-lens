@@ -11,8 +11,8 @@ Current state:
 - Maven artifactId is `ui-test-lens`.
 - Maven groupId is `io.github.mmaciekk111`.
 - Java packages use `io.github.mmaciekk111.uitestlens`.
-- The project is now a Maven multi-module project with `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`, and the all-in-one compatibility artifact `ui-test-lens`.
-- Further module splits, including examples, are planned later.
+- The project is now a Maven multi-module project with `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`, `ui-test-lens-examples`, and the all-in-one compatibility artifact `ui-test-lens`.
+- `ui-test-lens-examples` contains compile-checked examples and is not intended as a runtime dependency.
 - Runtime JavaScript state is initialized under `window.__uiTestLens`; legacy `window.__selenium...` globals remain as compatibility aliases.
 
 ## What It Does
@@ -114,6 +114,8 @@ For React-safe helpers directly, depend on the React module:
     <version>1.0-SNAPSHOT</version>
 </dependency>
 ```
+
+The examples module is part of this repository for compile-checked usage samples. Application projects normally should not depend on it at runtime.
 
 React helpers are now accessed from the React module instead of the Selenium facade:
 
@@ -290,7 +292,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - `HudPanel` uses `BrowserScriptExecutor` internally; Selenium `WebDriver` construction is provided by `SeleniumOverlayFactory`.
 - `ApiOverlayPanel` uses `BrowserScriptExecutor` internally; Selenium `WebDriver` construction is provided by `SeleniumOverlayFactory`.
 - API is not final.
-- Maven splits are in progress: `ui-test-lens-core` contains Selenium-free logging/export code and `BrowserScriptExecutor`; `ui-test-lens-overlay` contains runtime resources and overlay bridge classes without Selenium imports; `ui-test-lens-selenium` contains the Selenium facade/actions/waits and WebDriver-compatible overlay factories; `ui-test-lens-react` contains React-safe helpers; `ui-test-lens` is an all-in-one compatibility artifact.
+- Maven splits are in progress: `ui-test-lens-core` contains Selenium-free logging/export code and `BrowserScriptExecutor`; `ui-test-lens-overlay` contains runtime resources and overlay bridge classes without Selenium imports; `ui-test-lens-selenium` contains the Selenium facade/actions/waits and WebDriver-compatible overlay factories; `ui-test-lens-react` contains React-safe helpers; `ui-test-lens-examples` contains compile-checked examples; `ui-test-lens` is an all-in-one compatibility artifact.
 - `ui-test-lens-overlay` uses `BrowserScriptExecutor` as its primary API and no longer depends on Selenium directly.
 - `ui-test-lens-selenium` no longer depends on `ui-test-lens-react`; React helpers live behind `ReactSupport` in the React module.
 - No Maven Central publication yet.
@@ -302,12 +304,11 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 1. Use the runtime JS audit to review remaining small inline JavaScript snippets and decide which should become runtime resources.
 2. Continue moving runtime bridge classes toward `BrowserScriptExecutor`.
-3. Add `ui-test-lens-examples`.
-4. Selenium `WebDriverListener` adapter.
-5. Selenide adapter.
-6. Allure/TeamCity exporters and adapters.
-7. HTML report improvements.
-8. Maven publication.
+3. Selenium `WebDriverListener` adapter.
+4. Selenide adapter.
+5. Allure/TeamCity exporters and adapters.
+6. HTML report improvements.
+7. Maven publication.
 
 ## Development
 

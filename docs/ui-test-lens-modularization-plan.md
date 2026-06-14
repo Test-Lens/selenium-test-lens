@@ -172,7 +172,7 @@ Miejsca, gdzie warstwy są wymieszane:
 - React/SPA helpers: `ReactSafeExecutor`, `ReactSelectHelper`, React wait methods w `PageWaits` i `JsOverlayDebug`.
 - Popup/overlay handling: `PopupDetector`, `BlockingOverlayHelper`, część `SmartClickActions` i `SmartInputActions`.
 - Shared utilities: `JsResources`, enumy scrolla, potencjalnie przyszły `ScriptExecutor`.
-- Test/demo/example code: brak wydzielonego katalogu przykładów, ale `OverlayContentAssertions` wygląda jak kod specyficzny dla testów właściciela projektu.
+- Test/demo/example code: `ui-test-lens-examples` istnieje jako moduł compile-check examples; `OverlayContentAssertions` pozostaje dokumentacyjnym przykładem prywatnego adaptera.
 
 ## 4. Propozycja podziału na moduły Maven
 
@@ -463,6 +463,14 @@ Status:
 
 ### `ui-test-lens-examples`
 
+Current status:
+
+- the module exists as a compile-check examples module,
+- executable examples cover logging/export and custom sink usage,
+- Selenium and React examples are disabled documentation-only tests,
+- the module must not add WebDriverManager or real browser E2E tests,
+- it is not required as a runtime dependency.
+
 Odpowiedzialność:
 
 - przykłady użycia i demo testy.
@@ -476,7 +484,7 @@ Zależności:
 
 - moduły publiczne,
 - test framework,
-- WebDriver manager opcjonalnie.
+- bez WebDriverManager; przykłady browserowe pozostają documentation-only.
 
 Czego nie zawiera:
 
@@ -615,7 +623,7 @@ API powinno ukrywać klasy `*Actions`, `OverlayRootManager`, `HudPanel` i zasoby
 ### D. Powinno zostać jako demo/test/example
 
 - `OverlayContentAssertions` - obecnie zależy od projektowych klas `ContentIssueCollector` i `LocalDateTimeUtils`; dobry kandydat na przykład adaptera.
-- Przyszłe przykłady użycia `JsOverlayDebug`, `OverlayWait`, `ApiOverlayPanel`, `ReactSafeExecutor`.
+- Przykłady użycia `JsOverlayDebug`, `ApiOverlayPanel` i `ReactSafeExecutor` są w `ui-test-lens-examples` jako disabled documentation-only tests; logging/export examples są wykonywalne.
 
 ### E. Prawdopodobnie nie powinno trafiać do publicznej biblioteki Maven
 

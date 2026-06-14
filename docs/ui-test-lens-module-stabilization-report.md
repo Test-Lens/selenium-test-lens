@@ -9,6 +9,7 @@
 | `ui-test-lens-selenium` | Selenium facade, actions, waits, popup/blocking overlay helpers, target resolver, API call helpers, and Selenium executor adapter. | `ui-test-lens-core`, `ui-test-lens-overlay`, Selenium, Lombok provided, JUnit for tests. | Selenium dependency is expected; no dependency on `ui-test-lens-react`. |
 | `ui-test-lens-react` | React-safe helpers, `ReactSupport`, and `react-select` support. | `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium, JUnit for tests. | React production classes live only in this module and layer on top of the Selenium facade. |
 | `ui-test-lens` | All-in-one compatibility artifact for current local usage. | `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`, JUnit for tests. | Keeps `io.github.mmaciekk111:ui-test-lens` usable as the simple aggregate dependency. |
+| `ui-test-lens-examples` | Compile-checked usage examples. | `ui-test-lens`, JUnit for tests. | Not intended as a runtime dependency; browser examples are disabled documentation-only tests. |
 
 ## Dependency graph summary
 
@@ -21,6 +22,8 @@
 `ui-test-lens-react` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium, and JUnit in test scope. This direction keeps the base Selenium module independent from React helpers.
 
 `ui-test-lens` depends on core, overlay, selenium, and react modules. It is intentionally an aggregate compatibility artifact.
+
+`ui-test-lens-examples` depends on the all-in-one artifact and JUnit. Logging/export examples execute as normal unit tests; Selenium and React examples are disabled documentation-only tests so they compile without launching a browser.
 
 ## Transitional dependencies
 
@@ -38,6 +41,7 @@
 | Selenium tests with overlay/actions/waits | `io.github.mmaciekk111:ui-test-lens-selenium:1.0-SNAPSHOT` |
 | React-safe Selenium helpers | `io.github.mmaciekk111:ui-test-lens-react:1.0-SNAPSHOT` |
 | Simple all-in-one local usage | `io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT` |
+| Compile-checked examples | `ui-test-lens-examples` module in this repository |
 
 ## Duplicate and resource scans
 
@@ -101,6 +105,6 @@ Dependency tree checks:
 
 ## Next recommended steps
 
-1. Add `ui-test-lens-examples`.
-2. Add Maven Wrapper.
-3. Consider version reset to `0.1.0-SNAPSHOT` before external publication.
+1. Add Maven Wrapper.
+2. Consider version reset to `0.1.0-SNAPSHOT` before external publication.
+3. Add publication metadata once the public API is ready.

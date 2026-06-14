@@ -17,6 +17,7 @@
         <module>ui-test-lens-selenium</module>
         <module>ui-test-lens-react</module>
         <module>ui-test-lens</module>
+        <module>ui-test-lens-examples</module>
     </modules>
 
     <properties>

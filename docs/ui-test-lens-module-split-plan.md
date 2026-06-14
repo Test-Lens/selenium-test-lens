@@ -74,7 +74,7 @@ Use that stabilization report as the current source of truth for which artifact 
 | `ui-test-lens-overlay` | Runtime JS resources and overlay bridge abstractions for HUD, highlight, wait HUD, type hint, scroll arrow, assertion badges, API overlay panel, and overlay root. | `ui-test-lens-core`. | Yes. |
 | `ui-test-lens-selenium` | Current Selenium facade and integrations: `JsOverlayDebug`, waits, actions, guards, popup/blocking overlay helpers, target resolver. | `ui-test-lens-core`, `ui-test-lens-overlay`, `selenium-java`. | Yes. |
 | `ui-test-lens-react` | React/SPA retry helpers, `ReactSupport`, and `react-select` support. | `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium. | Yes. |
-| `ui-test-lens-examples` | Examples, private adapter examples, sample tests, old `OverlayContentAssertions.java.example`. | Test/example scope dependencies only. | Usually no. |
+| `ui-test-lens-examples` | Compile-checked examples, executable logging examples, and disabled documentation-only Selenium/React usage examples. | `ui-test-lens`, JUnit test scope. | Usually no. |
 
 Later optional modules:
 
@@ -427,11 +427,14 @@ Extract UI Test Lens React module
 
 ### 7. Add `ui-test-lens-examples`
 
+Status: done.
+
 Scope:
 
-- Move examples and private adapter samples.
-- Include `OverlayContentAssertions.java.example` as a documented non-runtime example.
-- Add sample usage for logger/exporters and Selenium facade.
+- Add compile-checked examples module.
+- Keep `OverlayContentAssertions.java.example` as a documented non-runtime private adapter example.
+- Add executable logger/exporter and custom sink examples.
+- Add disabled documentation-only Selenium and React examples.
 
 Risk:
 
@@ -440,7 +443,8 @@ Risk:
 Verification:
 
 - `mvn -q test`
-- examples compile only if dependencies are public or explicitly test/example scoped.
+- `mvn -q -pl ui-test-lens-examples -am test`
+- examples compile using public artifacts; browser-dependent examples are disabled.
 
 Expected commit title:
 
@@ -570,10 +574,10 @@ Examples/private adapters:
 
 ## Current recommended commit after this cleanup
 
-The executor abstraction has been introduced, runtime bridge modules have moved, `ui-test-lens-overlay` no longer imports Selenium, and `ui-test-lens-selenium` no longer depends on React. The next implementation commit should add examples or continue with publication hygiene.
+The executor abstraction has been introduced, runtime bridge modules have moved, `ui-test-lens-overlay` no longer imports Selenium, `ui-test-lens-selenium` no longer depends on React, and `ui-test-lens-examples` now provides compile-checked usage examples. The next implementation commit should continue with publication hygiene or the Selenium listener adapter.
 
 Recommended commit title:
 
 ```text
-Add UI Test Lens examples module
+Add Maven Wrapper
 ```

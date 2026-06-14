@@ -9,6 +9,7 @@ The first Maven split is now in place:
 - `ui-test-lens-selenium` contains the Selenium facade/actions module and owns Selenium actions, waits, popup helpers, API call actions, and `SeleniumBrowserScriptExecutor`.
 - `ui-test-lens-react` contains React-safe helpers.
 - `ui-test-lens` is now an all-in-one compatibility artifact that depends on core, overlay, selenium, and react modules.
+- `ui-test-lens-examples` contains compile-checked examples and is not a runtime dependency for users.
 
 The latest post-split stabilization report is:
 
@@ -25,6 +26,7 @@ Current artifact usage matrix:
 | Selenium tests with overlay/actions/waits | `ui-test-lens-selenium` |
 | React-safe Selenium helpers | `ui-test-lens-react` |
 | Simple all-in-one local usage | `ui-test-lens` |
+| Compile-checked examples | `ui-test-lens-examples` |
 
 | Package | Classes | Selenium dependency? | Runtime JS dependency? | Proposed module | Notes |
 | ------- | ------: | -------------------: | ---------------------: | --------------- | ----- |

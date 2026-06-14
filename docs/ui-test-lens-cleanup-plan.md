@@ -34,12 +34,15 @@ Moduly przyszle/opcjonalne:
 - `ui-test-lens-allure`
 - `ui-test-lens-teamcity`
 
-Pierwszy minimalny split Maven zostal wykonany. Aktualne moduly:
+Splity Maven zostaly wykonane etapowo. Aktualne moduly:
 
 - parent: `ui-test-lens-parent`,
 - neutralny core: `ui-test-lens-core`,
 - overlay/runtime: `ui-test-lens-overlay`,
-- tymczasowy modul Selenium/fasady/akcji: `ui-test-lens`.
+- modul Selenium/fasady/akcji: `ui-test-lens-selenium`,
+- modul React helpers: `ui-test-lens-react`,
+- all-in-one compatibility artifact: `ui-test-lens`,
+- compile-check examples: `ui-test-lens-examples`.
 
 ## Wybrany groupId
 
