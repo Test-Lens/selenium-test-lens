@@ -366,7 +366,7 @@ String json = session.exportJson();
 
 `TraceJsonExporter` produces a JSON-friendly structure using only JDK code. `TraceLogSink` can forward existing UI Test Lens log entries into a trace session. Selenium integration is intentionally light in this stage: `JsOverlayDebug` can start or attach a session, step events are added to the session, and artifacts can be attached through convenience methods.
 
-Screenshot capture and video recording are not implemented yet. They are planned as separate stages on top of this model.
+Selenium-side screenshot capture is available through `JsOverlayDebug.captureScreenshot(...)`. Video recording is not implemented yet.
 
 ## HTML Trace Report Exporter
 
@@ -377,6 +377,18 @@ Path report = overlay.exportTraceHtml(Path.of("target/ui-test-lens/checkout-flow
 ```
 
 The exporter lives in `ui-test-lens-core` and has no Selenium dependency. `UiTestLensSession` exposes `exportHtml(...)` convenience methods, while `JsOverlayDebug` delegates to the attached session. Screenshot and video artifacts are shown as paths/links; the exporter does not embed binary files and does not capture screenshots or record video.
+
+## Screenshot Evidence Capture
+
+The Selenium module can capture screenshots through Selenium `TakesScreenshot`, write them to `target/ui-test-lens/screenshots`, and attach them to the active `UiTestLensSession` as `TraceArtifactType.SCREENSHOT`.
+
+```java
+overlay.captureScreenshot("After save");
+```
+
+Screenshot output is configured with `ScreenshotCaptureOptions`, including output directory, file name prefix, timestamp usage, overwrite behavior, and whether to attach to the session. `UiStepOptions.captureScreenshotOnFailure(true)` enables opt-in screenshot capture for failed steps; it is disabled by default to avoid changing existing test behavior.
+
+Captured screenshots appear in the HTML trace report as artifact links/paths. UI Test Lens does not embed binary data in the report and does not implement video recording in this stage.
 
 ## Logging And Event Bus
 

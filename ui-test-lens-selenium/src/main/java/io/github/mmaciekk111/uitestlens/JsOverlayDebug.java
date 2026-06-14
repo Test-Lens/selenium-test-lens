@@ -38,6 +38,10 @@ import io.github.mmaciekk111.uitestlens.selenium.assertions.UiAssertionOptions;
 import io.github.mmaciekk111.uitestlens.selenium.assertions.UiExpect;
 import io.github.mmaciekk111.uitestlens.selenium.business.BusinessAssertionOptions;
 import io.github.mmaciekk111.uitestlens.selenium.business.BusinessAssertions;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCapture;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureOptions;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureResult;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureStatus;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocator;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocatorOptions;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicy;
@@ -260,6 +264,18 @@ public final class JsOverlayDebug {
         return requireSession().exportHtml(outputPath, options);
     }
 
+    public ScreenshotCaptureResult captureScreenshot(String name) {
+        return captureScreenshot(name, ScreenshotCaptureOptions.defaults());
+    }
+
+    public ScreenshotCaptureResult captureScreenshot(String name, ScreenshotCaptureOptions options) {
+        ScreenshotCaptureOptions effectiveOptions = options == null ? ScreenshotCaptureOptions.defaults() : options;
+        emitScreenshotCaptureStarted(name, effectiveOptions);
+        ScreenshotCaptureResult result = new ScreenshotCapture(driver).capture(name, effectiveOptions, session);
+        emitScreenshotCaptureFinished(result);
+        return result;
+    }
+
     public UiStepResult step(String name, Runnable body) {
         return step(name, UiStepOptions.defaults(), body);
     }
@@ -273,11 +289,30 @@ public final class JsOverlayDebug {
         );
         try {
             UiStepResult result = scope.run(name, options, body);
+            captureFailedStepScreenshotIfNeeded(name, options, result);
             traceStepFinished(result);
             return result;
         } catch (UiStepError e) {
+            captureFailedStepScreenshotIfNeeded(name, options, e.result());
             traceStepFinished(e.result());
             throw e;
+        }
+    }
+
+    private void captureFailedStepScreenshotIfNeeded(String stepName, UiStepOptions options, UiStepResult result) {
+        UiStepOptions effectiveOptions = options == null ? UiStepOptions.defaults() : options;
+        if (!effectiveOptions.captureScreenshotOnFailure() || result == null || result.status() != UiStepStatus.FAILED) {
+            return;
+        }
+        try {
+            ScreenshotCaptureResult screenshot = captureScreenshot("failed-step-" + safeString(stepName), effectiveOptions.screenshotCaptureOptions());
+            if (!screenshot.isCaptured() && screenshot.exception() != null && result.failure() != null && result.failure().cause() != null) {
+                result.failure().cause().addSuppressed(screenshot.exception());
+            }
+        } catch (RuntimeException screenshotFailure) {
+            if (result.failure() != null && result.failure().cause() != null) {
+                result.failure().cause().addSuppressed(screenshotFailure);
+            }
         }
     }
 
@@ -388,6 +423,35 @@ public final class JsOverlayDebug {
         try {
             logger.emit(entry);
         } catch (Exception ignored) {}
+    }
+
+    private void emitScreenshotCaptureStarted(String name, ScreenshotCaptureOptions options) {
+        emit(UiTestLensLogEntry.builder()
+                .level(UiTestLensLogLevel.INFO)
+                .eventType(UiTestLensEventType.SCREENSHOT_CAPTURE_STARTED)
+                .status(UiTestLensStatus.STARTED)
+                .message("Screenshot capture started")
+                .action("screenshot.capture")
+                .metadata("name", safeString(name))
+                .metadata("outputDirectory", options == null ? "" : options.outputDirectory().toString())
+                .build());
+    }
+
+    private void emitScreenshotCaptureFinished(ScreenshotCaptureResult result) {
+        if (result == null) {
+            return;
+        }
+        boolean captured = result.status() == ScreenshotCaptureStatus.CAPTURED;
+        emit(UiTestLensLogEntry.builder()
+                .level(captured ? UiTestLensLogLevel.INFO : UiTestLensLogLevel.ERROR)
+                .eventType(captured ? UiTestLensEventType.SCREENSHOT_CAPTURE_PASSED : UiTestLensEventType.SCREENSHOT_CAPTURE_FAILED)
+                .status(captured ? UiTestLensStatus.PASSED : UiTestLensStatus.FAILED)
+                .message(result.message())
+                .action("screenshot.capture")
+                .metadata("name", result.name())
+                .metadata("path", result.path() == null ? "" : result.path().toString())
+                .throwable(result.exception())
+                .build());
     }
 
     private static UiTestLensLogLevel toLogLevel(String level) {

@@ -250,7 +250,7 @@ The DSL should remain test-framework-neutral. JUnit/TestNG adapters can be added
 
 Trace and evidence features should make post-failure diagnosis possible without rerunning the test. The trace should connect steps, actions, waits, overlays, assertions, screenshots, logs, and network events.
 
-Initial implementation status: `ui-test-lens-core` now provides a Selenium-free trace/evidence model: `UiTestLensSession`, trace metadata, events, failures, artifact references, manual JSON export, HTML export, and `TraceLogSink`. `ui-test-lens-selenium` can attach/start a session from `JsOverlayDebug`, records step events into the session, exposes artifact attachment helpers, and delegates HTML export to the attached session. This is not yet screenshot capture or video recording.
+Initial implementation status: `ui-test-lens-core` now provides a Selenium-free trace/evidence model: `UiTestLensSession`, trace metadata, events, failures, artifact references, manual JSON export, HTML export, and `TraceLogSink`. `ui-test-lens-selenium` can attach/start a session from `JsOverlayDebug`, records step events into the session, exposes artifact attachment helpers, delegates HTML export to the attached session, and can capture Selenium screenshots as evidence artifacts. This is not yet video recording.
 
 ### 4.1 HTML trace report
 
@@ -292,6 +292,8 @@ Screenshot evidence should support:
 - attaching screenshot path to trace event.
 
 The Selenium implementation should use `TakesScreenshot`. Screenshot capture should be opt-in or policy-driven to control report size.
+
+Initial implementation status: `ui-test-lens-selenium` now provides `ScreenshotCapture`, capture options/results/status, filesystem-safe evidence paths, `JsOverlayDebug.captureScreenshot(...)`, and opt-in `UiStepOptions.captureScreenshotOnFailure(...)`. Captured screenshots are written to `target/ui-test-lens/screenshots` by default and attached to the active trace session when present.
 
 ### 4.3 Optional video support
 

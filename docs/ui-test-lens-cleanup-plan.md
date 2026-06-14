@@ -499,7 +499,15 @@ Statyczny HTML exporter dla trace/evidence modelu zostal dodany w `ui-test-lens-
 
 `TraceHtmlExportOptions` kontroluje tytul, raw JSON, artifacts, stack traces, attributes, collapse passed events i limit dlugosci wiadomosci. `TraceHtmlEscaper` escapuje wartosci z sesji/eventow/artefaktow, wiec message nie jest wstawiany jako raw HTML.
 
-`UiTestLensSession` ma convenience `exportHtml(...)`, a `JsOverlayDebug` deleguje `exportTraceHtml(...)` do podpietej sesji. Screenshoty i video sa nadal tylko sciezkami/linkami w artifacts; capture Selenium `TakesScreenshot` i video recording zostaja na kolejne etapy.
+`UiTestLensSession` ma convenience `exportHtml(...)`, a `JsOverlayDebug` deleguje `exportTraceHtml(...)` do podpietej sesji. Screenshoty i video sa pokazywane w raporcie jako sciezki/linki w artifacts; HTML exporter nie embeduje binariow. Video recording zostaje na kolejne etapy.
+
+## Screenshot evidence capture
+
+Screenshot capture zostal dodany po stronie `ui-test-lens-selenium`. `ScreenshotCapture` uzywa Selenium `TakesScreenshot`, zapisuje PNG do domyslnego katalogu `target/ui-test-lens/screenshots` i attachuje wynik do aktywnej `UiTestLensSession` jako `TraceArtifactType.SCREENSHOT`, jesli sesja istnieje i opcje tego nie wylaczaja.
+
+`ScreenshotCaptureOptions` kontroluje katalog output, prefix nazwy pliku, timestamp, nadpisywanie i attach do sesji. `EvidencePathStrategy` generuje nazwy bezpieczne dla Windows/Linux. `JsOverlayDebug.captureScreenshot(...)` jest publicznym entrypointem.
+
+`UiStepOptions.captureScreenshotOnFailure(true)` wlacza screenshot dla nieudanego kroku; domyslnie jest `false`, zeby nie zmieniac istniejacego zachowania ani nie produkowac plikow bez zgody uzytkownika. Video recording nadal nie jest implementowany.
 
 ## Preferowany styl nazw klas Java
 

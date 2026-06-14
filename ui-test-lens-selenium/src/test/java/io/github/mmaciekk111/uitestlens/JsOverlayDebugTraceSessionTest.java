@@ -4,11 +4,20 @@ import io.github.mmaciekk111.uitestlens.core.trace.TraceArtifact;
 import io.github.mmaciekk111.uitestlens.core.trace.TraceArtifactType;
 import io.github.mmaciekk111.uitestlens.core.trace.TraceEventType;
 import io.github.mmaciekk111.uitestlens.core.trace.UiTestLensSession;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureOptions;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureResult;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureStatus;
+import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepOptions;
+import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepResult;
+import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 
+import java.io.File;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,6 +89,47 @@ class JsOverlayDebugTraceSessionTest {
         assertTrue(Files.readString(report).contains("Checkout flow"));
     }
 
+    @Test
+    void captureScreenshotWritesFileAndAttachesToSession() throws Exception {
+        Path source = tempDir.resolve("source.png");
+        Files.writeString(source, "png");
+        JsOverlayDebug overlay = new JsOverlayDebug(fakeScreenshotDriver(source));
+        UiTestLensSession session = overlay.startSession("Checkout flow");
+
+        ScreenshotCaptureResult result = overlay.captureScreenshot("After save", ScreenshotCaptureOptions.builder()
+                .outputDirectory(tempDir.resolve("screens"))
+                .includeTimestamp(false)
+                .build());
+
+        assertEquals(ScreenshotCaptureStatus.CAPTURED, result.status());
+        assertTrue(Files.exists(result.path()));
+        assertEquals(1, session.artifacts().size());
+    }
+
+    @Test
+    void failedStepCanCaptureScreenshotWhenEnabled() throws Exception {
+        Path source = tempDir.resolve("source.png");
+        Files.writeString(source, "png");
+        JsOverlayDebug overlay = new JsOverlayDebug(fakeScreenshotDriver(source));
+        UiTestLensSession session = overlay.startSession("Checkout flow");
+        UiStepOptions options = UiStepOptions.builder()
+                .failFast(false)
+                .captureScreenshotOnFailure(true)
+                .screenshotCaptureOptions(ScreenshotCaptureOptions.builder()
+                        .outputDirectory(tempDir.resolve("failed"))
+                        .includeTimestamp(false)
+                        .build())
+                .build();
+
+        UiStepResult result = overlay.step("Verify order summary", options, () -> {
+            throw new AssertionError("bad total");
+        });
+
+        assertEquals(UiStepStatus.FAILED, result.status());
+        assertEquals(1, session.artifacts().size());
+        assertTrue(Files.exists(Path.of(session.artifacts().get(0).path())));
+    }
+
     private static WebDriver fakeDriver() {
         return (WebDriver) Proxy.newProxyInstance(
                 JsOverlayDebugTraceSessionTest.class.getClassLoader(),
@@ -90,6 +140,40 @@ class JsOverlayDebugTraceSessionTest {
                     }
                     if ("toString".equals(method.getName())) {
                         return "fake-driver";
+                    }
+                    Class<?> returnType = method.getReturnType();
+                    if (returnType == boolean.class) {
+                        return false;
+                    }
+                    if (returnType == int.class || returnType == long.class || returnType == short.class || returnType == byte.class) {
+                        return 0;
+                    }
+                    if (returnType == double.class || returnType == float.class) {
+                        return 0.0;
+                    }
+                    if (returnType == char.class) {
+                        return '\0';
+                    }
+                    return null;
+                }
+        );
+    }
+
+    private static WebDriver fakeScreenshotDriver(Path source) {
+        return (WebDriver) Proxy.newProxyInstance(
+                JsOverlayDebugTraceSessionTest.class.getClassLoader(),
+                new Class<?>[]{WebDriver.class, JavascriptExecutor.class, TakesScreenshot.class},
+                (proxy, method, args) -> {
+                    if ("getScreenshotAs".equals(method.getName())) {
+                        @SuppressWarnings("unchecked")
+                        OutputType<File> outputType = (OutputType<File>) args[0];
+                        return outputType.convertFromPngBytes(Files.readAllBytes(source));
+                    }
+                    if ("executeScript".equals(method.getName()) || "executeAsyncScript".equals(method.getName())) {
+                        return null;
+                    }
+                    if ("toString".equals(method.getName())) {
+                        return "fake-screenshot-driver";
                     }
                     Class<?> returnType = method.getReturnType();
                     if (returnType == boolean.class) {

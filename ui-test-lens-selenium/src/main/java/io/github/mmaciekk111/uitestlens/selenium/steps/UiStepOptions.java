@@ -1,10 +1,14 @@
 package io.github.mmaciekk111.uitestlens.selenium.steps;
 
+import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureOptions;
+
 public final class UiStepOptions {
     private final boolean failFast;
     private final boolean logToHud;
     private final boolean captureNestedEvents;
     private final boolean includeStackTrace;
+    private final boolean captureScreenshotOnFailure;
+    private final ScreenshotCaptureOptions screenshotCaptureOptions;
     private final int messagePreviewLimit;
 
     private UiStepOptions(Builder builder) {
@@ -12,6 +16,10 @@ public final class UiStepOptions {
         this.logToHud = builder.logToHud;
         this.captureNestedEvents = builder.captureNestedEvents;
         this.includeStackTrace = builder.includeStackTrace;
+        this.captureScreenshotOnFailure = builder.captureScreenshotOnFailure;
+        this.screenshotCaptureOptions = builder.screenshotCaptureOptions == null
+                ? ScreenshotCaptureOptions.defaults()
+                : builder.screenshotCaptureOptions;
         if (builder.messagePreviewLimit < 0) {
             throw new IllegalArgumentException("messagePreviewLimit must not be negative");
         }
@@ -42,6 +50,14 @@ public final class UiStepOptions {
         return includeStackTrace;
     }
 
+    public boolean captureScreenshotOnFailure() {
+        return captureScreenshotOnFailure;
+    }
+
+    public ScreenshotCaptureOptions screenshotCaptureOptions() {
+        return screenshotCaptureOptions;
+    }
+
     public int messagePreviewLimit() {
         return messagePreviewLimit;
     }
@@ -51,6 +67,8 @@ public final class UiStepOptions {
         private boolean logToHud = true;
         private boolean captureNestedEvents = true;
         private boolean includeStackTrace = false;
+        private boolean captureScreenshotOnFailure = false;
+        private ScreenshotCaptureOptions screenshotCaptureOptions = ScreenshotCaptureOptions.defaults();
         private int messagePreviewLimit = 500;
 
         private Builder() {
@@ -73,6 +91,16 @@ public final class UiStepOptions {
 
         public Builder includeStackTrace(boolean includeStackTrace) {
             this.includeStackTrace = includeStackTrace;
+            return this;
+        }
+
+        public Builder captureScreenshotOnFailure(boolean captureScreenshotOnFailure) {
+            this.captureScreenshotOnFailure = captureScreenshotOnFailure;
+            return this;
+        }
+
+        public Builder screenshotCaptureOptions(ScreenshotCaptureOptions screenshotCaptureOptions) {
+            this.screenshotCaptureOptions = screenshotCaptureOptions;
             return this;
         }
 

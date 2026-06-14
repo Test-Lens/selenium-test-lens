@@ -33,6 +33,8 @@ The Selenium module owns the retryable locator API: `UiLocator`, `UiLocatorOptio
 
 The Selenium module integrates with the trace/evidence model through `JsOverlayDebug.startSession(...)`, `attachSession(...)`, `session()`, artifact attachment helpers, and HTML export delegates. The current integration records step DSL events into the session. Mapping every action/assertion event into richer trace output remains a later reporting improvement.
 
+The Selenium module also owns screenshot evidence capture. `ScreenshotCapture` uses Selenium `TakesScreenshot`, writes PNG files under `target/ui-test-lens/screenshots` by default, and attaches screenshot artifacts to `UiTestLensSession` when available. Failed-step screenshot capture is opt-in through `UiStepOptions`.
+
 `ui-test-lens-react` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium, and JUnit in test scope. This direction keeps the base Selenium module independent from React helpers.
 
 The React module owns React-aware actionability checks: `ReactActionabilityChecker`, options/report models, React readiness result/failure enums, and React-only JS snippets for aria/data/loading/spinner/skeleton/dialog/focus-lock signals. This layer uses the public Selenium actionability contract and does not introduce a reverse dependency from Selenium to React.
@@ -123,8 +125,8 @@ Dependency tree checks:
 ## Next recommended steps
 
 1. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
-2. Add Selenium screenshot capture policy and attach captured paths to trace events.
-3. Improve trace event mapping for locator/assertion/actionability events.
+2. Improve trace event mapping for locator/assertion/actionability events.
+3. Add screenshot capture policies for before/after action or per-step capture if needed.
 4. Add richer locator factories such as getByRole/getByLabel/getByText.
 5. Add Maven Wrapper.
 6. Add publication metadata once the public API is ready.
