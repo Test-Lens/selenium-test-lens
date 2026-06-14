@@ -117,9 +117,9 @@ Current limitation: trace event mapping is now automatic for logger events, but 
 
 `TraceHtmlExporter`, `TraceHtmlExportOptions`, and `TraceHtmlEscaper` generate a self-contained HTML report from `UiTestLensSession`.
 
-Convenience APIs include `UiTestLensSession.exportHtml(...)` and `JsOverlayDebug.exportTraceHtml(...)`. The report shows session metadata, events, failures, artifacts, and optional raw JSON.
+Convenience APIs include `UiTestLensSession.exportHtml(...)` and `JsOverlayDebug.exportTraceHtml(...)`. The report shows session metadata, summary cards, event type summary, categorized timeline events, failure summary, artifact preview/list, and optional raw JSON.
 
-Current limitation: the report is intentionally simple and static. It is not a full interactive trace viewer.
+Current limitation: the report is intentionally static. It is not a full interactive trace viewer.
 
 ### 5.13 Screenshot evidence capture
 

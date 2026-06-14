@@ -7,6 +7,12 @@ public final class TraceHtmlExportOptions {
     private final boolean includeStackTraces;
     private final boolean includeAttributes;
     private final boolean collapsePassedEvents;
+    private final boolean groupTimelineByCategory;
+    private final boolean includeEventTypeSummary;
+    private final boolean includeFailureSummary;
+    private final boolean includeArtifactPreview;
+    private final boolean includeDurationSummary;
+    private final boolean compactTimeline;
     private final int maxMessageLength;
 
     private TraceHtmlExportOptions(Builder builder) {
@@ -16,6 +22,12 @@ public final class TraceHtmlExportOptions {
         this.includeStackTraces = builder.includeStackTraces;
         this.includeAttributes = builder.includeAttributes;
         this.collapsePassedEvents = builder.collapsePassedEvents;
+        this.groupTimelineByCategory = builder.groupTimelineByCategory;
+        this.includeEventTypeSummary = builder.includeEventTypeSummary;
+        this.includeFailureSummary = builder.includeFailureSummary;
+        this.includeArtifactPreview = builder.includeArtifactPreview;
+        this.includeDurationSummary = builder.includeDurationSummary;
+        this.compactTimeline = builder.compactTimeline;
         if (builder.maxMessageLength < 0) {
             throw new IllegalArgumentException("maxMessageLength must not be negative");
         }
@@ -54,6 +66,30 @@ public final class TraceHtmlExportOptions {
         return collapsePassedEvents;
     }
 
+    public boolean groupTimelineByCategory() {
+        return groupTimelineByCategory;
+    }
+
+    public boolean includeEventTypeSummary() {
+        return includeEventTypeSummary;
+    }
+
+    public boolean includeFailureSummary() {
+        return includeFailureSummary;
+    }
+
+    public boolean includeArtifactPreview() {
+        return includeArtifactPreview;
+    }
+
+    public boolean includeDurationSummary() {
+        return includeDurationSummary;
+    }
+
+    public boolean compactTimeline() {
+        return compactTimeline;
+    }
+
     public int maxMessageLength() {
         return maxMessageLength;
     }
@@ -65,6 +101,12 @@ public final class TraceHtmlExportOptions {
         private boolean includeStackTraces = false;
         private boolean includeAttributes = true;
         private boolean collapsePassedEvents = false;
+        private boolean groupTimelineByCategory = true;
+        private boolean includeEventTypeSummary = true;
+        private boolean includeFailureSummary = true;
+        private boolean includeArtifactPreview = true;
+        private boolean includeDurationSummary = true;
+        private boolean compactTimeline = false;
         private int maxMessageLength = 1000;
 
         private Builder() {
@@ -97,6 +139,36 @@ public final class TraceHtmlExportOptions {
 
         public Builder collapsePassedEvents(boolean collapsePassedEvents) {
             this.collapsePassedEvents = collapsePassedEvents;
+            return this;
+        }
+
+        public Builder groupTimelineByCategory(boolean groupTimelineByCategory) {
+            this.groupTimelineByCategory = groupTimelineByCategory;
+            return this;
+        }
+
+        public Builder includeEventTypeSummary(boolean includeEventTypeSummary) {
+            this.includeEventTypeSummary = includeEventTypeSummary;
+            return this;
+        }
+
+        public Builder includeFailureSummary(boolean includeFailureSummary) {
+            this.includeFailureSummary = includeFailureSummary;
+            return this;
+        }
+
+        public Builder includeArtifactPreview(boolean includeArtifactPreview) {
+            this.includeArtifactPreview = includeArtifactPreview;
+            return this;
+        }
+
+        public Builder includeDurationSummary(boolean includeDurationSummary) {
+            this.includeDurationSummary = includeDurationSummary;
+            return this;
+        }
+
+        public Builder compactTimeline(boolean compactTimeline) {
+            this.compactTimeline = compactTimeline;
             return this;
         }
 

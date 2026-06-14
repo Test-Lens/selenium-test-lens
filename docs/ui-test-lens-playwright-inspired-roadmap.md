@@ -290,7 +290,11 @@ session.exportHtml(Path.of("target/ui-test-lens/session.html"));
 
 The first report should be static HTML generated from structured events. It should not require a server or frontend build tool.
 
-Initial implementation status: `TraceHtmlExporter` now generates a self-contained HTML string/report from `UiTestLensSession`. It includes metadata, status, summary cards, timeline, step events, failures, artifacts, and optional raw JSON. It is intentionally simple and not yet a full interactive trace viewer.
+Initial implementation status: `TraceHtmlExporter` now generates a self-contained HTML string/report from `UiTestLensSession`. It includes metadata, status, summary cards, event type summary, categorized timeline groups, failure summary, artifact preview/list, and optional raw JSON. It is intentionally static and not yet a full interactive trace viewer.
+
+### 4.1.1 HTML trace timeline polish
+
+The report groups mapped timeline events into session, steps, locators, actions, actionability, assertions, business, overlays, evidence, network, and other categories. `TraceHtmlExportOptions` controls event type summary, failure summary, artifact preview, duration summary, attributes, raw JSON, stack traces, and compact timeline rendering.
 
 ### 4.2 Screenshots
 

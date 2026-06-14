@@ -521,7 +521,13 @@ Step DSL uzywa loggera jako jednego zrodla prawdy, wiec reczne `session.addEvent
 
 Statyczny HTML exporter dla trace/evidence modelu zostal dodany w `ui-test-lens-core`. `TraceHtmlExporter` generuje samowystarczalny HTML string albo zapisuje raport do `Path` przez JDK `Files.writeString(...)`. Raport zawiera metadata sesji, final status, summary cards, timeline events, step events, failures, artifacts oraz opcjonalny raw JSON.
 
-`TraceHtmlExportOptions` kontroluje tytul, raw JSON, artifacts, stack traces, attributes, collapse passed events i limit dlugosci wiadomosci. `TraceHtmlEscaper` escapuje wartosci z sesji/eventow/artefaktow, wiec message nie jest wstawiany jako raw HTML.
+`TraceHtmlExportOptions` kontroluje tytul, raw JSON, artifacts, stack traces, attributes, collapse passed events, event type summary, failure summary, artifact preview, duration summary, compact timeline i limit dlugosci wiadomosci. `TraceHtmlEscaper` escapuje wartosci z sesji/eventow/artefaktow, wiec message nie jest wstawiany jako raw HTML.
+
+## HTML trace timeline polish
+
+HTML trace report pokazuje summary cards, event type summary, failure summary, kategoryzowany timeline oraz artifact preview/list. Kategorie obejmuja session, steps, locators, actions, actionability, assertions, business, overlays, evidence, network i other events. Raw JSON pozostaje opcjonalny.
+
+Raport nadal jest samowystarczalnym statycznym HTML z inline CSS, a nie pelnym interaktywnym trace viewerem.
 
 `UiTestLensSession` ma convenience `exportHtml(...)`, a `JsOverlayDebug` deleguje `exportTraceHtml(...)` do podpietej sesji. Screenshoty i video sa pokazywane w raporcie jako sciezki/linki w artifacts; HTML exporter nie embeduje binariow. Video recording zostaje na kolejne etapy.
 

@@ -402,6 +402,12 @@ Path report = overlay.exportTraceHtml(Path.of("target/ui-test-lens/checkout-flow
 
 The exporter lives in `ui-test-lens-core` and has no Selenium dependency. `UiTestLensSession` exposes `exportHtml(...)` convenience methods, while `JsOverlayDebug` delegates to the attached session. Screenshot and video artifacts are shown as paths/links; the exporter does not embed binary files and does not capture screenshots or record video.
 
+## HTML Trace Timeline Polish
+
+The HTML trace report renders the mapped trace timeline with summary cards, event type summary, failure summary, categorized timeline groups, and artifact preview cards. Event categories include session, steps, locators, actions, actionability, assertions, business checks, overlays, evidence, network, and other events.
+
+`TraceHtmlExportOptions` can hide the event type summary, failure summary, artifact preview, raw JSON, stack traces, attributes, or switch the timeline to compact rendering. The report remains self-contained static HTML with inline CSS, not a full interactive trace viewer.
+
 ## Screenshot Evidence Capture
 
 The Selenium module can capture screenshots through Selenium `TakesScreenshot`, write them to `target/ui-test-lens/screenshots`, and attach them to the active `UiTestLensSession` as `TraceArtifactType.SCREENSHOT`.

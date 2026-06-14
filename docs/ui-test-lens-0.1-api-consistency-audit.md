@@ -151,7 +151,7 @@ README and examples use the current public API shape:
 - Network docs describe `MANUAL` as implemented, `AUTO` as fallback, and `PERFORMANCE_LOGS`/`BIDI` as modeled/unsupported.
 - Video docs describe attachments only and do not promise recording or provider download.
 - Auth docs warn that state files can contain cookies/tokens and do not promise encryption.
-- Trace docs describe the HTML report as static, not a full interactive trace viewer.
+- Trace docs describe the polished HTML timeline as categorized static HTML, not a full interactive trace viewer.
 - Locator docs describe `getByRole`, `getByLabel`, `getByPlaceholder`, and `getByText` as pragmatic initial helpers, not a complete Playwright locator or ARIA engine.
 
 Examples:
@@ -203,14 +203,14 @@ Safety scan results:
 
 - Treat the first Playwright-style locator helpers as pragmatic APIs and harden their documented matching semantics before expanding them.
 - Add richer parent/child trace grouping and evidence correlation now that logger events are forwarded into `UiTestLensSession`.
-- Improve HTML trace UX.
+- Continue improving HTML trace UX only within the static report scope unless a separate viewer is introduced.
 - Add optional real browser network capture providers behind guarded support.
 - Add provider-specific artifact discovery/download only if it remains optional.
 - Add Maven Wrapper and publishing metadata when API naming is stable.
 
 ## Recommended follow-up tasks
 
-1. Polish HTML trace UX.
+1. Continue polishing HTML trace UX within the static report scope.
 2. Add richer parent/child trace grouping and evidence correlation.
 3. Expand Playwright-style locator helpers only after documenting exact matching semantics.
 4. Add a real browser network capture provider behind optional/guarded support.

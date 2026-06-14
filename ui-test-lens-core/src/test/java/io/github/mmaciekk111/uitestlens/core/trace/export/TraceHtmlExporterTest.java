@@ -33,6 +33,8 @@ class TraceHtmlExporterTest {
         assertTrue(html.contains("save.png"));
         assertTrue(html.contains("https://ci.example.com/video.mp4"));
         assertTrue(html.contains("Assertion failed"));
+        assertTrue(html.contains("Event type summary"));
+        assertTrue(html.contains("Failure summary"));
         assertTrue(html.contains("Raw JSON"));
     }
 
@@ -77,6 +79,69 @@ class TraceHtmlExporterTest {
 
         assertFalse(html.contains("<script>alert"));
         assertTrue(html.contains("&lt;script&gt;alert(&#39;x&#39;)&lt;/script&gt;"));
+    }
+
+    @Test
+    void reportContainsCategorizedTimelineAndAttributesDetails() {
+        UiTestLensSession session = UiTestLensSession.start("Checkout flow");
+        session.addEvent(TraceEvent.builder(TraceEventType.LOCATOR_RESOLVE, TraceStatus.PASSED, "Resolve save")
+                .message("resolved")
+                .attribute("selector", "[data-testid='save']")
+                .build());
+        session.addEvent(TraceEvent.builder(TraceEventType.NETWORK_WAIT, TraceStatus.FAILED, "Wait order")
+                .message("timeout")
+                .build());
+
+        String html = new TraceHtmlExporter().export(session);
+
+        assertTrue(html.contains("Locators"));
+        assertTrue(html.contains("Network"));
+        assertTrue(html.contains("<details class=\"details\"><summary>Attributes</summary>"));
+        assertTrue(html.contains("selector"));
+    }
+
+    @Test
+    void optionsCanHideEventAndFailureSummaries() {
+        UiTestLensSession session = sampleSession();
+
+        String html = new TraceHtmlExporter().export(session, TraceHtmlExportOptions.builder()
+                .includeEventTypeSummary(false)
+                .includeFailureSummary(false)
+                .build());
+
+        assertFalse(html.contains("Event type summary"));
+        assertFalse(html.contains("Failure summary"));
+    }
+
+    @Test
+    void artifactPreviewShowsBadgesForScreenshotVideoAndNetworkLog() {
+        UiTestLensSession session = UiTestLensSession.start("Checkout flow");
+        session.attachScreenshot("Save form", Path.of("target/screenshots/save.png"));
+        session.attachArtifact(TraceArtifact.url("Video", io.github.mmaciekk111.uitestlens.core.trace.TraceArtifactType.VIDEO, "https://ci.example.com/video.mp4"));
+        session.attachArtifact(TraceArtifact.networkLog("Network", Path.of("target", "network.json")));
+
+        String html = new TraceHtmlExporter().export(session);
+
+        assertTrue(html.contains("artifact-screenshot"));
+        assertTrue(html.contains("artifact-video"));
+        assertTrue(html.contains("artifact-network_log"));
+        assertTrue(html.contains("network.json"));
+    }
+
+    @Test
+    void compactTimelineHidesAttributeDetailsAndShortensMessage() {
+        UiTestLensSession session = UiTestLensSession.start("Checkout flow");
+        session.addEvent(TraceEvent.builder(TraceEventType.ACTION_STARTED, TraceStatus.STARTED, "Long action")
+                .message("x".repeat(300))
+                .attribute("selector", "save")
+                .build());
+
+        String html = new TraceHtmlExporter().export(session, TraceHtmlExportOptions.builder()
+                .compactTimeline(true)
+                .build());
+
+        assertFalse(html.contains("<summary>Attributes</summary>"));
+        assertTrue(html.contains("x".repeat(160) + "..."));
     }
 
     @Test
