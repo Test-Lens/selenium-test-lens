@@ -30,9 +30,22 @@ This roadmap tracks follow-up work after the 0.1 feature consolidation.
 ## Packaging and release readiness
 
 1. Decide final public groupId/artifact naming.
-2. Prepare Maven Central publishing configuration when the API is stable enough.
-3. Revisit Maven Wrapper once the local environment can generate it reliably.
-4. Add a compact API migration note for any final pre-1.0 renames.
+2. Revisit Maven Wrapper once the local environment can generate it reliably.
+3. Add a compact API migration note for any final pre-1.0 renames.
+
+## Maven Central release checklist
+
+The `central-release` Maven profile is configured for release-time source jars, Javadoc jars, GPG signing and Central Portal deployment. It is inactive by default and does not include credentials.
+
+Before publishing:
+
+1. Choose and tag a non-SNAPSHOT release version.
+2. Configure a GPG key locally or in CI.
+3. Configure Central Portal credentials in Maven `settings.xml` or CI secrets for server id `central`, or override `central.publishing.serverId`.
+4. Run a verification build such as `mvn -Pcentral-release -DskipTests verify` in the release environment.
+5. Deploy only when the staged release contents have been reviewed.
+
+Do not store Central Portal tokens, signing keys or passphrases in this repository.
 
 ## Possible future modules
 
