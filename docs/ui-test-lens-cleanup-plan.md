@@ -385,6 +385,25 @@ Przeniesienie do resource powinno nastapic dopiero po udokumentowaniu semantyki 
 Heurystyki pozostaja inline w Javie jako Selenium helper snippets.
 Pelne wydzielenie do resource lub osobnego modulu powinno nastapic dopiero po skonsolidowaniu `PopupDetector` i `BlockingOverlayHelper` oraz opisaniu polityki selektorow/keywordow.
 
+## Module split planning
+
+Powstal precyzyjny plan pierwszego multi-module splitu:
+
+```text
+docs/ui-test-lens-module-split-plan.md
+```
+
+Plan nie przenosi jeszcze plikow i nie tworzy parent POM. Dokumentuje proponowany pierwszy uklad:
+
+- `ui-test-lens-parent`,
+- `ui-test-lens-core`,
+- `ui-test-lens-overlay`,
+- `ui-test-lens-selenium`,
+- `ui-test-lens-react`,
+- `ui-test-lens-examples`.
+
+Najwazniejszy blocker przed faktycznym splitem to brak stabilnej abstrakcji wykonywania skryptow w przegladarce. Rekomendowany pierwszy commit implementacyjny po audycie to wprowadzenie `BrowserScriptExecutor`, dopiero potem przenoszenie klas do modulow.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:

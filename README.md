@@ -220,6 +220,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - Type hints may still display the typed value in the browser overlay; value masking is planned for a later stage.
 - Main known runtime JavaScript resources now cover API overlay, Wait HUD, Highlight, Type hint, Scroll arrow, HUD panel, and Assertion badges.
 - Runtime JavaScript audit: [`docs/ui-test-lens-runtime-js-audit.md`](docs/ui-test-lens-runtime-js-audit.md).
+- Module split plan: [`docs/ui-test-lens-module-split-plan.md`](docs/ui-test-lens-module-split-plan.md).
 - API is not final.
 - No multi-module split yet.
 - No Maven Central publication yet.
@@ -230,12 +231,13 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 ## Roadmap
 
 1. Use the runtime JS audit to review remaining small inline JavaScript snippets and decide which should become runtime resources.
-2. Split into `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`.
-3. Selenium `WebDriverListener` adapter.
-4. Selenide adapter.
-5. Allure/TeamCity exporters and adapters.
-6. HTML report improvements.
-7. Maven publication.
+2. Introduce a `BrowserScriptExecutor` abstraction before moving files.
+3. Split into `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`, and `ui-test-lens-examples`.
+4. Selenium `WebDriverListener` adapter.
+5. Selenide adapter.
+6. Allure/TeamCity exporters and adapters.
+7. HTML report improvements.
+8. Maven publication.
 
 ## Development
 

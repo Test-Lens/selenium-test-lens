@@ -1,5 +1,26 @@
 # Plan modularyzacji `ui-test-lens`
 
+## Aktualny precyzyjny plan splitu
+
+Szczegolowy plan pierwszego splitu single-module na Maven multi-module znajduje sie w:
+
+```text
+docs/ui-test-lens-module-split-plan.md
+```
+
+Ten dokument pozostaje historycznym/szerszym planem modularyzacji. Dla najblizszego splitu priorytetowy zakres to:
+
+```text
+ui-test-lens-parent
+├── ui-test-lens-core
+├── ui-test-lens-overlay
+├── ui-test-lens-selenium
+├── ui-test-lens-react
+└── ui-test-lens-examples
+```
+
+Pierwszy commit implementacyjny po audycie powinien wprowadzic abstrakcje `BrowserScriptExecutor`, bo obecne overlay bridge i czesc klas core nadal sa zwiazane z Selenium `JavascriptExecutor`.
+
 ## 1. Obecny projekt
 
 Projekt jest biblioteką pomocniczą dla testów Selenium. Główna idea to wykonywanie JavaScriptu na testowanej stronie przez `JavascriptExecutor`, aby dodać warstwę debug UI: shadow-root overlay, HUD z informacją o teście i kroku, ramki/highlighty elementów, dymki przy wpisywaniu, wizualizację waitów, modal dla wywołań API oraz helpery do bardziej odpornych akcji w aplikacjach SPA/React.
