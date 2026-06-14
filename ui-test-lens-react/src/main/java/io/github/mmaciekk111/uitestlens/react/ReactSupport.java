@@ -2,6 +2,9 @@ package io.github.mmaciekk111.uitestlens.react;
 
 import io.github.mmaciekk111.uitestlens.JsOverlayDebug;
 import io.github.mmaciekk111.uitestlens.OverlayConfig;
+import io.github.mmaciekk111.uitestlens.react.actionability.ReactActionabilityChecker;
+import io.github.mmaciekk111.uitestlens.react.actionability.ReactActionabilityOptions;
+import io.github.mmaciekk111.uitestlens.react.actionability.ReactActionabilityReport;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
@@ -44,7 +47,22 @@ public final class ReactSupport {
         };
     }
 
+    public static ReactActionabilityChecker actionability(JsOverlayDebug overlay) {
+        return new ReactActionabilityChecker(overlay);
+    }
+
+    public static ReactActionabilityReport checkActionability(JsOverlayDebug overlay,
+                                                              By locator,
+                                                              ReactActionabilityOptions options) {
+        return actionability(overlay).check(locator, options);
+    }
+
     public static void smartClick(JsOverlayDebug overlay, By locator, String label) {
+        try {
+            checkActionability(overlay, locator, ReactActionabilityOptions.defaults());
+        } catch (RuntimeException ignored) {
+            // React actionability is diagnostic at this layer; ReactSafeExecutor still owns retry behavior.
+        }
         ReactSafeExecutor reactSafe = reactSafe(overlay);
         reactSafe.doWithRetry(
                 locator,

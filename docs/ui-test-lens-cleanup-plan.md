@@ -445,7 +445,13 @@ Polityka rozroznia overlaye opcjonalne i fatalne. `OverlayAction.fail(...)` prze
 
 Drugi punkt roadmapy Playwright-inspired reliability zostal zaimplementowany po stronie `ui-test-lens-selenium`. Dodano `ActionabilityChecker`, `ActionabilityOptions`, `ActionabilityReport`, enumy statusow i powodow porazki oraz male Selenium-only skrypty do `getBoundingClientRect()`, `scrollIntoView(...)` i `document.elementFromPoint(...)`.
 
-Pierwszy zakres checkow obejmuje: attached, visible, enabled, stable bounding box, scroll into viewport, click point receiving/not covered oraz konfiguracje `OverlayPolicyExecutor`. `SmartClickActions` uruchamia checker jako best-effort diagnostyke przed dotychczasowym click flow, bez usuwania legacy fallbackow. Kolejny etap powinien dodac React-aware readiness w module `ui-test-lens-react`.
+Pierwszy zakres checkow obejmuje: attached, visible, enabled, stable bounding box, scroll into viewport, click point receiving/not covered oraz konfiguracje `OverlayPolicyExecutor`. `SmartClickActions` uruchamia checker jako best-effort diagnostyke przed dotychczasowym click flow, bez usuwania legacy fallbackow.
+
+## React-aware actionability checks
+
+Trzeci punkt roadmapy Playwright-inspired reliability zostal zaimplementowany po stronie `ui-test-lens-react`. Dodano `ReactActionabilityChecker`, `ReactActionabilityOptions`, `ReactActionabilityReport`, enumy readiness check/failure oraz male React-only skrypty diagnostyczne.
+
+Warstwa React najpierw uzywa bazowego `JsOverlayDebug.checkActionability(...)`, a potem sprawdza sygnaly typowe dla aplikacji React: `aria-disabled`, `aria-busy`, `data-loading`, `data-pending`, `data-state`, progressbar, spinner/loading indicators, skeleton loaders, focus-lock, dialog/modal oraz custom busy/blocking locatory. `ReactSupport.checkActionability(...)` jest publicznym entrypointem. `ui-test-lens-selenium` nadal nie zalezy od React.
 
 ## Preferowany styl nazw klas Java
 

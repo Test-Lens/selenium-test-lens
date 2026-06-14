@@ -127,6 +127,8 @@ Every retry should emit action logs with attempt number, reason, elapsed time, a
 
 ### 1.4 React-aware readiness
 
+Status: initial React module implementation exists in `ui-test-lens-react`.
+
 React helpers should extend the base actionability checks rather than duplicating Selenium action logic. React-specific handling should cover:
 
 - rerender,
@@ -136,9 +138,13 @@ React helpers should extend the base actionability checks rather than duplicatin
 - `aria-disabled`,
 - `aria-busy`,
 - `data-loading`,
+- `data-pending`,
+- `data-state`,
 - spinners/skeletons.
 
 React-specific logic belongs in `ui-test-lens-react`, not `ui-test-lens-selenium`. The Selenium module should expose neutral extension points; the React module should layer React readiness on top.
+
+The first implementation provides `ReactActionabilityChecker`, `ReactActionabilityOptions`, `ReactActionabilityReport`, React readiness result/failure enums, and `ReactSupport.checkActionability(...)`. It remains diagnostic/best-effort around existing React-safe flows and is not yet the retryable locator API.
 
 ## Epic 2 — Assertions layer
 
@@ -418,7 +424,7 @@ Role labels should appear in trace/session metadata to help diagnose authorizati
 2. Add Selenium actionability checks.
    Initial implementation exists. Continue by hardening logging, public examples, and failure evidence before building a locator API on top.
 3. Add React-aware actionability checks.
-   React should extend the base checks after the Selenium contract is clear. This keeps React-specific behavior out of `ui-test-lens-selenium`.
+   Initial implementation exists in `ui-test-lens-react`. Continue by using it as the readiness layer for future locator/actions without adding a Selenium-to-React dependency.
 4. Add retryable UI locator API.
    Locator APIs should build on actionability so `.click()` and `.type()` inherit stable behavior from the start.
 5. Add retryable web assertions.

@@ -242,7 +242,32 @@ if (!report.isReady()) {
 }
 ```
 
-`SmartClickActions` runs the checker as a best-effort diagnostic before the existing click flow. It preserves legacy fallback behavior and reuses `OverlayPolicyExecutor` for known blocking overlays. React-specific readiness is planned as the next layer in `ui-test-lens-react`.
+`SmartClickActions` runs the checker as a best-effort diagnostic before the existing click flow. It preserves legacy fallback behavior and reuses `OverlayPolicyExecutor` for known blocking overlays.
+
+## React-aware Actionability Checks
+
+The React module extends the Selenium actionability report with React-specific readiness signals. `ReactSupport.checkActionability(...)` first calls the base `JsOverlayDebug.checkActionability(...)`, then checks common React loading/blocking signals such as `aria-disabled`, `aria-busy`, `data-loading`, `data-pending`, `data-state`, progress bars, spinners, skeletons, focus-lock overlays, dialogs, modals, and custom busy/blocking locators.
+
+```java
+ReactActionabilityOptions options = ReactActionabilityOptions.builder()
+        .checkAriaBusy(true)
+        .checkDataLoading(true)
+        .checkSpinner(true)
+        .checkSkeleton(true)
+        .build();
+
+ReactActionabilityReport report = ReactSupport.checkActionability(
+        overlay,
+        By.cssSelector("[data-testid='save']"),
+        options
+);
+
+if (!report.isReady()) {
+    throw new AssertionError(report.summary());
+}
+```
+
+This stays in `ui-test-lens-react`; `ui-test-lens-selenium` still has no dependency on React. It is not a full retryable locator API yet.
 
 ## Logging And Event Bus
 

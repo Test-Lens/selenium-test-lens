@@ -29,6 +29,8 @@ The Selenium module also owns the first actionability layer: `ActionabilityCheck
 
 `ui-test-lens-react` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium, and JUnit in test scope. This direction keeps the base Selenium module independent from React helpers.
 
+The React module owns React-aware actionability checks: `ReactActionabilityChecker`, options/report models, React readiness result/failure enums, and React-only JS snippets for aria/data/loading/spinner/skeleton/dialog/focus-lock signals. This layer uses the public Selenium actionability contract and does not introduce a reverse dependency from Selenium to React.
+
 `ui-test-lens` depends on core, overlay, selenium, and react modules. It is intentionally an aggregate compatibility artifact.
 
 `ui-test-lens-examples` depends on the all-in-one artifact and JUnit. Logging/export examples execute as normal unit tests; Selenium and React examples are disabled documentation-only tests so they compile without launching a browser.
@@ -114,7 +116,7 @@ Dependency tree checks:
 ## Next recommended steps
 
 1. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
-2. Add React-aware readiness checks on top of the Selenium actionability contract.
+2. Use React-aware readiness checks in future retryable locator/action APIs.
 3. Add Maven Wrapper.
 4. Add publication metadata once the public API is ready.
 5. Revisit API stability before the first non-SNAPSHOT release.

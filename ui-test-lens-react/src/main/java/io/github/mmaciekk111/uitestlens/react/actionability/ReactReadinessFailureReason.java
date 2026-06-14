@@ -1,0 +1,17 @@
+package io.github.mmaciekk111.uitestlens.react.actionability;
+
+public enum ReactReadinessFailureReason {
+    ARIA_DISABLED_TRUE,
+    ARIA_BUSY_TRUE,
+    DATA_LOADING_ACTIVE,
+    DATA_PENDING_ACTIVE,
+    PROGRESSBAR_BLOCKING,
+    SPINNER_BLOCKING,
+    SKELETON_BLOCKING,
+    FOCUS_LOCK_BLOCKING,
+    DIALOG_BLOCKING,
+    STALE_NODE,
+    BASE_ACTIONABILITY_NOT_READY,
+    JAVASCRIPT_ERROR,
+    UNKNOWN
+}

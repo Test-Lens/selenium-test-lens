@@ -35,6 +35,7 @@ class ReactSupportTest {
 
         assertNotNull(ReactSupport.overlaySupport(overlay));
         assertNotNull(ReactSupport.reactSafe(overlay));
+        assertNotNull(ReactSupport.actionability(overlay));
     }
 
     private static final class FakeJavascriptWebDriver implements WebDriver, JavascriptExecutor {
