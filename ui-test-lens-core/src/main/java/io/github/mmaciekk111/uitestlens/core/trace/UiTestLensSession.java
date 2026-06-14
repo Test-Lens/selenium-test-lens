@@ -1,5 +1,8 @@
 package io.github.mmaciekk111.uitestlens.core.trace;
 
+import io.github.mmaciekk111.uitestlens.core.trace.export.TraceHtmlExportOptions;
+import io.github.mmaciekk111.uitestlens.core.trace.export.TraceHtmlExporter;
+
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -92,6 +95,22 @@ public final class UiTestLensSession {
 
     public String exportJson() {
         return new TraceJsonExporter().export(this);
+    }
+
+    public String exportHtml() {
+        return new TraceHtmlExporter().export(this);
+    }
+
+    public String exportHtml(TraceHtmlExportOptions options) {
+        return new TraceHtmlExporter().export(this, options);
+    }
+
+    public Path exportHtml(Path outputPath) {
+        return new TraceHtmlExporter().exportTo(this, outputPath);
+    }
+
+    public Path exportHtml(Path outputPath, TraceHtmlExportOptions options) {
+        return new TraceHtmlExporter().exportTo(this, outputPath, options);
     }
 
     private void finish(TraceStatus status, Throwable throwable, String message) {

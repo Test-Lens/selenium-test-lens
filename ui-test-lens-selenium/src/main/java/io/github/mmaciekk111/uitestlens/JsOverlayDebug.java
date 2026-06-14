@@ -26,6 +26,7 @@ import io.github.mmaciekk111.uitestlens.core.trace.TraceEventType;
 import io.github.mmaciekk111.uitestlens.core.trace.TraceFailure;
 import io.github.mmaciekk111.uitestlens.core.trace.TraceStatus;
 import io.github.mmaciekk111.uitestlens.core.trace.UiTestLensSession;
+import io.github.mmaciekk111.uitestlens.core.trace.export.TraceHtmlExportOptions;
 import io.github.mmaciekk111.uitestlens.hud.HudPanel;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollElementEdge;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollViewportEdge;
@@ -241,6 +242,22 @@ public final class JsOverlayDebug {
 
     public TraceArtifact attachArtifact(TraceArtifact artifact) {
         return requireSession().attachArtifact(artifact);
+    }
+
+    public String exportTraceHtml() {
+        return requireSession().exportHtml();
+    }
+
+    public String exportTraceHtml(TraceHtmlExportOptions options) {
+        return requireSession().exportHtml(options);
+    }
+
+    public Path exportTraceHtml(Path outputPath) {
+        return requireSession().exportHtml(outputPath);
+    }
+
+    public Path exportTraceHtml(Path outputPath, TraceHtmlExportOptions options) {
+        return requireSession().exportHtml(outputPath, options);
     }
 
     public UiStepResult step(String name, Runnable body) {

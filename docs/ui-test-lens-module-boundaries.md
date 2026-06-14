@@ -38,7 +38,8 @@ Current artifact usage matrix:
 | `io.github.mmaciekk111.uitestlens.core.browser` | 3 | Mixed across modules | No | `ui-test-lens-core` and selenium | `BrowserScriptExecutor` is in core. `SeleniumBrowserScriptExecutor` and `OverlayBrowserScriptExecutors` live in `ui-test-lens-selenium`; overlay has no Selenium helper. |
 | `io.github.mmaciekk111.uitestlens.core.logging` | 9 | No | No | `ui-test-lens-core` | Moved to `ui-test-lens-core`; event model and sinks are JDK-only. |
 | `io.github.mmaciekk111.uitestlens.core.logging.export` | 5 | No | No | `ui-test-lens-core` | Moved to `ui-test-lens-core`; text, JSON, and HTML exporters are JDK-only. |
-| `io.github.mmaciekk111.uitestlens.core.trace` | 10 | No | No | `ui-test-lens-core` | Neutral trace/evidence model with sessions, events, artifacts, failures, JSON export, and log sink bridge. |
+| `io.github.mmaciekk111.uitestlens.core.trace` | 10 | No | No | `ui-test-lens-core` | Neutral trace/evidence model with sessions, events, artifacts, failures, JSON export, HTML export convenience, and log sink bridge. |
+| `io.github.mmaciekk111.uitestlens.core.trace.export` | 4 | No | No | `ui-test-lens-core` | Self-contained HTML trace report exporter, options, escaper, and section model. |
 | `io.github.mmaciekk111.uitestlens.hud` | 2 | No | Yes | `ui-test-lens-overlay` | Moved to overlay. `HudPanel` uses `BrowserScriptExecutor`; Selenium construction is provided by `SeleniumOverlayFactory`. |
 | `io.github.mmaciekk111.uitestlens.react` | 4+ | Yes | Indirect | `ui-test-lens-react` | React helpers and React-aware actionability depend on Selenium and adapt `JsOverlayDebug` through `ReactSupport`; Selenium does not depend on this module. |
 | `io.github.mmaciekk111.uitestlens.scroll` | 2 | No | No | Core or overlay decision | Neutral scroll edge enums used by Selenium scroll actions and runtime bridge code. |
@@ -95,4 +96,4 @@ Current artifact usage matrix:
 2. Keep Selenium actions, waits, popup heuristics, and the current facade inside the Selenium boundary.
 3. Continue moving bridge callers toward `BrowserScriptExecutor` where this does not change behavior.
 4. Leave API overlay as either an overlay sub-area or a future optional module until ownership is explicit.
-5. Build the HTML trace renderer on top of the core trace/evidence model without moving Selenium dependencies into core.
+5. Add Selenium screenshot capture and richer trace event mapping without moving Selenium dependencies into core.

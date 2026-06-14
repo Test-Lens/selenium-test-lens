@@ -5,10 +5,12 @@ import io.github.mmaciekk111.uitestlens.core.trace.TraceArtifactType;
 import io.github.mmaciekk111.uitestlens.core.trace.TraceEventType;
 import io.github.mmaciekk111.uitestlens.core.trace.UiTestLensSession;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 
 import java.lang.reflect.Proxy;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsOverlayDebugTraceSessionTest {
+    @TempDir
+    Path tempDir;
 
     @Test
     void canAttachAndStartSession() {
@@ -61,6 +65,19 @@ class JsOverlayDebugTraceSessionTest {
 
         assertThrows(IllegalStateException.class,
                 () -> overlay.attachVideo("Video", Path.of("target/videos/test.mp4")));
+    }
+
+    @Test
+    void exportsTraceHtmlWhenSessionIsAttached() throws Exception {
+        JsOverlayDebug overlay = new JsOverlayDebug(fakeDriver());
+        overlay.startSession("Checkout flow");
+        overlay.step("Save form", () -> {});
+
+        String html = overlay.exportTraceHtml();
+        Path report = overlay.exportTraceHtml(tempDir.resolve("trace.html"));
+
+        assertTrue(html.contains("Checkout flow"));
+        assertTrue(Files.readString(report).contains("Checkout flow"));
     }
 
     private static WebDriver fakeDriver() {

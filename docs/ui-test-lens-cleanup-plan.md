@@ -491,7 +491,15 @@ Osmy punkt roadmapy diagnostics zostal zaimplementowany neutralnie w `ui-test-le
 
 Model zapisuje metadata sesji, timeline events, failures oraz referencje do artefaktow: screenshoty, video, HTML, JSON, logi tekstowe/browser/network, custom files i custom URLs. Artefakty sa tylko sciezkami albo URL-ami; biblioteka na tym etapie nie robi Selenium screenshot capture, nie nagrywa video i nie renderuje HTML trace.
 
-Po stronie `ui-test-lens-selenium` `JsOverlayDebug` potrafi `startSession(...)`, `attachSession(...)`, zwrocic `session()`, dodac screenshot/video/custom artifact oraz dopisac zdarzenia step DSL do sesji. Pelne mapowanie akcji, asercji, locatorow i overlay policy na trace oraz statyczny HTML renderer zostaja na kolejne etapy.
+Po stronie `ui-test-lens-selenium` `JsOverlayDebug` potrafi `startSession(...)`, `attachSession(...)`, zwrocic `session()`, dodac screenshot/video/custom artifact oraz dopisac zdarzenia step DSL do sesji. Pelne mapowanie akcji, asercji, locatorow i overlay policy na trace zostaje na kolejne etapy.
+
+## HTML trace report exporter
+
+Statyczny HTML exporter dla trace/evidence modelu zostal dodany w `ui-test-lens-core`. `TraceHtmlExporter` generuje samowystarczalny HTML string albo zapisuje raport do `Path` przez JDK `Files.writeString(...)`. Raport zawiera metadata sesji, final status, summary cards, timeline events, step events, failures, artifacts oraz opcjonalny raw JSON.
+
+`TraceHtmlExportOptions` kontroluje tytul, raw JSON, artifacts, stack traces, attributes, collapse passed events i limit dlugosci wiadomosci. `TraceHtmlEscaper` escapuje wartosci z sesji/eventow/artefaktow, wiec message nie jest wstawiany jako raw HTML.
+
+`UiTestLensSession` ma convenience `exportHtml(...)`, a `JsOverlayDebug` deleguje `exportTraceHtml(...)` do podpietej sesji. Screenshoty i video sa nadal tylko sciezkami/linkami w artifacts; capture Selenium `TakesScreenshot` i video recording zostaja na kolejne etapy.
 
 ## Preferowany styl nazw klas Java
 

@@ -250,7 +250,7 @@ The DSL should remain test-framework-neutral. JUnit/TestNG adapters can be added
 
 Trace and evidence features should make post-failure diagnosis possible without rerunning the test. The trace should connect steps, actions, waits, overlays, assertions, screenshots, logs, and network events.
 
-Initial implementation status: `ui-test-lens-core` now provides a Selenium-free trace/evidence model: `UiTestLensSession`, trace metadata, events, failures, artifact references, a manual JSON exporter, and `TraceLogSink`. `ui-test-lens-selenium` can attach/start a session from `JsOverlayDebug`, records step events into the session, and exposes artifact attachment helpers. This is not yet the HTML renderer, screenshot capture, or video recording layer.
+Initial implementation status: `ui-test-lens-core` now provides a Selenium-free trace/evidence model: `UiTestLensSession`, trace metadata, events, failures, artifact references, manual JSON export, HTML export, and `TraceLogSink`. `ui-test-lens-selenium` can attach/start a session from `JsOverlayDebug`, records step events into the session, exposes artifact attachment helpers, and delegates HTML export to the attached session. This is not yet screenshot capture or video recording.
 
 ### 4.1 HTML trace report
 
@@ -279,6 +279,8 @@ session.exportHtml(Path.of("target/ui-test-lens/session.html"));
 ```
 
 The first report should be static HTML generated from structured events. It should not require a server or frontend build tool.
+
+Initial implementation status: `TraceHtmlExporter` now generates a self-contained HTML string/report from `UiTestLensSession`. It includes metadata, status, summary cards, timeline, step events, failures, artifacts, and optional raw JSON. It is intentionally simple and not yet a full interactive trace viewer.
 
 ### 4.2 Screenshots
 
@@ -453,7 +455,7 @@ Role labels should appear in trace/session metadata to help diagnose authorizati
 6. Add business step DSL.
    Steps become more valuable once actions and assertions produce structured events.
 7. Add HTML trace report.
-   The neutral trace/evidence model now exists. The next report step should render that session JSON/events into a static HTML artifact.
+   Initial static HTML export now exists. Continue by improving event mapping and adding a richer viewer only after the model stabilizes.
 8. Add screenshots as evidence.
    Artifact attachments now exist as paths/URLs. The next screenshot step should add Selenium `TakesScreenshot` capture policy on top.
 9. Add optional video attachments.

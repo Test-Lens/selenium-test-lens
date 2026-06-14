@@ -7,13 +7,17 @@ import java.util.TreeMap;
 public final class TraceJsonExporter {
 
     public String export(UiTestLensSession session) {
+        return export(session, true);
+    }
+
+    public String export(UiTestLensSession session, boolean includeStackTraces) {
         if (session == null) {
             return "{}";
         }
         StringBuilder out = new StringBuilder();
         out.append('{');
         appendMetadata(out, session.metadata(), true);
-        appendEvents(out, session.events());
+        appendEvents(out, session.events(), includeStackTraces);
         appendArtifacts(out, "artifacts", session.artifacts());
         out.append('}');
         return out.toString();
@@ -33,7 +37,7 @@ public final class TraceJsonExporter {
         out.append('}');
     }
 
-    private void appendEvents(StringBuilder out, List<TraceEvent> events) {
+    private void appendEvents(StringBuilder out, List<TraceEvent> events, boolean includeStackTraces) {
         comma(out, false);
         fieldName(out, "events");
         out.append('[');
@@ -45,12 +49,12 @@ public final class TraceJsonExporter {
             if (written++ > 0) {
                 out.append(',');
             }
-            appendEvent(out, event);
+            appendEvent(out, event, includeStackTraces);
         }
         out.append(']');
     }
 
-    private void appendEvent(StringBuilder out, TraceEvent event) {
+    private void appendEvent(StringBuilder out, TraceEvent event, boolean includeStackTraces) {
         out.append('{');
         appendField(out, "id", event.id(), true);
         appendField(out, "type", event.type() == null ? "" : event.type().name(), false);
@@ -60,7 +64,7 @@ public final class TraceJsonExporter {
         appendField(out, "timestamp", event.timestamp() == null ? "" : event.timestamp().toString(), false);
         appendField(out, "durationMs", String.valueOf(event.duration() == null ? 0 : event.duration().toMillis()), false);
         appendField(out, "parentId", event.parentId(), false);
-        appendFailure(out, "failure", event.failure(), false);
+        appendFailure(out, "failure", event.failure(), false, includeStackTraces);
         appendArtifacts(out, "artifacts", event.artifacts());
         appendMap(out, "attributes", event.attributes(), false);
         out.append('}');
@@ -95,7 +99,7 @@ public final class TraceJsonExporter {
         out.append('}');
     }
 
-    private void appendFailure(StringBuilder out, String name, TraceFailure failure, boolean first) {
+    private void appendFailure(StringBuilder out, String name, TraceFailure failure, boolean first, boolean includeStackTraces) {
         comma(out, first);
         fieldName(out, name);
         if (failure == null) {
@@ -105,7 +109,7 @@ public final class TraceJsonExporter {
         out.append('{');
         appendField(out, "message", failure.message(), true);
         appendField(out, "exceptionType", failure.exceptionType(), false);
-        appendField(out, "stackTrace", failure.stackTrace(), false);
+        appendField(out, "stackTrace", includeStackTraces ? failure.stackTrace() : "", false);
         appendMap(out, "details", failure.details(), false);
         out.append('}');
     }

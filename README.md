@@ -366,7 +366,17 @@ String json = session.exportJson();
 
 `TraceJsonExporter` produces a JSON-friendly structure using only JDK code. `TraceLogSink` can forward existing UI Test Lens log entries into a trace session. Selenium integration is intentionally light in this stage: `JsOverlayDebug` can start or attach a session, step events are added to the session, and artifacts can be attached through convenience methods.
 
-Screenshot capture, video recording, and the HTML trace renderer are not implemented yet. They are planned as separate stages on top of this model.
+Screenshot capture and video recording are not implemented yet. They are planned as separate stages on top of this model.
+
+## HTML Trace Report Exporter
+
+`TraceHtmlExporter` turns a `UiTestLensSession` into a self-contained HTML report with inline CSS. The report includes session metadata, final status, summary cards, timeline events, step events, failures, artifact links, and optional raw JSON.
+
+```java
+Path report = overlay.exportTraceHtml(Path.of("target/ui-test-lens/checkout-flow.html"));
+```
+
+The exporter lives in `ui-test-lens-core` and has no Selenium dependency. `UiTestLensSession` exposes `exportHtml(...)` convenience methods, while `JsOverlayDebug` delegates to the attached session. Screenshot and video artifacts are shown as paths/links; the exporter does not embed binary files and does not capture screenshots or record video.
 
 ## Logging And Event Bus
 
