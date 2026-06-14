@@ -19,7 +19,7 @@ ui-test-lens-parent
 └── ui-test-lens-examples
 ```
 
-Abstrakcja `BrowserScriptExecutor` zostala wprowadzona razem z adapterem `SeleniumBrowserScriptExecutor`. Kolejne commity powinny przepinac pozostale runtime bridge call sites na neutralny kontrakt, zanim pliki zostana przeniesione do modulow.
+Abstrakcja `BrowserScriptExecutor` zostala wprowadzona razem z adapterem `SeleniumBrowserScriptExecutor`. `HudPanel` uzywa juz tego kontraktu wewnetrznie, zachowujac konstruktor z `WebDriver`. Kolejne commity powinny przepinac pozostale runtime bridge call sites na neutralny kontrakt, zanim pliki zostana przeniesione do modulow.
 
 ## 1. Obecny projekt
 

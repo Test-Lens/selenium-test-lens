@@ -25,7 +25,7 @@ The project already has:
 
 The current module still mixes neutral model code, Selenium integration, runtime resource loading, visual overlay bridge code, React helpers, API overlay support, and examples/documentation. The first split should separate those concerns without changing public behavior.
 
-`BrowserScriptExecutor` now exists as the neutral browser JavaScript execution contract, with `SeleniumBrowserScriptExecutor` as the Selenium adapter. Runtime bridge loaders can call this contract directly while existing Selenium-facing methods remain available.
+`BrowserScriptExecutor` now exists as the neutral browser JavaScript execution contract, with `SeleniumBrowserScriptExecutor` as the Selenium adapter. Runtime bridge loaders and `HudPanel` can call this contract directly while existing Selenium-facing methods remain available.
 
 ## Proposed first module layout
 
@@ -201,7 +201,7 @@ Should not be a runtime dependency of published modules.
 | `core/ScriptExecutor` | `core` | remove or replace after migration | Historical empty placeholder. | Empty/incomplete and superseded by `BrowserScriptExecutor`. |
 | `core/logging/*` | `core.logging` | `ui-test-lens-core` | Event model and sinks are JDK-only. | `ConsoleLogSink` writes to `System.out/err` only when explicitly used. |
 | `core/logging/export/*` | `core.logging.export` | `ui-test-lens-core` | Text/JSON/HTML exporters are JDK-only. | None. |
-| `hud/HudPanel` | `hud` | `ui-test-lens-overlay` after executor abstraction; otherwise `ui-test-lens-selenium` | HUD bridge into browser runtime. | Selenium `WebDriver`, `JavascriptExecutor`, `OverlayRootManager`. |
+| `hud/HudPanel` | `hud` | `ui-test-lens-overlay` after executor abstraction; otherwise `ui-test-lens-selenium` | HUD bridge into browser runtime. | Stores `BrowserScriptExecutor`; existing WebDriver constructor delegates through Selenium adapter. |
 | `hud/HudPosition` | `hud` | `ui-test-lens-core` or `ui-test-lens-overlay` | Simple enum used by config. | Placement affects `OverlayConfig` module. |
 | `react/ReactSafeExecutor` | `react` | `ui-test-lens-react` | React/SPA retry facade. | Selenium and direct `JsOverlayDebug` dependency. |
 | `react/ReactSelectHelper` | `react` | `ui-test-lens-react` | React-select helper. | Selenium and `JsOverlayDebug`. |
@@ -217,8 +217,8 @@ Should not be a runtime dependency of published modules.
 ## Split blockers
 
 - Several classes currently under `core` import Selenium: `PageWaits`, `PopupDetector`, `BlockingOverlayHelper`, `Guards`, and `SeleniumBrowserScriptExecutor`.
-- `OverlayRootManager` now stores `BrowserScriptExecutor`, but its existing WebDriver constructor remains Selenium-bound for compatibility.
-- Runtime bridge loader classes expose `BrowserScriptExecutor` overloads, but callers such as `HudPanel`, `HighlightActions`, `AssertActions`, `TypingActions`, and `ScrollActions` still use Selenium execution directly.
+- `OverlayRootManager` and `HudPanel` now store `BrowserScriptExecutor`, but existing WebDriver constructors remain Selenium-bound for compatibility.
+- Runtime bridge loader classes expose `BrowserScriptExecutor` overloads. `HudPanel` uses the neutral executor internally, but callers such as `HighlightActions`, `AssertActions`, `TypingActions`, and `ScrollActions` still use Selenium execution directly.
 - `JsResources` is technically JDK-only but semantically tied to runtime resources; decide whether it is core utility or overlay/runtime utility.
 - `OverlayConfig` currently imports `HudPosition`; decide if `HudPosition` is core, overlay, or if HUD config becomes a separate overlay config object.
 - `HudPosition` and scroll enums are neutral, but they describe overlay behavior. Their module affects dependency direction.

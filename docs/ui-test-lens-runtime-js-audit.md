@@ -2,7 +2,7 @@
 
 This audit captures the state after extracting the main browser runtime pieces into `src/main/resources/uitestlens/runtime/`.
 
-`BrowserScriptExecutor` now provides a neutral Java contract for browser script execution. `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor`. Runtime bridge loaders expose overloads that accept the neutral executor, while Selenium action/PageWaits/popup helpers still use direct Selenium execution until a later refactor.
+`BrowserScriptExecutor` now provides a neutral Java contract for browser script execution. `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor`. Runtime bridge loaders expose overloads that accept the neutral executor, and `HudPanel` uses the neutral executor internally. Selenium action/PageWaits/popup helpers still use direct Selenium execution until a later refactor.
 
 ## Current runtime resources
 
@@ -144,7 +144,7 @@ The first split preparation step introduced:
 - `io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor`,
 - `io.github.mmaciekk111.uitestlens.core.browser.SeleniumBrowserScriptExecutor`.
 
-Runtime bridge loaders now have `inject(BrowserScriptExecutor)` overloads while preserving existing Selenium-facing overloads. `OverlayRootManager` stores the neutral executor internally and keeps the existing `WebDriver` constructor by delegating through the Selenium adapter.
+Runtime bridge loaders now have `inject(BrowserScriptExecutor)` overloads while preserving existing Selenium-facing overloads. `OverlayRootManager` and `HudPanel` store the neutral executor internally and keep existing `WebDriver` constructors by delegating through the Selenium adapter.
 
 Direct Selenium script execution intentionally remains in:
 
@@ -152,7 +152,7 @@ Direct Selenium script execution intentionally remains in:
 - `PopupDetector`,
 - `BlockingOverlayHelper`,
 - `TargetResolverActions`,
-- Selenium actions,
+- Selenium actions except `HudPanel`,
 - `JsOverlayDebug`,
 - `ApiOverlayPanel`,
 - React helpers.

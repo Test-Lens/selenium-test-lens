@@ -3,15 +3,18 @@ package io.github.mmaciekk111.uitestlens.hud;
 import io.github.mmaciekk111.uitestlens.OverlayConfig;
 import io.github.mmaciekk111.uitestlens.core.HudPanelJs;
 import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
-import org.openqa.selenium.JavascriptExecutor;
+import io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor;
+import io.github.mmaciekk111.uitestlens.core.browser.SeleniumBrowserScriptExecutor;
 import org.openqa.selenium.WebDriver;
+
+import java.util.Objects;
 
 /**
  * Panel HUD in the browser overlay with test, pipeline, step and log information.
  */
 public class HudPanel {
 
-    private final JavascriptExecutor js;
+    private final BrowserScriptExecutor scriptExecutor;
     private final OverlayConfig config;
     private final OverlayRootManager rootManager;
 
@@ -21,12 +24,15 @@ public class HudPanel {
     public HudPanel(WebDriver driver,
                     OverlayRootManager rootManager,
                     OverlayConfig config) {
-        if (!(driver instanceof JavascriptExecutor)) {
-            throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
-        }
-        this.js = (JavascriptExecutor) driver;
-        this.rootManager = rootManager;
-        this.config = config;
+        this(new SeleniumBrowserScriptExecutor(driver), rootManager, config);
+    }
+
+    public HudPanel(BrowserScriptExecutor scriptExecutor,
+                    OverlayRootManager rootManager,
+                    OverlayConfig config) {
+        this.scriptExecutor = Objects.requireNonNull(scriptExecutor, "scriptExecutor must not be null");
+        this.rootManager = Objects.requireNonNull(rootManager, "rootManager must not be null");
+        this.config = Objects.requireNonNull(config, "config must not be null");
     }
 
     public void init(String testName, String pipelineId) {
@@ -47,7 +53,7 @@ public class HudPanel {
 
         ensureHudPanelExists();
 
-        js.executeScript(
+        scriptExecutor.execute(
                 HudPanelJs.bridgeScript() +
                         "if (hud) { hud.setStep(arguments[0]); }",
                 stepDescription
@@ -61,7 +67,7 @@ public class HudPanel {
 
         ensureHudPanelExists();
 
-        js.executeScript(
+        scriptExecutor.execute(
                 HudPanelJs.bridgeScript() +
                         "if (hud) { hud.log(arguments[1], arguments[0], arguments[2]); }",
                 level, message, timestamp
@@ -75,16 +81,18 @@ public class HudPanel {
 
         rootManager.ensureRootExists();
 
-        js.executeScript(
-                HudPanelJs.INIT +
-                        "window.__uiTestLens.modules.hud.init({" +
+        HudPanelJs.inject(scriptExecutor);
+
+        scriptExecutor.execute(
+                HudPanelJs.bridgeScript() +
+                        "if (hud) { hud.init({" +
                         "testName: arguments[0]," +
                         "pipelineId: arguments[1]," +
                         "position: arguments[2]," +
                         "offsetX: arguments[3]," +
                         "offsetY: arguments[4]," +
                         "maxWidth: arguments[5]" +
-                        "});",
+                        "}); }",
                 lastTestName,
                 lastPipelineId,
                 config.getHudPosition().name(),
