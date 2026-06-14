@@ -27,6 +27,12 @@ The current module still mixes neutral model code, Selenium integration, runtime
 
 `BrowserScriptExecutor` now exists as the neutral browser JavaScript execution contract, with `SeleniumBrowserScriptExecutor` as the Selenium adapter. Runtime bridge loaders, `HudPanel`, and `ApiOverlayPanel` can call this contract directly while existing Selenium-facing methods remain available.
 
+The current package-level boundary matrix is tracked in:
+
+```text
+docs/ui-test-lens-module-boundaries.md
+```
+
 ## Proposed first module layout
 
 | Module | Responsibility | Dependencies | Should publish? |

@@ -221,6 +221,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - Main known runtime JavaScript resources now cover API overlay, Wait HUD, Highlight, Type hint, Scroll arrow, HUD panel, and Assertion badges.
 - Runtime JavaScript audit: [`docs/ui-test-lens-runtime-js-audit.md`](docs/ui-test-lens-runtime-js-audit.md).
 - Module split plan: [`docs/ui-test-lens-module-split-plan.md`](docs/ui-test-lens-module-split-plan.md).
+- Module boundary matrix: [`docs/ui-test-lens-module-boundaries.md`](docs/ui-test-lens-module-boundaries.md).
 - `BrowserScriptExecutor` is now the neutral browser JavaScript execution contract; `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor`.
 - `HudPanel` uses `BrowserScriptExecutor` internally while preserving existing Selenium `WebDriver` constructors.
 - `ApiOverlayPanel` uses `BrowserScriptExecutor` internally while preserving existing Selenium `WebDriver` constructors.

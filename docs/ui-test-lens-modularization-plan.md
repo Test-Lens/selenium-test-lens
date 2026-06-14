@@ -8,6 +8,12 @@ Szczegolowy plan pierwszego splitu single-module na Maven multi-module znajduje 
 docs/ui-test-lens-module-split-plan.md
 ```
 
+Macierz obecnych granic pakietow i zaleznosci Selenium jest w:
+
+```text
+docs/ui-test-lens-module-boundaries.md
+```
+
 Ten dokument pozostaje historycznym/szerszym planem modularyzacji. Dla najblizszego splitu priorytetowy zakres to:
 
 ```text
