@@ -18,7 +18,7 @@ mvn -q -DskipTests install
 
 | Use case | Artifact |
 |---|---|
-| All-in-one usage | `ui-test-lens` |
+| All-in-one dependency bundle | `ui-test-lens` |
 | Selenium locators, assertions, evidence, auth, network | `ui-test-lens-selenium` |
 | Runtime overlay resources only | `ui-test-lens-overlay` |
 | Logging and trace model only | `ui-test-lens-core` |

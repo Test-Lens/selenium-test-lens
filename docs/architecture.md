@@ -10,7 +10,7 @@ UI Test Lens is a multi-module project. Each module owns a boundary so WebDriver
 | `ui-test-lens-overlay` | Runtime JS resources, overlay config, HUD model and visual debugging assets. | No Selenium dependency. |
 | `ui-test-lens-selenium` | Selenium facade, locators, assertions, actionability, overlay policy, evidence capture, auth/session state and network diagnostics. | Does not depend on React. |
 | `ui-test-lens-react` | React-specific support and React-aware actionability extension layer. | May depend on Selenium integration. |
-| `ui-test-lens` | All-in-one compatibility bundle. | Aggregates project modules. |
+| `ui-test-lens` | All-in-one POM dependency bundle. | Pulls the publishable modules together without adding runtime code. |
 | `ui-test-lens-examples` | Documentation and compile-check examples. | Not a runtime dependency. |
 
 ## Selenium boundary

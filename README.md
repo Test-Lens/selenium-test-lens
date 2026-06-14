@@ -89,7 +89,7 @@ mvn -q -pl ui-test-lens -am test
 | `ui-test-lens-overlay` | Runtime JavaScript overlay resources, HUD configuration, visual debugging assets. No Selenium dependency. |
 | `ui-test-lens-selenium` | Selenium facade, locators, assertions, actionability, evidence, auth/session state, network diagnostics. |
 | `ui-test-lens-react` | React-specific support layered on top of Selenium integration. |
-| `ui-test-lens` | All-in-one compatibility artifact. |
+| `ui-test-lens` | All-in-one POM dependency bundle. |
 | `ui-test-lens-examples` | Documentation and compile-check examples. Not intended as a runtime dependency. |
 
 ## Documentation

@@ -11,9 +11,9 @@
     </parent>
 
     <artifactId>ui-test-lens</artifactId>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
     <name>UI Test Lens</name>
-    <description>All-in-one compatibility artifact for UI Test Lens Selenium usage.</description>
+    <description>All-in-one dependency bundle for UI Test Lens Selenium usage.</description>
 
     <dependencies>
         <dependency>
@@ -39,23 +39,5 @@
             <artifactId>ui-test-lens-react</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <failOnError>false</failOnError>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
