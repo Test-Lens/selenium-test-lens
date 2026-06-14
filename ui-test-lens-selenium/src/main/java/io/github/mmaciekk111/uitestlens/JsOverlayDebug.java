@@ -35,6 +35,9 @@ import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocator;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocatorOptions;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicy;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicyExecutor;
+import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepOptions;
+import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepResult;
+import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepScope;
 
 
 import java.time.Duration;
@@ -202,6 +205,19 @@ public final class JsOverlayDebug {
 
     public BusinessAssertions business(String subject, BusinessAssertionOptions options) {
         return new BusinessAssertions(subject, options, logger);
+    }
+
+    public UiStepResult step(String name, Runnable body) {
+        return step(name, UiStepOptions.defaults(), body);
+    }
+
+    public UiStepResult step(String name, UiStepOptions options, Runnable body) {
+        UiStepScope scope = new UiStepScope(
+                logger,
+                this::setStep,
+                message -> hudLog("info", message, "ui-test-lens")
+        );
+        return scope.run(name, options, body);
     }
 
     private ActionabilityChecker actionabilityChecker() {

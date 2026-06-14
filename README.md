@@ -322,6 +322,30 @@ overlay.business("Order summary")
 
 By default, `verify()` runs all registered checks, collects failures, and throws one `BusinessAssertionError` with a summary. `BusinessAssertionOptions` can switch to fail-fast behavior. Use `UiExpect` for technical web assertions, `BusinessAssertions` for readable grouped business checks, and existing `AssertActions` for the older visual/grouped assertion layer.
 
+## Business Step DSL
+
+`step(...)` executes a named test/business step, measures its duration, emits step events, and optionally writes the current step to the HUD. It is different from `setStep(...)`: `setStep(...)` only updates the current HUD label, while `step(...)` runs code and returns a `UiStepResult`.
+
+```java
+overlay.step("Fill checkout form", () -> {
+    overlay.getByTestId("email").fill("test@example.com");
+    overlay.getByTestId("save-button").click();
+});
+
+overlay.step("Verify order summary", () -> {
+    overlay.business("Order summary")
+            .check("shows total amount", () -> {
+                overlay.getByTestId("order-total").expect().toHaveText("123.00 PLN");
+            })
+            .check("contains premium product", () -> {
+                overlay.getByTestId("product-name").expect().toContainText("Premium");
+            })
+            .verify();
+});
+```
+
+With default `UiStepOptions`, failed steps throw `UiStepError` and preserve the original cause. With `failFast(false)`, failed steps return a `FAILED` result without throwing. The step model stores name, status, start/end time, elapsed duration, and failure summary as a foundation for future HTML trace reports and screenshot/video markers.
+
 ## Logging And Event Bus
 
 `UiTestLensLogger` is the central event bus. `OverlayLogger` is the current bridge used by existing overlay/Selenium classes.

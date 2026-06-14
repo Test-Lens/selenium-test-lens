@@ -477,6 +477,14 @@ Business assertions grupuja techniczne retryable `UiExpect` checks pod biznesowy
 
 Biblioteka nie dodaje domenowych metod typu `shouldShowAmount`; takie DSL powinny powstawac w projekcie testowym albo adapterze examples. Relacja warstw: `UiExpect` = techniczne retryable web assertions, `BusinessAssertions` = czytelne grupy biznesowe, `AssertActions` = istniejaca visual/grouped assertion layer.
 
+## Business step DSL
+
+Siodmy punkt roadmapy Playwright-inspired reliability/diagnostics zostal zaimplementowany po stronie `ui-test-lens-selenium`. Dodano `UiStepScope`, `UiStepOptions`, `UiStepResult`, `UiStepStatus`, `UiStepFailure`, `UiStepError`, `UiStepReporter`, `UiStepContext` oraz wewnetrzny model `UiStep`.
+
+`JsOverlayDebug.step(String, Runnable)` i `step(String, UiStepOptions, Runnable)` wykonuja nazwany krok, mierza start/end/duration, emituja `STEP_STARTED`, `STEP_PASSED`, `STEP_FAILED` albo `STEP_SKIPPED` i opcjonalnie aktualizuja HUD przez istniejace `setStep(...)` oraz `hudLog(...)`. `setStep(...)` pozostaje reczna zmiana etykiety HUD, a `step(...)` jest wykonawczym wrapperem z wynikiem i obsluga bledow.
+
+Domyslnie `UiStepOptions.failFast(true)` opakowuje blad w `UiStepError`. Przy `failFast(false)` step zwraca `UiStepResult` ze statusem `FAILED`. Step dobrze owija `BusinessAssertions.verify()`: `BusinessAssertionError` staje sie cause/failure summary kroku. HTML trace, screenshots i video markers zostaja na kolejne etapy.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:

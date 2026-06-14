@@ -62,6 +62,7 @@ Current artifact usage matrix:
 - Retryable locator API: `selenium.locator.UiLocator`, options, resolver, result/status/failure models, and Selenium retry handling.
 - Retryable web assertions: `selenium.assertions.UiExpect`, assertion options/results/errors, and assertion event reporting.
 - Business assertion DSL: `selenium.business.BusinessAssertions`, business assertion results/errors/options, and business assertion event reporting.
+- Business step DSL: `selenium.steps.UiStepScope`, step options/results/errors, and step event reporting.
 - `SeleniumBrowserScriptExecutor`, `OverlayBrowserScriptExecutors`, and `SeleniumOverlayFactory` are in `ui-test-lens-selenium`.
 - React-safe call sites moved to `ReactSupport` in `ui-test-lens-react`.
 - React-aware actionability checks live in `ui-test-lens-react` and layer on top of Selenium actionability.
@@ -90,4 +91,4 @@ Current artifact usage matrix:
 2. Keep Selenium actions, waits, popup heuristics, and the current facade inside the Selenium boundary.
 3. Continue moving bridge callers toward `BrowserScriptExecutor` where this does not change behavior.
 4. Leave API overlay as either an overlay sub-area or a future optional module until ownership is explicit.
-5. Build the business step DSL and trace evidence model without moving assertion framework dependencies into production code.
+5. Build the trace evidence model without moving assertion framework dependencies into production code.

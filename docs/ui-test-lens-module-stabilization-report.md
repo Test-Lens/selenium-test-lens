@@ -118,7 +118,7 @@ Dependency tree checks:
 ## Next recommended steps
 
 1. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
-2. Add the business step DSL and trace evidence model.
+2. Add the trace evidence model and HTML report.
 3. Add richer locator factories such as getByRole/getByLabel/getByText.
 4. Add Maven Wrapper.
 5. Add publication metadata once the public API is ready.

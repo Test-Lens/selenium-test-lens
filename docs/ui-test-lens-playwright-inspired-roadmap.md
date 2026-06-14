@@ -209,7 +209,9 @@ This is also a candidate boundary for later React/business adapters, because dom
 
 The business test DSL should organize test flows into meaningful steps and produce readable reports.
 
-Example future API:
+Initial implementation status: `ui-test-lens-selenium` now provides `JsOverlayDebug.step(...)`, `UiStepOptions`, `UiStepResult`, `UiStepError`, and step events. This is not yet an HTML trace report, but it records the data trace reporting will need.
+
+Example API:
 
 ```java
 lens.step("Log in as active customer", () -> {
@@ -221,7 +223,11 @@ lens.step("Add product to cart", () -> {
 });
 
 lens.step("Verify order summary", () -> {
-    orderSummary.shouldShowTotal("123.00 PLN");
+    lens.business("Order summary")
+            .check("shows total amount", () -> {
+                lens.getByTestId("order-total").expect().toHaveText("123.00 PLN");
+            })
+            .verify();
 });
 ```
 
