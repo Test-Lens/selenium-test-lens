@@ -33,6 +33,8 @@ It can:
 
 This repository does not yet promise a stable final public API, Maven Central publication, Playwright/Cypress support, a ready Selenide adapter, or full Allure/TeamCity integration.
 
+UI Test Lens is planned to evolve toward Playwright-like reliability on top of Selenium: configurable overlay handling, actionability checks, retryable locators/assertions, trace reports, network diagnostics and auth/session state reuse.
+
 ## Versioning
 
 UI Test Lens is currently pre-1.0. Public APIs may still change between 0.x releases.
@@ -295,6 +297,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - Runtime JavaScript audit: [`docs/ui-test-lens-runtime-js-audit.md`](docs/ui-test-lens-runtime-js-audit.md).
 - Module split plan: [`docs/ui-test-lens-module-split-plan.md`](docs/ui-test-lens-module-split-plan.md).
 - Module boundary matrix: [`docs/ui-test-lens-module-boundaries.md`](docs/ui-test-lens-module-boundaries.md).
+- [Playwright-inspired roadmap](docs/ui-test-lens-playwright-inspired-roadmap.md).
 - `BrowserScriptExecutor` is now the neutral browser JavaScript execution contract; `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor` in the `ui-test-lens-selenium` module.
 - `HudPanel` uses `BrowserScriptExecutor` internally; Selenium `WebDriver` construction is provided by `SeleniumOverlayFactory`.
 - `ApiOverlayPanel` uses `BrowserScriptExecutor` internally; Selenium `WebDriver` construction is provided by `SeleniumOverlayFactory`.

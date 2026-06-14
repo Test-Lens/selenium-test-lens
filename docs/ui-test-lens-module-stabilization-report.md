@@ -109,6 +109,7 @@ Dependency tree checks:
 
 ## Next recommended steps
 
-1. Add Maven Wrapper.
-2. Add publication metadata once the public API is ready.
-3. Revisit API stability before the first non-SNAPSHOT release.
+1. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
+2. Add Maven Wrapper.
+3. Add publication metadata once the public API is ready.
+4. Revisit API stability before the first non-SNAPSHOT release.

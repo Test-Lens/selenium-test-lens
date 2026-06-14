@@ -22,6 +22,12 @@ Raport stabilizacji po splitach modulow jest w:
 docs/ui-test-lens-module-stabilization-report.md
 ```
 
+Roadmapa produktowo-techniczna inspirowana Playwright reliability jest w:
+
+```text
+docs/ui-test-lens-playwright-inspired-roadmap.md
+```
+
 Aktualna macierz uzycia artefaktow:
 
 | Use case | Artifact |
