@@ -58,7 +58,7 @@ ui-test-lens-parent
 └── ui-test-lens-examples
 ```
 
-Abstrakcja `BrowserScriptExecutor` zostala przeniesiona do `ui-test-lens-core`. Adapter `SeleniumBrowserScriptExecutor` jest teraz w `ui-test-lens-selenium`. `HudPanel` i `ApiOverlayPanel` uzywaja juz tego kontraktu wewnetrznie, zachowujac konstruktory z `WebDriver`. `ui-test-lens-overlay` nadal ma tymczasowa zaleznosc Selenium dla kompatybilnych konstruktorow WebDriver. `ui-test-lens-react` jest osobnym modulem, ale `ui-test-lens-selenium` nadal zalezy od niego przez publiczne API `JsOverlayDebug.reactSafe()`.
+Abstrakcja `BrowserScriptExecutor` zostala przeniesiona do `ui-test-lens-core`. Adapter `SeleniumBrowserScriptExecutor`, `OverlayBrowserScriptExecutors` i `SeleniumOverlayFactory` sa teraz w `ui-test-lens-selenium`. `HudPanel`, `ApiOverlayPanel` i `OverlayRootManager` uzywaja juz neutralnego kontraktu bez importow Selenium w module overlay. `ui-test-lens-overlay` nie zalezy juz bezposrednio od Selenium. `ui-test-lens-react` jest osobnym modulem, ale `ui-test-lens-selenium` nadal zalezy od niego przez publiczne API `JsOverlayDebug.reactSafe()`.
 
 ## 1. Obecny projekt
 

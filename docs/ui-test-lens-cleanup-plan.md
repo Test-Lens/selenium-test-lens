@@ -420,7 +420,7 @@ Dalszy plan dokumentuje docelowy uklad:
 - `ui-test-lens-react`,
 - `ui-test-lens-examples`.
 
-`ui-test-lens-core` juz istnieje i musi pozostac Selenium-free. `ui-test-lens-overlay` istnieje, ale tymczasowo zalezy od Selenium dla kompatybilnych konstruktorow `WebDriver`. `ui-test-lens-selenium` istnieje jako glowny modul Selenium. `ui-test-lens-react` istnieje jako osobny modul React-safe, ale publiczne API `JsOverlayDebug.reactSafe()` nadal powoduje zaleznosc selenium -> react. Kolejny krok to ograniczenie zaleznosci Selenium w overlay oraz zmniejszenie sprzezenia fasady Selenium z React helpers.
+`ui-test-lens-core` juz istnieje i musi pozostac Selenium-free. `ui-test-lens-overlay` istnieje i nie zalezy juz bezposrednio od Selenium; jego primary API uzywa `BrowserScriptExecutor`. WebDriver-compatible construction jest po stronie `ui-test-lens-selenium` przez `SeleniumOverlayFactory`. `ui-test-lens-selenium` istnieje jako glowny modul Selenium. `ui-test-lens-react` istnieje jako osobny modul React-safe, ale publiczne API `JsOverlayDebug.reactSafe()` nadal powoduje zaleznosc selenium -> react. Kolejny krok to zmniejszenie sprzezenia fasady Selenium z React helpers.
 
 ## Preferowany styl nazw klas Java
 

@@ -2,9 +2,7 @@ package io.github.mmaciekk111.uitestlens.api;
 
 import io.github.mmaciekk111.uitestlens.core.UiTestLensRuntimeNames;
 import io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor;
-import io.github.mmaciekk111.uitestlens.core.browser.OverlayBrowserScriptExecutors;
 import io.github.mmaciekk111.uitestlens.utils.JsResources;
-import org.openqa.selenium.WebDriver;
 
 public final class ApiOverlayJs {
 
@@ -19,10 +17,6 @@ public final class ApiOverlayJs {
                     "if (window.__uiTestLens.modules.apiOverlay) { window.__seleniumApiModal = window.__uiTestLens.modules.apiOverlay; }";
 
     private ApiOverlayJs() {}
-
-    public static void inject(WebDriver driver) {
-        inject(OverlayBrowserScriptExecutors.from(driver));
-    }
 
     public static void inject(BrowserScriptExecutor executor) {
         executor.execute(INIT_MODAL);

@@ -1,9 +1,7 @@
 package io.github.mmaciekk111.uitestlens.core;
 
 import io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor;
-import io.github.mmaciekk111.uitestlens.core.browser.OverlayBrowserScriptExecutors;
 import io.github.mmaciekk111.uitestlens.utils.JsResources;
-import org.openqa.selenium.WebDriver;
 
 public final class HudPanelJs {
 
@@ -16,10 +14,6 @@ public final class HudPanelJs {
                     bridgeScript();
 
     private HudPanelJs() {}
-
-    public static void inject(WebDriver driver) {
-        inject(OverlayBrowserScriptExecutors.from(driver));
-    }
 
     public static void inject(BrowserScriptExecutor executor) {
         executor.execute(INIT);

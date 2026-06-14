@@ -4,8 +4,6 @@ import io.github.mmaciekk111.uitestlens.OverlayConfig;
 import io.github.mmaciekk111.uitestlens.core.HudPanelJs;
 import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
 import io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor;
-import io.github.mmaciekk111.uitestlens.core.browser.OverlayBrowserScriptExecutors;
-import org.openqa.selenium.WebDriver;
 
 import java.util.Objects;
 
@@ -20,12 +18,6 @@ public class HudPanel {
 
     private String lastTestName = "-";
     private String lastPipelineId = "-";
-
-    public HudPanel(WebDriver driver,
-                    OverlayRootManager rootManager,
-                    OverlayConfig config) {
-        this(OverlayBrowserScriptExecutors.from(driver), rootManager, config);
-    }
 
     public HudPanel(BrowserScriptExecutor scriptExecutor,
                     OverlayRootManager rootManager,

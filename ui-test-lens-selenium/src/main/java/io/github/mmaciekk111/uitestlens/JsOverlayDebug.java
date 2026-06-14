@@ -13,6 +13,8 @@ import io.github.mmaciekk111.uitestlens.core.PageWaits;
 import io.github.mmaciekk111.uitestlens.core.PopupDetector;
 import io.github.mmaciekk111.uitestlens.core.UiTestLensRuntimeNames;
 import io.github.mmaciekk111.uitestlens.core.WaitHudJs;
+import io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor;
+import io.github.mmaciekk111.uitestlens.core.browser.SeleniumBrowserScriptExecutor;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensEventType;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
@@ -96,12 +98,14 @@ public final class JsOverlayDebug implements ReactOverlaySupport {
         this.driver = driver;
         this.config = config;
 
-        this.rootManager = new OverlayRootManager(driver, config);
+        BrowserScriptExecutor scriptExecutor = new SeleniumBrowserScriptExecutor(driver);
+
+        this.rootManager = new OverlayRootManager(scriptExecutor, config);
         this.highlightActions = new HighlightActions(driver, rootManager, config, this.logger);
         this.typingActions = new TypingActions(driver, rootManager, config, this.logger);
         this.smartClickActions = new SmartClickActions(driver, config, rootManager, highlightActions, this.logger);
         this.smartInputActions = new SmartInputActions(driver, config, rootManager, typingActions, this.logger);
-        this.hudPanel = new HudPanel(driver, rootManager, config);
+        this.hudPanel = new HudPanel(scriptExecutor, rootManager, config);
         this.pageWaits = new PageWaits(driver, config);
         this.popupDetector = new PopupDetector(driver, config, rootManager, highlightActions);
         this.scrollActions = new ScrollActions(driver, config, rootManager, this.logger);

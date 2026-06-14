@@ -141,6 +141,7 @@ import io.github.mmaciekk111.uitestlens.api.ApiCallActions;
 import io.github.mmaciekk111.uitestlens.api.ApiOverlayPanel;
 import io.github.mmaciekk111.uitestlens.core.Guards;
 import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
+import io.github.mmaciekk111.uitestlens.selenium.SeleniumOverlayFactory;
 
 WebDriver driver = /* existing Selenium driver */;
 
@@ -149,8 +150,8 @@ OverlayConfig config = OverlayConfig.builder()
         .highlightColor("#ffeb3b")
         .build();
 
-OverlayRootManager rootManager = new OverlayRootManager(driver, config);
-ApiOverlayPanel apiPanel = new ApiOverlayPanel(driver, rootManager, config);
+OverlayRootManager rootManager = SeleniumOverlayFactory.overlayRoot(driver, config);
+ApiOverlayPanel apiPanel = SeleniumOverlayFactory.apiOverlayPanel(driver, rootManager, config);
 ApiCallActions apiCalls = new ApiCallActions(apiPanel);
 Guards guards = new Guards(driver);
 
@@ -189,6 +190,7 @@ import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
 import io.github.mmaciekk111.uitestlens.core.logging.InMemoryLogSink;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogger;
+import io.github.mmaciekk111.uitestlens.selenium.SeleniumOverlayFactory;
 
 InMemoryLogSink memorySink = new InMemoryLogSink();
 
@@ -199,8 +201,8 @@ UiTestLensLogger eventLogger = UiTestLensLogger.builder()
 OverlayLogger overlayLogger = OverlayLogger.from(eventLogger);
 
 OverlayConfig config = OverlayConfig.builder().build();
-OverlayRootManager rootManager = new OverlayRootManager(driver, config);
-ApiOverlayPanel apiPanel = new ApiOverlayPanel(driver, rootManager, config);
+OverlayRootManager rootManager = SeleniumOverlayFactory.overlayRoot(driver, config);
+ApiOverlayPanel apiPanel = SeleniumOverlayFactory.apiOverlayPanel(driver, rootManager, config);
 ApiCallActions apiCalls = new ApiCallActions(apiPanel);
 Guards guards = new Guards(driver, overlayLogger);
 
@@ -275,11 +277,11 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - Module split plan: [`docs/ui-test-lens-module-split-plan.md`](docs/ui-test-lens-module-split-plan.md).
 - Module boundary matrix: [`docs/ui-test-lens-module-boundaries.md`](docs/ui-test-lens-module-boundaries.md).
 - `BrowserScriptExecutor` is now the neutral browser JavaScript execution contract; `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor` in the `ui-test-lens-selenium` module.
-- `HudPanel` uses `BrowserScriptExecutor` internally while preserving existing Selenium `WebDriver` constructors.
-- `ApiOverlayPanel` uses `BrowserScriptExecutor` internally while preserving existing Selenium `WebDriver` constructors.
+- `HudPanel` uses `BrowserScriptExecutor` internally; Selenium `WebDriver` construction is provided by `SeleniumOverlayFactory`.
+- `ApiOverlayPanel` uses `BrowserScriptExecutor` internally; Selenium `WebDriver` construction is provided by `SeleniumOverlayFactory`.
 - API is not final.
-- Maven splits are in progress: `ui-test-lens-core` contains Selenium-free logging/export code and `BrowserScriptExecutor`; `ui-test-lens-overlay` contains runtime resources and overlay bridge classes; `ui-test-lens-selenium` contains the Selenium facade/actions/waits; `ui-test-lens-react` contains React-safe helpers; `ui-test-lens` is an all-in-one compatibility artifact.
-- `ui-test-lens-overlay` still has a temporary Selenium dependency for WebDriver-compatible constructors. The public Selenium executor adapter has moved to `ui-test-lens-selenium`.
+- Maven splits are in progress: `ui-test-lens-core` contains Selenium-free logging/export code and `BrowserScriptExecutor`; `ui-test-lens-overlay` contains runtime resources and overlay bridge classes without Selenium imports; `ui-test-lens-selenium` contains the Selenium facade/actions/waits and WebDriver-compatible overlay factories; `ui-test-lens-react` contains React-safe helpers; `ui-test-lens` is an all-in-one compatibility artifact.
+- `ui-test-lens-overlay` uses `BrowserScriptExecutor` as its primary API and no longer depends on Selenium directly.
 - `ui-test-lens-selenium` still depends on `ui-test-lens-react` because the current `JsOverlayDebug` API exposes `ReactSafeExecutor`. A later refactor should move that coupling behind smaller interfaces.
 - No Maven Central publication yet.
 - No ready Selenide, Allure, or TeamCity adapters yet.
@@ -290,14 +292,13 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 1. Use the runtime JS audit to review remaining small inline JavaScript snippets and decide which should become runtime resources.
 2. Continue moving runtime bridge classes toward `BrowserScriptExecutor`.
-3. Remove the remaining temporary Selenium dependency from `ui-test-lens-overlay`, if compatibility constructors can be handled without breaking API.
-4. Reduce `JsOverlayDebug` coupling to React helpers through smaller interfaces.
-5. Add `ui-test-lens-examples`.
-6. Selenium `WebDriverListener` adapter.
-7. Selenide adapter.
-8. Allure/TeamCity exporters and adapters.
-9. HTML report improvements.
-10. Maven publication.
+3. Reduce `JsOverlayDebug` coupling to React helpers through smaller interfaces.
+4. Add `ui-test-lens-examples`.
+5. Selenium `WebDriverListener` adapter.
+6. Selenide adapter.
+7. Allure/TeamCity exporters and adapters.
+8. HTML report improvements.
+9. Maven publication.
 
 ## Development
 

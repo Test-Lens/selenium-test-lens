@@ -3,8 +3,6 @@ package io.github.mmaciekk111.uitestlens.api;
 import io.github.mmaciekk111.uitestlens.OverlayConfig;
 import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
 import io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor;
-import io.github.mmaciekk111.uitestlens.core.browser.OverlayBrowserScriptExecutors;
-import org.openqa.selenium.WebDriver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,10 +13,6 @@ public final class ApiOverlayPanel {
     private final BrowserScriptExecutor scriptExecutor;
     private final OverlayRootManager rootManager;
     private final OverlayConfig config;
-
-    public ApiOverlayPanel(WebDriver driver, OverlayRootManager rootManager, OverlayConfig config) {
-        this(OverlayBrowserScriptExecutors.from(driver), rootManager, config);
-    }
 
     public ApiOverlayPanel(BrowserScriptExecutor scriptExecutor, OverlayRootManager rootManager, OverlayConfig config) {
         this.scriptExecutor = Objects.requireNonNull(scriptExecutor, "scriptExecutor must not be null");
