@@ -90,6 +90,7 @@ class HudPanelTest {
 
         assertTrue(hudInitArgs[6] instanceof Map<?, ?>);
         assertEquals("#38bdf8", ((Map<?, ?>) hudInitArgs[6]).get("accent"));
+        assertEquals(480, ((Map<?, ?>) hudInitArgs[6]).get("maxHeightPx"));
         assertEquals("GLASS", hudInitArgs[7]);
     }
 

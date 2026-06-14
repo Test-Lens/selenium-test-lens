@@ -15,7 +15,7 @@ Common options:
 | `hudPosition(...)` | Places the HUD, for example `TOP_RIGHT` or `BOTTOM_RIGHT`. |
 | `hudOffset(...)` | Offsets the HUD from the viewport edge. |
 | `hudMaxWidthPx(...)` | Limits HUD width. |
-| `hudTheme(...)` | Applies a built-in HUD theme preset or a custom `HudTheme`. |
+| `hudTheme(...)` | Applies a built-in HUD theme preset or a custom `HudTheme`, including optional HUD max height. |
 | `highlightColor(...)` | Sets the element highlight color. |
 | `decorationDurationMs(...)` | Controls how long visual decorations stay visible. |
 
@@ -77,6 +77,7 @@ HudTheme customTheme = HudTheme.builder()
         .backdropFilter("blur(12px)")
         .paddingPx(12)
         .gapPx(8)
+        .maxHeightPx(420)
         .build();
 
 OverlayConfig config = OverlayConfig.builder()
@@ -84,7 +85,14 @@ OverlayConfig config = OverlayConfig.builder()
         .build();
 ```
 
-Validation is intentionally light. CSS values are not parsed aggressively; numeric pixel values must be non-negative and opacity must be between `0` and `1` when supplied.
+Validation is intentionally light. CSS values are not parsed aggressively; numeric pixel values must be non-negative, `maxHeightPx` must be positive, and opacity must be between `0` and `1` when supplied.
+`maxHeightPx(...)` accepts a positive pixel height and leaves the HUD uncapped when omitted in a custom theme:
+
+```java
+HudTheme compactHud = HudTheme.builder()
+        .maxHeightPx(420)
+        .build();
+```
 
 ## Overlay policy
 

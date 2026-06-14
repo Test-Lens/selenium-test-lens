@@ -38,6 +38,7 @@ class HudThemeExampleTest {
                 .accent("#38bdf8")
                 .borderRadiusPx(16)
                 .fontFamily("Inter, system-ui, sans-serif")
+                .maxHeightPx(420)
                 .build();
 
         OverlayConfig config = OverlayConfig.builder()

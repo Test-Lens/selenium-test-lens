@@ -34,6 +34,7 @@ The primary runtime namespace is `window.__uiTestLens`. Legacy aliases are prese
 ## HUD
 
 The HUD panel shows the current test step and recent log messages.
+Theme presets include a maximum panel height so long logs scroll inside the HUD. Custom themes can opt in with `maxHeightPx(...)`; leaving it unset preserves uncapped custom HUD behavior.
 
 ```java
 overlay.setStep("Checkout");
@@ -104,6 +105,7 @@ HudTheme theme = HudTheme.builder()
         .accent("#38bdf8")
         .borderRadiusPx(16)
         .fontFamily("Inter, system-ui, sans-serif")
+        .maxHeightPx(420)
         .build();
 
 OverlayConfig config = OverlayConfig.builder()
@@ -130,6 +132,7 @@ The HUD runtime applies theme values through CSS variables such as:
 - `--ui-test-lens-hud-backdrop-filter`
 - `--ui-test-lens-hud-padding`
 - `--ui-test-lens-hud-gap`
+- `--ui-test-lens-hud-max-height`
 
 ## Current limitations
 

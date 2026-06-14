@@ -30,6 +30,7 @@ class HudThemeTest {
                 .borderRadiusPx(16)
                 .fontFamily("Inter, system-ui, sans-serif")
                 .opacity(0.9)
+                .maxHeightPx(420)
                 .build();
 
         assertEquals("rgba(15, 23, 42, 0.92)", theme.background());
@@ -38,6 +39,7 @@ class HudThemeTest {
         assertEquals(16, theme.borderRadiusPx());
         assertEquals("Inter, system-ui, sans-serif", theme.fontFamily());
         assertEquals(0.9, theme.opacity());
+        assertEquals(420, theme.maxHeightPx());
     }
 
     @Test
@@ -55,15 +57,34 @@ class HudThemeTest {
     }
 
     @Test
+    void maxHeightMustBePositiveWhenDefined() {
+        assertThrows(IllegalArgumentException.class, () -> HudTheme.builder().maxHeightPx(0));
+        assertThrows(IllegalArgumentException.class, () -> HudTheme.builder().maxHeightPx(-1));
+    }
+
+    @Test
+    void presetsDefineMaxHeight() {
+        assertEquals(480, HudTheme.defaultTheme().maxHeightPx());
+        assertEquals(480, HudTheme.dark().maxHeightPx());
+        assertEquals(480, HudTheme.light().maxHeightPx());
+        assertEquals(480, HudTheme.glass().maxHeightPx());
+        assertEquals(360, HudTheme.compact().maxHeightPx());
+        assertEquals(480, HudTheme.highContrast().maxHeightPx());
+        assertEquals(360, HudTheme.minimal().maxHeightPx());
+    }
+
+    @Test
     void toMapContainsOnlyDefinedValues() {
         HudTheme theme = HudTheme.builder()
                 .background("#000")
                 .foreground("")
                 .accent("#fff")
+                .maxHeightPx(420)
                 .build();
 
         assertEquals("#000", theme.toMap().get("background"));
         assertEquals("#fff", theme.toMap().get("accent"));
+        assertEquals(420, theme.toMap().get("maxHeightPx"));
         assertTrue(!theme.toMap().containsKey("foreground"));
     }
 }

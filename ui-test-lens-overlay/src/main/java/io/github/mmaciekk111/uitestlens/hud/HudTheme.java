@@ -28,6 +28,7 @@ public final class HudTheme {
     private final String backdropFilter;
     private final Integer paddingPx;
     private final Integer gapPx;
+    private final Integer maxHeightPx;
 
     private HudTheme(Builder builder) {
         this.background = builder.background;
@@ -47,6 +48,7 @@ public final class HudTheme {
         this.backdropFilter = builder.backdropFilter;
         this.paddingPx = builder.paddingPx;
         this.gapPx = builder.gapPx;
+        this.maxHeightPx = builder.maxHeightPx;
     }
 
     public static Builder builder() {
@@ -70,6 +72,7 @@ public final class HudTheme {
                 .opacity(1.0)
                 .paddingPx(8)
                 .gapPx(6)
+                .maxHeightPx(480)
                 .build();
     }
 
@@ -90,6 +93,7 @@ public final class HudTheme {
                 .opacity(1.0)
                 .paddingPx(10)
                 .gapPx(6)
+                .maxHeightPx(480)
                 .build();
     }
 
@@ -110,6 +114,7 @@ public final class HudTheme {
                 .opacity(1.0)
                 .paddingPx(10)
                 .gapPx(6)
+                .maxHeightPx(480)
                 .build();
     }
 
@@ -131,6 +136,7 @@ public final class HudTheme {
                 .backdropFilter("blur(14px)")
                 .paddingPx(12)
                 .gapPx(8)
+                .maxHeightPx(480)
                 .build();
     }
 
@@ -151,6 +157,7 @@ public final class HudTheme {
                 .opacity(1.0)
                 .paddingPx(6)
                 .gapPx(4)
+                .maxHeightPx(360)
                 .build();
     }
 
@@ -171,6 +178,7 @@ public final class HudTheme {
                 .opacity(1.0)
                 .paddingPx(10)
                 .gapPx(6)
+                .maxHeightPx(480)
                 .build();
     }
 
@@ -191,6 +199,7 @@ public final class HudTheme {
                 .opacity(1.0)
                 .paddingPx(8)
                 .gapPx(5)
+                .maxHeightPx(360)
                 .build();
     }
 
@@ -224,6 +233,7 @@ public final class HudTheme {
     public String backdropFilter() { return backdropFilter; }
     public Integer paddingPx() { return paddingPx; }
     public Integer gapPx() { return gapPx; }
+    public Integer maxHeightPx() { return maxHeightPx; }
 
     public Map<String, Object> toMap() {
         Map<String, Object> values = new LinkedHashMap<>();
@@ -244,6 +254,7 @@ public final class HudTheme {
         put(values, "backdropFilter", backdropFilter);
         put(values, "paddingPx", paddingPx);
         put(values, "gapPx", gapPx);
+        put(values, "maxHeightPx", maxHeightPx);
         return Collections.unmodifiableMap(values);
     }
 
@@ -271,6 +282,7 @@ public final class HudTheme {
         private String backdropFilter;
         private Integer paddingPx;
         private Integer gapPx;
+        private Integer maxHeightPx;
 
         public Builder background(String background) { this.background = clean(background); return this; }
         public Builder foreground(String foreground) { this.foreground = clean(foreground); return this; }
@@ -317,6 +329,11 @@ public final class HudTheme {
             return this;
         }
 
+        public Builder maxHeightPx(Integer maxHeightPx) {
+            this.maxHeightPx = positive(maxHeightPx, "maxHeightPx");
+            return this;
+        }
+
         public HudTheme build() {
             return new HudTheme(this);
         }
@@ -328,6 +345,13 @@ public final class HudTheme {
         private static Integer nonNegative(Integer value, String name) {
             if (value != null && value < 0) {
                 throw new IllegalArgumentException(name + " must be >= 0");
+            }
+            return value;
+        }
+
+        private static Integer positive(Integer value, String name) {
+            if (value != null && value <= 0) {
+                throw new IllegalArgumentException(name + " must be > 0");
             }
             return value;
         }

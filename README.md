@@ -40,6 +40,7 @@ Minimal usage:
 import io.github.mmaciekk111.uitestlens.JsOverlayDebug;
 import io.github.mmaciekk111.uitestlens.OverlayConfig;
 import io.github.mmaciekk111.uitestlens.hud.HudPosition;
+import io.github.mmaciekk111.uitestlens.hud.HudTheme;
 import io.github.mmaciekk111.uitestlens.hud.HudThemePreset;
 import org.openqa.selenium.WebDriver;
 
@@ -48,6 +49,10 @@ WebDriver driver = createDriver();
 OverlayConfig config = OverlayConfig.builder()
         .hudPosition(HudPosition.TOP_RIGHT)
         .hudTheme(HudThemePreset.GLASS)
+        .build();
+
+HudTheme cappedHud = HudTheme.builder()
+        .maxHeightPx(420)
         .build();
 
 JsOverlayDebug overlay = new JsOverlayDebug(driver, config);

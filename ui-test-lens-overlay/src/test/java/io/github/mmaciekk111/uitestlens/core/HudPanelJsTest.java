@@ -20,6 +20,9 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("--ui-test-lens-hud-bg"));
         assertTrue(HudPanelJs.INIT.contains("--ui-test-lens-hud-fg"));
         assertTrue(HudPanelJs.INIT.contains("--ui-test-lens-hud-accent"));
+        assertTrue(HudPanelJs.INIT.contains("--ui-test-lens-hud-max-height"));
+        assertTrue(HudPanelJs.INIT.contains("maxHeightPx"));
+        assertTrue(HudPanelJs.INIT.contains("updateScrollableRegions"));
     }
 
     @Test

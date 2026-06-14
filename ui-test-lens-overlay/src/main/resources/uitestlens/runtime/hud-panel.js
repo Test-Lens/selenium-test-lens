@@ -62,12 +62,18 @@
     }
   }
 
+  function positiveNumber(value) {
+    var parsed = Number(value);
+    return isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
   function applyTheme(panel, config) {
     var theme = (config && config.theme) || {};
     var borderRadius = themeValue(theme, 'borderRadiusPx');
     var fontSize = themeValue(theme, 'fontSizePx');
     var padding = themeValue(theme, 'paddingPx');
     var gap = themeValue(theme, 'gapPx');
+    var maxHeight = positiveNumber(theme.maxHeightPx);
 
     setVar(panel, '--ui-test-lens-hud-bg', themeValue(theme, 'background'));
     setVar(panel, '--ui-test-lens-hud-fg', themeValue(theme, 'foreground'));
@@ -95,6 +101,19 @@
     panel.style.boxShadow = 'var(--ui-test-lens-hud-shadow, 0 2px 6px rgba(0,0,0,0.4))';
     panel.style.opacity = 'var(--ui-test-lens-hud-opacity, 1)';
     panel.style.border = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
+    panel.style.boxSizing = 'border-box';
+    panel.style.display = 'flex';
+    panel.style.flexDirection = 'column';
+
+    if (maxHeight) {
+      setVar(panel, '--ui-test-lens-hud-max-height', maxHeight + 'px');
+      panel.style.maxHeight = 'var(--ui-test-lens-hud-max-height)';
+      panel.style.overflow = 'hidden';
+    } else {
+      panel.style.removeProperty('--ui-test-lens-hud-max-height');
+      panel.style.maxHeight = '';
+      panel.style.overflow = '';
+    }
 
     if (theme.backdropFilter) {
       panel.style.backdropFilter = theme.backdropFilter;
@@ -148,7 +167,44 @@
       logs.style.paddingTop = '4px';
       panel.appendChild(logs);
     }
+    logs.style.flex = '1 1 auto';
+    logs.style.minHeight = '0';
     return logs;
+  }
+
+  function updateScrollableRegions(panel) {
+    var config = lens.state.hud.lastConfig || {};
+    var theme = (config && config.theme) || {};
+    var maxHeight = positiveNumber(theme.maxHeightPx);
+    var logs = panel.querySelector('#selenium-hud-logs');
+    if (!logs) {
+      return;
+    }
+
+    if (!maxHeight) {
+      logs.style.maxHeight = '160px';
+      logs.style.overflowY = 'auto';
+      return;
+    }
+
+    var title = panel.querySelector('#selenium-hud-test');
+    var pipeline = panel.querySelector('#selenium-hud-pipeline');
+    var step = panel.querySelector('#selenium-hud-step');
+    var styles = window.getComputedStyle ? window.getComputedStyle(panel) : null;
+    var paddingTop = styles ? parseFloat(styles.paddingTop) || 0 : 0;
+    var paddingBottom = styles ? parseFloat(styles.paddingBottom) || 0 : 0;
+    var fixedHeight = paddingTop + paddingBottom;
+
+    [title, pipeline, step].forEach(function (node) {
+      if (node) {
+        fixedHeight += node.offsetHeight || 0;
+      }
+    });
+
+    var logMarginTop = logs.offsetTop && step ? Math.max(0, logs.offsetTop - (step.offsetTop + step.offsetHeight)) : 0;
+    var availableLogHeight = Math.max(80, Math.floor(maxHeight - fixedHeight - logMarginTop - 8));
+    logs.style.maxHeight = availableLogHeight + 'px';
+    logs.style.overflowY = 'auto';
   }
 
   function ensurePanel(config) {
@@ -170,6 +226,7 @@
     applyTheme(panel, config);
     positionPanel(panel, config);
     panel.style.maxWidth = (config.maxWidth || 280) + 'px';
+    updateScrollableRegions(panel);
     return panel;
   }
 
@@ -210,6 +267,7 @@
     }
 
     ensureLogs(panel);
+    updateScrollableRegions(panel);
   }
 
   function setStep(stepDescription) {
@@ -257,6 +315,7 @@
 
     row.textContent = '[' + (timestamp || '') + '][' + (level || '').toUpperCase() + '] ' + (message || '');
     logs.appendChild(row);
+    updateScrollableRegions(panel);
     logs.scrollTop = logs.scrollHeight;
   }
 

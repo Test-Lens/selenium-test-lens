@@ -51,6 +51,7 @@ HudTheme customTheme = HudTheme.builder()
         .fontFamily("Inter, system-ui, sans-serif")
         .fontSizePx(13)
         .boxShadow("0 18px 45px rgba(15, 23, 42, 0.35)")
+        .maxHeightPx(420)
         .build();
 
 OverlayConfig config = OverlayConfig.builder()
