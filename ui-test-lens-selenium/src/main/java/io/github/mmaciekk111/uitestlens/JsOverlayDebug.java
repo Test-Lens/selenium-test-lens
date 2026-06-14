@@ -18,13 +18,11 @@ import io.github.mmaciekk111.uitestlens.core.browser.SeleniumBrowserScriptExecut
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensEventType;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
+import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogSink;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogger;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensStatus;
 import io.github.mmaciekk111.uitestlens.core.trace.TraceArtifact;
-import io.github.mmaciekk111.uitestlens.core.trace.TraceEvent;
-import io.github.mmaciekk111.uitestlens.core.trace.TraceEventType;
-import io.github.mmaciekk111.uitestlens.core.trace.TraceFailure;
-import io.github.mmaciekk111.uitestlens.core.trace.TraceStatus;
+import io.github.mmaciekk111.uitestlens.core.trace.TraceLogSink;
 import io.github.mmaciekk111.uitestlens.core.trace.UiTestLensSession;
 import io.github.mmaciekk111.uitestlens.core.trace.export.TraceHtmlExportOptions;
 import io.github.mmaciekk111.uitestlens.hud.HudPanel;
@@ -98,6 +96,7 @@ public final class JsOverlayDebug {
     private boolean waitHudInjected = false;
     private final Guards guards;
     private final OverlayLogger logger;
+    private final SessionTraceLogSink sessionTraceLogSink = new SessionTraceLogSink();
     private OverlayPolicy overlayPolicy = OverlayPolicy.none();
     private UiTestLensSession session;
     private NetworkDiagnostics networkDiagnostics;
@@ -142,7 +141,8 @@ public final class JsOverlayDebug {
         this.apiPanel = apiPanel;
         this.apiCalls = apiCalls;
         this.guards = guards;
-        this.logger = logger != null ? logger : OverlayLogger.noop();
+        OverlayLogger baseLogger = logger != null ? logger : OverlayLogger.noop();
+        this.logger = baseLogger.withSink(sessionTraceLogSink);
         if (driver == null) {
             throw new IllegalArgumentException("driver must not be null");
         }
@@ -329,6 +329,7 @@ public final class JsOverlayDebug {
 
     public void attachSession(UiTestLensSession session) {
         this.session = session;
+        this.sessionTraceLogSink.attach(session);
     }
 
     public Optional<UiTestLensSession> session() {
@@ -336,8 +337,9 @@ public final class JsOverlayDebug {
     }
 
     public UiTestLensSession startSession(String name) {
-        this.session = UiTestLensSession.start(name);
-        return this.session;
+        UiTestLensSession started = UiTestLensSession.start(name);
+        attachSession(started);
+        return started;
     }
 
     public TraceArtifact attachScreenshot(String name, Path path) {
@@ -411,7 +413,6 @@ public final class JsOverlayDebug {
     }
 
     public UiStepResult step(String name, UiStepOptions options, Runnable body) {
-        traceStepStarted(name);
         UiStepScope scope = new UiStepScope(
                 logger,
                 this::setStep,
@@ -420,11 +421,9 @@ public final class JsOverlayDebug {
         try {
             UiStepResult result = scope.run(name, options, body);
             captureFailedStepScreenshotIfNeeded(name, options, result);
-            traceStepFinished(result);
             return result;
         } catch (UiStepError e) {
             captureFailedStepScreenshotIfNeeded(name, options, e.result());
-            traceStepFinished(e.result());
             throw e;
         }
     }
@@ -451,51 +450,6 @@ public final class JsOverlayDebug {
             throw new IllegalStateException("No UiTestLensSession attached");
         }
         return session;
-    }
-
-    private void traceStepStarted(String name) {
-        if (session == null) {
-            return;
-        }
-        session.addEvent(TraceEvent.started(TraceEventType.STEP_STARTED, safeString(name)));
-    }
-
-    private void traceStepFinished(UiStepResult result) {
-        if (session == null || result == null) {
-            return;
-        }
-        TraceEvent.Builder builder = TraceEvent.builder(
-                        traceTypeFor(result.status()),
-                        traceStatusFor(result.status()),
-                        result.name()
-                )
-                .message(result.summary())
-                .duration(result.elapsed())
-                .attribute("startedAt", result.startedAt().toString())
-                .attribute("endedAt", result.endedAt().toString());
-        if (result.failure() != null) {
-            builder.failure(TraceFailure.from(result.failure().cause(), false))
-                    .attribute("failureSummary", result.failure().message());
-        }
-        session.addEvent(builder.build());
-    }
-
-    private static TraceEventType traceTypeFor(UiStepStatus status) {
-        return switch (status) {
-            case RUNNING -> TraceEventType.STEP_STARTED;
-            case PASSED -> TraceEventType.STEP_PASSED;
-            case FAILED -> TraceEventType.STEP_FAILED;
-            case SKIPPED -> TraceEventType.CUSTOM;
-        };
-    }
-
-    private static TraceStatus traceStatusFor(UiStepStatus status) {
-        return switch (status) {
-            case RUNNING -> TraceStatus.STARTED;
-            case PASSED -> TraceStatus.PASSED;
-            case FAILED -> TraceStatus.FAILED;
-            case SKIPPED -> TraceStatus.SKIPPED;
-        };
     }
 
     private ActionabilityChecker actionabilityChecker() {
@@ -651,6 +605,22 @@ public final class JsOverlayDebug {
 
     private static String safeString(String value) {
         return value == null ? "" : value;
+    }
+
+    private static final class SessionTraceLogSink implements UiTestLensLogSink {
+        private volatile TraceLogSink delegate;
+
+        void attach(UiTestLensSession session) {
+            this.delegate = session == null ? null : new TraceLogSink(session);
+        }
+
+        @Override
+        public void accept(UiTestLensLogEntry entry) {
+            TraceLogSink current = delegate;
+            if (current != null) {
+                current.accept(entry);
+            }
+        }
     }
 
     // ======================================================================

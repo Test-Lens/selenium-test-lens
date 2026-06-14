@@ -254,7 +254,13 @@ The DSL should remain test-framework-neutral. JUnit/TestNG adapters can be added
 
 Trace and evidence features should make post-failure diagnosis possible without rerunning the test. The trace should connect steps, actions, waits, overlays, assertions, screenshots, logs, and network events.
 
-Initial implementation status: `ui-test-lens-core` now provides a Selenium-free trace/evidence model: `UiTestLensSession`, trace metadata, events, failures, artifact references, manual JSON export, HTML export, and `TraceLogSink`. `ui-test-lens-selenium` can attach/start a session from `JsOverlayDebug`, records step events into the session, exposes artifact attachment helpers, delegates HTML export to the attached session, and can capture Selenium screenshots as evidence artifacts. This is not yet video recording.
+Initial implementation status: `ui-test-lens-core` now provides a Selenium-free trace/evidence model: `UiTestLensSession`, trace metadata, events, failures, artifact references, manual JSON export, HTML export, and `TraceLogSink`. `ui-test-lens-selenium` can attach/start a session from `JsOverlayDebug`, forward logger events into the session timeline, expose artifact attachment helpers, delegate HTML export to the attached session, and capture Selenium screenshots as evidence artifacts. This is not yet video recording.
+
+### 4.0 Trace event mapping
+
+When `JsOverlayDebug.startSession(...)` or `attachSession(...)` is used, logger events are forwarded into the active `UiTestLensSession`. The mapping covers locator resolve/action events, actionability checks, assertions, business assertions, steps, overlay policy events, screenshot/video events, and network diagnostics. Artifacts remain explicit session attachments, and network logs can still be exported as JSON artifacts.
+
+Step events use the logger path as the single source of truth to avoid duplicate `STEP_STARTED`/`STEP_PASSED`/`STEP_FAILED` entries. The HTML exporter shows these mapped events in the existing static timeline; this is still not a full interactive trace viewer.
 
 ### 4.1 HTML trace report
 
@@ -476,7 +482,7 @@ Role labels should appear in trace/session metadata to help diagnose authorizati
 6. Add business step DSL.
    Steps become more valuable once actions and assertions produce structured events.
 7. Add HTML trace report.
-   Initial static HTML export now exists. Continue by improving event mapping and adding a richer viewer only after the model stabilizes.
+   Initial static HTML export now exists, and logger events are now mapped into attached trace sessions. Continue by improving report UX and adding a richer viewer only after the model stabilizes.
 8. Add screenshots as evidence.
    Selenium `TakesScreenshot` capture now exists as opt-in evidence capture, with failed-step capture controlled by `UiStepOptions`.
 9. Add optional video attachments.

@@ -202,7 +202,7 @@ Safety scan results:
 ### Future feature work
 
 - Treat the first Playwright-style locator helpers as pragmatic APIs and harden their documented matching semantics before expanding them.
-- Improve trace event mapping from locator/assertion/actionability/network operations into `UiTestLensSession`.
+- Add richer parent/child trace grouping and evidence correlation now that logger events are forwarded into `UiTestLensSession`.
 - Improve HTML trace UX.
 - Add optional real browser network capture providers behind guarded support.
 - Add provider-specific artifact discovery/download only if it remains optional.
@@ -210,8 +210,8 @@ Safety scan results:
 
 ## Recommended follow-up tasks
 
-1. Improve trace event mapping from logger to session.
-2. Polish HTML trace UX.
+1. Polish HTML trace UX.
+2. Add richer parent/child trace grouping and evidence correlation.
 3. Expand Playwright-style locator helpers only after documenting exact matching semantics.
 4. Add a real browser network capture provider behind optional/guarded support.
 5. Add Maven Wrapper.

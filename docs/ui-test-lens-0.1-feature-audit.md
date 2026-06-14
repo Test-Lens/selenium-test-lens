@@ -87,7 +87,7 @@ Public entry points include `JsOverlayDebug.expect(...)` and `UiLocator.expect()
 
 Supported assertions include visible/hidden, enabled/disabled, exact text, contains text, exact value, and contains value.
 
-Current limitation: full soft assertion aggregation and deep session-level trace mapping are not complete yet.
+Current limitation: full soft assertion aggregation is not complete yet. Logger events are mapped into attached trace sessions, but future releases can still add richer parent/child relationships and evidence links.
 
 ### 5.9 Business assertions
 
@@ -107,11 +107,11 @@ Current limitation: there is not yet a full hierarchical trace viewer. Step data
 
 ### 5.11 Trace/evidence model
 
-`ui-test-lens-core` provides `UiTestLensSession`, `TraceEvent`, `TraceArtifact`, `TraceFailure`, `TraceMetadata`, `TraceJsonExporter`, and `TraceLogSink`.
+`ui-test-lens-core` provides `UiTestLensSession`, `TraceEvent`, `TraceArtifact`, `TraceFailure`, `TraceMetadata`, `TraceJsonExporter`, `CompositeLogSink`, and `TraceLogSink`.
 
-Selenium integration includes `JsOverlayDebug.startSession(...)`, `attachSession(...)`, `session()`, `attachScreenshot(...)`, and `attachVideo(...)`.
+Selenium integration includes `JsOverlayDebug.startSession(...)`, `attachSession(...)`, `session()`, `attachScreenshot(...)`, and `attachVideo(...)`. Once a session is attached, logger events are forwarded into the trace timeline through `TraceLogSink`.
 
-Current limitation: the neutral model exists, but not every action/assertion/actionability source is deeply mapped into trace events yet.
+Current limitation: trace event mapping is now automatic for logger events, but deep hierarchy, parent/child grouping, and richer evidence correlation remain future work.
 
 ### 5.12 HTML trace report exporter
 
@@ -233,7 +233,7 @@ overlay.network().expectResponse().urlContains("/api/orders").status(201).within
 1. Polish and stabilize public API names before a 0.1 release.
 2. Harden Playwright-style locator helper semantics and document edge cases.
 3. Improve HTML trace report UX.
-4. Map more logger/action/assertion events into trace sessions.
+4. Add richer parent/child trace grouping and evidence correlation.
 5. Add optional real browser network capture providers:
    - performance logs,
    - BiDi,

@@ -57,8 +57,21 @@ class JsOverlayDebugTraceSessionTest {
 
         overlay.step("Save form", () -> {});
 
-        assertTrue(session.events().stream().anyMatch(event -> event.type() == TraceEventType.STEP_STARTED));
-        assertTrue(session.events().stream().anyMatch(event -> event.type() == TraceEventType.STEP_PASSED));
+        assertEquals(1, countEvents(session, TraceEventType.STEP_STARTED));
+        assertEquals(1, countEvents(session, TraceEventType.STEP_PASSED));
+    }
+
+    @Test
+    void loggerEventsAreForwardedToAttachedSession() {
+        JsOverlayDebug overlay = new JsOverlayDebug(fakeDriver());
+        UiTestLensSession session = UiTestLensSession.start("Checkout flow");
+        overlay.attachSession(session);
+
+        overlay.setStep("Open checkout");
+
+        assertTrue(session.events().stream().anyMatch(event ->
+                "STEP".equals(event.attributes().get("uiEventType"))
+                        && "Open checkout".equals(event.attributes().get("step"))));
     }
 
     @Test
@@ -235,5 +248,9 @@ class JsOverlayDebugTraceSessionTest {
                     return null;
                 }
         );
+    }
+
+    private static long countEvents(UiTestLensSession session, TraceEventType type) {
+        return session.events().stream().filter(event -> event.type() == type).count();
     }
 }

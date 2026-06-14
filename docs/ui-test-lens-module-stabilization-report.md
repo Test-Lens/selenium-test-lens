@@ -134,7 +134,7 @@ Dependency tree checks:
 
 1. Use [`ui-test-lens-0.1-feature-audit.md`](ui-test-lens-0.1-feature-audit.md) as the current feature baseline.
 2. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
-3. Improve trace event mapping for locator/assertion/actionability events.
+3. Improve trace hierarchy, parent/child grouping, and evidence correlation now that logger events are mapped into trace sessions.
 4. Add provider-specific video artifact discovery/download helpers only if they can stay optional.
 5. Add stricter auth-state safety guidance or optional encryption integration outside core.
 6. Improve real browser network capture providers behind safe optional fallbacks.

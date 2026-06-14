@@ -509,7 +509,13 @@ Osmy punkt roadmapy diagnostics zostal zaimplementowany neutralnie w `ui-test-le
 
 Model zapisuje metadata sesji, timeline events, failures oraz referencje do artefaktow: screenshoty, video, HTML, JSON, logi tekstowe/browser/network, custom files i custom URLs. Artefakty sa tylko sciezkami albo URL-ami; core nie robi Selenium screenshot capture, nie nagrywa video i nie renderuje niczego przez zaleznosci zewnetrzne.
 
-Po stronie `ui-test-lens-selenium` `JsOverlayDebug` potrafi `startSession(...)`, `attachSession(...)`, zwrocic `session()`, dodac screenshot/video/custom artifact oraz dopisac zdarzenia step DSL do sesji. Pelne mapowanie akcji, asercji, locatorow i overlay policy na trace zostaje na kolejne etapy.
+Po stronie `ui-test-lens-selenium` `JsOverlayDebug` potrafi `startSession(...)`, `attachSession(...)`, zwrocic `session()`, dodac screenshot/video/custom artifact oraz forwardowac eventy loggera do timeline trace przez `TraceLogSink`.
+
+## Trace event mapping
+
+Po `startSession(...)` albo `attachSession(...)` aktywna sesja dostaje eventy UI Test Lens loggera automatycznie. Mapowanie obejmuje locator resolve/action events, actionability, assertions, business assertions, steps, overlay policy, screenshot/video evidence events oraz network diagnostics. Oryginalny `UiTestLensEventType` trafia do atrybutu eventu trace, wiec raport moze pokazac szczegolowy typ zdarzenia bez wprowadzania zaleznosci Selenium do core.
+
+Step DSL uzywa loggera jako jednego zrodla prawdy, wiec reczne `session.addEvent(...)` dla `STEP_STARTED`/`STEP_PASSED`/`STEP_FAILED` nie dubluje juz timeline. Artifacts nadal sa attachowane osobno do sesji, a network log moze byc zapisany jako JSON artifact. To nadal statyczny HTML trace, nie pelny interaktywny viewer.
 
 ## HTML trace report exporter
 

@@ -1,6 +1,7 @@
 package io.github.mmaciekk111.uitestlens.core;
 
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
+import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogSink;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogger;
 
 public final class OverlayLogger {
@@ -16,6 +17,10 @@ public final class OverlayLogger {
 
     public static OverlayLogger from(UiTestLensLogger logger) {
         return new OverlayLogger(logger);
+    }
+
+    public OverlayLogger withSink(UiTestLensLogSink sink) {
+        return new OverlayLogger(delegate.withSink(sink));
     }
 
     public void debug(String message) {

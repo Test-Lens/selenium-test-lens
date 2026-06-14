@@ -386,6 +386,12 @@ String json = session.exportJson();
 
 Selenium-side screenshot capture is available through `JsOverlayDebug.captureScreenshot(...)`. Video evidence can be attached as local file paths or remote URLs. Video recording and provider-specific downloads are not implemented yet.
 
+## Trace Event Mapping
+
+When a `UiTestLensSession` is attached with `startSession(...)` or `attachSession(...)`, UI Test Lens logger events are forwarded into the trace timeline through `TraceLogSink`. This gives the HTML trace report a richer timeline for locator resolve/action events, actionability checks, assertions, business assertions, steps, overlay policy events, screenshot/video evidence events, and network diagnostics.
+
+Step events use the logger as the single source of truth, so `step(...)` does not add duplicate manual trace events. Artifacts are still attached separately through the session, and network logs can still be attached as JSON artifacts. The HTML report remains a static report, not a full interactive trace viewer.
+
 ## HTML Trace Report Exporter
 
 `TraceHtmlExporter` turns a `UiTestLensSession` into a self-contained HTML report with inline CSS. The report includes session metadata, final status, summary cards, timeline events, step events, failures, artifact links, and optional raw JSON.
