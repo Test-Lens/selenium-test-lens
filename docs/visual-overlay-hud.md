@@ -67,13 +67,13 @@ Locator actions can highlight targets as part of the diagnostic flow.
 
 ## Wait HUD
 
-The Wait HUD is used for wait/debug feedback. It has its own runtime resource and currently has limited integration with the shared HUD theme variables.
+The Wait HUD shows wait/debug feedback. It has its own runtime resource and limited integration with the shared HUD theme variables.
 
 ## Assertion badges
 
-Assertion badges make assertion pass/fail state visible during interactive debugging. They are useful for authoring and demos, but they are not a replacement for test failure messages or trace reports.
+Assertion badges make assertion pass/fail state visible during interactive debugging. They are useful for authoring and demos; test failures and trace reports remain the source of truth.
 
-The shared theme system does not yet fully control all badge styling.
+The shared theme system does not fully control badge styling.
 
 ## API overlay
 
@@ -134,7 +134,7 @@ The HUD runtime applies theme values through CSS variables such as:
 ## Current limitations
 
 - The common theme system is centered on the HUD panel.
-- Wait HUD and assertion badges are not yet fully covered by shared theme presets.
+- Wait HUD and assertion badges are not fully covered by shared theme presets.
 - The overlay is diagnostic UI, not a full visual test report.
 - Styling is inline/runtime JS; there is no external CSS dependency.
 

@@ -1,6 +1,11 @@
 package io.github.mmaciekk111.uitestlens.react;
 
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.ElementClickInterceptedException;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -8,16 +13,12 @@ import java.time.Duration;
 import java.util.function.Function;
 
 /**
- * Helper do "odpornych" akcji na React/SPA:
- * - pracuje na By locator (nie na WebElement),
- * - przy StaleElementReferenceException / chwilowym NoSuchElementException
- * próbuje ponownie znaleźć element i wykonać akcję,
- * - opcjonalnie loguje próby w HUD-zie JsOverlayDebug.
+ * Retries locator-based actions across common React/SPA re-render windows.
  */
 public class ReactSafeExecutor {
 
     private final WebDriver driver;
-    private final ReactOverlaySupport overlay; // opcjonalne – do HUD + highlight
+    private final ReactOverlaySupport overlay;
     private final ReactSelectHelper reactSelect;
     private final int maxRetries;
     private final Duration retryDelay;
@@ -40,13 +41,6 @@ public class ReactSafeExecutor {
         this(driver, overlay, 3, Duration.ofMillis(200), Duration.ofSeconds(15));
     }
 
-    /**
-     * Uniwersalny executor:
-     * - bierze lokator,
-     * - przy każdej próbie czeka na presenceOfElementLocated,
-     * - przekazuje świeży WebElement do funkcji op,
-     * - retry na stale / no-such.
-     */
     public <T> T doWithRetry(By locator,
                              String actionDescription,
                              Function<WebElement, T> op) {
@@ -66,7 +60,6 @@ public class ReactSafeExecutor {
                 WebDriverWait wait = new WebDriverWait(driver, waitPerAttempt);
                 WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
 
-                // Możesz tu dodać np. highlight przed akcją:
                 if (overlay != null) {
                     overlay.highlightElement(element, actionDescription);
                 }
@@ -80,12 +73,11 @@ public class ReactSafeExecutor {
                 lastNse = e;
                 sleep(retryDelay);
             } catch (ElementClickInterceptedException e) {
-                // React czasem coś jeszcze dorysowuje – mała pauza i retry
+                // React overlays can appear between presence and interaction; retry with a fresh element.
                 sleep(retryDelay);
             }
         }
 
-        // Jeśli tu doszliśmy, to wszystkie próby padły:
         String msg = String.format(
                 "React-safe action FAILED after %d attempts: %s (locator: %s)",
                 maxRetries, actionDescription, locator
@@ -109,14 +101,8 @@ public class ReactSafeExecutor {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-
     }
 
-    // ===== Wygodne metody do najczęstszych akcji =====
-
-    /**
-     * Bezpieczny click – sam odświeży element przy stale.
-     */
     public void click(By locator, String label) {
         doWithRetry(locator, "CLICK: " + label, el -> {
             el.click();
@@ -124,9 +110,6 @@ public class ReactSafeExecutor {
         });
     }
 
-    /**
-     * Bezpieczne sendKeys – czyści pole i wpisuje tekst.
-     */
     public void clearAndType(By locator, String text, String label) {
         doWithRetry(locator, "TYPE: " + label, el -> {
             el.clear();
@@ -135,24 +118,15 @@ public class ReactSafeExecutor {
         });
     }
 
-    /**
-     * Bezpieczne readText – odczytuje aktualny tekst po re-renderach.
-     */
     public String getText(By locator, String label) {
         return doWithRetry(locator, "GET_TEXT: " + label, WebElement::getText);
     }
 
-    /**
-     * Bezpieczne pobranie atrybutu.
-     */
     public String getAttribute(By locator, String attr, String label) {
         return doWithRetry(locator, "GET_ATTR(" + attr + "): " + label,
                 el -> el.getAttribute(attr));
     }
 
-    /**
-     * Bezpieczne sprawdzenie isDisplayed/isEnabled/isSelected.
-     */
     public boolean isDisplayed(By locator, String label) {
         return doWithRetry(locator, "IS_DISPLAYED: " + label, WebElement::isDisplayed);
     }
@@ -168,8 +142,4 @@ public class ReactSafeExecutor {
     public ReactSelectHelper select() {
         return reactSelect;
     }
-
-
 }
-
-

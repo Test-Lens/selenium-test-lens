@@ -1,6 +1,6 @@
 # Architecture
 
-UI Test Lens is a multi-module project. Each module owns a clear boundary so diagnostics can be layered on Selenium without leaking Selenium into neutral runtime/model modules.
+UI Test Lens is a multi-module project. Each module owns a boundary so WebDriver diagnostics do not leak into neutral runtime/model modules.
 
 ## Module boundaries
 
@@ -59,7 +59,7 @@ The project avoids:
 - Selenium imports in `ui-test-lens-overlay`
 - React imports in `ui-test-lens-selenium`
 - private historical utility imports such as `LogWraper`, `TimeStamp`, `ContentIssueCollector` or `LocalDateTimeUtils`
-- Playwright dependency
+- framework-specific automation dependencies outside the intended module boundary
 - runtime/test dependencies for documentation-only features
 
 These boundaries should be checked before release work.

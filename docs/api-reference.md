@@ -1,6 +1,6 @@
 # API reference
 
-This is a concise public API map for UI Test Lens 0.1. It is not a replacement for generated Javadocs.
+This is a concise public API map for UI Test Lens 0.1.
 
 ## Overlay configuration
 

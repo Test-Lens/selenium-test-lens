@@ -121,8 +121,8 @@ The Selenium module exposes focused options classes:
 | `NetworkDiagnosticsOptions` | Capture mode, failed status threshold, ignored URLs and header masking. |
 | `NetworkWaitCondition` | URL/method/status conditions and wait timeout for network assertions. |
 
-Defaults prefer safety: headers are omitted or masked, screenshot-on-failure is opt-in, auth state files are written only when explicitly saved, and video evidence is attachment-based rather than recording-based.
+Defaults avoid collecting unnecessary sensitive data: headers are omitted or masked, screenshot-on-failure is opt-in, auth state files are written only when explicitly saved, and video evidence is attachment-based rather than recording-based.
 
 ## Current theme scope
 
-The shared HUD theme system primarily covers the HUD panel. Wait HUD and assertion badges may use some shared visual variables, but they are not yet fully covered by one common theme contract.
+The shared HUD theme system covers the HUD panel. Wait HUD and assertion badges may use some shared visual variables, but they are not fully covered by one common theme contract.

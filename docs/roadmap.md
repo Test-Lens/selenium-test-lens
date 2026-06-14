@@ -1,6 +1,6 @@
 # Roadmap
 
-This roadmap tracks current follow-up work after the 0.1 feature consolidation. It is intentionally short and should replace older cleanup logs and audit notes.
+This roadmap tracks follow-up work after the 0.1 feature consolidation.
 
 ## Near-term polish
 
@@ -38,4 +38,4 @@ This roadmap tracks current follow-up work after the 0.1 feature consolidation. 
 
 1. RestAssured adapter/module, if API-test diagnostics become part of the product scope.
 2. Provider-specific video artifact helpers for CI/Selenium Grid/Selenoid/BrowserStack/Sauce, without making the core library provider-dependent.
-3. Additional locator helpers if they can remain pragmatic and maintainable.
+3. Additional locator helpers if their matching rules stay clear and maintainable.

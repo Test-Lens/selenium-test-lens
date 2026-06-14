@@ -63,7 +63,7 @@ JsOverlayDebug overlay = new JsOverlayDebug(driver, config);
 
 See also `HudThemeExampleTest` in `ui-test-lens-examples`.
 
-## Playwright-style locators
+## Locator helpers
 
 ```java
 overlay.getByLabel("Email").fill("test@example.com");
@@ -146,4 +146,4 @@ overlay.network().expectResponse()
 overlay.network().assertNoFailedRequests();
 ```
 
-The current reliable baseline is manual/fallback diagnostics. Browser network providers and interception/mocking are future work.
+The reliable baseline is manual/fallback diagnostics. Browser network providers and interception/mocking are not implemented.

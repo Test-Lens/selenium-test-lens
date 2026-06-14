@@ -5,42 +5,21 @@ import io.github.mmaciekk111.uitestlens.hud.HudTheme;
 import io.github.mmaciekk111.uitestlens.hud.HudThemePreset;
 
 /**
- * Konfiguracja overlaya – steruje tym, czy overlay jest włączony,
- * czy ma być widoczny HUD oraz jak długo mają się wyświetlać dekoracje
- * (ramki, dymki itd.), a także pozwala zdefiniować:
- * - globalny selektor przycisku zamykającego overlay/popup,
- * - pozycję i rozmiar HUD-a,
- * - kolor highlighta (ramek / badge’y).
+ * Visual overlay configuration shared by the browser runtime bridges.
  */
 public final class OverlayConfig {
 
     private final boolean enabled;
     private final boolean showHudPanel;
     private final long decorationDurationMs;
-
-    /**
-     * Opcjonalny globalny selektor przycisku zamykającego overlay/popup.
-     * Np. "button#acceptCookies" albo ".cookie-accept-all".
-     * Może być null, jeśli nie chcesz nic narzucać.
-     */
     private final String globalOverlayCloseButtonSelector;
-
-    // HUD
     private final HudPosition hudPosition;
     private final int hudOffsetX;
     private final int hudOffsetY;
     private final int hudMaxWidthPx;
     private final HudTheme hudTheme;
     private final HudThemePreset hudThemePreset;
-
-    // Highlight (ramki, badge'e)
-    /**
-     * Kolor highlighta (ramka wokół elementu, tło badge'a)
-     * w formacie CSS (np. "#ffeb3b" albo "rgba(255,235,59,1)").
-     */
     private final String highlightColor;
-
-    // w przyszłości można dodać np. theme, maskowanie haseł, itp.
 
     private OverlayConfig(Builder builder) {
         this.enabled = builder.enabled;
@@ -56,9 +35,6 @@ public final class OverlayConfig {
         this.highlightColor = builder.highlightColor;
     }
 
-    /**
-     * Tworzy nowego buildera konfiguracji.
-     */
     public static Builder builder() {
         return new Builder();
     }
@@ -75,10 +51,6 @@ public final class OverlayConfig {
         return decorationDurationMs;
     }
 
-    /**
-     * Zwraca globalny selektor przycisku zamykającego overlay/popup,
-     * jeśli został ustawiony (może być null).
-     */
     public String getGlobalOverlayCloseButtonSelector() {
         return globalOverlayCloseButtonSelector;
     }
@@ -107,33 +79,22 @@ public final class OverlayConfig {
         return hudThemePreset;
     }
 
-    /**
-     * Zwraca kolor highlighta używany do ramek i badge'y.
-     */
     public String getHighlightColor() {
         return highlightColor;
     }
 
-    /**
-     * Builder dla {@link OverlayConfig}.
-     */
     public static final class Builder {
 
-        // wartości domyślne
         private boolean enabled = true;
         private boolean showHudPanel = true;
         private long decorationDurationMs = 1500L;
         private String globalOverlayCloseButtonSelector = null;
-
-        // HUD – domyślnie: prawy-dolny róg, małe offsety, ~280px
         private HudPosition hudPosition = HudPosition.BOTTOM_RIGHT;
-        private int hudOffsetX = 10;   // od krawędzi poziomej (px)
-        private int hudOffsetY = 10;   // od krawędzi pionowej (px)
+        private int hudOffsetX = 10;
+        private int hudOffsetY = 10;
         private int hudMaxWidthPx = 280;
         private HudTheme hudTheme = HudTheme.defaultTheme();
         private HudThemePreset hudThemePreset = HudThemePreset.DEFAULT;
-
-        // Highlight – domyślnie żółty
         private String highlightColor = "#ffeb3b";
 
         public Builder enabled(boolean enabled) {
@@ -154,18 +115,11 @@ public final class OverlayConfig {
             return this;
         }
 
-        /**
-         * Globalny selektor przycisku zamykającego overlay/popup,
-         * np. "#acceptCookies" albo ".cookie-accept-all".
-         */
         public Builder globalOverlayCloseButtonSelector(String selector) {
             this.globalOverlayCloseButtonSelector = selector;
             return this;
         }
 
-        /**
-         * Pozycja HUD-a na ekranie (jeden z czterech rogów).
-         */
         public Builder hudPosition(HudPosition position) {
             if (position != null) {
                 this.hudPosition = position;
@@ -173,10 +127,6 @@ public final class OverlayConfig {
             return this;
         }
 
-        /**
-         * Offset HUD-a od krawędzi (w pikselach).
-         * X – od lewej/prawej, Y – od góry/dół (w zależności od pozycji).
-         */
         public Builder hudOffset(int offsetX, int offsetY) {
             if (offsetX >= 0) {
                 this.hudOffsetX = offsetX;
@@ -187,9 +137,6 @@ public final class OverlayConfig {
             return this;
         }
 
-        /**
-         * Maksymalna szerokość HUD-a w px.
-         */
         public Builder hudMaxWidthPx(int hudMaxWidthPx) {
             if (hudMaxWidthPx > 0) {
                 this.hudMaxWidthPx = hudMaxWidthPx;
@@ -213,10 +160,6 @@ public final class OverlayConfig {
             return this;
         }
 
-        /**
-         * Kolor highlighta (ramka + badge) w formacie CSS.
-         * Np. "#ffeb3b", "#00ff00", "rgba(0,255,0,0.9)".
-         */
         public Builder highlightColor(String highlightColor) {
             if (highlightColor != null && !highlightColor.isBlank()) {
                 this.highlightColor = highlightColor;

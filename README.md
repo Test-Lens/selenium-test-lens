@@ -1,6 +1,6 @@
 # UI Test Lens
 
-UI Test Lens is a Selenium-compatible reliability and diagnostics layer for UI tests. It adds Playwright-inspired locators, retryable assertions, visual debugging, evidence capture, auth/session state helpers, network diagnostics, and trace reports without depending on Playwright.
+UI Test Lens is an observability and reliability toolkit for browser-based UI automation. It adds resilient WebDriver actions, retryable assertions, visual debugging, evidence capture, auth/session state helpers, network diagnostics, and trace reports.
 
 The project is currently `0.1.0-SNAPSHOT` and pre-1.0. Public APIs are usable, but may still be polished before a first release.
 
@@ -105,12 +105,12 @@ mvn -q -pl ui-test-lens -am test
 
 ## Current Scope
 
-UI Test Lens does not replace Selenium. It wraps Selenium with ergonomic, retryable and diagnostic APIs:
+UI Test Lens runs on top of Selenium/WebDriver and adds diagnostic APIs:
 
 - visual HUD and element debugging
 - configurable blocking overlay policy
 - actionability checks
-- Playwright-inspired `UiLocator` helpers
+- ergonomic `UiLocator` helpers
 - retryable web assertions
 - business assertions and named steps
 - trace/evidence session model and HTML report export
@@ -118,9 +118,9 @@ UI Test Lens does not replace Selenium. It wraps Selenium with ergonomic, retrya
 - auth/session state capture and restore
 - passive network diagnostics and wait-for-response assertions
 
-Some areas are intentionally initial implementations:
+Current limitations:
 
-- `getByRole` is pragmatic and does not implement the full ARIA accessible-name algorithm.
-- network diagnostics are passive; browser capture providers and interception/mocking are future work.
+- `getByRole` does not implement the full ARIA accessible-name algorithm.
+- network diagnostics are passive; browser capture providers and interception/mocking are not implemented.
 - video support is attachment/reference based; UI Test Lens does not record video.
-- HUD themes currently focus on the HUD panel; Wait HUD and assertion badges are not fully covered by the common theme system yet.
+- HUD themes focus on the HUD panel; Wait HUD and assertion badges are not fully covered by the common theme system.

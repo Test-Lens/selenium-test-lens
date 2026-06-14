@@ -11,7 +11,7 @@ UI Test Lens is pre-1.0. This guide describes the current state, not a Maven Cen
 | JsTestTools | UI Test Lens |
 | historical helper package | `io.github.mmaciekk111.uitestlens` |
 | old one-module helper layout | multi-module Maven layout |
-| Selenium-only helper | Selenium-compatible reliability and diagnostics layer |
+| Selenium-only helper | WebDriver reliability and diagnostics layer |
 | hardcoded overlay/popup handling | configurable `OverlayPolicy` |
 | direct one-off element lookup | retryable `UiLocator` |
 | one-off assertion | retryable `UiExpect` |
@@ -114,6 +114,6 @@ overlay.exportTraceHtml(Path.of("target/ui-test-lens/checkout-flow.html"));
 - Maven Central release metadata is not configured.
 - The current package root is `io.github.mmaciekk111.uitestlens`.
 - Some historical runtime aliases may still exist for browser compatibility.
-- `getByRole` is pragmatic and not a full accessibility engine.
+- `getByRole` is not a full accessibility engine.
 - network diagnostics are passive and do not provide mocking/interception.
 - video evidence is attachment/reference based, not recording based.
