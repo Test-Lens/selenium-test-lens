@@ -359,14 +359,15 @@ overlay.step("Save form", () -> {
 });
 
 overlay.attachScreenshot("Save form", Path.of("target/screenshots/save-form.png"));
-overlay.attachVideo("Checkout flow video", Path.of("target/videos/checkout-flow.mp4"));
+overlay.attachVideoFile("Checkout flow video", Path.of("target/videos/checkout-flow.mp4"));
+overlay.attachVideoUrl("CI video", "https://ci.example.com/artifacts/checkout-flow.mp4");
 
 String json = session.exportJson();
 ```
 
 `TraceJsonExporter` produces a JSON-friendly structure using only JDK code. `TraceLogSink` can forward existing UI Test Lens log entries into a trace session. Selenium integration is intentionally light in this stage: `JsOverlayDebug` can start or attach a session, step events are added to the session, and artifacts can be attached through convenience methods.
 
-Selenium-side screenshot capture is available through `JsOverlayDebug.captureScreenshot(...)`. Video recording is not implemented yet.
+Selenium-side screenshot capture is available through `JsOverlayDebug.captureScreenshot(...)`. Video evidence can be attached as local file paths or remote URLs. Video recording and provider-specific downloads are not implemented yet.
 
 ## HTML Trace Report Exporter
 
@@ -389,6 +390,32 @@ overlay.captureScreenshot("After save");
 Screenshot output is configured with `ScreenshotCaptureOptions`, including output directory, file name prefix, timestamp usage, overwrite behavior, and whether to attach to the session. `UiStepOptions.captureScreenshotOnFailure(true)` enables opt-in screenshot capture for failed steps; it is disabled by default to avoid changing existing test behavior.
 
 Captured screenshots appear in the HTML trace report as artifact links/paths. UI Test Lens does not embed binary data in the report and does not implement video recording in this stage.
+
+## Video Evidence Attachments
+
+Video evidence is modeled as an attachment/reference, not as built-in recording. Use `attachVideoFile(...)` for recordings produced by Selenium Grid, Docker Selenium, Selenoid, BrowserStack, Sauce Labs, or a custom runner, and `attachVideoUrl(...)` for CI artifact links.
+
+```java
+overlay.attachVideoFile(
+        "Selenium Grid recording",
+        Path.of("target/videos/checkout-flow.mp4"),
+        VideoEvidenceOptions.builder()
+                .source(VideoEvidenceSource.SELENIUM_GRID)
+                .metadata("provider", "Docker Selenium")
+                .build()
+);
+
+overlay.attachVideoUrl(
+        "CI video artifact",
+        "https://ci.example.com/artifacts/checkout-flow.mp4",
+        VideoEvidenceOptions.builder()
+                .source(VideoEvidenceSource.CI_ARTIFACT)
+                .metadata("job", "checkout-ui-tests")
+                .build()
+);
+```
+
+`VideoEvidenceOptions` can label the source, media type, provider/build/job metadata, and whether a local file must exist. URLs are not fetched or validated over the network. Attached video artifacts appear in the HTML trace report as paths or links.
 
 ## Logging And Event Bus
 

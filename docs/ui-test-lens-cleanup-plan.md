@@ -489,7 +489,7 @@ Domyslnie `UiStepOptions.failFast(true)` opakowuje blad w `UiStepError`. Przy `f
 
 Osmy punkt roadmapy diagnostics zostal zaimplementowany neutralnie w `ui-test-lens-core`. Dodano `UiTestLensSession`, `TraceMetadata`, `TraceEvent`, `TraceEventType`, `TraceStatus`, `TraceArtifact`, `TraceArtifactType`, `TraceFailure`, `TraceTimeline`, `TraceStep`, `TraceJsonExporter` oraz `TraceLogSink`.
 
-Model zapisuje metadata sesji, timeline events, failures oraz referencje do artefaktow: screenshoty, video, HTML, JSON, logi tekstowe/browser/network, custom files i custom URLs. Artefakty sa tylko sciezkami albo URL-ami; biblioteka na tym etapie nie robi Selenium screenshot capture, nie nagrywa video i nie renderuje HTML trace.
+Model zapisuje metadata sesji, timeline events, failures oraz referencje do artefaktow: screenshoty, video, HTML, JSON, logi tekstowe/browser/network, custom files i custom URLs. Artefakty sa tylko sciezkami albo URL-ami; core nie robi Selenium screenshot capture, nie nagrywa video i nie renderuje niczego przez zaleznosci zewnetrzne.
 
 Po stronie `ui-test-lens-selenium` `JsOverlayDebug` potrafi `startSession(...)`, `attachSession(...)`, zwrocic `session()`, dodac screenshot/video/custom artifact oraz dopisac zdarzenia step DSL do sesji. Pelne mapowanie akcji, asercji, locatorow i overlay policy na trace zostaje na kolejne etapy.
 
@@ -508,6 +508,12 @@ Screenshot capture zostal dodany po stronie `ui-test-lens-selenium`. `Screenshot
 `ScreenshotCaptureOptions` kontroluje katalog output, prefix nazwy pliku, timestamp, nadpisywanie i attach do sesji. `EvidencePathStrategy` generuje nazwy bezpieczne dla Windows/Linux. `JsOverlayDebug.captureScreenshot(...)` jest publicznym entrypointem.
 
 `UiStepOptions.captureScreenshotOnFailure(true)` wlacza screenshot dla nieudanego kroku; domyslnie jest `false`, zeby nie zmieniac istniejacego zachowania ani nie produkowac plikow bez zgody uzytkownika. Video recording nadal nie jest implementowany.
+
+## Video evidence attachments
+
+Video evidence jest uporzadkowanym attachmentem, nie recordingiem. `ui-test-lens-selenium` udostepnia `VideoEvidence`, `VideoEvidenceOptions`, `VideoEvidenceResult`, statusy i zrodla (`LOCAL_FILE`, `REMOTE_URL`, `SELENIUM_GRID`, `SELENOID`, `BROWSERSTACK`, `SAUCE_LABS`, `CI_ARTIFACT`, `CUSTOM`).
+
+`JsOverlayDebug.attachVideoFile(...)` i `attachVideoUrl(...)` dodaja referencje video do aktywnej `UiTestLensSession`, jesli istnieje. Opcje pozwalaja ustawic media type, wymusic walidacje lokalnego pliku oraz dodac metadata provider/build/job/session. URL-e nie sa pobierane ani walidowane przez HTTP; HTML trace pokazuje je jako linki/sciezki artifacts. Integracje provider-specific i pobieranie artefaktow powinny zostac opcjonalnym pozniejszym etapem.
 
 ## Preferowany styl nazw klas Java
 

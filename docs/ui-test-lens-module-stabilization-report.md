@@ -19,7 +19,7 @@ UI Test Lens is still pre-1.0. Public APIs may change between 0.x releases. Mave
 
 `ui-test-lens-core` has no production dependencies outside the JDK. Its only declared dependency is JUnit 5 in test scope.
 
-The core module also owns the neutral trace/evidence model: `UiTestLensSession`, trace metadata/events/failures/artifacts, `TraceJsonExporter`, `TraceHtmlExporter`, and `TraceLogSink`. It stores artifact paths and URLs only; Selenium screenshot capture and video recording remain outside core.
+The core module also owns the neutral trace/evidence model: `UiTestLensSession`, trace metadata/events/failures/artifacts, `TraceJsonExporter`, `TraceHtmlExporter`, and `TraceLogSink`. It stores artifact paths and URLs only; Selenium screenshot capture and video attachment convenience APIs remain outside core.
 
 `ui-test-lens-overlay` depends on `ui-test-lens-core` only for production. Selenium-compatible construction moved to `ui-test-lens-selenium`.
 
@@ -34,6 +34,8 @@ The Selenium module owns the retryable locator API: `UiLocator`, `UiLocatorOptio
 The Selenium module integrates with the trace/evidence model through `JsOverlayDebug.startSession(...)`, `attachSession(...)`, `session()`, artifact attachment helpers, and HTML export delegates. The current integration records step DSL events into the session. Mapping every action/assertion event into richer trace output remains a later reporting improvement.
 
 The Selenium module also owns screenshot evidence capture. `ScreenshotCapture` uses Selenium `TakesScreenshot`, writes PNG files under `target/ui-test-lens/screenshots` by default, and attaches screenshot artifacts to `UiTestLensSession` when available. Failed-step screenshot capture is opt-in through `UiStepOptions`.
+
+The Selenium module also owns video evidence attachments. `VideoEvidence` can attach local video paths or remote artifact URLs to `UiTestLensSession`, label their source (`SELENIUM_GRID`, `SELENOID`, `BROWSERSTACK`, `SAUCE_LABS`, `CI_ARTIFACT`, or `CUSTOM`), and carry provider/build/job metadata. It does not record video or call provider APIs.
 
 `ui-test-lens-react` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium, and JUnit in test scope. This direction keeps the base Selenium module independent from React helpers.
 
@@ -126,8 +128,9 @@ Dependency tree checks:
 
 1. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
 2. Improve trace event mapping for locator/assertion/actionability events.
-3. Add screenshot capture policies for before/after action or per-step capture if needed.
-4. Add richer locator factories such as getByRole/getByLabel/getByText.
-5. Add Maven Wrapper.
-6. Add publication metadata once the public API is ready.
-7. Revisit API stability before the first non-SNAPSHOT release.
+3. Add provider-specific video artifact discovery/download helpers only if they can stay optional.
+4. Add screenshot capture policies for before/after action or per-step capture if needed.
+5. Add richer locator factories such as getByRole/getByLabel/getByText.
+6. Add Maven Wrapper.
+7. Add publication metadata once the public API is ready.
+8. Revisit API stability before the first non-SNAPSHOT release.

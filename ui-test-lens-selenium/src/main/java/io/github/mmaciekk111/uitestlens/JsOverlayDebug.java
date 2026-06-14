@@ -42,6 +42,10 @@ import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCapture;
 import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureOptions;
 import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureResult;
 import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureStatus;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidence;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidenceOptions;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidenceResult;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidenceStatus;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocator;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocatorOptions;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicy;
@@ -241,7 +245,11 @@ public final class JsOverlayDebug {
     }
 
     public TraceArtifact attachVideo(String name, Path path) {
-        return requireSession().attachVideo(name, path);
+        VideoEvidenceResult result = attachVideoFile(name, path);
+        if (result.artifact() == null) {
+            throw new IllegalStateException(result.message());
+        }
+        return result.artifact();
     }
 
     public TraceArtifact attachArtifact(TraceArtifact artifact) {
@@ -273,6 +281,28 @@ public final class JsOverlayDebug {
         emitScreenshotCaptureStarted(name, effectiveOptions);
         ScreenshotCaptureResult result = new ScreenshotCapture(driver).capture(name, effectiveOptions, session);
         emitScreenshotCaptureFinished(result);
+        return result;
+    }
+
+    public VideoEvidenceResult attachVideoFile(String name, Path path) {
+        return attachVideoFile(name, path, VideoEvidenceOptions.defaults());
+    }
+
+    public VideoEvidenceResult attachVideoFile(String name, Path path, VideoEvidenceOptions options) {
+        VideoEvidenceOptions effectiveOptions = options == null ? VideoEvidenceOptions.defaults() : options;
+        VideoEvidenceResult result = new VideoEvidence().attachFile(name, path, effectiveOptions, session);
+        emitVideoEvidenceResult(result);
+        return result;
+    }
+
+    public VideoEvidenceResult attachVideoUrl(String name, String url) {
+        return attachVideoUrl(name, url, VideoEvidenceOptions.defaults());
+    }
+
+    public VideoEvidenceResult attachVideoUrl(String name, String url, VideoEvidenceOptions options) {
+        VideoEvidenceOptions effectiveOptions = options == null ? VideoEvidenceOptions.defaults() : options;
+        VideoEvidenceResult result = new VideoEvidence().attachUrl(name, url, effectiveOptions, session);
+        emitVideoEvidenceResult(result);
         return result;
     }
 
@@ -452,6 +482,42 @@ public final class JsOverlayDebug {
                 .metadata("path", result.path() == null ? "" : result.path().toString())
                 .throwable(result.exception())
                 .build());
+    }
+
+    private void emitVideoEvidenceResult(VideoEvidenceResult result) {
+        if (result == null) {
+            return;
+        }
+        boolean attached = result.status() == VideoEvidenceStatus.ATTACHED;
+        boolean skipped = result.status() == VideoEvidenceStatus.SKIPPED;
+        UiTestLensEventType eventType = attached
+                ? UiTestLensEventType.VIDEO_ATTACHED
+                : skipped ? UiTestLensEventType.VIDEO_ATTACH_SKIPPED : UiTestLensEventType.VIDEO_ATTACH_FAILED;
+        UiTestLensStatus status = attached
+                ? UiTestLensStatus.PASSED
+                : skipped ? UiTestLensStatus.SKIPPED : UiTestLensStatus.FAILED;
+        UiTestLensLogLevel level = attached
+                ? UiTestLensLogLevel.INFO
+                : skipped ? UiTestLensLogLevel.WARN : UiTestLensLogLevel.ERROR;
+        emit(UiTestLensLogEntry.builder()
+                .level(level)
+                .eventType(eventType)
+                .status(status)
+                .message(result.message())
+                .action("video.attach")
+                .metadata("name", result.name())
+                .metadata("source", result.source().name())
+                .metadata("path", result.path() == null ? "" : result.path().toString())
+                .metadata("url", videoUrlPreview(result.url()))
+                .throwable(result.exception())
+                .build());
+    }
+
+    private static String videoUrlPreview(String url) {
+        String safe = safeString(url);
+        int query = safe.indexOf('?');
+        String withoutQuery = query >= 0 ? safe.substring(0, query) : safe;
+        return withoutQuery.length() <= 160 ? withoutQuery : withoutQuery.substring(0, 157) + "...";
     }
 
     private static UiTestLensLogLevel toLogLevel(String level) {

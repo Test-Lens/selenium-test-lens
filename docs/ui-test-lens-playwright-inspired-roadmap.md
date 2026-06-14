@@ -310,11 +310,13 @@ Potential integrations:
 Example future API:
 
 ```java
-session.attachVideo(Path.of("target/videos/test.mp4"));
-session.attachVideoUrl("https://ci.example.com/artifacts/test.mp4");
+overlay.attachVideoFile("Selenium Grid recording", Path.of("target/videos/test.mp4"));
+overlay.attachVideoUrl("CI video", "https://ci.example.com/artifacts/test.mp4");
 ```
 
 The trace should link video evidence to the whole session and optionally to timestamps for steps/actions.
+
+Initial implementation status: `ui-test-lens-selenium` now provides video evidence attachment APIs for local files and remote URLs. `VideoEvidenceOptions` records source labels such as Selenium Grid, Selenoid, BrowserStack, Sauce Labs, CI artifact, or custom provider metadata. This does not record video, download provider artifacts, or require ffmpeg.
 
 ### 4.4 CI artifact integration
 
@@ -459,9 +461,9 @@ Role labels should appear in trace/session metadata to help diagnose authorizati
 7. Add HTML trace report.
    Initial static HTML export now exists. Continue by improving event mapping and adding a richer viewer only after the model stabilizes.
 8. Add screenshots as evidence.
-   Artifact attachments now exist as paths/URLs. The next screenshot step should add Selenium `TakesScreenshot` capture policy on top.
+   Selenium `TakesScreenshot` capture now exists as opt-in evidence capture, with failed-step capture controlled by `UiStepOptions`.
 9. Add optional video attachments.
-   Passive video attachments now exist as paths/URLs. Later work can add CI/provider-specific helpers.
+   Passive video attachments now exist as paths/URLs with provider/source metadata. Later work can add CI/provider-specific discovery or download helpers.
 10. Add auth/session state save and restore.
     Session reuse is useful but security-sensitive, so it should follow core reliability/reporting work.
 11. Add passive network diagnostics.

@@ -7,6 +7,10 @@ import io.github.mmaciekk111.uitestlens.core.trace.UiTestLensSession;
 import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureOptions;
 import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureResult;
 import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCaptureStatus;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidenceOptions;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidenceResult;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidenceSource;
+import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidenceStatus;
 import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepOptions;
 import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepResult;
 import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepStatus;
@@ -74,6 +78,46 @@ class JsOverlayDebugTraceSessionTest {
 
         assertThrows(IllegalStateException.class,
                 () -> overlay.attachVideo("Video", Path.of("target/videos/test.mp4")));
+    }
+
+    @Test
+    void attachVideoDelegatesToVideoEvidenceAndSession() {
+        JsOverlayDebug overlay = new JsOverlayDebug(fakeDriver());
+        UiTestLensSession session = overlay.startSession("Checkout flow");
+
+        TraceArtifact artifact = overlay.attachVideo("Video", Path.of("target/videos/test.mp4"));
+
+        assertEquals(TraceArtifactType.VIDEO, artifact.type());
+        assertEquals(1, session.artifacts().size());
+        assertEquals("CUSTOM", artifact.metadata().get("video.source"));
+    }
+
+    @Test
+    void attachVideoUrlAddsCiArtifactMetadata() {
+        JsOverlayDebug overlay = new JsOverlayDebug(fakeDriver());
+        UiTestLensSession session = overlay.startSession("Checkout flow");
+
+        VideoEvidenceResult result = overlay.attachVideoUrl(
+                "CI video",
+                "https://ci.example.com/artifacts/checkout.mp4?token=secret",
+                VideoEvidenceOptions.builder()
+                        .source(VideoEvidenceSource.CI_ARTIFACT)
+                        .metadata("job", "checkout-ui-tests")
+                        .build()
+        );
+
+        assertEquals(VideoEvidenceStatus.ATTACHED, result.status());
+        assertEquals(1, session.artifacts().size());
+        assertEquals("checkout-ui-tests", session.artifacts().get(0).metadata().get("job"));
+    }
+
+    @Test
+    void attachVideoFileWithoutSessionReturnsSkippedResult() {
+        JsOverlayDebug overlay = new JsOverlayDebug(fakeDriver());
+
+        VideoEvidenceResult result = overlay.attachVideoFile("Video", Path.of("target/videos/test.mp4"));
+
+        assertEquals(VideoEvidenceStatus.SKIPPED, result.status());
     }
 
     @Test
