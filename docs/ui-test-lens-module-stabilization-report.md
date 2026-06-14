@@ -8,7 +8,7 @@ UI Test Lens is still pre-1.0. Public APIs may change between 0.x releases. Mave
 
 | Module | Purpose | Main dependencies | Notes |
 | ------ | ------- | ----------------- | ----- |
-| `ui-test-lens-core` | Selenium-free logging/event model, exporters, neutral `BrowserScriptExecutor`, and neutral `JsResources`. | JDK for production; JUnit for tests. | Boundary scan found no Selenium imports. |
+| `ui-test-lens-core` | Selenium-free logging/event model, exporters, neutral `BrowserScriptExecutor`, neutral `JsResources`, and trace/evidence model. | JDK for production; JUnit for tests. | Boundary scan found no Selenium imports. |
 | `ui-test-lens-overlay` | Runtime JavaScript resources and browser overlay bridge/loaders, including HUD, API overlay, root manager, highlight, wait HUD, type hint, scroll arrow, and assertion badges. | `ui-test-lens-core`, JUnit for tests. | Selenium-free; primary browser integration uses `BrowserScriptExecutor`. |
 | `ui-test-lens-selenium` | Selenium facade, actions, waits, popup/blocking overlay helpers, target resolver, API call helpers, and Selenium executor adapter. | `ui-test-lens-core`, `ui-test-lens-overlay`, Selenium, Lombok provided, JUnit for tests. | Selenium dependency is expected; no dependency on `ui-test-lens-react`. |
 | `ui-test-lens-react` | React-safe helpers, `ReactSupport`, and `react-select` support. | `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium, JUnit for tests. | React production classes live only in this module and layer on top of the Selenium facade. |
@@ -19,6 +19,8 @@ UI Test Lens is still pre-1.0. Public APIs may change between 0.x releases. Mave
 
 `ui-test-lens-core` has no production dependencies outside the JDK. Its only declared dependency is JUnit 5 in test scope.
 
+The core module also owns the neutral trace/evidence model: `UiTestLensSession`, trace metadata/events/failures/artifacts, `TraceJsonExporter`, and `TraceLogSink`. It stores artifact paths and URLs only; Selenium screenshot capture, video recording, and HTML rendering remain outside core.
+
 `ui-test-lens-overlay` depends on `ui-test-lens-core` only for production. Selenium-compatible construction moved to `ui-test-lens-selenium`.
 
 `ui-test-lens-selenium` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, Selenium, Lombok in provided scope, and JUnit in test scope. This is currently the main module for Selenium users who do not want the all-in-one artifact.
@@ -28,6 +30,8 @@ The Selenium module owns configurable blocking overlay policy: `OverlayPolicy`, 
 The Selenium module also owns the first actionability layer: `ActionabilityChecker`, `ActionabilityOptions`, `ActionabilityReport`, status/failure enums, and the inline Selenium JS snippets needed for bounding-box and click-point checks. `SmartClickActions` uses this layer as best-effort diagnostics while preserving the legacy click fallback flow.
 
 The Selenium module owns the retryable locator API: `UiLocator`, `UiLocatorOptions`, `UiLocatorResolver`, result/status/failure models, and locator action events. The locator stores `By` and resolves fresh `WebElement` instances before each action.
+
+The Selenium module integrates with the trace/evidence model through `JsOverlayDebug.startSession(...)`, `attachSession(...)`, `session()`, and artifact attachment helpers. The current integration records step DSL events into the session. Mapping every action/assertion event into trace output is planned for the HTML/reporting stage.
 
 `ui-test-lens-react` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium, and JUnit in test scope. This direction keeps the base Selenium module independent from React helpers.
 
@@ -49,6 +53,7 @@ The React module owns React-aware actionability checks: `ReactActionabilityCheck
 | Use case | Dependency |
 | -------- | ---------- |
 | Event logging/export model only | `io.github.mmaciekk111:ui-test-lens-core:0.1.0-SNAPSHOT` |
+| Trace/evidence JSON model only | `io.github.mmaciekk111:ui-test-lens-core:0.1.0-SNAPSHOT` |
 | Browser overlay runtime bridge only | `io.github.mmaciekk111:ui-test-lens-overlay:0.1.0-SNAPSHOT` |
 | Selenium tests with overlay/actions/waits | `io.github.mmaciekk111:ui-test-lens-selenium:0.1.0-SNAPSHOT` |
 | React-safe Selenium helpers | `io.github.mmaciekk111:ui-test-lens-react:0.1.0-SNAPSHOT` |
@@ -118,8 +123,9 @@ Dependency tree checks:
 ## Next recommended steps
 
 1. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
-2. Add the trace evidence model and HTML report.
-3. Add richer locator factories such as getByRole/getByLabel/getByText.
-4. Add Maven Wrapper.
-5. Add publication metadata once the public API is ready.
-6. Revisit API stability before the first non-SNAPSHOT release.
+2. Add the HTML trace report renderer on top of the neutral trace/evidence model.
+3. Add Selenium screenshot capture policy and attach captured paths to trace events.
+4. Add richer locator factories such as getByRole/getByLabel/getByText.
+5. Add Maven Wrapper.
+6. Add publication metadata once the public API is ready.
+7. Revisit API stability before the first non-SNAPSHOT release.

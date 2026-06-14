@@ -22,6 +22,7 @@ Current artifact usage matrix:
 | Use case | Artifact |
 | -------- | -------- |
 | Event logging/export model only | `ui-test-lens-core` |
+| Trace/evidence JSON model only | `ui-test-lens-core` |
 | Browser overlay runtime bridge only | `ui-test-lens-overlay` |
 | Selenium tests with overlay/actions/waits | `ui-test-lens-selenium` |
 | React-safe Selenium helpers | `ui-test-lens-react` |
@@ -37,6 +38,7 @@ Current artifact usage matrix:
 | `io.github.mmaciekk111.uitestlens.core.browser` | 3 | Mixed across modules | No | `ui-test-lens-core` and selenium | `BrowserScriptExecutor` is in core. `SeleniumBrowserScriptExecutor` and `OverlayBrowserScriptExecutors` live in `ui-test-lens-selenium`; overlay has no Selenium helper. |
 | `io.github.mmaciekk111.uitestlens.core.logging` | 9 | No | No | `ui-test-lens-core` | Moved to `ui-test-lens-core`; event model and sinks are JDK-only. |
 | `io.github.mmaciekk111.uitestlens.core.logging.export` | 5 | No | No | `ui-test-lens-core` | Moved to `ui-test-lens-core`; text, JSON, and HTML exporters are JDK-only. |
+| `io.github.mmaciekk111.uitestlens.core.trace` | 10 | No | No | `ui-test-lens-core` | Neutral trace/evidence model with sessions, events, artifacts, failures, JSON export, and log sink bridge. |
 | `io.github.mmaciekk111.uitestlens.hud` | 2 | No | Yes | `ui-test-lens-overlay` | Moved to overlay. `HudPanel` uses `BrowserScriptExecutor`; Selenium construction is provided by `SeleniumOverlayFactory`. |
 | `io.github.mmaciekk111.uitestlens.react` | 4+ | Yes | Indirect | `ui-test-lens-react` | React helpers and React-aware actionability depend on Selenium and adapt `JsOverlayDebug` through `ReactSupport`; Selenium does not depend on this module. |
 | `io.github.mmaciekk111.uitestlens.scroll` | 2 | No | No | Core or overlay decision | Neutral scroll edge enums used by Selenium scroll actions and runtime bridge code. |
@@ -63,6 +65,7 @@ Current artifact usage matrix:
 - Retryable web assertions: `selenium.assertions.UiExpect`, assertion options/results/errors, and assertion event reporting.
 - Business assertion DSL: `selenium.business.BusinessAssertions`, business assertion results/errors/options, and business assertion event reporting.
 - Business step DSL: `selenium.steps.UiStepScope`, step options/results/errors, and step event reporting.
+- Trace/evidence Selenium integration: `JsOverlayDebug` can attach/start `UiTestLensSession`, record step events, and attach artifact references.
 - `SeleniumBrowserScriptExecutor`, `OverlayBrowserScriptExecutors`, and `SeleniumOverlayFactory` are in `ui-test-lens-selenium`.
 - React-safe call sites moved to `ReactSupport` in `ui-test-lens-react`.
 - React-aware actionability checks live in `ui-test-lens-react` and layer on top of Selenium actionability.
@@ -71,6 +74,7 @@ Current artifact usage matrix:
 
 - `core.logging`.
 - `core.logging.export`.
+- `core.trace`.
 - `core.browser.BrowserScriptExecutor`.
 - Neutral runtime constants in `UiTestLensRuntimeNames`, subject to ownership decision.
 - Neutral enums such as `ScrollElementEdge`, `ScrollViewportEdge`, and possibly `HudPosition`.
@@ -91,4 +95,4 @@ Current artifact usage matrix:
 2. Keep Selenium actions, waits, popup heuristics, and the current facade inside the Selenium boundary.
 3. Continue moving bridge callers toward `BrowserScriptExecutor` where this does not change behavior.
 4. Leave API overlay as either an overlay sub-area or a future optional module until ownership is explicit.
-5. Build the trace evidence model without moving assertion framework dependencies into production code.
+5. Build the HTML trace renderer on top of the core trace/evidence model without moving Selenium dependencies into core.

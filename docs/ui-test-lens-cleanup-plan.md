@@ -485,6 +485,14 @@ Siodmy punkt roadmapy Playwright-inspired reliability/diagnostics zostal zaimple
 
 Domyslnie `UiStepOptions.failFast(true)` opakowuje blad w `UiStepError`. Przy `failFast(false)` step zwraca `UiStepResult` ze statusem `FAILED`. Step dobrze owija `BusinessAssertions.verify()`: `BusinessAssertionError` staje sie cause/failure summary kroku. HTML trace, screenshots i video markers zostaja na kolejne etapy.
 
+## Trace evidence model
+
+Osmy punkt roadmapy diagnostics zostal zaimplementowany neutralnie w `ui-test-lens-core`. Dodano `UiTestLensSession`, `TraceMetadata`, `TraceEvent`, `TraceEventType`, `TraceStatus`, `TraceArtifact`, `TraceArtifactType`, `TraceFailure`, `TraceTimeline`, `TraceStep`, `TraceJsonExporter` oraz `TraceLogSink`.
+
+Model zapisuje metadata sesji, timeline events, failures oraz referencje do artefaktow: screenshoty, video, HTML, JSON, logi tekstowe/browser/network, custom files i custom URLs. Artefakty sa tylko sciezkami albo URL-ami; biblioteka na tym etapie nie robi Selenium screenshot capture, nie nagrywa video i nie renderuje HTML trace.
+
+Po stronie `ui-test-lens-selenium` `JsOverlayDebug` potrafi `startSession(...)`, `attachSession(...)`, zwrocic `session()`, dodac screenshot/video/custom artifact oraz dopisac zdarzenia step DSL do sesji. Pelne mapowanie akcji, asercji, locatorow i overlay policy na trace oraz statyczny HTML renderer zostaja na kolejne etapy.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:

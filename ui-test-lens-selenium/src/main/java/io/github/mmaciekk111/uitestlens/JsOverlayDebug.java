@@ -20,6 +20,12 @@ import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogger;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensStatus;
+import io.github.mmaciekk111.uitestlens.core.trace.TraceArtifact;
+import io.github.mmaciekk111.uitestlens.core.trace.TraceEvent;
+import io.github.mmaciekk111.uitestlens.core.trace.TraceEventType;
+import io.github.mmaciekk111.uitestlens.core.trace.TraceFailure;
+import io.github.mmaciekk111.uitestlens.core.trace.TraceStatus;
+import io.github.mmaciekk111.uitestlens.core.trace.UiTestLensSession;
 import io.github.mmaciekk111.uitestlens.hud.HudPanel;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollElementEdge;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollViewportEdge;
@@ -35,15 +41,19 @@ import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocator;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocatorOptions;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicy;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicyExecutor;
+import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepError;
 import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepOptions;
 import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepResult;
 import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepScope;
+import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepStatus;
 
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 
@@ -72,6 +82,7 @@ public final class JsOverlayDebug {
     private final Guards guards;
     private final OverlayLogger logger;
     private OverlayPolicy overlayPolicy = OverlayPolicy.none();
+    private UiTestLensSession session;
 
     // ======================================================================
     //  CTOR
@@ -207,17 +218,102 @@ public final class JsOverlayDebug {
         return new BusinessAssertions(subject, options, logger);
     }
 
+    public void attachSession(UiTestLensSession session) {
+        this.session = session;
+    }
+
+    public Optional<UiTestLensSession> session() {
+        return Optional.ofNullable(session);
+    }
+
+    public UiTestLensSession startSession(String name) {
+        this.session = UiTestLensSession.start(name);
+        return this.session;
+    }
+
+    public TraceArtifact attachScreenshot(String name, Path path) {
+        return requireSession().attachScreenshot(name, path);
+    }
+
+    public TraceArtifact attachVideo(String name, Path path) {
+        return requireSession().attachVideo(name, path);
+    }
+
+    public TraceArtifact attachArtifact(TraceArtifact artifact) {
+        return requireSession().attachArtifact(artifact);
+    }
+
     public UiStepResult step(String name, Runnable body) {
         return step(name, UiStepOptions.defaults(), body);
     }
 
     public UiStepResult step(String name, UiStepOptions options, Runnable body) {
+        traceStepStarted(name);
         UiStepScope scope = new UiStepScope(
                 logger,
                 this::setStep,
                 message -> hudLog("info", message, "ui-test-lens")
         );
-        return scope.run(name, options, body);
+        try {
+            UiStepResult result = scope.run(name, options, body);
+            traceStepFinished(result);
+            return result;
+        } catch (UiStepError e) {
+            traceStepFinished(e.result());
+            throw e;
+        }
+    }
+
+    private UiTestLensSession requireSession() {
+        if (session == null) {
+            throw new IllegalStateException("No UiTestLensSession attached");
+        }
+        return session;
+    }
+
+    private void traceStepStarted(String name) {
+        if (session == null) {
+            return;
+        }
+        session.addEvent(TraceEvent.started(TraceEventType.STEP_STARTED, safeString(name)));
+    }
+
+    private void traceStepFinished(UiStepResult result) {
+        if (session == null || result == null) {
+            return;
+        }
+        TraceEvent.Builder builder = TraceEvent.builder(
+                        traceTypeFor(result.status()),
+                        traceStatusFor(result.status()),
+                        result.name()
+                )
+                .message(result.summary())
+                .duration(result.elapsed())
+                .attribute("startedAt", result.startedAt().toString())
+                .attribute("endedAt", result.endedAt().toString());
+        if (result.failure() != null) {
+            builder.failure(TraceFailure.from(result.failure().cause(), false))
+                    .attribute("failureSummary", result.failure().message());
+        }
+        session.addEvent(builder.build());
+    }
+
+    private static TraceEventType traceTypeFor(UiStepStatus status) {
+        return switch (status) {
+            case RUNNING -> TraceEventType.STEP_STARTED;
+            case PASSED -> TraceEventType.STEP_PASSED;
+            case FAILED -> TraceEventType.STEP_FAILED;
+            case SKIPPED -> TraceEventType.CUSTOM;
+        };
+    }
+
+    private static TraceStatus traceStatusFor(UiStepStatus status) {
+        return switch (status) {
+            case RUNNING -> TraceStatus.STARTED;
+            case PASSED -> TraceStatus.PASSED;
+            case FAILED -> TraceStatus.FAILED;
+            case SKIPPED -> TraceStatus.SKIPPED;
+        };
     }
 
     private ActionabilityChecker actionabilityChecker() {

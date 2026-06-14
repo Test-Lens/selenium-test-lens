@@ -250,6 +250,8 @@ The DSL should remain test-framework-neutral. JUnit/TestNG adapters can be added
 
 Trace and evidence features should make post-failure diagnosis possible without rerunning the test. The trace should connect steps, actions, waits, overlays, assertions, screenshots, logs, and network events.
 
+Initial implementation status: `ui-test-lens-core` now provides a Selenium-free trace/evidence model: `UiTestLensSession`, trace metadata, events, failures, artifact references, a manual JSON exporter, and `TraceLogSink`. `ui-test-lens-selenium` can attach/start a session from `JsOverlayDebug`, records step events into the session, and exposes artifact attachment helpers. This is not yet the HTML renderer, screenshot capture, or video recording layer.
+
 ### 4.1 HTML trace report
 
 The HTML trace report should include:
@@ -451,11 +453,11 @@ Role labels should appear in trace/session metadata to help diagnose authorizati
 6. Add business step DSL.
    Steps become more valuable once actions and assertions produce structured events.
 7. Add HTML trace report.
-   The report should consume events already emitted by steps/actions/assertions and expose them as evidence.
+   The neutral trace/evidence model now exists. The next report step should render that session JSON/events into a static HTML artifact.
 8. Add screenshots as evidence.
-   Screenshots are easiest to attach once trace events and step boundaries exist.
+   Artifact attachments now exist as paths/URLs. The next screenshot step should add Selenium `TakesScreenshot` capture policy on top.
 9. Add optional video attachments.
-   Video should be a passive attachment/link feature after trace artifacts are defined.
+   Passive video attachments now exist as paths/URLs. Later work can add CI/provider-specific helpers.
 10. Add auth/session state save and restore.
     Session reuse is useful but security-sensitive, so it should follow core reliability/reporting work.
 11. Add passive network diagnostics.
@@ -469,9 +471,9 @@ Role labels should appear in trace/session metadata to help diagnose authorizati
 
 | Feature | Module |
 | ------- | ------ |
-| Event model, logging, export | `ui-test-lens-core` |
+| Event model, logging, export, trace/evidence model | `ui-test-lens-core` |
 | Runtime JavaScript overlay | `ui-test-lens-overlay` |
-| Selenium actions, actionability, locator, assertions, session, network | `ui-test-lens-selenium` |
+| Selenium actions, actionability, locator, assertions, session integration, network | `ui-test-lens-selenium` |
 | React readiness and `ReactSupport` | `ui-test-lens-react` |
 | End-user dependency bundle | `ui-test-lens` |
 | Examples | `ui-test-lens-examples` |

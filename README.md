@@ -346,6 +346,28 @@ overlay.step("Verify order summary", () -> {
 
 With default `UiStepOptions`, failed steps throw `UiStepError` and preserve the original cause. With `failFast(false)`, failed steps return a `FAILED` result without throwing. The step model stores name, status, start/end time, elapsed duration, and failure summary as a foundation for future HTML trace reports and screenshot/video markers.
 
+## Trace Evidence Model
+
+`ui-test-lens-core` now includes a Selenium-free trace/evidence model. `UiTestLensSession` stores session metadata, timeline events, failures, and artifact references. Artifacts are references only: screenshots, videos, logs, JSON exports, custom files, and URLs can be attached as paths or links without reading or capturing the files.
+
+```java
+UiTestLensSession session = overlay.startSession("Checkout flow");
+
+overlay.step("Save form", () -> {
+    overlay.getByTestId("save-button").click();
+    overlay.expect(overlay.getByTestId("toast")).toContainText("Saved");
+});
+
+overlay.attachScreenshot("Save form", Path.of("target/screenshots/save-form.png"));
+overlay.attachVideo("Checkout flow video", Path.of("target/videos/checkout-flow.mp4"));
+
+String json = session.exportJson();
+```
+
+`TraceJsonExporter` produces a JSON-friendly structure using only JDK code. `TraceLogSink` can forward existing UI Test Lens log entries into a trace session. Selenium integration is intentionally light in this stage: `JsOverlayDebug` can start or attach a session, step events are added to the session, and artifacts can be attached through convenience methods.
+
+Screenshot capture, video recording, and the HTML trace renderer are not implemented yet. They are planned as separate stages on top of this model.
+
 ## Logging And Event Bus
 
 `UiTestLensLogger` is the central event bus. `OverlayLogger` is the current bridge used by existing overlay/Selenium classes.
