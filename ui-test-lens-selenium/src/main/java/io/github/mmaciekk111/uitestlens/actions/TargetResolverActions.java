@@ -11,10 +11,10 @@ import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensStatus;
 
 /**
- * Szuka "prawdziwego" celu akcji na podstawie podanego elementu:
- * - resolveClickTarget(...) -> coś, co sensownie kliknąć,
- * - resolveFileInputTarget(...) -> input[type=file] powiązany z danym elementem,
- * - + metody zwracające selektor CSS tych celów.
+ * Resolves practical browser targets for clicks and file uploads.
+ *
+ * <p>The file-input resolver handles direct {@code input[type=file]} elements, descendants,
+ * associated {@code <label for="...">} controls, and ancestor containers.
  */
 public class TargetResolverActions {
 
@@ -36,11 +36,10 @@ public class TargetResolverActions {
     }
 
     /**
-     * Znajduje sensowny element do kliknięcia:
-     * - jeśli base już jest klikalny -> zwraca base,
-     * - jeśli nie -> szuka wewnątrz potomków,
-     * - jeśli dalej nic -> idzie po przodkach do góry,
-     * - jeśli nadal nic -> base (ostatnia deska ratunku).
+     * Resolves the element that should receive a click when the provided element is a wrapper.
+     *
+     * <p>The resolver checks the element itself, clickable descendants, associated label targets,
+     * and then ancestors before falling back to the original element.
      */
     public WebElement resolveClickTarget(WebElement base) {
         if (base == null) {
@@ -59,11 +58,10 @@ public class TargetResolverActions {
     }
 
     /**
-     * Znajduje input[type=file] powiązany z podanym elementem:
-     * - jeśli base jest input[type=file] -> zwraca base,
-     * - jeśli w potomkach jest input[type=file] -> pierwszy,
-     * - jeśli base jest <label for="..."> -> skojarzony input,
-     * - jeśli dalej nic -> szuka po przodkach.
+     * Resolves an {@code input[type=file]} associated with the provided element.
+     *
+     * <p>The resolver checks the element itself, descendants, {@code <label for="...">}
+     * associations, and ancestor containers.
      */
     public WebElement resolveFileInputTarget(WebElement base) {
         if (base == null) {
@@ -164,9 +162,6 @@ public class TargetResolverActions {
                 "return null;";
     }
 
-
-    // === WERSJE ZWRACAJĄCE SELEKTOR CSS ===
-
     private String buildCssSelector(WebElement el) {
         if (el == null) {
             return null;
@@ -195,7 +190,7 @@ public class TargetResolverActions {
         return sb.toString();
     }
 
-    /** Selektor CSS dla targetu kliknięcia (albo null). */
+    /** Returns a CSS selector for the resolved click target, or {@code null} when none is resolved. */
     public String resolveClickTargetSelector(WebElement base) {
         WebElement target = resolveClickTarget(base);
         String selector = (target != null) ? buildCssSelector(target) : null;
@@ -203,7 +198,7 @@ public class TargetResolverActions {
         return selector;
     }
 
-    /** Selektor CSS dla input[type=file] powiązanego z base (albo null). */
+    /** Returns a CSS selector for the associated {@code input[type=file]}, or {@code null}. */
     public String resolveFileInputSelector(WebElement base) {
         WebElement target = resolveFileInputTarget(base);
         String selector = (target != null) ? buildCssSelector(target) : null;
@@ -224,6 +219,7 @@ public class TargetResolverActions {
                     .metadata("selector", selector == null ? "" : selector)
                     .metadata("resolved", String.valueOf(resolved))
                     .build());
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 }

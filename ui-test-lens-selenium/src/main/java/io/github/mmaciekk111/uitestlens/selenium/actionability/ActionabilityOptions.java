@@ -2,6 +2,11 @@ package io.github.mmaciekk111.uitestlens.selenium.actionability;
 
 import java.time.Duration;
 
+/**
+ * Configuration for Selenium actionability checks.
+ *
+ * <p>The defaults are conservative enough for retryable click flows while keeping individual checks configurable.
+ */
 public final class ActionabilityOptions {
     private final Duration timeout;
     private final Duration pollInterval;

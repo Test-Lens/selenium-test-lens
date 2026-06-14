@@ -10,6 +10,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * In-memory trace/evidence session for a single UI automation flow.
+ *
+ * <p>The session collects timeline events and artifact references and can export JSON or HTML reports.
+ */
 public final class UiTestLensSession {
     private final List<TraceEvent> events = new ArrayList<>();
     private final List<TraceArtifact> artifacts = new ArrayList<>();

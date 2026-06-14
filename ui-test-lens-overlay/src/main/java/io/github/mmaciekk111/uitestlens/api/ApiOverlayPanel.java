@@ -8,6 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Java bridge for the browser API overlay panel.
+ *
+ * <p>The panel renders request/response diagnostics in the page under the UI Test Lens overlay root.
+ */
 public final class ApiOverlayPanel {
 
     private final BrowserScriptExecutor scriptExecutor;
@@ -20,6 +25,9 @@ public final class ApiOverlayPanel {
         this.config = Objects.requireNonNull(config, "config must not be null");
     }
 
+    /**
+     * Opens the API overlay and returns the runtime request identifier.
+     */
     public String showRequest(String title, String method, String url, String payloadPreview) {
         Object result = executeApiOverlayScript(
                 "return window.__seleniumApiModal.showRequest(arguments[0], arguments[1], arguments[2], arguments[3]);",
@@ -69,6 +77,9 @@ public final class ApiOverlayPanel {
         } catch (Exception ignored) {}
     }
 
+    /**
+     * Highlights one JSON path in the currently displayed API response.
+     */
     public boolean apiHighlightJsonPath(String path) {
         try {
             Object r = executeApiOverlayScript(

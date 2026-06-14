@@ -10,6 +10,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Timeline event stored in a UI Test Lens trace session.
+ *
+ * <p>Events can carry attributes, failures, durations, parent identifiers, and artifact references.
+ */
 public final class TraceEvent {
     private final String id;
     private final TraceEventType type;

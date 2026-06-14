@@ -24,6 +24,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.LockSupport;
 
+/**
+ * Performs Selenium-side actionability checks before UI actions.
+ *
+ * <p>Checks cover attachment, visibility, enabled state, stable bounds, scroll positioning,
+ * click-point coverage, and configured overlay policy handling.
+ */
 public final class ActionabilityChecker {
     private static final double BOUNDS_THRESHOLD_PX = 1.0;
 

@@ -6,6 +6,11 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Failure details attached to a trace event.
+ *
+ * <p>Stack traces are optional so callers can choose compact or detailed reports.
+ */
 public final class TraceFailure {
     private final String message;
     private final String exceptionType;

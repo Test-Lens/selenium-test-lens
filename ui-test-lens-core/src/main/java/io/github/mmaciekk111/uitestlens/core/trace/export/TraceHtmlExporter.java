@@ -23,6 +23,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * Exports a {@link UiTestLensSession} as a standalone HTML trace report.
+ *
+ * <p>The exporter renders metadata, categorized timeline events, failures, artifacts, and optional raw JSON.
+ */
 public final class TraceHtmlExporter {
     private enum EventCategory {
         SESSION("Session"),

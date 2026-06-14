@@ -1,5 +1,8 @@
 package io.github.mmaciekk111.uitestlens.core.trace;
 
+/**
+ * Neutral event categories used in trace timelines.
+ */
 public enum TraceEventType {
     SESSION_STARTED,
     SESSION_FINISHED,

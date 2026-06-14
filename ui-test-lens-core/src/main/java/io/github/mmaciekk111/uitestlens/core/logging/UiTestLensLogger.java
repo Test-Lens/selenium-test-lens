@@ -3,6 +3,11 @@ package io.github.mmaciekk111.uitestlens.core.logging;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Lightweight fan-out logger used by UI Test Lens components.
+ *
+ * <p>Sink failures are isolated so diagnostics do not break browser automation flows.
+ */
 public final class UiTestLensLogger {
     private static final UiTestLensLogger NOOP = new UiTestLensLogger(List.of());
 

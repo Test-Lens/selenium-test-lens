@@ -7,6 +7,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Reference to evidence produced or attached during a trace session.
+ *
+ * <p>The artifact stores paths or URLs only; binary content is not embedded.
+ */
 public final class TraceArtifact {
     private final String name;
     private final TraceArtifactType type;

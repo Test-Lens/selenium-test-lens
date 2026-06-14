@@ -4,6 +4,9 @@ import io.github.mmaciekk111.uitestlens.core.UiTestLensRuntimeNames;
 import io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor;
 import io.github.mmaciekk111.uitestlens.utils.JsResources;
 
+/**
+ * Loads the API overlay runtime script into a browser page.
+ */
 public final class ApiOverlayJs {
 
     public static final String INIT_MODAL =

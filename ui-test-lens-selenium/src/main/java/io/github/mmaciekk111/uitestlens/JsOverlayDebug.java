@@ -1403,7 +1403,7 @@ public final class JsOverlayDebug {
         return targetResolverActions.resolveClickTarget(element);
     }
 
-    /** Returns input[type=file] associated with the given element (may return null). */
+    /** Returns an {@code input[type=file]} associated with the given element, or {@code null}. */
     public WebElement resolveFileInputTarget(WebElement element) {
         return targetResolverActions.resolveFileInputTarget(element);
     }
@@ -1413,7 +1413,7 @@ public final class JsOverlayDebug {
         return targetResolverActions.resolveClickTargetSelector(element);
     }
 
-    /** Returns CSS selector of the associated input[type=file]. */
+    /** Returns a CSS selector for the associated {@code input[type=file]}. */
     public String resolveFileInputCssSelector(WebElement element) {
         return targetResolverActions.resolveFileInputSelector(element);
     }
@@ -1438,7 +1438,7 @@ public final class JsOverlayDebug {
 
     /**
      * Convenience action for file upload:
-     * - find input[type=file] associated with the given element,
+     * - find {@code input[type=file]} associated with the given element,
      * - highlight it,
      * - send file path via sendKeys(path).
      */

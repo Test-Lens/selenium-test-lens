@@ -4,6 +4,11 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Theme values for the browser HUD panel.
+ *
+ * <p>Values are serialized to runtime CSS variables. Missing custom values fall back to the default theme.
+ */
 public final class HudTheme {
 
     private final String background;

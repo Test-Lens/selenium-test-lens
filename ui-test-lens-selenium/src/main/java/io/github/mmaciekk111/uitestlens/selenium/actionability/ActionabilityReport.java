@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Aggregated result of actionability checks for one element or locator.
+ */
 public final class ActionabilityReport {
     private final List<ActionabilityResult> results;
     private final ActionabilityStatus status;
