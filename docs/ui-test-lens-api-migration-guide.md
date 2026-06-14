@@ -4,6 +4,8 @@ This guide summarizes the migration from the historical JsTestTools-style helper
 
 UI Test Lens is still pre-1.0. Some API names, helper visibility, and compatibility surfaces may still change before a stable release. This guide describes the current 0.1 state and is not a Maven Central release guide.
 
+For visual overlay/HUD configuration and runtime resource details, see [`ui-test-lens-visual-overlay-hud.md`](ui-test-lens-visual-overlay-hud.md).
+
 ## Naming migration
 
 | Historical / old concept | Current UI Test Lens concept |
@@ -12,6 +14,7 @@ UI Test Lens is still pre-1.0. Some API names, helper visibility, and compatibil
 | old package / historical helper package | `io.github.mmaciekk111.uitestlens` |
 | old one-module layout | multi-module Maven layout |
 | Selenium-only helper | Selenium-compatible diagnostics/reliability layer |
+| ad-hoc HUD/highlight scripts | documented visual overlay/HUD layer with `OverlayConfig` |
 | hardcoded overlay/popup handling | configurable `OverlayPolicy` |
 | one-off Selenium element click | retryable `UiLocator` |
 | one-off assertions | retryable `UiExpect` |

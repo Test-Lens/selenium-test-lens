@@ -8,6 +8,8 @@ Nazwa produktowa/czytelna: `UI Test Lens`.
 
 Opis: UI Test Lens to visual observability/debug layer for UI/browser automation tests. Projekt ma dostarczac wspolny overlay runtime, HUD, highlight elementow, event-bus/logger, eksport logow oraz adaptery dla Selenium, React-safe actions, Selenide i potencjalnie innych narzedzi UI automation.
 
+Aktualny audyt visual overlay/HUD i konfiguracji jest w [`ui-test-lens-visual-overlay-hud.md`](ui-test-lens-visual-overlay-hud.md).
+
 Uzasadnienie:
 
 - nazwa jest bardziej informatywna niz ogolne `testtools`,

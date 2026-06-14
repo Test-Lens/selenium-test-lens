@@ -4,6 +4,8 @@ This document summarizes the current 0.1.0-SNAPSHOT feature set, module ownershi
 
 For migration from historical JsTestTools-style names and one-module usage to the current UI Test Lens APIs, see [`ui-test-lens-api-migration-guide.md`](ui-test-lens-api-migration-guide.md).
 
+For the visual overlay/HUD resource inventory and current configuration surface, see [`ui-test-lens-visual-overlay-hud.md`](ui-test-lens-visual-overlay-hud.md).
+
 ## Current product shape
 
 UI Test Lens is now shaped around:
@@ -40,6 +42,8 @@ Text, JSON, and HTML log exporters are available for basic evidence generation. 
 `ui-test-lens-overlay` owns runtime JavaScript resources and overlay panels. The primary runtime namespace is `window.__uiTestLens`, while legacy aliases are maintained for compatibility.
 
 The overlay module uses `BrowserScriptExecutor` and stays Selenium-free. Selenium-specific construction lives in the Selenium module.
+
+Visual runtime resources include API overlay, wait HUD, highlight, type hint, scroll arrow, HUD panel, and assertion badges. Current public visual configuration is intentionally limited to `OverlayConfig` settings such as enablement, HUD visibility/position/offset/max width, decoration duration, highlight color, and a legacy global popup close selector.
 
 ### 5.3 Selenium facade
 

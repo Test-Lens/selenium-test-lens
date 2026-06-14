@@ -150,6 +150,8 @@ ReactSupport.smartClick(overlay, By.cssSelector("[data-testid='save']"), "SAVE")
 
 The current 0.1 feature set, public entry points, limitations and recommended next steps are summarized in [`docs/ui-test-lens-0.1-feature-audit.md`](docs/ui-test-lens-0.1-feature-audit.md).
 
+The visual overlay and HUD layer is documented in [`docs/ui-test-lens-visual-overlay-hud.md`](docs/ui-test-lens-visual-overlay-hud.md).
+
 ## Minimal Selenium Usage
 
 The current API still exposes low-level constructor dependencies. The example below matches the current codebase.
@@ -196,6 +198,35 @@ lens.smartClickWithOverlayHandler(button, "Submit");
 
 lens.clearDebugArtifacts();
 ```
+
+## Visual Overlay and HUD
+
+The browser visual layer is provided by runtime resources in `ui-test-lens-overlay` and is driven from Selenium through `JsOverlayDebug`. It covers the HUD panel, overlay root, element highlighting, assertion badges, wait HUD, API overlay, type hints, and scroll arrows.
+
+Basic HUD and highlight usage:
+
+```java
+OverlayConfig config = OverlayConfig.builder()
+        .showHudPanel(true)
+        .hudPosition(HudPosition.TOP_RIGHT)
+        .hudOffset(16, 16)
+        .hudMaxWidthPx(320)
+        .decorationDurationMs(1200)
+        .highlightColor("#ffeb3b")
+        .build();
+
+JsOverlayDebug overlay = new JsOverlayDebug(driver, config);
+
+overlay.initHud("Checkout test", "local");
+overlay.setStep("Open checkout");
+overlay.hudLog("info", "Opening checkout page", "local");
+overlay.highlightElement(driver.findElement(By.id("submit")), "Submit");
+overlay.clearDebugArtifacts();
+```
+
+`setStep(...)` updates the HUD label only. `step(...)` executes a measured step, emits events, and can also write to the HUD. Current public visual configuration covers overlay enablement, HUD visibility/position/offset/max width, visual decoration duration, highlight color, and a legacy global popup close selector. Full HUD theming, badge theming, wait HUD styling, API overlay layout, and type-hint masking are future work, not current API.
+
+See [`docs/ui-test-lens-visual-overlay-hud.md`](docs/ui-test-lens-visual-overlay-hud.md) for the visual resource inventory and configuration details.
 
 ## Blocking Overlay Policy
 

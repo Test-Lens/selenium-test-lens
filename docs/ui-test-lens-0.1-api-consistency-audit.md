@@ -8,6 +8,8 @@ No code changes are proposed in this document. Larger cleanup items should be ha
 
 For migration from historical JsTestTools-style names and helper usage to the current UI Test Lens APIs, see [`ui-test-lens-api-migration-guide.md`](ui-test-lens-api-migration-guide.md).
 
+For visual overlay/HUD configuration and runtime resources, see [`ui-test-lens-visual-overlay-hud.md`](ui-test-lens-visual-overlay-hud.md).
+
 ## Summary
 
 The current API is coherent enough for a pre-1.0 `0.1.0-SNAPSHOT` baseline. The main entry point remains `JsOverlayDebug`, while specialized APIs are grouped under clear domains: overlay policy, actionability, locators, assertions, business checks, steps, evidence, auth, and network diagnostics.
@@ -47,6 +49,8 @@ overlay.network();
 overlay.attachNetworkLog(...);
 overlay.exportTraceHtml(...);
 ```
+
+Visual debugging entry points remain intentionally separate from the newer locator/assertion APIs. `setStep(...)` and `hudLog(...)` update the HUD directly, while `step(...)` executes measured steps and can also log to the HUD. `attachScreenshot(...)` attaches an existing path, while `captureScreenshot(...)` captures through Selenium.
 
 Assessment:
 
