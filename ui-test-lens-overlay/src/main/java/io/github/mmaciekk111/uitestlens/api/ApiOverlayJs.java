@@ -2,7 +2,7 @@ package io.github.mmaciekk111.uitestlens.api;
 
 import io.github.mmaciekk111.uitestlens.core.UiTestLensRuntimeNames;
 import io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor;
-import io.github.mmaciekk111.uitestlens.core.browser.SeleniumBrowserScriptExecutor;
+import io.github.mmaciekk111.uitestlens.core.browser.OverlayBrowserScriptExecutors;
 import io.github.mmaciekk111.uitestlens.utils.JsResources;
 import org.openqa.selenium.WebDriver;
 
@@ -21,7 +21,7 @@ public final class ApiOverlayJs {
     private ApiOverlayJs() {}
 
     public static void inject(WebDriver driver) {
-        inject(new SeleniumBrowserScriptExecutor(driver));
+        inject(OverlayBrowserScriptExecutors.from(driver));
     }
 
     public static void inject(BrowserScriptExecutor executor) {

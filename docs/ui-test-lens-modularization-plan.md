@@ -20,12 +20,14 @@ Ten dokument pozostaje historycznym/szerszym planem modularyzacji. Pierwszy mini
 ui-test-lens-parent
 ├── ui-test-lens-core
 ├── ui-test-lens-overlay
+├── ui-test-lens-selenium
 └── ui-test-lens
 ```
 
 `ui-test-lens-core` zawiera Selenium-free logging/export oraz neutralny kontrakt `BrowserScriptExecutor`.
 `ui-test-lens-overlay` zawiera runtime resources, bridge/loadery, `OverlayRootManager`, `HudPanel`, `ApiOverlayPanel`, `OverlayConfig` i `HudPosition`.
-`ui-test-lens` pozostaje tymczasowym modulem Selenium/fasady/akcji.
+`ui-test-lens-selenium` zawiera fasade Selenium, akcje, waity, helpery popup/blocking overlay, target resolver, API actions, React helpers i `SeleniumBrowserScriptExecutor`.
+`ui-test-lens` pozostaje kompatybilnym artefaktem all-in-one zaleznym od core, overlay i selenium.
 
 Dalszy docelowy zakres splitu to:
 
@@ -38,7 +40,7 @@ ui-test-lens-parent
 └── ui-test-lens-examples
 ```
 
-Abstrakcja `BrowserScriptExecutor` zostala przeniesiona do `ui-test-lens-core`. Adapter `SeleniumBrowserScriptExecutor` jest tymczasowo w `ui-test-lens-overlay`, bo kompatybilne konstruktory overlay nadal przyjmuja `WebDriver`. Docelowo adapter powinien trafic do przyszlego `ui-test-lens-selenium`. `HudPanel` i `ApiOverlayPanel` uzywaja juz tego kontraktu wewnetrznie, zachowujac konstruktory z `WebDriver`.
+Abstrakcja `BrowserScriptExecutor` zostala przeniesiona do `ui-test-lens-core`. Adapter `SeleniumBrowserScriptExecutor` jest teraz w `ui-test-lens-selenium`. `HudPanel` i `ApiOverlayPanel` uzywaja juz tego kontraktu wewnetrznie, zachowujac konstruktory z `WebDriver`. `ui-test-lens-overlay` nadal ma tymczasowa zaleznosc Selenium dla kompatybilnych konstruktorow WebDriver.
 
 ## 1. Obecny projekt
 

@@ -14,7 +14,8 @@ Current child modules:
 | ------ | ---------------------- |
 | `ui-test-lens-core` | Selenium-free logging/event model, log exporters, and the neutral `BrowserScriptExecutor` contract. |
 | `ui-test-lens-overlay` | Runtime JS resources, overlay runtime bridge/loaders, `OverlayRootManager`, `HudPanel`, `ApiOverlayPanel`, and overlay config/enums. |
-| `ui-test-lens` | Temporary Selenium facade/actions module containing the current facade, Selenium actions, waits, popup helpers, API actions, and React helpers. |
+| `ui-test-lens-selenium` | Selenium facade/actions module containing the current facade, Selenium actions, waits, popup helpers, API actions, React helpers, and the Selenium browser executor adapter. |
+| `ui-test-lens` | All-in-one compatibility artifact depending on core, overlay, and selenium modules. |
 
 The main Selenium-facing artifact remains:
 
@@ -37,9 +38,9 @@ The project already has:
 - a logger/event model with text, JSON, and HTML exporters,
 - unit tests for logging, exporters, resource loading, runtime markers, target resolver helpers, PageWaits state, overlay root, popup detector, and blocking overlay helper.
 
-The `ui-test-lens` child module still mixes Selenium integration, actions, waits, React helpers, API call actions, and examples/documentation. Later splits should separate those concerns without changing public behavior.
+The `ui-test-lens-selenium` child module still mixes Selenium integration, actions, waits, React helpers, and API call actions. Later splits should separate React and optional API overlay concerns without changing public behavior.
 
-`BrowserScriptExecutor` now exists as the neutral browser JavaScript execution contract, with `SeleniumBrowserScriptExecutor` as the Selenium adapter. Runtime bridge loaders, `HudPanel`, and `ApiOverlayPanel` can call this contract directly while existing Selenium-facing methods remain available.
+`BrowserScriptExecutor` now exists as the neutral browser JavaScript execution contract, with `SeleniumBrowserScriptExecutor` as the Selenium adapter in `ui-test-lens-selenium`. Runtime bridge loaders, `HudPanel`, and `ApiOverlayPanel` can call this contract directly while existing Selenium-facing methods remain available.
 
 The current package-level boundary matrix is tracked in:
 
@@ -98,7 +99,7 @@ Current blockers for adding more classes:
 - `OverlayConfig` imports `HudPosition`, so config placement depends on whether `HudPosition` is core or overlay.
 - `JsResources` is JDK-only, but semantically belongs to runtime/overlay if it only loads browser runtime scripts.
 - `UiTestLensRuntimeNames` is neutral enough for core, but many constants describe overlay/runtime behavior.
-- `SeleniumBrowserScriptExecutor` imports Selenium and remains in the temporary `ui-test-lens` module.
+- `SeleniumBrowserScriptExecutor` imports Selenium and is now in `ui-test-lens-selenium`.
 
 ### `ui-test-lens-overlay`
 
@@ -127,12 +128,12 @@ Should contain:
 Dependencies:
 
 - `ui-test-lens-core`,
-- currently Selenium because compatible `WebDriver` constructors and `SeleniumBrowserScriptExecutor` are still present.
+- currently Selenium because compatible `WebDriver` constructors remain present. `SeleniumBrowserScriptExecutor` has moved to `ui-test-lens-selenium`; overlay uses only a small internal compatibility helper for WebDriver constructors.
 
 Future alternative:
 
 - Keep `BrowserScriptExecutor` in core or overlay.
-- Move `SeleniumBrowserScriptExecutor` from overlay to `ui-test-lens-selenium`.
+- Remove the remaining temporary Selenium dependency from overlay when WebDriver compatibility can be preserved without direct Selenium imports.
 - Then overlay can avoid Selenium imports.
 
 ### `ui-test-lens-selenium`
@@ -334,7 +335,7 @@ Extract UI Test Lens core module
 
 ### 4. Extract `ui-test-lens-overlay`
 
-Status: done as an intermediate split. Runtime resources, bridge loaders, `OverlayRootManager`, `HudPanel`, `ApiOverlayPanel`, `OverlayConfig`, `HudPosition`, and the temporary Selenium browser executor adapter moved to `ui-test-lens-overlay`.
+Status: done as an intermediate split. Runtime resources, bridge loaders, `OverlayRootManager`, `HudPanel`, `ApiOverlayPanel`, `OverlayConfig`, and `HudPosition` moved to `ui-test-lens-overlay`.
 
 Scope:
 
@@ -360,6 +361,8 @@ Extract UI Test Lens overlay module
 ```
 
 ### 5. Extract `ui-test-lens-selenium`
+
+Status: done as the third Maven module. `JsOverlayDebug`, `OverlayWait`, Selenium actions, waits, popup/blocking overlay helpers, API call actions/models, React helpers, scroll enums, and `SeleniumBrowserScriptExecutor` moved to `ui-test-lens-selenium`. The `ui-test-lens` artifact now remains as an all-in-one compatibility module.
 
 Scope:
 

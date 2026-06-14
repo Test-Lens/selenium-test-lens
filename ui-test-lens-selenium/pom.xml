@@ -10,10 +10,9 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ui-test-lens</artifactId>
+    <artifactId>ui-test-lens-selenium</artifactId>
     <packaging>jar</packaging>
-    <name>UI Test Lens</name>
-    <description>All-in-one compatibility artifact for UI Test Lens Selenium usage.</description>
+    <name>UI Test Lens Selenium</name>
 
     <dependencies>
         <dependency>
@@ -29,9 +28,14 @@
         </dependency>
 
         <dependency>
-            <groupId>io.github.mmaciekk111</groupId>
-            <artifactId>ui-test-lens-selenium</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

@@ -2,7 +2,7 @@ package io.github.mmaciekk111.uitestlens.core;
 
 import io.github.mmaciekk111.uitestlens.OverlayConfig;
 import io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor;
-import io.github.mmaciekk111.uitestlens.core.browser.SeleniumBrowserScriptExecutor;
+import io.github.mmaciekk111.uitestlens.core.browser.OverlayBrowserScriptExecutors;
 import org.openqa.selenium.WebDriver;
 
 public class OverlayRootManager {
@@ -13,7 +13,7 @@ public class OverlayRootManager {
     private final OverlayConfig config;
 
     public OverlayRootManager(WebDriver driver, OverlayConfig config) {
-        this(new SeleniumBrowserScriptExecutor(driver), config);
+        this(OverlayBrowserScriptExecutors.from(driver), config);
     }
 
     public OverlayRootManager(BrowserScriptExecutor executor, OverlayConfig config) {

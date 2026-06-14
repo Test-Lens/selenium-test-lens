@@ -6,15 +6,16 @@ The first Maven split is now in place:
 
 - `ui-test-lens-core` contains `core.logging`, `core.logging.export`, and `core.browser.BrowserScriptExecutor`.
 - `ui-test-lens-overlay` contains runtime resources, runtime bridge/loaders, `OverlayRootManager`, `HudPanel`, `ApiOverlayPanel`, `OverlayConfig`, and `HudPosition`.
-- `ui-test-lens` remains the temporary Selenium facade/actions module and still owns Selenium actions, waits, popup helpers, API call actions, and React helpers.
+- `ui-test-lens-selenium` contains the Selenium facade/actions module and owns Selenium actions, waits, popup helpers, API call actions, React helpers, and `SeleniumBrowserScriptExecutor`.
+- `ui-test-lens` is now an all-in-one compatibility artifact that depends on core, overlay, and selenium modules.
 
 | Package | Classes | Selenium dependency? | Runtime JS dependency? | Proposed module | Notes |
 | ------- | ------: | -------------------: | ---------------------: | --------------- | ----- |
-| `io.github.mmaciekk111.uitestlens` | 3 | Mixed across modules | Yes | `ui-test-lens-overlay` plus future `ui-test-lens-selenium` | `OverlayConfig` moved to overlay. `JsOverlayDebug` and `OverlayWait` remain Selenium-bound in `ui-test-lens`. |
+| `io.github.mmaciekk111.uitestlens` | 3 | Mixed across modules | Yes | `ui-test-lens-overlay` plus `ui-test-lens-selenium` | `OverlayConfig` moved to overlay. `JsOverlayDebug` and `OverlayWait` moved to `ui-test-lens-selenium`. |
 | `io.github.mmaciekk111.uitestlens.actions` | 7 | Yes | Yes | `ui-test-lens-selenium` | Selenium action helpers with overlay and event instrumentation. |
-| `io.github.mmaciekk111.uitestlens.api` | 6 | Mixed across modules | Yes | Overlay plus future `ui-test-lens-api-overlay` | `ApiOverlayJs` and `ApiOverlayPanel` moved to overlay. API action/context/plan/rule classes remain in `ui-test-lens`. |
-| `io.github.mmaciekk111.uitestlens.core` | 14 | Mixed across modules | Yes | Overlay plus future selenium | Runtime bridge loaders and `OverlayRootManager` moved to overlay. `PageWaits`, `PopupDetector`, `BlockingOverlayHelper`, and `Guards` remain Selenium-bound in `ui-test-lens`. |
-| `io.github.mmaciekk111.uitestlens.core.browser` | 2 | Mixed across modules | No | `ui-test-lens-core` plus overlay temporarily | `BrowserScriptExecutor` is in `ui-test-lens-core`. `SeleniumBrowserScriptExecutor` moved to overlay as a temporary compatibility adapter. |
+| `io.github.mmaciekk111.uitestlens.api` | 6 | Mixed across modules | Yes | Overlay, selenium, and future `ui-test-lens-api-overlay` | `ApiOverlayJs` and `ApiOverlayPanel` are in overlay. API action/context/plan/rule classes moved to `ui-test-lens-selenium`. |
+| `io.github.mmaciekk111.uitestlens.core` | 14 | Mixed across modules | Yes | Overlay plus selenium | Runtime bridge loaders and `OverlayRootManager` are in overlay. `PageWaits`, `PopupDetector`, `BlockingOverlayHelper`, and `Guards` moved to `ui-test-lens-selenium`. |
+| `io.github.mmaciekk111.uitestlens.core.browser` | 3 | Mixed across modules | No | `ui-test-lens-core`, overlay compatibility, and selenium | `BrowserScriptExecutor` is in core. `SeleniumBrowserScriptExecutor` moved to `ui-test-lens-selenium`; overlay keeps only a small WebDriver compatibility helper. |
 | `io.github.mmaciekk111.uitestlens.core.logging` | 9 | No | No | `ui-test-lens-core` | Moved to `ui-test-lens-core`; event model and sinks are JDK-only. |
 | `io.github.mmaciekk111.uitestlens.core.logging.export` | 5 | No | No | `ui-test-lens-core` | Moved to `ui-test-lens-core`; text, JSON, and HTML exporters are JDK-only. |
 | `io.github.mmaciekk111.uitestlens.hud` | 2 | Compatibility only | Yes | `ui-test-lens-overlay` | Moved to overlay. `HudPanel` uses `BrowserScriptExecutor` internally and keeps WebDriver constructors for compatibility. |
@@ -37,7 +38,7 @@ The first Maven split is now in place:
 - `actions`, including highlight, typing, smart click/input, scroll, target resolver, and visual assertions.
 - Selenium wait and guard helpers: `PageWaits`, `Guards`.
 - Popup and overlay heuristics: `PopupDetector`, `BlockingOverlayHelper`.
-- `SeleniumBrowserScriptExecutor` is temporarily in overlay for WebDriver-compatible constructors and should move to the future Selenium module.
+- `SeleniumBrowserScriptExecutor` is in `ui-test-lens-selenium`.
 - React helpers: `ReactSafeExecutor`, `ReactSelectHelper`.
 
 ## Core-ready packages
@@ -61,7 +62,7 @@ The first Maven split is now in place:
 ## Next safe refactors before actual split
 
 1. Keep `ui-test-lens-core` Selenium-free as more neutral types are considered for migration.
-2. Move `SeleniumBrowserScriptExecutor` out of overlay when `ui-test-lens-selenium` is created.
+2. Remove or isolate the temporary Selenium dependency in overlay when WebDriver-compatible constructors can be handled without breaking API.
 3. Keep Selenium actions, waits, popup heuristics, and the current facade inside the Selenium boundary.
 4. Continue moving bridge classes away from direct Selenium execution where this does not change behavior.
 5. Split React helpers only after direct `JsOverlayDebug` coupling is reduced.

@@ -11,8 +11,8 @@ Current state:
 - Maven artifactId is `ui-test-lens`.
 - Maven groupId is `io.github.mmaciekk111`.
 - Java packages use `io.github.mmaciekk111.uitestlens`.
-- The project is now a minimal multi-module Maven project with `ui-test-lens-core`, `ui-test-lens-overlay`, and `ui-test-lens`.
-- Multi-module split is planned later.
+- The project is now a Maven multi-module project with `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, and the all-in-one compatibility artifact `ui-test-lens`.
+- Further module splits, including React and examples, are planned later.
 - Runtime JavaScript state is initialized under `window.__uiTestLens`; legacy `window.__selenium...` globals remain as compatibility aliases.
 
 ## What It Does
@@ -91,6 +91,16 @@ For browser runtime resources and overlay bridge classes only, depend on the ove
 <dependency>
     <groupId>io.github.mmaciekk111</groupId>
     <artifactId>ui-test-lens-overlay</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</dependency>
+```
+
+For Selenium-specific facade/actions directly, depend on the Selenium module:
+
+```xml
+<dependency>
+    <groupId>io.github.mmaciekk111</groupId>
+    <artifactId>ui-test-lens-selenium</artifactId>
     <version>1.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -242,11 +252,13 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - Runtime JavaScript audit: [`docs/ui-test-lens-runtime-js-audit.md`](docs/ui-test-lens-runtime-js-audit.md).
 - Module split plan: [`docs/ui-test-lens-module-split-plan.md`](docs/ui-test-lens-module-split-plan.md).
 - Module boundary matrix: [`docs/ui-test-lens-module-boundaries.md`](docs/ui-test-lens-module-boundaries.md).
-- `BrowserScriptExecutor` is now the neutral browser JavaScript execution contract; `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor`.
+- `BrowserScriptExecutor` is now the neutral browser JavaScript execution contract; `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor` in the `ui-test-lens-selenium` module.
 - `HudPanel` uses `BrowserScriptExecutor` internally while preserving existing Selenium `WebDriver` constructors.
 - `ApiOverlayPanel` uses `BrowserScriptExecutor` internally while preserving existing Selenium `WebDriver` constructors.
 - API is not final.
-- First Maven splits are done: `ui-test-lens-core` contains Selenium-free logging/export code and `BrowserScriptExecutor`; `ui-test-lens-overlay` contains runtime resources and overlay bridge classes; `ui-test-lens` remains the temporary Selenium facade/actions module.
+- Maven splits are in progress: `ui-test-lens-core` contains Selenium-free logging/export code and `BrowserScriptExecutor`; `ui-test-lens-overlay` contains runtime resources and overlay bridge classes; `ui-test-lens-selenium` contains the Selenium facade/actions/waits; `ui-test-lens` is an all-in-one compatibility artifact.
+- `ui-test-lens-overlay` still has a temporary Selenium dependency for WebDriver-compatible constructors. The public Selenium executor adapter has moved to `ui-test-lens-selenium`.
+- React helpers are temporarily packaged in `ui-test-lens-selenium` and will move to `ui-test-lens-react` later.
 - No Maven Central publication yet.
 - No ready Selenide, Allure, or TeamCity adapters yet.
 - No full Selenium `WebDriverListener` adapter yet.
@@ -256,12 +268,14 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 1. Use the runtime JS audit to review remaining small inline JavaScript snippets and decide which should become runtime resources.
 2. Continue moving runtime bridge classes toward `BrowserScriptExecutor`.
-3. Split the remaining Selenium facade/actions module into `ui-test-lens-selenium`, `ui-test-lens-react`, and `ui-test-lens-examples`.
-4. Selenium `WebDriverListener` adapter.
-5. Selenide adapter.
-6. Allure/TeamCity exporters and adapters.
-7. HTML report improvements.
-8. Maven publication.
+3. Remove the remaining temporary Selenium dependency from `ui-test-lens-overlay`, if compatibility constructors can be handled without breaking API.
+4. Split React helpers into `ui-test-lens-react`.
+5. Add `ui-test-lens-examples`.
+6. Selenium `WebDriverListener` adapter.
+7. Selenide adapter.
+8. Allure/TeamCity exporters and adapters.
+9. HTML report improvements.
+10. Maven publication.
 
 ## Development
 

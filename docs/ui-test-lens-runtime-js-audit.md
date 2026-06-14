@@ -2,7 +2,7 @@
 
 This audit captures the state after extracting the main browser runtime pieces into `ui-test-lens-overlay/src/main/resources/uitestlens/runtime/`.
 
-`BrowserScriptExecutor` now provides a neutral Java contract for browser script execution from `ui-test-lens-core`. `SeleniumBrowserScriptExecutor` currently lives in `ui-test-lens-overlay` as a temporary compatibility adapter for WebDriver constructors and should move to the future Selenium module. Runtime bridge loaders expose overloads that accept the neutral executor, and `HudPanel` plus `ApiOverlayPanel` use the neutral executor internally. Selenium action/PageWaits/popup helpers still use direct Selenium execution until a later refactor.
+`BrowserScriptExecutor` now provides a neutral Java contract for browser script execution from `ui-test-lens-core`. `SeleniumBrowserScriptExecutor` lives in `ui-test-lens-selenium`. `ui-test-lens-overlay` still keeps a small WebDriver compatibility helper because existing overlay constructors accept Selenium `WebDriver`. Runtime bridge loaders expose overloads that accept the neutral executor, and `HudPanel` plus `ApiOverlayPanel` use the neutral executor internally. Selenium action/PageWaits/popup helpers now live in `ui-test-lens-selenium` and still use direct Selenium execution where appropriate.
 
 ## Current runtime resources
 
@@ -142,9 +142,9 @@ The scripts were not moved to `src/main/resources/uitestlens/runtime/` in this s
 The first split preparation step introduced:
 
 - `io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor`,
-- `io.github.mmaciekk111.uitestlens.core.browser.SeleniumBrowserScriptExecutor`.
+- `io.github.mmaciekk111.uitestlens.core.browser.SeleniumBrowserScriptExecutor` in `ui-test-lens-selenium`.
 
-Runtime bridge loaders now have `inject(BrowserScriptExecutor)` overloads while preserving existing Selenium-facing overloads. `OverlayRootManager`, `HudPanel`, and `ApiOverlayPanel` store the neutral executor internally and keep existing `WebDriver` constructors by delegating through the Selenium adapter.
+Runtime bridge loaders now have `inject(BrowserScriptExecutor)` overloads while preserving existing Selenium-facing overloads. `OverlayRootManager`, `HudPanel`, and `ApiOverlayPanel` store the neutral executor internally and keep existing `WebDriver` constructors through overlay's temporary compatibility helper. The public Selenium adapter itself lives in `ui-test-lens-selenium`.
 
 Direct Selenium script execution intentionally remains in:
 
