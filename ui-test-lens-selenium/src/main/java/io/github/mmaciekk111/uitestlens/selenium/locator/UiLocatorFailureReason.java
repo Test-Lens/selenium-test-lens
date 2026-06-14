@@ -1,0 +1,11 @@
+package io.github.mmaciekk111.uitestlens.selenium.locator;
+
+public enum UiLocatorFailureReason {
+    NOT_FOUND,
+    STALE_ELEMENT,
+    CLICK_INTERCEPTED,
+    NOT_INTERACTABLE,
+    ACTIONABILITY_NOT_READY,
+    TIMEOUT,
+    UNKNOWN
+}

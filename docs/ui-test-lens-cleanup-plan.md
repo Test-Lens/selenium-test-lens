@@ -453,6 +453,14 @@ Trzeci punkt roadmapy Playwright-inspired reliability zostal zaimplementowany po
 
 Warstwa React najpierw uzywa bazowego `JsOverlayDebug.checkActionability(...)`, a potem sprawdza sygnaly typowe dla aplikacji React: `aria-disabled`, `aria-busy`, `data-loading`, `data-pending`, `data-state`, progressbar, spinner/loading indicators, skeleton loaders, focus-lock, dialog/modal oraz custom busy/blocking locatory. `ReactSupport.checkActionability(...)` jest publicznym entrypointem. `ui-test-lens-selenium` nadal nie zalezy od React.
 
+## Retryable UI locator API
+
+Czwarty punkt roadmapy Playwright-inspired reliability zostal zaimplementowany po stronie `ui-test-lens-selenium`. Dodano `UiLocator`, `UiLocatorOptions`, `UiLocatorResolver`, `UiLocatorDescription`, `UiLocatorResult`, status/failure enumy oraz `UiLocatorException`.
+
+Locator trzyma `By` i opis zamiast dlugo przechowywac `WebElement`. Akcje `click`, `fill`, `clear`, `pressEnter`, `textContent`, `isVisible`, `isEnabled`, `resolve` i `checkActionability` resolve'uja swiezy element tuz przed uzyciem. `click()` deleguje do istniejacego smart click i overlay policy flow, a akcje retry'uja transient stale/intercept/not-interactable problemy do skonfigurowanego limitu. Publiczne wejscia to `JsOverlayDebug.locator(...)` i `JsOverlayDebug.getByTestId(...)`.
+
+Pelne web-first assertions oraz bogatsze factory typu `getByRole`, `getByLabel`, `getByText` zostaja na kolejny etap.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:

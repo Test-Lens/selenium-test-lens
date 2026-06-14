@@ -269,6 +269,22 @@ if (!report.isReady()) {
 
 This stays in `ui-test-lens-react`; `ui-test-lens-selenium` still has no dependency on React. It is not a full retryable locator API yet.
 
+## Retryable UI Locator API
+
+The Selenium module now includes a first Playwright-like locator wrapper. `UiLocator` stores a `By` locator and description rather than keeping a long-lived `WebElement`. Each action resolves a fresh element just before use, runs base actionability diagnostics, and retries transient stale/intercept/not-interactable failures within the configured limit.
+
+```java
+overlay.locator(By.cssSelector("[data-testid='save']")).click();
+
+overlay.getByTestId("email").fill("test@example.com");
+overlay.getByTestId("save-button").click();
+
+String toast = overlay.getByTestId("toast").textContent();
+boolean visible = overlay.getByTestId("modal").isVisible();
+```
+
+Initial methods include `locator(By)`, `getByTestId(...)`, `click`, `fill`, `clear`, `pressEnter`, `textContent`, `isVisible`, `isEnabled`, `resolve`, and `checkActionability`. Click delegates to the existing smart click/overlay policy path; fill and reads resolve fresh elements directly. Web-first assertions and richer `getByRole`/`getByLabel`/`getByText` helpers are planned later.
+
 ## Logging And Event Bus
 
 `UiTestLensLogger` is the central event bus. `OverlayLogger` is the current bridge used by existing overlay/Selenium classes.

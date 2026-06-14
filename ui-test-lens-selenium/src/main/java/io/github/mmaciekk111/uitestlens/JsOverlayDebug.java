@@ -27,6 +27,8 @@ import io.github.mmaciekk111.uitestlens.selenium.SeleniumOverlayFactory;
 import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityChecker;
 import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityOptions;
 import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityReport;
+import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocator;
+import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocatorOptions;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicy;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicyExecutor;
 
@@ -150,11 +152,44 @@ public final class JsOverlayDebug {
         return actionabilityChecker().check(element, options);
     }
 
+    public UiLocator locator(By by) {
+        return locator(by, "", UiLocatorOptions.defaults());
+    }
+
+    public UiLocator locator(By by, String label) {
+        return locator(by, label, UiLocatorOptions.defaults());
+    }
+
+    public UiLocator locator(By by, UiLocatorOptions options) {
+        return locator(by, "", options);
+    }
+
+    private UiLocator locator(By by, String label, UiLocatorOptions options) {
+        return new UiLocator(driver, by, label, this, options, logger);
+    }
+
+    public UiLocator getByTestId(String testId) {
+        return getByTestId(testId, "");
+    }
+
+    public UiLocator getByTestId(String testId, String label) {
+        return locator(By.cssSelector("[data-testid='" + cssString(testId) + "']"), label);
+    }
+
     private ActionabilityChecker actionabilityChecker() {
         OverlayPolicyExecutor policyExecutor = overlayPolicy == null || overlayPolicy.isEmpty()
                 ? null
                 : new OverlayPolicyExecutor(driver, overlayPolicy, logger);
         return new ActionabilityChecker(driver, policyExecutor, logger);
+    }
+
+    private static String cssString(String value) {
+        String input = value == null ? "" : value;
+        return input
+                .replace("\\", "\\\\")
+                .replace("'", "\\'")
+                .replace("\n", "\\A ")
+                .replace("\r", "");
     }
 
     // ======================================================================

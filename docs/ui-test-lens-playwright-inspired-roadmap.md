@@ -114,6 +114,8 @@ The first implementation provides `ActionabilityChecker`, `ActionabilityOptions`
 
 ### 1.3 Retryable element resolving
 
+Status: initial Selenium locator API exists in `ui-test-lens-selenium`.
+
 The locator layer should avoid holding `WebElement` references longer than necessary. It should keep the `By` locator and resolve the element immediately before the action.
 
 Retries should cover:
@@ -124,6 +126,8 @@ Retries should cover:
 - transient disabled/loading states where the configured timeout still allows retry.
 
 Every retry should emit action logs with attempt number, reason, elapsed time, and the last known target metadata. This is the foundation for useful trace reports.
+
+The first implementation provides `UiLocator`, `UiLocatorOptions`, `UiLocatorResolver`, result/status/failure models, `JsOverlayDebug.locator(...)`, and `JsOverlayDebug.getByTestId(...)`. It supports click, fill, clear, pressEnter, textContent, isVisible, isEnabled, resolve, and checkActionability. It is not yet the full web-first assertions API.
 
 ### 1.4 React-aware readiness
 
@@ -426,7 +430,7 @@ Role labels should appear in trace/session metadata to help diagnose authorizati
 3. Add React-aware actionability checks.
    Initial implementation exists in `ui-test-lens-react`. Continue by using it as the readiness layer for future locator/actions without adding a Selenium-to-React dependency.
 4. Add retryable UI locator API.
-   Locator APIs should build on actionability so `.click()` and `.type()` inherit stable behavior from the start.
+   Initial implementation exists. Continue with richer locator factories such as getByRole/getByLabel/getByText and then web-first assertions.
 5. Add retryable web assertions.
    Assertions should reuse locator resolution and retry semantics rather than inventing separate wait behavior.
 6. Add business step DSL.

@@ -27,6 +27,8 @@ The Selenium module owns configurable blocking overlay policy: `OverlayPolicy`, 
 
 The Selenium module also owns the first actionability layer: `ActionabilityChecker`, `ActionabilityOptions`, `ActionabilityReport`, status/failure enums, and the inline Selenium JS snippets needed for bounding-box and click-point checks. `SmartClickActions` uses this layer as best-effort diagnostics while preserving the legacy click fallback flow.
 
+The Selenium module owns the retryable locator API: `UiLocator`, `UiLocatorOptions`, `UiLocatorResolver`, result/status/failure models, and locator action events. The locator stores `By` and resolves fresh `WebElement` instances before each action.
+
 `ui-test-lens-react` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium, and JUnit in test scope. This direction keeps the base Selenium module independent from React helpers.
 
 The React module owns React-aware actionability checks: `ReactActionabilityChecker`, options/report models, React readiness result/failure enums, and React-only JS snippets for aria/data/loading/spinner/skeleton/dialog/focus-lock signals. This layer uses the public Selenium actionability contract and does not introduce a reverse dependency from Selenium to React.
@@ -116,7 +118,8 @@ Dependency tree checks:
 ## Next recommended steps
 
 1. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
-2. Use React-aware readiness checks in future retryable locator/action APIs.
-3. Add Maven Wrapper.
-4. Add publication metadata once the public API is ready.
-5. Revisit API stability before the first non-SNAPSHOT release.
+2. Add web-first assertions on top of `UiLocator`.
+3. Add richer locator factories such as getByRole/getByLabel/getByText.
+4. Add Maven Wrapper.
+5. Add publication metadata once the public API is ready.
+6. Revisit API stability before the first non-SNAPSHOT release.
