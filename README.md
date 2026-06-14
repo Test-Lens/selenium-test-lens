@@ -115,6 +115,16 @@ For React-safe helpers directly, depend on the React module:
 </dependency>
 ```
 
+React helpers are now accessed from the React module instead of the Selenium facade:
+
+```java
+import io.github.mmaciekk111.uitestlens.react.ReactSafeExecutor;
+import io.github.mmaciekk111.uitestlens.react.ReactSupport;
+
+ReactSafeExecutor react = ReactSupport.reactSafe(overlay);
+ReactSupport.smartClick(overlay, By.cssSelector("[data-testid='save']"), "SAVE");
+```
+
 ### Module Dependency Matrix
 
 | Use case | Maven artifact |
@@ -282,7 +292,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - API is not final.
 - Maven splits are in progress: `ui-test-lens-core` contains Selenium-free logging/export code and `BrowserScriptExecutor`; `ui-test-lens-overlay` contains runtime resources and overlay bridge classes without Selenium imports; `ui-test-lens-selenium` contains the Selenium facade/actions/waits and WebDriver-compatible overlay factories; `ui-test-lens-react` contains React-safe helpers; `ui-test-lens` is an all-in-one compatibility artifact.
 - `ui-test-lens-overlay` uses `BrowserScriptExecutor` as its primary API and no longer depends on Selenium directly.
-- `ui-test-lens-selenium` still depends on `ui-test-lens-react` because the current `JsOverlayDebug` API exposes `ReactSafeExecutor`. A later refactor should move that coupling behind smaller interfaces.
+- `ui-test-lens-selenium` no longer depends on `ui-test-lens-react`; React helpers live behind `ReactSupport` in the React module.
 - No Maven Central publication yet.
 - No ready Selenide, Allure, or TeamCity adapters yet.
 - No full Selenium `WebDriverListener` adapter yet.
@@ -292,13 +302,12 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 1. Use the runtime JS audit to review remaining small inline JavaScript snippets and decide which should become runtime resources.
 2. Continue moving runtime bridge classes toward `BrowserScriptExecutor`.
-3. Reduce `JsOverlayDebug` coupling to React helpers through smaller interfaces.
-4. Add `ui-test-lens-examples`.
-5. Selenium `WebDriverListener` adapter.
-6. Selenide adapter.
-7. Allure/TeamCity exporters and adapters.
-8. HTML report improvements.
-9. Maven publication.
+3. Add `ui-test-lens-examples`.
+4. Selenium `WebDriverListener` adapter.
+5. Selenide adapter.
+6. Allure/TeamCity exporters and adapters.
+7. HTML report improvements.
+8. Maven publication.
 
 ## Development
 

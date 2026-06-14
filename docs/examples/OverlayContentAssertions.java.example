@@ -3,7 +3,6 @@ package io.github.mmaciekk111.uitestlens;
 import tests.fe.utils.contentassertions.ContentIssueCollector;
 import utils.datetime.LocalDateTimeUtils;
 import io.github.mmaciekk111.uitestlens.actions.AssertActions;
-import io.github.mmaciekk111.uitestlens.react.ReactSafeExecutor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,23 +40,6 @@ public class OverlayContentAssertions {
     ) {
         JsOverlayDebug.AssertionSummary summary =
                 overlay.assertGroup(groupName, consumer, failTestOnErrors);
-
-        pushFailuresToContentCollector(summary);
-
-        return summary;
-    }
-
-    /**
-     * To samo, ale dla wersji ReactSafe.
-     */
-    public JsOverlayDebug.AssertionSummary assertGroupReactSafeWithContent(
-            String groupName,
-            ReactSafeExecutor reactSafeExecutor,
-            Consumer<JsOverlayDebug.SoftAssertions> consumer,
-            boolean failTestOnErrors
-    ) {
-        JsOverlayDebug.AssertionSummary summary =
-                overlay.assertGroupReactSafe(groupName, reactSafeExecutor, consumer, failTestOnErrors);
 
         pushFailuresToContentCollector(summary);
 

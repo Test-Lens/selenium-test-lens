@@ -12,6 +12,4 @@ public interface ReactOverlaySupport {
     void setStep(String stepDescription);
 
     WebElement highlightElement(WebElement element, String label);
-
-    ReactSafeExecutor reactSafe();
 }

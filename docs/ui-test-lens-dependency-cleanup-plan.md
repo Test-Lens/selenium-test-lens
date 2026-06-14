@@ -330,7 +330,7 @@ Wykonano:
 - dodano overload konstruktora `AssertActions` z `OverlayLogger`,
 - `JsOverlayDebug` przekazuje ten sam logger do `AssertActions`,
 - centralne tworzenie `OverlayAssertionResult` emituje eventy `ASSERTION/PASSED` albo `ASSERTION/FAILED`,
-- `assertGroup(...)` i `assertGroupReactSafe(...)` emitują summary eventy grupy,
+- `assertGroup(...)` emituje summary eventy grupy,
 - metadata `expected` i `actual` jest przycinana do 500 znaków tylko na potrzeby eventów.
 
 Odłożono:

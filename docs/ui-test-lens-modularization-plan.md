@@ -58,7 +58,7 @@ ui-test-lens-parent
 └── ui-test-lens-examples
 ```
 
-Abstrakcja `BrowserScriptExecutor` zostala przeniesiona do `ui-test-lens-core`. Adapter `SeleniumBrowserScriptExecutor`, `OverlayBrowserScriptExecutors` i `SeleniumOverlayFactory` sa teraz w `ui-test-lens-selenium`. `HudPanel`, `ApiOverlayPanel` i `OverlayRootManager` uzywaja juz neutralnego kontraktu bez importow Selenium w module overlay. `ui-test-lens-overlay` nie zalezy juz bezposrednio od Selenium. `ui-test-lens-react` jest osobnym modulem, ale `ui-test-lens-selenium` nadal zalezy od niego przez publiczne API `JsOverlayDebug.reactSafe()`.
+Abstrakcja `BrowserScriptExecutor` zostala przeniesiona do `ui-test-lens-core`. Adapter `SeleniumBrowserScriptExecutor`, `OverlayBrowserScriptExecutors` i `SeleniumOverlayFactory` sa teraz w `ui-test-lens-selenium`. `HudPanel`, `ApiOverlayPanel` i `OverlayRootManager` uzywaja juz neutralnego kontraktu bez importow Selenium w module overlay. `ui-test-lens-overlay` nie zalezy juz bezposrednio od Selenium. `ui-test-lens-selenium` nie zalezy juz od `ui-test-lens-react`; React-safe entrypointem jest `ReactSupport` w module React.
 
 ## 1. Obecny projekt
 
@@ -93,7 +93,7 @@ Główne punkty wejścia dla użytkownika biblioteki:
 
 Klasy/metody wyglądające na publiczne API:
 
-- `JsOverlayDebug`: `initHud`, `setStep`, `hudLog`, `highlightClick`, `highlightElement`, `highlightParent`, `highlightAncestor`, `highlightClosest`, `typeWithHint`, `clearAndType`, `smartTypeWithHint*`, `smartClickWithOverlayHandler`, `smartClickReactSafe`, `clearDebugArtifacts`, `waitFor*`, `showWaitIndicator`, `hideWaitIndicator`, `detectPopup`, `closePopupIfPresent`, `scrollToElementWithArrow`, `assert*`, `assertGroup*`, `resolve*`, `smartClickResolved`, `smartUploadFile`, `showApiCall`, `apiCallWithModal`, `apiHighlight*`, `reactSafe`.
+- `JsOverlayDebug`: `initHud`, `setStep`, `hudLog`, `highlightClick`, `highlightElement`, `highlightParent`, `highlightAncestor`, `highlightClosest`, `typeWithHint`, `clearAndType`, `smartTypeWithHint*`, `smartClickWithOverlayHandler`, `clearDebugArtifacts`, `waitFor*`, `showWaitIndicator`, `hideWaitIndicator`, `detectPopup`, `closePopupIfPresent`, `scrollToElementWithArrow`, `assert*`, `assertGroup*`, `resolve*`, `smartClickResolved`, `smartUploadFile`, `showApiCall`, `apiCallWithModal`, `apiHighlight*`.
 - `OverlayConfig.builder()`.
 - `OverlayWait.until(...)`.
 - `ReactSafeExecutor.doWithRetry`, `click`, `clearAndType`, `getText`, `getAttribute`, `isDisplayed`, `select`.
@@ -143,7 +143,7 @@ Najważniejsze zależności:
 - `JsOverlayDebug` zależy od wszystkich domen: `actions`, `api`, `core`, `hud`, `react`, `scroll`,
 - `actions` zależy od `core.OverlayRootManager`, `OverlayConfig`, czasem `hud.HudPanel`,
 - `core.BlockingOverlayHelper` i `core.PopupDetector` zależą od `actions.HighlightActions`, czyli `core` nie jest czyste,
-- `react.ReactSafeExecutor` zalezy od malego `ReactOverlaySupport`; obecnie `JsOverlayDebug` implementuje ten kontrakt i nadal eksponuje `ReactSafeExecutor`,
+- `react.ReactSafeExecutor` zalezy od malego `ReactOverlaySupport`; adapter dla `JsOverlayDebug` jest tworzony po stronie `ReactSupport`,
 - `api.ApiCallActions` zależy od RestAssured (`io.restassured.response.Response`), którego nie ma w `pom.xml`,
 - `OverlayWait` i `Guards` zależą od `utils.logs.LogWraper`, którego nie ma w `pom.xml`,
 - `OverlayWait` zależy od `utils.time.TimeStamp`, którego nie ma w `pom.xml`,
@@ -562,7 +562,7 @@ API powinno ukrywać klasy `*Actions`, `OverlayRootManager`, `HudPanel` i zasoby
 - `AssertActions.java`, `HighlightActions.java`, `PageWaits.java`, `PopupDetector.java`, `BlockingOverlayHelper.java`, `HudPanel.java` są duże i zawierają długie stringi JS.
 - `HighlightActions.highlightClick` ma mylącą nazwę: rysuje highlight i wykonuje klik wraz z fallbackami.
 - `core` zależy od `actions.HighlightActions`, więc warstwa core nie jest niezależna.
-- `JsOverlayDebug` nadal eksponuje `ReactSafeExecutor`, mimo ze sam executor zalezy juz od malego `ReactOverlaySupport`.
+- `JsOverlayDebug` nie eksponuje juz `ReactSafeExecutor`; React-specific API jest po stronie `ReactSupport`.
 - Statyczne `ThreadLocal` w `ApiOverlayContext`, `ApiOverlayPlan`, `ApiOverlayRule` utrudniają czytelny lifecycle, równoległość i testowanie.
 - Brakuje abstrakcji dla wykonywania JS, np. `BrowserScriptExecutor`/`ScriptExecutor`; obecny `core.ScriptExecutor` jest pusty.
 - API overlay JS został wydzielony do `src/main/resources/uitestlens/runtime/api-overlay.js`; loader zachowuje fallback `selenium/api-overlay.js`.
@@ -600,7 +600,7 @@ API powinno ukrywać klasy `*Actions`, `OverlayRootManager`, `HudPanel` i zasoby
 - `PageWaits` - użyteczne waity; runtime state dla network/wait/dom jest już normalizowany pod `window.__uiTestLens.state`, ale nadal trzeba odseparować raportowanie HUD od samego waitowania.
 - `ScrollActions` - sensowna domena, ale JS powinien być osobnym zasobem.
 - `TargetResolverActions` - przydatne; skrypty click/file input resolvera są już wydzielone do testowalnych helperów, ale `buildCssSelector` powinien poprawnie escapować CSS i nie obiecywać unikalności.
-- `ReactSafeExecutor` - wartościowy; zalezy juz od `ReactOverlaySupport`, ale fasada `JsOverlayDebug` nadal powinna zostac odchudzona z bezposredniego API React.
+- `ReactSafeExecutor` - wartościowy; zalezy juz od `ReactOverlaySupport`, a bezposrednie API React zostalo przeniesione z fasady `JsOverlayDebug` do `ReactSupport`.
 
 ### C. Wymaga większego refaktoru przed publikacją
 

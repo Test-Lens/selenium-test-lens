@@ -63,11 +63,12 @@ public class ReactSelectHelper {
     }
 
     public void pickByLabel(ReactOverlaySupport overlay,
-                           String labelContains,
-                           String valueToType,
-                           String hiddenName,
-                           long timeoutMs,
-                           String xpathPrefix) {
+                            String labelContains,
+                            String valueToType,
+                            String hiddenName,
+                            long timeoutMs,
+                            String xpathPrefix) {
+        ReactSafeExecutor reactSafe = new ReactSafeExecutor(driver, overlay);
         final String needle = valueToType == null ? "" : valueToType.trim();
         if (needle.isEmpty()) throw new IllegalArgumentException("valueToType must not be blank");
 
@@ -78,7 +79,7 @@ public class ReactSelectHelper {
         long end = System.currentTimeMillis() + timeoutMs;
 
         // 1) wpisz do comboboxa + pobudź listę
-        overlay.reactSafe().doWithRetry(comboBy, "TYPE_COMBO: " + labelContains, combo -> {
+        reactSafe.doWithRetry(comboBy, "TYPE_COMBO: " + labelContains, combo -> {
             ((JavascriptExecutor) driver).executeScript(
                     "arguments[0].scrollIntoView({block:'center',inline:'nearest'});" +
                             "try{arguments[0].focus();}catch(e){}",
@@ -91,14 +92,14 @@ public class ReactSelectHelper {
             return true;
         });
 
-        overlay.reactSafe().doWithRetry(comboBy, "ARROWDOWN: " + labelContains, combo -> {
+        reactSafe.doWithRetry(comboBy, "ARROWDOWN: " + labelContains, combo -> {
             combo.sendKeys(Keys.ARROW_DOWN);
             return true;
         });
 
         // 2) resolve baseId
         final String[] baseIdHolder = new String[1];
-        overlay.reactSafe().doWithRetry(comboBy, "BASEID: " + labelContains, combo -> {
+        reactSafe.doWithRetry(comboBy, "BASEID: " + labelContains, combo -> {
             WebElement group = driver.findElement(groupBy);
             String baseId = resolveReactSelectBaseId(group, combo);
             if (baseId == null || baseId.isBlank()) throw new NoSuchElementException("baseId not ready");
@@ -118,7 +119,7 @@ public class ReactSelectHelper {
         if (!clicked) throw new NoSuchElementException("No option containing: " + needle + " for " + labelContains);
 
         // 4) potwierdź po hidden
-        overlay.reactSafe().doWithRetry(hiddenBy, "CONFIRM: " + labelContains, h -> {
+        reactSafe.doWithRetry(hiddenBy, "CONFIRM: " + labelContains, h -> {
             long confirmEnd = System.currentTimeMillis() + 8000;
             while (System.currentTimeMillis() < confirmEnd) {
                 String v = h.getAttribute("value");

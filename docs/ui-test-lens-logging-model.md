@@ -212,7 +212,7 @@ Metadata assertion eventów zawiera:
 
 `expected` i `actual` są przycinane do 500 znaków. Nie zmienia to treści `OverlayAssertionResult`, komunikatów HUD ani wyjątków downstream; truncation dotyczy tylko event metadata.
 
-`assertGroup(...)` i `assertGroupReactSafe(...)` emitują summary event po wykonaniu consumerów. Metadata summary zawiera `groupName`, `total`, `passed`, `failed`, `soft=true` i `reactSafe`.
+`assertGroup(...)` emituje summary event po wykonaniu consumerów. Metadata summary zawiera `groupName`, `total`, `passed`, `failed` i `soft=true`. React-specific grouped assertions should live in the React module if they are reintroduced.
 
 `OverlayAssertionResult` pozostał w obecnym miejscu. Docelowo powinien zostać przeanalizowany jako kandydat do przyszłego `ui-test-lens-assertions` albo `ui-test-lens-overlay`.
 

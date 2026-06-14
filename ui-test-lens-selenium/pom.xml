@@ -28,12 +28,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.github.mmaciekk111</groupId>
-            <artifactId>ui-test-lens-react</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
         </dependency>

@@ -36,7 +36,7 @@ Current artifact usage matrix:
 | `io.github.mmaciekk111.uitestlens.core.logging` | 9 | No | No | `ui-test-lens-core` | Moved to `ui-test-lens-core`; event model and sinks are JDK-only. |
 | `io.github.mmaciekk111.uitestlens.core.logging.export` | 5 | No | No | `ui-test-lens-core` | Moved to `ui-test-lens-core`; text, JSON, and HTML exporters are JDK-only. |
 | `io.github.mmaciekk111.uitestlens.hud` | 2 | No | Yes | `ui-test-lens-overlay` | Moved to overlay. `HudPanel` uses `BrowserScriptExecutor`; Selenium construction is provided by `SeleniumOverlayFactory`. |
-| `io.github.mmaciekk111.uitestlens.react` | 3 | Yes | Indirect | `ui-test-lens-react` | React helpers depend on Selenium and a small `ReactOverlaySupport` callback interface. `JsOverlayDebug` implements that interface. |
+| `io.github.mmaciekk111.uitestlens.react` | 4 | Yes | Indirect | `ui-test-lens-react` | React helpers depend on Selenium and adapt `JsOverlayDebug` through `ReactSupport`; Selenium does not depend on this module. |
 | `io.github.mmaciekk111.uitestlens.scroll` | 2 | No | No | Core or overlay decision | Neutral scroll edge enums used by Selenium scroll actions and runtime bridge code. |
 | `io.github.mmaciekk111.uitestlens.utils` | 1 | No | Resource loading only | Core or overlay decision | `JsResources` is JDK-only, but most current usage is runtime resource loading. |
 
@@ -56,7 +56,7 @@ Current artifact usage matrix:
 - Selenium wait and guard helpers: `PageWaits`, `Guards`.
 - Popup and overlay heuristics: `PopupDetector`, `BlockingOverlayHelper`.
 - `SeleniumBrowserScriptExecutor`, `OverlayBrowserScriptExecutors`, and `SeleniumOverlayFactory` are in `ui-test-lens-selenium`.
-- React-safe call sites remain in the Selenium facade and actions because `JsOverlayDebug` exposes `ReactSafeExecutor`.
+- React-safe call sites moved to `ReactSupport` in `ui-test-lens-react`.
 
 ## Core-ready packages
 
@@ -81,5 +81,4 @@ Current artifact usage matrix:
 1. Keep `ui-test-lens-core` Selenium-free as more neutral types are considered for migration.
 2. Keep Selenium actions, waits, popup heuristics, and the current facade inside the Selenium boundary.
 3. Continue moving bridge callers toward `BrowserScriptExecutor` where this does not change behavior.
-4. Reduce `JsOverlayDebug` to React coupling so `ui-test-lens-selenium` no longer needs a dependency on `ui-test-lens-react`.
-5. Leave API overlay as either an overlay sub-area or a future optional module until ownership is explicit.
+4. Leave API overlay as either an overlay sub-area or a future optional module until ownership is explicit.

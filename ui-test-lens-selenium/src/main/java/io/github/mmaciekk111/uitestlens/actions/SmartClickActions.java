@@ -9,8 +9,6 @@ import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensEventType;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensStatus;
-import io.github.mmaciekk111.uitestlens.react.ReactSafeExecutor;
-import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
@@ -106,32 +104,6 @@ public class SmartClickActions {
     @Deprecated
     public void smartClick(WebElement target, String label) {
         clickWithOverlayHandling(target, label);
-    }
-
-    /**
-     * React-safe klik:
-     * - pracuje na By (fresh element per attempt),
-     * - retry przez ReactSafeExecutor (stale, NoSuchElement, intercept),
-     * - wewnątrz korzysta z clickWithOverlayHandling (czyli dalej
-     *   obsługa popupów/overlayów + highlight).
-     */
-    public void clickReactSafe(By locator,
-                               String label,
-                               ReactSafeExecutor reactSafeExecutor) {
-        if (reactSafeExecutor == null) {
-            throw new IllegalArgumentException("ReactSafeExecutor must not be null");
-        }
-
-        reactSafeExecutor.doWithRetry(
-                locator,
-                "SMART_CLICK_REACT_SAFE: " + label,
-                element -> {
-                    emitClick("clickReactSafe", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null, false, null, false);
-                    clickWithOverlayHandling(element, label);
-                    emitClick("clickReactSafe", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, false, null, true);
-                    return null;
-                }
-        );
     }
 
     private boolean isClickInterceptError(Throwable e) {

@@ -21,8 +21,6 @@ import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogger;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensStatus;
 import io.github.mmaciekk111.uitestlens.hud.HudPanel;
-import io.github.mmaciekk111.uitestlens.react.ReactOverlaySupport;
-import io.github.mmaciekk111.uitestlens.react.ReactSafeExecutor;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollElementEdge;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollViewportEdge;
 
@@ -35,7 +33,7 @@ import java.util.function.Consumer;
 
 
 
-public final class JsOverlayDebug implements ReactOverlaySupport {
+public final class JsOverlayDebug {
 
     @Getter
     private final WebDriver driver;
@@ -53,7 +51,6 @@ public final class JsOverlayDebug implements ReactOverlaySupport {
     private final ScrollActions scrollActions;
     private final AssertActions assertActions;
     private final TargetResolverActions targetResolverActions;
-    private ReactSafeExecutor reactSafeExecutor;
     private final ApiOverlayPanel apiPanel;
     private final ApiCallActions apiCalls;
     private boolean waitHudInjected = false;
@@ -253,169 +250,6 @@ public final class JsOverlayDebug implements ReactOverlaySupport {
      */
     public void smartClickWithOverlayHandler(WebElement element, String label) {
         smartClickActions.clickWithOverlayHandling(element, label);
-    }
-
-    public void smartClickReactSafe(By locator, String label) {
-        smartClickActions.clickReactSafe(locator, label, reactSafe());
-    }
-
-    public WebElement reactSafeFindBySelectorContainingText(String selector,
-                                                            String text,
-                                                            boolean visibleOnly,
-                                                            String description) {
-        By by = toBy(selector);
-
-        String needle = text == null ? "" : text.trim();
-
-        return reactSafeFindFirst(by, el -> {
-            if (visibleOnly && !el.isDisplayed()) return false;
-
-            // getText() bywa kapryśny w React/Chakra (np. text w spanach), więc bierzemy textContent
-            String tc = safeTextContent(el);
-            return tc != null && tc.contains(needle);
-        }, description + " | selector=" + selector + " | text=" + needle);
-    }
-
-    private String textContent(WebElement el) {
-        try {
-            Object v = ((JavascriptExecutor) driver).executeScript(
-                    "return (arguments[0] && (arguments[0].textContent || arguments[0].innerText)) || '';",
-                    el
-            );
-            return v == null ? "" : String.valueOf(v).trim();
-        } catch (StaleElementReferenceException e) {
-            throw e; // wymuś retry w reactSafe
-        }
-    }
-
-    private By toBy(String selectorRaw) {
-        String s = selectorRaw == null ? "" : selectorRaw.trim();
-
-        // obsłuż prefixy (opcjonalnie)
-        if (s.toLowerCase().startsWith("xpath=") || s.toLowerCase().startsWith("xpath:")) {
-            s = s.replaceFirst("(?i)^xpath\\s*[:=]\\s*", "");
-            return By.xpath(s);
-        }
-        if (s.toLowerCase().startsWith("css=") || s.toLowerCase().startsWith("css:")) {
-            s = s.replaceFirst("(?i)^css\\s*[:=]\\s*", "");
-            return By.cssSelector(s);
-        }
-
-        // heurystyka: XPath zwykle zaczyna się od /, ./ albo (
-        if (s.startsWith("/") || s.startsWith("./") || s.startsWith("(")) {
-            return By.xpath(s);
-        }
-        return By.cssSelector(s);
-    }
-
-    private String safeTextContent(WebElement el) {
-        try {
-            Object v = ((JavascriptExecutor) driver).executeScript(
-                    "return (arguments[0] && (arguments[0].textContent || arguments[0].innerText)) || '';", el
-            );
-            return v == null ? "" : String.valueOf(v).trim();
-        } catch (StaleElementReferenceException e) {
-            throw e; // wymuś retry w reactSafeFindFirst
-        }
-    }
-
-
-    public WebElement reactSafeFindFirst(By listLocator,
-                                         java.util.function.Predicate<WebElement> predicate,
-                                         String description) {
-        // retry wrapper na samą listę (By) – dzięki temu nie trzymasz starej listy WebElementów
-        return reactSafe().doWithRetry(listLocator, "FIND_FIRST: " + description, anyElFromList -> {
-            // anyElFromList jest tylko “kotwicą” żeby mieć presence – realnie bierzemy świeżą listę
-            List<WebElement> list = driver.findElements(listLocator);
-
-            for (WebElement el : list) {
-                try {
-                    if (predicate.test(el)) {
-                        // opcjonalnie: highlight znalezioną sekcję
-                        if (config.isEnabled() && config.isShowHudPanel()) {
-                            highlightElement(el, "FOUND");
-                        }
-                        return el;
-                    }
-                } catch (StaleElementReferenceException ignored) {
-                    // element “umarł” w trakcie predicate -> pomiń i szukaj dalej w tej próbie
-                }
-            }
-
-            throw new NoSuchElementException("No match in list for: " + description + " | locator=" + listLocator);
-        });
-    }
-    public List<WebElement> reactSafeFindChildren(By parentListLocator,
-                                                  java.util.function.Predicate<WebElement> parentPredicate,
-                                                  By childLocator,
-                                                  String description) {
-        return reactSafe().doWithRetry(parentListLocator, "FIND_CHILDREN: " + description, anyElFromList -> {
-            WebElement parent = reactSafeFindFirst(parentListLocator, parentPredicate, description + " (parent)");
-            try {
-                return parent.findElements(childLocator);
-            } catch (StaleElementReferenceException e) {
-                // parent się zestarzał pomiędzy znalezieniem a findElements -> wymuś retry
-                throw e;
-            }
-        });
-    }
-    public WebElement reactSafeFindChildByText(By parentListLocator,
-                                               java.util.function.Predicate<WebElement> parentPredicate,
-                                               By childLocator,
-                                               java.util.function.Predicate<WebElement> childPredicate,
-                                               String description) {
-
-        return reactSafe().doWithRetry(parentListLocator, description, ignored -> {
-            WebElement parent = reactSafeFindFirst(
-                    parentListLocator,
-                    parentPredicate,
-                    description + " (parent)"
-            );
-
-            List<WebElement> children = parent.findElements(childLocator);
-            for (WebElement child : children) {
-                try {
-                    if (childPredicate.test(child)) {
-                        highlightElement(child, "FOUND");
-                        return child;
-                    }
-                } catch (StaleElementReferenceException ignored2) {
-                    // React zdążył – retry całej operacji
-                    throw ignored2;
-                }
-            }
-
-            throw new NoSuchElementException("Child not found: " + description);
-        });
-    }
-
-    public WebElement reactSafeFindChildByTextThenFind(By parentListLocator,
-                                                       java.util.function.Predicate<WebElement> parentPredicate,
-                                                       By childLocator,
-                                                       java.util.function.Predicate<WebElement> childPredicate,
-                                                       By innerLocator,
-                                                       String description) {
-
-        return reactSafe().doWithRetry(parentListLocator, description, ignored -> {
-            WebElement parent = reactSafeFindFirst(parentListLocator, parentPredicate, description + " (parent)");
-
-            List<WebElement> children = parent.findElements(childLocator);
-            for (WebElement child : children) {
-                try {
-                    if (childPredicate.test(child)) {
-                        WebElement inner = child.findElement(innerLocator);
-                        highlightElement(inner, "FOUND");
-                        return inner;
-                    }
-                } catch (org.openqa.selenium.StaleElementReferenceException e) {
-                    throw e; // retry całej operacji
-                } catch (org.openqa.selenium.NoSuchElementException e) {
-                    // inner nie ma – szukamy dalej / finalnie rzucimy NoSuchElementException
-                }
-            }
-
-            throw new org.openqa.selenium.NoSuchElementException("Inner element not found: " + description);
-        });
     }
 
     // ======================================================================
@@ -909,25 +743,11 @@ public final class JsOverlayDebug implements ReactOverlaySupport {
     public static final class SoftAssertions {
         private final AssertActions actions;
         private final AssertionSummary summary;
-        private final ReactSafeExecutor reactSafe; // może być null
 
         private SoftAssertions(AssertActions actions,
-                               AssertionSummary summary,
-                               ReactSafeExecutor reactSafe) {
+                               AssertionSummary summary) {
             this.actions = actions;
             this.summary = summary;
-            this.reactSafe = reactSafe;
-        }
-
-        // ===== helper =====
-
-        private void ensureReactSafe(String what) {
-            if (reactSafe == null) {
-                throw new IllegalStateException(
-                        "SoftAssertions: " + what + " wymaga ReactSafeExecutor. " +
-                                "Użyj JsOverlayDebug.assertGroupReactSafe(...) zamiast assertGroup(...)."
-                );
-            }
         }
 
         // =================================================================
@@ -1035,143 +855,6 @@ public final class JsOverlayDebug implements ReactOverlaySupport {
         }
 
         // =================================================================
-        //  REACT-SAFE ASSERTIONS (By + ReactSafeExecutor)
-        // =================================================================
-
-        /** Tekst elementu znalezionego przez locator == expected. */
-        public boolean equals(By locator,
-                              String expected,
-                              String contextLabel) {
-            ensureReactSafe("equals(By, ...)");
-            Boolean result = reactSafe.doWithRetry(
-                    locator,
-                    "ASSERT TEXT_EQUALS: " + contextLabel,
-                    el -> {
-                        var r = actions.assertTextEquals(el, expected, contextLabel);
-                        summary.addResult(r);
-                        return r.isSuccess();
-                    }
-            );
-            return result != null && result;
-        }
-
-        public boolean attributeEquals(By locator,
-                                       String attributeName,
-                                       String expected,
-                                       String contextLabel) {
-            ensureReactSafe("attributeEquals(By, ...)");
-            Boolean result = reactSafe.doWithRetry(
-                    locator,
-                    "ASSERT ATTR_EQUALS(" + attributeName + "): " + contextLabel,
-                    el -> {
-                        var r = actions.assertAttributeEquals(el, attributeName, expected, contextLabel);
-                        summary.addResult(r);
-                        return r.isSuccess();
-                    }
-            );
-            return result != null && result;
-        }
-
-        public boolean cssEquals(By locator,
-                                 String cssProperty,
-                                 String expected,
-                                 String contextLabel) {
-            ensureReactSafe("cssEquals(By, ...)");
-            Boolean result = reactSafe.doWithRetry(
-                    locator,
-                    "ASSERT CSS_EQUALS(" + cssProperty + "): " + contextLabel,
-                    el -> {
-                        var r = actions.assertCssEquals(el, cssProperty, expected, contextLabel);
-                        summary.addResult(r);
-                        return r.isSuccess();
-                    }
-            );
-            return result != null && result;
-        }
-
-        public boolean colorEquals(By locator,
-                                   String cssProperty,
-                                   String expectedColor,
-                                   String contextLabel) {
-            ensureReactSafe("colorEquals(By, ...)");
-            Boolean result = reactSafe.doWithRetry(
-                    locator,
-                    "ASSERT COLOR_EQUALS(" + cssProperty + "): " + contextLabel,
-                    el -> {
-                        var r = actions.assertColorEquals(el, cssProperty, expectedColor, contextLabel);
-                        summary.addResult(r);
-                        return r.isSuccess();
-                    }
-            );
-            return result != null && result;
-        }
-
-        public boolean hasClass(By locator,
-                                String className,
-                                boolean expectedPresent,
-                                String contextLabel) {
-            ensureReactSafe("hasClass(By, ...)");
-            Boolean result = reactSafe.doWithRetry(
-                    locator,
-                    "ASSERT HAS_CLASS(" + className + "): " + contextLabel,
-                    el -> {
-                        var r = actions.assertHasClass(el, className, expectedPresent, contextLabel);
-                        summary.addResult(r);
-                        return r.isSuccess();
-                    }
-            );
-            return result != null && result;
-        }
-
-        public boolean isVisible(By locator,
-                                 boolean expectedVisible,
-                                 String contextLabel) {
-            ensureReactSafe("isVisible(By, ...)");
-            Boolean result = reactSafe.doWithRetry(
-                    locator,
-                    "ASSERT VISIBLE: " + contextLabel,
-                    el -> {
-                        var r = actions.assertVisible(el, expectedVisible, contextLabel);
-                        summary.addResult(r);
-                        return r.isSuccess();
-                    }
-            );
-            return result != null && result;
-        }
-
-        public boolean isEnabled(By locator,
-                                 boolean expectedEnabled,
-                                 String contextLabel) {
-            ensureReactSafe("isEnabled(By, ...)");
-            Boolean result = reactSafe.doWithRetry(
-                    locator,
-                    "ASSERT ENABLED: " + contextLabel,
-                    el -> {
-                        var r = actions.assertEnabled(el, expectedEnabled, contextLabel);
-                        summary.addResult(r);
-                        return r.isSuccess();
-                    }
-            );
-            return result != null && result;
-        }
-
-        public boolean isSelected(By locator,
-                                  boolean expectedSelected,
-                                  String contextLabel) {
-            ensureReactSafe("isSelected(By, ...)");
-            Boolean result = reactSafe.doWithRetry(
-                    locator,
-                    "ASSERT SELECTED: " + contextLabel,
-                    el -> {
-                        var r = actions.assertSelected(el, expectedSelected, contextLabel);
-                        summary.addResult(r);
-                        return r.isSuccess();
-                    }
-            );
-            return result != null && result;
-        }
-
-        // =================================================================
         //  GENERIC / VALUE-BASED ASSERTIONS (bez WebElement, bez locatora)
         // =================================================================
 
@@ -1233,10 +916,10 @@ public final class JsOverlayDebug implements ReactOverlaySupport {
                                         Consumer<SoftAssertions> consumer,
                                         boolean failTestOnErrors) {
         AssertionSummary summary = new AssertionSummary(groupName);
-        SoftAssertions soft = new SoftAssertions(assertActions, summary, null);
+        SoftAssertions soft = new SoftAssertions(assertActions, summary);
 
         consumer.accept(soft);
-        emitAssertionSummary(summary, false);
+        emitAssertionSummary(summary);
 
         if (failTestOnErrors && summary.hasFailures()) {
             throw new AssertionError(summary.formatForException());
@@ -1245,29 +928,7 @@ public final class JsOverlayDebug implements ReactOverlaySupport {
         return summary;
     }
 
-    /**
-     * Creates a group of soft assertions with ReactSafeExecutor:
-     * - asercje na By będą wykonywane z retry (StaleElement, NoSuchElement itp.),
-     * - asercje na WebElement działają normalnie.
-     */
-    public AssertionSummary assertGroupReactSafe(String groupName,
-                                                 ReactSafeExecutor reactSafeExecutor,
-                                                 Consumer<SoftAssertions> consumer,
-                                                 boolean failTestOnErrors) {
-        AssertionSummary summary = new AssertionSummary(groupName);
-        SoftAssertions soft = new SoftAssertions(assertActions, summary, reactSafeExecutor);
-
-        consumer.accept(soft);
-        emitAssertionSummary(summary, true);
-
-        if (failTestOnErrors && summary.hasFailures()) {
-            throw new AssertionError(summary.formatForException());
-        }
-
-        return summary;
-    }
-
-    private void emitAssertionSummary(AssertionSummary summary, boolean reactSafe) {
+    private void emitAssertionSummary(AssertionSummary summary) {
         if (summary == null) return;
         int total = summary.getAllResults().size();
         int failed = summary.getFailuresObjects().size();
@@ -1283,7 +944,6 @@ public final class JsOverlayDebug implements ReactOverlaySupport {
                 .metadata("passed", String.valueOf(passed))
                 .metadata("failed", String.valueOf(failed))
                 .metadata("soft", "true")
-                .metadata("reactSafe", String.valueOf(reactSafe))
                 .build());
     }
 
@@ -1491,17 +1151,5 @@ public final class JsOverlayDebug implements ReactOverlaySupport {
         } catch (Exception ignored) {
             // overlay nie może wysadzać testów
         }
-    }
-
-
-    // ======================================================================
-    //  REACT SAFE EXECUTOR
-    // ======================================================================
-
-    public ReactSafeExecutor reactSafe() {
-        if (reactSafeExecutor == null) {
-            reactSafeExecutor = new ReactSafeExecutor(driver, this);
-        }
-        return reactSafeExecutor;
     }
 }
