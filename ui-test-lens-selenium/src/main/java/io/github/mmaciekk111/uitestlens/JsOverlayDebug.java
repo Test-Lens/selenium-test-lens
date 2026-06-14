@@ -53,6 +53,8 @@ import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidenceResult;
 import io.github.mmaciekk111.uitestlens.selenium.evidence.VideoEvidenceStatus;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocator;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocatorOptions;
+import io.github.mmaciekk111.uitestlens.selenium.network.NetworkDiagnostics;
+import io.github.mmaciekk111.uitestlens.selenium.network.NetworkDiagnosticsResult;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicy;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicyExecutor;
 import io.github.mmaciekk111.uitestlens.selenium.steps.UiStepError;
@@ -97,6 +99,7 @@ public final class JsOverlayDebug {
     private final OverlayLogger logger;
     private OverlayPolicy overlayPolicy = OverlayPolicy.none();
     private UiTestLensSession session;
+    private NetworkDiagnostics networkDiagnostics;
 
     // ======================================================================
     //  CTOR
@@ -246,6 +249,17 @@ public final class JsOverlayDebug {
 
     public AuthRestoreResult restoreAuthState(Path path, AuthRestoreOptions options) {
         return auth().restoreState(path, options);
+    }
+
+    public NetworkDiagnostics network() {
+        if (networkDiagnostics == null) {
+            networkDiagnostics = new NetworkDiagnostics(driver, logger);
+        }
+        return networkDiagnostics;
+    }
+
+    public NetworkDiagnosticsResult attachNetworkLog(Path outputPath) {
+        return network().attachToSession(requireSession(), outputPath);
     }
 
     public void attachSession(UiTestLensSession session) {

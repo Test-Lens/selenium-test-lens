@@ -443,6 +443,27 @@ overlay.auth().restoreState(state, AuthRestoreOptions.builder()
 
 Auth state files can contain cookies and tokens. Store them under `target/ui-test-lens/auth/`, do not commit them, do not put passwords in them, and treat them as generated sensitive artifacts. The first implementation does not encrypt state files and does not implement any provider-specific login flow. Restore is scoped to the captured origin; cross-origin storage is intentionally not handled yet, and some applications may need a refresh or navigation after restore.
 
+## Passive Network Diagnostics
+
+The Selenium module includes a passive network diagnostics model. The first implementation is a manual/fallback collector with explicit request, response, and failure events; it does not mock, intercept, or route requests.
+
+```java
+overlay.network().start(NetworkDiagnosticsOptions.builder()
+        .captureMode(NetworkCaptureMode.AUTO)
+        .failedStatusThreshold(400)
+        .ignoreUrlPattern(".*analytics.*")
+        .build());
+
+overlay.network().assertNoFailedRequests();
+
+overlay.network().attachToSession(
+        overlay.session().orElseThrow(),
+        Path.of("target/ui-test-lens/network/checkout-flow-network.json")
+);
+```
+
+`AUTO` currently falls back to the manual collector unless browser-specific support is added later. `PERFORMANCE_LOGS` and `BIDI` are modeled but reported as unsupported without crashing, so Chrome-only dependencies are not required. Headers are omitted by default and sensitive header names such as `Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`, and `X-Auth-Token` are masked when headers are enabled. Network JSON can be attached to the active trace session as a `NETWORK_LOG` artifact.
+
 ## Logging And Event Bus
 
 `UiTestLensLogger` is the central event bus. `OverlayLogger` is the current bridge used by existing overlay/Selenium classes.

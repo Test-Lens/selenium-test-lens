@@ -39,6 +39,8 @@ The Selenium module also owns video evidence attachments. `VideoEvidence` can at
 
 The Selenium module also owns auth/session state capture and restore. `AuthStateManager` captures Selenium cookies, `localStorage`, and `sessionStorage`, stores origin/domain/user role metadata, saves/loads JSON without external dependencies, and restores state through WebDriver plus `JavascriptExecutor`. Auth state files are generated sensitive artifacts and are ignored under `target/ui-test-lens/auth/`.
 
+The Selenium module also owns passive network diagnostics. `NetworkDiagnostics` currently provides a manual/fallback collector, request/response/failure event models, summaries, `assertNoFailedRequests()`, JSON export, ignored URL patterns, header omission/masking, and trace attachment as a `NETWORK_LOG` artifact. Browser-specific capture modes are modeled but remain unsupported without extra dependencies.
+
 `ui-test-lens-react` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium, and JUnit in test scope. This direction keeps the base Selenium module independent from React helpers.
 
 The React module owns React-aware actionability checks: `ReactActionabilityChecker`, options/report models, React readiness result/failure enums, and React-only JS snippets for aria/data/loading/spinner/skeleton/dialog/focus-lock signals. This layer uses the public Selenium actionability contract and does not introduce a reverse dependency from Selenium to React.
@@ -132,8 +134,9 @@ Dependency tree checks:
 2. Improve trace event mapping for locator/assertion/actionability events.
 3. Add provider-specific video artifact discovery/download helpers only if they can stay optional.
 4. Add stricter auth-state safety guidance or optional encryption integration outside core.
-5. Add screenshot capture policies for before/after action or per-step capture if needed.
-6. Add richer locator factories such as getByRole/getByLabel/getByText.
-7. Add Maven Wrapper.
-8. Add publication metadata once the public API is ready.
-9. Revisit API stability before the first non-SNAPSHOT release.
+5. Add wait-for-response and no-failed-requests refinements on top of network diagnostics.
+6. Add screenshot capture policies for before/after action or per-step capture if needed.
+7. Add richer locator factories such as getByRole/getByLabel/getByText.
+8. Add Maven Wrapper.
+9. Add publication metadata once the public API is ready.
+10. Revisit API stability before the first non-SNAPSHOT release.

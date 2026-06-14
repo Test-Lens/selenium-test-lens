@@ -55,6 +55,10 @@ public final class TraceArtifact {
         return customPath(name, TraceArtifactType.CUSTOM_FILE, path, mediaType);
     }
 
+    public static TraceArtifact networkLog(String name, Path path) {
+        return customPath(name, TraceArtifactType.NETWORK_LOG, path, "application/json");
+    }
+
     static TraceArtifact of(String name,
                             TraceArtifactType type,
                             String path,

@@ -70,6 +70,7 @@ Current artifact usage matrix:
 - Screenshot evidence capture: `selenium.evidence.ScreenshotCapture`, options/results/status, path strategy, and `JsOverlayDebug.captureScreenshot(...)`.
 - Video evidence attachments: `selenium.evidence.VideoEvidence`, options/results/source/status, and `JsOverlayDebug.attachVideoFile(...)` / `attachVideoUrl(...)`.
 - Auth/session state capture and restore: `selenium.auth.AuthStateManager`, state/options/result models, cookie/storage DTOs, and manual JSON save/load.
+- Passive network diagnostics: `selenium.network.NetworkDiagnostics`, request/response/failure event models, JSON export, assertions, and trace `NETWORK_LOG` attachment.
 - `SeleniumBrowserScriptExecutor`, `OverlayBrowserScriptExecutors`, and `SeleniumOverlayFactory` are in `ui-test-lens-selenium`.
 - React-safe call sites moved to `ReactSupport` in `ui-test-lens-react`.
 - React-aware actionability checks live in `ui-test-lens-react` and layer on top of Selenium actionability.

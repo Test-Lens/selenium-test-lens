@@ -348,6 +348,8 @@ Passive network logging should collect:
 
 The first implementation can build on the existing network active request state and later add richer data through WebDriver BiDi/CDP when available.
 
+Initial implementation status: `ui-test-lens-selenium` now provides passive network diagnostics models, a manual/fallback collector exposed through `JsOverlayDebug.network()`, JSON export, `assertNoFailedRequests()`, ignored URL patterns, header omission/masking, and trace attachment as a `NETWORK_LOG` artifact. It does not mock/intercept requests and does not add Chrome DevTools or Playwright dependencies.
+
 ### 5.2 Wait for response
 
 Example future API:
@@ -476,7 +478,7 @@ Role labels should appear in trace/session metadata to help diagnose authorizati
 10. Add auth/session state save and restore.
     Initial Selenium-side capture/restore is implemented. Later work should focus on stricter safety checks, optional encryption guidance, and higher-level test framework integration.
 11. Add passive network diagnostics.
-    Passive diagnostics can attach to traces without changing browser behavior.
+    Initial passive/manual diagnostics are implemented. Continue by improving browser-specific collection only behind safe optional fallbacks.
 12. Add wait-for-response and no-failed-requests assertions.
     These APIs should build on passive network data once collection is stable.
 13. Add optional network interception/mocking.

@@ -521,6 +521,12 @@ Video evidence jest uporzadkowanym attachmentem, nie recordingiem. `ui-test-lens
 
 Restore przez `AuthRestoreOptions` moze nawigowac do origin, czyscic istniejace cookies/storage, odtwarzac cookies/local/session storage, walidowac origin i odrzucac wygasle state. Implementacja nie zapisuje hasel jako osobnych pol, nie szyfruje plikow i nie implementuje login flow. Pliki state moga zawierac tokeny, dlatego `.gitignore` ignoruje `target/ui-test-lens/auth/`; nie nalezy commitowac wygenerowanych JSON-ow. Cross-origin storage zostaje poza pierwsza wersja, a aplikacja moze wymagac refresh/nawigacji po restore.
 
+## Passive network diagnostics
+
+`ui-test-lens-selenium` ma pierwszy pasywny model network diagnostics. `NetworkDiagnostics` udostepnia manual/fallback collector, modele request/response/failure, summary, `assertNoFailedRequests()`, reczny JSON export oraz attachment do `UiTestLensSession` jako `NETWORK_LOG` artifact. `JsOverlayDebug.network()` tworzy jedna instancje diagnostyki per fasada.
+
+Pierwsza wersja nie robi mocking/interception, nie dodaje Chrome DevTools dependency i nie wymusza BiDi. Tryby `PERFORMANCE_LOGS` oraz `BIDI` sa zamodelowane, ale bezpiecznie raportowane jako unsupported/fallback. Headers sa domyslnie pominiete; przy wlaczeniu headers wrazliwe nazwy takie jak `Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key` i `X-Auth-Token` sa maskowane.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:
