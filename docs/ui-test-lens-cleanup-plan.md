@@ -515,6 +515,12 @@ Video evidence jest uporzadkowanym attachmentem, nie recordingiem. `ui-test-lens
 
 `JsOverlayDebug.attachVideoFile(...)` i `attachVideoUrl(...)` dodaja referencje video do aktywnej `UiTestLensSession`, jesli istnieje. Opcje pozwalaja ustawic media type, wymusic walidacje lokalnego pliku oraz dodac metadata provider/build/job/session. URL-e nie sa pobierane ani walidowane przez HTTP; HTML trace pokazuje je jako linki/sciezki artifacts. Integracje provider-specific i pobieranie artefaktow powinny zostac opcjonalnym pozniejszym etapem.
 
+## Auth/session state capture and restore
+
+`ui-test-lens-selenium` udostepnia Selenium-side API podobne koncepcyjnie do Playwright `storageState`. `AuthStateManager` dostepny przez `JsOverlayDebug.auth()` zapisuje cookies, `localStorage`, `sessionStorage`, origin/domain oraz metadata label/role/createdAt/expiresAt. `AuthState.save(...)` i `AuthState.load(...)` uzywaja recznego JSON exportera/parsera bez nowych zaleznosci.
+
+Restore przez `AuthRestoreOptions` moze nawigowac do origin, czyscic istniejace cookies/storage, odtwarzac cookies/local/session storage, walidowac origin i odrzucac wygasle state. Implementacja nie zapisuje hasel jako osobnych pol, nie szyfruje plikow i nie implementuje login flow. Pliki state moga zawierac tokeny, dlatego `.gitignore` ignoruje `target/ui-test-lens/auth/`; nie nalezy commitowac wygenerowanych JSON-ow. Cross-origin storage zostaje poza pierwsza wersja, a aplikacja moze wymagac refresh/nawigacji po restore.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:

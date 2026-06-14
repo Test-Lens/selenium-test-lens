@@ -417,6 +417,32 @@ overlay.attachVideoUrl(
 
 `VideoEvidenceOptions` can label the source, media type, provider/build/job metadata, and whether a local file must exist. URLs are not fetched or validated over the network. Attached video artifacts appear in the HTML trace report as paths or links.
 
+## Auth/session State Capture And Restore
+
+The Selenium module can capture browser auth/session state in a Playwright `storageState`-style JSON file. The state includes cookies, `localStorage`, `sessionStorage`, and metadata such as label, role, origin, domain, creation time, and optional expiration.
+
+```java
+AuthState state = overlay.auth().captureState(AuthStateOptions.builder()
+        .label("standard-customer")
+        .role("customer")
+        .origin("https://app.example.com")
+        .build());
+
+state.save(Path.of("target/ui-test-lens/auth/customer.json"));
+```
+
+Restore is explicit:
+
+```java
+AuthState state = AuthState.load(Path.of("target/ui-test-lens/auth/customer.json"));
+
+overlay.auth().restoreState(state, AuthRestoreOptions.builder()
+        .navigateToOrigin(true)
+        .build());
+```
+
+Auth state files can contain cookies and tokens. Store them under `target/ui-test-lens/auth/`, do not commit them, do not put passwords in them, and treat them as generated sensitive artifacts. The first implementation does not encrypt state files and does not implement any provider-specific login flow. Restore is scoped to the captured origin; cross-origin storage is intentionally not handled yet, and some applications may need a refresh or navigation after restore.
+
 ## Logging And Event Bus
 
 `UiTestLensLogger` is the central event bus. `OverlayLogger` is the current bridge used by existing overlay/Selenium classes.

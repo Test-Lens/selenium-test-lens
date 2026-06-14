@@ -389,8 +389,13 @@ Example future API:
 
 ```java
 AuthState state = lens.auth()
-        .captureState()
-        .save(Path.of("target/auth/customer.json"));
+        .captureState(AuthStateOptions.builder()
+                .label("standard-customer")
+                .role("customer")
+                .origin("https://app.example.com")
+                .build());
+
+state.save(Path.of("target/ui-test-lens/auth/customer.json"));
 ```
 
 Capture should be explicit and should record metadata so stale state can be detected before reuse.
@@ -400,9 +405,11 @@ Capture should be explicit and should record metadata so stale state can be dete
 Example future API:
 
 ```java
-lens.auth()
-        .load(Path.of("target/auth/customer.json"))
-        .applyTo(driver);
+AuthState state = AuthState.load(Path.of("target/ui-test-lens/auth/customer.json"));
+
+lens.auth().restoreState(state, AuthRestoreOptions.builder()
+        .navigateToOrigin(true)
+        .build());
 ```
 
 Restore should validate target domain/origin and expiration metadata before applying state.
@@ -432,6 +439,8 @@ Auth state must be treated as sensitive:
 - validate domain.
 
 The feature should make safe defaults easy and unsafe persistence explicit.
+
+Initial implementation status: `ui-test-lens-selenium` now provides `AuthState`, cookie/storage state models, metadata/options, manual JSON export/parser, save/load helpers, and `AuthStateManager` through `JsOverlayDebug.auth()`. It captures Selenium cookies, `localStorage`, and `sessionStorage`, restores them for the captured origin, and ignores `target/ui-test-lens/auth/`. It does not encrypt files, store passwords as first-class fields, implement login flows, or handle cross-origin storage beyond the current page origin.
 
 ### 6.5 Role-based states
 
@@ -465,7 +474,7 @@ Role labels should appear in trace/session metadata to help diagnose authorizati
 9. Add optional video attachments.
    Passive video attachments now exist as paths/URLs with provider/source metadata. Later work can add CI/provider-specific discovery or download helpers.
 10. Add auth/session state save and restore.
-    Session reuse is useful but security-sensitive, so it should follow core reliability/reporting work.
+    Initial Selenium-side capture/restore is implemented. Later work should focus on stricter safety checks, optional encryption guidance, and higher-level test framework integration.
 11. Add passive network diagnostics.
     Passive diagnostics can attach to traces without changing browser behavior.
 12. Add wait-for-response and no-failed-requests assertions.

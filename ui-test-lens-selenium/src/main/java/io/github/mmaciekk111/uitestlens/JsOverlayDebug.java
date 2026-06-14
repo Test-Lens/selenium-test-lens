@@ -36,6 +36,11 @@ import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityOpti
 import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityReport;
 import io.github.mmaciekk111.uitestlens.selenium.assertions.UiAssertionOptions;
 import io.github.mmaciekk111.uitestlens.selenium.assertions.UiExpect;
+import io.github.mmaciekk111.uitestlens.selenium.auth.AuthRestoreOptions;
+import io.github.mmaciekk111.uitestlens.selenium.auth.AuthRestoreResult;
+import io.github.mmaciekk111.uitestlens.selenium.auth.AuthState;
+import io.github.mmaciekk111.uitestlens.selenium.auth.AuthStateManager;
+import io.github.mmaciekk111.uitestlens.selenium.auth.AuthStateOptions;
 import io.github.mmaciekk111.uitestlens.selenium.business.BusinessAssertionOptions;
 import io.github.mmaciekk111.uitestlens.selenium.business.BusinessAssertions;
 import io.github.mmaciekk111.uitestlens.selenium.evidence.ScreenshotCapture;
@@ -225,6 +230,22 @@ public final class JsOverlayDebug {
 
     public BusinessAssertions business(String subject, BusinessAssertionOptions options) {
         return new BusinessAssertions(subject, options, logger);
+    }
+
+    public AuthStateManager auth() {
+        return new AuthStateManager(driver, logger);
+    }
+
+    public AuthState captureAuthState(AuthStateOptions options) {
+        return auth().captureState(options);
+    }
+
+    public AuthRestoreResult restoreAuthState(AuthState state, AuthRestoreOptions options) {
+        return auth().restoreState(state, options);
+    }
+
+    public AuthRestoreResult restoreAuthState(Path path, AuthRestoreOptions options) {
+        return auth().restoreState(path, options);
     }
 
     public void attachSession(UiTestLensSession session) {

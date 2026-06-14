@@ -37,6 +37,8 @@ The Selenium module also owns screenshot evidence capture. `ScreenshotCapture` u
 
 The Selenium module also owns video evidence attachments. `VideoEvidence` can attach local video paths or remote artifact URLs to `UiTestLensSession`, label their source (`SELENIUM_GRID`, `SELENOID`, `BROWSERSTACK`, `SAUCE_LABS`, `CI_ARTIFACT`, or `CUSTOM`), and carry provider/build/job metadata. It does not record video or call provider APIs.
 
+The Selenium module also owns auth/session state capture and restore. `AuthStateManager` captures Selenium cookies, `localStorage`, and `sessionStorage`, stores origin/domain/user role metadata, saves/loads JSON without external dependencies, and restores state through WebDriver plus `JavascriptExecutor`. Auth state files are generated sensitive artifacts and are ignored under `target/ui-test-lens/auth/`.
+
 `ui-test-lens-react` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium, and JUnit in test scope. This direction keeps the base Selenium module independent from React helpers.
 
 The React module owns React-aware actionability checks: `ReactActionabilityChecker`, options/report models, React readiness result/failure enums, and React-only JS snippets for aria/data/loading/spinner/skeleton/dialog/focus-lock signals. This layer uses the public Selenium actionability contract and does not introduce a reverse dependency from Selenium to React.
@@ -129,8 +131,9 @@ Dependency tree checks:
 1. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
 2. Improve trace event mapping for locator/assertion/actionability events.
 3. Add provider-specific video artifact discovery/download helpers only if they can stay optional.
-4. Add screenshot capture policies for before/after action or per-step capture if needed.
-5. Add richer locator factories such as getByRole/getByLabel/getByText.
-6. Add Maven Wrapper.
-7. Add publication metadata once the public API is ready.
-8. Revisit API stability before the first non-SNAPSHOT release.
+4. Add stricter auth-state safety guidance or optional encryption integration outside core.
+5. Add screenshot capture policies for before/after action or per-step capture if needed.
+6. Add richer locator factories such as getByRole/getByLabel/getByText.
+7. Add Maven Wrapper.
+8. Add publication metadata once the public API is ready.
+9. Revisit API stability before the first non-SNAPSHOT release.
