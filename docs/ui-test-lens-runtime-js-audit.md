@@ -1,8 +1,8 @@
 # UI Test Lens runtime JS audit
 
-This audit captures the state after extracting the main browser runtime pieces into `src/main/resources/uitestlens/runtime/`.
+This audit captures the state after extracting the main browser runtime pieces into `ui-test-lens-overlay/src/main/resources/uitestlens/runtime/`.
 
-`BrowserScriptExecutor` now provides a neutral Java contract for browser script execution. `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor`. Runtime bridge loaders expose overloads that accept the neutral executor, and `HudPanel` plus `ApiOverlayPanel` use the neutral executor internally. Selenium action/PageWaits/popup helpers still use direct Selenium execution until a later refactor.
+`BrowserScriptExecutor` now provides a neutral Java contract for browser script execution from `ui-test-lens-core`. `SeleniumBrowserScriptExecutor` currently lives in `ui-test-lens-overlay` as a temporary compatibility adapter for WebDriver constructors and should move to the future Selenium module. Runtime bridge loaders expose overloads that accept the neutral executor, and `HudPanel` plus `ApiOverlayPanel` use the neutral executor internally. Selenium action/PageWaits/popup helpers still use direct Selenium execution until a later refactor.
 
 ## Current runtime resources
 
@@ -63,7 +63,7 @@ All listed resources are non-empty, use the primary `window.__uiTestLens` namesp
 Primary runtime resources live under:
 
 ```text
-uitestlens/runtime/...
+ui-test-lens-overlay/src/main/resources/uitestlens/runtime/...
 ```
 
 Legacy fallback resources use historical Selenium-oriented paths:

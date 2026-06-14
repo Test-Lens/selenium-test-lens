@@ -13,6 +13,7 @@
 
     <modules>
         <module>ui-test-lens-core</module>
+        <module>ui-test-lens-overlay</module>
         <module>ui-test-lens</module>
     </modules>
 

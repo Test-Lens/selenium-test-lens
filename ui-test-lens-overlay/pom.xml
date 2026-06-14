@@ -10,10 +10,9 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ui-test-lens</artifactId>
+    <artifactId>ui-test-lens-overlay</artifactId>
     <packaging>jar</packaging>
-    <name>UI Test Lens</name>
-    <description>Visual observability and debug layer for UI/browser automation tests.</description>
+    <name>UI Test Lens Overlay</name>
 
     <dependencies>
         <dependency>
@@ -23,20 +22,8 @@
         </dependency>
 
         <dependency>
-            <groupId>io.github.mmaciekk111</groupId>
-            <artifactId>ui-test-lens-overlay</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>

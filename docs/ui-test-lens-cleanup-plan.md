@@ -38,7 +38,8 @@ Pierwszy minimalny split Maven zostal wykonany. Aktualne moduly:
 
 - parent: `ui-test-lens-parent`,
 - neutralny core: `ui-test-lens-core`,
-- tymczasowy modul Selenium/overlay: `ui-test-lens`.
+- overlay/runtime: `ui-test-lens-overlay`,
+- tymczasowy modul Selenium/fasady/akcji: `ui-test-lens`.
 
 ## Wybrany groupId
 
@@ -77,6 +78,12 @@ Aktualne coordinates modulu core:
 
 ```text
 io.github.mmaciekk111:ui-test-lens-core:1.0-SNAPSHOT
+```
+
+Aktualne coordinates modulu overlay:
+
+```text
+io.github.mmaciekk111:ui-test-lens-overlay:1.0-SNAPSHOT
 ```
 
 ## Rekomendowany base package
@@ -403,7 +410,7 @@ Powstal precyzyjny plan pierwszego multi-module splitu:
 docs/ui-test-lens-module-split-plan.md
 ```
 
-Pierwszy minimalny split zostal wykonany: root POM jest parentem, a neutralne logging/export oraz `BrowserScriptExecutor` zostaly przeniesione do `ui-test-lens-core`.
+Pierwsze minimalne splity zostaly wykonane: root POM jest parentem, neutralne logging/export oraz `BrowserScriptExecutor` sa w `ui-test-lens-core`, a runtime resources i overlay bridge classes sa w `ui-test-lens-overlay`.
 
 Dalszy plan dokumentuje docelowy uklad:
 
@@ -413,7 +420,7 @@ Dalszy plan dokumentuje docelowy uklad:
 - `ui-test-lens-react`,
 - `ui-test-lens-examples`.
 
-`ui-test-lens-core` juz istnieje i musi pozostac Selenium-free. Kolejny najwazniejszy krok to wydzielenie overlay/runtime albo dalsze przepinanie bridge classes na `BrowserScriptExecutor`.
+`ui-test-lens-core` juz istnieje i musi pozostac Selenium-free. `ui-test-lens-overlay` istnieje, ale tymczasowo zalezy od Selenium dla kompatybilnych konstruktorow `WebDriver`. Kolejny najwazniejszy krok to wydzielenie `ui-test-lens-selenium` i przeniesienie tam adaptera Selenium oraz fasady/akcji.
 
 ## Preferowany styl nazw klas Java
 
