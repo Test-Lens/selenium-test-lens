@@ -1,29 +1,34 @@
 package io.github.mmaciekk111.uitestlens.api;
 
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
 import io.github.mmaciekk111.uitestlens.OverlayConfig;
 import io.github.mmaciekk111.uitestlens.core.OverlayRootManager;
+import io.github.mmaciekk111.uitestlens.core.browser.BrowserScriptExecutor;
+import io.github.mmaciekk111.uitestlens.core.browser.SeleniumBrowserScriptExecutor;
+import org.openqa.selenium.WebDriver;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public final class ApiOverlayPanel {
 
-    private final WebDriver driver;
+    private final BrowserScriptExecutor scriptExecutor;
     private final OverlayRootManager rootManager;
     private final OverlayConfig config;
 
     public ApiOverlayPanel(WebDriver driver, OverlayRootManager rootManager, OverlayConfig config) {
-        this.driver = driver;
-        this.rootManager = rootManager;
-        this.config = config;
+        this(new SeleniumBrowserScriptExecutor(driver), rootManager, config);
+    }
+
+    public ApiOverlayPanel(BrowserScriptExecutor scriptExecutor, OverlayRootManager rootManager, OverlayConfig config) {
+        this.scriptExecutor = Objects.requireNonNull(scriptExecutor, "scriptExecutor must not be null");
+        this.rootManager = Objects.requireNonNull(rootManager, "rootManager must not be null");
+        this.config = Objects.requireNonNull(config, "config must not be null");
     }
 
     public String showRequest(String title, String method, String url, String payloadPreview) {
-        Object result = ((JavascriptExecutor) driver).executeScript(
-                ApiOverlayJs.INIT_MODAL +
-                        "return window.__seleniumApiModal.showRequest(arguments[0], arguments[1], arguments[2], arguments[3]);",
+        Object result = executeApiOverlayScript(
+                "return window.__seleniumApiModal.showRequest(arguments[0], arguments[1], arguments[2], arguments[3]);",
                 title, method, url, payloadPreview
         );
 
@@ -33,12 +38,10 @@ public final class ApiOverlayPanel {
         return result.toString();
     }
 
-
     public void setPending(String requestId, long timeoutMs) {
         try {
-            ((JavascriptExecutor) driver).executeScript(
-                    ApiOverlayJs.INIT_MODAL +
-                            "window.__seleniumApiModal.setPending(arguments[0], arguments[1]);",
+            executeApiOverlayScript(
+                    "window.__seleniumApiModal.setPending(arguments[0], arguments[1]);",
                     requestId, timeoutMs
             );
         } catch (Exception ignored) {}
@@ -50,9 +53,8 @@ public final class ApiOverlayPanel {
                             String headersPreview,
                             String bodyPreview) {
         try {
-            ((JavascriptExecutor) driver).executeScript(
-                    ApiOverlayJs.INIT_MODAL +
-                            "window.__seleniumApiModal.setResponse(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);",
+            executeApiOverlayScript(
+                    "window.__seleniumApiModal.setResponse(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);",
                     requestId, status, durationMs, headersPreview, bodyPreview
             );
         } catch (Exception ignored) {}
@@ -60,9 +62,8 @@ public final class ApiOverlayPanel {
 
     public void setError(String requestId, String message, String details) {
         try {
-            ((JavascriptExecutor) driver).executeScript(
-                    ApiOverlayJs.INIT_MODAL +
-                            "window.__seleniumApiModal.setError(arguments[0], arguments[1], arguments[2]);",
+            executeApiOverlayScript(
+                    "window.__seleniumApiModal.setError(arguments[0], arguments[1], arguments[2]);",
                     requestId, message, details
             );
         } catch (Exception ignored) {}
@@ -70,18 +71,14 @@ public final class ApiOverlayPanel {
 
     public void hide() {
         try {
-            ((JavascriptExecutor) driver).executeScript(
-                    ApiOverlayJs.INIT_MODAL +
-                            "window.__seleniumApiModal.hide();"
-            );
+            executeApiOverlayScript("window.__seleniumApiModal.hide();");
         } catch (Exception ignored) {}
     }
 
     public boolean apiHighlightJsonPath(String path) {
         try {
-            Object r = ((JavascriptExecutor) driver).executeScript(
-                    ApiOverlayJs.INIT_MODAL +
-                            "return window.__seleniumApiModal.highlightPath(arguments[0]);",
+            Object r = executeApiOverlayScript(
+                    "return window.__seleniumApiModal.highlightPath(arguments[0]);",
                     path
             );
             return r instanceof Boolean && (Boolean) r;
@@ -92,9 +89,8 @@ public final class ApiOverlayPanel {
 
     public int apiHighlightKeyAnimated(String key, long delayMs, int maxHits) {
         try {
-            Object r = ((JavascriptExecutor) driver).executeScript(
-                    ApiOverlayJs.INIT_MODAL +
-                            "return window.__seleniumApiModal.highlightKeyAnimated(arguments[0], arguments[1], arguments[2]);",
+            Object r = executeApiOverlayScript(
+                    "return window.__seleniumApiModal.highlightKeyAnimated(arguments[0], arguments[1], arguments[2]);",
                     key, delayMs, maxHits
             );
             if (r instanceof Number) return ((Number) r).intValue();
@@ -104,12 +100,10 @@ public final class ApiOverlayPanel {
         }
     }
 
-
     public void ensureOpen() {
         try {
-            ((JavascriptExecutor) driver).executeScript(
-                    ApiOverlayJs.INIT_MODAL +
-                            "var el = (window.__seleniumOverlayRoot && window.__seleniumOverlayRoot.querySelector) " +
+            executeApiOverlayScript(
+                    "var el = (window.__seleniumOverlayRoot && window.__seleniumOverlayRoot.querySelector) " +
                             "  ? window.__seleniumOverlayRoot.querySelector('#selenium-api-modal') : null;" +
                             "if (el) { el.style.display='block'; el.style.visibility='visible'; el.style.opacity='1'; el.style.zIndex='2147483647'; }"
             );
@@ -117,36 +111,34 @@ public final class ApiOverlayPanel {
             throw new RuntimeException("ensureOpen failed: " + e.getMessage(), e);
         }
     }
+
     public void highlightPathAnimated(String jsonPath, int stepDelayMs) {
-        ((JavascriptExecutor) driver).executeScript(
-                ApiOverlayJs.INIT_MODAL +
-                        "return window.__seleniumApiModal && window.__seleniumApiModal.highlightPathAnimated(arguments[0], arguments[1]);",
+        executeApiOverlayScript(
+                "return window.__seleniumApiModal && window.__seleniumApiModal.highlightPathAnimated(arguments[0], arguments[1]);",
                 jsonPath, stepDelayMs
         );
     }
 
     public void highlightPathsAnimated(List<String> jsonPaths, int stepDelayMs, int betweenPathsMs) {
-        ((JavascriptExecutor) driver).executeScript(
-                ApiOverlayJs.INIT_MODAL +
-                        "return window.__seleniumApiModal && window.__seleniumApiModal.highlightPathsAnimated(arguments[0], arguments[1], arguments[2]);",
+        executeApiOverlayScript(
+                "return window.__seleniumApiModal && window.__seleniumApiModal.highlightPathsAnimated(arguments[0], arguments[1], arguments[2]);",
                 jsonPaths, stepDelayMs, betweenPathsMs
         );
     }
 
     public boolean highlightPathsAnimatedAndWait(List<String> jsonPaths, int stepDelayMs, int betweenPathsMs) {
-        Object ret = ((JavascriptExecutor) driver).executeAsyncScript(
-                ApiOverlayJs.INIT_MODAL +
-                        "var done = arguments[arguments.length-1];" +
+        Object ret = executeApiOverlayAsyncScript(
+                "var done = arguments[arguments.length-1];" +
                         "if (!window.__seleniumApiModal) { done(false); return; }" +
                         "window.__seleniumApiModal.highlightPathsAnimatedAsync(arguments[0], arguments[1], arguments[2], done);",
                 jsonPaths, stepDelayMs, betweenPathsMs
         );
         return Boolean.TRUE.equals(ret);
     }
+
     public List<String> findPathsByKey(String key) {
-        Object r = ((JavascriptExecutor) driver).executeScript(
-                ApiOverlayJs.INIT_MODAL +
-                        "return (window.__seleniumApiModal && window.__seleniumApiModal.findPathsByKey(arguments[0])) || [];",
+        Object r = executeApiOverlayScript(
+                "return (window.__seleniumApiModal && window.__seleniumApiModal.findPathsByKey(arguments[0])) || [];",
                 key
         );
 
@@ -158,49 +150,46 @@ public final class ApiOverlayPanel {
         }
         return out;
     }
+
     public boolean highlightPathsCandyAnimatedAndWait(List<String> jsonPaths,
                                                       int stepDelayMs,
                                                       int betweenPathsMs,
                                                       int keepColorMs,
                                                       int focusFadeMs) {
-        Object ret = ((JavascriptExecutor) driver).executeAsyncScript(
-                ApiOverlayJs.INIT_MODAL +
-                        "var done = arguments[arguments.length-1];" +
+        Object ret = executeApiOverlayAsyncScript(
+                "var done = arguments[arguments.length-1];" +
                         "if (!window.__seleniumApiModal) { done(false); return; }" +
                         "window.__seleniumApiModal.highlightPathsCandyAnimatedAsync(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], done);",
                 jsonPaths, stepDelayMs, betweenPathsMs, keepColorMs, focusFadeMs
         );
         return Boolean.TRUE.equals(ret);
     }
+
     public void resetApiFocus() {
-        ((JavascriptExecutor) driver).executeScript(
-                ApiOverlayJs.INIT_MODAL +
-                        "return window.__seleniumApiModal && window.__seleniumApiModal.resetFocus();"
+        executeApiOverlayScript(
+                "return window.__seleniumApiModal && window.__seleniumApiModal.resetFocus();"
         );
     }
 
     public boolean filterToPaths(List<String> jsonPaths, boolean keepParents) {
-        Object ret = ((JavascriptExecutor) driver).executeScript(
-                ApiOverlayJs.INIT_MODAL +
-                        "return window.__seleniumApiModal && window.__seleniumApiModal.filterToPaths(arguments[0], arguments[1]);",
+        Object ret = executeApiOverlayScript(
+                "return window.__seleniumApiModal && window.__seleniumApiModal.filterToPaths(arguments[0], arguments[1]);",
                 jsonPaths, keepParents
         );
         return Boolean.TRUE.equals(ret);
     }
 
     public boolean clearFilter() {
-        Object ret = ((JavascriptExecutor) driver).executeScript(
-                ApiOverlayJs.INIT_MODAL +
-                        "return window.__seleniumApiModal && window.__seleniumApiModal.clearFilter();"
+        Object ret = executeApiOverlayScript(
+                "return window.__seleniumApiModal && window.__seleniumApiModal.clearFilter();"
         );
         return Boolean.TRUE.equals(ret);
     }
 
     public void setAutoCloseMs(long okMs, long errMs) {
         try {
-            ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
-                    ApiOverlayJs.INIT_MODAL +
-                            "window.__seleniumApiModal.setAutoCloseMs(arguments[0], arguments[1]);",
+            executeApiOverlayScript(
+                    "window.__seleniumApiModal.setAutoCloseMs(arguments[0], arguments[1]);",
                     okMs, errMs
             );
         } catch (Exception ignored) {}
@@ -208,11 +197,22 @@ public final class ApiOverlayPanel {
 
     public void setDelayAutoCloseUntilSearch(boolean on) {
         try {
-            ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
-                    ApiOverlayJs.INIT_MODAL +
-                            "window.__seleniumApiModal.setDelayAutoCloseUntilSearch(arguments[0]);",
+            executeApiOverlayScript(
+                    "window.__seleniumApiModal.setDelayAutoCloseUntilSearch(arguments[0]);",
                     on
             );
         } catch (Exception ignored) {}
+    }
+
+    private Object executeApiOverlayScript(String script, Object... args) {
+        rootManager.ensureRootExists();
+        ApiOverlayJs.inject(scriptExecutor);
+        return scriptExecutor.execute(script, args);
+    }
+
+    private Object executeApiOverlayAsyncScript(String script, Object... args) {
+        rootManager.ensureRootExists();
+        ApiOverlayJs.inject(scriptExecutor);
+        return scriptExecutor.executeAsync(script, args);
     }
 }

@@ -223,6 +223,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - Module split plan: [`docs/ui-test-lens-module-split-plan.md`](docs/ui-test-lens-module-split-plan.md).
 - `BrowserScriptExecutor` is now the neutral browser JavaScript execution contract; `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor`.
 - `HudPanel` uses `BrowserScriptExecutor` internally while preserving existing Selenium `WebDriver` constructors.
+- `ApiOverlayPanel` uses `BrowserScriptExecutor` internally while preserving existing Selenium `WebDriver` constructors.
 - API is not final.
 - No multi-module split yet.
 - No Maven Central publication yet.

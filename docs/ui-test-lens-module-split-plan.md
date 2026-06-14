@@ -25,7 +25,7 @@ The project already has:
 
 The current module still mixes neutral model code, Selenium integration, runtime resource loading, visual overlay bridge code, React helpers, API overlay support, and examples/documentation. The first split should separate those concerns without changing public behavior.
 
-`BrowserScriptExecutor` now exists as the neutral browser JavaScript execution contract, with `SeleniumBrowserScriptExecutor` as the Selenium adapter. Runtime bridge loaders and `HudPanel` can call this contract directly while existing Selenium-facing methods remain available.
+`BrowserScriptExecutor` now exists as the neutral browser JavaScript execution contract, with `SeleniumBrowserScriptExecutor` as the Selenium adapter. Runtime bridge loaders, `HudPanel`, and `ApiOverlayPanel` can call this contract directly while existing Selenium-facing methods remain available.
 
 ## Proposed first module layout
 
@@ -183,7 +183,7 @@ Should not be a runtime dependency of published modules.
 | `actions/ScrollActions` | `actions` | `ui-test-lens-selenium` initially; visual bridge later overlay | Selenium scroll and scroll arrow bridge. | Selenium and scroll arrow runtime. |
 | `actions/TargetResolverActions` | `actions` | `ui-test-lens-selenium` | Resolves Selenium `WebElement` targets with page-query scripts. | Selenium `WebElement` arguments and `JavascriptExecutor`. |
 | `api/ApiOverlayJs` | `api` | `ui-test-lens-overlay` or future `ui-test-lens-api-overlay` | Loads API overlay resource. | JDK-only now, but semantically API overlay runtime. |
-| `api/ApiOverlayPanel` | `api` | future `ui-test-lens-api-overlay` or `ui-test-lens-selenium` initially | Drives API overlay through Selenium JS execution. | Selenium, `OverlayRootManager`, `OverlayConfig`. |
+| `api/ApiOverlayPanel` | `api` | future `ui-test-lens-api-overlay` or `ui-test-lens-selenium` initially | Drives API overlay through browser JS execution. | Stores `BrowserScriptExecutor`; existing WebDriver constructor delegates through Selenium adapter. |
 | `api/ApiCallActions` | `api` | future `ui-test-lens-api-overlay` | Neutral API overlay action facade after RestAssured removal. | Depends on `ApiOverlayPanel`; currently not HTTP-client-specific. |
 | `api/ApiOverlayContext` | `api` | future `ui-test-lens-api-overlay` | ThreadLocal API overlay context. | Static lifecycle needs review before publishing as core. |
 | `api/ApiOverlayPlan` | `api` | future `ui-test-lens-api-overlay` | API overlay plan model. | JDK-only but API-overlay-specific. |
@@ -217,7 +217,7 @@ Should not be a runtime dependency of published modules.
 ## Split blockers
 
 - Several classes currently under `core` import Selenium: `PageWaits`, `PopupDetector`, `BlockingOverlayHelper`, `Guards`, and `SeleniumBrowserScriptExecutor`.
-- `OverlayRootManager` and `HudPanel` now store `BrowserScriptExecutor`, but existing WebDriver constructors remain Selenium-bound for compatibility.
+- `OverlayRootManager`, `HudPanel`, and `ApiOverlayPanel` now store `BrowserScriptExecutor`, but existing WebDriver constructors remain Selenium-bound for compatibility.
 - Runtime bridge loader classes expose `BrowserScriptExecutor` overloads. `HudPanel` uses the neutral executor internally, but callers such as `HighlightActions`, `AssertActions`, `TypingActions`, and `ScrollActions` still use Selenium execution directly.
 - `JsResources` is technically JDK-only but semantically tied to runtime resources; decide whether it is core utility or overlay/runtime utility.
 - `OverlayConfig` currently imports `HudPosition`; decide if `HudPosition` is core, overlay, or if HUD config becomes a separate overlay config object.
