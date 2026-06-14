@@ -58,6 +58,7 @@ Current artifact usage matrix:
 - Selenium wait and guard helpers: `PageWaits`, `Guards`.
 - Popup and overlay heuristics: `PopupDetector`, `BlockingOverlayHelper`.
 - Configurable blocking overlay policy: `selenium.overlay.OverlayPolicy`, `OverlayHandler`, `OverlayAction`, and `OverlayPolicyExecutor`.
+- Selenium actionability checks: `selenium.actionability.ActionabilityChecker`, options, reports, status/failure enums, and Selenium-only page query scripts.
 - `SeleniumBrowserScriptExecutor`, `OverlayBrowserScriptExecutors`, and `SeleniumOverlayFactory` are in `ui-test-lens-selenium`.
 - React-safe call sites moved to `ReactSupport` in `ui-test-lens-react`.
 
@@ -85,3 +86,4 @@ Current artifact usage matrix:
 2. Keep Selenium actions, waits, popup heuristics, and the current facade inside the Selenium boundary.
 3. Continue moving bridge callers toward `BrowserScriptExecutor` where this does not change behavior.
 4. Leave API overlay as either an overlay sub-area or a future optional module until ownership is explicit.
+5. Layer React-aware readiness on top of Selenium actionability without moving React logic back into `ui-test-lens-selenium`.

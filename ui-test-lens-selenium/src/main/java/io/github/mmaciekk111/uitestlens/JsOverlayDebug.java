@@ -24,7 +24,11 @@ import io.github.mmaciekk111.uitestlens.hud.HudPanel;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollElementEdge;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollViewportEdge;
 import io.github.mmaciekk111.uitestlens.selenium.SeleniumOverlayFactory;
+import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityChecker;
+import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityOptions;
+import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityReport;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicy;
+import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicyExecutor;
 
 
 import java.time.Duration;
@@ -136,6 +140,21 @@ public final class JsOverlayDebug {
     public void setOverlayPolicy(OverlayPolicy overlayPolicy) {
         this.overlayPolicy = overlayPolicy != null ? overlayPolicy : OverlayPolicy.none();
         this.smartClickActions.setOverlayPolicy(this.overlayPolicy);
+    }
+
+    public ActionabilityReport checkActionability(By locator, ActionabilityOptions options) {
+        return actionabilityChecker().check(locator, options);
+    }
+
+    public ActionabilityReport checkActionability(WebElement element, ActionabilityOptions options) {
+        return actionabilityChecker().check(element, options);
+    }
+
+    private ActionabilityChecker actionabilityChecker() {
+        OverlayPolicyExecutor policyExecutor = overlayPolicy == null || overlayPolicy.isEmpty()
+                ? null
+                : new OverlayPolicyExecutor(driver, overlayPolicy, logger);
+        return new ActionabilityChecker(driver, policyExecutor, logger);
     }
 
     // ======================================================================

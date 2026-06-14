@@ -25,6 +25,8 @@ UI Test Lens is still pre-1.0. Public APIs may change between 0.x releases. Mave
 
 The Selenium module owns configurable blocking overlay policy: `OverlayPolicy`, `OverlayHandler`, `OverlayAction`, `OverlayPolicyExecutor`, and smart click integration. This keeps Selenium `By`/`WebDriver` types out of `ui-test-lens-overlay`.
 
+The Selenium module also owns the first actionability layer: `ActionabilityChecker`, `ActionabilityOptions`, `ActionabilityReport`, status/failure enums, and the inline Selenium JS snippets needed for bounding-box and click-point checks. `SmartClickActions` uses this layer as best-effort diagnostics while preserving the legacy click fallback flow.
+
 `ui-test-lens-react` depends on `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, Selenium, and JUnit in test scope. This direction keeps the base Selenium module independent from React helpers.
 
 `ui-test-lens` depends on core, overlay, selenium, and react modules. It is intentionally an aggregate compatibility artifact.
@@ -112,6 +114,7 @@ Dependency tree checks:
 ## Next recommended steps
 
 1. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
-2. Add Maven Wrapper.
-3. Add publication metadata once the public API is ready.
-4. Revisit API stability before the first non-SNAPSHOT release.
+2. Add React-aware readiness checks on top of the Selenium actionability contract.
+3. Add Maven Wrapper.
+4. Add publication metadata once the public API is ready.
+5. Revisit API stability before the first non-SNAPSHOT release.

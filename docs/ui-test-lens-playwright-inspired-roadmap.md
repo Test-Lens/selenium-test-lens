@@ -89,6 +89,8 @@ The first implementation provides `OverlayPolicy`, `OverlayHandler`, `OverlayAct
 
 ### 1.2 Actionability checks
 
+Status: initial Selenium implementation exists in `ui-test-lens-selenium`.
+
 UI Test Lens should add Playwright-like actionability checks for Selenium actions. Initial checks:
 
 - attached,
@@ -107,6 +109,8 @@ lens.locator(By.cssSelector("[data-testid='save']")).click();
 ```
 
 The implementation should report which actionability check failed and include enough metadata for diagnostics without leaking sensitive input values.
+
+The first implementation provides `ActionabilityChecker`, `ActionabilityOptions`, `ActionabilityReport`, and `JsOverlayDebug.checkActionability(...)`. It checks attached, visible, enabled, stable bounding box, scroll into view, click point receiving/coverage, and configured overlay policy. `SmartClickActions` uses it as a best-effort diagnostic before the legacy click fallback flow.
 
 ### 1.3 Retryable element resolving
 
@@ -412,7 +416,7 @@ Role labels should appear in trace/session metadata to help diagnose authorizati
 1. Add configurable blocking overlay policy.
    This should come first because existing smart actions already deal with popups and overlays. Making this configurable reduces flakiness without requiring a new locator API.
 2. Add Selenium actionability checks.
-   Actionability is the foundation for reliable clicks and typing. It can use the overlay policy and existing Selenium helpers.
+   Initial implementation exists. Continue by hardening logging, public examples, and failure evidence before building a locator API on top.
 3. Add React-aware actionability checks.
    React should extend the base checks after the Selenium contract is clear. This keeps React-specific behavior out of `ui-test-lens-selenium`.
 4. Add retryable UI locator API.

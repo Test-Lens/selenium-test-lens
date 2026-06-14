@@ -439,7 +439,13 @@ Pierwszy punkt roadmapy Playwright-inspired reliability zostal zaimplementowany 
 
 Polityka rozroznia overlaye opcjonalne i fatalne. `OverlayAction.fail(...)` przerywa obsluge jako blad, a smart click uruchamia polityke przed kliknieciem i jeszcze raz po Selenium click interception, zanim przejdzie do starych heurystyk `BlockingOverlayHelper`.
 
-`OverlayConfig` pozostaje Selenium-free w module overlay; konfiguracja polityki jest ustawiana na fasadzie Selenium przez `JsOverlayDebug.setOverlayPolicy(...)`. Ten sam executor powinien zostac pozniej wykorzystany przez actionability checks i React-aware readiness.
+`OverlayConfig` pozostaje Selenium-free w module overlay; konfiguracja polityki jest ustawiana na fasadzie Selenium przez `JsOverlayDebug.setOverlayPolicy(...)`. Ten sam executor jest uzywany przez bazowe actionability checks i powinien zostac pozniej wykorzystany przez React-aware readiness.
+
+## Actionability checks
+
+Drugi punkt roadmapy Playwright-inspired reliability zostal zaimplementowany po stronie `ui-test-lens-selenium`. Dodano `ActionabilityChecker`, `ActionabilityOptions`, `ActionabilityReport`, enumy statusow i powodow porazki oraz male Selenium-only skrypty do `getBoundingClientRect()`, `scrollIntoView(...)` i `document.elementFromPoint(...)`.
+
+Pierwszy zakres checkow obejmuje: attached, visible, enabled, stable bounding box, scroll into viewport, click point receiving/not covered oraz konfiguracje `OverlayPolicyExecutor`. `SmartClickActions` uruchamia checker jako best-effort diagnostyke przed dotychczasowym click flow, bez usuwania legacy fallbackow. Kolejny etap powinien dodac React-aware readiness w module `ui-test-lens-react`.
 
 ## Preferowany styl nazw klas Java
 

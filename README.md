@@ -219,7 +219,30 @@ JsOverlayDebug overlay = new JsOverlayDebug(driver);
 overlay.setOverlayPolicy(policy);
 ```
 
-`OverlayAction.fail(...)` marks the handler as fatal and prevents the click from continuing. The policy executor emits overlay policy events into the existing logger/event model. Future actionability checks and React-aware readiness should reuse the same policy executor.
+`OverlayAction.fail(...)` marks the handler as fatal and prevents the click from continuing. The policy executor emits overlay policy events into the existing logger/event model. Actionability checks and future React-aware readiness reuse the same policy executor.
+
+## Actionability Checks
+
+UI Test Lens now includes a first Selenium-side actionability layer inspired by Playwright reliability checks. The initial implementation lives in `ui-test-lens-selenium` and checks whether a target element is attached, visible, enabled, stable, scrolled into view, receiving its center click point, and not blocked by configured overlay policy.
+
+```java
+ActionabilityOptions options = ActionabilityOptions.builder()
+        .timeout(Duration.ofSeconds(5))
+        .checkStableBounds(true)
+        .checkReceivesClickPoint(true)
+        .build();
+
+ActionabilityReport report = overlay.checkActionability(
+        By.cssSelector("[data-testid='save']"),
+        options
+);
+
+if (!report.isReady()) {
+    throw new AssertionError(report.summary());
+}
+```
+
+`SmartClickActions` runs the checker as a best-effort diagnostic before the existing click flow. It preserves legacy fallback behavior and reuses `OverlayPolicyExecutor` for known blocking overlays. React-specific readiness is planned as the next layer in `ui-test-lens-react`.
 
 ## Logging And Event Bus
 

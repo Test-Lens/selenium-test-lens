@@ -21,7 +21,13 @@
     <dependencies>
         <dependency>
             <groupId>io.github.mmaciekk111</groupId>
-            <artifactId>ui-test-lens</artifactId>
+            <artifactId>ui-test-lens-selenium</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.mmaciekk111</groupId>
+            <artifactId>ui-test-lens-react</artifactId>
             <version>${project.version}</version>
         </dependency>
 

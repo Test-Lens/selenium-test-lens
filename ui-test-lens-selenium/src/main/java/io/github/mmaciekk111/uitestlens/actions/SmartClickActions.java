@@ -9,6 +9,10 @@ import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensEventType;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensStatus;
+import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityChecker;
+import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityFailureReason;
+import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityOptions;
+import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityReport;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayHandlingResult;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayHandlingStatus;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicy;
@@ -19,6 +23,7 @@ import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 
 import java.util.List;
+import java.util.Optional;
 
 public class SmartClickActions {
 
@@ -64,6 +69,7 @@ public class SmartClickActions {
         }
         emitClick("clickWithOverlayHandling", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null, false, null, false);
         try {
+            runActionabilityCheck(target);
             boolean policyHandledBeforeClick = handleConfiguredOverlayPolicy();
 
             blockingHelper.handleGlobalOverlayIfPresent("OVERLAY", "CLOSE");
@@ -140,6 +146,32 @@ public class SmartClickActions {
             }
         }
         return results.stream().anyMatch(OverlayHandlingResult::detected);
+    }
+
+    private void runActionabilityCheck(WebElement target) {
+        try {
+            OverlayPolicyExecutor policyExecutor = overlayPolicy == null || overlayPolicy.isEmpty()
+                    ? null
+                    : new OverlayPolicyExecutor(driver, overlayPolicy, logger);
+            ActionabilityReport report = new ActionabilityChecker(driver, policyExecutor, logger)
+                    .check(target, ActionabilityOptions.defaults());
+            if (report.isReady()) {
+                return;
+            }
+            Optional<ActionabilityFailureReason> reason = report.firstFailure()
+                    .map(result -> result.failureReason());
+            if (reason.isPresent() && shouldRetryOverlayPolicy(reason.get())) {
+                handleConfiguredOverlayPolicy();
+            }
+        } catch (RuntimeException ignored) {
+            // Actionability is best-effort in the legacy smart click flow; existing fallbacks remain authoritative.
+        }
+    }
+
+    private static boolean shouldRetryOverlayPolicy(ActionabilityFailureReason reason) {
+        return reason == ActionabilityFailureReason.BLOCKING_OVERLAY_DETECTED
+                || reason == ActionabilityFailureReason.ELEMENT_COVERED
+                || reason == ActionabilityFailureReason.CLICK_POINT_NOT_RECEIVED;
     }
 
     private void emitClick(String method,
