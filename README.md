@@ -303,7 +303,24 @@ overlay.expect(overlay.getByTestId("toast"))
         .toContainText("Saved");
 ```
 
-The initial assertion set covers visible/hidden, enabled/disabled, exact text, contains text, value, and contains value. Failures include the locator description, expected/actual previews, attempts, elapsed time, and a reason. Value assertions intentionally log value lengths instead of full input values. Existing `AssertActions` and grouped visual assertions remain available for the older assertion flows; business assertions are a later roadmap item.
+The initial assertion set covers visible/hidden, enabled/disabled, exact text, contains text, value, and contains value. Failures include the locator description, expected/actual previews, attempts, elapsed time, and a reason. Value assertions intentionally log value lengths instead of full input values. Existing `AssertActions` and grouped visual assertions remain available for the older assertion flows.
+
+## Business Assertions
+
+`BusinessAssertions` is a lightweight business-level grouping DSL over retryable `UiExpect` checks. It does not add domain methods such as `shouldShowAmount` to the library; those belong in the consuming test project or an adapter. The library provides the grouping, failure collection, logging events, and readable summary.
+
+```java
+overlay.business("Order summary")
+        .check("shows total amount", () -> {
+            overlay.getByTestId("order-total").expect().toHaveText("123.00 PLN");
+        })
+        .check("contains premium product", () -> {
+            overlay.getByTestId("product-name").expect().toContainText("Premium");
+        })
+        .verify();
+```
+
+By default, `verify()` runs all registered checks, collects failures, and throws one `BusinessAssertionError` with a summary. `BusinessAssertionOptions` can switch to fail-fast behavior. Use `UiExpect` for technical web assertions, `BusinessAssertions` for readable grouped business checks, and existing `AssertActions` for the older visual/grouped assertion layer.
 
 ## Logging And Event Bus
 

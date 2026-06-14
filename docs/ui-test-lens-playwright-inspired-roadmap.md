@@ -182,15 +182,22 @@ Initial implementation status: `ui-test-lens-selenium` now provides `UiExpect`, 
 
 Business assertions should make reports readable for QA and business reviewers, not only engineers reading selectors.
 
-Example future API:
+Initial implementation status: `ui-test-lens-selenium` now provides a lightweight `BusinessAssertions` group DSL over retryable `UiExpect` checks. It intentionally does not add domain-specific methods to the library.
+
+Example API:
 
 ```java
-lens.business("Order summary")
-        .shouldShowAmount("123.00 PLN")
-        .shouldContainProduct("Premium");
+overlay.business("Order summary")
+        .check("shows total amount", () -> {
+            overlay.getByTestId("order-total").expect().toHaveText("123.00 PLN");
+        })
+        .check("contains premium product", () -> {
+            overlay.getByTestId("product-name").expect().toContainText("Premium");
+        })
+        .verify();
 ```
 
-The business layer should map domain language to UI checks while keeping trace evidence tied to concrete elements and observed browser state.
+The business layer maps readable check descriptions to concrete UI assertions while keeping evidence tied to locators and observed browser state. Domain-specific DSLs such as `shouldShowAmount(...)` should live in the consuming test project or an optional adapter.
 
 ### 2.3 Grouped assertions
 

@@ -29,6 +29,8 @@ import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityOpti
 import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityReport;
 import io.github.mmaciekk111.uitestlens.selenium.assertions.UiAssertionOptions;
 import io.github.mmaciekk111.uitestlens.selenium.assertions.UiExpect;
+import io.github.mmaciekk111.uitestlens.selenium.business.BusinessAssertionOptions;
+import io.github.mmaciekk111.uitestlens.selenium.business.BusinessAssertions;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocator;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocatorOptions;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicy;
@@ -192,6 +194,14 @@ public final class JsOverlayDebug {
 
     public UiExpect expect(UiLocator locator, UiAssertionOptions options) {
         return new UiExpect(locator, options, logger);
+    }
+
+    public BusinessAssertions business(String subject) {
+        return business(subject, BusinessAssertionOptions.defaults());
+    }
+
+    public BusinessAssertions business(String subject, BusinessAssertionOptions options) {
+        return new BusinessAssertions(subject, options, logger);
     }
 
     private ActionabilityChecker actionabilityChecker() {

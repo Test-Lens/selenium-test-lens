@@ -467,7 +467,15 @@ Piaty punkt roadmapy Playwright-inspired reliability zostal zaimplementowany po 
 
 Retryable assertions bazuja na `UiLocator`, czyli trzymaja `By` i resolve'uja swiezy element przy probach asercji zamiast polegac na dlugowiecznym `WebElement`. Pierwszy zakres obejmuje `toBeVisible`, `toBeHidden`, `toBeEnabled`, `toBeDisabled`, `toHaveText`, `toContainText`, `toHaveValue` i `toContainValue`.
 
-`JsOverlayDebug.expect(By)`, `expect(By, String)`, `expect(UiLocator)` i `expect(UiLocator, UiAssertionOptions)` sa publicznym entrypointem. `UiLocator.expect()` jest wygodnym skrotem. Istniejace `AssertActions` pozostaja bez zmian dla dotychczasowych visual/grouped assertions. Business assertions DSL zostaje na kolejny etap.
+`JsOverlayDebug.expect(By)`, `expect(By, String)`, `expect(UiLocator)` i `expect(UiLocator, UiAssertionOptions)` sa publicznym entrypointem. `UiLocator.expect()` jest wygodnym skrotem. Istniejace `AssertActions` pozostaja bez zmian dla dotychczasowych visual/grouped assertions.
+
+## Business assertions
+
+Szosty punkt roadmapy Playwright-inspired reliability zostal zaimplementowany po stronie `ui-test-lens-selenium`. Dodano `BusinessAssertions`, `BusinessAssertionOptions`, `BusinessAssertionResult`, `BusinessAssertionFailure`, `BusinessAssertionError`, status enum, wewnetrzny model checkow oraz reporter eventow.
+
+Business assertions grupuja techniczne retryable `UiExpect` checks pod biznesowym subjectem, np. `Order summary`. Domyslnie `verify()` wykonuje wszystkie zarejestrowane checki, zbiera wiele failure i rzuca jeden czytelny `BusinessAssertionError`. `BusinessAssertionOptions.failFast(true)` albo `collectFailures(false)` konczy grupe po pierwszej porazce.
+
+Biblioteka nie dodaje domenowych metod typu `shouldShowAmount`; takie DSL powinny powstawac w projekcie testowym albo adapterze examples. Relacja warstw: `UiExpect` = techniczne retryable web assertions, `BusinessAssertions` = czytelne grupy biznesowe, `AssertActions` = istniejaca visual/grouped assertion layer.
 
 ## Preferowany styl nazw klas Java
 
