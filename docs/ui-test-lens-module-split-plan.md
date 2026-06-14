@@ -2,10 +2,14 @@
 
 ## Current module state
 
+Current project version: `0.1.0-SNAPSHOT`.
+
+UI Test Lens is still pre-1.0. Public APIs may change between 0.x releases. Maven Central publication is not configured yet; local usage currently relies on `mvn install`.
+
 UI Test Lens has completed the first minimal Maven split. The root project is now a parent POM:
 
 ```text
-io.github.mmaciekk111:ui-test-lens-parent:1.0-SNAPSHOT
+io.github.mmaciekk111:ui-test-lens-parent:0.1.0-SNAPSHOT
 ```
 
 Current child modules:
@@ -21,7 +25,7 @@ Current child modules:
 The main Selenium-facing artifact remains:
 
 ```text
-io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT
+io.github.mmaciekk111:ui-test-lens:0.1.0-SNAPSHOT
 ```
 
 The Java package root is:

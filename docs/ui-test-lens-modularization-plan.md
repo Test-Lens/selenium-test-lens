@@ -1,5 +1,7 @@
 # Plan modularyzacji `ui-test-lens`
 
+Aktualna wersja projektu to `0.1.0-SNAPSHOT`. UI Test Lens jest nadal pre-1.0, publiczne API moze zmieniac sie miedzy wydaniami 0.x, a Maven Central release nie jest jeszcze skonfigurowany. Lokalne uzycie odbywa sie przez `mvn install`.
+
 ## Aktualny precyzyjny plan splitu
 
 Szczegolowy plan pierwszego splitu single-module na Maven multi-module znajduje sie w:
@@ -729,7 +731,7 @@ Zasoby JS:
 - Czy biblioteki mają być tylko dla Selenium, czy docelowo też dla Playwright/Cypress/innych driverów?
 - Czy overlay/HUD ma być niezależny od Selenium przez abstrakcję wykonywania skryptów?
 - Czy runtime JavaScript ma być wersjonowany jako osobny kontrakt i czy dopuszczamy breaking changes?
-- Base package został ustawiony na `io.github.mmaciekk111.uitestlens`, a aktualne single-module Maven coordinates to `io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT`.
+- Base package został ustawiony na `io.github.mmaciekk111.uitestlens`, a aktualne all-in-one Maven coordinates to `io.github.mmaciekk111:ui-test-lens:0.1.0-SNAPSHOT`.
 - Czy API ma być stabilne od pierwszej publikacji, czy oznaczamy je jako eksperymentalne?
 - Jaki minimalny Java version: 11, 17 czy nowszy?
 - Jaki minimalny Selenium version i czy używać `selenium-java`, czy węższych artefaktów?

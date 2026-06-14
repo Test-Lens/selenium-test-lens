@@ -12,6 +12,7 @@ Current state:
 - Maven groupId is `io.github.mmaciekk111`.
 - Java packages use `io.github.mmaciekk111.uitestlens`.
 - The project is now a Maven multi-module project with `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`, `ui-test-lens-examples`, and the all-in-one compatibility artifact `ui-test-lens`.
+- Current project version is `0.1.0-SNAPSHOT`.
 - `ui-test-lens-examples` contains compile-checked examples and is not intended as a runtime dependency.
 - Runtime JavaScript state is initialized under `window.__uiTestLens`; legacy `window.__selenium...` globals remain as compatibility aliases.
 
@@ -31,6 +32,12 @@ It can:
 - export collected logs as text, JSON, or HTML.
 
 This repository does not yet promise a stable final public API, Maven Central publication, Playwright/Cypress support, a ready Selenide adapter, or full Allure/TeamCity integration.
+
+## Versioning
+
+UI Test Lens is currently pre-1.0. Public APIs may still change between 0.x releases.
+
+The current local development version is `0.1.0-SNAPSHOT`. Maven Central publication is not configured yet; use `mvn install` for local consumption.
 
 ## Current Capabilities
 
@@ -71,7 +78,7 @@ Use the current local coordinates:
 <dependency>
     <groupId>io.github.mmaciekk111</groupId>
     <artifactId>ui-test-lens</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -81,7 +88,7 @@ For the neutral logging/export model only, depend on the core module:
 <dependency>
     <groupId>io.github.mmaciekk111</groupId>
     <artifactId>ui-test-lens-core</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -91,7 +98,7 @@ For browser runtime resources and overlay bridge classes only, depend on the ove
 <dependency>
     <groupId>io.github.mmaciekk111</groupId>
     <artifactId>ui-test-lens-overlay</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -101,7 +108,7 @@ For Selenium-specific facade/actions directly, depend on the Selenium module:
 <dependency>
     <groupId>io.github.mmaciekk111</groupId>
     <artifactId>ui-test-lens-selenium</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -111,7 +118,7 @@ For React-safe helpers directly, depend on the React module:
 <dependency>
     <groupId>io.github.mmaciekk111</groupId>
     <artifactId>ui-test-lens-react</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -131,11 +138,11 @@ ReactSupport.smartClick(overlay, By.cssSelector("[data-testid='save']"), "SAVE")
 
 | Use case | Maven artifact |
 | -------- | -------------- |
-| Event logging/export model only | `io.github.mmaciekk111:ui-test-lens-core:1.0-SNAPSHOT` |
-| Browser overlay runtime bridge only | `io.github.mmaciekk111:ui-test-lens-overlay:1.0-SNAPSHOT` |
-| Selenium tests with overlay/actions/waits | `io.github.mmaciekk111:ui-test-lens-selenium:1.0-SNAPSHOT` |
-| React-safe Selenium helpers | `io.github.mmaciekk111:ui-test-lens-react:1.0-SNAPSHOT` |
-| Simple all-in-one local usage | `io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT` |
+| Event logging/export model only | `io.github.mmaciekk111:ui-test-lens-core:0.1.0-SNAPSHOT` |
+| Browser overlay runtime bridge only | `io.github.mmaciekk111:ui-test-lens-overlay:0.1.0-SNAPSHOT` |
+| Selenium tests with overlay/actions/waits | `io.github.mmaciekk111:ui-test-lens-selenium:0.1.0-SNAPSHOT` |
+| React-safe Selenium helpers | `io.github.mmaciekk111:ui-test-lens-react:0.1.0-SNAPSHOT` |
+| Simple all-in-one local usage | `io.github.mmaciekk111:ui-test-lens:0.1.0-SNAPSHOT` |
 
 `ui-test-lens` is intentionally kept as an all-in-one compatibility artifact. Current module stabilization notes are tracked in [`docs/ui-test-lens-module-stabilization-report.md`](docs/ui-test-lens-module-stabilization-report.md).
 

@@ -1,5 +1,9 @@
 # UI Test Lens module stabilization report
 
+Current project version: `0.1.0-SNAPSHOT`.
+
+UI Test Lens is still pre-1.0. Public APIs may change between 0.x releases. Maven Central publication is not configured yet; local usage currently relies on `mvn install`.
+
 ## Current modules
 
 | Module | Purpose | Main dependencies | Notes |
@@ -36,11 +40,11 @@
 
 | Use case | Dependency |
 | -------- | ---------- |
-| Event logging/export model only | `io.github.mmaciekk111:ui-test-lens-core:1.0-SNAPSHOT` |
-| Browser overlay runtime bridge only | `io.github.mmaciekk111:ui-test-lens-overlay:1.0-SNAPSHOT` |
-| Selenium tests with overlay/actions/waits | `io.github.mmaciekk111:ui-test-lens-selenium:1.0-SNAPSHOT` |
-| React-safe Selenium helpers | `io.github.mmaciekk111:ui-test-lens-react:1.0-SNAPSHOT` |
-| Simple all-in-one local usage | `io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT` |
+| Event logging/export model only | `io.github.mmaciekk111:ui-test-lens-core:0.1.0-SNAPSHOT` |
+| Browser overlay runtime bridge only | `io.github.mmaciekk111:ui-test-lens-overlay:0.1.0-SNAPSHOT` |
+| Selenium tests with overlay/actions/waits | `io.github.mmaciekk111:ui-test-lens-selenium:0.1.0-SNAPSHOT` |
+| React-safe Selenium helpers | `io.github.mmaciekk111:ui-test-lens-react:0.1.0-SNAPSHOT` |
+| Simple all-in-one local usage | `io.github.mmaciekk111:ui-test-lens:0.1.0-SNAPSHOT` |
 | Compile-checked examples | `ui-test-lens-examples` module in this repository |
 
 ## Duplicate and resource scans
@@ -106,5 +110,5 @@ Dependency tree checks:
 ## Next recommended steps
 
 1. Add Maven Wrapper.
-2. Consider version reset to `0.1.0-SNAPSHOT` before external publication.
-3. Add publication metadata once the public API is ready.
+2. Add publication metadata once the public API is ready.
+3. Revisit API stability before the first non-SNAPSHOT release.

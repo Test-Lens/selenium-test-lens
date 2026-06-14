@@ -71,22 +71,24 @@ pl.<organization>.uitestlens
 ```
 
 GroupId w POM zostal ustawiony na publiczne koordynaty GitHub namespace.
+Aktualna wersja projektu to `0.1.0-SNAPSHOT`. Projekt jest nadal pre-1.0, API moze zmieniac sie miedzy wydaniami 0.x, a Maven Central release nie jest jeszcze skonfigurowany. Lokalne uzycie odbywa sie przez `mvn install`.
+
 Aktualne glowne Maven coordinates dla modulu Selenium/overlay:
 
 ```text
-io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT
+io.github.mmaciekk111:ui-test-lens:0.1.0-SNAPSHOT
 ```
 
 Aktualne coordinates modulu core:
 
 ```text
-io.github.mmaciekk111:ui-test-lens-core:1.0-SNAPSHOT
+io.github.mmaciekk111:ui-test-lens-core:0.1.0-SNAPSHOT
 ```
 
 Aktualne coordinates modulu overlay:
 
 ```text
-io.github.mmaciekk111:ui-test-lens-overlay:1.0-SNAPSHOT
+io.github.mmaciekk111:ui-test-lens-overlay:0.1.0-SNAPSHOT
 ```
 
 ## Rekomendowany base package
@@ -513,7 +515,7 @@ Powod: te zmiany dotykaja publicznego API, zasobow runtime i potencjalnych testo
 
 7. Commit 7: Maven coordinates cleanup.
    - Wykonane: `groupId` ustawiono na `io.github.mmaciekk111`.
-   - Aktualne coordinates: `io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT`.
+   - Aktualne coordinates: `io.github.mmaciekk111:ui-test-lens:0.1.0-SNAPSHOT`.
 
 8. Commit 8: facade/API rename.
    - Zmienic publiczne nazwy na styl `UiTestLens*`.

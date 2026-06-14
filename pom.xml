@@ -6,7 +6,7 @@
 
     <groupId>io.github.mmaciekk111</groupId>
     <artifactId>ui-test-lens-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>UI Test Lens Parent</name>
     <description>Visual observability and debug layer for UI/browser automation tests.</description>
