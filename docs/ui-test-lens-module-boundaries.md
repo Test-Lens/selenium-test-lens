@@ -2,15 +2,20 @@
 
 ## Current package boundary matrix
 
+The first Maven split is now in place:
+
+- `ui-test-lens-core` contains `core.logging`, `core.logging.export`, and `core.browser.BrowserScriptExecutor`.
+- `ui-test-lens` remains the temporary Selenium/overlay module and still owns the rest of the current packages.
+
 | Package | Classes | Selenium dependency? | Runtime JS dependency? | Proposed module | Notes |
 | ------- | ------: | -------------------: | ---------------------: | --------------- | ----- |
 | `io.github.mmaciekk111.uitestlens` | 3 | Yes | Yes, through facade and waits | `ui-test-lens-selenium` | `JsOverlayDebug` and `OverlayWait` are Selenium-bound. `OverlayConfig` still needs placement decision. |
 | `io.github.mmaciekk111.uitestlens.actions` | 7 | Yes | Yes | `ui-test-lens-selenium` | Selenium action helpers with overlay and event instrumentation. |
 | `io.github.mmaciekk111.uitestlens.api` | 6 | Partial | Yes | Future `ui-test-lens-api-overlay` or overlay first | `ApiOverlayPanel` uses `BrowserScriptExecutor` internally but keeps a WebDriver constructor. Models and context are mostly neutral but API-overlay-specific. |
 | `io.github.mmaciekk111.uitestlens.core` | 14 | Mixed | Yes | Split across core, overlay, and selenium | Runtime bridge loaders are overlay candidates. `PageWaits`, `PopupDetector`, `BlockingOverlayHelper`, and `Guards` are Selenium-bound. |
-| `io.github.mmaciekk111.uitestlens.core.browser` | 2 | Mixed | No | Core contract plus Selenium adapter | `BrowserScriptExecutor` is neutral. `SeleniumBrowserScriptExecutor` belongs with the Selenium module after the split. |
-| `io.github.mmaciekk111.uitestlens.core.logging` | 9 | No | No | `ui-test-lens-core` | Event model and sinks are JDK-only. |
-| `io.github.mmaciekk111.uitestlens.core.logging.export` | 5 | No | No | `ui-test-lens-core` | Text, JSON, and HTML exporters are JDK-only. |
+| `io.github.mmaciekk111.uitestlens.core.browser` | 2 | Mixed across modules | No | `ui-test-lens-core` plus temporary Selenium module | `BrowserScriptExecutor` is in `ui-test-lens-core`. `SeleniumBrowserScriptExecutor` remains in `ui-test-lens`. |
+| `io.github.mmaciekk111.uitestlens.core.logging` | 9 | No | No | `ui-test-lens-core` | Moved to `ui-test-lens-core`; event model and sinks are JDK-only. |
+| `io.github.mmaciekk111.uitestlens.core.logging.export` | 5 | No | No | `ui-test-lens-core` | Moved to `ui-test-lens-core`; text, JSON, and HTML exporters are JDK-only. |
 | `io.github.mmaciekk111.uitestlens.hud` | 2 | Compatibility only | Yes | `ui-test-lens-overlay` | `HudPanel` uses `BrowserScriptExecutor` internally and keeps WebDriver constructors for compatibility. |
 | `io.github.mmaciekk111.uitestlens.react` | 2 | Yes | Indirect | `ui-test-lens-react` | React helpers still depend on Selenium and the current facade. |
 | `io.github.mmaciekk111.uitestlens.scroll` | 2 | No | No | Core or overlay decision | Neutral scroll edge enums used by Selenium scroll actions and runtime bridge code. |
@@ -38,6 +43,7 @@
 
 - `core.logging`.
 - `core.logging.export`.
+- `core.browser.BrowserScriptExecutor`.
 - Neutral runtime constants in `UiTestLensRuntimeNames`, subject to ownership decision.
 - Neutral enums such as `ScrollElementEdge`, `ScrollViewportEdge`, and possibly `HudPosition`.
 
@@ -53,10 +59,9 @@
 
 ## Next safe refactors before actual split
 
-1. Keep pure logging/export classes inside the future core boundary.
-2. Keep runtime resources and `BrowserScriptExecutor` bridge loaders inside the overlay boundary.
+1. Keep `ui-test-lens-core` Selenium-free as more neutral types are considered for migration.
+2. Keep runtime resources and bridge loaders inside the next overlay boundary.
 3. Keep Selenium actions, waits, popup heuristics, and the current facade inside the Selenium boundary.
 4. Continue moving bridge classes away from direct Selenium execution where this does not change behavior.
 5. Split React helpers only after direct `JsOverlayDebug` coupling is reduced.
 6. Leave API overlay as either an overlay sub-area or a future optional module until ownership is explicit.
-

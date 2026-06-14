@@ -1,8 +1,21 @@
 # UI Test Lens module split plan
 
-## Current single-module state
+## Current module state
 
-UI Test Lens is currently a single-module Maven project published locally as:
+UI Test Lens has completed the first minimal Maven split. The root project is now a parent POM:
+
+```text
+io.github.mmaciekk111:ui-test-lens-parent:1.0-SNAPSHOT
+```
+
+Current child modules:
+
+| Module | Current responsibility |
+| ------ | ---------------------- |
+| `ui-test-lens-core` | Selenium-free logging/event model, log exporters, and the neutral `BrowserScriptExecutor` contract. |
+| `ui-test-lens` | Temporary Selenium/overlay module containing the current facade, runtime resources, actions, waits, HUD, API overlay, and React helpers. |
+
+The main Selenium-facing artifact remains:
 
 ```text
 io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT
@@ -23,7 +36,7 @@ The project already has:
 - a logger/event model with text, JSON, and HTML exporters,
 - unit tests for logging, exporters, resource loading, runtime markers, target resolver helpers, PageWaits state, overlay root, popup detector, and blocking overlay helper.
 
-The current module still mixes neutral model code, Selenium integration, runtime resource loading, visual overlay bridge code, React helpers, API overlay support, and examples/documentation. The first split should separate those concerns without changing public behavior.
+The `ui-test-lens` child module still mixes Selenium integration, runtime resource loading, visual overlay bridge code, React helpers, API overlay support, and examples/documentation. Later splits should separate those concerns without changing public behavior.
 
 `BrowserScriptExecutor` now exists as the neutral browser JavaScript execution contract, with `SeleniumBrowserScriptExecutor` as the Selenium adapter. Runtime bridge loaders, `HudPanel`, and `ApiOverlayPanel` can call this contract directly while existing Selenium-facing methods remain available.
 
@@ -38,7 +51,7 @@ docs/ui-test-lens-module-boundaries.md
 | Module | Responsibility | Dependencies | Should publish? |
 | ------ | -------------- | ------------ | --------------- |
 | `ui-test-lens-parent` | Parent POM, dependency management, plugin management, common version properties. | None at runtime. | No runtime artifact. |
-| `ui-test-lens-core` | Logger/event model, log exporters, neutral constants, neutral config/enums, non-Selenium utilities where possible. | JDK only. | Yes. |
+| `ui-test-lens-core` | Logger/event model, log exporters, and neutral `BrowserScriptExecutor`. | JDK only for production. | Yes. |
 | `ui-test-lens-overlay` | Runtime JS resources and overlay bridge abstractions for HUD, highlight, wait HUD, type hint, scroll arrow, assertion badges. | `ui-test-lens-core`; should use `BrowserScriptExecutor` and avoid Selenium after adapter placement is cleaned up. | Yes. |
 | `ui-test-lens-selenium` | Current Selenium facade and integrations: `JsOverlayDebug`, waits, actions, guards, popup/blocking overlay helpers, target resolver. | `ui-test-lens-core`, `ui-test-lens-overlay`, `selenium-java`. | Yes. |
 | `ui-test-lens-react` | React/SPA retry helpers and `react-select` support. | `ui-test-lens-selenium`, possibly `ui-test-lens-overlay` and `ui-test-lens-core`. | Yes. |
@@ -58,10 +71,14 @@ Later optional modules:
 
 ### `ui-test-lens-core`
 
-Should contain:
+Currently contains:
 
 - `core.logging.*`,
 - `core.logging.export.*`,
+- `core.browser.BrowserScriptExecutor`.
+
+May later contain:
+
 - neutral runtime constants from `UiTestLensRuntimeNames`,
 - neutral enums if they do not force Selenium or overlay dependencies,
 - config models that do not import Selenium,
@@ -75,12 +92,12 @@ Should not contain:
 - API overlay panel execution through a driver,
 - runtime bridge classes that execute scripts in the browser.
 
-Current blockers:
+Current blockers for adding more classes:
 
 - `OverlayConfig` imports `HudPosition`, so config placement depends on whether `HudPosition` is core or overlay.
 - `JsResources` is JDK-only, but semantically belongs to runtime/overlay if it only loads browser runtime scripts.
 - `UiTestLensRuntimeNames` is neutral enough for core, but many constants describe overlay/runtime behavior.
-- `SeleniumBrowserScriptExecutor` imports Selenium and should move with the Selenium adapter module, not core, once modules exist.
+- `SeleniumBrowserScriptExecutor` imports Selenium and remains in the temporary `ui-test-lens` module.
 
 ### `ui-test-lens-overlay`
 
@@ -290,10 +307,13 @@ Separate runtime resource bridge boundaries
 
 ### 3. Extract `ui-test-lens-core`
 
+Status: done for logging/export and `BrowserScriptExecutor`.
+
 Scope:
 
-- Create parent POM and `ui-test-lens-core`.
-- Move logger/event model, exporters, neutral constants, and neutral enums/config only after dependency checks.
+- Parent POM and `ui-test-lens-core` were created.
+- Logger/event model, exporters, and the neutral browser script executor contract were moved.
+- Neutral constants and enums/config remain pending until ownership decisions are made.
 - Keep no Selenium imports in core.
 
 Risk:

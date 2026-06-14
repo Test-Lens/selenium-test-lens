@@ -14,7 +14,18 @@ Macierz obecnych granic pakietow i zaleznosci Selenium jest w:
 docs/ui-test-lens-module-boundaries.md
 ```
 
-Ten dokument pozostaje historycznym/szerszym planem modularyzacji. Dla najblizszego splitu priorytetowy zakres to:
+Ten dokument pozostaje historycznym/szerszym planem modularyzacji. Pierwszy minimalny split zostal wykonany:
+
+```text
+ui-test-lens-parent
+├── ui-test-lens-core
+└── ui-test-lens
+```
+
+`ui-test-lens-core` zawiera Selenium-free logging/export oraz neutralny kontrakt `BrowserScriptExecutor`.
+`ui-test-lens` pozostaje tymczasowym modulem Selenium/overlay.
+
+Dalszy docelowy zakres splitu to:
 
 ```text
 ui-test-lens-parent
@@ -25,7 +36,7 @@ ui-test-lens-parent
 └── ui-test-lens-examples
 ```
 
-Abstrakcja `BrowserScriptExecutor` zostala wprowadzona razem z adapterem `SeleniumBrowserScriptExecutor`. `HudPanel` i `ApiOverlayPanel` uzywaja juz tego kontraktu wewnetrznie, zachowujac konstruktory z `WebDriver`. Kolejne commity powinny przepinac pozostale runtime bridge call sites na neutralny kontrakt, zanim pliki zostana przeniesione do modulow.
+Abstrakcja `BrowserScriptExecutor` zostala przeniesiona do `ui-test-lens-core`. Adapter `SeleniumBrowserScriptExecutor` pozostaje w module `ui-test-lens`, bo zalezy od Selenium. `HudPanel` i `ApiOverlayPanel` uzywaja juz tego kontraktu wewnetrznie, zachowujac konstruktory z `WebDriver`. Kolejne commity powinny przepinac pozostale runtime bridge call sites na neutralny kontrakt, zanim pliki zostana przeniesione do modulow overlay/selenium.
 
 ## 1. Obecny projekt
 

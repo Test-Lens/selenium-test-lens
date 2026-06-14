@@ -34,7 +34,11 @@ Moduly przyszle/opcjonalne:
 - `ui-test-lens-allure`
 - `ui-test-lens-teamcity`
 
-Dla obecnego jednego modulu przejsciowego rekomendacja: nie zmieniac artifactId razem z przenosinami layoutu Maven. Zmiana na przejsciowe `ui-test-lens` albo od razu parent/module coordinates powinna byc osobnym commitem po uporzadkowaniu zaleznosci POM.
+Pierwszy minimalny split Maven zostal wykonany. Aktualne moduly:
+
+- parent: `ui-test-lens-parent`,
+- neutralny core: `ui-test-lens-core`,
+- tymczasowy modul Selenium/overlay: `ui-test-lens`.
 
 ## Wybrany groupId
 
@@ -63,10 +67,16 @@ pl.<organization>.uitestlens
 ```
 
 GroupId w POM zostal ustawiony na publiczne koordynaty GitHub namespace.
-Aktualne single-module Maven coordinates:
+Aktualne glowne Maven coordinates dla modulu Selenium/overlay:
 
 ```text
 io.github.mmaciekk111:ui-test-lens:1.0-SNAPSHOT
+```
+
+Aktualne coordinates modulu core:
+
+```text
+io.github.mmaciekk111:ui-test-lens-core:1.0-SNAPSHOT
 ```
 
 ## Rekomendowany base package
@@ -393,16 +403,17 @@ Powstal precyzyjny plan pierwszego multi-module splitu:
 docs/ui-test-lens-module-split-plan.md
 ```
 
-Plan nie przenosi jeszcze plikow i nie tworzy parent POM. Dokumentuje proponowany pierwszy uklad:
+Pierwszy minimalny split zostal wykonany: root POM jest parentem, a neutralne logging/export oraz `BrowserScriptExecutor` zostaly przeniesione do `ui-test-lens-core`.
+
+Dalszy plan dokumentuje docelowy uklad:
 
 - `ui-test-lens-parent`,
-- `ui-test-lens-core`,
 - `ui-test-lens-overlay`,
 - `ui-test-lens-selenium`,
 - `ui-test-lens-react`,
 - `ui-test-lens-examples`.
 
-Najwazniejszy blocker przed faktycznym splitem to brak stabilnej abstrakcji wykonywania skryptow w przegladarce. Rekomendowany pierwszy commit implementacyjny po audycie to wprowadzenie `BrowserScriptExecutor`, dopiero potem przenoszenie klas do modulow.
+`ui-test-lens-core` juz istnieje i musi pozostac Selenium-free. Kolejny najwazniejszy krok to wydzielenie overlay/runtime albo dalsze przepinanie bridge classes na `BrowserScriptExecutor`.
 
 ## Preferowany styl nazw klas Java
 

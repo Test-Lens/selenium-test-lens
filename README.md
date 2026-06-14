@@ -11,7 +11,7 @@ Current state:
 - Maven artifactId is `ui-test-lens`.
 - Maven groupId is `io.github.mmaciekk111`.
 - Java packages use `io.github.mmaciekk111.uitestlens`.
-- The project is currently a single-module Maven project.
+- The project is now a minimal multi-module Maven project with `ui-test-lens-core` and `ui-test-lens`.
 - Multi-module split is planned later.
 - Runtime JavaScript state is initialized under `window.__uiTestLens`; legacy `window.__selenium...` globals remain as compatibility aliases.
 
@@ -71,6 +71,16 @@ Use the current local coordinates:
 <dependency>
     <groupId>io.github.mmaciekk111</groupId>
     <artifactId>ui-test-lens</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</dependency>
+```
+
+For the neutral logging/export model only, depend on the core module:
+
+```xml
+<dependency>
+    <groupId>io.github.mmaciekk111</groupId>
+    <artifactId>ui-test-lens-core</artifactId>
     <version>1.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -203,13 +213,13 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - Runtime JavaScript still keeps legacy `window.__selenium...` aliases for compatibility.
 - Overlay root primary state is `window.__uiTestLens.state.overlay.root`; `window.__seleniumOverlayRoot` is kept as a legacy alias.
 - Page wait helpers use primary state under `window.__uiTestLens.state.network`, `window.__uiTestLens.state.dom`, and `window.__uiTestLens.state.wait`; legacy wait/network globals remain compatibility aliases.
-- API overlay JavaScript is loaded from `src/main/resources/uitestlens/runtime/api-overlay.js`.
-- Wait HUD JavaScript is loaded from `src/main/resources/uitestlens/runtime/wait-hud.js`.
-- Highlight JavaScript is loaded from `src/main/resources/uitestlens/runtime/highlight.js`.
-- Type hint JavaScript is loaded from `src/main/resources/uitestlens/runtime/type-hint.js`.
-- Scroll arrow JavaScript is loaded from `src/main/resources/uitestlens/runtime/scroll-arrow.js`.
-- HUD panel JavaScript is loaded from `src/main/resources/uitestlens/runtime/hud-panel.js`.
-- Assertion badge JavaScript is loaded from `src/main/resources/uitestlens/runtime/assertion-badges.js`.
+- API overlay JavaScript is loaded from `ui-test-lens/src/main/resources/uitestlens/runtime/api-overlay.js`.
+- Wait HUD JavaScript is loaded from `ui-test-lens/src/main/resources/uitestlens/runtime/wait-hud.js`.
+- Highlight JavaScript is loaded from `ui-test-lens/src/main/resources/uitestlens/runtime/highlight.js`.
+- Type hint JavaScript is loaded from `ui-test-lens/src/main/resources/uitestlens/runtime/type-hint.js`.
+- Scroll arrow JavaScript is loaded from `ui-test-lens/src/main/resources/uitestlens/runtime/scroll-arrow.js`.
+- HUD panel JavaScript is loaded from `ui-test-lens/src/main/resources/uitestlens/runtime/hud-panel.js`.
+- Assertion badge JavaScript is loaded from `ui-test-lens/src/main/resources/uitestlens/runtime/assertion-badges.js`.
 - Legacy `selenium/api-overlay.js` remains a loader fallback for compatibility.
 - Legacy `selenium/wait/WaitHud.js` remains a loader fallback for compatibility.
 - Legacy `selenium/highlight.js` remains a loader fallback for compatibility.
@@ -226,7 +236,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - `HudPanel` uses `BrowserScriptExecutor` internally while preserving existing Selenium `WebDriver` constructors.
 - `ApiOverlayPanel` uses `BrowserScriptExecutor` internally while preserving existing Selenium `WebDriver` constructors.
 - API is not final.
-- No multi-module split yet.
+- First Maven split is done: `ui-test-lens-core` contains Selenium-free logging/export code and `BrowserScriptExecutor`; `ui-test-lens` remains the temporary Selenium/overlay module.
 - No Maven Central publication yet.
 - No ready Selenide, Allure, or TeamCity adapters yet.
 - No full Selenium `WebDriverListener` adapter yet.
@@ -236,7 +246,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 
 1. Use the runtime JS audit to review remaining small inline JavaScript snippets and decide which should become runtime resources.
 2. Continue moving runtime bridge classes toward `BrowserScriptExecutor`.
-3. Split into `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`, and `ui-test-lens-examples`.
+3. Split the remaining Selenium/overlay module into `ui-test-lens-overlay`, `ui-test-lens-selenium`, `ui-test-lens-react`, and `ui-test-lens-examples`.
 4. Selenium `WebDriverListener` adapter.
 5. Selenide adapter.
 6. Allure/TeamCity exporters and adapters.
@@ -264,7 +274,7 @@ The current project deliberately keeps runtime names separate from the completed
 - then rename Java packages,
 - then clean up Maven coordinates,
 - next clean up browser namespace,
-- then split modules and publish artifacts.
+- then continue the module split and publish artifacts.
 
 ## Future API Direction
 
