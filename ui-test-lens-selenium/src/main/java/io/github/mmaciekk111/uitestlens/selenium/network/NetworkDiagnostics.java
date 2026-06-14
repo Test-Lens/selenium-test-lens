@@ -20,6 +20,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.locks.LockSupport;
 
 public final class NetworkDiagnostics {
     private final WebDriver driver;
@@ -121,6 +124,85 @@ public final class NetworkDiagnostics {
         return result;
     }
 
+    public NetworkWaitResult waitForResponse(String urlContains, int status) {
+        return waitForResponse(NetworkWaitCondition.builder()
+                .urlContains(urlContains)
+                .status(status)
+                .build());
+    }
+
+    public NetworkWaitResult waitForResponse(NetworkWaitCondition condition) {
+        NetworkWaitCondition effectiveCondition = condition == null ? NetworkWaitCondition.builder().build() : condition;
+        Instant startedAt = Instant.now();
+        int attempts = 0;
+        emit(UiTestLensEventType.NETWORK_WAIT_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
+                "Network wait started: " + effectiveCondition.summary(), null);
+        if (!isStarted()) {
+            NetworkWaitResult result = NetworkWaitResult.skipped(effectiveCondition,
+                    "Network diagnostics capture is not started",
+                    NetworkWaitFailureReason.CAPTURE_NOT_STARTED,
+                    attempts,
+                    elapsedSince(startedAt));
+            emit(UiTestLensEventType.NETWORK_WAIT_FAILED, UiTestLensStatus.SKIPPED, UiTestLensLogLevel.WARN,
+                    result.message(), null);
+            return result;
+        }
+        if (summary().status() == NetworkDiagnosticsStatus.UNSUPPORTED) {
+            NetworkWaitResult result = NetworkWaitResult.skipped(effectiveCondition,
+                    "Network capture mode is unsupported; only already collected/manual events can be matched",
+                    NetworkWaitFailureReason.UNSUPPORTED_CAPTURE_MODE,
+                    attempts,
+                    elapsedSince(startedAt));
+            emit(UiTestLensEventType.NETWORK_WAIT_FAILED, UiTestLensStatus.SKIPPED, UiTestLensLogLevel.WARN,
+                    result.message(), null);
+            return result;
+        }
+        Instant deadline = startedAt.plus(effectiveCondition.timeout());
+        while (!Instant.now().isAfter(deadline)) {
+            attempts++;
+            Optional<NetworkEvent> failedMatch = findFailedResponseMatch(effectiveCondition);
+            if (failedMatch.isPresent()) {
+                NetworkWaitResult result = NetworkWaitResult.failed(effectiveCondition,
+                        "Failed response matched while waiting for: " + effectiveCondition.summary(),
+                        NetworkWaitFailureReason.FAILED_RESPONSE_MATCHED,
+                        null,
+                        attempts,
+                        elapsedSince(startedAt));
+                emit(UiTestLensEventType.NETWORK_WAIT_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
+                        result.message(), failedMatch.get().url());
+                return result;
+            }
+            Optional<NetworkEvent> matched = findMatchingEvent(effectiveCondition);
+            if (matched.isPresent()) {
+                NetworkRequest request = matched.get().request();
+                if (request == null && matched.get().response() != null) {
+                    request = findRequestById(matched.get().response().requestId()).orElse(null);
+                }
+                NetworkWaitResult result = NetworkWaitResult.matched(effectiveCondition, matched.get(), request, attempts, elapsedSince(startedAt));
+                emit(UiTestLensEventType.NETWORK_WAIT_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
+                        result.message(), matched.get().url());
+                return result;
+            }
+            park(effectiveCondition.pollInterval(), deadline);
+        }
+        NetworkWaitResult result = NetworkWaitResult.timedOut(effectiveCondition, attempts, elapsedSince(startedAt), summary());
+        emit(UiTestLensEventType.NETWORK_WAIT_TIMED_OUT, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
+                result.message(), null);
+        return result;
+    }
+
+    public NetworkResponseExpectation expectResponse() {
+        return new NetworkResponseExpectation(this);
+    }
+
+    public Optional<NetworkEvent> findMatchingEvent(NetworkWaitCondition condition) {
+        NetworkWaitCondition effectiveCondition = condition == null ? NetworkWaitCondition.builder().build() : condition;
+        List<NetworkEvent> snapshot = events();
+        return snapshot.stream()
+                .filter(event -> effectiveCondition.matches(event, snapshot))
+                .findFirst();
+    }
+
     public NetworkDiagnosticsResult attachToSession(UiTestLensSession session) {
         if (session == null) {
             return NetworkDiagnosticsResult.failed("No UiTestLensSession attached", summary(), null, Duration.ZERO);
@@ -166,6 +248,33 @@ public final class NetworkDiagnostics {
 
     public synchronized String exportJson() {
         return new NetworkLogExporter().export(events);
+    }
+
+    private Optional<NetworkEvent> findFailedResponseMatch(NetworkWaitCondition condition) {
+        List<NetworkEvent> snapshot = events();
+        return snapshot.stream()
+                .filter(event -> condition.matchesFailedResponse(event, snapshot))
+                .findFirst();
+    }
+
+    private Optional<NetworkRequest> findRequestById(String requestId) {
+        if (requestId == null || requestId.isBlank()) {
+            return Optional.empty();
+        }
+        return events().stream()
+                .map(NetworkEvent::request)
+                .filter(Objects::nonNull)
+                .filter(request -> requestId.equals(request.id()))
+                .findFirst();
+    }
+
+    private static void park(Duration interval, Instant deadline) {
+        Duration remaining = Duration.between(Instant.now(), deadline);
+        if (remaining.isZero() || remaining.isNegative()) {
+            return;
+        }
+        Duration wait = interval.compareTo(remaining) < 0 ? interval : remaining;
+        LockSupport.parkNanos(wait.toNanos());
     }
 
     private void addInternal(NetworkEvent event) {

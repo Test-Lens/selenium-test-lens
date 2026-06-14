@@ -464,6 +464,22 @@ overlay.network().attachToSession(
 
 `AUTO` currently falls back to the manual collector unless browser-specific support is added later. `PERFORMANCE_LOGS` and `BIDI` are modeled but reported as unsupported without crashing, so Chrome-only dependencies are not required. Headers are omitted by default and sensitive header names such as `Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`, and `X-Auth-Token` are masked when headers are enabled. Network JSON can be attached to the active trace session as a `NETWORK_LOG` artifact.
 
+## Wait-For-Response Network Assertions
+
+Network diagnostics also supports retryable passive waits over collected request/response events. This is an assertion layer over `NetworkDiagnostics`; it does not mock, intercept, route, or fulfill requests.
+
+```java
+overlay.network().waitForResponse("/api/orders", 200);
+
+overlay.network().expectResponse()
+        .urlContains("/api/orders")
+        .method("POST")
+        .status(201)
+        .within(Duration.ofSeconds(10));
+```
+
+Conditions can match URL contains, exact URL, URL regex, method, exact status, or status range. `waitForResponse(...)` returns a `NetworkWaitResult`; `expectResponse().within(...)` is assertion-style and throws `NetworkAssertionError` on timeout or failed wait. Real-time event availability still depends on the configured capture mode. The manual/fallback collector remains the stable baseline, while `PERFORMANCE_LOGS` and `BIDI` stay modeled without extra dependencies.
+
 ## Logging And Event Bus
 
 `UiTestLensLogger` is the central event bus. `OverlayLogger` is the current bridge used by existing overlay/Selenium classes.

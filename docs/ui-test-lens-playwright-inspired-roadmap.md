@@ -352,7 +352,9 @@ Initial implementation status: `ui-test-lens-selenium` now provides passive netw
 
 ### 5.2 Wait for response
 
-Example future API:
+Initial implementation status: `ui-test-lens-selenium` now provides wait-for-response assertions on top of `NetworkDiagnostics`. `NetworkWaitCondition` can match URL contains/exact/regex, method, exact status, and status ranges. `waitForResponse(...)` returns a result, while `expectResponse().within(...)` is assertion-style and throws `NetworkAssertionError` on timeout or failed wait. This remains passive diagnostics, not interception or mocking.
+
+Example API:
 
 ```java
 lens.network().waitForResponse("/api/orders", 200);
@@ -480,7 +482,7 @@ Role labels should appear in trace/session metadata to help diagnose authorizati
 11. Add passive network diagnostics.
     Initial passive/manual diagnostics are implemented. Continue by improving browser-specific collection only behind safe optional fallbacks.
 12. Add wait-for-response and no-failed-requests assertions.
-    These APIs should build on passive network data once collection is stable.
+    Initial wait-for-response assertions are implemented over collected passive/manual events. Future work should improve real browser event capture and add higher-level helpers without introducing hard CDP/BiDi dependencies.
 13. Add optional network interception/mocking.
     Mocking is browser-capability-dependent and should remain an advanced opt-in feature.
 

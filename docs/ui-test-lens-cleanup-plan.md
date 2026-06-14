@@ -527,6 +527,12 @@ Restore przez `AuthRestoreOptions` moze nawigowac do origin, czyscic istniejace 
 
 Pierwsza wersja nie robi mocking/interception, nie dodaje Chrome DevTools dependency i nie wymusza BiDi. Tryby `PERFORMANCE_LOGS` oraz `BIDI` sa zamodelowane, ale bezpiecznie raportowane jako unsupported/fallback. Headers sa domyslnie pominiete; przy wlaczeniu headers wrazliwe nazwy takie jak `Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key` i `X-Auth-Token` sa maskowane.
 
+## Wait-for-response network assertions
+
+`NetworkDiagnostics` ma retryable passive waits nad zebranymi eventami request/response. `NetworkWaitCondition` wspiera URL contains, exact URL, regex, method, status oraz status range. `waitForResponse(...)` zwraca `NetworkWaitResult`, a fluent `expectResponse().within(...)` jest assertion-style i rzuca `NetworkAssertionError` przy timeout albo failed wait.
+
+Ta warstwa nadal nie robi mocking/interception ani route fulfillment. Real-time event availability zalezy od capture mode; manual/fallback collector pozostaje podstawowa testowalna implementacja bez przegladarki, a `PERFORMANCE_LOGS`/`BIDI` pozostaja zamodelowane bez hard dependency.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:
