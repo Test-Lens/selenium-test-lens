@@ -585,6 +585,7 @@ The public artifact no longer depends on private `LogWraper`. A `LogWraper` adap
 - Module split plan: [`docs/ui-test-lens-module-split-plan.md`](docs/ui-test-lens-module-split-plan.md).
 - Module boundary matrix: [`docs/ui-test-lens-module-boundaries.md`](docs/ui-test-lens-module-boundaries.md).
 - [Playwright-inspired roadmap](docs/ui-test-lens-playwright-inspired-roadmap.md).
+- [API migration guide](docs/ui-test-lens-api-migration-guide.md).
 - [0.1 feature audit](docs/ui-test-lens-0.1-feature-audit.md).
 - [0.1 API consistency audit](docs/ui-test-lens-0.1-api-consistency-audit.md).
 - `BrowserScriptExecutor` is now the neutral browser JavaScript execution contract; `SeleniumBrowserScriptExecutor` adapts Selenium `JavascriptExecutor` in the `ui-test-lens-selenium` module.

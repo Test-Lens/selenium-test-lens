@@ -6,6 +6,8 @@ This audit reviews the public API surface and documentation consistency before a
 
 No code changes are proposed in this document. Larger cleanup items should be handled as explicit pre-1.0 follow-up commits.
 
+For migration from historical JsTestTools-style names and helper usage to the current UI Test Lens APIs, see [`ui-test-lens-api-migration-guide.md`](ui-test-lens-api-migration-guide.md).
+
 ## Summary
 
 The current API is coherent enough for a pre-1.0 `0.1.0-SNAPSHOT` baseline. The main entry point remains `JsOverlayDebug`, while specialized APIs are grouped under clear domains: overlay policy, actionability, locators, assertions, business checks, steps, evidence, auth, and network diagnostics.
@@ -213,6 +215,5 @@ Safety scan results:
 3. Polish HTML trace UX.
 4. Add a real browser network capture provider behind optional/guarded support.
 5. Add Maven Wrapper.
-6. Add API migration guide from historical JsTestTools names.
-7. Review public helper/reporter/exporter visibility before the first non-SNAPSHOT release.
-8. Reduce dummy secret-scan noise in tests without weakening safety coverage.
+6. Review public helper/reporter/exporter visibility before the first non-SNAPSHOT release.
+7. Reduce dummy secret-scan noise in tests without weakening safety coverage.

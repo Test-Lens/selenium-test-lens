@@ -2,6 +2,8 @@
 
 This document summarizes the current 0.1.0-SNAPSHOT feature set, module ownership, public entry points, limitations and recommended next steps.
 
+For migration from historical JsTestTools-style names and one-module usage to the current UI Test Lens APIs, see [`ui-test-lens-api-migration-guide.md`](ui-test-lens-api-migration-guide.md).
+
 ## Current product shape
 
 UI Test Lens is now shaped around:

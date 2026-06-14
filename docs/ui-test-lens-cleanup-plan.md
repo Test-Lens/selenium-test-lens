@@ -427,6 +427,12 @@ Audyt aktualnego zakresu 0.1, entrypointow publicznych, ograniczen i rekomendowa
 docs/ui-test-lens-0.1-feature-audit.md
 ```
 
+Guide migracji z historycznych nazw JsTestTools / helperow Selenium do aktualnego API jest w:
+
+```text
+docs/ui-test-lens-api-migration-guide.md
+```
+
 Pierwsze minimalne splity zostaly wykonane: root POM jest parentem, neutralne logging/export oraz `BrowserScriptExecutor` sa w `ui-test-lens-core`, runtime resources i overlay bridge classes sa w `ui-test-lens-overlay`, fasada/akcje Selenium oraz `SeleniumBrowserScriptExecutor` sa w `ui-test-lens-selenium`, a React-safe helpers sa w `ui-test-lens-react`.
 
 Dalszy plan dokumentuje docelowy uklad:
