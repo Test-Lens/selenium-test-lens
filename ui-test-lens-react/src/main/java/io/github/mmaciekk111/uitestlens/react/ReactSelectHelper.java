@@ -1,7 +1,6 @@
 package io.github.mmaciekk111.uitestlens.react;
 
 import org.openqa.selenium.*;
-import io.github.mmaciekk111.uitestlens.JsOverlayDebug;
 
 /**
  * Helper do obsługi komponentów React-Select przez JavaScript.
@@ -63,7 +62,7 @@ public class ReactSelectHelper {
         return r instanceof Boolean && (Boolean) r;
     }
 
-    public void pickByLabel(JsOverlayDebug overlay,
+    public void pickByLabel(ReactOverlaySupport overlay,
                            String labelContains,
                            String valueToType,
                            String hiddenName,

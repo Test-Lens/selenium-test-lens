@@ -19,6 +19,7 @@ import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogger;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensStatus;
 import io.github.mmaciekk111.uitestlens.hud.HudPanel;
+import io.github.mmaciekk111.uitestlens.react.ReactOverlaySupport;
 import io.github.mmaciekk111.uitestlens.react.ReactSafeExecutor;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollElementEdge;
 import io.github.mmaciekk111.uitestlens.scroll.ScrollViewportEdge;
@@ -32,7 +33,7 @@ import java.util.function.Consumer;
 
 
 
-public final class JsOverlayDebug {
+public final class JsOverlayDebug implements ReactOverlaySupport {
 
     @Getter
     private final WebDriver driver;

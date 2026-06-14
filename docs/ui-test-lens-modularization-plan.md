@@ -21,13 +21,15 @@ ui-test-lens-parent
 ├── ui-test-lens-core
 ├── ui-test-lens-overlay
 ├── ui-test-lens-selenium
+├── ui-test-lens-react
 └── ui-test-lens
 ```
 
 `ui-test-lens-core` zawiera Selenium-free logging/export oraz neutralny kontrakt `BrowserScriptExecutor`.
 `ui-test-lens-overlay` zawiera runtime resources, bridge/loadery, `OverlayRootManager`, `HudPanel`, `ApiOverlayPanel`, `OverlayConfig` i `HudPosition`.
-`ui-test-lens-selenium` zawiera fasade Selenium, akcje, waity, helpery popup/blocking overlay, target resolver, API actions, React helpers i `SeleniumBrowserScriptExecutor`.
-`ui-test-lens` pozostaje kompatybilnym artefaktem all-in-one zaleznym od core, overlay i selenium.
+`ui-test-lens-selenium` zawiera fasade Selenium, akcje, waity, helpery popup/blocking overlay, target resolver, API actions i `SeleniumBrowserScriptExecutor`.
+`ui-test-lens-react` zawiera React-safe helpers i `react-select` support.
+`ui-test-lens` pozostaje kompatybilnym artefaktem all-in-one zaleznym od core, overlay, selenium i react.
 
 Dalszy docelowy zakres splitu to:
 
@@ -40,7 +42,7 @@ ui-test-lens-parent
 └── ui-test-lens-examples
 ```
 
-Abstrakcja `BrowserScriptExecutor` zostala przeniesiona do `ui-test-lens-core`. Adapter `SeleniumBrowserScriptExecutor` jest teraz w `ui-test-lens-selenium`. `HudPanel` i `ApiOverlayPanel` uzywaja juz tego kontraktu wewnetrznie, zachowujac konstruktory z `WebDriver`. `ui-test-lens-overlay` nadal ma tymczasowa zaleznosc Selenium dla kompatybilnych konstruktorow WebDriver.
+Abstrakcja `BrowserScriptExecutor` zostala przeniesiona do `ui-test-lens-core`. Adapter `SeleniumBrowserScriptExecutor` jest teraz w `ui-test-lens-selenium`. `HudPanel` i `ApiOverlayPanel` uzywaja juz tego kontraktu wewnetrznie, zachowujac konstruktory z `WebDriver`. `ui-test-lens-overlay` nadal ma tymczasowa zaleznosc Selenium dla kompatybilnych konstruktorow WebDriver. `ui-test-lens-react` jest osobnym modulem, ale `ui-test-lens-selenium` nadal zalezy od niego przez publiczne API `JsOverlayDebug.reactSafe()`.
 
 ## 1. Obecny projekt
 
@@ -125,7 +127,7 @@ Najważniejsze zależności:
 - `JsOverlayDebug` zależy od wszystkich domen: `actions`, `api`, `core`, `hud`, `react`, `scroll`,
 - `actions` zależy od `core.OverlayRootManager`, `OverlayConfig`, czasem `hud.HudPanel`,
 - `core.BlockingOverlayHelper` i `core.PopupDetector` zależą od `actions.HighlightActions`, czyli `core` nie jest czyste,
-- `react.ReactSafeExecutor` zależy od `JsOverlayDebug`, więc moduł React jest sprzężony z fasadą overlay,
+- `react.ReactSafeExecutor` zalezy od malego `ReactOverlaySupport`; obecnie `JsOverlayDebug` implementuje ten kontrakt i nadal eksponuje `ReactSafeExecutor`,
 - `api.ApiCallActions` zależy od RestAssured (`io.restassured.response.Response`), którego nie ma w `pom.xml`,
 - `OverlayWait` i `Guards` zależą od `utils.logs.LogWraper`, którego nie ma w `pom.xml`,
 - `OverlayWait` zależy od `utils.time.TimeStamp`, którego nie ma w `pom.xml`,
@@ -544,7 +546,7 @@ API powinno ukrywać klasy `*Actions`, `OverlayRootManager`, `HudPanel` i zasoby
 - `AssertActions.java`, `HighlightActions.java`, `PageWaits.java`, `PopupDetector.java`, `BlockingOverlayHelper.java`, `HudPanel.java` są duże i zawierają długie stringi JS.
 - `HighlightActions.highlightClick` ma mylącą nazwę: rysuje highlight i wykonuje klik wraz z fallbackami.
 - `core` zależy od `actions.HighlightActions`, więc warstwa core nie jest niezależna.
-- `ReactSafeExecutor` zależy od `JsOverlayDebug`, zamiast od małych interfejsów.
+- `JsOverlayDebug` nadal eksponuje `ReactSafeExecutor`, mimo ze sam executor zalezy juz od malego `ReactOverlaySupport`.
 - Statyczne `ThreadLocal` w `ApiOverlayContext`, `ApiOverlayPlan`, `ApiOverlayRule` utrudniają czytelny lifecycle, równoległość i testowanie.
 - Brakuje abstrakcji dla wykonywania JS, np. `BrowserScriptExecutor`/`ScriptExecutor`; obecny `core.ScriptExecutor` jest pusty.
 - API overlay JS został wydzielony do `src/main/resources/uitestlens/runtime/api-overlay.js`; loader zachowuje fallback `selenium/api-overlay.js`.
@@ -582,7 +584,7 @@ API powinno ukrywać klasy `*Actions`, `OverlayRootManager`, `HudPanel` i zasoby
 - `PageWaits` - użyteczne waity; runtime state dla network/wait/dom jest już normalizowany pod `window.__uiTestLens.state`, ale nadal trzeba odseparować raportowanie HUD od samego waitowania.
 - `ScrollActions` - sensowna domena, ale JS powinien być osobnym zasobem.
 - `TargetResolverActions` - przydatne; skrypty click/file input resolvera są już wydzielone do testowalnych helperów, ale `buildCssSelector` powinien poprawnie escapować CSS i nie obiecywać unikalności.
-- `ReactSafeExecutor` - wartościowy, ale powinien zależeć od interfejsów `StepReporter`/`ElementHighlighter`, nie od `JsOverlayDebug`.
+- `ReactSafeExecutor` - wartościowy; zalezy juz od `ReactOverlaySupport`, ale fasada `JsOverlayDebug` nadal powinna zostac odchudzona z bezposredniego API React.
 
 ### C. Wymaga większego refaktoru przed publikacją
 

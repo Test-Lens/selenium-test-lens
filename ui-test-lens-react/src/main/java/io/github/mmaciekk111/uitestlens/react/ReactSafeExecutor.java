@@ -3,7 +3,6 @@ package io.github.mmaciekk111.uitestlens.react;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import io.github.mmaciekk111.uitestlens.JsOverlayDebug;
 
 import java.time.Duration;
 import java.util.function.Function;
@@ -18,14 +17,14 @@ import java.util.function.Function;
 public class ReactSafeExecutor {
 
     private final WebDriver driver;
-    private final JsOverlayDebug overlay; // opcjonalne – do HUD + highlight
+    private final ReactOverlaySupport overlay; // opcjonalne – do HUD + highlight
     private final ReactSelectHelper reactSelect;
     private final int maxRetries;
     private final Duration retryDelay;
     private final Duration waitPerAttempt;
 
     public ReactSafeExecutor(WebDriver driver,
-                             JsOverlayDebug overlay,
+                             ReactOverlaySupport overlay,
                              int maxRetries,
                              Duration retryDelay,
                              Duration waitPerAttempt) {
@@ -37,7 +36,7 @@ public class ReactSafeExecutor {
         this.waitPerAttempt = waitPerAttempt != null ? waitPerAttempt : Duration.ofSeconds(15);
     }
 
-    public ReactSafeExecutor(WebDriver driver, JsOverlayDebug overlay) {
+    public ReactSafeExecutor(WebDriver driver, ReactOverlaySupport overlay) {
         this(driver, overlay, 3, Duration.ofMillis(200), Duration.ofSeconds(15));
     }
 

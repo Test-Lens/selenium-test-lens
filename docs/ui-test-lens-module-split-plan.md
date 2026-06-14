@@ -14,8 +14,9 @@ Current child modules:
 | ------ | ---------------------- |
 | `ui-test-lens-core` | Selenium-free logging/event model, log exporters, and the neutral `BrowserScriptExecutor` contract. |
 | `ui-test-lens-overlay` | Runtime JS resources, overlay runtime bridge/loaders, `OverlayRootManager`, `HudPanel`, `ApiOverlayPanel`, and overlay config/enums. |
-| `ui-test-lens-selenium` | Selenium facade/actions module containing the current facade, Selenium actions, waits, popup helpers, API actions, React helpers, and the Selenium browser executor adapter. |
-| `ui-test-lens` | All-in-one compatibility artifact depending on core, overlay, and selenium modules. |
+| `ui-test-lens-selenium` | Selenium facade/actions module containing the current facade, Selenium actions, waits, popup helpers, API actions, and the Selenium browser executor adapter. |
+| `ui-test-lens-react` | React-safe helpers and `react-select` support. |
+| `ui-test-lens` | All-in-one compatibility artifact depending on core, overlay, selenium, and react modules. |
 
 The main Selenium-facing artifact remains:
 
@@ -38,7 +39,7 @@ The project already has:
 - a logger/event model with text, JSON, and HTML exporters,
 - unit tests for logging, exporters, resource loading, runtime markers, target resolver helpers, PageWaits state, overlay root, popup detector, and blocking overlay helper.
 
-The `ui-test-lens-selenium` child module still mixes Selenium integration, actions, waits, React helpers, and API call actions. Later splits should separate React and optional API overlay concerns without changing public behavior.
+The `ui-test-lens-selenium` child module still mixes Selenium integration, actions, waits, and API call actions. It still depends on `ui-test-lens-react` because the current Selenium facade exposes `ReactSafeExecutor`. Later refactors should separate that facade coupling and optional API overlay concerns without changing public behavior.
 
 `BrowserScriptExecutor` now exists as the neutral browser JavaScript execution contract, with `SeleniumBrowserScriptExecutor` as the Selenium adapter in `ui-test-lens-selenium`. Runtime bridge loaders, `HudPanel`, and `ApiOverlayPanel` can call this contract directly while existing Selenium-facing methods remain available.
 
@@ -55,8 +56,8 @@ docs/ui-test-lens-module-boundaries.md
 | `ui-test-lens-parent` | Parent POM, dependency management, plugin management, common version properties. | None at runtime. | No runtime artifact. |
 | `ui-test-lens-core` | Logger/event model, log exporters, and neutral `BrowserScriptExecutor`. | JDK only for production. | Yes. |
 | `ui-test-lens-overlay` | Runtime JS resources and overlay bridge abstractions for HUD, highlight, wait HUD, type hint, scroll arrow, assertion badges, API overlay panel, and overlay root. | `ui-test-lens-core`; currently also Selenium for WebDriver compatibility constructors. | Yes. |
-| `ui-test-lens-selenium` | Current Selenium facade and integrations: `JsOverlayDebug`, waits, actions, guards, popup/blocking overlay helpers, target resolver. | `ui-test-lens-core`, `ui-test-lens-overlay`, `selenium-java`. | Yes. |
-| `ui-test-lens-react` | React/SPA retry helpers and `react-select` support. | `ui-test-lens-selenium`, possibly `ui-test-lens-overlay` and `ui-test-lens-core`. | Yes. |
+| `ui-test-lens-selenium` | Current Selenium facade and integrations: `JsOverlayDebug`, waits, actions, guards, popup/blocking overlay helpers, target resolver. | `ui-test-lens-core`, `ui-test-lens-overlay`, `ui-test-lens-react`, `selenium-java`. | Yes. |
+| `ui-test-lens-react` | React/SPA retry helpers and `react-select` support. | `ui-test-lens-overlay`, Selenium. | Yes. |
 | `ui-test-lens-examples` | Examples, private adapter examples, sample tests, old `OverlayContentAssertions.java.example`. | Test/example scope dependencies only. | Usually no. |
 
 Later optional modules:
@@ -162,6 +163,7 @@ Dependencies:
 
 - `ui-test-lens-core`,
 - `ui-test-lens-overlay`,
+- `ui-test-lens-react` while `JsOverlayDebug.reactSafe()` exposes `ReactSafeExecutor`,
 - `org.seleniumhq.selenium:selenium-java`.
 
 ### `ui-test-lens-react`
@@ -174,12 +176,12 @@ Should contain:
 
 Dependencies:
 
-- `ui-test-lens-selenium`,
-- optionally `ui-test-lens-overlay` and `ui-test-lens-core`.
+- `ui-test-lens-overlay`,
+- Selenium.
 
 Blocker:
 
-- `ReactSafeExecutor` currently depends on `JsOverlayDebug`. That should be replaced by smaller interfaces such as `StepReporter`, `ElementHighlighter`, or a Selenium facade adapter before the module boundary is clean.
+- `JsOverlayDebug` currently exposes `ReactSafeExecutor`, so `ui-test-lens-selenium` still depends on `ui-test-lens-react`. A future facade cleanup should hide that behind smaller interfaces or an adapter.
 
 ### `ui-test-lens-examples`
 
@@ -228,8 +230,8 @@ Should not be a runtime dependency of published modules.
 | `core/logging/export/*` | `core.logging.export` | `ui-test-lens-core` | Text/JSON/HTML exporters are JDK-only. | None. |
 | `hud/HudPanel` | `hud` | `ui-test-lens-overlay` after executor abstraction; otherwise `ui-test-lens-selenium` | HUD bridge into browser runtime. | Stores `BrowserScriptExecutor`; existing WebDriver constructor delegates through Selenium adapter. |
 | `hud/HudPosition` | `hud` | `ui-test-lens-core` or `ui-test-lens-overlay` | Simple enum used by config. | Placement affects `OverlayConfig` module. |
-| `react/ReactSafeExecutor` | `react` | `ui-test-lens-react` | React/SPA retry facade. | Selenium and direct `JsOverlayDebug` dependency. |
-| `react/ReactSelectHelper` | `react` | `ui-test-lens-react` | React-select helper. | Selenium and `JsOverlayDebug`. |
+| `react/ReactSafeExecutor` | `react` | `ui-test-lens-react` | React/SPA retry facade. | Selenium and `ReactOverlaySupport`. |
+| `react/ReactSelectHelper` | `react` | `ui-test-lens-react` | React-select helper. | Selenium and `ReactOverlaySupport`. |
 | `scroll/ScrollElementEdge` | `scroll` | `ui-test-lens-core` or `ui-test-lens-overlay` | Neutral enum for scroll visual behavior. | None. |
 | `scroll/ScrollViewportEdge` | `scroll` | `ui-test-lens-core` or `ui-test-lens-overlay` | Neutral enum for scroll visual behavior. | None. |
 | `utils/JsResources` | `utils` | `ui-test-lens-core` or `ui-test-lens-overlay` | JDK-only classpath resource loader. | Semantic ownership depends on whether only runtime scripts use it. |
@@ -250,7 +252,7 @@ Should not be a runtime dependency of published modules.
 - `ApiOverlayPanel` still requires Selenium execution and should not move to pure core.
 - `ApiOverlayJs` is JDK-only but API-overlay-specific; keeping it in first overlay module is acceptable until `ui-test-lens-api-overlay` exists.
 - `JsOverlayDebug` should remain in `ui-test-lens-selenium` as the compatibility facade.
-- `ReactSafeExecutor` and `ReactSelectHelper` depend directly on `JsOverlayDebug`; they need small interfaces before `ui-test-lens-react` is clean.
+- `ReactSafeExecutor` and `ReactSelectHelper` now live in `ui-test-lens-react` and use `ReactOverlaySupport` instead of directly importing `JsOverlayDebug`.
 - `BlockingOverlayHelper` and `PopupDetector` depend on `HighlightActions`; this keeps heuristics tied to Selenium action/overlay behavior.
 - `BrowserScriptExecutor` exists, but adoption is partial.
 - Current `ScriptExecutor` is empty and should be removed or replaced in a separate cleanup.
@@ -386,6 +388,8 @@ Extract UI Test Lens Selenium module
 ```
 
 ### 6. Extract `ui-test-lens-react`
+
+Status: done as a separate Maven module. `ReactSafeExecutor`, `ReactSelectHelper`, `ReactOverlaySupport`, and the React package metadata moved to `ui-test-lens-react`. The Selenium facade still depends on this module because `JsOverlayDebug.reactSafe()` returns `ReactSafeExecutor`.
 
 Scope:
 
