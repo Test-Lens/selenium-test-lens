@@ -60,6 +60,7 @@ Current artifact usage matrix:
 - Configurable blocking overlay policy: `selenium.overlay.OverlayPolicy`, `OverlayHandler`, `OverlayAction`, and `OverlayPolicyExecutor`.
 - Selenium actionability checks: `selenium.actionability.ActionabilityChecker`, options, reports, status/failure enums, and Selenium-only page query scripts.
 - Retryable locator API: `selenium.locator.UiLocator`, options, resolver, result/status/failure models, and Selenium retry handling.
+- Retryable web assertions: `selenium.assertions.UiExpect`, assertion options/results/errors, and assertion event reporting.
 - `SeleniumBrowserScriptExecutor`, `OverlayBrowserScriptExecutors`, and `SeleniumOverlayFactory` are in `ui-test-lens-selenium`.
 - React-safe call sites moved to `ReactSupport` in `ui-test-lens-react`.
 - React-aware actionability checks live in `ui-test-lens-react` and layer on top of Selenium actionability.
@@ -88,4 +89,4 @@ Current artifact usage matrix:
 2. Keep Selenium actions, waits, popup heuristics, and the current facade inside the Selenium boundary.
 3. Continue moving bridge callers toward `BrowserScriptExecutor` where this does not change behavior.
 4. Leave API overlay as either an overlay sub-area or a future optional module until ownership is explicit.
-5. Build web-first assertions on top of `UiLocator` without moving assertion framework dependencies into production code.
+5. Build business assertions on top of `UiExpect` without moving assertion framework dependencies into production code.

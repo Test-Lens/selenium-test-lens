@@ -27,6 +27,8 @@ import io.github.mmaciekk111.uitestlens.selenium.SeleniumOverlayFactory;
 import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityChecker;
 import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityOptions;
 import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityReport;
+import io.github.mmaciekk111.uitestlens.selenium.assertions.UiAssertionOptions;
+import io.github.mmaciekk111.uitestlens.selenium.assertions.UiExpect;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocator;
 import io.github.mmaciekk111.uitestlens.selenium.locator.UiLocatorOptions;
 import io.github.mmaciekk111.uitestlens.selenium.overlay.OverlayPolicy;
@@ -174,6 +176,22 @@ public final class JsOverlayDebug {
 
     public UiLocator getByTestId(String testId, String label) {
         return locator(By.cssSelector("[data-testid='" + cssString(testId) + "']"), label);
+    }
+
+    public UiExpect expect(By by) {
+        return expect(locator(by));
+    }
+
+    public UiExpect expect(By by, String label) {
+        return expect(locator(by, label));
+    }
+
+    public UiExpect expect(UiLocator locator) {
+        return expect(locator, UiAssertionOptions.defaults());
+    }
+
+    public UiExpect expect(UiLocator locator, UiAssertionOptions options) {
+        return new UiExpect(locator, options, logger);
     }
 
     private ActionabilityChecker actionabilityChecker() {

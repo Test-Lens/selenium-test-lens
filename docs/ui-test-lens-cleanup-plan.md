@@ -461,6 +461,14 @@ Locator trzyma `By` i opis zamiast dlugo przechowywac `WebElement`. Akcje `click
 
 Pelne web-first assertions oraz bogatsze factory typu `getByRole`, `getByLabel`, `getByText` zostaja na kolejny etap.
 
+## Retryable web assertions
+
+Piaty punkt roadmapy Playwright-inspired reliability zostal zaimplementowany po stronie `ui-test-lens-selenium`. Dodano `UiExpect`, `UiAssertionOptions`, `UiAssertionResult`, status/failure enumy, `UiAssertionError` oraz `UiAssertionReporter`.
+
+Retryable assertions bazuja na `UiLocator`, czyli trzymaja `By` i resolve'uja swiezy element przy probach asercji zamiast polegac na dlugowiecznym `WebElement`. Pierwszy zakres obejmuje `toBeVisible`, `toBeHidden`, `toBeEnabled`, `toBeDisabled`, `toHaveText`, `toContainText`, `toHaveValue` i `toContainValue`.
+
+`JsOverlayDebug.expect(By)`, `expect(By, String)`, `expect(UiLocator)` i `expect(UiLocator, UiAssertionOptions)` sa publicznym entrypointem. `UiLocator.expect()` jest wygodnym skrotem. Istniejace `AssertActions` pozostaja bez zmian dla dotychczasowych visual/grouped assertions. Business assertions DSL zostaje na kolejny etap.
+
 ## Preferowany styl nazw klas Java
 
 Docelowy styl nazw publicznych:

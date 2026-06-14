@@ -283,7 +283,27 @@ String toast = overlay.getByTestId("toast").textContent();
 boolean visible = overlay.getByTestId("modal").isVisible();
 ```
 
-Initial methods include `locator(By)`, `getByTestId(...)`, `click`, `fill`, `clear`, `pressEnter`, `textContent`, `isVisible`, `isEnabled`, `resolve`, and `checkActionability`. Click delegates to the existing smart click/overlay policy path; fill and reads resolve fresh elements directly. Web-first assertions and richer `getByRole`/`getByLabel`/`getByText` helpers are planned later.
+Initial methods include `locator(By)`, `getByTestId(...)`, `click`, `fill`, `clear`, `pressEnter`, `textContent`, `isVisible`, `isEnabled`, `resolve`, and `checkActionability`. Click delegates to the existing smart click/overlay policy path; fill and reads resolve fresh elements directly. Richer `getByRole`/`getByLabel`/`getByText` helpers are planned later.
+
+## Retryable Web Assertions
+
+`UiExpect` adds Playwright-like web assertions on top of `UiLocator`. Assertions resolve a fresh element on every attempt and retry until the configured timeout, which reduces flaky checks after Selenium actions, React rerenders, and delayed UI updates.
+
+```java
+overlay.expect(By.cssSelector("[data-testid='toast']"))
+        .toHaveText("Saved");
+
+overlay.expect(overlay.getByTestId("save-button"))
+        .toBeEnabled();
+
+overlay.expect(overlay.getByTestId("modal"))
+        .toBeVisible();
+
+overlay.expect(overlay.getByTestId("toast"))
+        .toContainText("Saved");
+```
+
+The initial assertion set covers visible/hidden, enabled/disabled, exact text, contains text, value, and contains value. Failures include the locator description, expected/actual previews, attempts, elapsed time, and a reason. Value assertions intentionally log value lengths instead of full input values. Existing `AssertActions` and grouped visual assertions remain available for the older assertion flows; business assertions are a later roadmap item.
 
 ## Logging And Event Bus
 

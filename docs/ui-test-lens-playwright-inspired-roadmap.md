@@ -176,6 +176,8 @@ Assertions should:
 
 The first implementation should stay Selenium-oriented and avoid introducing a test framework dependency into production code.
 
+Initial implementation status: `ui-test-lens-selenium` now provides `UiExpect`, `UiAssertionOptions`, `UiAssertionResult`, `UiAssertionError`, and assertion events. The first supported assertions are visible/hidden, enabled/disabled, exact text, contains text, value, and contains value. They reuse `UiLocator` so each retry resolves the element again instead of keeping a long-lived `WebElement`.
+
 ### 2.2 Business assertions
 
 Business assertions should make reports readable for QA and business reviewers, not only engineers reading selectors.

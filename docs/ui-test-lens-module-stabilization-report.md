@@ -118,7 +118,7 @@ Dependency tree checks:
 ## Next recommended steps
 
 1. Use [`ui-test-lens-playwright-inspired-roadmap.md`](ui-test-lens-playwright-inspired-roadmap.md) to drive the next reliability and diagnostics epics.
-2. Add web-first assertions on top of `UiLocator`.
+2. Add business assertions on top of retryable `UiExpect`.
 3. Add richer locator factories such as getByRole/getByLabel/getByText.
 4. Add Maven Wrapper.
 5. Add publication metadata once the public API is ready.

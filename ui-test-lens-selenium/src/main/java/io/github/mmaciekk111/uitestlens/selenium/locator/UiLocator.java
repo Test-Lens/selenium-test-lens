@@ -7,6 +7,8 @@ import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensStatus;
 import io.github.mmaciekk111.uitestlens.selenium.actionability.ActionabilityReport;
+import io.github.mmaciekk111.uitestlens.selenium.assertions.UiAssertionOptions;
+import io.github.mmaciekk111.uitestlens.selenium.assertions.UiExpect;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.ElementNotInteractableException;
@@ -87,6 +89,10 @@ public final class UiLocator {
 
     public boolean isEnabled() {
         return read("isEnabled", WebElement::isEnabled);
+    }
+
+    public UiExpect expect() {
+        return new UiExpect(this, UiAssertionOptions.defaults(), logger);
     }
 
     public WebElement resolve() {
