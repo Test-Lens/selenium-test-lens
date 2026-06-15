@@ -27,6 +27,22 @@
     return value || '-';
   }
 
+  function escapeHtml(value) {
+    return String(valueOrDash(value))
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function metadataRowMarkup(label, value, extraClass) {
+    return '<div class="stl-hud-meta-row ' + extraClass + '" style="display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:6px;align-items:start;line-height:1.18;margin:0;">'
+      + '<span class="stl-hud-meta-label" style="color:var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78));font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;line-height:1.18;white-space:nowrap;">' + label + '</span>'
+      + '<span class="stl-hud-meta-value" style="min-width:0;color:var(--ui-test-lens-hud-fg, #ffffff);font-weight:700;font-size:11px;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;">' + escapeHtml(value) + '</span>'
+      + '</div>';
+  }
+
   var DEFAULT_THEME = {
     background: 'rgba(0, 0, 0, 0.75)',
     foreground: '#ffffff',
@@ -127,7 +143,7 @@
 
   function brandIconMarkup() {
     return '' +
-      '<svg class="stl-hud-brand-icon-svg" width="18" height="18" viewBox="0 0 32 32" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">' +
+      '<svg class="stl-hud-brand-icon-svg" width="16" height="16" viewBox="0 0 32 32" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">' +
       '<path d="M5 12V7.5C5 6.1 6.1 5 7.5 5H12" fill="none" stroke="var(--ui-test-lens-hud-fg, #ffffff)" stroke-width="2.4" stroke-linecap="round"/>' +
       '<path d="M20 5h4.5C25.9 5 27 6.1 27 7.5V12" fill="none" stroke="var(--ui-test-lens-hud-accent, #4ca3ff)" stroke-width="2.4" stroke-linecap="round"/>' +
       '<path d="M27 20v4.5c0 1.4-1.1 2.5-2.5 2.5H20" fill="none" stroke="var(--ui-test-lens-hud-accent, #4ca3ff)" stroke-width="2.4" stroke-linecap="round"/>' +
@@ -171,14 +187,14 @@
     if (!sideRail) {
       sideRail = document.createElement('div');
       sideRail.className = 'stl-hud-side-rail';
-      sideRail.style.flex = '0 0 28px';
-      sideRail.style.width = '28px';
+      sideRail.style.flex = '0 0 24px';
+      sideRail.style.width = '24px';
       sideRail.style.boxSizing = 'border-box';
       sideRail.style.display = 'flex';
       sideRail.style.alignItems = 'center';
       sideRail.style.justifyContent = 'center';
-      sideRail.style.padding = '4px 0';
-      sideRail.style.marginRight = 'var(--ui-test-lens-hud-gap, 6px)';
+      sideRail.style.padding = '2px 0';
+      sideRail.style.marginRight = '5px';
       sideRail.style.borderRight = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
       sideRail.style.color = 'var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78))';
       shell.insertBefore(sideRail, shell.firstChild);
@@ -191,11 +207,11 @@
       railBrand.style.display = 'inline-flex';
       railBrand.style.alignItems = 'center';
       railBrand.style.justifyContent = 'center';
-      railBrand.style.gap = '5px';
+      railBrand.style.gap = '4px';
       railBrand.style.whiteSpace = 'nowrap';
       railBrand.style.transform = 'rotate(-90deg)';
       railBrand.style.transformOrigin = 'center';
-      railBrand.style.opacity = '0.78';
+      railBrand.style.opacity = '0.82';
       railBrand.style.color = 'var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78))';
       sideRail.appendChild(railBrand);
     }
@@ -207,8 +223,8 @@
       brandIcon.style.display = 'inline-flex';
       brandIcon.style.alignItems = 'center';
       brandIcon.style.justifyContent = 'center';
-      brandIcon.style.width = '18px';
-      brandIcon.style.height = '18px';
+      brandIcon.style.width = '16px';
+      brandIcon.style.height = '16px';
       brandIcon.innerHTML = brandIconMarkup();
       railBrand.insertBefore(brandIcon, railBrand.firstChild);
     }
@@ -218,10 +234,10 @@
       railText = document.createElement('span');
       railText.className = 'stl-hud-side-rail-text';
       railText.textContent = 'TEST LENS';
-      railText.style.fontSize = '9px';
+      railText.style.fontSize = '8.5px';
       railText.style.lineHeight = '1';
       railText.style.fontWeight = '700';
-      railText.style.letterSpacing = '0.08em';
+      railText.style.letterSpacing = '0.07em';
       railBrand.appendChild(railText);
     }
 
@@ -407,8 +423,7 @@
     title.style.lineHeight = '1.18';
     title.style.margin = '0';
     title.style.padding = '0';
-    title.innerHTML = '<span style="display:block;color:var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78));font-size:9px;text-transform:uppercase;letter-spacing:.04em;line-height:1;">Test</span>'
-      + '<span style="display:block;font-weight:700;font-size:11px;line-height:1.2;word-break:break-word;">' + valueOrDash(config.testName) + '</span>';
+    title.innerHTML = metadataRowMarkup('TEST', config.testName, 'stl-hud-test-row');
     placeAfter(structure.main, title, null);
 
     var pipeline = panel.querySelector('#selenium-hud-pipeline');
@@ -431,11 +446,11 @@
     }
     step.style.marginTop = '4px';
     step.style.lineHeight = '1.2';
-    step.style.fontSize = '10px';
+    step.style.fontSize = '11px';
     step.style.wordBreak = 'break-word';
     placeAfter(structure.main, step, pipeline);
     if (!step.innerHTML) {
-      step.innerHTML = '<span style="color:var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78));font-size:9px;text-transform:uppercase;letter-spacing:.04em;">Step</span> <span>-</span>';
+      step.innerHTML = metadataRowMarkup('STEP', '-', 'stl-hud-step-row');
     }
 
     ensureLogs(panel);
@@ -452,7 +467,7 @@
     if (!step) {
       return;
     }
-    step.innerHTML = '<span style="color:var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78));font-size:9px;text-transform:uppercase;letter-spacing:.04em;">Step</span> <span>' + valueOrDash(stepDescription) + '</span>';
+    step.innerHTML = metadataRowMarkup('STEP', stepDescription, 'stl-hud-step-row');
   }
 
   function log(message, level, timestamp) {

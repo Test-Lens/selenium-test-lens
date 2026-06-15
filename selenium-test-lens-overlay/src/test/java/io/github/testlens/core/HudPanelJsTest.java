@@ -40,11 +40,28 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("stl-hud-rail-brand"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-side-rail-text"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-main"));
+        assertTrue(HudPanelJs.INIT.contains("sideRail.style.flex = '0 0 24px'"));
+        assertTrue(HudPanelJs.INIT.contains("sideRail.style.width = '24px'"));
+        assertTrue(HudPanelJs.INIT.contains("railBrand.style.alignItems = 'center'"));
+        assertTrue(HudPanelJs.INIT.contains("railBrand.style.justifyContent = 'center'"));
         assertTrue(HudPanelJs.INIT.contains("TEST LENS"));
-        assertTrue(HudPanelJs.INIT.contains("<svg class=\"stl-hud-brand-icon-svg\""));
+        assertTrue(HudPanelJs.INIT.contains("<svg class=\"stl-hud-brand-icon-svg\" width=\"16\" height=\"16\""));
         assertTrue(HudPanelJs.INIT.contains("railBrand.insertBefore(brandIcon, railBrand.firstChild)"));
         assertFalse(HudPanelJs.INIT.contains("Selenium/WebDriver"));
         assertFalse(HudPanelJs.INIT.contains("Test Lens"));
+    }
+
+    @Test
+    void initContainsCompactMetadataRows() {
+        assertTrue(HudPanelJs.INIT.contains("function metadataRowMarkup"));
+        assertTrue(HudPanelJs.INIT.contains("stl-hud-meta-row"));
+        assertTrue(HudPanelJs.INIT.contains("stl-hud-meta-label"));
+        assertTrue(HudPanelJs.INIT.contains("stl-hud-meta-value"));
+        assertTrue(HudPanelJs.INIT.contains("grid-template-columns:44px minmax(0,1fr)"));
+        assertTrue(HudPanelJs.INIT.contains("metadataRowMarkup('TEST', config.testName, 'stl-hud-test-row')"));
+        assertTrue(HudPanelJs.INIT.contains("metadataRowMarkup('STEP', stepDescription, 'stl-hud-step-row')"));
+        assertFalse(HudPanelJs.INIT.contains(">Test</span>"));
+        assertFalse(HudPanelJs.INIT.contains(">Step</span> <span>"));
     }
 
     @Test
@@ -227,6 +244,14 @@ class HudPanelJsTest {
                 assert(root.querySelector('.stl-hud-brand-icon').parentNode === root.querySelector('.stl-hud-rail-brand'), 'brand icon is not in rail lockup');
                 assert(!root.querySelector('.stl-hud-header'), 'top header should not be rendered');
                 assert(root.querySelector('.stl-hud-side-rail-text').textContent === 'TEST LENS', 'missing rail text');
+                assert(root.querySelector('.stl-hud-side-rail').style.width === '24px', 'side rail width was not refined');
+                assert(root.querySelector('.stl-hud-rail-brand').style.transform === 'rotate(-90deg)', 'rail brand is not rotated');
+                assert(root.querySelector('#selenium-hud-test').innerHTML.indexOf('stl-hud-meta-row stl-hud-test-row') >= 0, 'test row missing');
+                assert(root.querySelector('#selenium-hud-test').innerHTML.indexOf('>TEST<') >= 0, 'test label missing');
+                assert(root.querySelector('#selenium-hud-test').innerHTML.indexOf('>Checkout<') >= 0, 'test value missing');
+                assert(root.querySelector('#selenium-hud-step').innerHTML.indexOf('stl-hud-meta-row stl-hud-step-row') >= 0, 'step row missing');
+                assert(root.querySelector('#selenium-hud-step').innerHTML.indexOf('>STEP<') >= 0, 'step label missing');
+                assert(root.querySelector('#selenium-hud-step').innerHTML.indexOf('>Pay<') >= 0, 'step value missing');
                 assert(root.querySelector('#selenium-hud-step').parentNode === root.querySelector('.stl-hud-main'), 'legacy step was not migrated');
                 assert(root.querySelector('#selenium-hud-logs').parentNode === root.querySelector('.stl-hud-main'), 'logs are not in main');
                 assert(countByClass(root, 'stl-hud-side-rail') === 1, 'duplicated side rail');
