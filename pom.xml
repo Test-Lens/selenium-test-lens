@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.mmaciekk111</groupId>
-    <artifactId>ui-test-lens-parent</artifactId>
+    <groupId>io.github.testlens</groupId>
+    <artifactId>selenium-test-lens-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Selenium Test Lens Parent</name>
@@ -40,12 +40,12 @@
     </issueManagement>
 
     <modules>
-        <module>ui-test-lens-core</module>
-        <module>ui-test-lens-overlay</module>
-        <module>ui-test-lens-selenium</module>
-        <module>ui-test-lens-react</module>
-        <module>ui-test-lens</module>
-        <module>ui-test-lens-examples</module>
+        <module>selenium-test-lens-core</module>
+        <module>selenium-test-lens-overlay</module>
+        <module>selenium-test-lens-selenium</module>
+        <module>selenium-test-lens-react</module>
+        <module>selenium-test-lens</module>
+        <module>selenium-test-lens-examples</module>
     </modules>
 
     <properties>

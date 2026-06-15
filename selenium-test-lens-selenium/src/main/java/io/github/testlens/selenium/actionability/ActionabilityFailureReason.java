@@ -1,0 +1,16 @@
+package io.github.testlens.selenium.actionability;
+
+public enum ActionabilityFailureReason {
+    ELEMENT_NOT_ATTACHED,
+    ELEMENT_NOT_VISIBLE,
+    ELEMENT_NOT_ENABLED,
+    ELEMENT_NOT_STABLE,
+    ELEMENT_OUTSIDE_VIEWPORT,
+    ELEMENT_COVERED,
+    CLICK_POINT_NOT_RECEIVED,
+    BLOCKING_OVERLAY_DETECTED,
+    JAVASCRIPT_ERROR,
+    STALE_ELEMENT,
+    TIMEOUT,
+    UNKNOWN
+}

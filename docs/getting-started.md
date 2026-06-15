@@ -18,18 +18,18 @@ mvn -q -DskipTests install
 
 | Use case | Artifact |
 |---|---|
-| All-in-one dependency bundle | `ui-test-lens` |
-| Selenium locators, assertions, evidence, auth, network | `ui-test-lens-selenium` |
-| Runtime overlay resources only | `ui-test-lens-overlay` |
-| Logging and trace model only | `ui-test-lens-core` |
-| React-specific helpers | `ui-test-lens-react` |
+| All-in-one dependency bundle | `selenium-test-lens` |
+| Selenium locators, assertions, evidence, auth, network | `selenium-test-lens-selenium` |
+| Runtime overlay resources only | `selenium-test-lens-overlay` |
+| Logging and trace model only | `selenium-test-lens-core` |
+| React-specific helpers | `selenium-test-lens-react` |
 
 All-in-one dependency:
 
 ```xml
 <dependency>
-    <groupId>io.github.mmaciekk111</groupId>
-    <artifactId>ui-test-lens</artifactId>
+    <groupId>io.github.testlens</groupId>
+    <artifactId>selenium-test-lens</artifactId>
     <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -37,7 +37,7 @@ All-in-one dependency:
 ## First Selenium overlay
 
 ```java
-import io.github.mmaciekk111.uitestlens.JsOverlayDebug;
+import io.github.testlens.JsOverlayDebug;
 import org.openqa.selenium.WebDriver;
 
 WebDriver driver = createDriver();
@@ -55,9 +55,9 @@ overlay.expect(overlay.getByTestId("toast"))
 ## HUD configuration
 
 ```java
-import io.github.mmaciekk111.uitestlens.OverlayConfig;
-import io.github.mmaciekk111.uitestlens.hud.HudPosition;
-import io.github.mmaciekk111.uitestlens.hud.HudThemePreset;
+import io.github.testlens.OverlayConfig;
+import io.github.testlens.hud.HudPosition;
+import io.github.testlens.hud.HudThemePreset;
 
 OverlayConfig config = OverlayConfig.builder()
         .hudPosition(HudPosition.TOP_RIGHT)
@@ -79,10 +79,10 @@ mvn -q -DskipTests compile
 Selected module checks:
 
 ```powershell
-mvn -q -pl ui-test-lens-overlay -am test
-mvn -q -pl ui-test-lens-selenium -am test
-mvn -q -pl ui-test-lens-examples -am test
-mvn -q -pl ui-test-lens -am test
+mvn -q -pl selenium-test-lens-overlay -am test
+mvn -q -pl selenium-test-lens-selenium -am test
+mvn -q -pl selenium-test-lens-examples -am test
+mvn -q -pl selenium-test-lens -am test
 ```
 
-The `ui-test-lens-examples` module contains documentation-style examples. Selenium/WebDriver-dependent examples are disabled and intended to compile and document API usage, not to run without a real application and driver.
+The `selenium-test-lens-examples` module contains documentation-style examples. Selenium/WebDriver-dependent examples are disabled and intended to compile and document API usage, not to run without a real application and driver.

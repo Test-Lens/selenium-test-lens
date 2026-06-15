@@ -1,6 +1,6 @@
 # Visual overlay and HUD
 
-Selenium Test Lens includes runtime JavaScript resources for visual debugging. These resources live in `ui-test-lens-overlay` and remain independent of Selenium.
+Selenium Test Lens includes runtime JavaScript resources for visual debugging. These resources live in `selenium-test-lens-overlay` and remain independent of Selenium.
 
 ## Scope
 

@@ -9,7 +9,7 @@ Selenium Test Lens is pre-1.0. This guide describes the current state, not a Mav
 | Historical concept | Current Selenium Test Lens concept |
 |---|---|
 | historical helper codebase | Selenium Test Lens |
-| historical helper package | `io.github.mmaciekk111.uitestlens` |
+| historical helper package | `io.github.testlens` |
 | old one-module helper layout | multi-module Maven layout |
 | Selenium-only helper | WebDriver reliability and diagnostics layer |
 | hardcoded overlay/popup handling | configurable `OverlayPolicy` |
@@ -26,8 +26,8 @@ All-in-one:
 
 ```xml
 <dependency>
-    <groupId>io.github.mmaciekk111</groupId>
-    <artifactId>ui-test-lens</artifactId>
+    <groupId>io.github.testlens</groupId>
+    <artifactId>selenium-test-lens</artifactId>
     <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -36,8 +36,8 @@ Selenium module:
 
 ```xml
 <dependency>
-    <groupId>io.github.mmaciekk111</groupId>
-    <artifactId>ui-test-lens-selenium</artifactId>
+    <groupId>io.github.testlens</groupId>
+    <artifactId>selenium-test-lens-selenium</artifactId>
     <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -49,20 +49,20 @@ Maven Central publishing is not configured yet. Use local builds, for example `m
 Current package root:
 
 ```java
-io.github.mmaciekk111.uitestlens
+io.github.testlens
 ```
 
 Common import:
 
 ```java
-import io.github.mmaciekk111.uitestlens.JsOverlayDebug;
+import io.github.testlens.JsOverlayDebug;
 ```
 
 HUD theme classes live under the HUD package:
 
 ```java
-import io.github.mmaciekk111.uitestlens.hud.HudTheme;
-import io.github.mmaciekk111.uitestlens.hud.HudThemePreset;
+import io.github.testlens.hud.HudTheme;
+import io.github.testlens.hud.HudThemePreset;
 ```
 
 ## Common replacements
@@ -112,7 +112,7 @@ overlay.exportTraceHtml(Path.of("target/ui-test-lens/checkout-flow.html"));
 
 - The project is still pre-1.0.
 - Maven Central release metadata is not configured.
-- The current package root is `io.github.mmaciekk111.uitestlens`.
+- The current package root is `io.github.testlens`.
 - Some historical runtime aliases may still exist for browser compatibility.
 - `getByRole` is not a full accessibility engine.
 - network diagnostics are passive and do not provide mocking/interception.

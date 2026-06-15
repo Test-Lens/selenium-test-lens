@@ -2,7 +2,7 @@
 
 This is a concise public API map for Selenium Test Lens 0.1.
 
-Current Java package names and Maven artifactIds still use the historical `uitestlens` / `ui-test-lens` names. They are retained for compatibility in this pass.
+Java packages live under `io.github.testlens`, and Maven artifacts use the `io.github.testlens:selenium-test-lens-*` coordinate family. Default report and evidence output paths retain `target/ui-test-lens...` for local artifact compatibility.
 
 ## Overlay configuration
 
@@ -258,4 +258,4 @@ logs.exportJson(Path.of("target/ui-test-lens-report/logs.json"));
 
 ## React support
 
-React-specific helpers live in `ui-test-lens-react`, not in the Selenium module. `ui-test-lens-selenium` does not depend on React.
+React-specific helpers live in `selenium-test-lens-react`, not in the Selenium module. `selenium-test-lens-selenium` does not depend on React.

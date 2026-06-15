@@ -1,0 +1,26 @@
+package io.github.testlens.core;
+
+import io.github.testlens.core.browser.BrowserScriptExecutor;
+import io.github.testlens.utils.JsResources;
+
+public final class TypeHintJs {
+
+    public static final String INIT =
+            UiTestLensRuntimeNames.ensureNamespaceScript() +
+                    JsResources.readFirstExisting(
+                            UiTestLensRuntimeNames.TYPE_HINT_RESOURCE,
+                            UiTestLensRuntimeNames.LEGACY_TYPE_HINT_RESOURCE
+                    ) +
+                    bridgeScript();
+
+    private TypeHintJs() {}
+
+    public static void inject(BrowserScriptExecutor executor) {
+        executor.execute(INIT);
+    }
+
+    public static String bridgeScript() {
+        return UiTestLensRuntimeNames.ensureNamespaceScript() +
+                "var typeHint = window.__uiTestLens.modules.typeHint;";
+    }
+}

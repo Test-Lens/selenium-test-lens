@@ -1,6 +1,6 @@
 # Examples
 
-This page collects short usage snippets. Selenium/WebDriver-dependent examples in `ui-test-lens-examples` are disabled and documentation-only unless a real application and `WebDriver` are supplied.
+This page collects short usage snippets. Selenium/WebDriver-dependent examples in `selenium-test-lens-examples` are disabled and documentation-only unless a real application and `WebDriver` are supplied.
 
 ## Default HUD
 
@@ -66,7 +66,7 @@ OverlayConfig config = OverlayConfig.builder()
 JsOverlayDebug overlay = new JsOverlayDebug(driver, config);
 ```
 
-See also `HudThemeExampleTest` in `ui-test-lens-examples`.
+See also `HudThemeExampleTest` in `selenium-test-lens-examples`.
 
 ## Locator helpers
 

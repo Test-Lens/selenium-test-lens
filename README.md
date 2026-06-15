@@ -6,7 +6,7 @@ The project is currently `0.1.0-SNAPSHOT` and pre-1.0. Public APIs are usable, b
 
 Repository: https://github.com/test-lens/selenium-test-lens
 
-Current Java package names, Maven groupId, artifactIds, module directories, and default output paths still use the historical `uitestlens` / `ui-test-lens` names. They are intentionally retained in this pass to avoid breaking consumers.
+Maven coordinates use `io.github.testlens`, module artifactIds use the `selenium-test-lens-*` naming scheme, and public Java packages live under `io.github.testlens`. Default report and evidence output paths still use `target/ui-test-lens...` for compatibility with existing local and CI artifacts.
 
 ## Requirements
 
@@ -22,8 +22,8 @@ All-in-one dependency:
 
 ```xml
 <dependency>
-    <groupId>io.github.mmaciekk111</groupId>
-    <artifactId>ui-test-lens</artifactId>
+    <groupId>io.github.testlens</groupId>
+    <artifactId>selenium-test-lens</artifactId>
     <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -32,8 +32,8 @@ Selenium-only layer:
 
 ```xml
 <dependency>
-    <groupId>io.github.mmaciekk111</groupId>
-    <artifactId>ui-test-lens-selenium</artifactId>
+    <groupId>io.github.testlens</groupId>
+    <artifactId>selenium-test-lens-selenium</artifactId>
     <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -41,11 +41,11 @@ Selenium-only layer:
 Minimal usage:
 
 ```java
-import io.github.mmaciekk111.uitestlens.JsOverlayDebug;
-import io.github.mmaciekk111.uitestlens.OverlayConfig;
-import io.github.mmaciekk111.uitestlens.hud.HudPosition;
-import io.github.mmaciekk111.uitestlens.hud.HudTheme;
-import io.github.mmaciekk111.uitestlens.hud.HudThemePreset;
+import io.github.testlens.JsOverlayDebug;
+import io.github.testlens.OverlayConfig;
+import io.github.testlens.hud.HudPosition;
+import io.github.testlens.hud.HudTheme;
+import io.github.testlens.hud.HudThemePreset;
 import org.openqa.selenium.WebDriver;
 
 WebDriver driver = createDriver();
@@ -82,12 +82,12 @@ mvn -q -DskipTests compile
 Module checks:
 
 ```powershell
-mvn -q -pl ui-test-lens-core test
-mvn -q -pl ui-test-lens-overlay -am test
-mvn -q -pl ui-test-lens-selenium -am test
-mvn -q -pl ui-test-lens-react -am test
-mvn -q -pl ui-test-lens-examples -am test
-mvn -q -pl ui-test-lens -am test
+mvn -q -pl selenium-test-lens-core test
+mvn -q -pl selenium-test-lens-overlay -am test
+mvn -q -pl selenium-test-lens-selenium -am test
+mvn -q -pl selenium-test-lens-react -am test
+mvn -q -pl selenium-test-lens-examples -am test
+mvn -q -pl selenium-test-lens -am test
 ```
 
 ## Reports
@@ -130,12 +130,12 @@ curl -F "report=@target/ui-test-lens-report/ui-test-lens-report.zip" https://exa
 
 | Module | Responsibility |
 |---|---|
-| `ui-test-lens-core` | Internal logging, trace/evidence model, JSON/HTML/ZIP report exporters. No Selenium dependency. |
-| `ui-test-lens-overlay` | Runtime JavaScript overlay resources, HUD configuration, visual debugging assets. No Selenium dependency. |
-| `ui-test-lens-selenium` | Selenium facade, locators, assertions, actionability, evidence, auth/session state, network diagnostics. |
-| `ui-test-lens-react` | React-specific support layered on top of Selenium integration. |
-| `ui-test-lens` | All-in-one POM dependency bundle. |
-| `ui-test-lens-examples` | Documentation and compile-check examples. Not intended as a runtime dependency. |
+| `selenium-test-lens-core` | Internal logging, trace/evidence model, JSON/HTML/ZIP report exporters. No Selenium dependency. |
+| `selenium-test-lens-overlay` | Runtime JavaScript overlay resources, HUD configuration, visual debugging assets. No Selenium dependency. |
+| `selenium-test-lens-selenium` | Selenium facade, locators, assertions, actionability, evidence, auth/session state, network diagnostics. |
+| `selenium-test-lens-react` | React-specific support layered on top of Selenium integration. |
+| `selenium-test-lens` | All-in-one POM dependency bundle. |
+| `selenium-test-lens-examples` | Documentation and compile-check examples. Not intended as a runtime dependency. |
 
 ## Documentation
 
