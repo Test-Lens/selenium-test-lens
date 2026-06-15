@@ -26,6 +26,20 @@ class HudPanelJsTest {
     }
 
     @Test
+    void initContainsMinimalBrandingShell() {
+        assertTrue(HudPanelJs.INIT.contains("stl-hud-shell"));
+        assertTrue(HudPanelJs.INIT.contains("stl-hud-header"));
+        assertTrue(HudPanelJs.INIT.contains("stl-hud-brand-icon"));
+        assertTrue(HudPanelJs.INIT.contains("stl-hud-side-rail"));
+        assertTrue(HudPanelJs.INIT.contains("stl-hud-side-rail-text"));
+        assertTrue(HudPanelJs.INIT.contains("stl-hud-main"));
+        assertTrue(HudPanelJs.INIT.contains("TEST LENS"));
+        assertTrue(HudPanelJs.INIT.contains("<svg class=\"stl-hud-brand-icon-svg\""));
+        assertFalse(HudPanelJs.INIT.contains("Selenium/WebDriver"));
+        assertFalse(HudPanelJs.INIT.contains("Test Lens"));
+    }
+
+    @Test
     void bridgeScriptUsesPrimaryHudModule() {
         String script = HudPanelJs.bridgeScript();
 

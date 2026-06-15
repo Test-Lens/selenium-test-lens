@@ -102,8 +102,7 @@
     panel.style.opacity = 'var(--ui-test-lens-hud-opacity, 1)';
     panel.style.border = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
     panel.style.boxSizing = 'border-box';
-    panel.style.display = 'flex';
-    panel.style.flexDirection = 'column';
+    panel.style.display = 'block';
 
     if (maxHeight) {
       setVar(panel, '--ui-test-lens-hud-max-height', maxHeight + 'px');
@@ -128,6 +127,115 @@
     }
 
     panel.setAttribute('data-ui-test-lens-theme', config && config.themeName ? config.themeName : 'custom');
+  }
+
+  function brandIconMarkup() {
+    return '' +
+      '<svg class="stl-hud-brand-icon-svg" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">' +
+      '<path d="M5 12V7.5C5 6.1 6.1 5 7.5 5H12" fill="none" stroke="var(--ui-test-lens-hud-fg, #ffffff)" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<path d="M20 5h4.5C25.9 5 27 6.1 27 7.5V12" fill="none" stroke="var(--ui-test-lens-hud-accent, #4ca3ff)" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<path d="M27 20v4.5c0 1.4-1.1 2.5-2.5 2.5H20" fill="none" stroke="var(--ui-test-lens-hud-accent, #4ca3ff)" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<path d="M12 27H7.5C6.1 27 5 25.9 5 24.5V20" fill="none" stroke="var(--ui-test-lens-hud-fg, #ffffff)" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<circle cx="16" cy="16" r="6.5" fill="none" stroke="var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))" stroke-width="2"/>' +
+      '<circle cx="16" cy="16" r="3.2" fill="var(--ui-test-lens-hud-accent, #4ca3ff)"/>' +
+      '<circle cx="18" cy="13.8" r="1.1" fill="var(--ui-test-lens-hud-fg, #ffffff)"/>' +
+      '</svg>';
+  }
+
+  function ensureStructure(panel) {
+    var shell = panel.querySelector('.stl-hud-shell');
+    if (!shell) {
+      shell = document.createElement('div');
+      shell.className = 'stl-hud-shell';
+      shell.style.display = 'flex';
+      shell.style.alignItems = 'stretch';
+      shell.style.minWidth = '0';
+      shell.style.minHeight = '0';
+      panel.appendChild(shell);
+    }
+
+    var sideRail = shell.querySelector('.stl-hud-side-rail');
+    if (!sideRail) {
+      sideRail = document.createElement('div');
+      sideRail.className = 'stl-hud-side-rail';
+      sideRail.style.flex = '0 0 24px';
+      sideRail.style.width = '24px';
+      sideRail.style.boxSizing = 'border-box';
+      sideRail.style.display = 'flex';
+      sideRail.style.alignItems = 'center';
+      sideRail.style.justifyContent = 'center';
+      sideRail.style.padding = '2px 0';
+      sideRail.style.marginRight = 'var(--ui-test-lens-hud-gap, 6px)';
+      sideRail.style.borderRight = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
+      sideRail.style.color = 'var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78))';
+      shell.insertBefore(sideRail, shell.firstChild);
+    }
+
+    var railText = sideRail.querySelector('.stl-hud-side-rail-text');
+    if (!railText) {
+      railText = document.createElement('div');
+      railText.className = 'stl-hud-side-rail-text';
+      railText.textContent = 'TEST LENS';
+      railText.style.writingMode = 'vertical-rl';
+      railText.style.transform = 'rotate(180deg)';
+      railText.style.fontSize = '9px';
+      railText.style.lineHeight = '1';
+      railText.style.fontWeight = '700';
+      railText.style.letterSpacing = '0.08em';
+      railText.style.whiteSpace = 'nowrap';
+      railText.style.opacity = '0.72';
+      sideRail.appendChild(railText);
+    }
+
+    var main = shell.querySelector('.stl-hud-main');
+    if (!main) {
+      main = document.createElement('div');
+      main.className = 'stl-hud-main';
+      main.style.flex = '1 1 auto';
+      main.style.minWidth = '0';
+      main.style.minHeight = '0';
+      main.style.display = 'flex';
+      main.style.flexDirection = 'column';
+      shell.appendChild(main);
+    }
+
+    var header = main.querySelector('.stl-hud-header');
+    if (!header) {
+      header = document.createElement('div');
+      header.className = 'stl-hud-header';
+      header.style.display = 'flex';
+      header.style.alignItems = 'center';
+      header.style.minHeight = '26px';
+      header.style.marginBottom = 'var(--ui-test-lens-hud-gap, 6px)';
+      main.insertBefore(header, main.firstChild);
+    }
+
+    var brandIcon = header.querySelector('.stl-hud-brand-icon');
+    if (!brandIcon) {
+      brandIcon = document.createElement('span');
+      brandIcon.className = 'stl-hud-brand-icon';
+      brandIcon.style.display = 'inline-flex';
+      brandIcon.style.alignItems = 'center';
+      brandIcon.style.justifyContent = 'center';
+      brandIcon.style.width = '26px';
+      brandIcon.style.height = '26px';
+      brandIcon.innerHTML = brandIconMarkup();
+      header.appendChild(brandIcon);
+    }
+
+    return {
+      shell: shell,
+      sideRail: sideRail,
+      main: main,
+      header: header
+    };
+  }
+
+  function placeAfter(parent, node, previous) {
+    var next = previous ? previous.nextSibling : parent.firstChild;
+    if (node.parentNode !== parent || node.previousSibling !== previous) {
+      parent.insertBefore(node, next);
+    }
   }
 
   function positionPanel(panel, config) {
@@ -156,6 +264,7 @@
   }
 
   function ensureLogs(panel) {
+    var structure = ensureStructure(panel);
     var logs = panel.querySelector('#selenium-hud-logs');
     if (!logs) {
       logs = document.createElement('div');
@@ -165,7 +274,9 @@
       logs.style.overflowY = 'auto';
       logs.style.borderTop = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
       logs.style.paddingTop = '4px';
-      panel.appendChild(logs);
+      structure.main.appendChild(logs);
+    } else if (logs.parentNode !== structure.main) {
+      structure.main.appendChild(logs);
     }
     logs.style.flex = '1 1 auto';
     logs.style.minHeight = '0';
@@ -190,12 +301,13 @@
     var title = panel.querySelector('#selenium-hud-test');
     var pipeline = panel.querySelector('#selenium-hud-pipeline');
     var step = panel.querySelector('#selenium-hud-step');
+    var header = panel.querySelector('.stl-hud-header');
     var styles = window.getComputedStyle ? window.getComputedStyle(panel) : null;
     var paddingTop = styles ? parseFloat(styles.paddingTop) || 0 : 0;
     var paddingBottom = styles ? parseFloat(styles.paddingBottom) || 0 : 0;
     var fixedHeight = paddingTop + paddingBottom;
 
-    [title, pipeline, step].forEach(function (node) {
+    [header, title, pipeline, step].forEach(function (node) {
       if (node) {
         fixedHeight += node.offsetHeight || 0;
       }
@@ -224,6 +336,7 @@
     }
 
     applyTheme(panel, config);
+    ensureStructure(panel);
     positionPanel(panel, config);
     panel.style.maxWidth = (config.maxWidth || 280) + 'px';
     updateScrollableRegions(panel);
@@ -238,21 +351,22 @@
     if (!panel) {
       return;
     }
+    var structure = ensureStructure(panel);
 
     var title = panel.querySelector('#selenium-hud-test');
     if (!title) {
       title = document.createElement('div');
       title.id = 'selenium-hud-test';
-      panel.appendChild(title);
     }
+    placeAfter(structure.main, title, structure.header);
     title.innerHTML = '<b>Test:</b> ' + valueOrDash(config.testName);
 
     var pipeline = panel.querySelector('#selenium-hud-pipeline');
     if (!pipeline) {
       pipeline = document.createElement('div');
       pipeline.id = 'selenium-hud-pipeline';
-      panel.appendChild(pipeline);
     }
+    placeAfter(structure.main, pipeline, title);
     pipeline.innerHTML = '<b>Pipeline:</b> ' + valueOrDash(config.pipelineId);
 
     var step = panel.querySelector('#selenium-hud-step');
@@ -260,8 +374,8 @@
       step = document.createElement('div');
       step.id = 'selenium-hud-step';
       step.style.marginTop = 'var(--ui-test-lens-hud-gap, 4px)';
-      panel.appendChild(step);
     }
+    placeAfter(structure.main, step, pipeline);
     if (!step.innerHTML) {
       step.innerHTML = '<b>Step:</b> -';
     }

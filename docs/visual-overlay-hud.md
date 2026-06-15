@@ -35,6 +35,9 @@ The primary runtime namespace is `window.__uiTestLens`. Legacy aliases are prese
 
 The HUD panel shows the current test step and recent log messages.
 Theme presets include a maximum panel height so long logs scroll inside the HUD. Custom themes can opt in with `maxHeightPx(...)`; leaving it unset preserves uncapped custom HUD behavior.
+The runtime HUD includes minimal built-in branding: a small inline lens/focus SVG icon in the top header and a compact rotated `TEST LENS` side rail on the left. The header does not include a wordmark or Selenium/WebDriver subtitle, so the test, step and log content remain the focus.
+
+The HUD does not load PNG files from `docs/assets/brand`. Those image assets are for README, landing pages and documentation only. Runtime HUD branding is inline SVG/CSS so it remains self-contained and offline.
 
 ```java
 overlay.setStep("Checkout");
