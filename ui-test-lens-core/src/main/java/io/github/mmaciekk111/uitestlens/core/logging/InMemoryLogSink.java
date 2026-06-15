@@ -5,6 +5,7 @@ import io.github.mmaciekk111.uitestlens.core.logging.export.JsonLogExporter;
 import io.github.mmaciekk111.uitestlens.core.logging.export.PlainTextLogExporter;
 import io.github.mmaciekk111.uitestlens.core.logging.export.UiTestLensLogExporter;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -43,5 +44,13 @@ public final class InMemoryLogSink implements UiTestLensLogSink {
 
     public String exportAsHtml() {
         return export(new HtmlLogExporter());
+    }
+
+    public Path exportHtml(Path outputPath) {
+        return new HtmlLogExporter().exportTo(entries(), outputPath);
+    }
+
+    public Path exportHtmlReport() {
+        return new HtmlLogExporter().exportToDefault(entries());
     }
 }

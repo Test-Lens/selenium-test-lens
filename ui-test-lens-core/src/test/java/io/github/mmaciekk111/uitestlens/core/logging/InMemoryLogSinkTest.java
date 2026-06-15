@@ -1,13 +1,18 @@
 package io.github.mmaciekk111.uitestlens.core.logging;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import io.github.mmaciekk111.uitestlens.core.logging.export.PlainTextLogExporter;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryLogSinkTest {
+    @TempDir
+    Path tempDir;
 
     @Test
     void acceptStoresEntriesInOrder() {
@@ -72,5 +77,17 @@ class InMemoryLogSinkTest {
         assertTrue(sink.exportAsJson().contains("\"message\""));
         assertTrue(sink.exportAsHtml().contains("<html"));
         assertEquals(1, sink.entries().size());
+    }
+
+    @Test
+    void convenienceHtmlExportWritesFile() throws Exception {
+        InMemoryLogSink sink = new InMemoryLogSink();
+        sink.accept(UiTestLensLogEntry.info("entry"));
+        Path output = tempDir.resolve("ui-test-lens-report").resolve("index.html");
+
+        Path written = sink.exportHtml(output);
+
+        assertEquals(output, written);
+        assertTrue(Files.readString(output).contains("entry"));
     }
 }

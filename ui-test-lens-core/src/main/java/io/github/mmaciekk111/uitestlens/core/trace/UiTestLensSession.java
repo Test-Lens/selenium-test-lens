@@ -118,6 +118,14 @@ public final class UiTestLensSession {
         return new TraceHtmlExporter().exportTo(this, outputPath, options);
     }
 
+    public Path exportHtmlReport() {
+        return new TraceHtmlExporter().exportToDefault(this);
+    }
+
+    public Path exportHtmlReport(TraceHtmlExportOptions options) {
+        return new TraceHtmlExporter().exportToDefault(this, options);
+    }
+
     private void finish(TraceStatus status, Throwable throwable, String message) {
         Instant finishedAt = Instant.now();
         metadata = metadata.toBuilder()

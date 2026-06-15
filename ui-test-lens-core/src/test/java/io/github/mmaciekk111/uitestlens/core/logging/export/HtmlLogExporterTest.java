@@ -1,22 +1,30 @@
 package io.github.mmaciekk111.uitestlens.core.logging.export;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import io.github.mmaciekk111.uitestlens.core.logging.TargetDescriptor;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensEventType;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogLevel;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensStatus;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class HtmlLogExporterTest {
+    @TempDir
+    Path tempDir;
 
     @Test
-    void exportsFullHtmlDocumentAndTable() {
+    void exportsFullHtmlDocumentAndTimelineTable() {
         String html = new HtmlLogExporter().export(java.util.List.of());
 
         assertTrue(html.contains("<html"));
-        assertTrue(html.contains("<table>"));
+        assertTrue(html.contains("UI Test Lens Log Report"));
+        assertTrue(html.contains("<table"));
         assertTrue(html.contains("</html>"));
     }
 
@@ -35,7 +43,8 @@ class HtmlLogExporterTest {
 
         assertTrue(html.contains("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;"));
         assertTrue(html.contains("Save &amp; continue"));
-        assertTrue(html.contains("unsafe=&lt;b&gt;&#39;quoted&#39;&lt;/b&gt;"));
+        assertTrue(html.contains("metadata.unsafe"));
+        assertTrue(html.contains("&lt;b&gt;&#39;quoted&#39;&lt;/b&gt;"));
         assertFalse(html.contains("<script>alert"));
     }
 
@@ -55,10 +64,49 @@ class HtmlLogExporterTest {
 
         assertTrue(html.contains("INFO"));
         assertTrue(html.contains("ACTION"));
-        assertTrue(html.contains("PASSED"));
+        assertTrue(html.contains("PASS"));
         assertTrue(html.contains("Done"));
         assertTrue(html.contains("Checkout"));
         assertTrue(html.contains("click"));
         assertTrue(html.contains("#save"));
+    }
+
+    @Test
+    void includesSummaryCountsAndFailureDiagnostics() {
+        UiTestLensLogEntry passed = UiTestLensLogEntry.builder()
+                .level(UiTestLensLogLevel.INFO)
+                .eventType(UiTestLensEventType.LOCATOR_ACTION_PASSED)
+                .status(UiTestLensStatus.PASSED)
+                .message("Clicked save")
+                .build();
+        UiTestLensLogEntry failed = UiTestLensLogEntry.builder()
+                .level(UiTestLensLogLevel.ERROR)
+                .eventType(UiTestLensEventType.ASSERTION_FAILED)
+                .status(UiTestLensStatus.FAILED)
+                .message("Toast missing")
+                .throwable(new AssertionError("Expected toast"))
+                .build();
+
+        String html = new HtmlLogExporter().export(List.of(passed, failed));
+
+        assertTrue(html.contains("Summary"));
+        assertTrue(html.contains("Failed/Error events"));
+        assertTrue(html.contains("Failure summary"));
+        assertTrue(html.contains("Toast missing"));
+        assertTrue(html.contains("Expected toast"));
+    }
+
+    @Test
+    void exportToCreatesAndOverwritesHtmlFile() throws Exception {
+        HtmlLogExporter exporter = new HtmlLogExporter();
+        Path output = tempDir.resolve("report.html");
+        Files.writeString(output, "old");
+
+        Path written = exporter.exportTo(List.of(UiTestLensLogEntry.info("Saved")), output);
+
+        assertEquals(output, written);
+        String html = Files.readString(output);
+        assertTrue(html.contains("Saved"));
+        assertFalse(html.contains("old"));
     }
 }

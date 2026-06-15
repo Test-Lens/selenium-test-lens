@@ -29,6 +29,22 @@ class HudThemeExampleTest {
 
     @Disabled("Documentation-only example; requires a real WebDriver.")
     @Test
+    void blackAndColorsHudThemeUsage() {
+        WebDriver driver = null; // replace with a real driver
+
+        OverlayConfig blackAndColorsConfig = OverlayConfig.builder()
+                .hudPosition(HudPosition.TOP_RIGHT)
+                .hudTheme(HudThemePreset.BLACK_AND_COLORS)
+                .build();
+
+        JsOverlayDebug overlay = new JsOverlayDebug(driver, blackAndColorsConfig);
+
+        overlay.setStep("Checkout");
+        overlay.hudLog("info", "Using black and colors HUD theme", "local");
+    }
+
+    @Disabled("Documentation-only example; requires a real WebDriver.")
+    @Test
     void customHudThemeUsage() {
         WebDriver driver = null; // replace with a real driver
 

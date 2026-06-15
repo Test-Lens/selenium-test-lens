@@ -94,6 +94,7 @@ Type hints and scroll arrows make user-like actions easier to inspect while a Se
 - `GLASS`
 - `COMPACT`
 - `HIGH_CONTRAST`
+- `BLACK_AND_COLORS`
 - `MINIMAL`
 
 Custom themes use `HudTheme.builder()` and are passed through `OverlayConfig`.

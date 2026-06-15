@@ -29,6 +29,8 @@ import java.util.TreeMap;
  * <p>The exporter renders metadata, categorized timeline events, failures, artifacts, and optional raw JSON.
  */
 public final class TraceHtmlExporter {
+    public static final Path DEFAULT_OUTPUT_PATH = Path.of("target", "ui-test-lens-report", "index.html");
+
     private enum EventCategory {
         SESSION("Session"),
         STEPS("Steps"),
@@ -54,6 +56,10 @@ public final class TraceHtmlExporter {
     }
 
     public String export(UiTestLensSession session, TraceHtmlExportOptions options) {
+        return export(session, options, null);
+    }
+
+    private String export(UiTestLensSession session, TraceHtmlExportOptions options, Path artifactBaseDirectory) {
         if (session == null) {
             return emptyReport(options);
         }
@@ -74,7 +80,7 @@ public final class TraceHtmlExporter {
         appendTimeline(out, session.events(), effectiveOptions);
         appendSteps(out, session.events(), effectiveOptions);
         if (effectiveOptions.includeArtifacts()) {
-            appendArtifacts(out, session.artifacts(), effectiveOptions);
+            appendArtifacts(out, session.artifacts(), effectiveOptions, artifactBaseDirectory);
         }
         if (effectiveOptions.includeJsonPayload()) {
             appendRawJson(out, session, effectiveOptions);
@@ -96,11 +102,19 @@ public final class TraceHtmlExporter {
             if (parent != null) {
                 Files.createDirectories(parent);
             }
-            Files.writeString(outputPath, export(session, options));
+            Files.writeString(outputPath, export(session, options, parent));
             return outputPath;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public Path exportToDefault(UiTestLensSession session) {
+        return exportTo(session, DEFAULT_OUTPUT_PATH, TraceHtmlExportOptions.defaults());
+    }
+
+    public Path exportToDefault(UiTestLensSession session, TraceHtmlExportOptions options) {
+        return exportTo(session, DEFAULT_OUTPUT_PATH, options);
     }
 
     private String emptyReport(TraceHtmlExportOptions options) {
@@ -123,6 +137,7 @@ public final class TraceHtmlExporter {
         metadata(out, "Started", shortInstant(metadata.startedAt()));
         metadata(out, "Finished", shortInstant(metadata.finishedAt()));
         metadata(out, "Duration", duration(metadata.startedAt(), metadata.finishedAt()));
+        metadata(out, "Generated", shortInstant(Instant.now()));
         metadata(out, "Environment", metadata.environment());
         out.append("</div>");
         if (!metadata.labels().isEmpty()) {
@@ -136,6 +151,9 @@ public final class TraceHtmlExporter {
         List<TraceEvent> events = session.events();
         long failed = events.stream().filter(this::isFailedOrError).count();
         long warnings = events.stream().filter(event -> event.status() == TraceStatus.WARNING).count();
+        long passed = events.stream().filter(event -> event.status() == TraceStatus.PASSED).count();
+        long info = events.stream().filter(event -> event.status() == TraceStatus.INFO).count();
+        long skipped = events.stream().filter(event -> event.status() == TraceStatus.SKIPPED).count();
         long stepPassed = count(events, TraceEventType.STEP_PASSED, TraceStatus.PASSED);
         long stepFailed = count(events, TraceEventType.STEP_FAILED, TraceStatus.FAILED) + count(events, TraceEventType.STEP_FAILED, TraceStatus.ERROR);
         long assertionPassed = count(events, TraceEventType.ASSERTION_PASSED, TraceStatus.PASSED);
@@ -151,8 +169,11 @@ public final class TraceHtmlExporter {
         long videos = session.artifacts().stream().filter(artifact -> artifact.type() == TraceArtifactType.VIDEO).count();
         out.append("<section><h2>Summary</h2><div class=\"cards\">");
         card(out, "Total events", String.valueOf(events.size()));
+        card(out, "PASS", String.valueOf(passed));
         card(out, "Failed/Error events", String.valueOf(failed));
-        card(out, "Warnings", String.valueOf(warnings));
+        card(out, "WARN", String.valueOf(warnings));
+        card(out, "INFO", String.valueOf(info));
+        card(out, "SKIPPED", String.valueOf(skipped));
         card(out, "Steps passed/failed", stepPassed + " / " + stepFailed);
         card(out, "Assertions passed/failed", assertionPassed + " / " + assertionFailed);
         card(out, "Locator/action failures", String.valueOf(locatorFailures));
@@ -213,8 +234,13 @@ public final class TraceHtmlExporter {
     private void appendTimelineTable(StringBuilder out, List<TraceEvent> events, TraceHtmlExportOptions options) {
         boolean showAttributes = options.includeAttributes() && !options.compactTimeline();
         int messageLimit = options.compactTimeline() ? Math.min(options.maxMessageLength(), 160) : options.maxMessageLength();
+        Instant firstTimestamp = events.stream()
+                .map(TraceEvent::timestamp)
+                .filter(timestamp -> timestamp != null)
+                .min(Instant::compareTo)
+                .orElse(null);
         out.append("<div class=\"table-wrap\"><table class=\"timeline\"><thead><tr>")
-                .append("<th>Time</th><th>Category</th><th>Type</th><th>Status</th><th>Name</th><th>Message</th><th>Duration</th><th>Parent</th>");
+                .append("<th>Time</th><th>Offset</th><th>Category</th><th>Type</th><th>Status</th><th>Name</th><th>Message</th><th>Duration</th><th>Parent</th>");
         if (showAttributes) {
             out.append("<th>Details</th>");
         }
@@ -222,6 +248,7 @@ public final class TraceHtmlExporter {
         for (TraceEvent event : events) {
             out.append("<tr id=\"event-").append(escape(event.id())).append("\"><td class=\"mono\">")
                     .append(escape(shortInstant(event.timestamp()))).append("</td>")
+                    .append("<td class=\"mono\">").append(escape(offset(firstTimestamp, event.timestamp()))).append("</td>")
                     .append("<td>").append(categoryBadge(categoryFor(event))).append("</td>")
                     .append("<td>").append(typeBadge(event.type())).append("</td>")
                     .append("<td>").append(badge(event.status())).append("</td>")
@@ -237,7 +264,7 @@ public final class TraceHtmlExporter {
             out.append("</tr>");
         }
         if (events.isEmpty()) {
-            int colspan = showAttributes ? 9 : 8;
+            int colspan = showAttributes ? 10 : 9;
             out.append("<tr><td colspan=\"").append(colspan).append("\" class=\"muted\">No timeline events recorded.</td></tr>");
         }
         out.append("</tbody></table></div>");
@@ -299,7 +326,7 @@ public final class TraceHtmlExporter {
         out.append("</div></section>");
     }
 
-    private void appendArtifacts(StringBuilder out, List<TraceArtifact> artifacts, TraceHtmlExportOptions options) {
+    private void appendArtifacts(StringBuilder out, List<TraceArtifact> artifacts, TraceHtmlExportOptions options, Path artifactBaseDirectory) {
         out.append("<section><h2>Artifacts</h2>");
         if (artifacts.isEmpty()) {
             out.append("<p class=\"muted\">No artifacts attached.</p></section>");
@@ -315,7 +342,7 @@ public final class TraceHtmlExporter {
                         .append("</div><p class=\"muted\">")
                         .append(escape(artifact.mediaType()))
                         .append("</p>");
-                appendArtifactLink(out, "Path", artifact.path());
+                appendArtifactFileLink(out, "Path", artifact.path(), artifactBaseDirectory);
                 appendArtifactLink(out, "URL", artifact.url());
                 appendDetailsMap(out, "Metadata", artifact.metadata());
                 out.append("</article>");
@@ -328,7 +355,7 @@ public final class TraceHtmlExporter {
             for (TraceArtifact artifact : artifacts) {
                 out.append("<tr><td>").append(escape(artifact.name())).append("</td>")
                         .append("<td>").append(artifactBadge(artifact.type())).append("</td>")
-                        .append("<td>").append(linkOrText(artifact.path())).append("</td>")
+                        .append("<td>").append(fileLinkOrText(artifact.path(), artifactBaseDirectory)).append("</td>")
                         .append("<td>").append(linkOrText(artifact.url())).append("</td>")
                         .append("<td>").append(escape(artifact.mediaType())).append("</td>")
                         .append("<td>").append(escape(shortInstant(artifact.createdAt()))).append("</td><td>");
@@ -338,6 +365,17 @@ public final class TraceHtmlExporter {
             out.append("</tbody></table></div>");
         }
         out.append("</section>");
+    }
+
+    private void appendArtifactFileLink(StringBuilder out, String label, String value, Path artifactBaseDirectory) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+        out.append("<p><span class=\"muted\">")
+                .append(escape(label))
+                .append(":</span> ")
+                .append(fileLinkOrText(value, artifactBaseDirectory))
+                .append("</p>");
     }
 
     private void appendArtifactLink(StringBuilder out, String label, String value) {
@@ -421,7 +459,7 @@ public final class TraceHtmlExporter {
 
     private String badge(TraceStatus status) {
         TraceStatus effectiveStatus = status == null ? TraceStatus.INFO : status;
-        return "<span class=\"badge status " + cssClass(effectiveStatus) + "\">" + escape(effectiveStatus.name()) + "</span>";
+        return "<span class=\"badge status " + cssClass(effectiveStatus) + "\">" + escape(statusLabel(effectiveStatus)) + "</span>";
     }
 
     private String typeBadge(TraceEventType type) {
@@ -449,6 +487,43 @@ public final class TraceHtmlExporter {
         }
         String escaped = escape(value);
         return "<a class=\"mono\" href=\"" + escaped + "\">" + escaped + "</a>";
+    }
+
+    private String fileLinkOrText(String value, Path artifactBaseDirectory) {
+        if (value == null || value.isBlank()) {
+            return "<span class=\"muted\">-</span>";
+        }
+
+        Path artifactPath;
+        try {
+            artifactPath = Path.of(value);
+        } catch (RuntimeException e) {
+            return linkOrText(value);
+        }
+
+        Path absolutePath = artifactPath.isAbsolute()
+                ? artifactPath.normalize()
+                : Path.of("").toAbsolutePath().resolve(artifactPath).normalize();
+        boolean exists = Files.exists(absolutePath);
+        String href = value;
+        if (artifactBaseDirectory != null) {
+            try {
+                href = artifactBaseDirectory.toAbsolutePath().normalize().relativize(absolutePath).toString();
+            } catch (IllegalArgumentException ignored) {
+                href = value;
+            }
+        }
+        href = href.replace('\\', '/');
+        String escapedHref = escape(href);
+        String escapedLabel = escape(value);
+        String link = "<a class=\"mono\" href=\"" + escapedHref + "\">" + escapedLabel + "</a>";
+        if (!exists) {
+            return link + " <span class=\"artifact-warning\">missing file</span>";
+        }
+        if (isImagePath(value)) {
+            return link + "<img class=\"artifact-thumb\" src=\"" + escapedHref + "\" alt=\"" + escapedLabel + "\">";
+        }
+        return link;
     }
 
     private Map<EventCategory, List<TraceEvent>> groupedEvents(List<TraceEvent> events) {
@@ -521,6 +596,17 @@ public final class TraceHtmlExporter {
         };
     }
 
+    private String statusLabel(TraceStatus status) {
+        return switch (status) {
+            case PASSED -> "PASS";
+            case FAILED, ERROR -> "FAIL";
+            case WARNING -> "WARN";
+            case SKIPPED -> "SKIPPED";
+            case STARTED -> "STARTED";
+            case INFO -> "INFO";
+        };
+    }
+
     private String duration(Instant startedAt, Instant finishedAt) {
         if (startedAt == null || finishedAt == null) {
             return "-";
@@ -533,6 +619,19 @@ public final class TraceHtmlExporter {
             return "-";
         }
         return Math.max(0, duration.toMillis()) + " ms";
+    }
+
+    private String offset(Instant firstTimestamp, Instant timestamp) {
+        if (firstTimestamp == null || timestamp == null) {
+            return "-";
+        }
+        return "+" + Math.max(0, Duration.between(firstTimestamp, timestamp).toMillis()) + " ms";
+    }
+
+    private boolean isImagePath(String value) {
+        String lower = value == null ? "" : value.toLowerCase();
+        return lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")
+                || lower.endsWith(".gif") || lower.endsWith(".webp");
     }
 
     private String shortInstant(Instant instant) {
@@ -558,16 +657,16 @@ public final class TraceHtmlExporter {
 
     private String css() {
         return """
-                :root{color-scheme:light;--bg:#f6f7fb;--panel:#fff;--text:#172033;--muted:#667085;--line:#d8dee9;--line-soft:#edf1f7;--blue:#dbeafe;--green:#dcfce7;--red:#fee2e2;--yellow:#fef3c7;--gray:#f3f4f6;--purple:#ede9fe;--teal:#ccfbf1}
-                *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body:before{content:"";display:block;height:6px;background:linear-gradient(90deg,#2563eb,#0f766e,#7c3aed)}
-                .hero,section{max-width:1220px;margin:24px auto;padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 1px 2px rgba(15,23,42,.04)}.hero{margin-top:0;border-radius:0 0 8px 8px}
-                .eyebrow{margin:0 0 4px;color:var(--muted);text-transform:uppercase;font-size:12px;letter-spacing:.08em}h1{margin:0 0 18px;font-size:28px;letter-spacing:0}h2{margin:0 0 14px;font-size:19px;letter-spacing:0}h3{margin:18px 0 10px;font-size:15px;color:#344054;letter-spacing:0}
-                .metadata-grid,.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.meta,.card{padding:12px;border:1px solid var(--line);border-radius:8px;background:#fbfcfe}.meta span,.card span{display:block;color:var(--muted);font-size:12px}.meta strong,.card strong{display:block;margin-top:4px;word-break:break-word}
-                .badge{display:inline-flex;align-items:center;gap:4px;margin:0 4px 0 0;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}.status.passed{background:var(--green);color:#166534}.status.failed{background:var(--red);color:#991b1b}.status.warning{background:var(--yellow);color:#92400e}.status.skipped,.status.info{background:var(--gray);color:#374151}.status.started{background:var(--blue);color:#1d4ed8}.type{background:#eef2ff;color:#3730a3}.category{background:#f1f5f9;color:#334155}.category-network{background:var(--teal);color:#115e59}.category-evidence{background:var(--purple);color:#5b21b6}.artifact{background:#ecfeff;color:#155e75}
-                .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:8px}table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid var(--line-soft);vertical-align:top;text-align:left}tr:hover td{background:#fafcff}th{position:sticky;top:0;background:#f9fafb;color:#374151;font-size:12px;text-transform:uppercase;z-index:1}
-                .timeline td{min-width:90px}.event-list{display:grid;gap:12px}.event-card,.artifact-card{padding:14px;border:1px solid var(--line);border-radius:8px;background:#fbfcfe}.event-card.failure{border-color:#fecaca;background:#fff7f7}.event-title{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.artifact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-                .failure-box{margin-top:10px;padding:10px;border-left:4px solid #ef4444;background:#fff}.ok-line{padding:10px 12px;border:1px solid #bbf7d0;background:#f0fdf4;border-radius:8px;color:#166534}.muted{color:var(--muted)}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}.kv{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:4px 10px}.kv.compact{margin-top:8px}.kv dt{font-weight:700}.kv dd{margin:0;word-break:break-word}.details summary{cursor:pointer;color:#344054;font-weight:700}pre{white-space:pre-wrap;overflow:auto;background:#111827;color:#f9fafb;padding:14px;border-radius:8px}a{color:#1d4ed8;word-break:break-word}
-                @media print{body{background:#fff}.hero,section{box-shadow:none;break-inside:avoid}.table-wrap{overflow:visible}th{position:static}}
+                :root{color-scheme:dark;--bg:#070b12;--panel:#101722;--panel-2:#0c121b;--panel-3:#151f2e;--text:#e6edf7;--muted:#93a4b8;--line:#273244;--line-soft:#1c2635;--cyan:#38bdf8;--green:#39ff14;--red:#ff4d6d;--yellow:#facc15;--gray:#243044;--purple:#c084fc;--teal:#2dd4bf}
+                *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(56,189,248,.16),transparent 30%),linear-gradient(180deg,#070b12,#0b111b 40%,#070b12);color:var(--text);font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body:before{content:"";display:block;height:4px;background:linear-gradient(90deg,var(--green),var(--cyan),var(--purple),var(--yellow),var(--red))}
+                .hero,section{max-width:1240px;margin:22px auto;padding:24px;background:linear-gradient(180deg,rgba(16,23,34,.98),rgba(12,18,27,.98));border:1px solid var(--line);border-radius:8px;box-shadow:0 18px 44px rgba(0,0,0,.32)}.hero{margin-top:0;border-radius:0 0 8px 8px}
+                .eyebrow{margin:0 0 4px;color:var(--cyan);text-transform:uppercase;font-size:12px;letter-spacing:.08em}h1{margin:0 0 18px;font-size:28px;letter-spacing:0}h2{margin:0 0 14px;font-size:19px;letter-spacing:0}h3{margin:18px 0 10px;font-size:15px;color:#c8d4e3;letter-spacing:0}
+                .metadata-grid,.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.meta,.card{padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}.meta span,.card span{display:block;color:var(--muted);font-size:12px}.meta strong,.card strong{display:block;margin-top:4px;word-break:break-word}
+                .badge{display:inline-flex;align-items:center;gap:4px;margin:0 4px 0 0;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;border:1px solid transparent}.status.passed{background:rgba(57,255,20,.12);border-color:rgba(57,255,20,.45);color:#9cff8d}.status.failed{background:rgba(255,77,109,.14);border-color:rgba(255,77,109,.5);color:#ff9aad}.status.warning{background:rgba(250,204,21,.14);border-color:rgba(250,204,21,.45);color:#fde68a}.status.skipped,.status.info{background:var(--gray);color:#cbd5e1}.status.started{background:rgba(56,189,248,.14);border-color:rgba(56,189,248,.45);color:#7dd3fc}.type{background:#172554;color:#bfdbfe}.category{background:#172033;color:#cbd5e1}.category-network{background:rgba(45,212,191,.14);color:#99f6e4}.category-evidence{background:rgba(192,132,252,.16);color:#e9d5ff}.artifact{background:rgba(56,189,248,.12);color:#bae6fd}
+                .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid var(--line-soft);vertical-align:top;text-align:left}tr:hover td{background:#121b29}th{position:sticky;top:0;background:#121b29;color:#aab8ca;font-size:12px;text-transform:uppercase;z-index:1}
+                .timeline td{min-width:90px}.event-list{display:grid;gap:12px}.event-card,.artifact-card{padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}.event-card.failure{border-color:rgba(255,77,109,.45);background:rgba(255,77,109,.07)}.event-title{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.artifact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+                .failure-box{margin-top:10px;padding:10px;border-left:4px solid var(--red);background:#0b111a}.ok-line{padding:10px 12px;border:1px solid rgba(57,255,20,.35);background:rgba(57,255,20,.08);border-radius:8px;color:#9cff8d}.muted{color:var(--muted)}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}.kv{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:4px 10px}.kv.compact{margin-top:8px}.kv dt{font-weight:700}.kv dd{margin:0;word-break:break-word}.details summary{cursor:pointer;color:#cbd5e1;font-weight:700}pre{white-space:pre-wrap;overflow:auto;background:#05070b;color:#e6edf7;padding:14px;border-radius:8px;border:1px solid var(--line)}a{color:#7dd3fc;word-break:break-word}.artifact-warning{display:inline-flex;margin-left:6px;padding:1px 6px;border-radius:999px;background:rgba(250,204,21,.14);color:#fde68a;font-size:12px;font-weight:700}.artifact-thumb{display:block;max-width:100%;max-height:180px;margin-top:10px;border:1px solid var(--line);border-radius:8px;object-fit:contain;background:#05070b}
+                @media (max-width:720px){.hero,section{margin:14px 10px;padding:16px}.event-title{display:block}.badge{margin-top:4px}}@media print{body{background:#fff;color:#111}.hero,section{box-shadow:none;break-inside:avoid}.table-wrap{overflow:visible}th{position:static}}
                 """;
     }
 }

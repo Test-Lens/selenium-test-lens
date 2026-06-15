@@ -17,7 +17,7 @@ This roadmap tracks follow-up work after the 0.1 feature consolidation.
 
 ## Trace and evidence
 
-1. Improve HTML trace report UX without turning it into a full interactive viewer.
+1. Keep the polished single-file HTML report focused on static/offline diagnostics rather than turning it into a full interactive viewer.
 2. Map more action/assertion/network metadata into trace attributes where useful.
 3. Add better anchors between failure summaries and timeline events.
 

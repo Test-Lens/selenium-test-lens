@@ -10,5 +10,6 @@ public enum HudThemePreset {
     GLASS,
     COMPACT,
     HIGH_CONTRAST,
+    BLACK_AND_COLORS,
     MINIMAL
 }

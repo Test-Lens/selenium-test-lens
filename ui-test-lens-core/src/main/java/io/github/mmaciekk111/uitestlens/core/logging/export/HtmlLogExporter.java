@@ -1,14 +1,24 @@
 package io.github.mmaciekk111.uitestlens.core.logging.export;
 
 import io.github.mmaciekk111.uitestlens.core.logging.TargetDescriptor;
+import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensEventType;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
+import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensStatus;
+import io.github.mmaciekk111.uitestlens.core.trace.TraceEvent;
+import io.github.mmaciekk111.uitestlens.core.trace.TraceEventType;
+import io.github.mmaciekk111.uitestlens.core.trace.TraceFailure;
+import io.github.mmaciekk111.uitestlens.core.trace.TraceStatus;
+import io.github.mmaciekk111.uitestlens.core.trace.UiTestLensSession;
+import io.github.mmaciekk111.uitestlens.core.trace.export.TraceHtmlExportOptions;
+import io.github.mmaciekk111.uitestlens.core.trace.export.TraceHtmlExporter;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 public final class HtmlLogExporter implements UiTestLensLogExporter {
     private final LogExportOptions options;
+    private final TraceHtmlExporter traceExporter = new TraceHtmlExporter();
 
     public HtmlLogExporter() {
         this(LogExportOptions.defaults());
@@ -20,93 +30,168 @@ public final class HtmlLogExporter implements UiTestLensLogExporter {
 
     @Override
     public String export(List<UiTestLensLogEntry> entries) {
-        StringBuilder out = new StringBuilder();
-        out.append("<!doctype html>\n")
-                .append("<html lang=\"en\">\n")
-                .append("<head>\n")
-                .append("<meta charset=\"UTF-8\">\n")
-                .append("<title>UI Test Lens Log</title>\n")
-                .append("<style>")
-                .append("body{font-family:Arial,sans-serif;margin:24px;color:#1f2933;}")
-                .append("table{border-collapse:collapse;width:100%;font-size:13px;}")
-                .append("th,td{border:1px solid #d9e2ec;padding:6px 8px;text-align:left;vertical-align:top;}")
-                .append("th{background:#f0f4f8;}")
-                .append("tr.ERROR,td.ERROR{background:#fff5f5;}")
-                .append("code{white-space:pre-wrap;}")
-                .append("</style>\n")
-                .append("</head>\n")
-                .append("<body>\n")
-                .append("<h1>UI Test Lens Log</h1>\n")
-                .append("<table>\n")
-                .append("<thead><tr>")
-                .append("<th>timestamp</th><th>level</th><th>eventType</th><th>status</th>")
-                .append("<th>message</th><th>step</th><th>action</th><th>target</th><th>metadata</th>")
-                .append("</tr></thead>\n")
-                .append("<tbody>\n");
+        return traceExporter.export(toSession(entries), reportOptions());
+    }
 
+    public Path exportTo(List<UiTestLensLogEntry> entries, Path outputPath) {
+        return traceExporter.exportTo(toSession(entries), outputPath, reportOptions());
+    }
+
+    public Path exportToDefault(List<UiTestLensLogEntry> entries) {
+        return traceExporter.exportToDefault(toSession(entries), reportOptions());
+    }
+
+    private UiTestLensSession toSession(List<UiTestLensLogEntry> entries) {
+        UiTestLensSession session = UiTestLensSession.start("UI Test Lens log report");
         if (entries != null) {
             for (UiTestLensLogEntry entry : entries) {
                 if (entry != null) {
-                    appendRow(out, entry);
+                    session.addEvent(toTraceEvent(entry));
                 }
             }
         }
 
-        out.append("</tbody>\n")
-                .append("</table>\n")
-                .append("</body>\n")
-                .append("</html>\n");
-        return out.toString();
+        boolean failed = session.events().stream()
+                .anyMatch(event -> event.status() == TraceStatus.FAILED || event.status() == TraceStatus.ERROR);
+        boolean skipped = session.events().stream().anyMatch(event -> event.status() == TraceStatus.SKIPPED);
+        if (failed) {
+            session.finishFailed(null);
+        } else if (skipped) {
+            session.finishSkipped("Log report contains skipped entries");
+        } else {
+            session.finishPassed();
+        }
+        return session;
     }
 
-    private void appendRow(StringBuilder out, UiTestLensLogEntry entry) {
-        out.append("<tr class=\"").append(html(entry.level() == null ? "" : entry.level().name())).append("\">")
-                .append("<td>").append(html(entry.timestamp() == null ? "" : entry.timestamp().toString())).append("</td>")
-                .append("<td>").append(html(entry.level() == null ? "" : entry.level().name())).append("</td>")
-                .append("<td>").append(html(entry.eventType() == null ? "" : entry.eventType().name())).append("</td>")
-                .append("<td>").append(html(entry.status() == null ? "" : entry.status().name())).append("</td>")
-                .append("<td>").append(html(limit(entry.message()))).append("</td>")
-                .append("<td>").append(html(limit(entry.step()))).append("</td>")
-                .append("<td>").append(html(limit(entry.action()))).append("</td>")
-                .append("<td>").append(html(formatTarget(entry.target()))).append("</td>")
-                .append("<td><code>").append(html(options.includeMetadata() ? formatMap(entry.metadata()) : "")).append("</code></td>")
-                .append("</tr>\n");
+    private TraceEvent toTraceEvent(UiTestLensLogEntry entry) {
+        TraceEvent.Builder builder = TraceEvent.builder(
+                        traceType(entry.eventType()),
+                        traceStatus(entry.status()),
+                        firstNonBlank(entry.action(), entry.step(), entry.eventType().name()))
+                .timestamp(entry.timestamp())
+                .message(limit(entry.message()))
+                .attribute("level", entry.level().name())
+                .attribute("eventType", entry.eventType().name());
+
+        if (entry.step() != null && !entry.step().isBlank()) {
+            builder.attribute("step", limit(entry.step()));
+        }
+        if (entry.action() != null && !entry.action().isBlank()) {
+            builder.attribute("action", limit(entry.action()));
+        }
+        appendTarget(builder, entry.target());
+        if (options.includeMetadata()) {
+            for (Map.Entry<String, String> metadata : entry.metadata().entrySet()) {
+                builder.attribute("metadata." + metadata.getKey(), limit(metadata.getValue()));
+            }
+        }
+        if (entry.throwable() != null) {
+            builder.failure(TraceFailure.from(entry.throwable(), true));
+        }
+        return builder.build();
+    }
+
+    private void appendTarget(TraceEvent.Builder builder, TargetDescriptor target) {
+        if (target == null) {
+            return;
+        }
+        builder.attribute("target", limit(formatTarget(target)));
+        if (target.selector() != null) {
+            builder.attribute("target.selector", limit(target.selector()));
+        }
+        if (target.label() != null) {
+            builder.attribute("target.label", limit(target.label()));
+        }
+        if (target.tagName() != null) {
+            builder.attribute("target.tagName", limit(target.tagName()));
+        }
+        if (target.text() != null) {
+            builder.attribute("target.text", limit(target.text()));
+        }
+        if (options.includeMetadata()) {
+            for (Map.Entry<String, String> metadata : target.metadata().entrySet()) {
+                builder.attribute("target.metadata." + metadata.getKey(), limit(metadata.getValue()));
+            }
+        }
     }
 
     private String formatTarget(TargetDescriptor target) {
-        if (target == null) {
-            return "";
-        }
         if (target.selector() != null) {
-            return limit(target.selector());
+            return target.selector();
         }
         if (target.label() != null) {
-            return limit(target.label());
+            return target.label();
         }
         if (target.tagName() != null) {
-            return limit(target.tagName());
+            return target.tagName();
         }
         if (target.text() != null) {
-            return limit(target.text());
+            return target.text();
         }
         return "";
     }
 
-    private String formatMap(Map<String, String> input) {
-        if (input == null || input.isEmpty()) {
-            return "";
+    private TraceHtmlExportOptions reportOptions() {
+        return TraceHtmlExportOptions.builder()
+                .title("UI Test Lens Log Report")
+                .includeJsonPayload(false)
+                .includeArtifacts(false)
+                .includeStackTraces(true)
+                .maxMessageLength(options.maxFieldLength())
+                .build();
+    }
+
+    private TraceStatus traceStatus(UiTestLensStatus status) {
+        UiTestLensStatus effectiveStatus = status == null ? UiTestLensStatus.INFO : status;
+        return switch (effectiveStatus) {
+            case STARTED -> TraceStatus.STARTED;
+            case PASSED -> TraceStatus.PASSED;
+            case FAILED -> TraceStatus.FAILED;
+            case SKIPPED -> TraceStatus.SKIPPED;
+            case WARN -> TraceStatus.WARNING;
+            case INFO -> TraceStatus.INFO;
+        };
+    }
+
+    private TraceEventType traceType(UiTestLensEventType eventType) {
+        UiTestLensEventType effectiveType = eventType == null ? UiTestLensEventType.GENERAL : eventType;
+        return switch (effectiveType) {
+            case STEP, STEP_STARTED -> TraceEventType.STEP_STARTED;
+            case STEP_PASSED -> TraceEventType.STEP_PASSED;
+            case STEP_FAILED -> TraceEventType.STEP_FAILED;
+            case ACTION -> TraceEventType.ACTION_STARTED;
+            case ACTIONABILITY_CHECK_STARTED, ACTIONABILITY_CHECK_PASSED, ACTIONABILITY_CHECK_FAILED,
+                    ACTIONABILITY_READY, ACTIONABILITY_NOT_READY -> TraceEventType.ACTIONABILITY_CHECK;
+            case ASSERTION, ASSERTION_STARTED -> TraceEventType.ASSERTION_STARTED;
+            case ASSERTION_PASSED, NETWORK_ASSERTION_PASSED -> TraceEventType.ASSERTION_PASSED;
+            case ASSERTION_FAILED, ASSERTION_TIMED_OUT, NETWORK_ASSERTION_FAILED -> TraceEventType.ASSERTION_FAILED;
+            case BUSINESS_ASSERTION_STARTED, BUSINESS_ASSERTION_GROUP_STARTED -> TraceEventType.BUSINESS_ASSERTION_STARTED;
+            case BUSINESS_ASSERTION_PASSED, BUSINESS_ASSERTION_GROUP_PASSED -> TraceEventType.BUSINESS_ASSERTION_PASSED;
+            case BUSINESS_ASSERTION_FAILED, BUSINESS_ASSERTION_GROUP_FAILED -> TraceEventType.BUSINESS_ASSERTION_FAILED;
+            case OVERLAY, OVERLAY_DETECTED, OVERLAY_POLICY_STARTED, OVERLAY_ACTION_STARTED, OVERLAY_STILL_VISIBLE -> TraceEventType.OVERLAY_DETECTED;
+            case OVERLAY_ACTION_PASSED, OVERLAY_ACTION_FAILED, OVERLAY_HANDLED -> TraceEventType.OVERLAY_HANDLED;
+            case LOCATOR_RESOLVE_STARTED, LOCATOR_RESOLVE_PASSED, LOCATOR_RESOLVE_FAILED -> TraceEventType.LOCATOR_RESOLVE;
+            case LOCATOR_ACTION_STARTED, LOCATOR_ACTION_PASSED, LOCATOR_ACTION_FAILED, LOCATOR_RETRY -> TraceEventType.LOCATOR_ACTION;
+            case SCREENSHOT_CAPTURE_STARTED, SCREENSHOT_CAPTURE_PASSED, SCREENSHOT_CAPTURE_FAILED -> TraceEventType.SCREENSHOT;
+            case VIDEO_ATTACHED, VIDEO_ATTACH_FAILED, VIDEO_ATTACH_SKIPPED -> TraceEventType.VIDEO;
+            case NETWORK_DIAGNOSTICS_STARTED, NETWORK_DIAGNOSTICS_STOPPED, NETWORK_REQUEST_RECORDED,
+                    NETWORK_RESPONSE_RECORDED, NETWORK_FAILURE_RECORDED -> TraceEventType.NETWORK_EVENT;
+            case NETWORK_LOG_ATTACHED -> TraceEventType.ARTIFACT_ATTACHED;
+            case NETWORK_WAIT_STARTED, NETWORK_WAIT_PASSED, NETWORK_WAIT_FAILED, NETWORK_WAIT_TIMED_OUT -> TraceEventType.NETWORK_WAIT;
+            case ERROR -> TraceEventType.ACTION_FAILED;
+            default -> TraceEventType.CUSTOM;
+        };
+    }
+
+    private String firstNonBlank(String first, String second, String fallback) {
+        if (first != null && !first.isBlank()) {
+            return first;
         }
-        Map<String, String> sorted = new TreeMap<>(input);
-        StringBuilder out = new StringBuilder();
-        boolean first = true;
-        for (Map.Entry<String, String> entry : sorted.entrySet()) {
-            if (!first) {
-                out.append(", ");
-            }
-            out.append(entry.getKey()).append('=').append(limit(entry.getValue()));
-            first = false;
+        if (second != null && !second.isBlank()) {
+            return second;
         }
-        return out.toString();
+        return fallback == null || fallback.isBlank() ? "Log entry" : fallback;
     }
 
     private String limit(String value) {
@@ -115,24 +200,5 @@ public final class HtmlLogExporter implements UiTestLensLogExporter {
         }
         int max = options.maxFieldLength();
         return value.length() <= max ? value : value.substring(0, max) + "...";
-    }
-
-    static String html(String value) {
-        if (value == null) {
-            return "";
-        }
-        StringBuilder out = new StringBuilder(value.length());
-        for (int i = 0; i < value.length(); i++) {
-            char c = value.charAt(i);
-            switch (c) {
-                case '&' -> out.append("&amp;");
-                case '<' -> out.append("&lt;");
-                case '>' -> out.append("&gt;");
-                case '"' -> out.append("&quot;");
-                case '\'' -> out.append("&#39;");
-                default -> out.append(c);
-            }
-        }
-        return out.toString();
     }
 }

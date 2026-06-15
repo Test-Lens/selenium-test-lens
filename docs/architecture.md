@@ -47,9 +47,13 @@ React-specific helpers are not part of `ui-test-lens-selenium`. They live in `ui
 
 Artifacts such as screenshots, video references and network logs are attached separately to the session.
 
+HTML report export lives in `ui-test-lens-core` and remains browser-driver independent. `TraceHtmlExporter` renders a self-contained static HTML document with inline CSS for trace sessions, while `HtmlLogExporter` converts log entries into the same report pipeline for log-only runs. File helpers create parent directories, overwrite existing reports, and default to `target/ui-test-lens-report/index.html`.
+
 ## Evidence boundary
 
 The core trace model stores artifact metadata such as path, URL, media type and labels. Selenium-side capture code creates screenshot files through `TakesScreenshot`, then attaches the resulting path as a trace artifact. Video support is reference/attachment based and does not record video.
+
+HTML reports link file artifacts relative to the report location when possible. Missing artifact files are rendered as warnings instead of failing export, which keeps CI report generation resilient when optional evidence was not produced.
 
 ## Dependency rules
 

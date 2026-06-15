@@ -70,7 +70,20 @@ class HudThemeTest {
         assertEquals(480, HudTheme.glass().maxHeightPx());
         assertEquals(360, HudTheme.compact().maxHeightPx());
         assertEquals(480, HudTheme.highContrast().maxHeightPx());
+        assertEquals(480, HudTheme.blackAndColors().maxHeightPx());
         assertEquals(360, HudTheme.minimal().maxHeightPx());
+    }
+
+    @Test
+    void blackAndColorsUsesNeonPalette() {
+        HudTheme theme = HudTheme.fromPreset(HudThemePreset.BLACK_AND_COLORS);
+
+        assertEquals("#000000", theme.background());
+        assertEquals("#00f5ff", theme.accent());
+        assertEquals("#39ff14", theme.success());
+        assertEquals("#fff200", theme.warning());
+        assertEquals("#ff1744", theme.danger());
+        assertEquals("#ff00ff", theme.borderColor());
     }
 
     @Test

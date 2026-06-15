@@ -182,6 +182,27 @@ public final class HudTheme {
                 .build();
     }
 
+    public static HudTheme blackAndColors() {
+        return builder()
+                .background("#000000")
+                .foreground("#f8fff8")
+                .mutedForeground("#7dffcc")
+                .accent("#00f5ff")
+                .success("#39ff14")
+                .warning("#fff200")
+                .danger("#ff1744")
+                .borderColor("#ff00ff")
+                .borderRadiusPx(10)
+                .fontSizePx(12)
+                .fontFamily("Inter, system-ui, sans-serif")
+                .boxShadow("0 0 18px rgba(57, 255, 20, 0.45), 0 0 32px rgba(255, 0, 255, 0.28)")
+                .opacity(1.0)
+                .paddingPx(10)
+                .gapPx(6)
+                .maxHeightPx(480)
+                .build();
+    }
+
     public static HudTheme minimal() {
         return builder()
                 .background("rgba(255, 255, 255, 0.92)")
@@ -211,6 +232,7 @@ public final class HudTheme {
             case GLASS -> glass();
             case COMPACT -> compact();
             case HIGH_CONTRAST -> highContrast();
+            case BLACK_AND_COLORS -> blackAndColors();
             case MINIMAL -> minimal();
             case DEFAULT -> defaultTheme();
         };

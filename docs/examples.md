@@ -34,6 +34,10 @@ OverlayConfig highContrast = OverlayConfig.builder()
         .hudTheme(HudThemePreset.HIGH_CONTRAST)
         .build();
 
+OverlayConfig blackAndColors = OverlayConfig.builder()
+        .hudTheme(HudThemePreset.BLACK_AND_COLORS)
+        .build();
+
 OverlayConfig minimal = OverlayConfig.builder()
         .hudTheme(HudThemePreset.MINIMAL)
         .build();
@@ -95,7 +99,7 @@ overlay.step("Save order", () -> {
 });
 ```
 
-## Trace and evidence report
+## HTML trace and evidence report
 
 ```java
 UiTestLensSession session = overlay.startSession("Checkout flow");
@@ -106,10 +110,28 @@ overlay.step("Save order", () -> {
 
 overlay.captureScreenshot("After save");
 overlay.attachVideoUrl("CI video", "https://ci.example.com/artifacts/checkout-flow.mp4");
-overlay.exportTraceHtml(Path.of("target/ui-test-lens/checkout-flow.html"));
+session.exportHtmlReport();
 ```
 
-Screenshot capture uses Selenium `TakesScreenshot`. Video support attaches existing files or URLs; UI Test Lens does not record video.
+`exportHtmlReport()` writes `target/ui-test-lens-report/index.html` by default. The report is a self-contained dark HTML file with inline CSS, summary cards, failure diagnostics, timeline rows, metadata details, and artifact links. Publish the `target/ui-test-lens-report` folder as a CI artifact to inspect it after a run.
+
+Screenshot capture uses Selenium `TakesScreenshot`. Video support attaches existing files or URLs; UI Test Lens does not record video. Local image artifacts are linked and previewed when present; missing files are shown as warnings instead of failing report generation.
+
+## Log-only HTML report
+
+```java
+InMemoryLogSink logs = new InMemoryLogSink();
+UiTestLensLogger logger = UiTestLensLogger.builder()
+        .sink(logs)
+        .build();
+
+logger.info("Opening checkout");
+logger.warn("Retrying slow save button");
+
+logs.exportHtmlReport();
+```
+
+For custom output paths, use `session.exportHtml(Path.of("target/ui-test-lens-report/checkout.html"))` or `logs.exportHtml(Path.of("target/ui-test-lens-report/logs.html"))`.
 
 ## Auth/session state
 

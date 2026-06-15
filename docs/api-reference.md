@@ -38,6 +38,7 @@ Built-in HUD presets:
 - `GLASS`
 - `COMPACT`
 - `HIGH_CONTRAST`
+- `BLACK_AND_COLORS`
 - `MINIMAL`
 
 ### HudTheme
@@ -103,6 +104,7 @@ overlay.captureScreenshot("After save");
 overlay.attachVideoFile("Grid video", Path.of("target/videos/checkout.mp4"));
 overlay.attachVideoUrl("CI video", "https://ci.example.com/artifacts/video.mp4");
 overlay.exportTraceHtml(Path.of("target/ui-test-lens/checkout.html"));
+session.exportHtmlReport();
 ```
 
 Auth/session state:
@@ -172,9 +174,28 @@ These helpers return `UiLocator`, so they share retry, actionability and asserti
 
 ## Trace and reports
 
-`UiTestLensSession` stores trace metadata, events, failures and artifacts. It can export JSON or HTML through `TraceJsonExporter` and `TraceHtmlExporter`.
+`UiTestLensSession` stores trace metadata, events, failures and artifacts. It can export JSON or polished single-file HTML through `TraceJsonExporter` and `TraceHtmlExporter`.
+
+Common HTML report methods:
+
+```java
+session.exportHtml();
+session.exportHtml(Path.of("target/ui-test-lens-report/checkout.html"));
+session.exportHtmlReport();
+new TraceHtmlExporter().exportToDefault(session);
+```
+
+`exportHtmlReport()` and `TraceHtmlExporter.exportToDefault(...)` write `target/ui-test-lens-report/index.html`, creating parent directories and replacing an existing file.
 
 `TraceLogSink` maps UI Test Lens logger events into trace sessions when a session is attached.
+
+For log-only reports, collect entries in `InMemoryLogSink`:
+
+```java
+InMemoryLogSink logs = new InMemoryLogSink();
+logs.accept(UiTestLensLogEntry.info("Opening checkout"));
+logs.exportHtmlReport();
+```
 
 ## React support
 

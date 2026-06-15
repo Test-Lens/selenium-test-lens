@@ -36,6 +36,8 @@ class TraceHtmlExporterTest {
         assertTrue(html.contains("Event type summary"));
         assertTrue(html.contains("Failure summary"));
         assertTrue(html.contains("Raw JSON"));
+        assertTrue(html.contains(">PASS<"));
+        assertTrue(html.contains(">WARN<"));
     }
 
     @Test
@@ -148,11 +150,14 @@ class TraceHtmlExporterTest {
     void exportToWritesHtmlFile() throws Exception {
         UiTestLensSession session = sampleSession();
         Path output = tempDir.resolve("trace.html");
+        Files.writeString(output, "old report");
 
         Path written = new TraceHtmlExporter().exportTo(session, output);
 
         assertEquals(output, written);
-        assertTrue(Files.readString(output).contains("Checkout flow"));
+        String html = Files.readString(output);
+        assertTrue(html.contains("Checkout flow"));
+        assertFalse(html.contains("old report"));
     }
 
     @Test
@@ -160,6 +165,44 @@ class TraceHtmlExporterTest {
         UiTestLensSession session = sampleSession();
 
         assertTrue(session.exportHtml().contains("Checkout flow"));
+    }
+
+    @Test
+    void exportToCanUseDefaultReportPath() {
+        UiTestLensSession session = UiTestLensSession.start("Default report");
+        session.finishPassed();
+
+        Path written = new TraceHtmlExporter().exportToDefault(session);
+
+        assertEquals(TraceHtmlExporter.DEFAULT_OUTPUT_PATH, written);
+        assertTrue(Files.exists(written));
+    }
+
+    @Test
+    void artifactLinksAreRelativeAndExistingImagesGetThumbnails() throws Exception {
+        Path screenshot = tempDir.resolve("screens").resolve("save.png");
+        Files.createDirectories(screenshot.getParent());
+        Files.write(screenshot, new byte[] {1, 2, 3});
+        UiTestLensSession session = UiTestLensSession.start("Artifacts");
+        session.attachScreenshot("Save", screenshot);
+        Path output = tempDir.resolve("reports").resolve("index.html");
+
+        new TraceHtmlExporter().exportTo(session, output);
+
+        String html = Files.readString(output);
+        assertTrue(html.contains("href=\"../screens/save.png\""));
+        assertTrue(html.contains("<img class=\"artifact-thumb\" src=\"../screens/save.png\""));
+    }
+
+    @Test
+    void missingArtifactPathIsRenderedAsWarning() {
+        UiTestLensSession session = UiTestLensSession.start("Artifacts");
+        session.attachScreenshot("Missing", tempDir.resolve("missing.png"));
+
+        String html = new TraceHtmlExporter().export(session);
+
+        assertTrue(html.contains("missing file"));
+        assertTrue(html.contains("missing.png"));
     }
 
     private UiTestLensSession sampleSession() {

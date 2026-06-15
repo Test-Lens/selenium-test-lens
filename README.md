@@ -1,6 +1,6 @@
 # UI Test Lens
 
-UI Test Lens is an observability and reliability toolkit for browser-based UI automation. It adds resilient WebDriver actions, retryable assertions, visual debugging, evidence capture, auth/session state helpers, network diagnostics, and trace reports.
+UI Test Lens is an observability and reliability toolkit for browser-based UI automation. It adds resilient WebDriver actions, retryable assertions, visual debugging, evidence capture, auth/session state helpers, network diagnostics, and offline single-file HTML reports.
 
 The project is currently `0.1.0-SNAPSHOT` and pre-1.0. Public APIs are usable, but may still be polished before a first release.
 
@@ -123,7 +123,7 @@ UI Test Lens runs on top of Selenium/WebDriver and adds diagnostic APIs:
 - ergonomic `UiLocator` helpers
 - retryable web assertions
 - business assertions and named steps
-- trace/evidence session model and HTML report export
+- trace/evidence session model and polished single-file HTML report export
 - screenshot capture and video attachments
 - auth/session state capture and restore
 - passive network diagnostics and wait-for-response assertions
