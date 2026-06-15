@@ -13,10 +13,6 @@
   lens.state.overlay = lens.state.overlay || {};
   lens.state.hud = lens.state.hud || {};
 
-  if (lens.modules.hud && lens.modules.hud.__uiTestLensHud === true) {
-    return;
-  }
-
   function overlayRoot() {
     var root = lens.state.overlay.root || window.__seleniumOverlayRoot;
     if (root) {
@@ -238,6 +234,32 @@
     }
   }
 
+  function migrateHudContent(panel, structure) {
+    var previous = structure.header;
+    var title = panel.querySelector('#selenium-hud-test');
+    if (title) {
+      placeAfter(structure.main, title, previous);
+      previous = title;
+    }
+
+    var pipeline = panel.querySelector('#selenium-hud-pipeline');
+    if (pipeline) {
+      placeAfter(structure.main, pipeline, previous);
+      previous = pipeline;
+    }
+
+    var step = panel.querySelector('#selenium-hud-step');
+    if (step) {
+      placeAfter(structure.main, step, previous);
+      previous = step;
+    }
+
+    var logs = panel.querySelector('#selenium-hud-logs');
+    if (logs && logs.parentNode !== structure.main) {
+      structure.main.appendChild(logs);
+    }
+  }
+
   function positionPanel(panel, config) {
     var position = config.position || 'BOTTOM_RIGHT';
     var offsetX = config.offsetX == null ? 10 : config.offsetX;
@@ -265,6 +287,7 @@
 
   function ensureLogs(panel) {
     var structure = ensureStructure(panel);
+    migrateHudContent(panel, structure);
     var logs = panel.querySelector('#selenium-hud-logs');
     if (!logs) {
       logs = document.createElement('div');
@@ -336,7 +359,8 @@
     }
 
     applyTheme(panel, config);
-    ensureStructure(panel);
+    var structure = ensureStructure(panel);
+    migrateHudContent(panel, structure);
     positionPanel(panel, config);
     panel.style.maxWidth = (config.maxWidth || 280) + 'px';
     updateScrollableRegions(panel);
