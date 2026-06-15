@@ -1,6 +1,6 @@
 # Examples
 
-This page collects short usage snippets. Browser-dependent examples in `ui-test-lens-examples` are disabled and documentation-only unless a real application and `WebDriver` are supplied.
+This page collects short usage snippets. Selenium/WebDriver-dependent examples in `ui-test-lens-examples` are disabled and documentation-only unless a real application and `WebDriver` are supplied.
 
 ## Default HUD
 
@@ -117,7 +117,7 @@ session.exportHtmlReport();
 
 The report is a self-contained HTML file with inline CSS, summary cards, failure diagnostics, timeline rows, metadata details, and artifact links. Publish the `target/ui-test-lens-report` folder as a CI artifact to inspect it after a run.
 
-Screenshot capture uses Selenium `TakesScreenshot`. Video support attaches existing files or URLs; UI Test Lens does not record video. Local image artifacts are linked and previewed when present; missing files are shown as warnings instead of failing report generation.
+Screenshot capture uses Selenium `TakesScreenshot`. Video support attaches existing files or URLs; Selenium Test Lens does not record video. Local image artifacts are linked and previewed when present; missing files are shown as warnings instead of failing report generation.
 
 ## Log-only HTML report
 

@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Exports UI Test Lens trace sessions as machine-readable JSON reports.
+ * Exports Selenium Test Lens trace sessions as machine-readable JSON reports.
  */
 public final class TraceJsonExporter {
     public static final Path DEFAULT_SUITE_OUTPUT_PATH = TraceReportSupport.DEFAULT_SUITE_JSON_PATH;
@@ -95,7 +95,7 @@ public final class TraceJsonExporter {
         root.put("schemaVersion", TraceReportSupport.SCHEMA_VERSION);
         root.put("generatedAt", Instant.now().toString());
         root.put("reportType", "suite");
-        root.put("name", "UI Test Lens Report");
+        root.put("name", "Selenium Test Lens Report");
         root.put("status", TraceReportSupport.suiteStatus(safeSessions).name());
         root.put("summary", suiteSummary(safeSessions));
         root.put("sessions", safeSessions.stream()

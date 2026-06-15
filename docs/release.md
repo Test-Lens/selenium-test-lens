@@ -1,6 +1,6 @@
 # Release verification
 
-UI Test Lens is not published automatically yet. The current repository setup supports CI builds and a manual release verification workflow, but Central Portal credentials and GPG signing keys are not stored in the repository.
+Selenium Test Lens is not published automatically yet. The current repository setup supports CI builds and a manual release verification workflow, but Central Portal credentials and GPG signing keys are not stored in the repository.
 
 ## CI build
 

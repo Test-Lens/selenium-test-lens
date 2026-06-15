@@ -1,6 +1,6 @@
 # Visual overlay and HUD
 
-UI Test Lens includes runtime JavaScript resources for visual debugging. These resources live in `ui-test-lens-overlay` and remain independent of Selenium.
+Selenium Test Lens includes runtime JavaScript resources for visual debugging. These resources live in `ui-test-lens-overlay` and remain independent of Selenium.
 
 ## Scope
 
@@ -54,7 +54,7 @@ JsOverlayDebug overlay = new JsOverlayDebug(driver, config);
 
 ## Overlay root
 
-Runtime resources create UI Test Lens elements inside the page without changing the application source. Overlay elements use high z-index values and isolated styles as much as possible, but they are still DOM elements injected into the tested page.
+Runtime resources create Selenium Test Lens elements inside the page without changing the application source. Overlay elements use high z-index values and isolated styles as much as possible, but they are still DOM elements injected into the tested page.
 
 ## Element highlighting
 

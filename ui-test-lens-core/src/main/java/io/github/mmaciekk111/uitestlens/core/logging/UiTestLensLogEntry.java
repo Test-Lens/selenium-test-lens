@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Structured log entry emitted by UI Test Lens actions, assertions, and diagnostics.
+ * Structured log entry emitted by Selenium Test Lens actions, assertions, and diagnostics.
  *
  * <p>Entries are immutable and safe to forward to log exporters or trace sessions.
  */

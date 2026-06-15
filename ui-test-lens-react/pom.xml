@@ -12,8 +12,8 @@
 
     <artifactId>ui-test-lens-react</artifactId>
     <packaging>jar</packaging>
-    <name>UI Test Lens React</name>
-    <description>React and SPA-oriented actionability helpers for UI Test Lens Selenium integration.</description>
+    <name>Selenium Test Lens React</name>
+    <description>React and SPA-oriented actionability helpers for Selenium Test Lens Selenium/WebDriver tests.</description>
 
     <dependencies>
         <dependency>

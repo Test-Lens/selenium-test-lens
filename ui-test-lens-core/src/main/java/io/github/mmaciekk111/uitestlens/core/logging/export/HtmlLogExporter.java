@@ -54,7 +54,7 @@ public final class HtmlLogExporter implements UiTestLensLogExporter {
     }
 
     private UiTestLensSession toSession(List<UiTestLensLogEntry> entries) {
-        UiTestLensSession session = UiTestLensSession.start("UI Test Lens log report");
+        UiTestLensSession session = UiTestLensSession.start("Selenium Test Lens log report");
         if (entries != null) {
             for (UiTestLensLogEntry entry : entries) {
                 if (entry != null) {
@@ -146,7 +146,7 @@ public final class HtmlLogExporter implements UiTestLensLogExporter {
 
     private TraceHtmlExportOptions reportOptions() {
         return TraceHtmlExportOptions.builder()
-                .title("UI Test Lens Log Report")
+                .title("Selenium Test Lens Log Report")
                 .includeJsonPayload(false)
                 .includeArtifacts(false)
                 .includeStackTraces(true)

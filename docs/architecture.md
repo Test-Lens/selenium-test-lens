@@ -1,12 +1,12 @@
 # Architecture
 
-UI Test Lens is a multi-module project. Each module owns a boundary so WebDriver diagnostics do not leak into neutral runtime/model modules.
+Selenium Test Lens is a multi-module Selenium/WebDriver-first project. Each module owns a boundary so WebDriver diagnostics do not leak into neutral runtime/model modules.
 
 ## Module boundaries
 
 | Module | Responsibility | Dependency boundary |
 |---|---|---|
-| `ui-test-lens-core` | Logging, log sinks, trace/evidence model, JSON and HTML exporters. | No Selenium dependency. |
+| `ui-test-lens-core` | Internal logging, log sinks, trace/evidence model, JSON and HTML exporters. | No Selenium dependency. |
 | `ui-test-lens-overlay` | Runtime JS resources, overlay config, HUD model and visual debugging assets. | No Selenium dependency. |
 | `ui-test-lens-selenium` | Selenium facade, locators, assertions, actionability, overlay policy, evidence capture, auth/session state and network diagnostics. | Does not depend on React. |
 | `ui-test-lens-react` | React-specific support and React-aware actionability extension layer. | May depend on Selenium integration. |
@@ -47,7 +47,7 @@ React-specific helpers are not part of `ui-test-lens-selenium`. They live in `ui
 
 Artifacts such as screenshots, video references and network logs are attached separately to the session.
 
-Report export lives in `ui-test-lens-core` and remains browser-driver independent. `TraceHtmlExporter` renders self-contained static HTML documents with inline CSS for individual trace sessions and combined suite/run reports, while `TraceJsonExporter` renders the machine-readable `schemaVersion` `1.0` integration format. `TraceReportBundleExporter` packages `index.html`, `report.json`, `manifest.json`, and copied artifacts into an offline ZIP bundle. `HtmlLogExporter` converts log entries into the same HTML report pipeline for log-only runs. File helpers create parent directories, overwrite existing reports, and default suite output to `target/ui-test-lens-report/index.html`, `target/ui-test-lens-report/report.json`, and `target/ui-test-lens-report/ui-test-lens-report.zip`.
+Report export lives in `ui-test-lens-core` and remains independent of Selenium runtime classes, so Selenium Test Lens can generate reports from collected session data without a live driver. `TraceHtmlExporter` renders self-contained static HTML documents with inline CSS for individual trace sessions and combined suite/run reports, while `TraceJsonExporter` renders the machine-readable `schemaVersion` `1.0` integration format. `TraceReportBundleExporter` packages `index.html`, `report.json`, `manifest.json`, and copied artifacts into an offline ZIP bundle. `HtmlLogExporter` converts log entries into the same HTML report pipeline for log-only runs. File helpers create parent directories, overwrite existing reports, and default suite output to `target/ui-test-lens-report/index.html`, `target/ui-test-lens-report/report.json`, and `target/ui-test-lens-report/ui-test-lens-report.zip`.
 
 Report color is controlled through `TraceHtmlExportOptions.theme(...)`. `HtmlReportTheme.AUTO` uses CSS variables plus `prefers-color-scheme`; `LIGHT` and `DARK` force a specific static palette. HUD theme and HTML report theme are intentionally separate contracts.
 

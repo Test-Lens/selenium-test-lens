@@ -12,8 +12,8 @@
 
     <artifactId>ui-test-lens</artifactId>
     <packaging>pom</packaging>
-    <name>UI Test Lens</name>
-    <description>All-in-one dependency bundle for UI Test Lens Selenium usage.</description>
+    <name>Selenium Test Lens</name>
+    <description>All-in-one dependency bundle for Selenium Test Lens Selenium/WebDriver usage.</description>
 
     <dependencies>
         <dependency>

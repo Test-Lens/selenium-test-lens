@@ -22,7 +22,7 @@ public final class UiTestLensSession {
 
     private UiTestLensSession(String name) {
         String id = UUID.randomUUID().toString();
-        this.metadata = TraceMetadata.builder(id, name == null || name.isBlank() ? "UI Test Lens session" : name.trim())
+        this.metadata = TraceMetadata.builder(id, name == null || name.isBlank() ? "Selenium Test Lens session" : name.trim())
                 .status(TraceStatus.STARTED)
                 .build();
         addEvent(TraceEvent.started(TraceEventType.SESSION_STARTED, this.metadata.name())

@@ -193,11 +193,11 @@ public final class TraceHtmlExporter {
                 + escape(effectiveOptions.title())
                 + "</title></head><body><h1>"
                 + escape(effectiveOptions.title())
-                + "</h1><p>No UI Test Lens session available.</p></body></html>";
+                + "</h1><p>No Selenium Test Lens session available.</p></body></html>";
     }
 
     private void appendSuiteHeader(StringBuilder out, List<UiTestLensSession> sessions, TraceHtmlExportOptions options) {
-        out.append("<header class=\"hero\"><p class=\"eyebrow\">UI Test Lens suite report</p><h1>")
+        out.append("<header class=\"hero\"><p class=\"eyebrow\">Selenium Test Lens suite report</p><h1>")
                 .append(escape(options.title()))
                 .append("</h1><div class=\"metadata-grid\">");
         metadata(out, "Sessions", String.valueOf(sessions.size()));
@@ -292,7 +292,7 @@ public final class TraceHtmlExporter {
                     .append("\">Open</a></td></tr>");
         }
         if (sessions.isEmpty()) {
-            out.append("<tr><td colspan=\"7\" class=\"muted\">No UI Test Lens sessions recorded.</td></tr>");
+            out.append("<tr><td colspan=\"7\" class=\"muted\">No Selenium Test Lens sessions recorded.</td></tr>");
         }
         out.append("</tbody></table></div></section>");
     }
@@ -339,7 +339,7 @@ public final class TraceHtmlExporter {
 
     private void appendHeader(StringBuilder out, UiTestLensSession session, TraceHtmlExportOptions options) {
         TraceMetadata metadata = session.metadata();
-        out.append("<header class=\"hero\"><p class=\"eyebrow\">UI Test Lens trace</p><h1>")
+        out.append("<header class=\"hero\"><p class=\"eyebrow\">Selenium Test Lens trace</p><h1>")
                 .append(escape(options.title()))
                 .append("</h1><div class=\"metadata-grid\">");
         metadata(out, "Session", metadata.name());

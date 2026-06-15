@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to UI Test Lens will be documented in this file.
+All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [0.1.0-SNAPSHOT] - Unreleased
 
@@ -14,7 +14,7 @@ All notable changes to UI Test Lens will be documented in this file.
 - Runtime JavaScript resources for API overlay, Wait HUD, Highlight, Type hint, Scroll arrow, HUD panel, and Assertion badges.
 
 ### Changed
-- Migrated project naming from the historical helper codebase to UI Test Lens.
+- Migrated project naming from the historical helper codebase to Selenium Test Lens.
 - Moved Java packages to `io.github.mmaciekk111.uitestlens`.
 - Changed project version to `0.1.0-SNAPSHOT` to reflect pre-1.0 API status.
 - Split core, overlay, selenium, react, examples, and all-in-one compatibility responsibilities.

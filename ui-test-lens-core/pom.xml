@@ -12,8 +12,8 @@
 
     <artifactId>ui-test-lens-core</artifactId>
     <packaging>jar</packaging>
-    <name>UI Test Lens Core</name>
-    <description>Core logging, trace, evidence, and export APIs for UI Test Lens.</description>
+    <name>Selenium Test Lens Core</name>
+    <description>Core logging, trace, evidence, and report export APIs for Selenium Test Lens.</description>
 
     <dependencies>
         <dependency>

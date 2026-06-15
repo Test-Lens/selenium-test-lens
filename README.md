@@ -1,8 +1,12 @@
-# UI Test Lens
+# Selenium Test Lens
 
-UI Test Lens is an observability and reliability toolkit for browser-based UI automation. It adds resilient WebDriver actions, retryable assertions, visual debugging, evidence capture, auth/session state helpers, network diagnostics, offline HTML reports, machine-readable JSON reports, and portable report ZIP bundles.
+Selenium Test Lens is an observability, diagnostics, and reporting toolkit for Selenium/WebDriver UI tests. It adds resilient WebDriver actions, retryable assertions, visual debugging, evidence capture, auth/session state helpers, network diagnostics, offline HTML reports, machine-readable JSON reports, and portable report ZIP bundles.
 
 The project is currently `0.1.0-SNAPSHOT` and pre-1.0. Public APIs are usable, but may still be polished before a first release.
+
+Repository: https://github.com/test-lens/selenium-test-lens
+
+Current Java package names, Maven groupId, artifactIds, module directories, and default output paths still use the historical `uitestlens` / `ui-test-lens` names. They are intentionally retained in this pass to avoid breaking consumers.
 
 ## Requirements
 
@@ -126,7 +130,7 @@ curl -F "report=@target/ui-test-lens-report/ui-test-lens-report.zip" https://exa
 
 | Module | Responsibility |
 |---|---|
-| `ui-test-lens-core` | Logging, trace/evidence model, JSON/HTML/ZIP report exporters. No Selenium dependency. |
+| `ui-test-lens-core` | Internal logging, trace/evidence model, JSON/HTML/ZIP report exporters. No Selenium dependency. |
 | `ui-test-lens-overlay` | Runtime JavaScript overlay resources, HUD configuration, visual debugging assets. No Selenium dependency. |
 | `ui-test-lens-selenium` | Selenium facade, locators, assertions, actionability, evidence, auth/session state, network diagnostics. |
 | `ui-test-lens-react` | React-specific support layered on top of Selenium integration. |
@@ -147,11 +151,11 @@ curl -F "report=@target/ui-test-lens-report/ui-test-lens-report.zip" https://exa
 
 ## License
 
-UI Test Lens is licensed under the [Apache License 2.0](LICENSE).
+Selenium Test Lens is licensed under the [Apache License 2.0](LICENSE).
 
 ## Current Scope
 
-UI Test Lens runs on top of Selenium/WebDriver and adds diagnostic APIs:
+Selenium Test Lens runs on top of Selenium/WebDriver and adds diagnostic APIs:
 
 - visual HUD and element debugging
 - configurable blocking overlay policy
@@ -168,5 +172,5 @@ Current limitations:
 
 - `getByRole` does not implement the full ARIA accessible-name algorithm.
 - network diagnostics are passive; browser capture providers and interception/mocking are not implemented.
-- video support is attachment/reference based; UI Test Lens does not record video.
+- video support is attachment/reference based; Selenium Test Lens does not record video.
 - HUD themes focus on the HUD panel; Wait HUD and assertion badges are not fully covered by the common theme system.

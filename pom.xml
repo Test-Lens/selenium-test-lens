@@ -8,9 +8,9 @@
     <artifactId>ui-test-lens-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>UI Test Lens Parent</name>
-    <description>Observability and reliability toolkit for browser-based UI automation.</description>
-    <url>https://github.com/mmaciekk111/ui-test-lens</url>
+    <name>Selenium Test Lens Parent</name>
+    <description>Observability, diagnostics, and reporting toolkit for Selenium/WebDriver UI tests.</description>
+    <url>https://github.com/test-lens/selenium-test-lens</url>
 
     <licenses>
         <license>
@@ -29,14 +29,14 @@
     </developers>
 
     <scm>
-        <connection>scm:git:https://github.com/mmaciekk111/ui-test-lens.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/mmaciekk111/ui-test-lens.git</developerConnection>
-        <url>https://github.com/mmaciekk111/ui-test-lens</url>
+        <connection>scm:git:https://github.com/test-lens/selenium-test-lens.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/test-lens/selenium-test-lens.git</developerConnection>
+        <url>https://github.com/test-lens/selenium-test-lens</url>
     </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/mmaciekk111/ui-test-lens/issues</url>
+        <url>https://github.com/test-lens/selenium-test-lens/issues</url>
     </issueManagement>
 
     <modules>

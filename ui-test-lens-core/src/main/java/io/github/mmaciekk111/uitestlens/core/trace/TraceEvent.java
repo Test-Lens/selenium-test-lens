@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Timeline event stored in a UI Test Lens trace session.
+ * Timeline event stored in a Selenium Test Lens trace session.
  *
  * <p>Events can carry attributes, failures, durations, parent identifiers, and artifact references.
  */

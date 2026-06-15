@@ -1,6 +1,8 @@
 # API reference
 
-This is a concise public API map for UI Test Lens 0.1.
+This is a concise public API map for Selenium Test Lens 0.1.
+
+Current Java package names and Maven artifactIds still use the historical `uitestlens` / `ui-test-lens` names. They are retained for compatibility in this pass.
 
 ## Overlay configuration
 
@@ -243,7 +245,7 @@ Example API upload:
 curl -F "report=@target/ui-test-lens-report/ui-test-lens-report.zip" https://example.com/api/reports
 ```
 
-`TraceLogSink` maps UI Test Lens logger events into trace sessions when a session is attached.
+`TraceLogSink` maps Selenium Test Lens logger events into trace sessions when a session is attached.
 
 For log-only reports, collect entries in `InMemoryLogSink`:
 

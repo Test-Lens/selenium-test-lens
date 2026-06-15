@@ -23,7 +23,7 @@ class HtmlLogExporterTest {
         String html = new HtmlLogExporter().export(java.util.List.of());
 
         assertTrue(html.contains("<html"));
-        assertTrue(html.contains("UI Test Lens Log Report"));
+        assertTrue(html.contains("Selenium Test Lens Log Report"));
         assertTrue(html.contains("<table"));
         assertTrue(html.contains("</html>"));
     }

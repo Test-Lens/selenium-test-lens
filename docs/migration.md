@@ -1,14 +1,14 @@
 # Migration
 
-This guide summarizes the practical migration from the historical Selenium helper API to the current UI Test Lens `0.1.0-SNAPSHOT` API.
+This guide summarizes the practical migration from the historical Selenium helper API to the current Selenium Test Lens `0.1.0-SNAPSHOT` API.
 
-UI Test Lens is pre-1.0. This guide describes the current state, not a Maven Central release process.
+Selenium Test Lens is pre-1.0. This guide describes the current state, not a Maven Central release process.
 
 ## Naming
 
-| Historical concept | Current UI Test Lens concept |
+| Historical concept | Current Selenium Test Lens concept |
 |---|---|
-| historical helper codebase | UI Test Lens |
+| historical helper codebase | Selenium Test Lens |
 | historical helper package | `io.github.mmaciekk111.uitestlens` |
 | old one-module helper layout | multi-module Maven layout |
 | Selenium-only helper | WebDriver reliability and diagnostics layer |
@@ -73,7 +73,7 @@ Direct Selenium click:
 driver.findElement(By.cssSelector("[data-testid='save']")).click();
 ```
 
-UI Test Lens:
+Selenium Test Lens:
 
 ```java
 overlay.getByTestId("save").click();

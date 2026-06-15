@@ -1,5 +1,5 @@
 /**
- * UI Test Lens logging and event model.
+ * Selenium Test Lens logging and event model.
  *
  * <p>This package is intended to remain independent from Selenium and browser automation frameworks.
  */

@@ -1,6 +1,6 @@
 # Getting started
 
-This guide shows the smallest path from a local build to a Selenium test using UI Test Lens.
+This guide shows the smallest path from a local build to a Selenium test using Selenium Test Lens.
 
 ## Requirements
 
@@ -8,7 +8,7 @@ This guide shows the smallest path from a local build to a Selenium test using U
 - Maven 3.x
 - A Selenium `WebDriver` supplied by your test project
 
-UI Test Lens is currently `0.1.0-SNAPSHOT`. Maven Central publishing is not configured yet, so local development usually starts with:
+Selenium Test Lens is currently `0.1.0-SNAPSHOT`. Maven Central publishing is not configured yet, so local development usually starts with:
 
 ```powershell
 mvn -q -DskipTests install
@@ -85,4 +85,4 @@ mvn -q -pl ui-test-lens-examples -am test
 mvn -q -pl ui-test-lens -am test
 ```
 
-The `ui-test-lens-examples` module contains documentation-style examples. Browser-dependent examples are disabled and intended to compile and document API usage, not to run without a real application and driver.
+The `ui-test-lens-examples` module contains documentation-style examples. Selenium/WebDriver-dependent examples are disabled and intended to compile and document API usage, not to run without a real application and driver.

@@ -11,7 +11,7 @@ import java.util.Objects;
 /**
  * Java bridge for the browser API overlay panel.
  *
- * <p>The panel renders request/response diagnostics in the page under the UI Test Lens overlay root.
+ * <p>The panel renders request/response diagnostics in the page under the Selenium Test Lens overlay root.
  */
 public final class ApiOverlayPanel {
 

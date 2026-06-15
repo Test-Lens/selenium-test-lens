@@ -3,7 +3,7 @@ package io.github.mmaciekk111.uitestlens.core.trace.export;
 import java.nio.file.Path;
 
 /**
- * Options for portable UI Test Lens report ZIP bundles.
+ * Options for portable Selenium Test Lens report ZIP bundles.
  */
 public final class TraceBundleExportOptions {
     private final boolean includeStackTraces;
@@ -20,7 +20,7 @@ public final class TraceBundleExportOptions {
         this.includeMissingArtifacts = builder.includeMissingArtifacts;
         this.copyArtifacts = builder.copyArtifacts;
         this.bundleName = builder.bundleName == null || builder.bundleName.isBlank()
-                ? "UI Test Lens Report"
+                ? "Selenium Test Lens Report"
                 : builder.bundleName.trim();
         this.outputDirectory = builder.outputDirectory == null
                 ? TraceReportSupport.DEFAULT_REPORT_DIRECTORY
@@ -69,7 +69,7 @@ public final class TraceBundleExportOptions {
         private boolean includeArtifactMetadata = true;
         private boolean includeMissingArtifacts = true;
         private boolean copyArtifacts = true;
-        private String bundleName = "UI Test Lens Report";
+        private String bundleName = "Selenium Test Lens Report";
         private Path outputDirectory = TraceReportSupport.DEFAULT_REPORT_DIRECTORY;
         private HtmlReportTheme htmlTheme = HtmlReportTheme.AUTO;
 

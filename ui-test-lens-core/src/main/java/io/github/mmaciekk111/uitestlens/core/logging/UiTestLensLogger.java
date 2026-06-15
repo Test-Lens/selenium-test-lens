@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Lightweight fan-out logger used by UI Test Lens components.
+ * Lightweight fan-out logger used by Selenium Test Lens components.
  *
  * <p>Sink failures are isolated so diagnostics do not break browser automation flows.
  */

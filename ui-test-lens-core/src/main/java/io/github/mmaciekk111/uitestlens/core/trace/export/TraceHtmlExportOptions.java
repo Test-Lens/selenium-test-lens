@@ -17,7 +17,7 @@ public final class TraceHtmlExportOptions {
     private final int maxMessageLength;
 
     private TraceHtmlExportOptions(Builder builder) {
-        this.title = builder.title == null || builder.title.isBlank() ? "UI Test Lens Trace" : builder.title.trim();
+        this.title = builder.title == null || builder.title.isBlank() ? "Selenium Test Lens Trace" : builder.title.trim();
         this.includeJsonPayload = builder.includeJsonPayload;
         this.includeArtifacts = builder.includeArtifacts;
         this.includeStackTraces = builder.includeStackTraces;
@@ -101,7 +101,7 @@ public final class TraceHtmlExportOptions {
     }
 
     public static final class Builder {
-        private String title = "UI Test Lens Trace";
+        private String title = "Selenium Test Lens Trace";
         private boolean includeJsonPayload = true;
         private boolean includeArtifacts = true;
         private boolean includeStackTraces = false;

@@ -1,6 +1,6 @@
 # Configuration
 
-UI Test Lens configuration is intentionally split by responsibility: visual overlay settings live in the overlay module, Selenium behavior lives in Selenium options, and trace/evidence settings live in the trace/evidence APIs.
+Selenium Test Lens configuration is intentionally split by responsibility: visual overlay settings live in the overlay module, Selenium behavior lives in Selenium options, and trace/evidence settings live in the trace/evidence APIs.
 
 ## OverlayConfig
 
@@ -53,7 +53,7 @@ OverlayConfig config = OverlayConfig.builder()
         .build();
 ```
 
-The default theme preserves the current UI Test Lens HUD appearance.
+The default theme preserves the current Selenium Test Lens HUD appearance.
 
 ## Custom HudTheme
 
