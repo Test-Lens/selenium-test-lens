@@ -34,13 +34,15 @@ class HudPanelJsTest {
     @Test
     void initContainsMinimalBrandingShell() {
         assertTrue(HudPanelJs.INIT.contains("stl-hud-shell"));
-        assertTrue(HudPanelJs.INIT.contains("stl-hud-header"));
+        assertFalse(HudPanelJs.INIT.contains("header.className = 'stl-hud-header'"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-brand-icon"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-side-rail"));
+        assertTrue(HudPanelJs.INIT.contains("stl-hud-rail-brand"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-side-rail-text"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-main"));
         assertTrue(HudPanelJs.INIT.contains("TEST LENS"));
         assertTrue(HudPanelJs.INIT.contains("<svg class=\"stl-hud-brand-icon-svg\""));
+        assertTrue(HudPanelJs.INIT.contains("railBrand.insertBefore(brandIcon, railBrand.firstChild)"));
         assertFalse(HudPanelJs.INIT.contains("Selenium/WebDriver"));
         assertFalse(HudPanelJs.INIT.contains("Test Lens"));
     }
@@ -54,6 +56,7 @@ class HudPanelJsTest {
     @Test
     void initContainsLegacyHudContentMigration() {
         assertTrue(HudPanelJs.INIT.contains("function migrateHudContent"));
+        assertTrue(HudPanelJs.INIT.contains("var previous = null"));
         assertTrue(HudPanelJs.INIT.contains("placeAfter(structure.main, title, previous)"));
         assertTrue(HudPanelJs.INIT.contains("placeAfter(structure.main, pipeline, previous)"));
         assertTrue(HudPanelJs.INIT.contains("placeAfter(structure.main, step, previous)"));
@@ -218,12 +221,16 @@ class HudPanelJsTest {
 
                 assert(root.querySelector('.stl-hud-shell'), 'missing shell');
                 assert(root.querySelector('.stl-hud-side-rail'), 'missing side rail');
+                assert(root.querySelector('.stl-hud-rail-brand'), 'missing rail brand lockup');
                 assert(root.querySelector('.stl-hud-main'), 'missing main');
                 assert(root.querySelector('.stl-hud-brand-icon'), 'missing brand icon');
+                assert(root.querySelector('.stl-hud-brand-icon').parentNode === root.querySelector('.stl-hud-rail-brand'), 'brand icon is not in rail lockup');
+                assert(!root.querySelector('.stl-hud-header'), 'top header should not be rendered');
                 assert(root.querySelector('.stl-hud-side-rail-text').textContent === 'TEST LENS', 'missing rail text');
                 assert(root.querySelector('#selenium-hud-step').parentNode === root.querySelector('.stl-hud-main'), 'legacy step was not migrated');
                 assert(root.querySelector('#selenium-hud-logs').parentNode === root.querySelector('.stl-hud-main'), 'logs are not in main');
                 assert(countByClass(root, 'stl-hud-side-rail') === 1, 'duplicated side rail');
+                assert(countByClass(root, 'stl-hud-rail-brand') === 1, 'duplicated rail brand');
                 assert(countByClass(root, 'stl-hud-brand-icon') === 1, 'duplicated brand icon');
                 """;
     }

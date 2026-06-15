@@ -127,7 +127,7 @@
 
   function brandIconMarkup() {
     return '' +
-      '<svg class="stl-hud-brand-icon-svg" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">' +
+      '<svg class="stl-hud-brand-icon-svg" width="18" height="18" viewBox="0 0 32 32" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">' +
       '<path d="M5 12V7.5C5 6.1 6.1 5 7.5 5H12" fill="none" stroke="var(--ui-test-lens-hud-fg, #ffffff)" stroke-width="2.4" stroke-linecap="round"/>' +
       '<path d="M20 5h4.5C25.9 5 27 6.1 27 7.5V12" fill="none" stroke="var(--ui-test-lens-hud-accent, #4ca3ff)" stroke-width="2.4" stroke-linecap="round"/>' +
       '<path d="M27 20v4.5c0 1.4-1.1 2.5-2.5 2.5H20" fill="none" stroke="var(--ui-test-lens-hud-accent, #4ca3ff)" stroke-width="2.4" stroke-linecap="round"/>' +
@@ -136,6 +136,23 @@
       '<circle cx="16" cy="16" r="3.2" fill="var(--ui-test-lens-hud-accent, #4ca3ff)"/>' +
       '<circle cx="18" cy="13.8" r="1.1" fill="var(--ui-test-lens-hud-fg, #ffffff)"/>' +
       '</svg>';
+  }
+
+  function removeNode(node) {
+    if (!node || !node.parentNode) {
+      return;
+    }
+    if (node.parentNode.removeChild) {
+      node.parentNode.removeChild(node);
+      return;
+    }
+    if (node.parentNode.children) {
+      var index = node.parentNode.children.indexOf(node);
+      if (index >= 0) {
+        node.parentNode.children.splice(index, 1);
+      }
+      node.parentNode = null;
+    }
   }
 
   function ensureStructure(panel) {
@@ -154,33 +171,58 @@
     if (!sideRail) {
       sideRail = document.createElement('div');
       sideRail.className = 'stl-hud-side-rail';
-      sideRail.style.flex = '0 0 24px';
-      sideRail.style.width = '24px';
+      sideRail.style.flex = '0 0 28px';
+      sideRail.style.width = '28px';
       sideRail.style.boxSizing = 'border-box';
       sideRail.style.display = 'flex';
       sideRail.style.alignItems = 'center';
       sideRail.style.justifyContent = 'center';
-      sideRail.style.padding = '2px 0';
+      sideRail.style.padding = '4px 0';
       sideRail.style.marginRight = 'var(--ui-test-lens-hud-gap, 6px)';
       sideRail.style.borderRight = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
       sideRail.style.color = 'var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78))';
       shell.insertBefore(sideRail, shell.firstChild);
     }
 
-    var railText = sideRail.querySelector('.stl-hud-side-rail-text');
+    var railBrand = sideRail.querySelector('.stl-hud-rail-brand');
+    if (!railBrand) {
+      railBrand = document.createElement('div');
+      railBrand.className = 'stl-hud-rail-brand';
+      railBrand.style.display = 'inline-flex';
+      railBrand.style.alignItems = 'center';
+      railBrand.style.justifyContent = 'center';
+      railBrand.style.gap = '5px';
+      railBrand.style.whiteSpace = 'nowrap';
+      railBrand.style.transform = 'rotate(-90deg)';
+      railBrand.style.transformOrigin = 'center';
+      railBrand.style.opacity = '0.78';
+      railBrand.style.color = 'var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78))';
+      sideRail.appendChild(railBrand);
+    }
+
+    var brandIcon = railBrand.querySelector('.stl-hud-brand-icon');
+    if (!brandIcon) {
+      brandIcon = document.createElement('span');
+      brandIcon.className = 'stl-hud-brand-icon';
+      brandIcon.style.display = 'inline-flex';
+      brandIcon.style.alignItems = 'center';
+      brandIcon.style.justifyContent = 'center';
+      brandIcon.style.width = '18px';
+      brandIcon.style.height = '18px';
+      brandIcon.innerHTML = brandIconMarkup();
+      railBrand.insertBefore(brandIcon, railBrand.firstChild);
+    }
+
+    var railText = railBrand.querySelector('.stl-hud-side-rail-text');
     if (!railText) {
-      railText = document.createElement('div');
+      railText = document.createElement('span');
       railText.className = 'stl-hud-side-rail-text';
       railText.textContent = 'TEST LENS';
-      railText.style.writingMode = 'vertical-rl';
-      railText.style.transform = 'rotate(180deg)';
       railText.style.fontSize = '9px';
       railText.style.lineHeight = '1';
       railText.style.fontWeight = '700';
       railText.style.letterSpacing = '0.08em';
-      railText.style.whiteSpace = 'nowrap';
-      railText.style.opacity = '0.72';
-      sideRail.appendChild(railText);
+      railBrand.appendChild(railText);
     }
 
     var main = shell.querySelector('.stl-hud-main');
@@ -195,35 +237,16 @@
       shell.appendChild(main);
     }
 
-    var header = main.querySelector('.stl-hud-header');
-    if (!header) {
-      header = document.createElement('div');
-      header.className = 'stl-hud-header';
-      header.style.display = 'flex';
-      header.style.alignItems = 'center';
-      header.style.minHeight = '26px';
-      header.style.marginBottom = 'var(--ui-test-lens-hud-gap, 6px)';
-      main.insertBefore(header, main.firstChild);
-    }
-
-    var brandIcon = header.querySelector('.stl-hud-brand-icon');
-    if (!brandIcon) {
-      brandIcon = document.createElement('span');
-      brandIcon.className = 'stl-hud-brand-icon';
-      brandIcon.style.display = 'inline-flex';
-      brandIcon.style.alignItems = 'center';
-      brandIcon.style.justifyContent = 'center';
-      brandIcon.style.width = '26px';
-      brandIcon.style.height = '26px';
-      brandIcon.innerHTML = brandIconMarkup();
-      header.appendChild(brandIcon);
+    var oldHeader = main.querySelector('.stl-hud-header');
+    if (oldHeader) {
+      removeNode(oldHeader);
     }
 
     return {
       shell: shell,
       sideRail: sideRail,
-      main: main,
-      header: header
+      railBrand: railBrand,
+      main: main
     };
   }
 
@@ -235,7 +258,7 @@
   }
 
   function migrateHudContent(panel, structure) {
-    var previous = structure.header;
+    var previous = null;
     var title = panel.querySelector('#selenium-hud-test');
     if (title) {
       placeAfter(structure.main, title, previous);
@@ -324,13 +347,12 @@
     var title = panel.querySelector('#selenium-hud-test');
     var pipeline = panel.querySelector('#selenium-hud-pipeline');
     var step = panel.querySelector('#selenium-hud-step');
-    var header = panel.querySelector('.stl-hud-header');
     var styles = window.getComputedStyle ? window.getComputedStyle(panel) : null;
     var paddingTop = styles ? parseFloat(styles.paddingTop) || 0 : 0;
     var paddingBottom = styles ? parseFloat(styles.paddingBottom) || 0 : 0;
     var fixedHeight = paddingTop + paddingBottom;
 
-    [header, title, pipeline, step].forEach(function (node) {
+    [title, pipeline, step].forEach(function (node) {
       if (node) {
         fixedHeight += node.offsetHeight || 0;
       }
@@ -362,7 +384,7 @@
     var structure = ensureStructure(panel);
     migrateHudContent(panel, structure);
     positionPanel(panel, config);
-    panel.style.maxWidth = (config.maxWidth || 280) + 'px';
+    panel.style.maxWidth = (config.maxWidth || 440) + 'px';
     updateScrollableRegions(panel);
     return panel;
   }
@@ -382,26 +404,38 @@
       title = document.createElement('div');
       title.id = 'selenium-hud-test';
     }
-    placeAfter(structure.main, title, structure.header);
-    title.innerHTML = '<b>Test:</b> ' + valueOrDash(config.testName);
+    title.style.lineHeight = '1.18';
+    title.style.margin = '0';
+    title.style.padding = '0';
+    title.innerHTML = '<span style="display:block;color:var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78));font-size:9px;text-transform:uppercase;letter-spacing:.04em;line-height:1;">Test</span>'
+      + '<span style="display:block;font-weight:700;font-size:11px;line-height:1.2;word-break:break-word;">' + valueOrDash(config.testName) + '</span>';
+    placeAfter(structure.main, title, null);
 
     var pipeline = panel.querySelector('#selenium-hud-pipeline');
     if (!pipeline) {
       pipeline = document.createElement('div');
       pipeline.id = 'selenium-hud-pipeline';
     }
+    pipeline.style.color = 'var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78))';
+    pipeline.style.fontSize = '9px';
+    pipeline.style.lineHeight = '1.1';
+    pipeline.style.marginTop = '2px';
+    pipeline.style.display = !config.pipelineId || config.pipelineId === '-' ? 'none' : 'block';
+    pipeline.innerHTML = '<span style="opacity:.74;">Pipeline:</span> ' + valueOrDash(config.pipelineId);
     placeAfter(structure.main, pipeline, title);
-    pipeline.innerHTML = '<b>Pipeline:</b> ' + valueOrDash(config.pipelineId);
 
     var step = panel.querySelector('#selenium-hud-step');
     if (!step) {
       step = document.createElement('div');
       step.id = 'selenium-hud-step';
-      step.style.marginTop = 'var(--ui-test-lens-hud-gap, 4px)';
     }
+    step.style.marginTop = '4px';
+    step.style.lineHeight = '1.2';
+    step.style.fontSize = '10px';
+    step.style.wordBreak = 'break-word';
     placeAfter(structure.main, step, pipeline);
     if (!step.innerHTML) {
-      step.innerHTML = '<b>Step:</b> -';
+      step.innerHTML = '<span style="color:var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78));font-size:9px;text-transform:uppercase;letter-spacing:.04em;">Step</span> <span>-</span>';
     }
 
     ensureLogs(panel);
@@ -418,7 +452,7 @@
     if (!step) {
       return;
     }
-    step.innerHTML = '<b>Step:</b> ' + valueOrDash(stepDescription);
+    step.innerHTML = '<span style="color:var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78));font-size:9px;text-transform:uppercase;letter-spacing:.04em;">Step</span> <span>' + valueOrDash(stepDescription) + '</span>';
   }
 
   function log(message, level, timestamp) {
