@@ -12,6 +12,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -51,6 +52,39 @@ class TraceHtmlExporterTest {
 
         assertFalse(html.contains("Raw JSON"));
         assertFalse(html.contains("<h2>Artifacts</h2>"));
+    }
+
+    @Test
+    void lightThemeCssVariablesArePresent() {
+        String html = new TraceHtmlExporter().export(UiTestLensSession.start("Light"), TraceHtmlExportOptions.builder()
+                .theme(HtmlReportTheme.LIGHT)
+                .build());
+
+        assertTrue(html.contains("color-scheme:light"));
+        assertTrue(html.contains("--bg:#f5f7fb"));
+        assertTrue(html.contains("--panel:#ffffff"));
+    }
+
+    @Test
+    void darkThemeCssVariablesArePresent() {
+        String html = new TraceHtmlExporter().export(UiTestLensSession.start("Dark"), TraceHtmlExportOptions.builder()
+                .theme(HtmlReportTheme.DARK)
+                .build());
+
+        assertTrue(html.contains("color-scheme:dark"));
+        assertTrue(html.contains("--bg:#070b12"));
+        assertTrue(html.contains("--panel:#101722"));
+    }
+
+    @Test
+    void autoThemeContainsSystemColorSchemeMediaQuery() {
+        String html = new TraceHtmlExporter().export(UiTestLensSession.start("Auto"), TraceHtmlExportOptions.builder()
+                .theme(HtmlReportTheme.AUTO)
+                .build());
+
+        assertTrue(html.contains("@media (prefers-color-scheme: dark)"));
+        assertTrue(html.contains("--bg:#f5f7fb"));
+        assertTrue(html.contains("--bg:#070b12"));
     }
 
     @Test
@@ -203,6 +237,71 @@ class TraceHtmlExporterTest {
 
         assertTrue(html.contains("missing file"));
         assertTrue(html.contains("missing.png"));
+    }
+
+    @Test
+    void suiteReportContainsMultipleSessionsAndSummaryCounts() {
+        UiTestLensSession passed = UiTestLensSession.start("Checkout passed");
+        passed.finishPassed();
+        UiTestLensSession failed = UiTestLensSession.start("Checkout failed");
+        failed.addEvent(TraceEvent.failed(TraceEventType.ACTION_FAILED, "Save", new RuntimeException("boom"), Duration.ofMillis(5)));
+        failed.finishFailed(new RuntimeException("final failure"));
+
+        String html = new TraceHtmlExporter().exportSuite(List.of(passed, failed));
+
+        assertTrue(html.contains("Checkout passed"));
+        assertTrue(html.contains("Checkout failed"));
+        assertTrue(html.contains("Suite summary"));
+        assertTrue(html.contains("Total tests"));
+        assertTrue(html.contains("Passed"));
+        assertTrue(html.contains("Failed"));
+        assertTrue(html.contains("Suite failures"));
+    }
+
+    @Test
+    void suiteReportContainsAnchorsToSessionDetails() {
+        UiTestLensSession session = UiTestLensSession.start("Anchored test");
+        session.finishPassed();
+
+        String html = new TraceHtmlExporter().exportSuite(List.of(session));
+
+        String anchor = "session-" + session.id();
+        assertTrue(html.contains("href=\"#" + anchor + "\""));
+        assertTrue(html.contains("id=\"" + anchor + "\""));
+    }
+
+    @Test
+    void suiteReportEscapesUserControlledText() {
+        UiTestLensSession session = UiTestLensSession.start("<script>alert('suite')</script>");
+        session.finishPassed();
+
+        String html = new TraceHtmlExporter().exportSuite(List.of(session));
+
+        assertFalse(html.contains("<script>alert"));
+        assertTrue(html.contains("&lt;script&gt;alert(&#39;suite&#39;)&lt;/script&gt;"));
+    }
+
+    @Test
+    void suiteReportArtifactLinksAreRelative() throws Exception {
+        Path screenshot = tempDir.resolve("screens").resolve("suite.png");
+        Files.createDirectories(screenshot.getParent());
+        Files.write(screenshot, new byte[] {1, 2, 3});
+        UiTestLensSession session = UiTestLensSession.start("Suite artifacts");
+        session.attachScreenshot("Suite screenshot", screenshot);
+        Path output = tempDir.resolve("reports").resolve("index.html");
+
+        new TraceHtmlExporter().exportSuiteTo(List.of(session), output);
+
+        String html = Files.readString(output);
+        assertTrue(html.contains("href=\"../screens/suite.png\""));
+    }
+
+    @Test
+    void emptySuiteReportDoesNotFail() {
+        String html = new TraceHtmlExporter().exportSuite(List.of());
+
+        assertTrue(html.contains("No UI Test Lens sessions recorded."));
+        assertTrue(html.contains("No session details available."));
     }
 
     private UiTestLensSession sampleSession() {

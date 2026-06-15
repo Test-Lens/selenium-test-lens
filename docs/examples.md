@@ -99,7 +99,7 @@ overlay.step("Save order", () -> {
 });
 ```
 
-## HTML trace and evidence report
+## Per-test HTML trace and evidence report
 
 ```java
 UiTestLensSession session = overlay.startSession("Checkout flow");
@@ -113,7 +113,9 @@ overlay.attachVideoUrl("CI video", "https://ci.example.com/artifacts/checkout-fl
 session.exportHtmlReport();
 ```
 
-`exportHtmlReport()` writes `target/ui-test-lens-report/index.html` by default. The report is a self-contained dark HTML file with inline CSS, summary cards, failure diagnostics, timeline rows, metadata details, and artifact links. Publish the `target/ui-test-lens-report` folder as a CI artifact to inspect it after a run.
+`exportHtmlReport()` writes `target/ui-test-lens-report/index.html` by default. For one file per test, pass an explicit path such as `target/ui-test-lens-report/checkout-flow.html`.
+
+The report is a self-contained HTML file with inline CSS, summary cards, failure diagnostics, timeline rows, metadata details, and artifact links. Publish the `target/ui-test-lens-report` folder as a CI artifact to inspect it after a run.
 
 Screenshot capture uses Selenium `TakesScreenshot`. Video support attaches existing files or URLs; UI Test Lens does not record video. Local image artifacts are linked and previewed when present; missing files are shown as warnings instead of failing report generation.
 
@@ -132,6 +134,39 @@ logs.exportHtmlReport();
 ```
 
 For custom output paths, use `session.exportHtml(Path.of("target/ui-test-lens-report/checkout.html"))` or `logs.exportHtml(Path.of("target/ui-test-lens-report/logs.html"))`.
+
+## Suite HTML report
+
+```java
+UiTestLensSession checkout = UiTestLensSession.start("Checkout flow");
+checkout.finishPassed();
+
+UiTestLensSession profile = UiTestLensSession.start("Profile flow");
+profile.finishSkipped("Example only");
+
+new TraceHtmlExporter().exportSuiteToDefault(List.of(checkout, profile),
+        TraceHtmlExportOptions.builder()
+                .theme(HtmlReportTheme.AUTO)
+                .build());
+```
+
+`exportSuiteToDefault(...)` writes the combined run report to `target/ui-test-lens-report/index.html`. It keeps per-test reports optional and adds a suite summary, test table, failure rollup, and anchors to each test/session section.
+
+Report themes:
+
+- `HtmlReportTheme.AUTO` follows the viewer's system color preference.
+- `HtmlReportTheme.LIGHT` uses a white/off-white report.
+- `HtmlReportTheme.DARK` uses the HUD-like dark report.
+
+Consumer demos can expose these as Maven properties, for example:
+
+```powershell
+mvn test
+mvn test "-Dheaded=true" "-Dlens.theme=GLASS" "-Dlens.report.theme=LIGHT"
+mvn test "-Dheaded=true" "-Dlens.theme=DARK" "-Dlens.report.theme=AUTO"
+```
+
+HUD theme and report theme are independent settings.
 
 ## Auth/session state
 

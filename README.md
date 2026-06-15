@@ -1,6 +1,6 @@
 # UI Test Lens
 
-UI Test Lens is an observability and reliability toolkit for browser-based UI automation. It adds resilient WebDriver actions, retryable assertions, visual debugging, evidence capture, auth/session state helpers, network diagnostics, and offline single-file HTML reports.
+UI Test Lens is an observability and reliability toolkit for browser-based UI automation. It adds resilient WebDriver actions, retryable assertions, visual debugging, evidence capture, auth/session state helpers, network diagnostics, and offline single-file per-test and suite HTML reports.
 
 The project is currently `0.1.0-SNAPSHOT` and pre-1.0. Public APIs are usable, but may still be polished before a first release.
 
@@ -86,6 +86,26 @@ mvn -q -pl ui-test-lens-examples -am test
 mvn -q -pl ui-test-lens -am test
 ```
 
+## HTML reports
+
+Single-session reports and suite reports are static, offline HTML files with inline CSS. The default suite artifact path is:
+
+```text
+target/ui-test-lens-report/index.html
+```
+
+```java
+UiTestLensSession checkout = overlay.startSession("Checkout flow");
+checkout.exportHtml(Path.of("target/ui-test-lens-report/checkout-flow.html"));
+
+new TraceHtmlExporter().exportSuiteToDefault(List.of(checkout),
+        TraceHtmlExportOptions.builder()
+                .theme(HtmlReportTheme.AUTO)
+                .build());
+```
+
+Report themes are independent from HUD themes: `HtmlReportTheme.LIGHT`, `DARK`, and `AUTO`.
+
 ## Modules
 
 | Module | Responsibility |
@@ -123,7 +143,7 @@ UI Test Lens runs on top of Selenium/WebDriver and adds diagnostic APIs:
 - ergonomic `UiLocator` helpers
 - retryable web assertions
 - business assertions and named steps
-- trace/evidence session model and polished single-file HTML report export
+- trace/evidence session model and polished single-file per-test and suite HTML report export
 - screenshot capture and video attachments
 - auth/session state capture and restore
 - passive network diagnostics and wait-for-response assertions

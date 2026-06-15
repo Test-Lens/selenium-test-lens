@@ -13,6 +13,7 @@ public final class TraceHtmlExportOptions {
     private final boolean includeArtifactPreview;
     private final boolean includeDurationSummary;
     private final boolean compactTimeline;
+    private final HtmlReportTheme theme;
     private final int maxMessageLength;
 
     private TraceHtmlExportOptions(Builder builder) {
@@ -28,6 +29,7 @@ public final class TraceHtmlExportOptions {
         this.includeArtifactPreview = builder.includeArtifactPreview;
         this.includeDurationSummary = builder.includeDurationSummary;
         this.compactTimeline = builder.compactTimeline;
+        this.theme = builder.theme == null ? HtmlReportTheme.AUTO : builder.theme;
         if (builder.maxMessageLength < 0) {
             throw new IllegalArgumentException("maxMessageLength must not be negative");
         }
@@ -90,6 +92,10 @@ public final class TraceHtmlExportOptions {
         return compactTimeline;
     }
 
+    public HtmlReportTheme theme() {
+        return theme;
+    }
+
     public int maxMessageLength() {
         return maxMessageLength;
     }
@@ -107,6 +113,7 @@ public final class TraceHtmlExportOptions {
         private boolean includeArtifactPreview = true;
         private boolean includeDurationSummary = true;
         private boolean compactTimeline = false;
+        private HtmlReportTheme theme = HtmlReportTheme.AUTO;
         private int maxMessageLength = 1000;
 
         private Builder() {
@@ -169,6 +176,11 @@ public final class TraceHtmlExportOptions {
 
         public Builder compactTimeline(boolean compactTimeline) {
             this.compactTimeline = compactTimeline;
+            return this;
+        }
+
+        public Builder theme(HtmlReportTheme theme) {
+            this.theme = theme;
             return this;
         }
 

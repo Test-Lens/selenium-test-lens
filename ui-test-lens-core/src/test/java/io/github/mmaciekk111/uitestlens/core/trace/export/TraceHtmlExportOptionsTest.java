@@ -25,6 +25,7 @@ class TraceHtmlExportOptionsTest {
         assertTrue(options.includeArtifactPreview());
         assertTrue(options.includeDurationSummary());
         assertFalse(options.compactTimeline());
+        assertEquals(HtmlReportTheme.AUTO, options.theme());
         assertEquals(1000, options.maxMessageLength());
     }
 
@@ -43,6 +44,7 @@ class TraceHtmlExportOptionsTest {
                 .includeArtifactPreview(false)
                 .includeDurationSummary(false)
                 .compactTimeline(true)
+                .theme(HtmlReportTheme.LIGHT)
                 .maxMessageLength(50)
                 .build();
 
@@ -58,6 +60,7 @@ class TraceHtmlExportOptionsTest {
         assertFalse(options.includeArtifactPreview());
         assertFalse(options.includeDurationSummary());
         assertTrue(options.compactTimeline());
+        assertEquals(HtmlReportTheme.LIGHT, options.theme());
         assertEquals(50, options.maxMessageLength());
     }
 

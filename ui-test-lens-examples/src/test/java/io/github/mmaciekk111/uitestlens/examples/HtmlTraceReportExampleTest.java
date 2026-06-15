@@ -4,12 +4,16 @@ import io.github.mmaciekk111.uitestlens.JsOverlayDebug;
 import io.github.mmaciekk111.uitestlens.core.logging.InMemoryLogSink;
 import io.github.mmaciekk111.uitestlens.core.logging.UiTestLensLogEntry;
 import io.github.mmaciekk111.uitestlens.core.trace.UiTestLensSession;
+import io.github.mmaciekk111.uitestlens.core.trace.export.HtmlReportTheme;
+import io.github.mmaciekk111.uitestlens.core.trace.export.TraceHtmlExportOptions;
+import io.github.mmaciekk111.uitestlens.core.trace.export.TraceHtmlExporter;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -45,6 +49,21 @@ class HtmlTraceReportExampleTest {
         logs.accept(UiTestLensLogEntry.warn("Retrying slow save button"));
 
         Path report = logs.exportHtmlReport();
+
+        assertTrue(Files.exists(report));
+    }
+
+    @Test
+    void suiteHtmlReportUsage() {
+        UiTestLensSession checkout = UiTestLensSession.start("Checkout flow");
+        checkout.finishPassed();
+        UiTestLensSession profile = UiTestLensSession.start("Profile flow");
+        profile.finishSkipped("Example only");
+
+        Path report = new TraceHtmlExporter().exportSuiteToDefault(List.of(checkout, profile),
+                TraceHtmlExportOptions.builder()
+                        .theme(HtmlReportTheme.AUTO)
+                        .build());
 
         assertTrue(Files.exists(report));
     }

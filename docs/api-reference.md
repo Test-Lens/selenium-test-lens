@@ -183,9 +183,22 @@ session.exportHtml();
 session.exportHtml(Path.of("target/ui-test-lens-report/checkout.html"));
 session.exportHtmlReport();
 new TraceHtmlExporter().exportToDefault(session);
+new TraceHtmlExporter().exportSuiteToDefault(List.of(session));
 ```
 
-`exportHtmlReport()` and `TraceHtmlExporter.exportToDefault(...)` write `target/ui-test-lens-report/index.html`, creating parent directories and replacing an existing file.
+`exportHtmlReport()`, `TraceHtmlExporter.exportToDefault(...)`, and `TraceHtmlExporter.exportSuiteToDefault(...)` write `target/ui-test-lens-report/index.html`, creating parent directories and replacing an existing file. Use explicit paths for per-test files and reserve `index.html` for a combined run report.
+
+Report theme options:
+
+```java
+TraceHtmlExportOptions options = TraceHtmlExportOptions.builder()
+        .theme(HtmlReportTheme.LIGHT)
+        .build();
+
+new TraceHtmlExporter().exportSuiteToDefault(sessions, options);
+```
+
+`HtmlReportTheme` values are `LIGHT`, `DARK`, and `AUTO`. `AUTO` uses CSS `prefers-color-scheme` and is the default.
 
 `TraceLogSink` maps UI Test Lens logger events into trace sessions when a session is attached.
 

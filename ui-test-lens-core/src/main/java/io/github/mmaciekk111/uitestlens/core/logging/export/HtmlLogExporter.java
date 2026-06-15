@@ -33,12 +33,24 @@ public final class HtmlLogExporter implements UiTestLensLogExporter {
         return traceExporter.export(toSession(entries), reportOptions());
     }
 
+    public String export(List<UiTestLensLogEntry> entries, TraceHtmlExportOptions reportOptions) {
+        return traceExporter.export(toSession(entries), reportOptions == null ? reportOptions() : reportOptions);
+    }
+
     public Path exportTo(List<UiTestLensLogEntry> entries, Path outputPath) {
         return traceExporter.exportTo(toSession(entries), outputPath, reportOptions());
     }
 
+    public Path exportTo(List<UiTestLensLogEntry> entries, Path outputPath, TraceHtmlExportOptions reportOptions) {
+        return traceExporter.exportTo(toSession(entries), outputPath, reportOptions == null ? reportOptions() : reportOptions);
+    }
+
     public Path exportToDefault(List<UiTestLensLogEntry> entries) {
         return traceExporter.exportToDefault(toSession(entries), reportOptions());
+    }
+
+    public Path exportToDefault(List<UiTestLensLogEntry> entries, TraceHtmlExportOptions reportOptions) {
+        return traceExporter.exportToDefault(toSession(entries), reportOptions == null ? reportOptions() : reportOptions);
     }
 
     private UiTestLensSession toSession(List<UiTestLensLogEntry> entries) {

@@ -47,7 +47,9 @@ React-specific helpers are not part of `ui-test-lens-selenium`. They live in `ui
 
 Artifacts such as screenshots, video references and network logs are attached separately to the session.
 
-HTML report export lives in `ui-test-lens-core` and remains browser-driver independent. `TraceHtmlExporter` renders a self-contained static HTML document with inline CSS for trace sessions, while `HtmlLogExporter` converts log entries into the same report pipeline for log-only runs. File helpers create parent directories, overwrite existing reports, and default to `target/ui-test-lens-report/index.html`.
+HTML report export lives in `ui-test-lens-core` and remains browser-driver independent. `TraceHtmlExporter` renders self-contained static HTML documents with inline CSS for individual trace sessions and combined suite/run reports, while `HtmlLogExporter` converts log entries into the same report pipeline for log-only runs. File helpers create parent directories, overwrite existing reports, and default suite output to `target/ui-test-lens-report/index.html`.
+
+Report color is controlled through `TraceHtmlExportOptions.theme(...)`. `HtmlReportTheme.AUTO` uses CSS variables plus `prefers-color-scheme`; `LIGHT` and `DARK` force a specific static palette. HUD theme and HTML report theme are intentionally separate contracts.
 
 ## Evidence boundary
 
