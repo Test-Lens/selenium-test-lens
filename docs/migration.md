@@ -9,7 +9,7 @@ Selenium Test Lens is pre-1.0. This guide describes the current state, not a Mav
 | Historical concept | Current Selenium Test Lens concept |
 |---|---|
 | historical helper codebase | Selenium Test Lens |
-| historical helper package | `io.github.testlens` |
+| pre-release helper package | superseded by `io.github.testlens` |
 | old one-module helper layout | multi-module Maven layout |
 | Selenium-only helper | WebDriver reliability and diagnostics layer |
 | hardcoded overlay/popup handling | configurable `OverlayPolicy` |

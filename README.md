@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/brand/test-lens-logo-horizontal.png" alt="Test Lens logo" width="760">
+</p>
+
 # Selenium Test Lens
 
 Selenium Test Lens is an observability, diagnostics, and reporting toolkit for Selenium/WebDriver UI tests. It adds resilient WebDriver actions, retryable assertions, visual debugging, evidence capture, auth/session state helpers, network diagnostics, offline HTML reports, machine-readable JSON reports, and portable report ZIP bundles.
@@ -90,7 +94,17 @@ mvn -q -pl selenium-test-lens-examples -am test
 mvn -q -pl selenium-test-lens -am test
 ```
 
+Consumer demo command:
+
+```powershell
+mvn test "-Dheaded=true" "-Dlens.theme=GLASS" "-Dlens.report.theme=LIGHT"
+```
+
 ## Reports
+
+<p align="center">
+  <img src="docs/assets/brand/test-lens-badge.png" alt="Test Lens badge" width="420">
+</p>
 
 HTML is the human-readable report. JSON is the machine-readable integration format. ZIP bundles package the static HTML, JSON, manifest, and copied artifacts for CI artifacts or API uploads.
 

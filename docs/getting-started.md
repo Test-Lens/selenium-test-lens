@@ -1,5 +1,9 @@
 # Getting started
 
+<p align="center">
+  <img src="assets/brand/test-lens-badge.png" alt="Test Lens badge" width="420">
+</p>
+
 This guide shows the smallest path from a local build to a Selenium test using Selenium Test Lens.
 
 ## Requirements
