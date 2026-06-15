@@ -41,3 +41,4 @@ final class BusinessAssertion {
         return description.trim();
     }
 }
+

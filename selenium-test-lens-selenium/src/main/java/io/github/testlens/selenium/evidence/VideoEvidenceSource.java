@@ -10,3 +10,4 @@ public enum VideoEvidenceSource {
     CI_ARTIFACT,
     CUSTOM
 }
+

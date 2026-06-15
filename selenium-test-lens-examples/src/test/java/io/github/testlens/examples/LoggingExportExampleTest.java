@@ -28,3 +28,4 @@ class LoggingExportExampleTest {
         assertTrue(html.contains("<html"));
     }
 }
+

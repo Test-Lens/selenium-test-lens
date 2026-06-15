@@ -71,3 +71,4 @@ public final class UiLocatorResolver {
         return options != null ? options : UiLocatorOptions.defaults();
     }
 }
+

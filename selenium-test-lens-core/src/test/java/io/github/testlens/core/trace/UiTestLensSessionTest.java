@@ -50,3 +50,4 @@ class UiTestLensSessionTest {
         assertThrows(IllegalArgumentException.class, () -> session.attachArtifact(null));
     }
 }
+

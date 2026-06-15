@@ -38,3 +38,4 @@ class ScreenshotCaptureOptionsTest {
         assertFalse(options.attachToSession());
     }
 }
+

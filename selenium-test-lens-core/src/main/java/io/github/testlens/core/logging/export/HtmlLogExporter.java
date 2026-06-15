@@ -214,3 +214,4 @@ public final class HtmlLogExporter implements UiTestLensLogExporter {
         return value.length() <= max ? value : value.substring(0, max) + "...";
     }
 }
+

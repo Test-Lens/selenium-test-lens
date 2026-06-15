@@ -86,3 +86,4 @@ mvn -q -pl selenium-test-lens -am test
 ```
 
 The `selenium-test-lens-examples` module contains documentation-style examples. Selenium/WebDriver-dependent examples are disabled and intended to compile and document API usage, not to run without a real application and driver.
+

@@ -83,3 +83,4 @@ public final class OverlayHandlingResult {
         return status != OverlayHandlingStatus.NOT_DETECTED && status != OverlayHandlingStatus.SKIPPED;
     }
 }
+

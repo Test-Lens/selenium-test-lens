@@ -49,3 +49,4 @@ public record TargetDescriptor(
         return copy.isEmpty() ? Map.of() : Collections.unmodifiableMap(copy);
     }
 }
+

@@ -70,3 +70,4 @@ class PopupDetectorTest {
         assertFalse(combined.contains("__uiTestLens"));
     }
 }
+

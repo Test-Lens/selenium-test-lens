@@ -22,3 +22,4 @@ class UiLocatorExceptionTest {
         assertTrue(exception.actionabilitySummary().contains("NOT_READY"));
     }
 }
+

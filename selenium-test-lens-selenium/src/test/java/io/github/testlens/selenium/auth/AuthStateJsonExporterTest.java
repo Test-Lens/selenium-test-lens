@@ -29,3 +29,4 @@ class AuthStateJsonExporterTest {
         assertTrue(json.contains("\"cookies\""));
     }
 }
+

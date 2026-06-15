@@ -110,3 +110,4 @@ class HtmlLogExporterTest {
         assertFalse(html.contains("old"));
     }
 }
+

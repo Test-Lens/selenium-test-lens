@@ -7,3 +7,4 @@ import java.util.List;
 public interface UiTestLensLogExporter {
     String export(List<UiTestLensLogEntry> entries);
 }
+

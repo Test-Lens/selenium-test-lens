@@ -84,3 +84,4 @@ class HtmlTraceReportExampleTest {
         assertTrue(Files.exists(bundle));
     }
 }
+

@@ -24,3 +24,4 @@ public final class TypeHintJs {
                 "var typeHint = window.__uiTestLens.modules.typeHint;";
     }
 }
+

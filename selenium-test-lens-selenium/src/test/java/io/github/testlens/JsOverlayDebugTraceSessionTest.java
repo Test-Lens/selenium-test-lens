@@ -254,3 +254,4 @@ class JsOverlayDebugTraceSessionTest {
         return session.events().stream().filter(event -> event.type() == type).count();
     }
 }
+

@@ -66,3 +66,4 @@ public final class ScreenshotCapture {
         return message == null || message.isBlank() ? throwable.getClass().getSimpleName() : message;
     }
 }
+

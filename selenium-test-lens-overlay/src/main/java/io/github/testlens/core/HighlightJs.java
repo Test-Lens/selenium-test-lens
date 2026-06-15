@@ -25,3 +25,4 @@ public final class HighlightJs {
                 "if (highlight) { window.__uiTestLens.modules.highlight = highlight; }";
     }
 }
+

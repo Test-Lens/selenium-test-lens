@@ -6,3 +6,4 @@ public enum NetworkWaitStatus {
     FAILED,
     SKIPPED
 }
+

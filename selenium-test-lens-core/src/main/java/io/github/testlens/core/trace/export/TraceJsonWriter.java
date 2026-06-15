@@ -99,3 +99,4 @@ public final class TraceJsonWriter {
         return out.toString();
     }
 }
+

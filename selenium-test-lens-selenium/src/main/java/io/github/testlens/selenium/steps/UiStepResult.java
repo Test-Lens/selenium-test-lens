@@ -93,3 +93,4 @@ public final class UiStepResult {
         return name.trim();
     }
 }
+

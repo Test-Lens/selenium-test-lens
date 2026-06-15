@@ -33,3 +33,4 @@ class OverlayHandlingResultTest {
         assertFalse(result.detected());
     }
 }
+

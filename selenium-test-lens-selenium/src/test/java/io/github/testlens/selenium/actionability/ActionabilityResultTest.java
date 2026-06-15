@@ -39,3 +39,4 @@ class ActionabilityResultTest {
         assertEquals(ActionabilityStatus.READY, result.status());
     }
 }
+

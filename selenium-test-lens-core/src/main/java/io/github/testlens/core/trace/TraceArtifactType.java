@@ -11,3 +11,4 @@ public enum TraceArtifactType {
     CUSTOM_FILE,
     CUSTOM_URL
 }
+

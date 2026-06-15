@@ -13,3 +13,4 @@ public enum ReactReadinessCheckType {
     STALE_AFTER_RESOLVE,
     BASE_ACTIONABILITY
 }
+

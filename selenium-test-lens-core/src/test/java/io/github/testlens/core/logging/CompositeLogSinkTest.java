@@ -49,3 +49,4 @@ class CompositeLogSinkTest {
         assertEquals(1, entries.size());
     }
 }
+

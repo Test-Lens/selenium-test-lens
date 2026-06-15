@@ -142,3 +142,4 @@ public final class AuthStateOptions {
         }
     }
 }
+

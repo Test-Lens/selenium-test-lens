@@ -228,3 +228,4 @@ overlay.network().assertNoFailedRequests();
 ```
 
 The reliable baseline is manual/fallback diagnostics. Browser network providers and interception/mocking are not implemented.
+

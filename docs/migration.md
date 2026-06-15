@@ -117,3 +117,4 @@ overlay.exportTraceHtml(Path.of("target/ui-test-lens/checkout-flow.html"));
 - `getByRole` is not a full accessibility engine.
 - network diagnostics are passive and do not provide mocking/interception.
 - video evidence is attachment/reference based, not recording based.
+

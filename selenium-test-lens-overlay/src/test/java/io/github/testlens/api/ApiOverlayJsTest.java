@@ -21,3 +21,4 @@ class ApiOverlayJsTest {
         assertTrue(ApiOverlayJs.INIT_MODAL.contains("modules.apiModal"));
     }
 }
+

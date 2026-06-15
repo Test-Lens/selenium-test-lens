@@ -42,3 +42,4 @@ class UiStepResultTest {
         assertThrows(IllegalArgumentException.class, () -> UiStepResult.passed(" ", Instant.now(), Instant.now()));
     }
 }
+

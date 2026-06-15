@@ -36,3 +36,4 @@ class NetworkAssertionErrorTest {
         assertEquals(NetworkWaitStatus.TIMED_OUT, error.waitResult().status());
     }
 }
+

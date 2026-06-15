@@ -88,3 +88,4 @@ public final class BusinessAssertionFailure {
         return value == null ? "" : value;
     }
 }
+

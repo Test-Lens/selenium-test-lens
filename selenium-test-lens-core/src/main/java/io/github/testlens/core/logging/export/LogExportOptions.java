@@ -22,3 +22,4 @@ public record LogExportOptions(
         return new LogExportOptions(false, false, false, DEFAULT_MAX_FIELD_LENGTH);
     }
 }
+

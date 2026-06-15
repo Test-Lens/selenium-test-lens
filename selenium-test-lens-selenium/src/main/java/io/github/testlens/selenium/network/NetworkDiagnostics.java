@@ -390,3 +390,4 @@ public final class NetworkDiagnostics {
         return message == null || message.isBlank() ? throwable.getClass().getSimpleName() : message;
     }
 }
+

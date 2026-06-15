@@ -44,3 +44,4 @@ class TraceEventTest {
         assertEquals(1, event.artifacts().size());
     }
 }
+

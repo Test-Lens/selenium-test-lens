@@ -31,3 +31,4 @@ All notable changes to Selenium Test Lens will be documented in this file.
 - Public APIs may still change between 0.x releases.
 - Maven Central publication is not configured yet.
 - Legacy browser runtime aliases are still maintained for compatibility.
+

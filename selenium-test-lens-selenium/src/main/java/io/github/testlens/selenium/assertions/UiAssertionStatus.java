@@ -6,3 +6,4 @@ public enum UiAssertionStatus {
     TIMED_OUT,
     SKIPPED
 }
+

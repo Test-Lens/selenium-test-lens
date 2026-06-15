@@ -9,3 +9,4 @@ public final class AuthStateException extends RuntimeException {
         super(message, cause);
     }
 }
+

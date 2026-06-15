@@ -73,3 +73,4 @@ public enum UiTestLensEventType {
     CLEANUP,
     ERROR
 }
+

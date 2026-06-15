@@ -5,3 +5,4 @@ public enum ScreenshotCaptureStatus {
     FAILED,
     SKIPPED
 }
+

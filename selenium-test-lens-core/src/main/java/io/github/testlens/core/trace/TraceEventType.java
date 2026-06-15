@@ -30,3 +30,4 @@ public enum TraceEventType {
     ARTIFACT_ATTACHED,
     CUSTOM
 }
+

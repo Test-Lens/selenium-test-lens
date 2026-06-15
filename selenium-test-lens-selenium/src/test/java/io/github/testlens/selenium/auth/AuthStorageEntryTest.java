@@ -23,3 +23,4 @@ class AuthStorageEntryTest {
                 () -> new AuthStorageEntry("", " ", "", AuthStorageType.SESSION_STORAGE));
     }
 }
+

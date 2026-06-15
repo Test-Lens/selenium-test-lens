@@ -40,3 +40,4 @@ class UiAssertionResultTest {
         assertTrue(result.summary().contains("elapsedMs=300"));
     }
 }
+

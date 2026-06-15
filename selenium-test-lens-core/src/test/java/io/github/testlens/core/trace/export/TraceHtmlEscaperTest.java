@@ -18,3 +18,4 @@ class TraceHtmlEscaperTest {
         assertEquals("", TraceHtmlEscaper.escape(null));
     }
 }
+

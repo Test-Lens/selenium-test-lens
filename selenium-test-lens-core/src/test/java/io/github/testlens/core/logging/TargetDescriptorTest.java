@@ -57,3 +57,4 @@ class TargetDescriptorTest {
         assertSame(target, target.withMetadata("key", null));
     }
 }
+

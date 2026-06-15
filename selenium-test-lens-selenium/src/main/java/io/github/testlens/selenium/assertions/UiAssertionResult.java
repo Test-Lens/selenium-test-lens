@@ -138,3 +138,4 @@ public final class UiAssertionResult {
         return value == null ? "" : value;
     }
 }
+

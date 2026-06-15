@@ -24,3 +24,4 @@ class CustomLoggerSinkExampleTest {
         assertEquals(List.of("INFO: Forwarded event"), forwarded);
     }
 }
+

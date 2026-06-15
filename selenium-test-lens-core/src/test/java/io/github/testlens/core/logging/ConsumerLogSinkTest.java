@@ -28,3 +28,4 @@ class ConsumerLogSinkTest {
         assertDoesNotThrow(() -> sink.accept(null));
     }
 }
+

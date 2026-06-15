@@ -34,3 +34,4 @@ class BusinessAssertionResultTest {
         assertEquals("Expected total", result.message());
     }
 }
+

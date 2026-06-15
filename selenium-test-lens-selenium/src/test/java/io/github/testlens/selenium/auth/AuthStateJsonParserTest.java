@@ -37,3 +37,4 @@ class AuthStateJsonParserTest {
         assertEquals("tab", parsed.sessionStorage().get(0).key());
     }
 }
+

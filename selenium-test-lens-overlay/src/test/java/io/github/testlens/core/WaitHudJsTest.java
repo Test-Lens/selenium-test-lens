@@ -24,3 +24,4 @@ class WaitHudJsTest {
         assertTrue(script.contains("__seleniumWaitHud"));
     }
 }
+

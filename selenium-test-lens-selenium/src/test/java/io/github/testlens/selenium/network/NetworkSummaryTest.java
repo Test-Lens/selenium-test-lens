@@ -27,3 +27,4 @@ class NetworkSummaryTest {
         assertTrue(summary.failureSummary().contains("responses=1"));
     }
 }
+

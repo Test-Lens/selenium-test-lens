@@ -19,3 +19,4 @@ public final class TraceTimeline {
         return Collections.unmodifiableList(new ArrayList<>(events));
     }
 }
+

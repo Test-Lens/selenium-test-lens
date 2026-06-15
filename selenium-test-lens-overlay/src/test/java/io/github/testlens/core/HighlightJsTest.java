@@ -26,3 +26,4 @@ class HighlightJsTest {
         assertTrue(script.contains("modules.highlight"));
     }
 }
+

@@ -74,3 +74,4 @@ public final class ScreenshotCaptureResult {
         return status == ScreenshotCaptureStatus.CAPTURED;
     }
 }
+

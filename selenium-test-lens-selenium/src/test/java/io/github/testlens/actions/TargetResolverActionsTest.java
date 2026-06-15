@@ -44,3 +44,4 @@ class TargetResolverActionsTest {
         assertFalse(fileScript.contains("__uiTestLens"));
     }
 }
+

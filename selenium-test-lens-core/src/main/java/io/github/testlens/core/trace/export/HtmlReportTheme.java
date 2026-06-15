@@ -8,3 +8,4 @@ public enum HtmlReportTheme {
     DARK,
     AUTO
 }
+

@@ -127,3 +127,4 @@ public class SmartInputActions {
         } catch (Exception ignored) {}
     }
 }
+

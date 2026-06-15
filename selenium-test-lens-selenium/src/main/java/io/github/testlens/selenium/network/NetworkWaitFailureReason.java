@@ -8,3 +8,4 @@ public enum NetworkWaitFailureReason {
     UNSUPPORTED_CAPTURE_MODE,
     UNKNOWN
 }
+

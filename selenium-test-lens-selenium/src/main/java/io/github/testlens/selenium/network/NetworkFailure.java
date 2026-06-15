@@ -27,3 +27,4 @@ public final class NetworkFailure {
     public String failureType() { return failureType; }
     public Instant timestamp() { return timestamp; }
 }
+

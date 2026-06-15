@@ -7,3 +7,4 @@ public enum NetworkCaptureMode {
     BIDI,
     AUTO
 }
+

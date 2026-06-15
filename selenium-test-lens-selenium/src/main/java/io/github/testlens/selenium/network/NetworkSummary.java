@@ -70,3 +70,4 @@ public final class NetworkSummary {
         return "Failed network requests: responses=" + failedResponses + ", requests=" + failedRequests + first;
     }
 }
+

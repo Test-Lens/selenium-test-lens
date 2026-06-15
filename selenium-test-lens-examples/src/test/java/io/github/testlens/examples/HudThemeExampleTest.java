@@ -67,3 +67,4 @@ class HudThemeExampleTest {
         overlay.hudLog("info", "Using a custom HUD theme", "local");
     }
 }
+

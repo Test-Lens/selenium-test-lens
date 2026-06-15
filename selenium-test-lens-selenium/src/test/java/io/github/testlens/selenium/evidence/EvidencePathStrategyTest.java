@@ -49,3 +49,4 @@ class EvidencePathStrategyTest {
         assertTrue(next.getFileName().toString().startsWith("shot_after-save_"));
     }
 }
+

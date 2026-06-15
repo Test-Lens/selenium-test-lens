@@ -53,3 +53,4 @@ Do not store Central Portal tokens, signing keys or passphrases in this reposito
 1. RestAssured adapter/module, if API-test diagnostics become part of the product scope.
 2. Provider-specific video artifact helpers for CI/Selenium Grid/Selenoid/BrowserStack/Sauce, without making the core library provider-dependent.
 3. Additional locator helpers if their matching rules stay clear and maintainable.
+

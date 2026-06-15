@@ -135,3 +135,4 @@ public final class TraceArtifact {
         return value == null ? "" : value;
     }
 }
+

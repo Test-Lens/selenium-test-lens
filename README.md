@@ -174,3 +174,4 @@ Current limitations:
 - network diagnostics are passive; browser capture providers and interception/mocking are not implemented.
 - video support is attachment/reference based; Selenium Test Lens does not record video.
 - HUD themes focus on the HUD panel; Wait HUD and assertion badges are not fully covered by the common theme system.
+

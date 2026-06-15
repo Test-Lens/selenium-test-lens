@@ -24,3 +24,4 @@ public final class ScrollArrowJs {
                 "var scrollArrow = window.__uiTestLens.modules.scrollArrow;";
     }
 }
+

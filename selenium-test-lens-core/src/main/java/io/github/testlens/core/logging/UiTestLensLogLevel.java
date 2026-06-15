@@ -7,3 +7,4 @@ public enum UiTestLensLogLevel {
     WARN,
     ERROR
 }
+

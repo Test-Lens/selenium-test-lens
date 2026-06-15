@@ -26,3 +26,4 @@ class UiStepReporterTest {
         assertEquals(UiTestLensEventType.STEP_PASSED, sink.entries().get(1).eventType());
     }
 }
+

@@ -6,3 +6,4 @@ public enum UiStepStatus {
     FAILED,
     SKIPPED
 }
+

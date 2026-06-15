@@ -26,3 +26,4 @@ class BusinessAssertionOptionsTest {
                 .build());
     }
 }
+

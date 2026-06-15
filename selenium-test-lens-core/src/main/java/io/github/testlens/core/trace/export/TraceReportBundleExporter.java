@@ -235,3 +235,4 @@ public final class TraceReportBundleExporter {
     private record BundleArtifact(String entryName, Path source) {
     }
 }
+

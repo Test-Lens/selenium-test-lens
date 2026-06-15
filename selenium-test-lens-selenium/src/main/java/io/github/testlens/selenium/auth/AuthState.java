@@ -83,3 +83,4 @@ public final class AuthState {
         return copy.isEmpty() ? List.of() : Collections.unmodifiableList(copy);
     }
 }
+

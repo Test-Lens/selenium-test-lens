@@ -36,3 +36,4 @@ class ScreenshotCaptureResultTest {
         assertSame(cause, result.exception());
     }
 }
+

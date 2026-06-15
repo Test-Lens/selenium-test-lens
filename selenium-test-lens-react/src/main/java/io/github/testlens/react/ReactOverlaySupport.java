@@ -13,3 +13,4 @@ public interface ReactOverlaySupport {
 
     WebElement highlightElement(WebElement element, String label);
 }
+

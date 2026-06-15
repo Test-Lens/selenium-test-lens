@@ -32,3 +32,4 @@ class HudPanelJsTest {
         assertTrue(script.contains("modules.hud"));
     }
 }
+

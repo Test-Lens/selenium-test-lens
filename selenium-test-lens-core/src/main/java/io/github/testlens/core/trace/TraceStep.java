@@ -21,3 +21,4 @@ public record TraceStep(
         duration = duration == null || duration.isNegative() ? Duration.ZERO : duration;
     }
 }
+

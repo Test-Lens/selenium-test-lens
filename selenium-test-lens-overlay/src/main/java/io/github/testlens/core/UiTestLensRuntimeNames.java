@@ -42,3 +42,4 @@ public final class UiTestLensRuntimeNames {
                 "window.__uiTestLens.state.api = window.__uiTestLens.state.api || {};";
     }
 }
+

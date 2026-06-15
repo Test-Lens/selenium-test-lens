@@ -220,3 +220,4 @@ public class HighlightActions {
         return value == null ? "" : value;
     }
 }
+

@@ -60,3 +60,4 @@ class PageWaitsTest {
         assertTrue(script.contains("__seleniumLastMutation"));
     }
 }
+

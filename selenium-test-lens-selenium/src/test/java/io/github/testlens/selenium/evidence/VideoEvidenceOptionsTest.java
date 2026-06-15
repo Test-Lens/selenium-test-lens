@@ -38,3 +38,4 @@ class VideoEvidenceOptionsTest {
         assertEquals("Selenium Grid", options.metadata().get("provider"));
     }
 }
+

@@ -4,3 +4,4 @@ public enum AuthStorageType {
     LOCAL_STORAGE,
     SESSION_STORAGE
 }
+

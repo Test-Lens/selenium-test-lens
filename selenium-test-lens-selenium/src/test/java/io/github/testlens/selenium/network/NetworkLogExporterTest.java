@@ -27,3 +27,4 @@ class NetworkLogExporterTest {
         assertTrue(json.contains("line\\nvalue"));
     }
 }
+

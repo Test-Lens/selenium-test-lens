@@ -28,3 +28,4 @@ class UiAssertionErrorTest {
         assertTrue(error.getMessage().contains("TEXT_MISMATCH"));
     }
 }
+

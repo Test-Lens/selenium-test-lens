@@ -25,3 +25,4 @@ public final class WaitHudJs {
                 "if (waitHud) { window.__uiTestLens.modules.waitHud = waitHud; window.__seleniumWaitHud = waitHud; }";
     }
 }
+

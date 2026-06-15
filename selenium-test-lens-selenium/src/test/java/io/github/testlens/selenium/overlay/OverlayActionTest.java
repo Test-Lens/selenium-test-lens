@@ -22,3 +22,4 @@ class OverlayActionTest {
         assertThrows(IllegalArgumentException.class, () -> OverlayAction.fail(" "));
     }
 }
+

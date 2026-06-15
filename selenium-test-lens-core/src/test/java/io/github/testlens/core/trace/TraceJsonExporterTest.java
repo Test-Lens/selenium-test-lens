@@ -115,3 +115,4 @@ class TraceJsonExporterTest {
         assertFalse(json.contains("old"));
     }
 }
+

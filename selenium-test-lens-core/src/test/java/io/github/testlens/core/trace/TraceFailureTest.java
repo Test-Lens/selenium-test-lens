@@ -26,3 +26,4 @@ class TraceFailureTest {
         assertFalse(failure.stackTrace().isBlank());
     }
 }
+

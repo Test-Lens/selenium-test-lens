@@ -96,3 +96,4 @@ class BusinessAssertionsTest {
         assertTrue(error.getMessage().contains("bad adapter"));
     }
 }
+

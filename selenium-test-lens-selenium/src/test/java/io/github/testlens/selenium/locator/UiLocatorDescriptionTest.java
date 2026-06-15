@@ -23,3 +23,4 @@ class UiLocatorDescriptionTest {
         assertTrue(description.displayName().contains("By.id: save"));
     }
 }
+

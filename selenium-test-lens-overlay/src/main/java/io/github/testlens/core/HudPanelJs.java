@@ -24,3 +24,4 @@ public final class HudPanelJs {
                 "var hud = window.__uiTestLens.modules.hud;";
     }
 }
+

@@ -35,3 +35,4 @@ class UiLocatorResultTest {
         assertEquals(UiLocatorFailureReason.TIMEOUT, result.failureReason());
     }
 }
+

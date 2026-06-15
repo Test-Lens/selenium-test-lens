@@ -45,3 +45,4 @@ class OverlayRootManagerTest {
         assertTrue(script.contains("window.__seleniumOverlayRoot = overlayState.root"));
     }
 }
+

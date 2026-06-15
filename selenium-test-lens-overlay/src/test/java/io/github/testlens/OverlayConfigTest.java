@@ -46,3 +46,4 @@ class OverlayConfigTest {
         assertEquals("#eee", config.getHudTheme().foreground());
     }
 }
+

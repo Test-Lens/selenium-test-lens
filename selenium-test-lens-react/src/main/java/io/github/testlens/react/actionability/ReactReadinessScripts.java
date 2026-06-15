@@ -65,3 +65,4 @@ final class ReactReadinessScripts {
     private ReactReadinessScripts() {
     }
 }
+

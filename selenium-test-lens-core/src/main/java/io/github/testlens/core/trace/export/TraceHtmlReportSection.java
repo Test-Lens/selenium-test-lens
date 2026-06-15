@@ -9,3 +9,4 @@ public enum TraceHtmlReportSection {
     ARTIFACTS,
     RAW_JSON
 }
+

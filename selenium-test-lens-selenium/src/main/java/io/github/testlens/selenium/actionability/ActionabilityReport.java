@@ -74,3 +74,4 @@ public final class ActionabilityReport {
         return ActionabilityStatus.READY;
     }
 }
+

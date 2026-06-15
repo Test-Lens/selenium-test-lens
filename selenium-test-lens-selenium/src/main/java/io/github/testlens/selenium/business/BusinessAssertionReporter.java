@@ -68,3 +68,4 @@ public final class BusinessAssertionReporter {
         return value == null ? "" : value;
     }
 }
+

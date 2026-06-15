@@ -82,3 +82,4 @@ public final class InMemoryLogSink implements UiTestLensLogSink {
         return new HtmlLogExporter().exportToDefault(entries(), options);
     }
 }
+

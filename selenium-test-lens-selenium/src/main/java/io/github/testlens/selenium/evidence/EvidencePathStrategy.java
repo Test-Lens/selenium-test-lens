@@ -45,3 +45,4 @@ final class EvidencePathStrategy {
         return safe.isBlank() ? "screenshot" : safe;
     }
 }
+

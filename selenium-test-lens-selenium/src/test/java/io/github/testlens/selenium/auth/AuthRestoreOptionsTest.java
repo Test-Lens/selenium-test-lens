@@ -38,3 +38,4 @@ class AuthRestoreOptionsTest {
         assertFalse(options.failIfExpired());
     }
 }
+

@@ -259,3 +259,4 @@ logs.exportJson(Path.of("target/ui-test-lens-report/logs.json"));
 ## React support
 
 React-specific helpers live in `selenium-test-lens-react`, not in the Selenium module. `selenium-test-lens-selenium` does not depend on React.
+

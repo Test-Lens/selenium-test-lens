@@ -70,3 +70,4 @@ class TraceHtmlExportOptionsTest {
                 () -> TraceHtmlExportOptions.builder().maxMessageLength(-1).build());
     }
 }
+

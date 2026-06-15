@@ -46,3 +46,4 @@ class SeleniumUsageExampleTest {
         overlay.clearDebugArtifacts();
     }
 }
+

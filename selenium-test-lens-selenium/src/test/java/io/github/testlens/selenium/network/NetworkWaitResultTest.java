@@ -41,3 +41,4 @@ class NetworkWaitResultTest {
         assertTrue(result.message().contains("Seen responses: 1"));
     }
 }
+

@@ -128,3 +128,4 @@ public final class VideoEvidenceResult {
         return copy.isEmpty() ? Map.of() : Collections.unmodifiableMap(copy);
     }
 }
+

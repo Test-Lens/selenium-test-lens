@@ -69,3 +69,4 @@ public final class UiStepFailure {
         return value == null ? "" : value;
     }
 }
+

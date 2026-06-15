@@ -9,3 +9,4 @@ public final class VideoEvidenceException extends RuntimeException {
         super(message, cause);
     }
 }
+

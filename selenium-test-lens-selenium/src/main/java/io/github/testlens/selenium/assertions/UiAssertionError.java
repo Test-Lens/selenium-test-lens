@@ -12,3 +12,4 @@ public final class UiAssertionError extends AssertionError {
         return result;
     }
 }
+

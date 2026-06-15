@@ -5,3 +5,4 @@
  * overlay boundaries, while Selenium-bound helpers should move to the future selenium-test-lens-selenium module.
  */
 package io.github.testlens.core;
+

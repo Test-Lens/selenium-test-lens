@@ -24,3 +24,4 @@ class AssertionBadgesJsTest {
         assertTrue(script.contains("modules.assertionBadges"));
     }
 }
+

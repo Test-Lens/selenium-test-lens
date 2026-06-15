@@ -22,3 +22,4 @@ class UiTestLensRuntimeNamesTest {
         assertTrue(script.contains("modules"));
     }
 }
+

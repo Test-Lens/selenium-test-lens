@@ -38,3 +38,4 @@ class ActionabilityReportTest {
         assertTrue(report.summary().contains("ELEMENT_NOT_ENABLED"));
     }
 }
+

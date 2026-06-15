@@ -38,3 +38,4 @@ class ReactReadinessResultTest {
         assertEquals(ActionabilityStatus.READY, result.status());
     }
 }
+

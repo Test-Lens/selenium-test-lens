@@ -63,3 +63,4 @@ class OverlayLoggerTest {
         assertDoesNotThrow(() -> logger.emit(UiTestLensLogEntry.info("ignored")));
     }
 }
+

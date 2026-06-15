@@ -5,3 +5,4 @@
  * {@code BrowserScriptExecutor}; Selenium-specific factories live in the selenium module.
  */
 package io.github.testlens.hud;
+

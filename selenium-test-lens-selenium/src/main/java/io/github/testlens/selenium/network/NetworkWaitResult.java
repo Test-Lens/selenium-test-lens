@@ -111,3 +111,4 @@ public final class NetworkWaitResult {
         return condition == null ? "any network response" : condition.summary();
     }
 }
+

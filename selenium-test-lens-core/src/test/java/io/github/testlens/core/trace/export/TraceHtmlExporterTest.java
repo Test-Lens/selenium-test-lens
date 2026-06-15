@@ -323,3 +323,4 @@ class TraceHtmlExporterTest {
         return session;
     }
 }
+

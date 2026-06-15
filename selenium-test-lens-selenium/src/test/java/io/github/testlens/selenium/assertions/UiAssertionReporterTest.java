@@ -27,3 +27,4 @@ class UiAssertionReporterTest {
         assertEquals(UiTestLensEventType.ASSERTION_PASSED, sink.entries().get(1).eventType());
     }
 }
+

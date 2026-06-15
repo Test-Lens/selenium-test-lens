@@ -131,3 +131,4 @@ class VideoEvidenceTest {
         assertEquals("https://ci.example.com/video.mp4", result.url());
     }
 }
+

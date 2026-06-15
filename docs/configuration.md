@@ -135,3 +135,4 @@ Defaults avoid collecting unnecessary sensitive data: headers are omitted or mas
 ## Current theme scope
 
 The shared HUD theme system covers the HUD panel. Wait HUD and assertion badges may use some shared visual variables, but they are not fully covered by one common theme contract.
+

@@ -40,3 +40,4 @@ public final class JsResources {
         return JsResources.class.getClassLoader().getResourceAsStream(normalized);
     }
 }
+

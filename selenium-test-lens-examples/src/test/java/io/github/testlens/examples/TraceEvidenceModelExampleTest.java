@@ -32,3 +32,4 @@ class TraceEvidenceModelExampleTest {
         assertTrue(json.contains("Checkout flow"));
     }
 }
+

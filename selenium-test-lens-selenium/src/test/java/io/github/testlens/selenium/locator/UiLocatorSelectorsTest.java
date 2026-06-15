@@ -41,3 +41,4 @@ class UiLocatorSelectorsTest {
         assertEquals("normalize-space(.)", UiLocatorSelectors.normalizeSpaceExpression("."));
     }
 }
+

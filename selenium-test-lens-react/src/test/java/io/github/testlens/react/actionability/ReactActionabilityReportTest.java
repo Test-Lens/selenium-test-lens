@@ -46,3 +46,4 @@ class ReactActionabilityReportTest {
                 report.firstReactFailure().orElseThrow().failureReason());
     }
 }
+

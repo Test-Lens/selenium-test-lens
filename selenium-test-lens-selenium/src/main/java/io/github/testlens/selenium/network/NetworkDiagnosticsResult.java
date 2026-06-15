@@ -31,3 +31,4 @@ public final class NetworkDiagnosticsResult {
     public Throwable exception() { return exception; }
     public Duration elapsed() { return elapsed; }
 }
+

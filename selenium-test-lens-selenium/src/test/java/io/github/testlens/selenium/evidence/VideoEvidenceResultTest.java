@@ -55,3 +55,4 @@ class VideoEvidenceResultTest {
         assertSame(cause, result.exception());
     }
 }
+

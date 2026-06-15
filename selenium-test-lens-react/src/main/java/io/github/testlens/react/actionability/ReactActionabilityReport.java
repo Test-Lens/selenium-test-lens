@@ -60,3 +60,4 @@ public final class ReactActionabilityReport {
         return "React actionability READY: " + reactResults.size() + " React readiness checks";
     }
 }
+

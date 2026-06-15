@@ -27,3 +27,4 @@ public final class SeleniumOverlayFactory {
         return new ApiOverlayPanel(scriptExecutor(driver), rootManager, config);
     }
 }
+

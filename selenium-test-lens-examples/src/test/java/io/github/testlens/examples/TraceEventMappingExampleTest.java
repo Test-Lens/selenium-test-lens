@@ -29,3 +29,4 @@ class TraceEventMappingExampleTest {
         overlay.exportTraceHtml(Path.of("target/ui-test-lens/checkout-flow.html"));
     }
 }
+

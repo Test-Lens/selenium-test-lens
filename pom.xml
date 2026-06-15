@@ -22,9 +22,9 @@
 
     <developers>
         <developer>
-            <id>mmaciekk111</id>
-            <name>Maciej</name>
-            <url>https://github.com/mmaciekk111</url>
+            <id>test-lens</id>
+            <name>Test Lens</name>
+            <url>https://github.com/Test-Lens</url>
         </developer>
     </developers>
 
@@ -239,3 +239,4 @@
         </profile>
     </profiles>
 </project>
+

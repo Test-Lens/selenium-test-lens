@@ -45,3 +45,4 @@ class AuthStateOptionsTest {
         assertEquals("checkout", options.labels().get("suite"));
     }
 }
+

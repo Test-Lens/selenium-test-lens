@@ -6,3 +6,4 @@ public enum OverlayActionType {
     WAIT_UNTIL_GONE,
     FAIL
 }
+

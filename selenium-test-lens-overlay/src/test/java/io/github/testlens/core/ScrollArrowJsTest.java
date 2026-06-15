@@ -25,3 +25,4 @@ class ScrollArrowJsTest {
         assertTrue(script.contains("modules.scrollArrow"));
     }
 }
+

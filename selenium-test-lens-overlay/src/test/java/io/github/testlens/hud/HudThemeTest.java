@@ -101,3 +101,4 @@ class HudThemeTest {
         assertTrue(!theme.toMap().containsKey("foreground"));
     }
 }
+

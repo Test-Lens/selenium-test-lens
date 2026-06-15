@@ -24,3 +24,4 @@ class TypeHintJsTest {
         assertTrue(script.contains("modules.typeHint"));
     }
 }
+

@@ -51,3 +51,4 @@ class UiAssertionOptionsTest {
         assertEquals("length=12", UiAssertionText.valuePreview("masked-input"));
     }
 }
+

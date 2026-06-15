@@ -96,3 +96,4 @@ class UiTestLensLoggerTest {
         assertEquals(1, received.size());
     }
 }
+

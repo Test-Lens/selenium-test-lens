@@ -34,3 +34,4 @@ class AuthCookieTest {
         assertEquals("Lax", restored.getSameSite());
     }
 }
+

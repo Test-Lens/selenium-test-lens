@@ -24,3 +24,4 @@ public final class NetworkAssertionError extends AssertionError {
         return waitResult;
     }
 }
+

@@ -40,3 +40,4 @@ class TraceArtifactTest {
         assertEquals("ci", artifact.metadata().get("source"));
     }
 }
+

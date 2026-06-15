@@ -4,3 +4,4 @@ package io.github.testlens.core.logging;
 public interface UiTestLensLogSink {
     void accept(UiTestLensLogEntry entry);
 }
+

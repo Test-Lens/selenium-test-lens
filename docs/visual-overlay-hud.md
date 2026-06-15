@@ -147,3 +147,4 @@ The HUD runtime applies theme values through CSS variables such as:
 1. Extend the common theme contract to Wait HUD and assertion badges.
 2. Add a small visual smoke page for manual HUD theme inspection.
 3. Document exact visual API methods once the pre-1.0 public API is frozen.
+

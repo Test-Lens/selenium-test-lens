@@ -148,3 +148,4 @@ public class ReactSelectHelper {
         return s.replace("\\", "\\\\").replace("'", "\\'");
     }
 }
+

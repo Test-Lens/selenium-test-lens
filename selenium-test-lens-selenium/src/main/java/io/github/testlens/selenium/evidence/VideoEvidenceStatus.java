@@ -5,3 +5,4 @@ public enum VideoEvidenceStatus {
     FAILED,
     SKIPPED
 }
+

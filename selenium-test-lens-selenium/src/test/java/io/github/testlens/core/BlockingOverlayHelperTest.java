@@ -55,3 +55,4 @@ class BlockingOverlayHelperTest {
         assertFalse(combined.contains("__uiTestLens"));
     }
 }
+

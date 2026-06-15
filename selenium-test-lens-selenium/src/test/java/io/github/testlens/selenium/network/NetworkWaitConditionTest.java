@@ -93,3 +93,4 @@ class NetworkWaitConditionTest {
         assertTrue(!condition.pollInterval().isZero() && !condition.pollInterval().isNegative());
     }
 }
+

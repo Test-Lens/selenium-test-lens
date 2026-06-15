@@ -9,3 +9,4 @@ public enum HudPosition {
     BOTTOM_LEFT,
     BOTTOM_RIGHT
 }
+

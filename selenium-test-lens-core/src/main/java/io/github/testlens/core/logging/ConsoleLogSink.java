@@ -22,3 +22,4 @@ public final class ConsoleLogSink implements UiTestLensLogSink {
                 + entry.message();
     }
 }
+

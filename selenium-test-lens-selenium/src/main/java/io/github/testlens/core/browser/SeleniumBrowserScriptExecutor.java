@@ -30,3 +30,4 @@ public final class SeleniumBrowserScriptExecutor implements BrowserScriptExecuto
         return executor.executeAsyncScript(script, args);
     }
 }
+

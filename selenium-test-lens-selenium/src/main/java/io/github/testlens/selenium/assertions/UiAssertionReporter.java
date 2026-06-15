@@ -72,3 +72,4 @@ public final class UiAssertionReporter {
         return value == null ? "" : value;
     }
 }
+

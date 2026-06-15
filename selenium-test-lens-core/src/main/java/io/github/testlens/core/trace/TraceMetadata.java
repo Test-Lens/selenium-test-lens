@@ -132,3 +132,4 @@ public final class TraceMetadata {
         return copy.isEmpty() ? Map.of() : Collections.unmodifiableMap(copy);
     }
 }
+

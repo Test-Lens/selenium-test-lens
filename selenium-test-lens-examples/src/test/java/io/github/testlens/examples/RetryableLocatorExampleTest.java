@@ -26,3 +26,4 @@ class RetryableLocatorExampleTest {
         assertTrue(modalVisible);
     }
 }
+

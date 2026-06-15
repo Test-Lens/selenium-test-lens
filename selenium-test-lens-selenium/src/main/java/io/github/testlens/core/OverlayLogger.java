@@ -47,3 +47,4 @@ public final class OverlayLogger {
         delegate.emit(entry);
     }
 }
+

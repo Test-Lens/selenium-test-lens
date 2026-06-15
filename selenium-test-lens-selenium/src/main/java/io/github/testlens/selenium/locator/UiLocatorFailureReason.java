@@ -9,3 +9,4 @@ public enum UiLocatorFailureReason {
     TIMEOUT,
     UNKNOWN
 }
+

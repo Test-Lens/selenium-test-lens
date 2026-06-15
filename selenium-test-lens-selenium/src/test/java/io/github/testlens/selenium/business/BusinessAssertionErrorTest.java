@@ -30,3 +30,4 @@ class BusinessAssertionErrorTest {
         assertTrue(error.getMessage().contains("2. contains product"));
     }
 }
+

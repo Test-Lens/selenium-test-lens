@@ -39,3 +39,4 @@ class NetworkWaitForResponseExampleTest {
         overlay.exportTraceHtml(Path.of("target/ui-test-lens/checkout-flow.html"));
     }
 }
+

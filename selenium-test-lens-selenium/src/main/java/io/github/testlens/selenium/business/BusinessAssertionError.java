@@ -57,3 +57,4 @@ public final class BusinessAssertionError extends AssertionError {
         return writer.toString();
     }
 }
+

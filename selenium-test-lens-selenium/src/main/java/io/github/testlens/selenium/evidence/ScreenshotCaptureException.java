@@ -5,3 +5,4 @@ public final class ScreenshotCaptureException extends RuntimeException {
         super(message, cause);
     }
 }
+

@@ -9,3 +9,4 @@ public final class NetworkDiagnosticsException extends RuntimeException {
         super(message, cause);
     }
 }
+

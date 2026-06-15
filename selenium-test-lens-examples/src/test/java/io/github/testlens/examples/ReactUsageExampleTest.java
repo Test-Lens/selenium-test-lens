@@ -43,3 +43,4 @@ class ReactUsageExampleTest {
         ReactSupport.smartClick(overlay, By.cssSelector("[data-testid='save']"), "Save with overlay handling");
     }
 }
+

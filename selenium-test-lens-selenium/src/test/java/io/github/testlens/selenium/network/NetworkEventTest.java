@@ -26,3 +26,4 @@ class NetworkEventTest {
         assertEquals(500, event.response().status());
     }
 }
+

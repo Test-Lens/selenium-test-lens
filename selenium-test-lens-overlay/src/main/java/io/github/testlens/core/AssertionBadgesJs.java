@@ -24,3 +24,4 @@ public final class AssertionBadgesJs {
                 "var assertionBadges = window.__uiTestLens.modules.assertionBadges;";
     }
 }
+

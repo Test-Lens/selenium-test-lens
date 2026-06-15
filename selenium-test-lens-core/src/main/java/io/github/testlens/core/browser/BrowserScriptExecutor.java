@@ -12,3 +12,4 @@ public interface BrowserScriptExecutor {
         throw new UnsupportedOperationException("Async script execution is not supported by this executor.");
     }
 }
+

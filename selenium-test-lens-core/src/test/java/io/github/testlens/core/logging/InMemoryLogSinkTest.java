@@ -91,3 +91,4 @@ class InMemoryLogSinkTest {
         assertTrue(Files.readString(output).contains("entry"));
     }
 }
+

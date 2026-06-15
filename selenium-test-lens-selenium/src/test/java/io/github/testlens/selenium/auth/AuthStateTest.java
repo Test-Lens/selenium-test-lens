@@ -32,3 +32,4 @@ class AuthStateTest {
         assertEquals("session", loaded.cookies().get(0).name());
     }
 }
+

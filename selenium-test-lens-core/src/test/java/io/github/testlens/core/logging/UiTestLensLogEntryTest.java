@@ -96,3 +96,4 @@ class UiTestLensLogEntryTest {
         assertEquals(original.metadata(), changed.metadata());
     }
 }
+

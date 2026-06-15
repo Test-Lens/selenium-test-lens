@@ -23,3 +23,4 @@ public final class TraceHtmlEscaper {
         return out.toString();
     }
 }
+

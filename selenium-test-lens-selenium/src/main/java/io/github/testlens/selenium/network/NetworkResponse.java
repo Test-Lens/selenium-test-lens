@@ -39,3 +39,4 @@ public final class NetworkResponse {
     public Instant timestamp() { return timestamp; }
     public Map<String, String> headers() { return headers; }
 }
+
