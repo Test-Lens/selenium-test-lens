@@ -28,6 +28,8 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("--ui-test-lens-hud-accent"));
         assertTrue(HudPanelJs.INIT.contains("--ui-test-lens-hud-max-height"));
         assertTrue(HudPanelJs.INIT.contains("maxHeightPx"));
+        assertTrue(HudPanelJs.INIT.contains("panel.style.backdropFilter = theme.backdropFilter"));
+        assertTrue(HudPanelJs.INIT.contains("panel.style.webkitBackdropFilter = theme.backdropFilter"));
         assertTrue(HudPanelJs.INIT.contains("updateScrollableRegions"));
     }
 
@@ -57,9 +59,12 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("stl-hud-meta-row"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-meta-label"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-meta-value"));
-        assertTrue(HudPanelJs.INIT.contains("grid-template-columns:44px minmax(0,1fr)"));
+        assertTrue(HudPanelJs.INIT.contains("grid-template-columns:52px minmax(0,1fr)"));
+        assertTrue(HudPanelJs.INIT.contains("column-gap:10px"));
+        assertTrue(HudPanelJs.INIT.contains("font-size:13px"));
         assertTrue(HudPanelJs.INIT.contains("metadataRowMarkup('TEST', config.testName, 'stl-hud-test-row')"));
         assertTrue(HudPanelJs.INIT.contains("metadataRowMarkup('STEP', stepDescription, 'stl-hud-step-row')"));
+        assertTrue(HudPanelJs.INIT.contains("function escapeHtml"));
         assertFalse(HudPanelJs.INIT.contains(">Test</span>"));
         assertFalse(HudPanelJs.INIT.contains(">Step</span> <span>"));
     }
@@ -226,7 +231,7 @@ class HudPanelJsTest {
                   theme: { maxHeightPx: 140 },
                   themeName: 'GLASS'
                 });
-                window.__uiTestLens.modules.hud.setStep('Pay');
+                window.__uiTestLens.modules.hud.setStep('Pay <now> & confirm');
                 window.__uiTestLens.modules.hud.log('Saved', 'info', 'now');
                 window.__uiTestLens.modules.hud.init({
                   testName: 'Checkout',
@@ -251,7 +256,7 @@ class HudPanelJsTest {
                 assert(root.querySelector('#selenium-hud-test').innerHTML.indexOf('>Checkout<') >= 0, 'test value missing');
                 assert(root.querySelector('#selenium-hud-step').innerHTML.indexOf('stl-hud-meta-row stl-hud-step-row') >= 0, 'step row missing');
                 assert(root.querySelector('#selenium-hud-step').innerHTML.indexOf('>STEP<') >= 0, 'step label missing');
-                assert(root.querySelector('#selenium-hud-step').innerHTML.indexOf('>Pay<') >= 0, 'step value missing');
+                assert(root.querySelector('#selenium-hud-step').innerHTML.indexOf('>Pay &lt;now&gt; &amp; confirm<') >= 0, 'step value was not escaped');
                 assert(root.querySelector('#selenium-hud-step').parentNode === root.querySelector('.stl-hud-main'), 'legacy step was not migrated');
                 assert(root.querySelector('#selenium-hud-logs').parentNode === root.querySelector('.stl-hud-main'), 'logs are not in main');
                 assert(countByClass(root, 'stl-hud-side-rail') === 1, 'duplicated side rail');

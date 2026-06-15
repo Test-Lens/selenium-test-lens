@@ -37,9 +37,9 @@
   }
 
   function metadataRowMarkup(label, value, extraClass) {
-    return '<div class="stl-hud-meta-row ' + extraClass + '" style="display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:6px;align-items:start;line-height:1.18;margin:0;">'
-      + '<span class="stl-hud-meta-label" style="color:var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78));font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;line-height:1.18;white-space:nowrap;">' + label + '</span>'
-      + '<span class="stl-hud-meta-value" style="min-width:0;color:var(--ui-test-lens-hud-fg, #ffffff);font-weight:700;font-size:11px;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;">' + escapeHtml(value) + '</span>'
+    return '<div class="stl-hud-meta-row ' + extraClass + '" style="display:grid;grid-template-columns:52px minmax(0,1fr);column-gap:10px;align-items:baseline;line-height:1.22;margin:0;">'
+      + '<span class="stl-hud-meta-label" style="color:var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78));font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;line-height:1.2;white-space:nowrap;">' + label + '</span>'
+      + '<span class="stl-hud-meta-value" style="min-width:0;color:var(--ui-test-lens-hud-fg, #ffffff);font-weight:700;font-size:13px;line-height:1.25;word-break:break-word;overflow-wrap:anywhere;">' + escapeHtml(value) + '</span>'
       + '</div>';
   }
 
@@ -331,11 +331,11 @@
     if (!logs) {
       logs = document.createElement('div');
       logs.id = 'selenium-hud-logs';
-      logs.style.marginTop = 'var(--ui-test-lens-hud-gap, 6px)';
+      logs.style.marginTop = '7px';
       logs.style.maxHeight = '160px';
       logs.style.overflowY = 'auto';
       logs.style.borderTop = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
-      logs.style.paddingTop = '4px';
+      logs.style.paddingTop = '6px';
       structure.main.appendChild(logs);
     } else if (logs.parentNode !== structure.main) {
       structure.main.appendChild(logs);
@@ -444,9 +444,9 @@
       step = document.createElement('div');
       step.id = 'selenium-hud-step';
     }
-    step.style.marginTop = '4px';
+    step.style.marginTop = '5px';
     step.style.lineHeight = '1.2';
-    step.style.fontSize = '11px';
+    step.style.fontSize = '13px';
     step.style.wordBreak = 'break-word';
     placeAfter(structure.main, step, pipeline);
     if (!step.innerHTML) {

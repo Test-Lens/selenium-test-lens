@@ -89,16 +89,24 @@ Type hints and scroll arrows make user-like actions easier to inspect while a Se
 
 ## HUD themes
 
-`HudThemePreset` includes:
+`HudThemePreset` includes static, token-like palettes inspired by modern neutral/slate/zinc UI color systems:
 
-- `DEFAULT`
-- `DARK`
-- `LIGHT`
-- `GLASS`
-- `COMPACT`
-- `HIGH_CONTRAST`
-- `BLACK_AND_COLORS`
-- `MINIMAL`
+| Preset | Best fit |
+|---|---|
+| `DEFAULT` | Graphite/slate local debugging |
+| `DARK` | Zinc-style dark headed runs |
+| `LIGHT` | Readable docs, recordings and bright apps |
+| `GLASS` | Translucent demo and screenshot HUDs |
+| `COMPACT` | Dense debug overlays |
+| `HIGH_CONTRAST` | Accessibility and high-visibility runs |
+| `BLACK_AND_COLORS` | Neon demo styling |
+| `MINIMAL` | Low-noise light overlays |
+
+`GLASS` is the translucent/blurred HUD preset. It uses a semi-transparent panel background plus `backdrop-filter` blur/saturation when supported by the browser:
+
+```powershell
+mvn test "-Dheaded=true" "-Dlens.theme=GLASS" "-Dlens.report.theme=LIGHT"
+```
 
 Custom themes use `HudTheme.builder()` and are passed through `OverlayConfig`.
 

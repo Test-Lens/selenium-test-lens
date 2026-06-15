@@ -16,7 +16,7 @@ class OverlayConfigTest {
 
         assertEquals(HudThemePreset.DEFAULT, config.getHudThemePreset());
         assertNotNull(config.getHudTheme());
-        assertEquals("rgba(0, 0, 0, 0.75)", config.getHudTheme().background());
+        assertEquals("rgba(15, 23, 42, 0.96)", config.getHudTheme().background());
         assertEquals(440, config.getHudMaxWidthPx());
     }
 

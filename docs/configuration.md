@@ -36,16 +36,18 @@ OverlayConfig config = OverlayConfig.builder()
 
 ## HUD theme presets
 
-`HudThemePreset` provides:
+`HudThemePreset` provides token-like palettes inspired by modern neutral/slate/zinc UI color systems. They are static values bundled with Selenium Test Lens; no external CSS framework is loaded.
 
-- `DEFAULT`
-- `DARK`
-- `LIGHT`
-- `GLASS`
-- `COMPACT`
-- `HIGH_CONTRAST`
-- `BLACK_AND_COLORS`
-- `MINIMAL`
+| Preset | Palette direction | Recommended use |
+|---|---|---|
+| `DEFAULT` | Graphite/slate HUD with cyan accent | Local debug and general use |
+| `DARK` | Zinc dark panel with blue accent | Dark desktops and long headed runs |
+| `LIGHT` | Clean white/slate panel | Docs, recordings and bright applications |
+| `GLASS` | Translucent slate glass with blur/saturation | Demos and screenshots |
+| `COMPACT` | Tight graphite HUD | Dense debug overlays |
+| `HIGH_CONTRAST` | Strong contrast slate panel | Accessibility and high-visibility runs |
+| `BLACK_AND_COLORS` | Neon-on-slate palette | High-energy demos |
+| `MINIMAL` | Low-noise light slate panel | Subtle overlays |
 
 ```java
 OverlayConfig config = OverlayConfig.builder()
@@ -53,7 +55,7 @@ OverlayConfig config = OverlayConfig.builder()
         .build();
 ```
 
-The default theme preserves the current Selenium Test Lens HUD appearance.
+`GLASS` uses a translucent HUD background with `backdrop-filter` blur/saturation where the browser supports it, while keeping the same Selenium Test Lens runtime behavior.
 
 ## Custom HudTheme
 
