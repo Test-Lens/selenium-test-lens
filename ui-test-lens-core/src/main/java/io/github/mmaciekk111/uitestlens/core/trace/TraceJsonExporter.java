@@ -1,181 +1,288 @@
 package io.github.mmaciekk111.uitestlens.core.trace;
 
+import io.github.mmaciekk111.uitestlens.core.trace.export.TraceJsonWriter;
+import io.github.mmaciekk111.uitestlens.core.trace.export.TraceReportSupport;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * Exports UI Test Lens trace sessions as machine-readable JSON reports.
+ */
 public final class TraceJsonExporter {
+    public static final Path DEFAULT_SUITE_OUTPUT_PATH = TraceReportSupport.DEFAULT_SUITE_JSON_PATH;
 
     public String export(UiTestLensSession session) {
-        return export(session, true);
+        return export(session, TraceJsonExportOptions.defaults());
     }
 
     public String export(UiTestLensSession session, boolean includeStackTraces) {
-        if (session == null) {
-            return "{}";
+        return export(session, TraceJsonExportOptions.builder()
+                .includeStackTraces(includeStackTraces)
+                .build());
+    }
+
+    public String export(UiTestLensSession session, TraceJsonExportOptions options) {
+        TraceJsonExportOptions effectiveOptions = options == null ? TraceJsonExportOptions.defaults() : options;
+        Map<String, Object> root = new LinkedHashMap<>();
+        root.put("schemaVersion", TraceReportSupport.SCHEMA_VERSION);
+        root.put("generatedAt", Instant.now().toString());
+        root.put("reportType", "session");
+        if (session != null) {
+            root.put("session", sessionMap(session, effectiveOptions));
+            root.put("metadata", metadataMap(session.metadata()));
+            root.put("events", session.events().stream()
+                    .map(event -> eventMap(event, effectiveOptions))
+                    .toList());
+            root.put("artifacts", session.artifacts().stream()
+                    .map(artifact -> artifactMap(artifact, effectiveOptions))
+                    .filter(map -> effectiveOptions.includeMissingArtifacts() || !Boolean.FALSE.equals(map.get("exists")))
+                    .toList());
         }
-        StringBuilder out = new StringBuilder();
-        out.append('{');
-        appendMetadata(out, session.metadata(), true);
-        appendEvents(out, session.events(), includeStackTraces);
-        appendArtifacts(out, "artifacts", session.artifacts());
-        out.append('}');
-        return out.toString();
+        return TraceJsonWriter.write(root);
     }
 
-    private void appendMetadata(StringBuilder out, TraceMetadata metadata, boolean first) {
-        comma(out, first);
-        fieldName(out, "metadata");
-        out.append('{');
-        appendField(out, "sessionId", metadata.sessionId(), true);
-        appendField(out, "name", metadata.name(), false);
-        appendField(out, "startedAt", metadata.startedAt() == null ? "" : metadata.startedAt().toString(), false);
-        appendField(out, "finishedAt", metadata.finishedAt() == null ? "" : metadata.finishedAt().toString(), false);
-        appendField(out, "status", metadata.status() == null ? "" : metadata.status().name(), false);
-        appendField(out, "environment", metadata.environment(), false);
-        appendMap(out, "labels", metadata.labels(), false);
-        out.append('}');
+    public Path exportTo(UiTestLensSession session, Path outputPath) {
+        return exportTo(session, outputPath, TraceJsonExportOptions.defaults());
     }
 
-    private void appendEvents(StringBuilder out, List<TraceEvent> events, boolean includeStackTraces) {
-        comma(out, false);
-        fieldName(out, "events");
-        out.append('[');
-        int written = 0;
-        for (TraceEvent event : events == null ? List.<TraceEvent>of() : events) {
-            if (event == null) {
-                continue;
-            }
-            if (written++ > 0) {
-                out.append(',');
-            }
-            appendEvent(out, event, includeStackTraces);
+    public Path exportTo(UiTestLensSession session, Path outputPath, TraceJsonExportOptions options) {
+        if (outputPath == null) {
+            throw new IllegalArgumentException("outputPath must not be null");
         }
-        out.append(']');
-    }
-
-    private void appendEvent(StringBuilder out, TraceEvent event, boolean includeStackTraces) {
-        out.append('{');
-        appendField(out, "id", event.id(), true);
-        appendField(out, "type", event.type() == null ? "" : event.type().name(), false);
-        appendField(out, "status", event.status() == null ? "" : event.status().name(), false);
-        appendField(out, "name", event.name(), false);
-        appendField(out, "message", event.message(), false);
-        appendField(out, "timestamp", event.timestamp() == null ? "" : event.timestamp().toString(), false);
-        appendField(out, "durationMs", String.valueOf(event.duration() == null ? 0 : event.duration().toMillis()), false);
-        appendField(out, "parentId", event.parentId(), false);
-        appendFailure(out, "failure", event.failure(), false, includeStackTraces);
-        appendArtifacts(out, "artifacts", event.artifacts());
-        appendMap(out, "attributes", event.attributes(), false);
-        out.append('}');
-    }
-
-    private void appendArtifacts(StringBuilder out, String name, List<TraceArtifact> artifacts) {
-        comma(out, false);
-        fieldName(out, name);
-        out.append('[');
-        int written = 0;
-        for (TraceArtifact artifact : artifacts == null ? List.<TraceArtifact>of() : artifacts) {
-            if (artifact == null) {
-                continue;
+        try {
+            Path parent = outputPath.toAbsolutePath().getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
             }
-            if (written++ > 0) {
-                out.append(',');
-            }
-            appendArtifact(out, artifact);
-        }
-        out.append(']');
-    }
-
-    private void appendArtifact(StringBuilder out, TraceArtifact artifact) {
-        out.append('{');
-        appendField(out, "name", artifact.name(), true);
-        appendField(out, "type", artifact.type() == null ? "" : artifact.type().name(), false);
-        appendField(out, "path", artifact.path(), false);
-        appendField(out, "url", artifact.url(), false);
-        appendField(out, "mediaType", artifact.mediaType(), false);
-        appendField(out, "createdAt", artifact.createdAt() == null ? "" : artifact.createdAt().toString(), false);
-        appendMap(out, "metadata", artifact.metadata(), false);
-        out.append('}');
-    }
-
-    private void appendFailure(StringBuilder out, String name, TraceFailure failure, boolean first, boolean includeStackTraces) {
-        comma(out, first);
-        fieldName(out, name);
-        if (failure == null) {
-            out.append("null");
-            return;
-        }
-        out.append('{');
-        appendField(out, "message", failure.message(), true);
-        appendField(out, "exceptionType", failure.exceptionType(), false);
-        appendField(out, "stackTrace", includeStackTraces ? failure.stackTrace() : "", false);
-        appendMap(out, "details", failure.details(), false);
-        out.append('}');
-    }
-
-    private void appendMap(StringBuilder out, String name, Map<String, String> map, boolean first) {
-        comma(out, first);
-        fieldName(out, name);
-        out.append('{');
-        int written = 0;
-        for (Map.Entry<String, String> entry : new TreeMap<>(map == null ? Map.of() : map).entrySet()) {
-            if (entry.getKey() == null || entry.getValue() == null) {
-                continue;
-            }
-            if (written++ > 0) {
-                out.append(',');
-            }
-            string(out, entry.getKey());
-            out.append(':');
-            string(out, entry.getValue());
-        }
-        out.append('}');
-    }
-
-    private void appendField(StringBuilder out, String name, String value, boolean first) {
-        comma(out, first);
-        fieldName(out, name);
-        string(out, value);
-    }
-
-    private void fieldName(StringBuilder out, String name) {
-        string(out, name);
-        out.append(':');
-    }
-
-    private void comma(StringBuilder out, boolean first) {
-        if (!first) {
-            out.append(',');
+            TraceJsonExportOptions effectiveOptions = (options == null ? TraceJsonExportOptions.defaults() : options)
+                    .toBuilder()
+                    .artifactBaseDirectory(parent)
+                    .build();
+            Files.writeString(outputPath, export(session, effectiveOptions));
+            return outputPath;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
-    private void string(StringBuilder out, String value) {
-        out.append('"').append(escape(value)).append('"');
+    public Path exportToDefault(UiTestLensSession session) {
+        return exportToDefault(session, TraceJsonExportOptions.defaults());
+    }
+
+    public Path exportToDefault(UiTestLensSession session, TraceJsonExportOptions options) {
+        String name = session == null ? "session" : session.metadata().name();
+        Path outputPath = TraceReportSupport.DEFAULT_REPORT_DIRECTORY
+                .resolve(TraceReportSupport.safeFileName(name, "session") + ".json");
+        return exportTo(session, outputPath, options);
+    }
+
+    public String exportSuite(List<UiTestLensSession> sessions) {
+        return exportSuite(sessions, TraceJsonExportOptions.defaults());
+    }
+
+    public String exportSuite(List<UiTestLensSession> sessions, TraceJsonExportOptions options) {
+        TraceJsonExportOptions effectiveOptions = options == null ? TraceJsonExportOptions.defaults() : options;
+        List<UiTestLensSession> safeSessions = TraceReportSupport.safeSessions(sessions);
+        Map<String, Object> root = new LinkedHashMap<>();
+        root.put("schemaVersion", TraceReportSupport.SCHEMA_VERSION);
+        root.put("generatedAt", Instant.now().toString());
+        root.put("reportType", "suite");
+        root.put("name", "UI Test Lens Report");
+        root.put("status", TraceReportSupport.suiteStatus(safeSessions).name());
+        root.put("summary", suiteSummary(safeSessions));
+        root.put("sessions", safeSessions.stream()
+                .map(session -> sessionMap(session, effectiveOptions))
+                .toList());
+        return TraceJsonWriter.write(root);
+    }
+
+    public Path exportSuiteTo(List<UiTestLensSession> sessions, Path outputPath) {
+        return exportSuiteTo(sessions, outputPath, TraceJsonExportOptions.defaults());
+    }
+
+    public Path exportSuiteTo(List<UiTestLensSession> sessions, Path outputPath, TraceJsonExportOptions options) {
+        if (outputPath == null) {
+            throw new IllegalArgumentException("outputPath must not be null");
+        }
+        try {
+            Path parent = outputPath.toAbsolutePath().getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            TraceJsonExportOptions effectiveOptions = (options == null ? TraceJsonExportOptions.defaults() : options)
+                    .toBuilder()
+                    .artifactBaseDirectory(parent)
+                    .build();
+            Files.writeString(outputPath, exportSuite(sessions, effectiveOptions));
+            return outputPath;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public Path exportSuiteToDefault(List<UiTestLensSession> sessions) {
+        return exportSuiteTo(sessions, DEFAULT_SUITE_OUTPUT_PATH, TraceJsonExportOptions.defaults());
+    }
+
+    public Path exportSuiteToDefault(List<UiTestLensSession> sessions, TraceJsonExportOptions options) {
+        return exportSuiteTo(sessions, DEFAULT_SUITE_OUTPUT_PATH, options);
+    }
+
+    private Map<String, Object> sessionMap(UiTestLensSession session, TraceJsonExportOptions options) {
+        TraceMetadata metadata = session.metadata();
+        Map<String, Object> out = new LinkedHashMap<>();
+        put(out, "id", metadata.sessionId());
+        put(out, "name", metadata.name());
+        out.put("status", TraceReportSupport.sessionStatus(session).name());
+        put(out, "startedAt", metadata.startedAt());
+        put(out, "endedAt", metadata.finishedAt());
+        out.put("durationMs", TraceReportSupport.sessionDuration(session).toMillis());
+        put(out, "environment", metadata.environment());
+        if (!metadata.labels().isEmpty()) {
+            out.put("labels", sortedMap(metadata.labels()));
+        }
+        out.put("summary", sessionSummary(session));
+        out.put("events", session.events().stream()
+                .map(event -> eventMap(event, options))
+                .toList());
+        out.put("artifacts", session.artifacts().stream()
+                .map(artifact -> artifactMap(artifact, options))
+                .filter(map -> options.includeMissingArtifacts() || !Boolean.FALSE.equals(map.get("exists")))
+                .toList());
+        return out;
+    }
+
+    private Map<String, Object> metadataMap(TraceMetadata metadata) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        put(out, "sessionId", metadata.sessionId());
+        put(out, "name", metadata.name());
+        put(out, "startedAt", metadata.startedAt());
+        put(out, "finishedAt", metadata.finishedAt());
+        out.put("status", metadata.status().name());
+        put(out, "environment", metadata.environment());
+        if (!metadata.labels().isEmpty()) {
+            out.put("labels", sortedMap(metadata.labels()));
+        }
+        return out;
+    }
+
+    private Map<String, Object> sessionSummary(UiTestLensSession session) {
+        List<TraceEvent> events = session.events();
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("totalEvents", events.size());
+        out.put("passed", events.stream().filter(event -> event.status() == TraceStatus.PASSED).count());
+        out.put("failed", events.stream().filter(TraceReportSupport::isFailedOrError).count());
+        out.put("warnings", events.stream().filter(event -> event.status() == TraceStatus.WARNING).count());
+        out.put("info", events.stream().filter(event -> event.status() == TraceStatus.INFO).count());
+        out.put("skipped", events.stream().filter(event -> event.status() == TraceStatus.SKIPPED).count());
+        out.put("failures", TraceReportSupport.failureCount(session));
+        out.put("totalArtifacts", session.artifacts().size());
+        out.put("screenshots", TraceReportSupport.screenshotCount(session));
+        out.put("durationMs", TraceReportSupport.sessionDuration(session).toMillis());
+        return out;
+    }
+
+    private Map<String, Object> suiteSummary(List<UiTestLensSession> sessions) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("totalSessions", sessions.size());
+        out.put("passed", sessions.stream().filter(session -> TraceReportSupport.sessionStatus(session) == TraceStatus.PASSED).count());
+        out.put("failed", sessions.stream().filter(session -> TraceReportSupport.isFailedOrErrorStatus(TraceReportSupport.sessionStatus(session))).count());
+        out.put("warnings", sessions.stream().filter(TraceReportSupport::hasWarning).count());
+        out.put("totalEvents", TraceReportSupport.eventCount(sessions));
+        out.put("totalArtifacts", TraceReportSupport.artifactCount(sessions));
+        out.put("screenshots", TraceReportSupport.screenshotCount(sessions));
+        out.put("durationMs", TraceReportSupport.totalSessionDuration(sessions).toMillis());
+        return out;
+    }
+
+    private Map<String, Object> eventMap(TraceEvent event, TraceJsonExportOptions options) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        put(out, "id", event.id());
+        put(out, "parentId", event.parentId());
+        out.put("type", event.type().name());
+        out.put("status", event.status().name());
+        put(out, "name", event.name());
+        put(out, "message", event.message());
+        put(out, "timestamp", event.timestamp());
+        out.put("durationMs", event.duration() == null ? 0 : event.duration().toMillis());
+        if (event.failure() != null) {
+            out.put("failure", failureMap(event.failure(), options));
+        }
+        if (!event.attributes().isEmpty()) {
+            out.put("attributes", sortedMap(event.attributes()));
+            out.put("metadata", sortedMap(event.attributes()));
+        }
+        if (!event.artifacts().isEmpty()) {
+            out.put("artifacts", event.artifacts().stream()
+                    .map(artifact -> artifactMap(artifact, options))
+                    .filter(map -> options.includeMissingArtifacts() || !Boolean.FALSE.equals(map.get("exists")))
+                    .toList());
+        }
+        return out;
+    }
+
+    private Map<String, Object> artifactMap(TraceArtifact artifact, TraceJsonExportOptions options) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        put(out, "name", artifact.name());
+        out.put("type", artifact.type().name());
+        put(out, "mediaType", artifact.mediaType());
+        put(out, "path", artifact.path());
+        String relativePath = TraceReportSupport.relativeArtifactPath(artifact, options.artifactBaseDirectory());
+        put(out, "relativePath", relativePath);
+        put(out, "url", artifact.url());
+        put(out, "createdAt", artifact.createdAt());
+        if (artifact.path() != null && !artifact.path().isBlank()) {
+            boolean exists = TraceReportSupport.artifactExists(artifact);
+            out.put("exists", exists);
+            long sizeBytes = TraceReportSupport.artifactSizeBytes(artifact);
+            if (sizeBytes >= 0) {
+                out.put("sizeBytes", sizeBytes);
+            }
+        }
+        if (options.includeArtifactMetadata() && !artifact.metadata().isEmpty()) {
+            out.put("metadata", sortedMap(artifact.metadata()));
+        }
+        return out;
+    }
+
+    private Map<String, Object> failureMap(TraceFailure failure, TraceJsonExportOptions options) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        put(out, "message", failure.message());
+        put(out, "exceptionType", failure.exceptionType());
+        if (options.includeStackTraces()) {
+            put(out, "stackTrace", failure.stackTrace());
+        }
+        if (!failure.details().isEmpty()) {
+            out.put("details", sortedMap(failure.details()));
+        }
+        return out;
+    }
+
+    private Map<String, String> sortedMap(Map<String, String> input) {
+        return new TreeMap<>(input == null ? Map.of() : input);
+    }
+
+    private void put(Map<String, Object> out, String name, Instant value) {
+        if (value != null) {
+            out.put(name, value.toString());
+        }
+    }
+
+    private void put(Map<String, Object> out, String name, String value) {
+        if (value != null && !value.isBlank()) {
+            out.put(name, value);
+        }
     }
 
     static String escape(String value) {
-        if (value == null) {
-            return "";
-        }
-        StringBuilder out = new StringBuilder(value.length());
-        for (int i = 0; i < value.length(); i++) {
-            char c = value.charAt(i);
-            switch (c) {
-                case '"' -> out.append("\\\"");
-                case '\\' -> out.append("\\\\");
-                case '\n' -> out.append("\\n");
-                case '\r' -> out.append("\\r");
-                case '\t' -> out.append("\\t");
-                default -> {
-                    if (c < 0x20) {
-                        out.append(String.format("\\u%04x", (int) c));
-                    } else {
-                        out.append(c);
-                    }
-                }
-            }
-        }
-        return out.toString();
+        return TraceJsonWriter.escape(value);
     }
 }

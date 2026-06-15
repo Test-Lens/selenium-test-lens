@@ -174,7 +174,7 @@ These helpers return `UiLocator`, so they share retry, actionability and asserti
 
 ## Trace and reports
 
-`UiTestLensSession` stores trace metadata, events, failures and artifacts. It can export JSON or polished single-file HTML through `TraceJsonExporter` and `TraceHtmlExporter`.
+`UiTestLensSession` stores trace metadata, events, failures and artifacts. It can export machine-readable JSON, polished single-file HTML, and portable ZIP report bundles through `TraceJsonExporter`, `TraceHtmlExporter`, and `TraceReportBundleExporter`.
 
 Common HTML report methods:
 
@@ -200,6 +200,49 @@ new TraceHtmlExporter().exportSuiteToDefault(sessions, options);
 
 `HtmlReportTheme` values are `LIGHT`, `DARK`, and `AUTO`. `AUTO` uses CSS `prefers-color-scheme` and is the default.
 
+Common JSON report methods:
+
+```java
+session.exportJson();
+session.exportJsonReport();
+session.exportJson(Path.of("target/ui-test-lens-report/checkout.json"));
+new TraceJsonExporter().exportSuiteToDefault(List.of(session));
+```
+
+Session JSON defaults to `target/ui-test-lens-report/<safe-session-name>.json`. Suite JSON defaults to `target/ui-test-lens-report/report.json`. JSON reports use `schemaVersion` `1.0`, omit null/blank fields where practical, include summary counts, events, failures, attributes, artifact references, file existence, and relative artifact paths when an output directory is known.
+
+`TraceJsonExportOptions` controls stack traces, artifact metadata, missing artifact records, and the base directory used for relative artifact paths:
+
+```java
+TraceJsonExportOptions jsonOptions = TraceJsonExportOptions.builder()
+        .includeStackTraces(true)
+        .includeArtifactMetadata(true)
+        .includeMissingArtifacts(true)
+        .build();
+```
+
+Portable ZIP bundles:
+
+```java
+new TraceReportBundleExporter().exportSuiteToDefault(List.of(session));
+
+TraceBundleExportOptions bundleOptions = TraceBundleExportOptions.builder()
+        .htmlTheme(HtmlReportTheme.LIGHT)
+        .copyArtifacts(true)
+        .bundleName("Checkout run")
+        .build();
+
+new TraceReportBundleExporter().exportSuite(List.of(session), bundleOptions);
+```
+
+The default bundle path is `target/ui-test-lens-report/ui-test-lens-report.zip`. Bundles include `index.html`, `report.json`, `manifest.json`, and copied local file artifacts under `artifacts/...` when present. ZIP export does not write absolute paths, rejects unsafe entry names, deduplicates duplicate artifact names, and records missing artifacts in the manifest instead of failing the bundle.
+
+Example API upload:
+
+```powershell
+curl -F "report=@target/ui-test-lens-report/ui-test-lens-report.zip" https://example.com/api/reports
+```
+
 `TraceLogSink` maps UI Test Lens logger events into trace sessions when a session is attached.
 
 For log-only reports, collect entries in `InMemoryLogSink`:
@@ -208,6 +251,7 @@ For log-only reports, collect entries in `InMemoryLogSink`:
 InMemoryLogSink logs = new InMemoryLogSink();
 logs.accept(UiTestLensLogEntry.info("Opening checkout"));
 logs.exportHtmlReport();
+logs.exportJson(Path.of("target/ui-test-lens-report/logs.json"));
 ```
 
 ## React support

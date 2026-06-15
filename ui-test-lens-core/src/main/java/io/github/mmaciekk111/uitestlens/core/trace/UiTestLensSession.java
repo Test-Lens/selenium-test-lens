@@ -102,6 +102,26 @@ public final class UiTestLensSession {
         return new TraceJsonExporter().export(this);
     }
 
+    public String exportJson(TraceJsonExportOptions options) {
+        return new TraceJsonExporter().export(this, options);
+    }
+
+    public Path exportJson(Path outputPath) {
+        return new TraceJsonExporter().exportTo(this, outputPath);
+    }
+
+    public Path exportJson(Path outputPath, TraceJsonExportOptions options) {
+        return new TraceJsonExporter().exportTo(this, outputPath, options);
+    }
+
+    public Path exportJsonReport() {
+        return new TraceJsonExporter().exportToDefault(this);
+    }
+
+    public Path exportJsonReport(TraceJsonExportOptions options) {
+        return new TraceJsonExporter().exportToDefault(this, options);
+    }
+
     public String exportHtml() {
         return new TraceHtmlExporter().export(this);
     }

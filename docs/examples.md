@@ -168,6 +168,29 @@ mvn test "-Dheaded=true" "-Dlens.theme=DARK" "-Dlens.report.theme=AUTO"
 
 HUD theme and report theme are independent settings.
 
+## JSON reports and portable bundles
+
+```java
+UiTestLensSession checkout = UiTestLensSession.start("Checkout flow");
+checkout.finishPassed();
+
+UiTestLensSession profile = UiTestLensSession.start("Profile flow");
+profile.finishSkipped("Example only");
+
+new TraceJsonExporter().exportSuiteToDefault(List.of(checkout, profile));
+new TraceReportBundleExporter().exportSuiteToDefault(List.of(checkout, profile));
+```
+
+JSON reports are intended for machines and integrations. The default suite JSON path is `target/ui-test-lens-report/report.json`, with `schemaVersion` set to `1.0`. Per-session JSON can be written with `session.exportJsonReport()` or `session.exportJson(Path.of("target/ui-test-lens-report/checkout-flow.json"))`.
+
+The portable ZIP bundle defaults to `target/ui-test-lens-report/ui-test-lens-report.zip`. It contains `index.html`, `report.json`, `manifest.json`, and existing local artifacts copied under safe relative `artifacts/...` entries. Missing artifacts do not fail export; they are listed in the manifest warnings. ZIP entries never include absolute paths or `..`.
+
+For CI, publish the report folder or upload the bundle:
+
+```powershell
+curl -F "report=@target/ui-test-lens-report/ui-test-lens-report.zip" https://example.com/api/reports
+```
+
 ## Auth/session state
 
 ```java

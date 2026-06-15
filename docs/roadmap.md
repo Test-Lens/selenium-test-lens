@@ -18,8 +18,9 @@ This roadmap tracks follow-up work after the 0.1 feature consolidation.
 ## Trace and evidence
 
 1. Keep the polished single-file per-test and suite HTML reports focused on static/offline diagnostics rather than turning them into a full interactive viewer.
-2. Map more action/assertion/network metadata into trace attributes where useful.
-3. Add better anchors between failure summaries and timeline events.
+2. Keep JSON reports and ZIP bundles stable enough for CI/API integrations while the pre-1.0 API is finalized.
+3. Map more action/assertion/network metadata into trace attributes where useful.
+4. Add better anchors between failure summaries and timeline events.
 
 ## Network diagnostics
 

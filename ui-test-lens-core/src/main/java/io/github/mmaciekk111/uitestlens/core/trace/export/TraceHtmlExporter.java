@@ -81,7 +81,7 @@ public final class TraceHtmlExporter {
         appendTimeline(out, session.events(), effectiveOptions);
         appendSteps(out, session.events(), effectiveOptions);
         if (effectiveOptions.includeArtifacts()) {
-            appendArtifacts(out, session.artifacts(), effectiveOptions, artifactBaseDirectory);
+            appendArtifacts(out, session.artifacts(), effectiveOptions, artifactBaseDirectory, Map.of());
         }
         if (effectiveOptions.includeJsonPayload()) {
             appendRawJson(out, session, effectiveOptions);
@@ -123,14 +123,28 @@ public final class TraceHtmlExporter {
     }
 
     public String exportSuite(List<UiTestLensSession> sessions, TraceHtmlExportOptions options) {
-        return exportSuite(sessions, options, null);
+        return exportSuite(sessions, options, (Path) null);
+    }
+
+    String exportSuite(List<UiTestLensSession> sessions,
+                       TraceHtmlExportOptions options,
+                       Map<String, String> artifactPathOverrides) {
+        return exportSuite(sessions, options, null, artifactPathOverrides);
     }
 
     private String exportSuite(List<UiTestLensSession> sessions, TraceHtmlExportOptions options, Path artifactBaseDirectory) {
+        return exportSuite(sessions, options, artifactBaseDirectory, Map.of());
+    }
+
+    private String exportSuite(List<UiTestLensSession> sessions,
+                               TraceHtmlExportOptions options,
+                               Path artifactBaseDirectory,
+                               Map<String, String> artifactPathOverrides) {
         TraceHtmlExportOptions effectiveOptions = options == null ? TraceHtmlExportOptions.defaults() : options;
         List<UiTestLensSession> safeSessions = sessions == null
                 ? List.of()
                 : sessions.stream().filter(Objects::nonNull).toList();
+        Map<String, String> safeOverrides = artifactPathOverrides == null ? Map.of() : Map.copyOf(artifactPathOverrides);
         StringBuilder out = new StringBuilder(96_000);
         out.append("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">")
                 .append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">")
@@ -140,7 +154,7 @@ public final class TraceHtmlExporter {
         appendSuiteSummary(out, safeSessions);
         appendSuiteFailures(out, safeSessions, effectiveOptions);
         appendSuiteTable(out, safeSessions);
-        appendSuiteDetails(out, safeSessions, effectiveOptions, artifactBaseDirectory);
+        appendSuiteDetails(out, safeSessions, effectiveOptions, artifactBaseDirectory, safeOverrides);
         out.append("</body></html>");
         return out.toString();
     }
@@ -197,12 +211,9 @@ public final class TraceHtmlExporter {
         long passed = sessions.stream().filter(session -> suiteSessionStatus(session) == TraceStatus.PASSED).count();
         long failed = sessions.stream().filter(session -> isFailedOrErrorStatus(suiteSessionStatus(session))).count();
         long warning = sessions.stream().filter(this::hasWarning).count();
-        long artifacts = sessions.stream().mapToLong(session -> session.artifacts().size()).sum();
-        long screenshots = sessions.stream()
-                .flatMap(session -> session.artifacts().stream())
-                .filter(artifact -> artifact.type() == TraceArtifactType.SCREENSHOT)
-                .count();
-        long events = sessions.stream().mapToLong(session -> session.events().size()).sum();
+        long artifacts = TraceReportSupport.artifactCount(sessions);
+        long screenshots = TraceReportSupport.screenshotCount(sessions);
+        long events = TraceReportSupport.eventCount(sessions);
         out.append("<section><h2>Suite summary</h2><div class=\"cards\">");
         card(out, "Total tests", String.valueOf(sessions.size()));
         card(out, "Passed", String.valueOf(passed));
@@ -289,7 +300,8 @@ public final class TraceHtmlExporter {
     private void appendSuiteDetails(StringBuilder out,
                                     List<UiTestLensSession> sessions,
                                     TraceHtmlExportOptions options,
-                                    Path artifactBaseDirectory) {
+                                    Path artifactBaseDirectory,
+                                    Map<String, String> artifactPathOverrides) {
         out.append("<section><h2>Test details</h2>");
         if (sessions.isEmpty()) {
             out.append("<p class=\"muted\">No session details available.</p></section>");
@@ -318,7 +330,7 @@ public final class TraceHtmlExporter {
             appendFailureSummary(out, session.events(), options);
             appendTimeline(out, session.events(), options);
             if (options.includeArtifacts()) {
-                appendArtifacts(out, session.artifacts(), options, artifactBaseDirectory);
+                appendArtifacts(out, session.artifacts(), options, artifactBaseDirectory, artifactPathOverrides);
             }
             out.append("</article>");
         }
@@ -525,7 +537,11 @@ public final class TraceHtmlExporter {
         out.append("</div></section>");
     }
 
-    private void appendArtifacts(StringBuilder out, List<TraceArtifact> artifacts, TraceHtmlExportOptions options, Path artifactBaseDirectory) {
+    private void appendArtifacts(StringBuilder out,
+                                 List<TraceArtifact> artifacts,
+                                 TraceHtmlExportOptions options,
+                                 Path artifactBaseDirectory,
+                                 Map<String, String> artifactPathOverrides) {
         out.append("<section><h2>Artifacts</h2>");
         if (artifacts.isEmpty()) {
             out.append("<p class=\"muted\">No artifacts attached.</p></section>");
@@ -541,7 +557,7 @@ public final class TraceHtmlExporter {
                         .append("</div><p class=\"muted\">")
                         .append(escape(artifact.mediaType()))
                         .append("</p>");
-                appendArtifactFileLink(out, "Path", artifact.path(), artifactBaseDirectory);
+                appendArtifactFileLink(out, "Path", artifact.path(), artifactBaseDirectory, artifactPathOverrides);
                 appendArtifactLink(out, "URL", artifact.url());
                 appendDetailsMap(out, "Metadata", artifact.metadata());
                 out.append("</article>");
@@ -554,7 +570,7 @@ public final class TraceHtmlExporter {
             for (TraceArtifact artifact : artifacts) {
                 out.append("<tr><td>").append(escape(artifact.name())).append("</td>")
                         .append("<td>").append(artifactBadge(artifact.type())).append("</td>")
-                        .append("<td>").append(fileLinkOrText(artifact.path(), artifactBaseDirectory)).append("</td>")
+                        .append("<td>").append(fileLinkOrText(artifact.path(), artifactBaseDirectory, artifactPathOverrides)).append("</td>")
                         .append("<td>").append(linkOrText(artifact.url())).append("</td>")
                         .append("<td>").append(escape(artifact.mediaType())).append("</td>")
                         .append("<td>").append(escape(shortInstant(artifact.createdAt()))).append("</td><td>");
@@ -566,14 +582,18 @@ public final class TraceHtmlExporter {
         out.append("</section>");
     }
 
-    private void appendArtifactFileLink(StringBuilder out, String label, String value, Path artifactBaseDirectory) {
+    private void appendArtifactFileLink(StringBuilder out,
+                                        String label,
+                                        String value,
+                                        Path artifactBaseDirectory,
+                                        Map<String, String> artifactPathOverrides) {
         if (value == null || value.isBlank()) {
             return;
         }
         out.append("<p><span class=\"muted\">")
                 .append(escape(label))
                 .append(":</span> ")
-                .append(fileLinkOrText(value, artifactBaseDirectory))
+                .append(fileLinkOrText(value, artifactBaseDirectory, artifactPathOverrides))
                 .append("</p>");
     }
 
@@ -689,6 +709,10 @@ public final class TraceHtmlExporter {
     }
 
     private String fileLinkOrText(String value, Path artifactBaseDirectory) {
+        return fileLinkOrText(value, artifactBaseDirectory, Map.of());
+    }
+
+    private String fileLinkOrText(String value, Path artifactBaseDirectory, Map<String, String> artifactPathOverrides) {
         if (value == null || value.isBlank()) {
             return "<span class=\"muted\">-</span>";
         }
@@ -700,12 +724,13 @@ public final class TraceHtmlExporter {
             return linkOrText(value);
         }
 
+        String override = artifactPathOverrides == null ? "" : artifactPathOverrides.getOrDefault(value, "");
         Path absolutePath = artifactPath.isAbsolute()
                 ? artifactPath.normalize()
                 : Path.of("").toAbsolutePath().resolve(artifactPath).normalize();
         boolean exists = Files.exists(absolutePath);
-        String href = value;
-        if (artifactBaseDirectory != null) {
+        String href = override == null || override.isBlank() ? value : override;
+        if ((override == null || override.isBlank()) && artifactBaseDirectory != null) {
             try {
                 href = artifactBaseDirectory.toAbsolutePath().normalize().relativize(absolutePath).toString();
             } catch (IllegalArgumentException ignored) {
@@ -714,7 +739,7 @@ public final class TraceHtmlExporter {
         }
         href = href.replace('\\', '/');
         String escapedHref = escape(href);
-        String escapedLabel = escape(value);
+        String escapedLabel = escape(override == null || override.isBlank() ? value : href);
         String link = "<a class=\"mono\" href=\"" + escapedHref + "\">" + escapedLabel + "</a>";
         if (!exists) {
             return link + " <span class=\"artifact-warning\">missing file</span>";
@@ -763,57 +788,31 @@ public final class TraceHtmlExporter {
     }
 
     private boolean isFailedOrErrorStatus(TraceStatus status) {
-        return status == TraceStatus.FAILED || status == TraceStatus.ERROR;
+        return TraceReportSupport.isFailedOrErrorStatus(status);
     }
 
     private TraceStatus suiteStatus(List<UiTestLensSession> sessions) {
-        if (sessions.stream().anyMatch(session -> isFailedOrErrorStatus(suiteSessionStatus(session)))) {
-            return TraceStatus.FAILED;
-        }
-        if (sessions.stream().anyMatch(this::hasWarning)) {
-            return TraceStatus.WARNING;
-        }
-        if (sessions.isEmpty()) {
-            return TraceStatus.INFO;
-        }
-        if (sessions.stream().allMatch(session -> suiteSessionStatus(session) == TraceStatus.SKIPPED)) {
-            return TraceStatus.SKIPPED;
-        }
-        return TraceStatus.PASSED;
+        return TraceReportSupport.suiteStatus(sessions);
     }
 
     private TraceStatus suiteSessionStatus(UiTestLensSession session) {
-        TraceStatus status = session.metadata().status();
-        if (status == TraceStatus.STARTED && failureCount(session) > 0) {
-            return TraceStatus.FAILED;
-        }
-        return status == null ? TraceStatus.INFO : status;
+        return TraceReportSupport.sessionStatus(session);
     }
 
     private boolean hasWarning(UiTestLensSession session) {
-        return session.events().stream().anyMatch(event -> event.status() == TraceStatus.WARNING);
+        return TraceReportSupport.hasWarning(session);
     }
 
     private long failureCount(UiTestLensSession session) {
-        return session.events().stream()
-                .filter(event -> event.failure() != null || isFailedOrError(event))
-                .count();
+        return TraceReportSupport.failureCount(session);
     }
 
     private Duration totalSessionDuration(List<UiTestLensSession> sessions) {
-        Duration total = Duration.ZERO;
-        for (UiTestLensSession session : sessions) {
-            Instant startedAt = session.metadata().startedAt();
-            Instant finishedAt = session.metadata().finishedAt();
-            if (startedAt != null && finishedAt != null) {
-                total = total.plus(Duration.between(startedAt, finishedAt));
-            }
-        }
-        return total;
+        return TraceReportSupport.totalSessionDuration(sessions);
     }
 
     private String sessionAnchor(UiTestLensSession session) {
-        return "session-" + session.id().replaceAll("[^A-Za-z0-9_-]", "-");
+        return TraceReportSupport.sessionAnchor(session);
     }
 
     private long count(List<TraceEvent> events, TraceEventType type, TraceStatus status) {

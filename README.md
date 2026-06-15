@@ -1,6 +1,6 @@
 # UI Test Lens
 
-UI Test Lens is an observability and reliability toolkit for browser-based UI automation. It adds resilient WebDriver actions, retryable assertions, visual debugging, evidence capture, auth/session state helpers, network diagnostics, and offline single-file per-test and suite HTML reports.
+UI Test Lens is an observability and reliability toolkit for browser-based UI automation. It adds resilient WebDriver actions, retryable assertions, visual debugging, evidence capture, auth/session state helpers, network diagnostics, offline HTML reports, machine-readable JSON reports, and portable report ZIP bundles.
 
 The project is currently `0.1.0-SNAPSHOT` and pre-1.0. Public APIs are usable, but may still be polished before a first release.
 
@@ -86,31 +86,47 @@ mvn -q -pl ui-test-lens-examples -am test
 mvn -q -pl ui-test-lens -am test
 ```
 
-## HTML reports
+## Reports
 
-Single-session reports and suite reports are static, offline HTML files with inline CSS. The default suite artifact path is:
+HTML is the human-readable report. JSON is the machine-readable integration format. ZIP bundles package the static HTML, JSON, manifest, and copied artifacts for CI artifacts or API uploads.
+
+Default output paths:
 
 ```text
 target/ui-test-lens-report/index.html
+target/ui-test-lens-report/report.json
+target/ui-test-lens-report/ui-test-lens-report.zip
 ```
 
 ```java
 UiTestLensSession checkout = overlay.startSession("Checkout flow");
 checkout.exportHtml(Path.of("target/ui-test-lens-report/checkout-flow.html"));
+checkout.exportJsonReport();
 
 new TraceHtmlExporter().exportSuiteToDefault(List.of(checkout),
         TraceHtmlExportOptions.builder()
                 .theme(HtmlReportTheme.AUTO)
                 .build());
+
+new TraceJsonExporter().exportSuiteToDefault(List.of(checkout));
+new TraceReportBundleExporter().exportSuiteToDefault(List.of(checkout));
 ```
 
 Report themes are independent from HUD themes: `HtmlReportTheme.LIGHT`, `DARK`, and `AUTO`.
+
+The JSON schema uses `schemaVersion` `1.0`. ZIP bundles never store absolute artifact paths or `..` entries; missing artifact files are listed in `manifest.json` warnings instead of failing export.
+
+Example upload command:
+
+```powershell
+curl -F "report=@target/ui-test-lens-report/ui-test-lens-report.zip" https://example.com/api/reports
+```
 
 ## Modules
 
 | Module | Responsibility |
 |---|---|
-| `ui-test-lens-core` | Logging, trace/evidence model, JSON/HTML exporters. No Selenium dependency. |
+| `ui-test-lens-core` | Logging, trace/evidence model, JSON/HTML/ZIP report exporters. No Selenium dependency. |
 | `ui-test-lens-overlay` | Runtime JavaScript overlay resources, HUD configuration, visual debugging assets. No Selenium dependency. |
 | `ui-test-lens-selenium` | Selenium facade, locators, assertions, actionability, evidence, auth/session state, network diagnostics. |
 | `ui-test-lens-react` | React-specific support layered on top of Selenium integration. |
@@ -143,7 +159,7 @@ UI Test Lens runs on top of Selenium/WebDriver and adds diagnostic APIs:
 - ergonomic `UiLocator` helpers
 - retryable web assertions
 - business assertions and named steps
-- trace/evidence session model and polished single-file per-test and suite HTML report export
+- trace/evidence session model, polished HTML reports, JSON reports, and portable ZIP bundles
 - screenshot capture and video attachments
 - auth/session state capture and restore
 - passive network diagnostics and wait-for-response assertions
