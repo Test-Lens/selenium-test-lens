@@ -114,11 +114,14 @@ class HudThemeTest {
     void glassThemeUsesTranslucencyAndBackdropBlur() {
         HudTheme theme = HudTheme.glass();
 
-        assertEquals("rgba(15, 23, 42, 0.64)", theme.background());
+        assertTrue(theme.background().startsWith("linear-gradient(135deg"));
+        assertTrue(theme.background().contains("rgba(15, 23, 42, 0.62)"));
         assertEquals("blur(18px) saturate(160%)", theme.backdropFilter());
         assertTrue(theme.borderColor().startsWith("rgba("));
         assertTrue(theme.boxShadow().contains("inset 0 1px 0"));
+        assertTrue(theme.boxShadow().contains("inset 0 -1px 0"));
         assertEquals("blur(18px) saturate(160%)", theme.toMap().get("backdropFilter"));
+        assertEquals(theme.background(), theme.toMap().get("background"));
     }
 
     @Test

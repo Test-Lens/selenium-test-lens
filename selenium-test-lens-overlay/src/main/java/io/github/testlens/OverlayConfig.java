@@ -92,7 +92,7 @@ public final class OverlayConfig {
         private HudPosition hudPosition = HudPosition.BOTTOM_RIGHT;
         private int hudOffsetX = 10;
         private int hudOffsetY = 10;
-        private int hudMaxWidthPx = 440;
+        private int hudMaxWidthPx = 520;
         private HudTheme hudTheme = HudTheme.defaultTheme();
         private HudThemePreset hudThemePreset = HudThemePreset.DEFAULT;
         private String highlightColor = "#ffeb3b";

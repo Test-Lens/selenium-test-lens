@@ -17,7 +17,7 @@ class OverlayConfigTest {
         assertEquals(HudThemePreset.DEFAULT, config.getHudThemePreset());
         assertNotNull(config.getHudTheme());
         assertEquals("rgba(15, 23, 42, 0.96)", config.getHudTheme().background());
-        assertEquals(440, config.getHudMaxWidthPx());
+        assertEquals(520, config.getHudMaxWidthPx());
     }
 
     @Test
@@ -28,6 +28,15 @@ class OverlayConfigTest {
 
         assertEquals(HudThemePreset.GLASS, config.getHudThemePreset());
         assertEquals("#38bdf8", config.getHudTheme().accent());
+    }
+
+    @Test
+    void userConfiguredHudWidthOverridesDefault() {
+        OverlayConfig config = OverlayConfig.builder()
+                .hudMaxWidthPx(360)
+                .build();
+
+        assertEquals(360, config.getHudMaxWidthPx());
     }
 
     @Test

@@ -37,27 +37,27 @@
   }
 
   function metadataRowMarkup(label, value, extraClass) {
-    return '<div class="stl-hud-meta-row ' + extraClass + '" style="display:grid;grid-template-columns:52px minmax(0,1fr);column-gap:10px;align-items:baseline;line-height:1.22;margin:0;">'
-      + '<span class="stl-hud-meta-label" style="color:var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78));font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;line-height:1.2;white-space:nowrap;">' + label + '</span>'
-      + '<span class="stl-hud-meta-value" style="min-width:0;color:var(--ui-test-lens-hud-fg, #ffffff);font-weight:700;font-size:13px;line-height:1.25;word-break:break-word;overflow-wrap:anywhere;">' + escapeHtml(value) + '</span>'
+    return '<div class="stl-hud-meta-row ' + extraClass + '" style="display:flex;align-items:baseline;gap:6px;min-width:0;line-height:1.18;margin:0;">'
+      + '<span class="stl-hud-meta-label" style="flex:0 0 auto;color:var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78));font-size:8.5px;font-weight:500;text-transform:uppercase;letter-spacing:.13em;line-height:1;white-space:nowrap;opacity:.72;transform:translateY(1px);">' + label + '</span>'
+      + '<span class="stl-hud-meta-value" style="min-width:0;color:var(--ui-test-lens-hud-fg, #ffffff);font-weight:500;font-size:13.5px;line-height:1.22;word-break:break-word;overflow-wrap:anywhere;">' + escapeHtml(value) + '</span>'
       + '</div>';
   }
 
   var DEFAULT_THEME = {
-    background: 'rgba(0, 0, 0, 0.75)',
-    foreground: '#ffffff',
-    mutedForeground: 'rgba(255,255,255,0.78)',
-    accent: '#4ca3ff',
-    success: '#00ff7f',
-    warning: '#ffd93b',
-    danger: '#ff4c4c',
-    borderColor: 'rgba(255,255,255,0.2)',
-    borderRadiusPx: 4,
-    fontSizePx: 11,
-    fontFamily: 'Arial, sans-serif',
-    boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+    background: 'rgba(15, 23, 42, 0.96)',
+    foreground: '#f8fafc',
+    mutedForeground: '#cbd5e1',
+    accent: '#38bdf8',
+    success: '#22c55e',
+    warning: '#f59e0b',
+    danger: '#ef4444',
+    borderColor: 'rgba(148, 163, 184, 0.28)',
+    borderRadiusPx: 10,
+    fontSizePx: 12,
+    fontFamily: 'Inter, system-ui, sans-serif',
+    boxShadow: '0 16px 40px rgba(2, 6, 23, 0.34)',
     opacity: 1,
-    paddingPx: 8,
+    paddingPx: 10,
     gapPx: 6
   };
 
@@ -143,7 +143,7 @@
 
   function brandIconMarkup() {
     return '' +
-      '<svg class="stl-hud-brand-icon-svg" width="16" height="16" viewBox="0 0 32 32" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">' +
+      '<svg class="stl-hud-brand-icon-svg" width="14" height="14" viewBox="0 0 32 32" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">' +
       '<path d="M5 12V7.5C5 6.1 6.1 5 7.5 5H12" fill="none" stroke="var(--ui-test-lens-hud-fg, #ffffff)" stroke-width="2.4" stroke-linecap="round"/>' +
       '<path d="M20 5h4.5C25.9 5 27 6.1 27 7.5V12" fill="none" stroke="var(--ui-test-lens-hud-accent, #4ca3ff)" stroke-width="2.4" stroke-linecap="round"/>' +
       '<path d="M27 20v4.5c0 1.4-1.1 2.5-2.5 2.5H20" fill="none" stroke="var(--ui-test-lens-hud-accent, #4ca3ff)" stroke-width="2.4" stroke-linecap="round"/>' +
@@ -187,15 +187,15 @@
     if (!sideRail) {
       sideRail = document.createElement('div');
       sideRail.className = 'stl-hud-side-rail';
-      sideRail.style.flex = '0 0 24px';
-      sideRail.style.width = '24px';
+      sideRail.style.flex = '0 0 20px';
+      sideRail.style.width = '20px';
       sideRail.style.boxSizing = 'border-box';
       sideRail.style.display = 'flex';
       sideRail.style.alignItems = 'center';
       sideRail.style.justifyContent = 'center';
-      sideRail.style.padding = '2px 0';
-      sideRail.style.marginRight = '5px';
-      sideRail.style.borderRight = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
+      sideRail.style.padding = '1px 0';
+      sideRail.style.marginRight = '6px';
+      sideRail.style.borderRight = '1px solid color-mix(in srgb, var(--ui-test-lens-hud-border, rgba(255,255,255,0.2)) 68%, transparent)';
       sideRail.style.color = 'var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78))';
       shell.insertBefore(sideRail, shell.firstChild);
     }
@@ -207,11 +207,11 @@
       railBrand.style.display = 'inline-flex';
       railBrand.style.alignItems = 'center';
       railBrand.style.justifyContent = 'center';
-      railBrand.style.gap = '4px';
+      railBrand.style.gap = '3px';
       railBrand.style.whiteSpace = 'nowrap';
       railBrand.style.transform = 'rotate(-90deg)';
       railBrand.style.transformOrigin = 'center';
-      railBrand.style.opacity = '0.82';
+      railBrand.style.opacity = '0.76';
       railBrand.style.color = 'var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78))';
       sideRail.appendChild(railBrand);
     }
@@ -223,8 +223,8 @@
       brandIcon.style.display = 'inline-flex';
       brandIcon.style.alignItems = 'center';
       brandIcon.style.justifyContent = 'center';
-      brandIcon.style.width = '16px';
-      brandIcon.style.height = '16px';
+      brandIcon.style.width = '14px';
+      brandIcon.style.height = '14px';
       brandIcon.innerHTML = brandIconMarkup();
       railBrand.insertBefore(brandIcon, railBrand.firstChild);
     }
@@ -234,10 +234,10 @@
       railText = document.createElement('span');
       railText.className = 'stl-hud-side-rail-text';
       railText.textContent = 'TEST LENS';
-      railText.style.fontSize = '8.5px';
+      railText.style.fontSize = '8px';
       railText.style.lineHeight = '1';
-      railText.style.fontWeight = '700';
-      railText.style.letterSpacing = '0.07em';
+      railText.style.fontWeight = '650';
+      railText.style.letterSpacing = '0.06em';
       railBrand.appendChild(railText);
     }
 
@@ -335,7 +335,7 @@
       logs.style.maxHeight = '160px';
       logs.style.overflowY = 'auto';
       logs.style.borderTop = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
-      logs.style.paddingTop = '6px';
+      logs.style.paddingTop = '8px';
       structure.main.appendChild(logs);
     } else if (logs.parentNode !== structure.main) {
       structure.main.appendChild(logs);
@@ -400,7 +400,7 @@
     var structure = ensureStructure(panel);
     migrateHudContent(panel, structure);
     positionPanel(panel, config);
-    panel.style.maxWidth = (config.maxWidth || 440) + 'px';
+    panel.style.maxWidth = (config.maxWidth || 520) + 'px';
     updateScrollableRegions(panel);
     return panel;
   }
@@ -432,11 +432,11 @@
       pipeline.id = 'selenium-hud-pipeline';
     }
     pipeline.style.color = 'var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,0.78))';
-    pipeline.style.fontSize = '9px';
-    pipeline.style.lineHeight = '1.1';
-    pipeline.style.marginTop = '2px';
+    pipeline.style.fontSize = '12px';
+    pipeline.style.lineHeight = '1.18';
+    pipeline.style.marginTop = '3px';
     pipeline.style.display = !config.pipelineId || config.pipelineId === '-' ? 'none' : 'block';
-    pipeline.innerHTML = '<span style="opacity:.74;">Pipeline:</span> ' + valueOrDash(config.pipelineId);
+    pipeline.innerHTML = metadataRowMarkup('PIPE', config.pipelineId, 'stl-hud-pipeline-row');
     placeAfter(structure.main, pipeline, title);
 
     var step = panel.querySelector('#selenium-hud-step');
@@ -444,9 +444,9 @@
       step = document.createElement('div');
       step.id = 'selenium-hud-step';
     }
-    step.style.marginTop = '5px';
+    step.style.marginTop = '4px';
     step.style.lineHeight = '1.2';
-    step.style.fontSize = '13px';
+    step.style.fontSize = '13.5px';
     step.style.wordBreak = 'break-word';
     placeAfter(structure.main, step, pipeline);
     if (!step.innerHTML) {
@@ -480,9 +480,10 @@
     var row = document.createElement('div');
     row.style.fontFamily = 'monospace';
     row.style.fontSize = '10px';
-    row.style.marginBottom = '2px';
+    row.style.marginBottom = '5px';
     row.style.whiteSpace = 'pre-wrap';
     row.style.wordBreak = 'break-word';
+    row.style.lineHeight = '1.32';
 
     var lvl = (level || '').toLowerCase();
     var color = 'var(--ui-test-lens-hud-fg, #ffffff)';

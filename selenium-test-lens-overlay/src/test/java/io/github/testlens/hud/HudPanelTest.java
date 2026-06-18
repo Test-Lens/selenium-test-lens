@@ -90,7 +90,7 @@ class HudPanelTest {
 
         assertTrue(hudInitArgs[6] instanceof Map<?, ?>);
         assertEquals("#38bdf8", ((Map<?, ?>) hudInitArgs[6]).get("accent"));
-        assertEquals("rgba(15, 23, 42, 0.64)", ((Map<?, ?>) hudInitArgs[6]).get("background"));
+        assertTrue(((String) ((Map<?, ?>) hudInitArgs[6]).get("background")).startsWith("linear-gradient(135deg"));
         assertEquals("blur(18px) saturate(160%)", ((Map<?, ?>) hudInitArgs[6]).get("backdropFilter"));
         assertEquals(480, ((Map<?, ?>) hudInitArgs[6]).get("maxHeightPx"));
         assertEquals("GLASS", hudInitArgs[7]);

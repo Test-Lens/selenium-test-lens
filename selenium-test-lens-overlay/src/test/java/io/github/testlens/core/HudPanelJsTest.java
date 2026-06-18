@@ -42,12 +42,14 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("stl-hud-rail-brand"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-side-rail-text"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-main"));
-        assertTrue(HudPanelJs.INIT.contains("sideRail.style.flex = '0 0 24px'"));
-        assertTrue(HudPanelJs.INIT.contains("sideRail.style.width = '24px'"));
+        assertTrue(HudPanelJs.INIT.contains("sideRail.style.flex = '0 0 20px'"));
+        assertTrue(HudPanelJs.INIT.contains("sideRail.style.width = '20px'"));
+        assertTrue(HudPanelJs.INIT.contains("sideRail.style.marginRight = '6px'"));
+        assertFalse(HudPanelJs.INIT.contains("main.style.paddingLeft"));
         assertTrue(HudPanelJs.INIT.contains("railBrand.style.alignItems = 'center'"));
         assertTrue(HudPanelJs.INIT.contains("railBrand.style.justifyContent = 'center'"));
         assertTrue(HudPanelJs.INIT.contains("TEST LENS"));
-        assertTrue(HudPanelJs.INIT.contains("<svg class=\"stl-hud-brand-icon-svg\" width=\"16\" height=\"16\""));
+        assertTrue(HudPanelJs.INIT.contains("<svg class=\"stl-hud-brand-icon-svg\" width=\"14\" height=\"14\""));
         assertTrue(HudPanelJs.INIT.contains("railBrand.insertBefore(brandIcon, railBrand.firstChild)"));
         assertFalse(HudPanelJs.INIT.contains("Selenium/WebDriver"));
         assertFalse(HudPanelJs.INIT.contains("Test Lens"));
@@ -59,14 +61,25 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("stl-hud-meta-row"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-meta-label"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-meta-value"));
-        assertTrue(HudPanelJs.INIT.contains("grid-template-columns:52px minmax(0,1fr)"));
-        assertTrue(HudPanelJs.INIT.contains("column-gap:10px"));
-        assertTrue(HudPanelJs.INIT.contains("font-size:13px"));
+        assertTrue(HudPanelJs.INIT.contains("display:flex;align-items:baseline;gap:6px"));
+        assertTrue(HudPanelJs.INIT.contains("font-size:8.5px"));
+        assertTrue(HudPanelJs.INIT.contains("font-weight:500"));
+        assertTrue(HudPanelJs.INIT.contains("font-size:13.5px"));
         assertTrue(HudPanelJs.INIT.contains("metadataRowMarkup('TEST', config.testName, 'stl-hud-test-row')"));
         assertTrue(HudPanelJs.INIT.contains("metadataRowMarkup('STEP', stepDescription, 'stl-hud-step-row')"));
+        assertTrue(HudPanelJs.INIT.contains("metadataRowMarkup('PIPE', config.pipelineId, 'stl-hud-pipeline-row')"));
         assertTrue(HudPanelJs.INIT.contains("function escapeHtml"));
+        assertFalse(HudPanelJs.INIT.contains("grid-template-columns:52px"));
         assertFalse(HudPanelJs.INIT.contains(">Test</span>"));
         assertFalse(HudPanelJs.INIT.contains(">Step</span> <span>"));
+    }
+
+    @Test
+    void initContainsAiryLogsAndWiderFallbackWidth() {
+        assertTrue(HudPanelJs.INIT.contains("panel.style.maxWidth = (config.maxWidth || 520) + 'px'"));
+        assertTrue(HudPanelJs.INIT.contains("logs.style.paddingTop = '8px'"));
+        assertTrue(HudPanelJs.INIT.contains("row.style.marginBottom = '5px'"));
+        assertTrue(HudPanelJs.INIT.contains("row.style.lineHeight = '1.32'"));
     }
 
     @Test
@@ -249,9 +262,13 @@ class HudPanelJsTest {
                 assert(root.querySelector('.stl-hud-brand-icon').parentNode === root.querySelector('.stl-hud-rail-brand'), 'brand icon is not in rail lockup');
                 assert(!root.querySelector('.stl-hud-header'), 'top header should not be rendered');
                 assert(root.querySelector('.stl-hud-side-rail-text').textContent === 'TEST LENS', 'missing rail text');
-                assert(root.querySelector('.stl-hud-side-rail').style.width === '24px', 'side rail width was not refined');
+                assert(root.querySelector('.stl-hud-side-rail').style.width === '20px', 'side rail width was not refined');
+                assert(root.querySelector('.stl-hud-side-rail').style.marginRight === '6px', 'side rail spacing is too wide');
+                assert(!root.querySelector('.stl-hud-main').style.paddingLeft, 'main content should not add left padding');
                 assert(root.querySelector('.stl-hud-rail-brand').style.transform === 'rotate(-90deg)', 'rail brand is not rotated');
                 assert(root.querySelector('#selenium-hud-test').innerHTML.indexOf('stl-hud-meta-row stl-hud-test-row') >= 0, 'test row missing');
+                assert(root.querySelector('#selenium-hud-test').innerHTML.indexOf('display:flex') >= 0, 'test row is not lightweight flex');
+                assert(root.querySelector('#selenium-hud-test').innerHTML.indexOf('font-weight:500') >= 0, 'test value is too heavy');
                 assert(root.querySelector('#selenium-hud-test').innerHTML.indexOf('>TEST<') >= 0, 'test label missing');
                 assert(root.querySelector('#selenium-hud-test').innerHTML.indexOf('>Checkout<') >= 0, 'test value missing');
                 assert(root.querySelector('#selenium-hud-step').innerHTML.indexOf('stl-hud-meta-row stl-hud-step-row') >= 0, 'step row missing');
@@ -259,6 +276,7 @@ class HudPanelJsTest {
                 assert(root.querySelector('#selenium-hud-step').innerHTML.indexOf('>Pay &lt;now&gt; &amp; confirm<') >= 0, 'step value was not escaped');
                 assert(root.querySelector('#selenium-hud-step').parentNode === root.querySelector('.stl-hud-main'), 'legacy step was not migrated');
                 assert(root.querySelector('#selenium-hud-logs').parentNode === root.querySelector('.stl-hud-main'), 'logs are not in main');
+                assert(root.querySelector('#selenium-hud-logs').children[0].style.marginBottom === '5px', 'log row spacing missing');
                 assert(countByClass(root, 'stl-hud-side-rail') === 1, 'duplicated side rail');
                 assert(countByClass(root, 'stl-hud-rail-brand') === 1, 'duplicated rail brand');
                 assert(countByClass(root, 'stl-hud-brand-icon') === 1, 'duplicated brand icon');
