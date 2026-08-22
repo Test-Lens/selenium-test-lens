@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.1.0-SNAPSHOT",
+    [string]$Version = ([xml](Get-Content -LiteralPath (Join-Path $PSScriptRoot "../pom.xml") -Raw)).project.version,
     [string]$StagingDirectory = (Join-Path ([System.IO.Path]::GetTempPath()) ("selenium-test-lens-release-staging-" + [guid]::NewGuid()))
 )
 
