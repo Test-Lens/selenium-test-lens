@@ -30,7 +30,7 @@
 
         <dependency>
             <groupId>io.github.testlens</groupId>
-            <artifactId>selenium-test-lens-selenium</artifactId>
+            <artifactId>selenium-test-lens</artifactId>
             <version>${project.version}</version>
         </dependency>
 

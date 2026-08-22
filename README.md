@@ -63,7 +63,7 @@ All-in-one dependency:
 </dependency>
 ```
 
-The all-in-one POM deliberately does not choose a Selenium version for the consumer. Add the Selenium version owned by your existing framework, for example the version used for 0.1.0 validation:
+The main runtime JAR deliberately does not choose a Selenium version for the consumer. Add the Selenium version owned by your existing framework, for example the version used for 0.1.0 validation:
 
 ```xml
 <dependency>
@@ -163,9 +163,8 @@ curl -F "report=@target/ui-test-lens-report/ui-test-lens-report.zip" https://exa
 |---|---|
 | `selenium-test-lens-core` | Internal logging, trace/evidence model, JSON/HTML/ZIP report exporters. No Selenium dependency. |
 | `selenium-test-lens-overlay` | Runtime JavaScript overlay resources, HUD configuration, visual debugging assets. No Selenium dependency. |
-| `selenium-test-lens-selenium` | Selenium facade, locators, assertions, actionability, evidence, auth/session state, network diagnostics. |
+| `selenium-test-lens` | Main runtime JAR: Selenium facade, locators, assertions, actionability, evidence, auth/session state, network diagnostics. Source directory: `selenium-test-lens-selenium/`. |
 | `selenium-test-lens-react` | React-specific support layered on top of Selenium integration. |
-| `selenium-test-lens` | All-in-one POM dependency bundle. |
 | `selenium-test-lens-examples` | Documentation and compile-check examples. Not intended as a runtime dependency. |
 
 ## Documentation

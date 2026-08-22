@@ -35,7 +35,7 @@ Selenium module:
 ```xml
 <dependency>
     <groupId>io.github.testlens</groupId>
-    <artifactId>selenium-test-lens-selenium</artifactId>
+    <artifactId>selenium-test-lens</artifactId>
     <version>0.1.0</version>
 </dependency>
 ```

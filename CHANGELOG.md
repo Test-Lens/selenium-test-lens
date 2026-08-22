@@ -8,7 +8,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 - Multi-module Maven structure.
 - `selenium-test-lens-core` with the logging/event model, log sinks, log exporters, `BrowserScriptExecutor`, and `JsResources`.
 - `selenium-test-lens-overlay` with browser runtime JavaScript resources and overlay bridge classes.
-- `selenium-test-lens-selenium` with Selenium facade/actions, waits, guards, popup/blocking overlay helpers, target resolver, and Selenium factories/adapters.
+- `selenium-test-lens` runtime JAR with the public Selenium facade/actions, waits, guards, popup/blocking overlay helpers, target resolver, and Selenium factories/adapters.
 - `selenium-test-lens-react` with React-safe helpers and the `ReactSupport` entrypoint.
 - `selenium-test-lens-examples` with compile-checked examples.
 - Runtime JavaScript resources for API overlay, Wait HUD, Highlight, Type hint, Scroll arrow, HUD panel, and Assertion badges.
@@ -19,7 +19,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 - Migrated project naming from the historical helper codebase to Selenium Test Lens.
 - Moved Java packages to `io.github.testlens`.
 - Prepared the first public `0.1.0` API and Maven Central artifact set.
-- Split core, overlay, selenium, react, examples, and all-in-one compatibility responsibilities.
+- Split core, overlay, main Selenium runtime, React extension, and examples responsibilities.
 - Introduced `window.__uiTestLens` as the primary browser runtime namespace while preserving legacy aliases.
 
 ### Removed

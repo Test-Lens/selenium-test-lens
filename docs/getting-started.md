@@ -30,13 +30,12 @@ The consuming framework supplies Selenium. Version 0.1.0 is verified with Seleni
 
 | Use case | Artifact |
 |---|---|
-| All-in-one dependency bundle | `selenium-test-lens` |
-| Selenium locators, assertions, evidence, auth, network | `selenium-test-lens-selenium` |
+| Selenium locators, assertions, evidence, auth, network | `selenium-test-lens` |
 | Runtime overlay resources only | `selenium-test-lens-overlay` |
 | Logging and trace model only | `selenium-test-lens-core` |
 | React-specific helpers | `selenium-test-lens-react` |
 
-All-in-one dependency:
+Main runtime dependency:
 
 ```xml
 <dependency>

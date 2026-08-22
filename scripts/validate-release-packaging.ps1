@@ -17,9 +17,8 @@ $components = @(
     @{ Artifact = "selenium-test-lens-parent"; Directory = $repo; Packaging = "pom" },
     @{ Artifact = "selenium-test-lens-core"; Directory = (Join-Path $repo "selenium-test-lens-core"); Packaging = "jar" },
     @{ Artifact = "selenium-test-lens-overlay"; Directory = (Join-Path $repo "selenium-test-lens-overlay"); Packaging = "jar" },
-    @{ Artifact = "selenium-test-lens-selenium"; Directory = (Join-Path $repo "selenium-test-lens-selenium"); Packaging = "jar" },
-    @{ Artifact = "selenium-test-lens-react"; Directory = (Join-Path $repo "selenium-test-lens-react"); Packaging = "jar" },
-    @{ Artifact = "selenium-test-lens"; Directory = (Join-Path $repo "selenium-test-lens"); Packaging = "pom" }
+    @{ Artifact = "selenium-test-lens"; Directory = (Join-Path $repo "selenium-test-lens-selenium"); Packaging = "jar" },
+    @{ Artifact = "selenium-test-lens-react"; Directory = (Join-Path $repo "selenium-test-lens-react"); Packaging = "jar" }
 )
 
 New-Item -ItemType Directory -Force -Path $StagingDirectory | Out-Null

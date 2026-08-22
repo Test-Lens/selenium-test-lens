@@ -34,7 +34,7 @@ Before publishing a real release:
 2. Configure GPG signing locally or in CI.
 3. Configure Central Portal credentials in Maven `settings.xml` or CI secrets for server id `central`, or override `central.publishing.serverId`.
 4. Run tests and `mvn -Pcentral-release verify` without `gpg.skip`.
-5. Inspect the generated POM, main JAR, sources JAR, Javadoc JAR and `.asc` files for parent, core, overlay, selenium, react and the all-in-one POM.
+5. Inspect the generated parent POM and the POM, main JAR, sources JAR, Javadoc JAR and `.asc` files for core, overlay, the main `selenium-test-lens` runtime, and react.
 6. Upload the validated bundle through the configured Central lifecycle.
 7. Review the deployment in Central Portal and publish it manually; `autoPublish=false` prevents an unreviewed release.
 

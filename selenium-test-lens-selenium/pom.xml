@@ -10,9 +10,9 @@
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>selenium-test-lens-selenium</artifactId>
+    <artifactId>selenium-test-lens</artifactId>
     <packaging>jar</packaging>
-    <name>Selenium Test Lens Selenium</name>
+    <name>Selenium Test Lens</name>
     <description>Selenium/WebDriver integration for Selenium Test Lens locators, assertions, actions, evidence, auth, and diagnostics.</description>
 
     <dependencies>

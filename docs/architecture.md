@@ -8,14 +8,13 @@ Selenium Test Lens is a multi-module Selenium/WebDriver-first project. Each modu
 |---|---|---|
 | `selenium-test-lens-core` | Internal logging, log sinks, trace/evidence model, JSON and HTML exporters. | No Selenium dependency. |
 | `selenium-test-lens-overlay` | Runtime JS resources, overlay config, HUD model and visual debugging assets. | No Selenium dependency. |
-| `selenium-test-lens-selenium` | Selenium facade, locators, assertions, actionability, overlay policy, evidence capture, auth/session state and network diagnostics. | Does not depend on React. |
+| `selenium-test-lens` (source directory `selenium-test-lens-selenium/`) | Main runtime JAR with the Selenium facade, locators, assertions, actionability, overlay policy, evidence capture, auth/session state and network diagnostics. | Does not depend on React. |
 | `selenium-test-lens-react` | React-specific support and React-aware actionability extension layer. | May depend on Selenium integration. |
-| `selenium-test-lens` | All-in-one POM dependency bundle. | Pulls the publishable modules together without adding runtime code. |
 | `selenium-test-lens-examples` | Documentation and compile-check examples. | Not a runtime dependency. |
 
 ## Selenium boundary
 
-Selenium-specific types are isolated to `selenium-test-lens-selenium` and modules that intentionally extend it. Core trace/export models and overlay runtime configuration do not import Selenium.
+Selenium-specific types are isolated to the main `selenium-test-lens` runtime module (stored in `selenium-test-lens-selenium/`) and modules that intentionally extend it. Core trace/export models and overlay runtime configuration do not import Selenium.
 
 This keeps:
 
