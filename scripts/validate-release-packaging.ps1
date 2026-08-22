@@ -24,7 +24,7 @@ $components = @(
 New-Item -ItemType Directory -Force -Path $StagingDirectory | Out-Null
 foreach ($component in $components) {
     $artifact = $component.Artifact
-    $destination = Join-Path $StagingDirectory "io/github/testlens/$artifact/$Version"
+    $destination = Join-Path $StagingDirectory "io/github/test-lens/$artifact/$Version"
     New-Item -ItemType Directory -Force -Path $destination | Out-Null
     Copy-Item -LiteralPath (Join-Path $component.Directory "pom.xml") -Destination (Join-Path $destination "$artifact-$Version.pom") -Force
 

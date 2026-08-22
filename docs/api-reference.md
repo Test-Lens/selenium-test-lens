@@ -14,7 +14,7 @@ All these operations emit native trace events and feed the best-effort HUD. Raw 
 
 This is a concise public API map for Selenium Test Lens 0.1.
 
-Java packages live under `io.github.testlens`, and Maven artifacts use the `io.github.testlens:selenium-test-lens-*` coordinate family. Default report and evidence output paths retain `target/ui-test-lens...` for local artifact compatibility.
+Java packages live under `io.github.testlens`, and Maven artifacts use the `io.github.test-lens:selenium-test-lens-*` coordinate family. Default report and evidence output paths retain `target/ui-test-lens...` for local artifact compatibility.
 
 ## Overlay configuration
 

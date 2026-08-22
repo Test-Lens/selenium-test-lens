@@ -39,7 +39,7 @@ Main runtime dependency:
 
 ```xml
 <dependency>
-    <groupId>io.github.testlens</groupId>
+    <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
     <version>0.1.0</version>
 </dependency>

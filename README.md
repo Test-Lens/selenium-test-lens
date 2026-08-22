@@ -43,7 +43,7 @@ The first public release is `0.1.0`. As a pre-1.0 library, its API may evolve be
 
 Repository: https://github.com/Test-Lens/selenium-test-lens
 
-Maven coordinates use `io.github.testlens`, module artifactIds use the `selenium-test-lens-*` naming scheme, and public Java packages live under `io.github.testlens`. Default report and evidence output paths still use `target/ui-test-lens...` for compatibility with existing local and CI artifacts.
+Maven coordinates use `io.github.test-lens`, module artifactIds use the `selenium-test-lens-*` naming scheme, and public Java packages live under `io.github.testlens`. Default report and evidence output paths still use `target/ui-test-lens...` for compatibility with existing local and CI artifacts.
 
 ## Requirements
 
@@ -57,7 +57,7 @@ All-in-one dependency:
 
 ```xml
 <dependency>
-    <groupId>io.github.testlens</groupId>
+    <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
     <version>0.1.0</version>
 </dependency>

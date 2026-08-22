@@ -5,7 +5,7 @@
          child.project.url.inherit.append.path="false">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.testlens</groupId>
+    <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>

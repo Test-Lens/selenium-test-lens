@@ -50,7 +50,7 @@ $consumerPom = @"
   <properties><maven.compiler.release>17</maven.compiler.release></properties>
   <repositories><repository><id>lens-staging</id><url>$stagingUri</url></repository></repositories>
   <dependencies>
-    <dependency><groupId>io.github.testlens</groupId><artifactId>selenium-test-lens</artifactId><version>$ReleaseVersion</version></dependency>
+    <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens</artifactId><version>$ReleaseVersion</version></dependency>
     <dependency><groupId>org.seleniumhq.selenium</groupId><artifactId>selenium-java</artifactId><version>4.39.0</version></dependency>
     <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>5.11.4</version><scope>test</scope></dependency>
   </dependencies>
