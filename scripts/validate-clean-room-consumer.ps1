@@ -26,7 +26,23 @@ if ($LASTEXITCODE -ne 0) { throw "Temporary release build failed" }
 & (Join-Path $source "scripts/validate-release-packaging.ps1") -Version $ReleaseVersion -StagingDirectory $staging
 if ($LASTEXITCODE -ne 0) { throw "Release staging validation failed" }
 
-$stagingUri = ([Uri]$staging).AbsoluteUri
+$absoluteStagingPath = [System.IO.Path]::GetFullPath($staging)
+if (-not (Test-Path -LiteralPath $absoluteStagingPath -PathType Container)) {
+    throw "Release staging directory does not exist: $absoluteStagingPath"
+}
+$stagingUriBuilder = [System.UriBuilder]::new()
+$stagingUriBuilder.Scheme = [System.Uri]::UriSchemeFile
+$stagingUriBuilder.Host = ""
+$stagingUriBuilder.Path = $absoluteStagingPath.TrimEnd(
+    [System.IO.Path]::DirectorySeparatorChar,
+    [System.IO.Path]::AltDirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+$stagingRepositoryUri = $stagingUriBuilder.Uri
+$stagingUri = $stagingRepositoryUri.AbsoluteUri
+if ([string]::IsNullOrWhiteSpace($stagingUri) -or
+        -not $stagingRepositoryUri.IsAbsoluteUri -or
+        $stagingRepositoryUri.Scheme -ne [System.Uri]::UriSchemeFile) {
+    throw "Invalid release staging repository URI for '$absoluteStagingPath': '$stagingUri'"
+}
 $consumerPom = @"
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <modelVersion>4.0.0</modelVersion>
@@ -44,7 +60,34 @@ $consumerPom = @"
   </plugins></build>
 </project>
 "@
-[IO.File]::WriteAllText((Join-Path $consumer "pom.xml"), $consumerPom)
+$consumerPomPath = Join-Path $consumer "pom.xml"
+[IO.File]::WriteAllText($consumerPomPath, $consumerPom)
+
+$generatedPom = [xml](Get-Content -Raw $consumerPomPath)
+$pomNs = [System.Xml.XmlNamespaceManager]::new($generatedPom.NameTable)
+$pomNs.AddNamespace("m", "http://maven.apache.org/POM/4.0.0")
+$repositoryNode = $generatedPom.SelectSingleNode(
+    "/m:project/m:repositories/m:repository[m:id='lens-staging']", $pomNs)
+if ($null -eq $repositoryNode -or [string]::IsNullOrWhiteSpace($repositoryNode.url)) {
+    throw "Generated consumer POM is missing the lens-staging repository URL"
+}
+[System.Uri]$generatedRepositoryUri = $null
+if (-not [System.Uri]::TryCreate($repositoryNode.url.Trim(), [System.UriKind]::Absolute, [ref]$generatedRepositoryUri) -or
+        $generatedRepositoryUri.Scheme -ne [System.Uri]::UriSchemeFile) {
+    throw "Generated consumer POM has an invalid lens-staging repository URL: '$($repositoryNode.url)'"
+}
+$expectedPath = $absoluteStagingPath.TrimEnd(
+    [System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
+$generatedPath = [System.IO.Path]::GetFullPath($generatedRepositoryUri.LocalPath).TrimEnd(
+    [System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
+if ($generatedPath -ne $expectedPath) {
+    throw "Generated lens-staging repository points to '$generatedPath', expected '$expectedPath'"
+}
+
+Write-Output "Staging directory: $absoluteStagingPath"
+Write-Output "Staging repository URI: $stagingUri"
+Write-Output "Generated consumer repository:"
+Write-Output "<repository><id>lens-staging</id><url>$($repositoryNode.url)</url></repository>"
 
 $smoke = @'
 package cleanroom;
