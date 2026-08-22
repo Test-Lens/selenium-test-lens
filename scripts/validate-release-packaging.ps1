@@ -1,6 +1,6 @@
 param(
     [string]$Version = "0.1.0-SNAPSHOT",
-    [string]$StagingDirectory = (Join-Path $env:TEMP ("selenium-test-lens-release-staging-" + [guid]::NewGuid()))
+    [string]$StagingDirectory = (Join-Path ([System.IO.Path]::GetTempPath()) ("selenium-test-lens-release-staging-" + [guid]::NewGuid()))
 )
 
 $ErrorActionPreference = "Stop"

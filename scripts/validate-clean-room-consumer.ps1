@@ -4,7 +4,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $repo = Split-Path -Parent $PSScriptRoot
-$work = Join-Path $env:TEMP ("selenium-test-lens-clean-room-" + [guid]::NewGuid())
+$work = Join-Path ([System.IO.Path]::GetTempPath()) ("selenium-test-lens-clean-room-" + [guid]::NewGuid())
 $source = Join-Path $work "release-source"
 $staging = Join-Path $work "staging"
 $emptyM2 = Join-Path $work "empty-m2"
