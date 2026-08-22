@@ -97,6 +97,7 @@ public final class JsOverlayDebug {
     private final Guards guards;
     private final OverlayLogger logger;
     private final SessionTraceLogSink sessionTraceLogSink = new SessionTraceLogSink();
+    private final HudLogSink hudLogSink = new HudLogSink();
     private OverlayPolicy overlayPolicy = OverlayPolicy.none();
     private UiTestLensSession session;
     private NetworkDiagnostics networkDiagnostics;
@@ -142,7 +143,7 @@ public final class JsOverlayDebug {
         this.apiCalls = apiCalls;
         this.guards = guards;
         OverlayLogger baseLogger = logger != null ? logger : OverlayLogger.noop();
-        this.logger = baseLogger.withSink(sessionTraceLogSink);
+        this.logger = baseLogger.withSink(sessionTraceLogSink).withSink(hudLogSink);
         if (driver == null) {
             throw new IllegalArgumentException("driver must not be null");
         }
@@ -160,6 +161,7 @@ public final class JsOverlayDebug {
         this.smartClickActions = new SmartClickActions(driver, config, rootManager, highlightActions, this.logger);
         this.smartInputActions = new SmartInputActions(driver, config, rootManager, typingActions, this.logger);
         this.hudPanel = new HudPanel(scriptExecutor, rootManager, config);
+        this.hudLogSink.attach(this.hudPanel, driver);
         this.pageWaits = new PageWaits(driver, config);
         this.popupDetector = new PopupDetector(driver, config, rootManager, highlightActions);
         this.scrollActions = new ScrollActions(driver, config, rootManager, this.logger);
@@ -200,9 +202,10 @@ public final class JsOverlayDebug {
         return locator(by, "", options);
     }
 
-    private UiLocator locator(By by, String label, UiLocatorOptions options) {
+    public UiLocator locator(By by, String label, UiLocatorOptions options) {
         return new UiLocator(driver, by, label, this, options, logger);
     }
+
 
     public UiLocator getByTestId(String testId) {
         return getByTestId(testId, "");
@@ -289,7 +292,7 @@ public final class JsOverlayDebug {
     }
 
     public UiExpect expect(UiLocator locator, UiAssertionOptions options) {
-        return new UiExpect(locator, options, logger);
+        return locator.expect(options);
     }
 
     public BusinessAssertions business(String subject) {
@@ -422,9 +425,20 @@ public final class JsOverlayDebug {
             UiStepResult result = scope.run(name, options, body);
             captureFailedStepScreenshotIfNeeded(name, options, result);
             return result;
-        } catch (UiStepError e) {
-            captureFailedStepScreenshotIfNeeded(name, options, e.result());
-            throw e;
+        } catch (RuntimeException | Error originalFailure) {
+            captureFailedStepScreenshotBestEffort(name, options, originalFailure);
+            throw originalFailure;
+        }
+    }
+
+    private void captureFailedStepScreenshotBestEffort(String stepName, UiStepOptions options, Throwable originalFailure) {
+        UiStepOptions effectiveOptions = options == null ? UiStepOptions.defaults() : options;
+        if (!effectiveOptions.captureScreenshotOnFailure()) return;
+        try {
+            ScreenshotCaptureResult result = captureScreenshot("failed-step-" + safeString(stepName), effectiveOptions.screenshotCaptureOptions());
+            if (!result.isCaptured() && result.exception() != null) originalFailure.addSuppressed(result.exception());
+        } catch (RuntimeException diagnosticFailure) {
+            originalFailure.addSuppressed(diagnosticFailure);
         }
     }
 
@@ -450,6 +464,26 @@ public final class JsOverlayDebug {
             throw new IllegalStateException("No UiTestLensSession attached");
         }
         return session;
+    }
+
+    void emitConsumerOperation(String action,
+                               String description,
+                               UiTestLensStatus status,
+                               UiTestLensLogLevel level,
+                               Throwable failure) {
+        try {
+            logger.emit(UiTestLensLogEntry.builder()
+                    .level(level)
+                    .eventType(UiTestLensEventType.ACTION)
+                    .status(status)
+                    .message(description == null ? action : description)
+                    .action(action)
+                    .metadata("description", description == null ? "" : description)
+                    .throwable(failure)
+                    .build());
+        } catch (RuntimeException ignored) {
+            // Trace/HUD presentation is observability and cannot alter the browser operation.
+        }
     }
 
     private ActionabilityChecker actionabilityChecker() {
@@ -620,6 +654,44 @@ public final class JsOverlayDebug {
             if (current != null) {
                 current.accept(entry);
             }
+        }
+    }
+
+    private static final class HudLogSink implements UiTestLensLogSink {
+        private volatile HudPanel hud;
+        private volatile WebDriver driver;
+        private final java.util.Queue<UiTestLensLogEntry> deferredDuringAlert = new java.util.concurrent.ConcurrentLinkedQueue<>();
+
+        void attach(HudPanel hud, WebDriver driver) { this.hud = hud; this.driver = driver; }
+
+        @Override
+        public void accept(UiTestLensLogEntry entry) {
+            HudPanel current = hud;
+            if (current == null || entry == null || entry.eventType() == UiTestLensEventType.HUD) return;
+            WebDriver currentDriver = driver;
+            if (currentDriver != null) {
+                try {
+                    WebDriver.TargetLocator target = currentDriver.switchTo();
+                    if (target != null && target.alert() != null) {
+                        deferredDuringAlert.add(entry);
+                        return; // Executing HUD JavaScript could dismiss an active browser dialog.
+                    }
+                } catch (org.openqa.selenium.NoAlertPresentException ignored) {
+                    // Normal document context: HUD updates are safe.
+                } catch (RuntimeException ignored) {
+                    return; // A diagnostic probe must never alter or fail the browser operation.
+                }
+            }
+            UiTestLensLogEntry deferred;
+            while ((deferred = deferredDuringAlert.poll()) != null) append(current, deferred);
+            append(current, entry);
+        }
+
+        private static void append(HudPanel hud, UiTestLensLogEntry entry) {
+            String description = entry.metadata().getOrDefault("description", "");
+            String action = entry.action() == null ? "" : entry.action();
+            String message = description.isBlank() ? entry.message() : action + ": " + description;
+            hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString());
         }
     }
 

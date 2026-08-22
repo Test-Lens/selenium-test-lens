@@ -1,0 +1,47 @@
+param(
+    [string]$Version = "0.1.0-SNAPSHOT",
+    [string]$StagingDirectory = (Join-Path $env:TEMP ("selenium-test-lens-release-staging-" + [guid]::NewGuid()))
+)
+
+$ErrorActionPreference = "Stop"
+$repo = Split-Path -Parent $PSScriptRoot
+$pom = [xml](Get-Content -Raw (Join-Path $repo "pom.xml"))
+$ns = New-Object System.Xml.XmlNamespaceManager($pom.NameTable)
+$ns.AddNamespace("m", "http://maven.apache.org/POM/4.0.0")
+$excluded = $pom.SelectSingleNode("//m:plugin[m:artifactId='central-publishing-maven-plugin']/m:configuration/m:excludeArtifacts", $ns)
+if ($null -eq $excluded -or $excluded.InnerText.Trim() -ne "selenium-test-lens-examples") {
+    throw "Central configuration must exclude selenium-test-lens-examples"
+}
+
+$components = @(
+    @{ Artifact = "selenium-test-lens-parent"; Directory = $repo; Packaging = "pom" },
+    @{ Artifact = "selenium-test-lens-core"; Directory = (Join-Path $repo "selenium-test-lens-core"); Packaging = "jar" },
+    @{ Artifact = "selenium-test-lens-overlay"; Directory = (Join-Path $repo "selenium-test-lens-overlay"); Packaging = "jar" },
+    @{ Artifact = "selenium-test-lens-selenium"; Directory = (Join-Path $repo "selenium-test-lens-selenium"); Packaging = "jar" },
+    @{ Artifact = "selenium-test-lens-react"; Directory = (Join-Path $repo "selenium-test-lens-react"); Packaging = "jar" },
+    @{ Artifact = "selenium-test-lens"; Directory = (Join-Path $repo "selenium-test-lens"); Packaging = "pom" }
+)
+
+New-Item -ItemType Directory -Force -Path $StagingDirectory | Out-Null
+foreach ($component in $components) {
+    $artifact = $component.Artifact
+    $destination = Join-Path $StagingDirectory "io/github/testlens/$artifact/$Version"
+    New-Item -ItemType Directory -Force -Path $destination | Out-Null
+    Copy-Item -LiteralPath (Join-Path $component.Directory "pom.xml") -Destination (Join-Path $destination "$artifact-$Version.pom") -Force
+
+    if ($component.Packaging -eq "jar") {
+        foreach ($suffix in ".jar", "-sources.jar", "-javadoc.jar") {
+            $source = Join-Path $component.Directory "target/$artifact-$Version$suffix"
+            if (-not (Test-Path -LiteralPath $source)) { throw "Missing release artifact: $source" }
+            Copy-Item -LiteralPath $source -Destination $destination -Force
+        }
+        $licenseCount = @(jar tf (Join-Path $component.Directory "target/$artifact-$Version.jar") | Where-Object { $_ -eq "META-INF/LICENSE" }).Count
+        if ($licenseCount -ne 1) { throw "$artifact must contain exactly one META-INF/LICENSE; found $licenseCount" }
+    }
+}
+
+$unexpected = Get-ChildItem -LiteralPath $StagingDirectory -Recurse -File | Where-Object { $_.Name -like "*selenium-test-lens-examples*" }
+if ($unexpected) { throw "Examples artifact found in release staging" }
+
+Write-Output "Release staging validation PASS: $StagingDirectory"
+Get-ChildItem -LiteralPath $StagingDirectory -Recurse -File | ForEach-Object { $_.FullName.Substring($StagingDirectory.Length + 1) }

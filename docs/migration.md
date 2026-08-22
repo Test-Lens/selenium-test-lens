@@ -1,8 +1,6 @@
 # Migration
 
-This guide summarizes the practical migration from the historical Selenium helper API to the current Selenium Test Lens `0.1.0-SNAPSHOT` API.
-
-Selenium Test Lens is pre-1.0. This guide describes the current state, not a Maven Central release process.
+This guide summarizes practical migration from existing Selenium code to Selenium Test Lens 0.1.0.
 
 ## Naming
 
@@ -28,7 +26,7 @@ All-in-one:
 <dependency>
     <groupId>io.github.testlens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
@@ -38,11 +36,11 @@ Selenium module:
 <dependency>
     <groupId>io.github.testlens</groupId>
     <artifactId>selenium-test-lens-selenium</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
-Maven Central publishing is not configured yet. Use local builds, for example `mvn -q -DskipTests install`, until publishing metadata is finalized.
+The consuming project continues to own its Selenium dependency and WebDriver lifecycle.
 
 ## Package root
 
@@ -55,7 +53,7 @@ io.github.testlens
 Common import:
 
 ```java
-import io.github.testlens.JsOverlayDebug;
+import io.github.testlens.TestLens;
 ```
 
 HUD theme classes live under the HUD package:
@@ -76,7 +74,8 @@ driver.findElement(By.cssSelector("[data-testid='save']")).click();
 Selenium Test Lens:
 
 ```java
-overlay.getByTestId("save").click();
+TestLens lens = TestLens.attach(driver);
+lens.locator(By.cssSelector("[data-testid='save']"), "Save").click();
 ```
 
 Direct assertion:
@@ -88,30 +87,45 @@ assertEquals("Saved", driver.findElement(By.cssSelector("[data-testid='toast']")
 Retryable assertion:
 
 ```java
-overlay.expect(overlay.getByTestId("toast"))
-        .toHaveText("Saved");
+lens.locator(By.cssSelector("[data-testid='toast']"), "Toast")
+        .expect().toHaveText("Saved");
 ```
 
 Named step:
 
 ```java
-overlay.step("Save order", () -> {
-    overlay.getByTestId("save-order").click();
+lens.step("Save order", () -> {
+    lens.getByTestId("save-order").click();
 });
 ```
 
 Trace/evidence:
 
 ```java
-overlay.startSession("Checkout flow");
-overlay.captureScreenshot("After save");
-overlay.exportTraceHtml(Path.of("target/ui-test-lens/checkout-flow.html"));
+lens.startSession("Checkout flow");
+lens.captureScreenshot("After save");
+lens.finishPassed();
 ```
+
+Additional mechanical mappings:
+
+| Existing Selenium | Selenium Test Lens 0.1.0 |
+|---|---|
+| `findElement(by).clear(); findElement(by).sendKeys(value)` | `lens.locator(by, label).fill(value)` |
+| `findElements(by).size()` | `lens.locator(by, label).count()` |
+| `findElements(by).get(index).click()` | `lens.locator(by, label).nth(index).click()` |
+| `new Select(element).selectByVisibleText(value)` | `lens.locator(by, label).selectByVisibleText(value)` |
+| `new Actions(driver).moveToElement(element).perform()` | `lens.locator(by, label).hover()` |
+| `new Actions(driver).doubleClick(element).perform()` | `lens.locator(by, label).doubleClick()` |
+| `new Actions(driver).contextClick(element).perform()` | `lens.locator(by, label).rightClick()` |
+| `driver.switchTo().frame(driver.findElement(by))` | `lens.switchToFrame(by, label)` |
+| `driver.switchTo().defaultContent()` | `lens.switchToDefaultContent()` |
+| `driver.switchTo().window(handle)` | `lens.switchToWindow(handle, label)` |
+| `driver.switchTo().alert().accept()` | `lens.alert().accept()` |
 
 ## What has not changed yet
 
 - The project is still pre-1.0.
-- Maven Central release metadata is not configured.
 - The current package root is `io.github.testlens`.
 - Some historical runtime aliases may still exist for browser compatibility.
 - `getByRole` is not a full accessibility engine.

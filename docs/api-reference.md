@@ -1,5 +1,17 @@
 # API reference
 
+## Native Selenium migration surface
+
+`UiLocator` supports `click`, `fill`, `clear`, `press`, waits, retryable UI assertions, reads and collections. It also provides:
+
+- `selectByVisibleText`, `selectByValue`, `selectByIndex`, `selectedText`, `selectedValue`
+- `hover`, `doubleClick`, `rightClick`
+- `resolveAll`, `count`, `nth`, `first`, `last`
+
+`TestLens` provides frame and window context switching. New-window detection requires the handle snapshot taken before the opening action, so it never relies on `Set` iteration order. `TestLensAlert` supports `waitUntilPresent`, `text`, `accept`, `dismiss`, and secret-safe `fill` diagnostics.
+
+All these operations emit native trace events and feed the best-effort HUD. Raw Selenium remains supported for advanced APIs outside this deliberately small migration surface.
+
 This is a concise public API map for Selenium Test Lens 0.1.
 
 Java packages live under `io.github.testlens`, and Maven artifacts use the `io.github.testlens:selenium-test-lens-*` coordinate family. Default report and evidence output paths retain `target/ui-test-lens...` for local artifact compatibility.
@@ -58,11 +70,19 @@ HudTheme.builder()
         .build();
 ```
 
-## Selenium facade
+## Public consumer API
+
+### TestLens
+
+`TestLens.attach(existingDriver)` is the recommended runner-agnostic facade. It owns no browser lifecycle and delegates operations to the caller-owned `WebDriver`. `TestLensOptions` configures HUD, locator timeouts and session-scoped output; `TestLensAlert` handles native browser dialogs.
+
+Primary entry points include `locator(By, label)`, `expect(By, label)`, `step(...)`, screenshots, frame/window context operations, `alert()`, and failure-safe `finishPassed()` / `finishFailed(Throwable)`.
+
+## Legacy and advanced implementation API
 
 ### JsOverlayDebug
 
-Main Selenium entry point.
+Historical implementation facade retained for advanced and internal integrations. New consumers should use `TestLens`; migration tooling must not select `JsOverlayDebug` as the default entry point.
 
 Common constructors:
 
@@ -166,13 +186,17 @@ These helpers return `UiLocator`, so they share retry, actionability and asserti
 - exact value
 - contains value
 
+For `toBeHidden()`, an element that is absent from the DOM is a valid passing state and is not reported as a locator or action failure.
+
+During retryable assertions, transient misses or intermediate states are treated as polling attempts; a failure event is emitted only after timeout or a technical WebDriver failure.
+
 `UiLocator.expect()` is the fluent locator-local form.
 
 ## Business assertions and steps
 
 `BusinessAssertions` groups checks under a business subject and can collect multiple failures before throwing a readable `BusinessAssertionError`.
 
-`UiStep` and `JsOverlayDebug.step(...)` wrap named test steps with status, timing, HUD logging and optional screenshot-on-failure.
+`UiStep` and `TestLens.step(...)` wrap named test steps with status, timing, HUD logging and optional screenshot-on-failure. Runtime failures are rethrown without changing their identity.
 
 ## Trace and reports
 

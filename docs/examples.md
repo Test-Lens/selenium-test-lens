@@ -5,10 +5,8 @@ This page collects short usage snippets. Selenium/WebDriver-dependent examples i
 ## Default HUD
 
 ```java
-JsOverlayDebug overlay = new JsOverlayDebug(driver);
-
-overlay.setStep("Checkout");
-overlay.hudLog("info", "Default HUD theme", "local");
+TestLens lens = TestLens.attach(driver);
+lens.startSession("Checkout");
 ```
 
 ## HUD theme presets
@@ -63,7 +61,9 @@ OverlayConfig config = OverlayConfig.builder()
         .hudTheme(customTheme)
         .build();
 
-JsOverlayDebug overlay = new JsOverlayDebug(driver, config);
+TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+        .overlayConfig(config)
+        .build());
 ```
 
 See also `HudThemeExampleTest` in `selenium-test-lens-examples`.
@@ -71,12 +71,11 @@ See also `HudThemeExampleTest` in `selenium-test-lens-examples`.
 ## Locator helpers
 
 ```java
-overlay.getByLabel("Email").fill("test@example.com");
-overlay.getByPlaceholder("Search").fill("invoice");
-overlay.getByRole("button", "Save").click();
+lens.locator(By.id("email"), "Email").fill("test@example.com");
+lens.locator(By.name("search"), "Search").fill("invoice");
+lens.getByRole("button", "Save").click();
 
-overlay.expect(overlay.getByTextContaining("Saved"))
-        .toBeVisible();
+lens.getByTextContaining("Saved").expect().toBeVisible();
 ```
 
 For critical flows, prefer `getByTestId(...)` when the application provides stable test IDs.
@@ -93,24 +92,23 @@ overlay.business("Order summary")
 ## Named steps
 
 ```java
-overlay.step("Save order", () -> {
-    overlay.getByTestId("save-order").click();
-    overlay.expect(overlay.getByTestId("toast")).toContainText("Saved");
+lens.step("Save order", () -> {
+    lens.getByTestId("save-order").click();
+    lens.getByTestId("toast").expect().toContainText("Saved");
 });
 ```
 
 ## Per-test HTML trace and evidence report
 
 ```java
-UiTestLensSession session = overlay.startSession("Checkout flow");
+UiTestLensSession session = lens.startSession("Checkout flow");
 
-overlay.step("Save order", () -> {
-    overlay.getByTestId("save-order").click();
+lens.step("Save order", () -> {
+    lens.getByTestId("save-order").click();
 });
 
-overlay.captureScreenshot("After save");
-overlay.attachVideoUrl("CI video", "https://ci.example.com/artifacts/checkout-flow.mp4");
-session.exportHtmlReport();
+lens.captureScreenshot("After save");
+lens.finishPassed();
 ```
 
 `exportHtmlReport()` writes `target/ui-test-lens-report/index.html` by default. For one file per test, pass an explicit path such as `target/ui-test-lens-report/checkout-flow.html`.
@@ -190,6 +188,10 @@ For CI, publish the report folder or upload the bundle:
 ```powershell
 curl -F "report=@target/ui-test-lens-report/ui-test-lens-report.zip" https://example.com/api/reports
 ```
+
+## Advanced implementation APIs
+
+The following auth/session and passive network examples use the advanced `JsOverlayDebug` implementation facade. Normal action, assertion, context and lifecycle integration should use `TestLens` as shown above.
 
 ## Auth/session state
 

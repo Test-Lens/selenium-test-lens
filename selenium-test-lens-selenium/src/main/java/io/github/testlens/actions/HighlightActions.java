@@ -52,17 +52,18 @@ public class HighlightActions {
         if (!config.isEnabled() || element == null) return;
 
         emitHighlight("highlightClick", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null);
-        rootManager.ensureRootExists();
-        long duration = config.getDecorationDurationMs();
-        String color = config.getHighlightColor();
-
-        // 1) ZAWSZE dekoruj overlay (bez klikania w JS)
-        js.executeScript(
-                HighlightJs.INIT +
-                        "return window.__uiTestLens.modules.highlight.element(arguments[0], arguments[1], { duration: arguments[2], color: arguments[3] });",
-                element, label, duration, color
-        );
-        emitHighlight("highlightClick", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null);
+        try {
+            rootManager.ensureRootExists();
+            long duration = Math.max(0, config.getDecorationDurationMs());
+            js.executeScript(
+                    HighlightJs.INIT +
+                            "return window.__uiTestLens.modules.highlight.element(arguments[0], arguments[1], { duration: arguments[2], color: arguments[3] });",
+                    element, label, duration, config.getHighlightColor());
+            emitHighlight("highlightClick", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null);
+        } catch (RuntimeException hudFailure) {
+            emitHighlight("highlightClick", label, UiTestLensStatus.WARN, UiTestLensLogLevel.WARN, hudFailure);
+            // Decoration failure is not an action failure. Continue with Selenium click.
+        }
 
         // 2) Klik: selenium -> fallback JS
         try {

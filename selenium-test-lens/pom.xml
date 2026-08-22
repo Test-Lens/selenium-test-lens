@@ -34,11 +34,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>io.github.testlens</groupId>
-            <artifactId>selenium-test-lens-react</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 </project>
 

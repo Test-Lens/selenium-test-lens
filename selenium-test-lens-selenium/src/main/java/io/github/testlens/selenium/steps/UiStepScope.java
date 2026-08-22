@@ -35,14 +35,14 @@ public final class UiStepScope {
                 safeAccept(hudLogSink, "Step passed: " + step.name());
             }
             return result;
-        } catch (RuntimeException | AssertionError e) {
+        } catch (RuntimeException | Error e) {
             UiStepResult result = UiStepResult.failed(step.name(), started, Instant.now(), UiStepFailure.from(e, effectiveOptions));
             reporter.finished(result, effectiveOptions);
             if (effectiveOptions.logToHud() && hudLogSink != null) {
                 safeAccept(hudLogSink, "Step failed: " + step.name());
             }
             if (effectiveOptions.failFast()) {
-                throw new UiStepError(result);
+                throw e;
             }
             return result;
         } finally {

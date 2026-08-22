@@ -4,11 +4,44 @@
 
 # Selenium Test Lens
 
+Attach the public facade to the WebDriver your framework already owns:
+
+```java
+TestLens lens = TestLens.attach(driver);
+lens.startSession("login");
+lens.locator(By.id("login"), "Login").click();
+```
+
+See [framework integration](docs/framework-integration.md) for JUnit 5, TestNG, parallel execution, and Allure coexistence.
+
+## Supported native Selenium operations
+
+The public `TestLens` / `UiLocator` API covers click, fill, clear, key presses, retryable waits and assertions, reads, collections (`count`, `resolveAll`, `nth`, `first`, `last`), HTML select, hover/double/right click, frames, deterministic window/tab switching, and native JavaScript dialogs.
+
+```java
+lens.switchToFrame(PAYMENT_FRAME, "Payment frame");
+lens.switchToDefaultContent();
+
+Set<String> before = lens.windowHandles();
+lens.locator(OPEN_PAYMENT, "Open payment").click();
+lens.switchToNewWindow(before, "Payment");
+
+lens.locator(COUNTRY, "Country").selectByVisibleText("Poland");
+lens.locator(USER_MENU, "User menu").hover();
+lens.locator(ROW, "Result row").doubleClick();
+lens.locator(ITEM, "Context item").rightClick();
+
+String message = lens.alert().waitUntilPresent().text();
+lens.alert().accept();
+```
+
+Advanced pointer sequences, low-level W3C actions, complex select/multi-select flows, and application-specific browser management can continue to use raw Selenium alongside Lens.
+
 Selenium Test Lens is an observability, diagnostics, and reporting toolkit for Selenium/WebDriver UI tests. It adds resilient WebDriver actions, retryable assertions, visual debugging, evidence capture, auth/session state helpers, network diagnostics, offline HTML reports, machine-readable JSON reports, and portable report ZIP bundles.
 
-The project is currently `0.1.0-SNAPSHOT` and pre-1.0. Public APIs are usable, but may still be polished before a first release.
+The first public release is `0.1.0`. As a pre-1.0 library, its API may evolve between minor releases.
 
-Repository: https://github.com/test-lens/selenium-test-lens
+Repository: https://github.com/Test-Lens/selenium-test-lens
 
 Maven coordinates use `io.github.testlens`, module artifactIds use the `selenium-test-lens-*` naming scheme, and public Java packages live under `io.github.testlens`. Default report and evidence output paths still use `target/ui-test-lens...` for compatibility with existing local and CI artifacts.
 
@@ -16,9 +49,7 @@ Maven coordinates use `io.github.testlens`, module artifactIds use the `selenium
 
 - Java 17
 - Maven 3.x
-- Selenium supplied by the consuming test project
-
-Maven Central publishing is not configured yet. For local use, build and install from this repository.
+- Selenium supplied by the consuming test project; release validation is performed with Selenium 4.39.0
 
 ## Quick Start
 
@@ -28,50 +59,36 @@ All-in-one dependency:
 <dependency>
     <groupId>io.github.testlens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 
-Selenium-only layer:
+The all-in-one POM deliberately does not choose a Selenium version for the consumer. Add the Selenium version owned by your existing framework, for example the version used for 0.1.0 validation:
 
 ```xml
 <dependency>
-    <groupId>io.github.testlens</groupId>
-    <artifactId>selenium-test-lens-selenium</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <groupId>org.seleniumhq.selenium</groupId>
+    <artifactId>selenium-java</artifactId>
+    <version>4.39.0</version>
 </dependency>
 ```
 
 Minimal usage:
 
 ```java
-import io.github.testlens.JsOverlayDebug;
-import io.github.testlens.OverlayConfig;
-import io.github.testlens.hud.HudPosition;
-import io.github.testlens.hud.HudTheme;
-import io.github.testlens.hud.HudThemePreset;
+import io.github.testlens.TestLens;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
-WebDriver driver = createDriver();
+WebDriver driver = createExistingFrameworkDriver();
+TestLens lens = TestLens.attach(driver);
+lens.startSession("example");
 
-OverlayConfig config = OverlayConfig.builder()
-        .hudPosition(HudPosition.TOP_RIGHT)
-        .hudTheme(HudThemePreset.GLASS)
-        .build();
-
-HudTheme cappedHud = HudTheme.builder()
-        .maxHeightPx(420)
-        .build();
-
-JsOverlayDebug overlay = new JsOverlayDebug(driver, config);
-
-overlay.setStep("Save order");
-overlay.hudLog("info", "Clicking save", "local");
-
-overlay.getByTestId("save-order").click();
-
-overlay.expect(overlay.getByTestId("toast"))
-        .toContainText("Saved");
+driver.get("https://example.test/login");
+lens.locator(By.id("username"), "Username").fill("john");
+lens.locator(By.id("login"), "Login").click();
+lens.locator(By.id("welcome"), "Welcome").expect().toBeVisible();
+lens.finishPassed();
 ```
 
 ## Build
@@ -117,7 +134,7 @@ target/ui-test-lens-report/ui-test-lens-report.zip
 ```
 
 ```java
-UiTestLensSession checkout = overlay.startSession("Checkout flow");
+UiTestLensSession checkout = lens.startSession("Checkout flow");
 checkout.exportHtml(Path.of("target/ui-test-lens-report/checkout-flow.html"));
 checkout.exportJsonReport();
 

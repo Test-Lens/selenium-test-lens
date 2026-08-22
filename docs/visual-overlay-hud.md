@@ -40,8 +40,9 @@ The runtime HUD includes minimal built-in branding in the left rail only: a comp
 The HUD does not load PNG files from `docs/assets/brand`. Those image assets are for README, landing pages and documentation only. Runtime HUD branding is inline SVG/CSS so it remains self-contained and offline.
 
 ```java
-overlay.setStep("Checkout");
-overlay.hudLog("info", "Saving order", "local");
+TestLens lens = TestLens.attach(driver);
+lens.startSession("Checkout");
+lens.locator(By.id("save-order"), "Save order").click();
 ```
 
 Configuration example:
@@ -52,7 +53,9 @@ OverlayConfig config = OverlayConfig.builder()
         .hudTheme(HudThemePreset.GLASS)
         .build();
 
-JsOverlayDebug overlay = new JsOverlayDebug(driver, config);
+TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+        .overlayConfig(config)
+        .build());
 ```
 
 ## Overlay root
@@ -64,7 +67,7 @@ Runtime resources create Selenium Test Lens elements inside the page without cha
 Element highlighting is used by locator actions and explicit debugging APIs. `OverlayConfig.highlightColor(...)` controls the primary highlight color.
 
 ```java
-overlay.getByTestId("save-order").click();
+lens.getByTestId("save-order").click();
 ```
 
 Locator actions can highlight targets as part of the diagnostic flow.
