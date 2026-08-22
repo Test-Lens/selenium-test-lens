@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         child.project.url.inherit.append.path="false">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.testlens</groupId>
+    <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-parent</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
     <name>Selenium Test Lens Parent</name>
     <description>Observability, diagnostics, and reporting toolkit for Selenium/WebDriver UI tests.</description>
-    <url>https://github.com/test-lens/selenium-test-lens</url>
+    <url>https://github.com/Test-Lens/selenium-test-lens</url>
 
     <licenses>
         <license>
@@ -28,15 +29,17 @@
         </developer>
     </developers>
 
-    <scm>
-        <connection>scm:git:https://github.com/test-lens/selenium-test-lens.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/test-lens/selenium-test-lens.git</developerConnection>
-        <url>https://github.com/test-lens/selenium-test-lens</url>
+    <scm child.scm.connection.inherit.append.path="false"
+         child.scm.developerConnection.inherit.append.path="false"
+         child.scm.url.inherit.append.path="false">
+        <connection>scm:git:https://github.com/Test-Lens/selenium-test-lens.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Test-Lens/selenium-test-lens.git</developerConnection>
+        <url>https://github.com/Test-Lens/selenium-test-lens</url>
     </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/test-lens/selenium-test-lens/issues</url>
+        <url>https://github.com/Test-Lens/selenium-test-lens/issues</url>
     </issueManagement>
 
     <modules>
@@ -44,7 +47,6 @@
         <module>selenium-test-lens-overlay</module>
         <module>selenium-test-lens-selenium</module>
         <module>selenium-test-lens-react</module>
-        <module>selenium-test-lens</module>
         <module>selenium-test-lens-examples</module>
     </modules>
 
@@ -63,7 +65,7 @@
         <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <maven.gpg.plugin.version>3.2.7</maven.gpg.plugin.version>
-        <central.publishing.maven.plugin.version>0.8.0</central.publishing.maven.plugin.version>
+        <central.publishing.maven.plugin.version>0.11.0</central.publishing.maven.plugin.version>
         <central.publishing.serverId>central</central.publishing.serverId>
     </properties>
 
@@ -90,6 +92,19 @@
     </dependencyManagement>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${maven.multiModuleProjectDirectory}</directory>
+                <includes>
+                    <include>LICENSE</include>
+                </includes>
+                <targetPath>META-INF</targetPath>
+            </resource>
+        </resources>
+
         <pluginManagement>
             <plugins>
                 <!-- Pin plugin versions for reproducible builds across Maven installations. -->
@@ -230,6 +245,7 @@
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>${central.publishing.serverId}</publishingServerId>
+                            <excludeArtifacts>selenium-test-lens-examples</excludeArtifacts>
                             <autoPublish>false</autoPublish>
                             <waitUntil>validated</waitUntil>
                         </configuration>
@@ -239,4 +255,3 @@
         </profile>
     </profiles>
 </project>
-

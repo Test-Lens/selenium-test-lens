@@ -27,19 +27,40 @@ class UiStepScopeTest {
     }
 
     @Test
-    void failFastStepThrowsUiStepError() {
+    void failFastStepPreservesOriginalAssertionError() {
         UiStepScope scope = new UiStepScope(null, null, null);
+        AssertionError original = new AssertionError("Business assertions failed for: Order summary");
 
-        UiStepError error = assertThrows(UiStepError.class, () -> scope.run(
+        AssertionError error = assertThrows(AssertionError.class, () -> scope.run(
                 "Verify order summary",
                 UiStepOptions.defaults(),
-                () -> {
-                    throw new AssertionError("Business assertions failed for: Order summary");
-                }));
+                () -> { throw original; }));
 
-        assertEquals(UiStepStatus.FAILED, error.result().status());
-        assertTrue(error.getMessage().contains("Verify order summary"));
-        assertTrue(error.getMessage().contains("Business assertions failed for: Order summary"));
+        assertTrue(error == original);
+    }
+
+    @Test
+    void failFastStepPreservesOriginalRuntimeException() {
+        UiStepScope scope = new UiStepScope(null, null, null);
+        org.openqa.selenium.TimeoutException original = new org.openqa.selenium.TimeoutException("timeout");
+        assertTrue(assertThrows(org.openqa.selenium.TimeoutException.class,
+                () -> scope.run("wait", UiStepOptions.defaults(), () -> { throw original; })) == original);
+    }
+
+    @Test
+    void failFastStepPreservesOriginalNoSuchElementException() {
+        UiStepScope scope = new UiStepScope(null, null, null);
+        org.openqa.selenium.NoSuchElementException original = new org.openqa.selenium.NoSuchElementException("missing");
+        assertTrue(assertThrows(org.openqa.selenium.NoSuchElementException.class,
+                () -> scope.run("locate", UiStepOptions.defaults(), () -> { throw original; })) == original);
+    }
+
+    @Test
+    void failFastStepPreservesSameGenericRuntimeException() {
+        UiStepScope scope = new UiStepScope(null, null, null);
+        RuntimeException original = new RuntimeException("business failure");
+        assertTrue(assertThrows(RuntimeException.class,
+                () -> scope.run("business step", UiStepOptions.defaults(), () -> { throw original; })) == original);
     }
 
     @Test

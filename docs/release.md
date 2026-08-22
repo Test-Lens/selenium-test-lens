@@ -1,6 +1,6 @@
 # Release verification
 
-Selenium Test Lens is not published automatically yet. The current repository setup supports CI builds and a manual release verification workflow, but Central Portal credentials and GPG signing keys are not stored in the repository.
+Selenium Test Lens uses the Central Publisher Portal through `org.sonatype.central:central-publishing-maven-plugin`. Credentials and GPG signing keys are intentionally not stored in the repository. Automatic publication is disabled for the first release: the deployment must validate successfully and then be reviewed and published manually.
 
 ## CI build
 
@@ -24,17 +24,19 @@ mvn -q test
 mvn -U -Pcentral-release "-Dgpg.skip=true" -DskipTests verify
 ```
 
-`-Dgpg.skip=true` keeps the workflow non-publishing and credential-free. It verifies the release profile wiring as far as possible without a configured signing key.
+`-Dgpg.skip=true` keeps this verification credential-free. For a local bundle dry run, invoke the Central lifecycle with `-DskipPublishing=true`; this creates the bundle without uploading it. The configured `excludeArtifacts` prevents `selenium-test-lens-examples` from entering the bundle.
 
-## Future Central Portal release
+## Central Portal release
 
 Before publishing a real release:
 
-1. Choose a non-SNAPSHOT release version.
+1. Set the reviewed reactor version to `0.1.0` in a clean release commit.
 2. Configure GPG signing locally or in CI.
 3. Configure Central Portal credentials in Maven `settings.xml` or CI secrets for server id `central`, or override `central.publishing.serverId`.
-4. Run `mvn -Pcentral-release -DskipTests verify` in the release environment without `-Dgpg.skip=true`.
-5. Deploy only after reviewing the release contents.
+4. Run tests and `mvn -Pcentral-release verify` without `gpg.skip`.
+5. Inspect the generated parent POM and the POM, main JAR, sources JAR, Javadoc JAR and `.asc` files for core, overlay, the main `selenium-test-lens` runtime, and react.
+6. Upload the validated bundle through the configured Central lifecycle.
+7. Review the deployment in Central Portal and publish it manually; `autoPublish=false` prevents an unreviewed release.
 
 Do not commit Central Portal tokens, GPG keys or passphrases.
 

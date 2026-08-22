@@ -23,3 +23,11 @@ jobs:
 
       - name: Verify Central release profile without signing
         run: mvn -U -Pcentral-release -Dgpg.skip=true -DskipTests verify
+
+      - name: Validate release artifact whitelist and licenses
+        shell: pwsh
+        run: ./scripts/validate-release-packaging.ps1
+
+      - name: Run empty-M2 clean-room release consumer
+        shell: pwsh
+        run: ./scripts/validate-clean-room-consumer.ps1

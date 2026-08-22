@@ -2,22 +2,24 @@
 
 All notable changes to Selenium Test Lens will be documented in this file.
 
-## [0.1.0-SNAPSHOT] - Unreleased
+## [0.1.0]
 
 ### Added
 - Multi-module Maven structure.
 - `selenium-test-lens-core` with the logging/event model, log sinks, log exporters, `BrowserScriptExecutor`, and `JsResources`.
 - `selenium-test-lens-overlay` with browser runtime JavaScript resources and overlay bridge classes.
-- `selenium-test-lens-selenium` with Selenium facade/actions, waits, guards, popup/blocking overlay helpers, target resolver, and Selenium factories/adapters.
+- `selenium-test-lens` runtime JAR with the public Selenium facade/actions, waits, guards, popup/blocking overlay helpers, target resolver, and Selenium factories/adapters.
 - `selenium-test-lens-react` with React-safe helpers and the `ReactSupport` entrypoint.
 - `selenium-test-lens-examples` with compile-checked examples.
 - Runtime JavaScript resources for API overlay, Wait HUD, Highlight, Type hint, Scroll arrow, HUD panel, and Assertion badges.
+- `TestLens.attach(existingDriver)` with native HUD/trace actions, waits, retryable assertions, collections, frames/windows, HTML Select, common pointer actions, and browser alerts.
+- Failure-safe session finalization with reports, screenshots and evidence that coexist with JUnit, TestNG and Allure.
 
 ### Changed
 - Migrated project naming from the historical helper codebase to Selenium Test Lens.
 - Moved Java packages to `io.github.testlens`.
-- Changed project version to `0.1.0-SNAPSHOT` to reflect pre-1.0 API status.
-- Split core, overlay, selenium, react, examples, and all-in-one compatibility responsibilities.
+- Prepared the first public `0.1.0` API and Maven Central artifact set.
+- Split core, overlay, main Selenium runtime, React extension, and examples responsibilities.
 - Introduced `window.__uiTestLens` as the primary browser runtime namespace while preserving legacy aliases.
 
 ### Removed
@@ -29,6 +31,6 @@ All notable changes to Selenium Test Lens will be documented in this file.
 ### Notes
 - Project is still pre-1.0.
 - Public APIs may still change between 0.x releases.
-- Maven Central publication is not configured yet.
+- Central Publisher Portal publication remains a manual, reviewed operation.
 - Legacy browser runtime aliases are still maintained for compatibility.
 

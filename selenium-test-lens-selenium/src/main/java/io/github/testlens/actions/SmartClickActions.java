@@ -72,7 +72,12 @@ public class SmartClickActions {
             runActionabilityCheck(target);
             boolean policyHandledBeforeClick = handleConfiguredOverlayPolicy();
 
-            blockingHelper.handleGlobalOverlayIfPresent("OVERLAY", "CLOSE");
+            try {
+                blockingHelper.handleGlobalOverlayIfPresent("OVERLAY", "CLOSE");
+            } catch (RuntimeException observabilityFailure) {
+                emitClick("overlayProbe", label, UiTestLensStatus.WARN, UiTestLensLogLevel.WARN,
+                        observabilityFailure, false, "bestEffortOverlayProbe", false);
+            }
 
             try {
                 clickTarget(target, label);

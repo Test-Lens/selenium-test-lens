@@ -35,7 +35,7 @@ public class HudPanel {
         this.lastTestName = (testName == null || testName.isBlank()) ? "-" : testName;
         this.lastPipelineId = (pipelineId == null || pipelineId.isBlank()) ? "-" : pipelineId;
 
-        ensureHudPanelExists();
+        safely(this::ensureHudPanelExists);
     }
 
     public void updateStep(String stepDescription) {
@@ -43,13 +43,13 @@ public class HudPanel {
             return;
         }
 
+        safely(() -> {
         ensureHudPanelExists();
-
         scriptExecutor.execute(
                 HudPanelJs.bridgeScript() +
                         "if (hud) { hud.setStep(arguments[0]); }",
-                stepDescription
-        );
+                stepDescription);
+        });
     }
 
     public void appendLog(String level, String message, String timestamp) {
@@ -57,13 +57,13 @@ public class HudPanel {
             return;
         }
 
+        safely(() -> {
         ensureHudPanelExists();
-
         scriptExecutor.execute(
                 HudPanelJs.bridgeScript() +
                         "if (hud) { hud.log(arguments[1], arguments[0], arguments[2]); }",
-                level, message, timestamp
-        );
+                level, message, timestamp);
+        });
     }
 
     private void ensureHudPanelExists() {
@@ -96,6 +96,14 @@ public class HudPanel {
                 config.getHudTheme().toMap(),
                 config.getHudThemePreset() == null ? "CUSTOM" : config.getHudThemePreset().name()
         );
+    }
+
+    private static void safely(Runnable operation) {
+        try {
+            operation.run();
+        } catch (RuntimeException ignored) {
+            // HUD is best-effort observability and must never alter the test result.
+        }
     }
 }
 
