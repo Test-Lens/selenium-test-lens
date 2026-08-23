@@ -180,10 +180,10 @@ Existing Page Objects do not need to move all at once. A Page Object can use Len
 
 Auth/session-state and passive network-diagnostics APIs are available through the lower-level `JsOverlayDebug` facade in 0.1.0. They are optional facilities, not required when migrating ordinary Selenium interactions.
 
-See the [examples](examples.md) and [API guide](api-reference.md) for the boundary between the normal `TestLens` facade and lower-level APIs.
+See the [examples](examples.md) and [advanced/low-level API](reference/advanced-low-level.md) for the boundary between the normal `TestLens` facade and lower-level APIs.
 
 ## Next steps
 
-- [Browse the API guide](api-reference.md)
+- [Browse the complete API reference](reference/index.md)
 - [Integrate with JUnit, TestNG, and existing reporters](framework-integration.md)
 - [Review practical examples](examples.md)

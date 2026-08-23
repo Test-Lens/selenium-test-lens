@@ -184,6 +184,6 @@ The main `selenium-test-lens` artifact has no React dependency. Standard DOM int
 ## Next steps
 
 - [Install Selenium Test Lens](getting-started.md#installation)
-- [Use locators, waits, assertions, and browser contexts](api-reference.md)
+- [Use locators, waits, assertions, and browser contexts](elements/index.md)
 - [Migrate incrementally from raw Selenium](migration.md)
 - [Browse practical examples](examples.md)

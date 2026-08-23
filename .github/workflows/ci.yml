@@ -24,6 +24,14 @@ jobs:
       - name: Run tests
         run: mvn -q test
 
+      - name: Check public API documentation manifest
+        shell: pwsh
+        run: ./scripts/check-public-api.ps1
+
+      - name: Check documented Java signatures
+        shell: pwsh
+        run: ./scripts/check-doc-signatures.ps1
+
       - name: Build release artifacts
         run: mvn -U -Prelease-artifacts -DskipTests package
 

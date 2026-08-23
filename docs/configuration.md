@@ -123,7 +123,7 @@ Some features expose dedicated configuration types close to the API that uses th
 
 | Type | Used for |
 |---|---|
-| `UiLocatorOptions` | Locator timeouts, polling, retries, actionability, and highlighting |
+| `UiLocatorOptions` | Locator timeouts, polling, retries, and actionability; its retained `highlightBeforeAction` option is currently not consulted by `UiLocator` |
 | `UiAssertionOptions` | Assertion timeouts, polling, and text comparison |
 | `BusinessAssertionOptions` | Failure collection and fail-fast behavior in business assertion groups |
 | `UiStepOptions` | Step failure behavior, HUD logging, and failure screenshots |
@@ -134,7 +134,7 @@ Some features expose dedicated configuration types close to the API that uses th
 | `NetworkDiagnosticsOptions` | Capture mode, failure threshold, ignored URLs, headers, and session attachment |
 | `NetworkWaitCondition` | URL, method, status, timeout, and polling conditions for network waits |
 
-See the [API guide](api-reference.md) or Javadoc for individual builder methods.
+See [Configuration builders](reference/configuration.md) or Javadoc for individual builder methods.
 
 ## Notes and limits
 
@@ -151,5 +151,5 @@ See the [API guide](api-reference.md) or Javadoc for individual builder methods.
 
 - [Get started](getting-started.md)
 - [Browse examples](examples.md)
-- [Read the API guide](api-reference.md)
-- [Configure the visual overlay and HUD](visual-overlay-hud.md)
+- [Read the complete API reference](reference/index.md)
+- [Configure the visual overlay and HUD](observability/visual-diagnostics.md)

@@ -1,0 +1,80 @@
+# Reports
+
+Test Lens produces two complementary session reports: `report.html` is a human-readable investigation view, while `trace.json` is the machine-readable event model for CI tooling or custom processing. Use the HTML report to understand a failed journey and the JSON report when another system needs structured results.
+
+## Get the reports from a normal session
+
+Reports are attempted automatically when an active `TestLens` session is finalized; no exporter setup is required for the standard path:
+
+```java
+TestLens lens = TestLens.attach(driver);
+lens.startSession("Checkout");
+
+lens.getByRole("button", "Pay").click();
+TestLensFinalizationResult result = lens.finishPassed();
+
+Path htmlReport = result.htmlReport();
+Path jsonReport = result.jsonReport();
+```
+
+Open the returned HTML path in a browser to inspect the status, timeline, failures, and evidence. Feed the JSON path to reporting or archival tooling when structured data is required. On failure, call `finishFailed(Throwable)` with the original exception instead of `finishPassed()`.
+
+`TestLens.finishPassed()` and `finishFailed(Throwable)` attempt per-session `trace.json` and `report.html`. Each export is best effort: its `Path` can be null and the error appears in `TestLensFinalizationResult.diagnosticFailures()`.
+
+The destination is derived from the session output configuration. See [session lifecycle and finalization](../reference/test-lens.md#creation-and-lifecycle), [`TestLensOptions`](../reference/configuration.md#testlensoptions), and [trace/report options](../reference/configuration.md#trace-and-report-options). Reports observe the completed session; they do not alter test status or retry behavior.
+
+## Advanced exporters
+
+Use the exporter classes only when you need an in-memory string, an explicit destination, a suite report, or a ZIP bundle.
+
+### TraceHtmlExporter
+
+`TraceHtmlExporter` has only a public no-argument constructor:
+
+<!-- API SIGNATURES: io.github.testlens.core.trace.export.TraceHtmlExporter -->
+```java
+TraceHtmlExporter()
+```
+
+Export overloads cover a single session and suites, returning HTML strings or writing explicit/default paths. Pass `TraceHtmlExportOptions` to the corresponding option-bearing `export(...)`, `exportTo(...)`, `exportToDefault(...)`, `exportSuite(...)`, `exportSuiteTo(...)`, or `exportSuiteToDefault(...)` overload. Options control title, embedded JSON, artifacts, stack traces, attributes, grouping/summary sections, previews, compact mode, theme, and maximum message length.
+
+`TraceHtmlReportSection` names the renderer's logical `HEADER`, `SUMMARY`, `TIMELINE`, `STEPS`, `FAILURES`, `ARTIFACTS`, and `RAW_JSON` sections. It is useful when an integration needs to identify report sections; section presence in normal exports is controlled by `TraceHtmlExportOptions` rather than by passing this enum to the exporter constructor.
+
+<!-- SCREENSHOT TODO: assets/screenshots/html-report-overview.png
+Show the generated HTML report overview with session status, summaries, and timeline visible.
+Use synthetic test names/data and a real exported report.
+Feature documented: report-level navigation and summary.
+Suggested alt text: Selenium Test Lens HTML report overview with status summaries and timeline.
+-->
+
+<!-- SCREENSHOT TODO: assets/screenshots/html-report-failure-detail.png
+Show an expanded failed event/step with failure context and an evidence link or preview.
+Use a real exported report with sanitized stack paths and application data.
+Feature documented: failure investigation inside the HTML report.
+Suggested alt text: Expanded failed report event showing diagnostic context and linked evidence.
+-->
+
+### TraceJsonExporter
+
+Exports equivalent trace data as JSON with `TraceJsonExportOptions`. Default suite JSON is `target/ui-test-lens-report/report.json`.
+
+### TraceReportBundleExporter
+
+Creates a report directory/ZIP for one or many sessions. `TraceBundleExportOptions` controls stack traces, artifact metadata, missing artifacts, copying artifacts, bundle name, output directory, and HTML theme. Default suite targets include `target/ui-test-lens-report/index.html` and `ui-test-lens-report.zip`.
+
+```java
+List<UiTestLensSession> sessions = List.of(firstSession, secondSession);
+Path html = new TraceHtmlExporter().exportSuiteToDefault(sessions);
+Path json = new TraceJsonExporter().exportSuiteToDefault(sessions);
+Path zip = new TraceReportBundleExporter().exportSuiteToDefault(sessions);
+```
+
+Each exporter provides string/default-path and explicit-path method families; option-bearing overloads accept the corresponding immutable options type. The [binary catalog](../reference/public-api-catalog.md) records every overload, while [configuration](../reference/configuration.md#trace-and-report-options) explains their behavior.
+
+## Result paths
+
+Never assume an automatic output exists solely because finalization returned. Check nullable paths and `diagnosticFailures()`. Bundle/export methods can throw I/O-related runtime failures; callers decide whether report failure should fail a test/build.
+
+## Security
+
+HTML/JSON/ZIP can aggregate screenshots, URLs, headers, messages, stack traces, and copied evidence. Treat bundles as potentially sensitive. Do not publish public CI artifacts without reviewing redaction and application data.

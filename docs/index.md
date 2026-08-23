@@ -19,6 +19,14 @@ Selenium Test Lens adds retry-aware interactions, waits and failure diagnostics 
 
 </div>
 
+<!-- SCREENSHOT TODO: assets/screenshots/home-hud-highlight.png
+Show a real Test Lens action in a representative application.
+The target must be highlighted and the HUD must show the same action and target label.
+Crop unrelated browser chrome and do not display personal or secret data.
+Feature documented: combined HUD and element-highlight workflow.
+Suggested alt text: Test Lens HUD showing a click action beside its highlighted target.
+-->
+
 ## Install the stable release
 
 Selenium Test Lens requires Java 17 or newer. Add the main runtime artifact:
@@ -118,6 +126,6 @@ The React module is optional. For lower-level browser interactions that Lens doe
 
 - [Install and write your first test](getting-started.md)
 - [Integrate with an existing Selenium project](framework-integration.md)
-- [Browse the API guide](api-reference.md)
+- [Explore capabilities](capabilities.md)
 - [Migrate incrementally from raw Selenium](migration.md)
 - [View the changelog](https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md)

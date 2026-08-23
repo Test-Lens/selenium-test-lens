@@ -7,6 +7,10 @@ edit_uri: edit/main/docs/
 exclude_docs: |
   CURRENT_IMPLEMENTATION_AUDIT.md
   assets/brand/README.md
+  reference/public-api-boundary-review.md
+
+not_in_nav: |
+  reference/public-api/*.md
 
 theme:
   name: material
@@ -31,6 +35,7 @@ theme:
     - navigation.sections
     - navigation.top
     - navigation.tracking
+    - navigation.footer
     - search.suggest
     - search.highlight
     - content.code.copy
@@ -44,17 +49,50 @@ nav:
       - Existing WebDriver integration: framework-integration.md
       - Configuration: configuration.md
   - Using Test Lens:
-      - Locators, actions & contexts: api-reference.md
+      - Capabilities: capabilities.md
+      - Elements:
+          - Elements overview: elements/index.md
+          - Locators: elements/locators.md
+          - Actions: elements/actions.md
+          - Waiting: elements/waiting.md
+          - Assertions: elements/assertions.md
+          - Element information: elements/information.md
+          - Collections: elements/collections.md
+          - Select controls: elements/select-controls.md
+      - Browser Context:
+          - Browser context overview: browser-context/index.md
+          - Frames: browser-context/frames.md
+          - Windows & tabs: browser-context/windows-tabs.md
+          - Alerts, confirms & prompts: browser-context/alerts.md
       - Examples: examples.md
   - Observability:
-      - Visual overlay & HUD: visual-overlay-hud.md
-      - Trace, reports, evidence & logging: api-reference.md
-  - Integration:
-      - JUnit, TestNG, reporters & React: framework-integration.md
+      - Observability overview: observability/index.md
+      - Visual runtime diagnostics: observability/visual-diagnostics.md
+      - Screenshots & evidence: observability/screenshots-evidence.md
+      - Trace: observability/trace.md
+      - HTML, JSON & ZIP reports: observability/reports.md
+      - Logging: observability/logging.md
+  - Advanced Features:
+      - Advanced features overview: advanced/index.md
+      - Steps & business assertions: advanced/steps-business-assertions.md
+      - Authentication state: advanced/auth-state.md
+      - Network diagnostics: advanced/network.md
+      - Overlay policies: advanced/overlay-policies.md
+      - Visual helpers: advanced/visual-helpers.md
+      - JsOverlayDebug advanced facade: advanced/js-overlay-debug.md
+  - Integrations:
+      - Integrations overview: integrations/index.md
+      - Optional React API: integrations/react.md
   - Migration:
       - From raw Selenium: migration.md
   - Reference:
-      - API guide: api-reference.md
+      - Complete API Reference: reference/index.md
+      - TestLens: reference/test-lens.md
+      - Configuration builders: reference/configuration.md
+      - Result & data types: reference/result-types.md
+      - Core model: reference/core-model.md
+      - Advanced / low-level API: reference/advanced-low-level.md
+      - Binary API catalog (optional): reference/public-api-catalog.md
       - Architecture: architecture.md
       - Changelog: https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md
       - Maven Central: https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0
@@ -82,3 +120,4 @@ validation:
   omitted_files: warn
   absolute_links: warn
   unrecognized_links: warn
+  anchors: warn

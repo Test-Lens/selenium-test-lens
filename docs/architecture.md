@@ -69,7 +69,7 @@ The overlay module contains resources for the HUD, highlighting and decorations,
 
 ## Reporting boundary
 
-Report generation lives in core. Collected sessions can be exported as HTML, JSON, or portable bundles without Selenium or a live browser. See [Examples](examples.md) and the [API guide](api-reference.md) for usage.
+Report generation lives in core. Collected sessions can be exported as HTML, JSON, or portable bundles without Selenium or a live browser. See [Examples](examples.md) and [Reports](observability/reports.md) for usage.
 
 ## Evidence boundary
 
@@ -92,5 +92,5 @@ Keep these boundaries intact when adding features or modules:
 
 ## Next steps
 
-- [Browse the API guide](api-reference.md)
+- [Browse the complete API reference](reference/index.md)
 - [See usage examples](examples.md)

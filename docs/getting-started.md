@@ -103,7 +103,7 @@ The HUD is only a diagnostic aid and does not change test execution or assertion
 ## Next steps
 
 - [Integrate Lens with JUnit, TestNG, or an existing reporter](framework-integration.md)
-- [Use locators, actions, waits, and assertions](api-reference.md)
+- [Use locators, actions, waits, and assertions](elements/index.md)
 - [Configure Test Lens](configuration.md)
 - [Migrate incrementally from raw Selenium](migration.md)
 - [Add the optional React extension](framework-integration.md#optional-react-extension)

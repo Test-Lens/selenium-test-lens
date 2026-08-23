@@ -22,7 +22,7 @@ lens.getByRole("button", "Save").click();
 lens.getByTextContaining("Saved").expect().toBeVisible();
 ```
 
-Prefer `getByTestId(...)` for critical flows when the application provides stable test IDs. See the [API guide](api-reference.md) for locator behavior and matching scope.
+Prefer `getByTestId(...)` for critical flows when the application provides stable test IDs. See [Locators](elements/locators.md) for matching behavior and scope.
 
 ## Named steps
 
@@ -200,6 +200,6 @@ The current reliable baseline is passive/manual diagnostics. Request interceptio
 ## Next steps
 
 - [Complete the getting-started flow](getting-started.md)
-- [Browse the API guide](api-reference.md)
+- [Browse the complete API reference](reference/index.md)
 - [Integrate with JUnit, TestNG, or existing reporters](framework-integration.md)
 - [Configure the visual overlay and HUD](configuration.md)
