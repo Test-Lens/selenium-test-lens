@@ -1,93 +1,28 @@
 # Examples
 
-This page collects short usage snippets. Selenium/WebDriver-dependent examples in `selenium-test-lens-examples` are disabled and documentation-only unless a real application and `WebDriver` are supplied.
+These examples cover common Selenium Test Lens usage. The first sections use the `TestLens` facade; lower-level reporting and implementation APIs are grouped near the end.
 
-## Default HUD
+## Start a Lens session
+
+Attach Lens to the driver your project already created, then start a session for the current test:
 
 ```java
 TestLens lens = TestLens.attach(driver);
 lens.startSession("Checkout");
 ```
 
-## HUD theme presets
+See [Getting started](getting-started.md) for complete success, failure, and driver-cleanup handling.
 
-```java
-OverlayConfig dark = OverlayConfig.builder()
-        .hudTheme(HudThemePreset.DARK)
-        .build();
-
-OverlayConfig light = OverlayConfig.builder()
-        .hudTheme(HudThemePreset.LIGHT)
-        .build();
-
-OverlayConfig glass = OverlayConfig.builder()
-        .hudTheme(HudThemePreset.GLASS)
-        .build();
-
-OverlayConfig compact = OverlayConfig.builder()
-        .hudTheme(HudThemePreset.COMPACT)
-        .build();
-
-OverlayConfig highContrast = OverlayConfig.builder()
-        .hudTheme(HudThemePreset.HIGH_CONTRAST)
-        .build();
-
-OverlayConfig blackAndColors = OverlayConfig.builder()
-        .hudTheme(HudThemePreset.BLACK_AND_COLORS)
-        .build();
-
-OverlayConfig minimal = OverlayConfig.builder()
-        .hudTheme(HudThemePreset.MINIMAL)
-        .build();
-```
-
-## Custom HUD theme
-
-```java
-HudTheme customTheme = HudTheme.builder()
-        .background("rgba(15, 23, 42, 0.92)")
-        .foreground("#f8fafc")
-        .accent("#38bdf8")
-        .borderColor("rgba(148, 163, 184, 0.35)")
-        .borderRadiusPx(16)
-        .fontFamily("Inter, system-ui, sans-serif")
-        .fontSizePx(13)
-        .boxShadow("0 18px 45px rgba(15, 23, 42, 0.35)")
-        .maxHeightPx(420)
-        .build();
-
-OverlayConfig config = OverlayConfig.builder()
-        .hudPosition(HudPosition.TOP_RIGHT)
-        .hudTheme(customTheme)
-        .build();
-
-TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
-        .overlayConfig(config)
-        .build());
-```
-
-See also `HudThemeExampleTest` in `selenium-test-lens-examples`.
-
-## Locator helpers
+## Locators and assertions
 
 ```java
 lens.locator(By.id("email"), "Email").fill("test@example.com");
 lens.locator(By.name("search"), "Search").fill("invoice");
 lens.getByRole("button", "Save").click();
-
 lens.getByTextContaining("Saved").expect().toBeVisible();
 ```
 
-For critical flows, prefer `getByTestId(...)` when the application provides stable test IDs.
-
-## Business assertions
-
-```java
-overlay.business("Order summary")
-        .check("shows total", () -> overlay.getByTestId("order-total").expect().toHaveText("123.00 PLN"))
-        .check("contains product", () -> overlay.getByTestId("product-name").expect().toContainText("Premium"))
-        .verify();
-```
+Prefer `getByTestId(...)` for critical flows when the application provides stable test IDs. See the [API guide](api-reference.md) for locator behavior and matching scope.
 
 ## Named steps
 
@@ -98,10 +33,31 @@ lens.step("Save order", () -> {
 });
 ```
 
-## Per-test HTML trace and evidence report
+A named step records its name and outcome in the session trace and report.
+
+## Configure the HUD
+
+Use a preset to change the in-browser diagnostic HUD:
 
 ```java
-UiTestLensSession session = lens.startSession("Checkout flow");
+OverlayConfig config = OverlayConfig.builder()
+        .hudTheme(HudThemePreset.DARK)
+        .hudPosition(HudPosition.TOP_RIGHT)
+        .build();
+
+TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+        .overlayConfig(config)
+        .build());
+```
+
+See [Configuration](configuration.md) for the available presets and custom `HudTheme` options.
+
+## Screenshots and diagnostics
+
+The normal lifecycle stays on the `TestLens` facade:
+
+```java
+lens.startSession("Checkout flow");
 
 lens.step("Save order", () -> {
     lens.getByTestId("save-order").click();
@@ -111,13 +67,59 @@ lens.captureScreenshot("After save");
 lens.finishPassed();
 ```
 
-`exportHtmlReport()` writes `target/ui-test-lens-report/index.html` by default. For one file per test, pass an explicit path such as `target/ui-test-lens-report/checkout-flow.html`.
+With the default `TestLensOptions`, finalization writes `report.html` and `trace.json` under a session-specific directory beneath `target/ui-test-lens`. `captureScreenshot(...)` captures through Selenium and attaches the result to the active session.
 
-The report is a self-contained HTML file with inline CSS, summary cards, failure diagnostics, timeline rows, metadata details, and artifact links. Publish the `target/ui-test-lens-report` folder as a CI artifact to inspect it after a run.
+Use `finishFailed(Throwable)` instead when the test fails. The [framework integration guide](framework-integration.md) shows runner lifecycle patterns.
 
-Screenshot capture uses Selenium `TakesScreenshot`. Video support attaches existing files or URLs; Selenium Test Lens does not record video. Local image artifacts are linked and previewed when present; missing files are shown as warnings instead of failing report generation.
+## Reporting APIs
 
-## Log-only HTML report
+`TestLens` handles normal per-test lifecycle and diagnostics. The trace model and exporter classes below are lower-level APIs for direct report generation or combining multiple sessions. Their default output directory is `target/ui-test-lens-report`, separate from the session-scoped `TestLens` output above.
+
+### Per-session reports
+
+```java
+UiTestLensSession session = UiTestLensSession.start("Checkout flow");
+session.finishPassed();
+
+session.exportHtml(Path.of("target/ui-test-lens-report/checkout.html"));
+session.exportJsonReport();
+```
+
+`exportHtml(Path)` writes a self-contained HTML report to the chosen path. `exportHtmlReport()` uses `target/ui-test-lens-report/index.html`; `exportJsonReport()` writes the session JSON report under `target/ui-test-lens-report` by default.
+
+### Suite reports
+
+```java
+UiTestLensSession checkout = UiTestLensSession.start("Checkout flow");
+checkout.finishPassed();
+
+UiTestLensSession profile = UiTestLensSession.start("Profile flow");
+profile.finishSkipped("Example only");
+
+List<UiTestLensSession> sessions = List.of(checkout, profile);
+
+new TraceHtmlExporter().exportSuiteToDefault(sessions,
+        TraceHtmlExportOptions.builder()
+                .theme(HtmlReportTheme.AUTO)
+                .build());
+```
+
+`exportSuiteToDefault(...)` writes `target/ui-test-lens-report/index.html`. `UiTestLensSession.finishSkipped(...)` belongs to this low-level trace model; the high-level `TestLens` facade in 0.1.0 exposes `finishPassed()` and `finishFailed(Throwable)`.
+
+### JSON and portable bundles
+
+```java
+new TraceJsonExporter().exportSuiteToDefault(sessions);
+new TraceReportBundleExporter().exportSuiteToDefault(sessions);
+```
+
+The suite JSON defaults to `target/ui-test-lens-report/report.json` and uses schema version `1.0`. The ZIP defaults to `target/ui-test-lens-report/ui-test-lens-report.zip`; it contains `index.html`, `report.json`, `manifest.json`, and existing local artifacts when artifact copying is enabled. Missing artifacts are recorded in the manifest instead of failing the export.
+
+Publish the report directory or ZIP bundle as a CI artifact using your CI system.
+
+### Log-only report
+
+Use the core logging API only when you need a report that is not attached to a Lens browser session:
 
 ```java
 InMemoryLogSink logs = new InMemoryLogSink();
@@ -131,69 +133,30 @@ logger.warn("Retrying slow save button");
 logs.exportHtmlReport();
 ```
 
-For custom output paths, use `session.exportHtml(Path.of("target/ui-test-lens-report/checkout.html"))` or `logs.exportHtml(Path.of("target/ui-test-lens-report/logs.html"))`.
+The default log-only HTML path is `target/ui-test-lens-report/index.html`. Use `logs.exportHtml(Path)` for a custom path.
 
-## Suite HTML report
+The default log-only report uses the same `index.html` path as the suite report, so use `exportHtml(Path)` when generating both.
 
-```java
-UiTestLensSession checkout = UiTestLensSession.start("Checkout flow");
-checkout.finishPassed();
+## Advanced APIs
 
-UiTestLensSession profile = UiTestLensSession.start("Profile flow");
-profile.finishSkipped("Example only");
+!!! warning "Lower-level APIs"
 
-new TraceHtmlExporter().exportSuiteToDefault(List.of(checkout, profile),
-        TraceHtmlExportOptions.builder()
-                .theme(HtmlReportTheme.AUTO)
-                .build());
-```
+    The following examples assume an existing `JsOverlayDebug` instance named `overlay`. These APIs are lower level than the normal `TestLens` facade and are not required for ordinary Selenium interactions or test lifecycle.
 
-`exportSuiteToDefault(...)` writes the combined run report to `target/ui-test-lens-report/index.html`. It keeps per-test reports optional and adds a suite summary, test table, failure rollup, and anchors to each test/session section.
+### Business assertions
 
-Report themes:
-
-- `HtmlReportTheme.AUTO` follows the viewer's system color preference.
-- `HtmlReportTheme.LIGHT` uses a white/off-white report.
-- `HtmlReportTheme.DARK` uses the HUD-like dark report.
-
-Consumer demos can expose these as Maven properties, for example:
-
-```powershell
-mvn test
-mvn test "-Dheaded=true" "-Dlens.theme=GLASS" "-Dlens.report.theme=LIGHT"
-mvn test "-Dheaded=true" "-Dlens.theme=DARK" "-Dlens.report.theme=AUTO"
-```
-
-HUD theme and report theme are independent settings.
-
-## JSON reports and portable bundles
+Business assertion groups currently use the lower-level `JsOverlayDebug` facade:
 
 ```java
-UiTestLensSession checkout = UiTestLensSession.start("Checkout flow");
-checkout.finishPassed();
-
-UiTestLensSession profile = UiTestLensSession.start("Profile flow");
-profile.finishSkipped("Example only");
-
-new TraceJsonExporter().exportSuiteToDefault(List.of(checkout, profile));
-new TraceReportBundleExporter().exportSuiteToDefault(List.of(checkout, profile));
+overlay.business("Order summary")
+        .check("shows total", () -> overlay.getByTestId("order-total")
+                .expect().toHaveText("123.00 PLN"))
+        .check("contains product", () -> overlay.getByTestId("product-name")
+                .expect().toContainText("Premium"))
+        .verify();
 ```
 
-JSON reports are intended for machines and integrations. The default suite JSON path is `target/ui-test-lens-report/report.json`, with `schemaVersion` set to `1.0`. Per-session JSON can be written with `session.exportJsonReport()` or `session.exportJson(Path.of("target/ui-test-lens-report/checkout-flow.json"))`.
-
-The portable ZIP bundle defaults to `target/ui-test-lens-report/ui-test-lens-report.zip`. It contains `index.html`, `report.json`, `manifest.json`, and existing local artifacts copied under safe relative `artifacts/...` entries. Missing artifacts do not fail export; they are listed in the manifest warnings. ZIP entries never include absolute paths or `..`.
-
-For CI, publish the report folder or upload the bundle:
-
-```powershell
-curl -F "report=@target/ui-test-lens-report/ui-test-lens-report.zip" https://example.com/api/reports
-```
-
-## Advanced implementation APIs
-
-The following auth/session and passive network examples use the advanced `JsOverlayDebug` implementation facade. Normal action, assertion, context and lifecycle integration should use `TestLens` as shown above.
-
-## Auth/session state
+### Auth/session state
 
 ```java
 AuthState state = overlay.auth().captureState(AuthStateOptions.builder()
@@ -203,16 +166,19 @@ AuthState state = overlay.auth().captureState(AuthStateOptions.builder()
 
 state.save(Path.of("target/ui-test-lens/auth/customer.json"));
 
-AuthState restored = AuthState.load(Path.of("target/ui-test-lens/auth/customer.json"));
+AuthState restored = AuthState.load(
+        Path.of("target/ui-test-lens/auth/customer.json"));
 
 overlay.auth().restoreState(restored, AuthRestoreOptions.builder()
         .navigateToOrigin(true)
         .build());
 ```
 
-Auth state files can contain cookies and tokens. Do not commit them.
+!!! danger "Protect saved authentication state"
 
-## Passive network diagnostics
+    Auth state files can contain cookies and tokens. Do not commit them.
+
+### Passive network diagnostics
 
 ```java
 overlay.network().start(NetworkDiagnosticsOptions.builder()
@@ -229,5 +195,11 @@ overlay.network().expectResponse()
 overlay.network().assertNoFailedRequests();
 ```
 
-The reliable baseline is manual/fallback diagnostics. Browser network providers and interception/mocking are not implemented.
+The current reliable baseline is passive/manual diagnostics. Request interception and mocking are not provided by Test Lens.
 
+## Next steps
+
+- [Complete the getting-started flow](getting-started.md)
+- [Browse the API guide](api-reference.md)
+- [Integrate with JUnit, TestNG, or existing reporters](framework-integration.md)
+- [Configure the visual overlay and HUD](configuration.md)

@@ -1,9 +1,10 @@
 $ErrorActionPreference = "Stop"
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
+$docsRoot = Join-Path $root "docs"
 $files = @()
 $files += Join-Path $root "README.md"
-$files += Get-ChildItem -Path $PSScriptRoot -Filter "*.md" -File | ForEach-Object { $_.FullName }
+$files += Get-ChildItem -Path $docsRoot -Filter "*.md" -File -Recurse | ForEach-Object { $_.FullName }
 
 $linkPattern = "\[[^\]]+\]\(([^)]+)\)"
 $failures = New-Object System.Collections.Generic.List[string]

@@ -1,41 +1,20 @@
 # Getting started
 
-## Existing WebDriver and native operations
+Selenium Test Lens works with the `WebDriver` your test framework already uses. You can add it to an existing Selenium project without changing how the driver is created or closed.
 
-Attach Lens to the driver already owned by the framework. It does not create, wrap, close, or replace that driver.
-
-```java
-TestLens lens = TestLens.attach(existingDriver);
-lens.startSession("checkout");
-lens.locator(By.id("country"), "Country").selectByValue("PL");
-```
-
-Context APIs are equally direct: `switchToFrame(By, label)`, `switchToFrame(index, label)`, `switchToParentFrame()`, `switchToDefaultContent()`, `switchToWindow(handle, label)`, and deterministic `switchToNewWindow(handlesBefore, label)`. Native browser dialogs use `lens.alert()`.
-
-<p align="center">
-  <img src="assets/brand/test-lens-badge.png" alt="Test Lens badge" width="420">
-</p>
-
-This guide shows the smallest path from a Maven dependency to a Selenium test using Selenium Test Lens 0.1.0.
+This guide shows the shortest path from the Maven dependency to a working Lens session.
 
 ## Requirements
 
-- Java 17
+- Java 17 or newer
 - Maven 3.x
-- A Selenium `WebDriver` supplied by your test project
+- A Selenium `WebDriver` created by your test project
 
-The consuming framework supplies Selenium. Version 0.1.0 is verified with Selenium 4.39.0; no broader version range is claimed here.
+Selenium Test Lens 0.1.0 has been verified with Selenium 4.39.0.
 
-## Choose a module
+## Installation
 
-| Use case | Artifact |
-|---|---|
-| Selenium locators, assertions, evidence, auth, network | `selenium-test-lens` |
-| Runtime overlay resources only | `selenium-test-lens-overlay` |
-| Logging and trace model only | `selenium-test-lens-core` |
-| React-specific helpers | `selenium-test-lens-react` |
-
-Main runtime dependency:
+Add the main Selenium Test Lens runtime to your Maven project:
 
 ```xml
 <dependency>
@@ -45,7 +24,19 @@ Main runtime dependency:
 </dependency>
 ```
 
-## First Selenium Test Lens session
+Keep Selenium as an explicit dependency and use the version already managed by your project:
+
+```xml
+<dependency>
+    <groupId>org.seleniumhq.selenium</groupId>
+    <artifactId>selenium-java</artifactId>
+    <version>${selenium.version}</version>
+</dependency>
+```
+
+## Your first Lens session
+
+Attach Lens after your project creates its driver. Start a session before using Lens operations, then finalize it with the test outcome.
 
 ```java
 import io.github.testlens.TestLens;
@@ -54,16 +45,41 @@ import org.openqa.selenium.WebDriver;
 
 WebDriver driver = createExistingFrameworkDriver();
 TestLens lens = TestLens.attach(driver);
-lens.startSession("checkout");
 
-driver.get("https://example.test/checkout");
-lens.locator(By.id("customer"), "Customer").fill("John");
-lens.locator(By.id("save-order"), "Save order").click();
-lens.locator(By.id("toast"), "Saved confirmation").expect().toContainText("Saved");
-lens.finishPassed();
+try {
+    lens.startSession("login");
+    driver.get("https://example.test/login");
+
+    lens.locator(By.id("username"), "Username").fill("john");
+    lens.locator(By.id("login"), "Login").click();
+    lens.locator(By.id("welcome"), "Welcome").expect().toBeVisible();
+
+    lens.finishPassed();
+} catch (RuntimeException | Error failure) {
+    lens.finishFailed(failure);
+    throw failure;
+} finally {
+    driver.quit();
+}
 ```
 
-## HUD configuration
+Lens finalization writes the session diagnostics. Keep your existing `WebDriver` cleanup as-is.
+
+For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md).
+
+## Run your test
+
+Run the test with your existing Maven command:
+
+```bash
+mvn test
+```
+
+When the session is finalized, Test Lens writes its HTML and JSON reports under `target/ui-test-lens` by default.
+
+## Optional: configure the HUD
+
+The default configuration is enough to get started. To change the in-browser HUD, pass `TestLensOptions` when attaching Lens:
 
 ```java
 import io.github.testlens.OverlayConfig;
@@ -72,33 +88,24 @@ import io.github.testlens.TestLensOptions;
 import io.github.testlens.hud.HudPosition;
 import io.github.testlens.hud.HudThemePreset;
 
-OverlayConfig config = OverlayConfig.builder()
+OverlayConfig overlay = OverlayConfig.builder()
         .hudPosition(HudPosition.TOP_RIGHT)
         .hudTheme(HudThemePreset.DARK)
         .build();
 
 TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
-        .overlayConfig(config)
+        .overlayConfig(overlay)
         .build());
 ```
 
-## Build and examples
+The HUD is only a diagnostic aid and does not change test execution or assertions.
 
-Full checks:
+## Next steps
 
-```powershell
-mvn -q test
-mvn -q -DskipTests compile
-```
+- [Integrate Lens with JUnit, TestNG, or an existing reporter](framework-integration.md)
+- [Use locators, actions, waits, and assertions](api-reference.md)
+- [Configure Test Lens](configuration.md)
+- [Migrate incrementally from raw Selenium](migration.md)
+- [Add the optional React extension](framework-integration.md#optional-react-extension)
 
-Selected module checks:
-
-```powershell
-mvn -q -pl selenium-test-lens-overlay -am test
-mvn -q -pl selenium-test-lens-selenium -am test
-mvn -q -pl selenium-test-lens-examples -am test
-mvn -q -pl selenium-test-lens -am test
-```
-
-The `selenium-test-lens-examples` module contains documentation-style examples. Selenium/WebDriver-dependent examples are disabled and intended to compile and document API usage, not to run without a real application and driver.
-
+You can keep using existing Page Objects and call raw Selenium directly for operations Lens does not wrap.

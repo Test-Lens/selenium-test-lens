@@ -16,3 +16,6 @@ Thumbs.db
 
 # UI Test Lens generated auth/session state may contain tokens.
 target/ui-test-lens/auth/
+
+# Local maintainer documentation
+/private/

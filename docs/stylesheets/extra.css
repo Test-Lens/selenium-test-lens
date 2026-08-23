@@ -1,0 +1,29 @@
+.lens-hero {
+  margin: 1rem 0 2.5rem;
+  padding: 2.5rem clamp(1.25rem, 5vw, 4rem);
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 28%, transparent);
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--md-accent-fg-color) 18%, transparent), transparent 38%),
+    linear-gradient(145deg, color-mix(in srgb, var(--md-primary-fg-color) 12%, var(--md-default-bg-color)), var(--md-default-bg-color));
+}
+
+.lens-hero h1 {
+  margin-bottom: 0.35rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.lens-hero > p:first-of-type {
+  max-width: 48rem;
+  margin-bottom: 1.5rem;
+  font-size: 1.12rem;
+}
+
+.lens-hero .md-button {
+  margin: 0.3rem 0.35rem 0.3rem 0;
+}
+
+.grid.cards > ul > li {
+  border-radius: 0.65rem;
+}

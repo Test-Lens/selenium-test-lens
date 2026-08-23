@@ -1,53 +1,72 @@
 # Configuration
 
-Selenium Test Lens configuration is intentionally split by responsibility: visual overlay settings live in the overlay module, Selenium behavior lives in Selenium options, and trace/evidence settings live in the trace/evidence APIs.
+The default configuration is enough for normal use. When you need to customize Test Lens, start with `TestLensOptions` and `OverlayConfig`. More specialized features expose their own options close to the API that uses them.
 
-## OverlayConfig
+## Test Lens options
 
-`OverlayConfig` configures the runtime visual overlay.
+`TestLensOptions` is the main configuration object supplied when attaching Test Lens to an existing driver.
 
-Common options:
+| Option | Purpose |
+|---|---|
+| `overlayConfig(...)` | Configures the visual overlay and HUD. |
+| `locatorOptions(...)` | Sets the default locator timeout, polling, retries, and actionability behavior. |
+| `outputRoot(...)` | Changes the root directory for session reports and diagnostics. |
+| `screenshotOnFailure(...)` | Controls automatic screenshot capture during failed finalization. |
+| `cleanupHudOnFinish(...)` | Controls whether the HUD, borders, and tooltips are cleared during finalization. |
+
+By default, session output is written beneath `target/ui-test-lens`, and visual debug artifacts are cleared during finalization.
+
+```java
+OverlayConfig overlayConfig = OverlayConfig.builder()
+        .hudPosition(HudPosition.TOP_RIGHT)
+        .build();
+
+TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+        .overlayConfig(overlayConfig)
+        .build());
+```
+
+## Visual overlay
+
+`OverlayConfig` controls browser-side decorations and the diagnostic HUD.
 
 | Option | Purpose |
 |---|---|
 | `enabled(...)` | Enables or disables overlay injection and visual decorations. |
-| `showHudPanel(...)` | Controls whether the HUD panel is visible. |
-| `hudPosition(...)` | Places the HUD, for example `TOP_RIGHT` or `BOTTOM_RIGHT`. |
-| `hudOffset(...)` | Offsets the HUD from the viewport edge. |
-| `hudMaxWidthPx(...)` | Limits HUD width. |
-| `hudTheme(...)` | Applies a built-in HUD theme preset or a custom `HudTheme`, including optional HUD max height. |
+| `showHudPanel(...)` | Shows or hides the HUD panel. |
+| `hudPosition(...)` | Places the HUD in a viewport corner. |
+| `hudOffset(...)` | Sets its horizontal and vertical offsets from that corner. |
+| `hudMaxWidthPx(...)` | Sets the maximum HUD width. |
+| `hudTheme(...)` | Applies a preset or custom `HudTheme`. |
 | `highlightColor(...)` | Sets the element highlight color. |
-| `decorationDurationMs(...)` | Controls how long visual decorations stay visible. |
-
-Example:
+| `decorationDurationMs(...)` | Sets how long visual decorations remain visible. |
 
 ```java
 OverlayConfig config = OverlayConfig.builder()
-        .enabled(true)
         .showHudPanel(true)
         .hudPosition(HudPosition.TOP_RIGHT)
         .hudOffset(16, 16)
-        .hudMaxWidthPx(520)
-        .hudTheme(HudThemePreset.GLASS)
+        .hudTheme(HudThemePreset.DARK)
         .highlightColor("#38bdf8")
-        .decorationDurationMs(1500)
         .build();
 ```
 
-## HUD theme presets
+### HUD position and appearance
 
-`HudThemePreset` provides token-like palettes inspired by modern neutral/slate/zinc UI color systems. They are static values bundled with Selenium Test Lens; no external CSS framework is loaded.
+`HudPosition` supports `TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT`, and `BOTTOM_RIGHT`. Use `hudOffset(...)` and `hudMaxWidthPx(...)` when the panel would otherwise overlap application controls.
 
-| Preset | Palette direction | Recommended use |
-|---|---|---|
-| `DEFAULT` | Graphite/slate HUD with cyan accent | Local debug and general use |
-| `DARK` | Zinc dark panel with blue accent | Dark desktops and long headed runs |
-| `LIGHT` | Clean white/slate panel | Docs, recordings and bright applications |
-| `GLASS` | Translucent slate glass with blur/saturation | Demos and screenshots |
-| `COMPACT` | Tight graphite HUD | Dense debug overlays |
-| `HIGH_CONTRAST` | Strong contrast slate panel | Accessibility and high-visibility runs |
-| `BLACK_AND_COLORS` | Neon-on-slate palette | High-energy demos |
-| `MINIMAL` | Low-noise light slate panel | Subtle overlays |
+### Theme presets
+
+| Preset | Description |
+|---|---|
+| `DEFAULT` | Default dark slate theme |
+| `DARK` | Dark neutral theme |
+| `LIGHT` | Light theme |
+| `GLASS` | Translucent dark theme |
+| `COMPACT` | Smaller text and reduced spacing |
+| `HIGH_CONTRAST` | Higher-contrast colors and border |
+| `BLACK_AND_COLORS` | Dark theme with vivid accents |
+| `MINIMAL` | Light theme with reduced visual emphasis |
 
 ```java
 OverlayConfig config = OverlayConfig.builder()
@@ -55,31 +74,20 @@ OverlayConfig config = OverlayConfig.builder()
         .build();
 ```
 
-`GLASS` uses a translucent HUD background with `backdrop-filter` blur/saturation where the browser supports it, while keeping the same Selenium Test Lens runtime behavior.
+The `GLASS` preset applies CSS backdrop blur and saturation in browsers that support those properties.
 
-## Custom HudTheme
+### Custom theme
 
-`HudTheme` is immutable and can be created through its builder. Values are passed to the runtime HUD as CSS variables with JavaScript fallbacks.
+Use `HudTheme.builder()` when a preset does not fit the application under test:
 
 ```java
 HudTheme customTheme = HudTheme.builder()
         .background("rgba(15, 23, 42, 0.92)")
         .foreground("#f8fafc")
-        .mutedForeground("#cbd5e1")
         .accent("#38bdf8")
-        .success("#22c55e")
-        .warning("#f59e0b")
-        .danger("#ef4444")
         .borderColor("rgba(148, 163, 184, 0.35)")
         .borderRadiusPx(16)
-        .fontFamily("Inter, system-ui, sans-serif")
         .fontSizePx(13)
-        .boxShadow("0 18px 45px rgba(15, 23, 42, 0.35)")
-        .opacity(0.96)
-        .zIndex(2147483000)
-        .backdropFilter("blur(12px)")
-        .paddingPx(12)
-        .gapPx(8)
         .maxHeightPx(420)
         .build();
 
@@ -88,24 +96,20 @@ OverlayConfig config = OverlayConfig.builder()
         .build();
 ```
 
-Validation is intentionally light. CSS values are not parsed aggressively; numeric pixel values must be non-negative, `maxHeightPx` must be positive, and opacity must be between `0` and `1` when supplied.
-`maxHeightPx(...)` accepts a positive pixel height and leaves the HUD uncapped when omitted in a custom theme:
+CSS strings are accepted without strict parsing. Numeric pixel values must be non-negative, `maxHeightPx` must be positive, and opacity must be between `0` and `1` when supplied.
 
-```java
-HudTheme compactHud = HudTheme.builder()
-        .maxHeightPx(420)
-        .build();
-```
+## Advanced overlay policy
 
-## Overlay policy
+Overlay policies can detect and handle blocking UI such as consent banners. This is optional and currently configured through the lower-level `JsOverlayDebug` facade; ordinary tests should start with `TestLens`.
 
-Blocking overlays and popups can be modeled with an `OverlayPolicy`.
+The example below assumes an existing `JsOverlayDebug` instance named `overlay`.
 
 ```java
 OverlayPolicy policy = OverlayPolicy.builder()
         .handler(OverlayHandler.builder("Cookie consent")
                 .detect(By.cssSelector("[data-testid='cookie-banner']"))
-                .action(OverlayAction.click(By.cssSelector("[data-testid='accept-cookies']")))
+                .action(OverlayAction.click(
+                        By.cssSelector("[data-testid='accept-cookies']")))
                 .optional(true)
                 .build())
         .build();
@@ -113,28 +117,39 @@ OverlayPolicy policy = OverlayPolicy.builder()
 overlay.setOverlayPolicy(policy);
 ```
 
-Optional overlays are handled when present. Fatal overlays can fail an action when the policy decides the page is blocked.
+## Feature-specific configuration
 
-## Selenium-side options
+Some features expose dedicated configuration types close to the API that uses them. You usually do not need to configure all of these globally.
 
-The Selenium module exposes focused options classes:
-
-| Options class | Purpose |
+| Type | Used for |
 |---|---|
-| `UiLocatorOptions` | Retry timeout, polling and actionability behavior for locators. |
-| `UiAssertionOptions` | Retry timeout and polling for web assertions. |
-| `BusinessAssertionOptions` | Collect failures or fail fast in business assertion groups. |
-| `UiStepOptions` | Step fail-fast behavior, HUD logging and optional screenshot-on-failure. |
-| `ScreenshotCaptureOptions` | Screenshot output folder, file naming and session attachment. |
-| `VideoEvidenceOptions` | Video source metadata, local-file validation and session attachment. |
-| `AuthStateOptions` | Cookie/storage capture scope and metadata. |
-| `AuthRestoreOptions` | Navigation, clearing and restore behavior. |
-| `NetworkDiagnosticsOptions` | Capture mode, failed status threshold, ignored URLs and header masking. |
-| `NetworkWaitCondition` | URL/method/status conditions and wait timeout for network assertions. |
+| `UiLocatorOptions` | Locator timeouts, polling, retries, actionability, and highlighting |
+| `UiAssertionOptions` | Assertion timeouts, polling, and text comparison |
+| `BusinessAssertionOptions` | Failure collection and fail-fast behavior in business assertion groups |
+| `UiStepOptions` | Step failure behavior, HUD logging, and failure screenshots |
+| `ScreenshotCaptureOptions` | Screenshot destination, naming, and session attachment |
+| `VideoEvidenceOptions` | Existing video file or URL metadata and session attachment |
+| `AuthStateOptions` | Authentication-state capture scope and metadata |
+| `AuthRestoreOptions` | Authentication-state navigation, clearing, validation, and restore behavior |
+| `NetworkDiagnosticsOptions` | Capture mode, failure threshold, ignored URLs, headers, and session attachment |
+| `NetworkWaitCondition` | URL, method, status, timeout, and polling conditions for network waits |
 
-Defaults avoid collecting unnecessary sensitive data: headers are omitted or masked, screenshot-on-failure is opt-in, auth state files are written only when explicitly saved, and video evidence is attachment-based rather than recording-based.
+See the [API guide](api-reference.md) or Javadoc for individual builder methods.
 
-## Current theme scope
+## Notes and limits
 
-The shared HUD theme system covers the HUD panel. Wait HUD and assertion badges may use some shared visual variables, but they are not fully covered by one common theme contract.
+- With the default options, `finishFailed(Throwable)` attempts a screenshot. Capture is best-effort and can be disabled with `TestLensOptions.screenshotOnFailure(...)`.
+- Network diagnostics omit headers by default. When headers are included, sensitive headers are masked by default.
+- Captured authentication state is written only when `AuthState.save(...)` is called. Saved files can contain cookies and tokens, so do not commit them.
+- Video evidence attaches an existing local file or URL; Test Lens does not record video.
 
+!!! note "Theme scope"
+
+    HUD themes configure the main HUD panel. Other visual elements may not use every HUD theme setting.
+
+## Next steps
+
+- [Get started](getting-started.md)
+- [Browse examples](examples.md)
+- [Read the API guide](api-reference.md)
+- [Configure the visual overlay and HUD](visual-overlay-hud.md)

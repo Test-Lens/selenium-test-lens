@@ -1,286 +1,171 @@
-# API reference
+# API guide
 
-## Native Selenium migration surface
+This guide covers the public Selenium Test Lens API most users need in 0.1.0. For complete signatures, see the [published Javadoc](https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/).
 
-`UiLocator` supports `click`, `fill`, `clear`, `press`, waits, retryable UI assertions, reads and collections. It also provides:
+Java packages use `io.github.testlens.*`; the Maven group is `io.github.test-lens`.
 
-- `selectByVisibleText`, `selectByValue`, `selectByIndex`, `selectedText`, `selectedValue`
-- `hover`, `doubleClick`, `rightClick`
-- `resolveAll`, `count`, `nth`, `first`, `last`
+## TestLens facade
 
-`TestLens` provides frame and window context switching. New-window detection requires the handle snapshot taken before the opening action, so it never relies on `Set` iteration order. `TestLensAlert` supports `waitUntilPresent`, `text`, `accept`, `dismiss`, and secret-safe `fill` diagnostics.
-
-All these operations emit native trace events and feed the best-effort HUD. Raw Selenium remains supported for advanced APIs outside this deliberately small migration surface.
-
-This is a concise public API map for Selenium Test Lens 0.1.
-
-Java packages live under `io.github.testlens`, and Maven artifacts use the `io.github.test-lens:selenium-test-lens-*` coordinate family. Default report and evidence output paths retain `target/ui-test-lens...` for local artifact compatibility.
-
-## Overlay configuration
-
-### OverlayConfig
-
-Main visual overlay configuration.
-
-Common builder methods:
+`TestLens.attach(existingDriver)` is the recommended, runner-agnostic entry point. Lens does not create, replace, or close the driver.
 
 ```java
-OverlayConfig.builder()
-        .enabled(true)
-        .showHudPanel(true)
-        .hudPosition(HudPosition.TOP_RIGHT)
-        .hudOffset(16, 16)
-        .hudMaxWidthPx(520)
-        .hudTheme(HudThemePreset.GLASS)
-        .hudTheme(customTheme)
-        .highlightColor("#38bdf8")
-        .decorationDurationMs(1500)
-        .build();
+TestLens lens = TestLens.attach(driver);
+lens.startSession("checkout");
+
+lens.locator(By.id("save"), "Save").click();
+lens.finishPassed();
 ```
 
-### HudPosition
+The facade provides locators, assertions, steps, screenshots, frame and window operations, alerts, and session finalization. `startSession(String)` creates and returns a `UiTestLensSession` and makes it the active session. `finishPassed()` and `finishFailed(Throwable)` return a `TestLensFinalizationResult`. Best-effort diagnostic and export failures are collected in `diagnosticFailures()` instead of being thrown by finalization.
 
-Controls HUD placement. Use the enum values exposed by `HudPosition`, such as `TOP_RIGHT` or `BOTTOM_RIGHT`.
+## Locators and actions
 
-### HudThemePreset
-
-Built-in HUD presets:
-
-- `DEFAULT`
-- `DARK`
-- `LIGHT`
-- `GLASS`
-- `COMPACT`
-- `HIGH_CONTRAST`
-- `BLACK_AND_COLORS`
-- `MINIMAL`
-
-### HudTheme
-
-Immutable custom HUD theme model.
+Create a locator with `locator(By)`, `locator(By, String)`, `getByTestId(String)`, `getByText(String)`, `getByTextContaining(String)`, or `getByRole(String, String)`.
 
 ```java
-HudTheme.builder()
-        .background("rgba(15, 23, 42, 0.92)")
-        .foreground("#f8fafc")
-        .accent("#38bdf8")
-        .borderRadiusPx(16)
-        .fontFamily("Inter, system-ui, sans-serif")
-        .maxHeightPx(420)
-        .build();
+lens.locator(By.id("email"), "Email").fill("test@example.com");
+lens.getByTestId("save").click();
+lens.locator(By.id("search"), "Search").press(Keys.ENTER);
 ```
 
-## Public consumer API
+`UiLocator` actions remain chainable:
 
-### TestLens
+| Operation | Return value |
+| --- | --- |
+| `click()`, `fill(String)`, `clear()` | the same `UiLocator` |
+| `pressEnter()`, `press(CharSequence...)` | the same `UiLocator` |
+| `hover()`, `doubleClick()`, `rightClick()` | the same `UiLocator` |
+| `resolve()` | `WebElement` |
 
-`TestLens.attach(existingDriver)` is the recommended runner-agnostic facade. It owns no browser lifecycle and delegates operations to the caller-owned `WebDriver`. `TestLensOptions` configures HUD, locator timeouts and session-scoped output; `TestLensAlert` handles native browser dialogs.
+Reads include `textContent()` (`String`), `isVisible()` and `isEnabled()` (`boolean`), and `attribute(String)`, `property(String)`, and `value()` (`String`, potentially `null` when Selenium has no value to return).
 
-Primary entry points include `locator(By, label)`, `expect(By, label)`, `step(...)`, screenshots, frame/window context operations, `alert()`, and failure-safe `finishPassed()` / `finishFailed(Throwable)`.
+!!! note "Role matching scope"
 
-## Legacy and advanced implementation API
+    `getByRole` matches explicit or supported implicit roles and compares the requested name with `aria-label` or normalized element text. It is not a complete implementation of the ARIA accessible-name algorithm.
 
-### JsOverlayDebug
+## Waits and assertions
 
-Historical implementation facade retained for advanced and internal integrations. New consumers should use `TestLens`; migration tooling must not select `JsOverlayDebug` as the default entry point.
-
-Common constructors:
+Locator waits poll until the configured timeout. Their timeout and polling interval come from `UiLocatorOptions`:
 
 ```java
-new JsOverlayDebug(driver);
-new JsOverlayDebug(driver, overlayConfig);
+lens.locator(By.id("spinner"), "Loading spinner").waitUntilHidden();
+lens.locator(By.id("save"), "Save").waitUntilClickable().click();
+lens.locator(By.id("status"), "Status").waitUntilText("Ready");
 ```
 
-Core methods:
+`waitUntilVisible()`, `waitUntilHidden()`, `waitUntilClickable()`, and `waitUntilText(String)` all return the same `UiLocator`.
+
+Retryable assertions are available from `UiLocator.expect()` or `TestLens.expect(By, label)`:
 
 ```java
-overlay.setOverlayPolicy(policy);
-
-overlay.locator(By.cssSelector("[data-testid='save']")).click();
-overlay.getByTestId("save").click();
-overlay.getByText("Save").click();
-overlay.getByTextContaining("Saved");
-overlay.getByLabel("Email").fill("test@example.com");
-overlay.getByPlaceholder("Search").fill("invoice");
-overlay.getByRole("button", "Save").click();
-
-overlay.expect(overlay.getByTestId("toast")).toContainText("Saved");
-
-overlay.business("Order summary")
-        .check("shows total", () -> overlay.getByTestId("total").expect().toHaveText("123.00 PLN"))
-        .verify();
-
-overlay.step("Save order", () -> {
-    overlay.getByTestId("save").click();
-});
-
-overlay.setStep("Save order");
-overlay.hudLog("info", "Save clicked", "local");
+lens.locator(By.id("toast"), "Confirmation")
+        .expect()
+        .toContainText("Saved");
 ```
 
-Trace and evidence:
+`UiExpect` supports `toBeVisible()`, `toBeHidden()`, `toBeEnabled()`, `toBeDisabled()`, `toHaveText(String)`, `toContainText(String)`, `toHaveValue(String)`, and `toContainValue(String)`. An element that is absent or present but not displayed satisfies `toBeHidden()`. Other WebDriver failures cause the assertion to fail rather than being treated as hidden.
+
+## Collections and select controls
+
+`resolveAll()` and `count()` inspect the current DOM. `nth(int)`, `first()`, and `last()` return lazy `UiLocator` values that resolve when used:
 
 ```java
-UiTestLensSession session = overlay.startSession("Checkout flow");
-overlay.captureScreenshot("After save");
-overlay.attachVideoFile("Grid video", Path.of("target/videos/checkout.mp4"));
-overlay.attachVideoUrl("CI video", "https://ci.example.com/artifacts/video.mp4");
-overlay.exportTraceHtml(Path.of("target/ui-test-lens/checkout.html"));
-session.exportHtmlReport();
+UiLocator rows = lens.locator(By.cssSelector("table tbody tr"), "Order rows");
+int count = rows.count();
+rows.first().click();
+rows.nth(2).click();
+rows.last().click();
+List<WebElement> elements = rows.resolveAll();
 ```
 
-Auth/session state:
+`nth(int)` is zero-based. HTML `<select>` controls support:
 
 ```java
-AuthState state = overlay.auth().captureState(AuthStateOptions.builder()
-        .label("standard-customer")
-        .role("customer")
-        .build());
+UiLocator country = lens.locator(By.id("country"), "Country");
+country.selectByVisibleText("Poland");
+country.selectByValue("PL");
+country.selectByIndex(1);
 
-overlay.auth().restoreState(state, AuthRestoreOptions.builder()
-        .navigateToOrigin(true)
-        .build());
+String text = country.selectedText();
+String value = country.selectedValue();
 ```
 
-Network diagnostics:
+These methods use Selenium's `Select` and therefore require a real HTML `<select>`. For custom dropdown widgets, use the component's normal DOM interactions or raw Selenium. React-specific helpers are available separately when they are relevant to the application.
+
+## Frames and windows
 
 ```java
-overlay.network().start(NetworkDiagnosticsOptions.builder()
-        .captureMode(NetworkCaptureMode.MANUAL)
-        .failedStatusThreshold(400)
-        .build());
-
-overlay.network().expectResponse()
-        .urlContains("/api/orders")
-        .status(201)
-        .within(Duration.ofSeconds(10));
-
-overlay.network().assertNoFailedRequests();
+lens.switchToFrame(By.id("payment-frame"), "Payment frame");
+lens.locator(By.id("pay"), "Pay").click();
+lens.switchToParentFrame();
+lens.switchToDefaultContent();
 ```
 
-## Locators
-
-`UiLocator` resolves elements freshly and retries stale/intercepted/not-interactable Selenium failures according to `UiLocatorOptions`.
-
-Supported helper entry points include:
-
-- `locator(By)`
-- `getByTestId(String)`
-- `getByText(String)`
-- `getByTextContaining(String)`
-- `getByLabel(String)`
-- `getByPlaceholder(String)`
-- `getByRole(String)`
-- `getByRole(String, String)`
-
-These helpers return `UiLocator`, so they share retry, actionability and assertion behavior.
-
-## Assertions
-
-`UiExpect` provides retryable web assertions:
-
-- visible / hidden
-- enabled / disabled
-- exact text
-- contains text
-- exact value
-- contains value
-
-For `toBeHidden()`, an element that is absent from the DOM is a valid passing state and is not reported as a locator or action failure.
-
-During retryable assertions, transient misses or intermediate states are treated as polling attempts; a failure event is emitted only after timeout or a technical WebDriver failure.
-
-`UiLocator.expect()` is the fluent locator-local form.
-
-## Business assertions and steps
-
-`BusinessAssertions` groups checks under a business subject and can collect multiple failures before throwing a readable `BusinessAssertionError`.
-
-`UiStep` and `TestLens.step(...)` wrap named test steps with status, timing, HUD logging and optional screenshot-on-failure. Runtime failures are rethrown without changing their identity.
-
-## Trace and reports
-
-`UiTestLensSession` stores trace metadata, events, failures and artifacts. It can export machine-readable JSON, polished single-file HTML, and portable ZIP report bundles through `TraceJsonExporter`, `TraceHtmlExporter`, and `TraceReportBundleExporter`.
-
-Common HTML report methods:
+Frames can be selected with `switchToFrame(By, String)`, `switchToFrame(UiLocator)`, or `switchToFrame(int, String)`. For a new window or tab, snapshot the handles before the opening action:
 
 ```java
-session.exportHtml();
-session.exportHtml(Path.of("target/ui-test-lens-report/checkout.html"));
-session.exportHtmlReport();
-new TraceHtmlExporter().exportToDefault(session);
+Set<String> before = lens.windowHandles();
+lens.locator(By.id("open-receipt"), "Open receipt").click();
+lens.switchToNewWindow(before, "Receipt");
+```
+
+`waitForNewWindow(Set<String>)` waits until at least one new handle is observed, then requires exactly one and returns it. No new handle results in a timeout; multiple new handles result in `NoSuchWindowException`. `currentWindowHandle()`, `windowHandles()`, and `switchToWindow(String, String)` are also available.
+
+## Browser dialogs
+
+Native alert, confirm, and prompt dialogs use `TestLensAlert`:
+
+```java
+TestLensAlert alert = lens.alert().waitUntilPresent();
+String message = alert.text();
+alert.accept();
+```
+
+Call `dismiss()` for a confirmation dialog or `fill(String)` before accepting a prompt. The prompt value is sent to Selenium but omitted from diagnostic messages; diagnostics record only its length.
+
+## Trace, reports and evidence
+
+High-level finalization attempts to write `trace.json` and `report.html` in a session-specific directory beneath `target/ui-test-lens` by default. Either export can fail independently, so the corresponding `jsonReport()` or `htmlReport()` value can be `null`. `outputDirectory()` and `failureScreenshot()` are also nullable `Path` values, and `diagnosticFailures()` contains failures encountered during best-effort finalization.
+
+```java
+UiTestLensSession session = lens.startSession("checkout");
+lens.captureScreenshot("After save");
+TestLensFinalizationResult result = lens.finishPassed();
+
+if (result.htmlReport() != null) {
+    System.out.println("HTML report: " + result.htmlReport());
+}
+if (!result.diagnosticFailures().isEmpty()) {
+    result.diagnosticFailures().forEach(Throwable::printStackTrace);
+}
+```
+
+For explicit or combined exports, the core API provides `TraceHtmlExporter`, `TraceJsonExporter`, and `TraceReportBundleExporter`:
+
+```java
 new TraceHtmlExporter().exportSuiteToDefault(List.of(session));
-```
-
-`exportHtmlReport()`, `TraceHtmlExporter.exportToDefault(...)`, and `TraceHtmlExporter.exportSuiteToDefault(...)` write `target/ui-test-lens-report/index.html`, creating parent directories and replacing an existing file. Use explicit paths for per-test files and reserve `index.html` for a combined run report.
-
-Report theme options:
-
-```java
-TraceHtmlExportOptions options = TraceHtmlExportOptions.builder()
-        .theme(HtmlReportTheme.LIGHT)
-        .build();
-
-new TraceHtmlExporter().exportSuiteToDefault(sessions, options);
-```
-
-`HtmlReportTheme` values are `LIGHT`, `DARK`, and `AUTO`. `AUTO` uses CSS `prefers-color-scheme` and is the default.
-
-Common JSON report methods:
-
-```java
-session.exportJson();
-session.exportJsonReport();
-session.exportJson(Path.of("target/ui-test-lens-report/checkout.json"));
 new TraceJsonExporter().exportSuiteToDefault(List.of(session));
-```
-
-Session JSON defaults to `target/ui-test-lens-report/<safe-session-name>.json`. Suite JSON defaults to `target/ui-test-lens-report/report.json`. JSON reports use `schemaVersion` `1.0`, omit null/blank fields where practical, include summary counts, events, failures, attributes, artifact references, file existence, and relative artifact paths when an output directory is known.
-
-`TraceJsonExportOptions` controls stack traces, artifact metadata, missing artifact records, and the base directory used for relative artifact paths:
-
-```java
-TraceJsonExportOptions jsonOptions = TraceJsonExportOptions.builder()
-        .includeStackTraces(true)
-        .includeArtifactMetadata(true)
-        .includeMissingArtifacts(true)
-        .build();
-```
-
-Portable ZIP bundles:
-
-```java
 new TraceReportBundleExporter().exportSuiteToDefault(List.of(session));
-
-TraceBundleExportOptions bundleOptions = TraceBundleExportOptions.builder()
-        .htmlTheme(HtmlReportTheme.LIGHT)
-        .copyArtifacts(true)
-        .bundleName("Checkout run")
-        .build();
-
-new TraceReportBundleExporter().exportSuite(List.of(session), bundleOptions);
 ```
 
-The default bundle path is `target/ui-test-lens-report/ui-test-lens-report.zip`. Bundles include `index.html`, `report.json`, `manifest.json`, and copied local file artifacts under `artifacts/...` when present. ZIP export does not write absolute paths, rejects unsafe entry names, deduplicates duplicate artifact names, and records missing artifacts in the manifest instead of failing the bundle.
+Suite defaults are `target/ui-test-lens-report/index.html`, `target/ui-test-lens-report/report.json`, and `target/ui-test-lens-report/ui-test-lens-report.zip`. Video evidence attaches a file or URL reference; Test Lens does not record video. See the [examples](examples.md) for reporting workflows.
 
-Example API upload:
+## Logging
 
-```powershell
-curl -F "report=@target/ui-test-lens-report/ui-test-lens-report.zip" https://example.com/api/reports
-```
-
-`TraceLogSink` maps Selenium Test Lens logger events into trace sessions when a session is attached.
-
-For log-only reports, collect entries in `InMemoryLogSink`:
+Core logging uses structured `UiTestLensLogEntry` values and `UiTestLensLogSink` implementations. `InMemoryLogSink` can export a log-only report:
 
 ```java
 InMemoryLogSink logs = new InMemoryLogSink();
 logs.accept(UiTestLensLogEntry.info("Opening checkout"));
 logs.exportHtmlReport();
-logs.exportJson(Path.of("target/ui-test-lens-report/logs.json"));
 ```
 
-## React support
+`UiTestLensLogEntry.info(String)` is a public factory in 0.1.0. Normal facade operations already feed the attached session, so ordinary tests do not need a separate logger.
 
-React-specific helpers live in `selenium-test-lens-react`, not in the main `selenium-test-lens` runtime artifact. The main artifact does not depend on React.
+## Low-level and raw Selenium APIs
 
+`JsOverlayDebug` remains public for advanced facilities not exposed by `TestLens`, including the auth-state and passive network-diagnostics entry points. It is a lower-level facade, not the recommended entry point for normal tests.
+
+Continue using raw Selenium for complex action sequences, offset pointer movement, explicit `keyDown`/`keyUp` sequences, advanced multi-select behavior, low-level W3C actions, or CDP/BiDi features not wrapped by Lens. Lens and raw Selenium can be mixed against the same driver.
+
+**Next:** [framework integration](framework-integration.md) · [examples](examples.md) · [migration guide](migration.md)

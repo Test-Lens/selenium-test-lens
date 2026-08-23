@@ -1,73 +1,96 @@
 # Architecture
 
-Selenium Test Lens is a multi-module Selenium/WebDriver-first project. Each module owns a boundary so WebDriver diagnostics do not leak into neutral runtime/model modules.
+Selenium Test Lens is split into small Maven modules so Selenium code, browser overlay resources, reporting models, and optional React support remain separate. Normal Selenium tests integrate through the main `selenium-test-lens` artifact.
 
 ## Module boundaries
 
 | Module | Responsibility | Dependency boundary |
-|---|---|---|
-| `selenium-test-lens-core` | Internal logging, log sinks, trace/evidence model, JSON and HTML exporters. | No Selenium dependency. |
-| `selenium-test-lens-overlay` | Runtime JS resources, overlay config, HUD model and visual debugging assets. | No Selenium dependency. |
-| `selenium-test-lens` (source directory `selenium-test-lens-selenium/`) | Main runtime JAR with the Selenium facade, locators, assertions, actionability, overlay policy, evidence capture, auth/session state and network diagnostics. | Does not depend on React. |
-| `selenium-test-lens-react` | React-specific support and React-aware actionability extension layer. | May depend on Selenium integration. |
-| `selenium-test-lens-examples` | Documentation and compile-check examples. | Not a runtime dependency. |
+| --- | --- | --- |
+| `selenium-test-lens-core` | Trace, logging, evidence metadata, and report exporters | Has no Selenium dependency |
+| `selenium-test-lens-overlay` | Browser overlay resources, HUD support, and visual configuration | Depends on core; has no Selenium dependency |
+| `selenium-test-lens` | Public `TestLens` runtime for Selenium tests | Depends on core and overlay; Selenium is optional and supplied by the consumer |
+| `selenium-test-lens-react` | Optional React- and SPA-specific Selenium helpers | Depends directly on the main runtime, core, overlay, and Selenium |
+| `selenium-test-lens-examples` | Compile-checked and documentation examples | Depends on the main runtime and React module; built with the reactor but excluded from Maven Central publication |
+
+The `selenium-test-lens` artifact is built from the source directory `selenium-test-lens-selenium/`.
+
+## Module dependency graph
+
+```text
+consumer -> selenium-test-lens
+selenium-test-lens -> core
+selenium-test-lens -> overlay -> core
+selenium-test-lens-react -> selenium-test-lens, overlay, core, Selenium
+selenium-test-lens-examples -> selenium-test-lens, selenium-test-lens-react
+```
+
+The main runtime declares Selenium as optional, so the consuming project remains responsible for its version.
 
 ## Selenium boundary
 
-Selenium-specific types are isolated to the main `selenium-test-lens` runtime module (stored in `selenium-test-lens-selenium/`) and modules that intentionally extend it. Core trace/export models and overlay runtime configuration do not import Selenium.
+Selenium types belong in the main integration module and extensions that explicitly build on it. Keeping core and overlay Selenium-free allows reports to be generated without a live browser, keeps trace models testable without `WebDriver`, and decouples browser resources from Selenium Java types.
 
-This keeps:
+## Runtime flow
 
-- trace/evidence export neutral
-- HTML report generation browser-driver independent
-- runtime overlay resources usable without Selenium types
+`TestLens` first attaches to the existing `WebDriver`. A diagnostic session starts when `startSession(...)` is called. During that session, Lens operations can invoke browser behavior and emit diagnostic events. The active `UiTestLensSession` records them; HUD updates are best-effort.
 
-## Overlay runtime boundary
+```text
+TestLens operation
+      |
+      +--> browser / Selenium operation (when applicable)
+      |
+      +--> diagnostic event
+              |
+              +--> session trace
+              +--> HUD update (best effort)
 
-`selenium-test-lens-overlay` ships JavaScript resources such as:
+Evidence-producing operation
+      |
+      +--> writes or references artifact file
+      |
+      +--> attaches artifact metadata
+              |
+              v
+         active session
 
-- `hud-panel.js`
-- `wait-hud.js`
-- `highlight.js`
-- `assertion-badges.js`
-- `api-overlay.js`
-- `type-hint.js`
-- `scroll-arrow.js`
+Finalized session
+      |
+      +--> HTML diagnostics (best effort)
+      +--> JSON diagnostics (best effort)
+```
 
-The primary browser namespace is `window.__uiTestLens`. Legacy aliases are kept only for runtime compatibility.
+Screenshots and other evidence are attached to the active session when produced. Finalization marks the accumulated session passed or failed and attempts to export its HTML and JSON diagnostics beneath the configured Test Lens output root.
 
-## React boundary
+Direct logger and sink APIs are intended for lower-level integrations.
 
-React-specific helpers are not part of `selenium-test-lens-selenium`. They live in `selenium-test-lens-react`, which acts as an extension layer. This prevents the Selenium module from taking a React dependency.
+## Overlay runtime
 
-## Trace and logging flow
+The overlay module contains resources for the HUD, highlighting and decorations, assertion and wait indicators, and API/debug overlays. The Selenium runtime injects and updates them through the driver. Consumers configure this layer through `OverlayConfig`.
 
-`UiTestLensLogger` emits structured events. When a `UiTestLensSession` is attached through `JsOverlayDebug.startSession(...)` or `attachSession(...)`, `TraceLogSink` maps logger events into trace timeline events.
+## Reporting boundary
 
-Artifacts such as screenshots, video references and network logs are attached separately to the session.
-
-Report export lives in `selenium-test-lens-core` and remains independent of Selenium runtime classes, so Selenium Test Lens can generate reports from collected session data without a live driver. `TraceHtmlExporter` renders self-contained static HTML documents with inline CSS for individual trace sessions and combined suite/run reports, while `TraceJsonExporter` renders the machine-readable `schemaVersion` `1.0` integration format. `TraceReportBundleExporter` packages `index.html`, `report.json`, `manifest.json`, and copied artifacts into an offline ZIP bundle. `HtmlLogExporter` converts log entries into the same HTML report pipeline for log-only runs. File helpers create parent directories, overwrite existing reports, and default suite output to `target/ui-test-lens-report/index.html`, `target/ui-test-lens-report/report.json`, and `target/ui-test-lens-report/ui-test-lens-report.zip`.
-
-Report color is controlled through `TraceHtmlExportOptions.theme(...)`. `HtmlReportTheme.AUTO` uses CSS variables plus `prefers-color-scheme`; `LIGHT` and `DARK` force a specific static palette. HUD theme and HTML report theme are intentionally separate contracts.
+Report generation lives in core. Collected sessions can be exported as HTML, JSON, or portable bundles without Selenium or a live browser. See [Examples](examples.md) and the [API guide](api-reference.md) for usage.
 
 ## Evidence boundary
 
-The core trace model stores artifact metadata such as path, URL, media type and labels. Selenium-side capture code creates screenshot files through `TakesScreenshot`, then attaches the resulting path as a trace artifact. Video support is reference/attachment based and does not record video.
+Core stores artifact metadata such as paths and URLs. Selenium integration creates browser-dependent evidence, including screenshots, and attaches it to the session. Exporters consume that session model; the producing feature writes the underlying file. Video support attaches existing files or URLs and does not record video.
 
-HTML and JSON reports link file artifacts relative to the report location when possible. Missing artifact files are rendered as warnings or JSON records instead of failing export, which keeps CI report generation resilient when optional evidence was not produced.
+## React boundary
 
-ZIP bundles normalize all entry names, reject absolute or parent-traversal entries, never store absolute artifact paths, deduplicate duplicate artifact file names, and list missing artifacts in `manifest.json`. The bundle is intended for CI artifact publishing or API upload without requiring external assets or frontend tooling.
+React support is isolated in `selenium-test-lens-react`, which depends on the main runtime, core, overlay, and Selenium. The main runtime does not depend on React. Normal DOM interactions continue to use `selenium-test-lens`.
 
 ## Dependency rules
 
-The project avoids:
+Keep these boundaries intact when adding features or modules:
 
-- Selenium imports in `selenium-test-lens-core`
-- Selenium imports in `selenium-test-lens-overlay`
-- React imports in `selenium-test-lens-selenium`
-- legacy utility imports outside the public module APIs
-- framework-specific automation dependencies outside the intended module boundary
-- runtime/test dependencies for documentation-only features
+- core must not depend on Selenium;
+- overlay must not depend on Selenium;
+- the main Selenium runtime must not depend on React;
+- React-specific behavior must remain in the optional React module;
+- examples must not become runtime dependencies or published artifacts;
+- test-runner and reporter libraries must not become dependencies of the main runtime.
 
-These boundaries should be checked before release work.
+## Next steps
 
+- [Browse the API guide](api-reference.md)
+- [See usage examples](examples.md)

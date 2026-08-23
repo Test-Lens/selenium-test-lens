@@ -1,0 +1,84 @@
+site_name: Selenium Test Lens
+site_description: Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.
+site_url: https://test-lens.github.io/selenium-test-lens/
+repo_name: Test-Lens/selenium-test-lens
+repo_url: https://github.com/Test-Lens/selenium-test-lens
+edit_uri: edit/main/docs/
+exclude_docs: |
+  CURRENT_IMPLEMENTATION_AUDIT.md
+  assets/brand/README.md
+
+theme:
+  name: material
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation & first test: getting-started.md
+      - Existing WebDriver integration: framework-integration.md
+      - Configuration: configuration.md
+  - Using Test Lens:
+      - Locators, actions & contexts: api-reference.md
+      - Examples: examples.md
+  - Observability:
+      - Visual overlay & HUD: visual-overlay-hud.md
+      - Trace, reports, evidence & logging: api-reference.md
+  - Integration:
+      - JUnit, TestNG, reporters & React: framework-integration.md
+  - Migration:
+      - From raw Selenium: migration.md
+  - Reference:
+      - API guide: api-reference.md
+      - Architecture: architecture.md
+      - Changelog: https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md
+      - Maven Central: https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0
+      - Javadoc: https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+extra_css:
+  - stylesheets/extra.css
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn

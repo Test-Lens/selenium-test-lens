@@ -1,109 +1,189 @@
 # Integrating Test Lens with an existing Selenium project
 
-Test Lens attaches to the `WebDriver` your framework already owns. It does not replace the driver factory, runner, Page Objects, or an existing reporter.
+Test Lens is designed to fit into an existing Selenium test stack. Keep your current driver factory, test runner, Page Objects and reporting tools.
+
+Create one `TestLens` instance for each driver/test invocation:
 
 ```java
-TestLens lens = TestLens.attach(existingDriver);
-lens.startSession("login");
-
-lens.locator(By.id("username"), "Username").fill("john");
-lens.locator(By.id("login"), "Login").click();
-lens.locator(By.cssSelector(".result"), "Result").waitUntilVisible();
+TestLens lens = TestLens.attach(driver);
+lens.startSession(testName);
 ```
 
-Native actions, waits, reads, assertions, collection operations, screenshots, and steps use one event pipeline for the trace and best-effort HUD. A document navigation does not require another `initHud()` call.
+## Integration model
 
-Frames, windows and tabs keep the same driver and Lens session. HUD reinjection follows the current browsing context:
+Your project remains responsible for creating and closing `WebDriver`. Test Lens attaches to that driver, records Lens operations, and writes session diagnostics when the test finishes.
+
+A typical integration has three lifecycle points:
+
+1. Create the driver as usual.
+2. Attach Test Lens and start a session for the test invocation.
+3. Finalize the Lens session with the test outcome, then close the driver.
+
+If `runTest(...)` can propagate checked exceptions, the enclosing integration method should declare `throws Exception`.
 
 ```java
-lens.switchToFrame(PAYMENT_FRAME, "Payment frame");
-lens.locator(PAY, "Pay").click();
-lens.switchToDefaultContent();
+WebDriver driver = ExistingDriverFactory.create();
 
-Set<String> before = lens.windowHandles();
-lens.locator(OPEN_RECEIPT, "Open receipt").click();
-lens.switchToNewWindow(before, "Receipt");
+try {
+    TestLens lens = TestLens.attach(driver);
+    lens.startSession(testName);
+
+    try {
+        runTest(driver, lens);
+        lens.finishPassed();
+    } catch (Exception | Error failure) {
+        lens.finishFailed(failure);
+        throw failure;
+    }
+} finally {
+    driver.quit();
+}
 ```
 
-Create one `TestLens` per driver/test invocation. No frame, window, alert, select, or `Actions` instance is stored globally.
+Keep driver shutdown in your existing framework cleanup. If your project has specific handling for WebDriver cleanup failures, keep that policy when adding Test Lens.
+
+You can introduce Lens gradually. Existing Page Objects and direct Selenium calls can continue to use the attached driver.
 
 ## JUnit 5
 
-Use one driver and one `TestLens` per test invocation. A class-level extension implementing `BeforeEachCallback`, `AfterEachCallback`, and `TestWatcher` can store them in `ExtensionContext.Store`. Start the session in `beforeEach`; call `finishPassed()` from `testSuccessful` and `finishFailed(cause)` from `testFailed`. Both methods are diagnostic and do not throw, so the runner retains ownership of the original outcome.
+A JUnit 5 extension can create one driver and Lens instance in `beforeEach`, then finalize and clean them up in `afterEach`.
 
 ```java
-final class LensExtension implements BeforeEachCallback, TestWatcher {
-    private static final ExtensionContext.Namespace NS = ExtensionContext.Namespace.create(LensExtension.class);
+final class LensExtension implements BeforeEachCallback, AfterEachCallback {
+    private static final ExtensionContext.Namespace NAMESPACE =
+            ExtensionContext.Namespace.create(LensExtension.class);
 
+    @Override
     public void beforeEach(ExtensionContext context) {
         WebDriver driver = ExistingDriverFactory.create();
-        TestLens lens = TestLens.attach(driver);
-        lens.startSession(context.getDisplayName());
-        context.getStore(NS).put(context.getUniqueId(), new State(driver, lens));
+        try {
+            TestLens lens = TestLens.attach(driver);
+            lens.startSession(context.getDisplayName());
+            context.getStore(NAMESPACE).put(context.getUniqueId(),
+                    new State(driver, lens));
+        } catch (RuntimeException | Error failure) {
+            driver.quit();
+            throw failure;
+        }
     }
 
-    public void testSuccessful(ExtensionContext context) { finish(context, null); }
-    public void testFailed(ExtensionContext context, Throwable cause) { finish(context, cause); }
+    @Override
+    public void afterEach(ExtensionContext context) {
+        State state = context.getStore(NAMESPACE)
+                .remove(context.getUniqueId(), State.class);
+        if (state == null) {
+            return;
+        }
 
-    private void finish(ExtensionContext context, Throwable cause) {
-        State state = context.getStore(NS).remove(context.getUniqueId(), State.class);
-        if (state == null) return;
+        Throwable failure = context.getExecutionException().orElse(null);
         try {
-            if (cause == null) state.lens().finishPassed(); else state.lens().finishFailed(cause);
+            if (failure == null) {
+                state.lens().finishPassed();
+            } else {
+                state.lens().finishFailed(failure);
+            }
         } finally {
             state.driver().quit();
         }
     }
-    record State(WebDriver driver, TestLens lens) {}
+
+    private record State(WebDriver driver, TestLens lens) {}
 }
 ```
 
-Register the extension at class level so parameterized, repeated, and nested invocations receive separate state. Use the invocation unique ID rather than a static field when parallel execution is enabled.
+Register the extension once per test class. Parameterized and repeated tests receive a separate JUnit invocation and therefore separate stored state.
+
+Test Lens 0.1.0 exposes passed/failed session finalization. In this example, any JUnit execution exception is recorded as a failed Lens session.
 
 ## TestNG
 
-`@BeforeMethod`/`@AfterMethod(alwaysRun = true)` is sufficient. For `parallel="methods"`, parallel DataProviders, and retry analyzers, store invocation state in a `ThreadLocal` or an invocation-ID keyed concurrent map; never share a driver or Lens instance.
+With TestNG, attach Lens in `@BeforeMethod` and finalize it in an `@AfterMethod(alwaysRun = true)` method. A `ThreadLocal` keeps invocation state separate when methods run in parallel.
 
 ```java
 private final ThreadLocal<State> state = new ThreadLocal<>();
 
 @BeforeMethod
-public void before(Method method) {
+public void beforeMethod(Method method) {
     WebDriver driver = ExistingDriverFactory.create();
-    TestLens lens = TestLens.attach(driver);
-    lens.startSession(method.getName());
-    state.set(new State(driver, lens));
+    try {
+        TestLens lens = TestLens.attach(driver);
+        lens.startSession(method.getName());
+        state.set(new State(driver, lens));
+    } catch (RuntimeException | Error failure) {
+        driver.quit();
+        throw failure;
+    }
 }
 
 @AfterMethod(alwaysRun = true)
-public void after(ITestResult result) {
+public void afterMethod(ITestResult result) {
     State current = state.get();
     try {
         if (current != null) {
-            if (result.isSuccess()) current.lens().finishPassed();
-            else current.lens().finishFailed(result.getThrowable());
+            int status = result.getStatus();
+            if (status == ITestResult.SUCCESS) {
+                current.lens().finishPassed();
+            } else {
+                Throwable failure = result.getThrowable();
+                if (failure == null) {
+                    failure = status == ITestResult.SKIP
+                            ? new SkipException("TestNG invocation skipped")
+                            : new AssertionError("TestNG result status: " + status);
+                }
+                current.lens().finishFailed(failure);
+            }
         }
     } finally {
-        if (current != null) current.driver().quit();
+        if (current != null) {
+            current.driver().quit();
+        }
         state.remove();
     }
 }
+
+private record State(WebDriver driver, TestLens lens) {}
 ```
 
-Give retry attempts distinct test/session names when aggregating results.
+In this example, skipped TestNG invocations are recorded as failed Lens sessions because Test Lens 0.1.0 has no skipped finalizer. `SkipException` supplies the reason when TestNG provides no throwable. If your suite uses a different reporting policy for skipped tests, map that status explicitly in your integration.
 
 ## Allure coexistence
 
-Allure and Test Lens are independent observers of the same test:
+Allure and Test Lens can be used side by side. Keep existing Allure listeners, annotations, attachments, and result directories unchanged.
 
 ```java
-@Step("Submit order") // existing Allure step stays
+@Step("Submit order")
 void submitOrder() {
     lens.locator(SUBMIT, "Submit order").click();
 }
 ```
 
-- Keep Allure listeners, `@Step`, `@Attachment`, and `allure-results` unchanged.
-- Lens writes its own session-scoped HTML, JSON, and evidence under `target/ui-test-lens` by default.
-- Do not mechanically wrap every Allure step in `lens.step()`; use Lens steps only where the additional business grouping is useful.
-- The runner still controls PASS/FAIL. `finishPassed/finishFailed` return diagnostic results and do not replace the original exception.
+Allure continues to produce `allure-results`; Test Lens writes its own diagnostics under `target/ui-test-lens` by default. You do not need to wrap every Allure step in `lens.step()`.
+
+## Parallel execution
+
+Associate each `TestLens` instance with exactly one driver and test invocation. Do not store a driver or Lens instance in a shared static field.
+
+- In JUnit 5, store invocation state in `ExtensionContext.Store` using the invocation's unique ID.
+- In TestNG, use a `ThreadLocal` or an invocation-ID keyed map when methods or data providers run in parallel.
+- Give retry attempts distinct session names if their reports are collected together.
+
+## Optional React extension
+
+React support is separate from the main runtime. Add it only when your tests need the React-specific helpers:
+
+```xml
+<dependency>
+    <groupId>io.github.test-lens</groupId>
+    <artifactId>selenium-test-lens-react</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
+
+The main `selenium-test-lens` artifact has no React dependency. Standard DOM interactions can continue to use the `TestLens` facade; the React extension is optional.
+
+## Next steps
+
+- [Install Selenium Test Lens](getting-started.md#installation)
+- [Use locators, waits, assertions, and browser contexts](api-reference.md)
+- [Migrate incrementally from raw Selenium](migration.md)
+- [Browse practical examples](examples.md)
