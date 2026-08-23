@@ -123,3 +123,24 @@ validation:
   absolute_links: warn
   unrecognized_links: warn
   anchors: warn
+
+extra:
+  analytics:
+    provider: google
+    property: G-T0B0XE6MS1
+    consent:
+      title: Cookie consent
+      description: >-
+        We use cookies to understand how the Test Lens documentation is used
+        and to help us improve it.
+
+      cookies:
+        analytics:
+          name: Google Analytics
+          checked: false
+
+      actions:
+        - accept
+        - reject
+        - manage
+
