@@ -2,6 +2,10 @@ package io.github.testlens.react;
 
 import io.github.testlens.JsOverlayDebug;
 import io.github.testlens.OverlayConfig;
+import io.github.testlens.core.trace.TraceEvent;
+import io.github.testlens.core.trace.TraceEventType;
+import io.github.testlens.core.trace.TraceFailure;
+import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.react.actionability.ReactActionabilityChecker;
 import io.github.testlens.react.actionability.ReactActionabilityOptions;
 import io.github.testlens.react.actionability.ReactActionabilityReport;
@@ -14,6 +18,7 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 import java.util.Objects;
+import java.time.Duration;
 import java.util.function.Predicate;
 
 /**
@@ -24,27 +29,55 @@ public final class ReactSupport {
 
     public static ReactSafeExecutor reactSafe(JsOverlayDebug overlay) {
         Objects.requireNonNull(overlay, "overlay must not be null");
-        return new ReactSafeExecutor(overlay.getDriver(), overlaySupport(overlay));
+        LensReactOverlaySupport support = new LensReactOverlaySupport(overlay);
+        return new ReactSafeExecutor(overlay.getDriver(), support, 3,
+                Duration.ofMillis(200), Duration.ofSeconds(15), support);
     }
 
     public static ReactOverlaySupport overlaySupport(JsOverlayDebug overlay) {
         Objects.requireNonNull(overlay, "overlay must not be null");
-        return new ReactOverlaySupport() {
-            @Override
-            public OverlayConfig getConfig() {
-                return overlay.getConfig();
-            }
+        return new LensReactOverlaySupport(overlay);
+    }
 
-            @Override
-            public void setStep(String stepDescription) {
-                overlay.setStep(stepDescription);
-            }
+    private static final class LensReactOverlaySupport
+            implements ReactOverlaySupport, ReactSafeExecutor.RetryTraceSink {
+        private final JsOverlayDebug overlay;
 
-            @Override
-            public WebElement highlightElement(WebElement element, String label) {
-                return overlay.highlightElement(element, label);
-            }
-        };
+        private LensReactOverlaySupport(JsOverlayDebug overlay) {
+            this.overlay = overlay;
+        }
+
+        @Override
+        public OverlayConfig getConfig() {
+            return overlay.getConfig();
+        }
+
+        @Override
+        public void setStep(String stepDescription) {
+            overlay.setStep(stepDescription);
+        }
+
+        @Override
+        public WebElement highlightElement(WebElement element, String label) {
+            return overlay.highlightElement(element, label);
+        }
+
+        @Override
+        public void record(String action, String locator, int attempt, int nextAttempt,
+                           RuntimeException failure, long durationNanos) {
+            overlay.session().ifPresent(session -> session.addEvent(TraceEvent.builder(
+                            TraceEventType.RETRY, TraceStatus.WARNING, "React recovery retry")
+                    .message("Retrying React-safe operation")
+                    .duration(Duration.ofNanos(Math.max(0, durationNanos)))
+                    .failure(TraceFailure.from(failure, false))
+                    .attribute("retry.kind", "react")
+                    .attribute("retry.action", action)
+                    .attribute("retry.locator", locator)
+                    .attribute("retry.attempt", String.valueOf(attempt))
+                    .attribute("retry.nextAttempt", String.valueOf(nextAttempt))
+                    .attribute("retry.exceptionType", failure.getClass().getName())
+                    .build()));
+        }
     }
 
     public static ReactActionabilityChecker actionability(JsOverlayDebug overlay) {

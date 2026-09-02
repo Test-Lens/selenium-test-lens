@@ -6,6 +6,7 @@ import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceFailure;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.trace.RetryOutcomePolicy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -17,6 +18,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class TraceHtmlExporterTest {
     @TempDir
@@ -302,6 +304,40 @@ class TraceHtmlExporterTest {
 
         assertTrue(html.contains("No Selenium Test Lens sessions recorded."));
         assertTrue(html.contains("No session details available."));
+    }
+
+    @Test
+    void flakinessSectionIsNeutralWithoutRetries() {
+        String html = new TraceHtmlExporter().export(UiTestLensSession.start("stable"));
+        assertTrue(html.contains("<h2>Flakiness</h2>"));
+        assertTrue(html.contains("No recovery retries were recorded."));
+    }
+
+    @Test
+    void flakinessSectionShowsWarningAndEscapesGroups() {
+        UiTestLensSession session = UiTestLensSession.start("warning", RetryOutcomePolicy.WARN, 0);
+        session.addEvent(TraceEvent.builder(TraceEventType.RETRY, TraceStatus.WARNING, "retry")
+                .duration(Duration.ofMillis(3))
+                .attribute("retry.action", "click<script>")
+                .attribute("retry.locator", "save")
+                .attribute("retry.exceptionType", "Stale")
+                .build());
+        session.finishPassed();
+        String html = new TraceHtmlExporter().export(session);
+        assertTrue(html.contains("flaky-warning"));
+        assertTrue(html.contains("Warning: this session is a flaky candidate."));
+        assertTrue(html.contains("click&lt;script&gt;"));
+        assertFalse(html.contains("click<script>"));
+    }
+
+    @Test
+    void flakinessSectionShowsPolicyFailure() {
+        UiTestLensSession session = UiTestLensSession.start("failed", RetryOutcomePolicy.FAIL_ON_ANY_RETRY, 0);
+        session.addEvent(TraceEvent.builder(TraceEventType.RETRY, TraceStatus.WARNING, "retry").build());
+        assertThrows(io.github.testlens.core.trace.RetryPolicyViolationException.class, session::finishPassed);
+        String html = new TraceHtmlExporter().export(session);
+        assertTrue(html.contains("flaky-failure"));
+        assertTrue(html.contains("Retry policy failed this otherwise successful session."));
     }
 
     private UiTestLensSession sampleSession() {

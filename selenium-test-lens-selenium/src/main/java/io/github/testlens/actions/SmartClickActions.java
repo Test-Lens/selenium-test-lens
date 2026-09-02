@@ -18,6 +18,7 @@ import io.github.testlens.selenium.overlay.OverlayHandlingStatus;
 import io.github.testlens.selenium.overlay.OverlayPolicy;
 import io.github.testlens.selenium.overlay.OverlayPolicyExecutor;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -79,14 +80,17 @@ public class SmartClickActions {
                         observabilityFailure, false, "bestEffortOverlayProbe", false);
             }
 
+            decorateClickTarget(target, label);
+            long clickStarted = System.nanoTime();
             try {
-                clickTarget(target, label);
+                target.click();
                 emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, false, null, true);
                 return;
             } catch (WebDriverException e) {
                 if (!isClickInterceptError(e)) {
                     throw e;
                 }
+                emitRecoveryRetry(label, e, Math.max(0, System.nanoTime() - clickStarted));
                 if (handleConfiguredOverlayPolicy()) {
                     clickTarget(target, label);
                     emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, true, "overlayPolicy", true);
@@ -122,19 +126,24 @@ public class SmartClickActions {
     }
 
     private boolean isClickInterceptError(Throwable e) {
-        String msg = e.getMessage();
-        if (msg == null) return false;
-        msg = msg.toLowerCase();
-        return msg.contains("other element would receive the click")
-                || msg.contains("is not clickable at point")
-                || msg.contains("intercepted");
+        Throwable current = e;
+        java.util.Set<Throwable> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        while (current != null && seen.add(current)) {
+            if (current instanceof ElementClickInterceptedException) return true;
+            current = current.getCause();
+        }
+        return false;
     }
 
     private void clickTarget(WebElement target, String label) {
+        decorateClickTarget(target, label);
+        target.click();
+    }
+
+    private void decorateClickTarget(WebElement target, String label) {
         if (config.isEnabled()) {
             highlightActions.highlightClick(target, label);
         }
-        target.click();
     }
 
     private boolean handleConfiguredOverlayPolicy() {
@@ -204,6 +213,36 @@ public class SmartClickActions {
             }
             logger.emit(builder.build());
         } catch (Exception ignored) {}
+    }
+
+    private void emitRecoveryRetry(String label, Throwable failure, long durationNanos) {
+        Throwable cause = failure;
+        Throwable current = failure;
+        java.util.Set<Throwable> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        while (current != null && seen.add(current)) {
+            if (current instanceof ElementClickInterceptedException) cause = current;
+            current = current.getCause();
+        }
+        try {
+            logger.emit(UiTestLensLogEntry.builder()
+                    .level(UiTestLensLogLevel.WARN)
+                    .eventType(UiTestLensEventType.LOCATOR_RETRY)
+                    .status(UiTestLensStatus.WARN)
+                    .message("Retrying intercepted click")
+                    .action("clickWithOverlayHandling")
+                    .target(TargetDescriptor.label(label))
+                    .metadata("retryKind", "recovery")
+                    .metadata("retryAction", "click")
+                    .metadata("retryLocator", label == null ? "" : label)
+                    .metadata("attempt", "1")
+                    .metadata("nextAttempt", "2")
+                    .metadata("exceptionType", cause.getClass().getName())
+                    .metadata("failedAttemptDurationNanos", String.valueOf(durationNanos))
+                    .throwable(cause)
+                    .build());
+        } catch (RuntimeException ignored) {
+            // Retry diagnostics must not alter click recovery.
+        }
     }
 }
 

@@ -237,6 +237,7 @@ public static io.github.testlens.TestLens attach(org.openqa.selenium.WebDriver, 
 public org.openqa.selenium.WebDriver driver()
 public io.github.testlens.core.trace.UiTestLensSession startSession(java.lang.String)
 public java.util.Optional<io.github.testlens.core.trace.UiTestLensSession> session()
+public io.github.testlens.core.trace.RetrySummary retrySummary()
 public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By)
 public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By, java.lang.String)
 public io.github.testlens.selenium.assertions.UiExpect expect(org.openqa.selenium.By)
@@ -298,6 +299,7 @@ public void fill(java.lang.String)
 ```java
 public io.github.testlens.TestLensFinalizationResult(io.github.testlens.core.trace.UiTestLensSession, java.nio.file.Path, java.nio.file.Path, java.nio.file.Path, java.nio.file.Path, java.util.List<java.lang.Throwable>)
 public boolean fullySuccessful()
+public io.github.testlens.core.trace.RetrySummary retrySummary()
 public final java.lang.String toString()
 public final int hashCode()
 public final boolean equals(java.lang.Object)
@@ -323,6 +325,8 @@ public io.github.testlens.TestLensOptions$Builder locatorOptions(io.github.testl
 public io.github.testlens.TestLensOptions$Builder outputRoot(java.nio.file.Path)
 public io.github.testlens.TestLensOptions$Builder screenshotOnFailure(boolean)
 public io.github.testlens.TestLensOptions$Builder cleanupHudOnFinish(boolean)
+public io.github.testlens.TestLensOptions$Builder retryOutcomePolicy(io.github.testlens.core.trace.RetryOutcomePolicy)
+public io.github.testlens.TestLensOptions$Builder allowedRetries(int)
 public io.github.testlens.TestLensOptions build()
 ```
 
@@ -342,4 +346,6 @@ public io.github.testlens.selenium.locator.UiLocatorOptions locatorOptions()
 public java.nio.file.Path outputRoot()
 public boolean screenshotOnFailure()
 public boolean cleanupHudOnFinish()
+public io.github.testlens.core.trace.RetryOutcomePolicy retryOutcomePolicy()
+public int allowedRetries()
 ```

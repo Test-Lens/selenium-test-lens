@@ -19,7 +19,7 @@ try {
 }
 ```
 
-`finishFailed(Throwable)` attempts a timestamp-free `failure*.png` below the session output directory when screenshot-on-failure is enabled. This is driven by the explicit `FAILED` outcome, so `finishFailed(null)` still attempts capture and remains failed. `finishPassed()` and `finishSkipped(reason)` never request an automatic failure screenshot. Capture is best effort: failure is appended to `TestLensFinalizationResult.diagnosticFailures()` and never replaces the original test failure or final status. Disable it with `TestLensOptions.builder().screenshotOnFailure(false)`. See [`TestLensOptions`](../reference/configuration.md#testlensoptions) and [session finalization](../reference/test-lens.md#creation-and-lifecycle).
+Finalization attempts a timestamp-free `failure*.png` below the session output directory when the resulting status is `FAILED` and screenshot-on-failure is enabled. Thus `finishFailed(null)` still captures, and a passed test rejected by retry outcome policy captures after becoming failed. Ordinary passed and skipped finalization never requests it. Capture is best effort and never replaces the primary failure or policy violation. Disable it with `TestLensOptions.builder().screenshotOnFailure(false)`. See [`TestLensOptions`](../reference/configuration.md#testlensoptions) and [session finalization](../reference/test-lens.md#creation-and-lifecycle).
 
 ## Explicit screenshots
 

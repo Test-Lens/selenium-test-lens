@@ -27,6 +27,29 @@ class TraceJsonExporterTest {
         assertTrue(json.contains("\"session\""));
         assertTrue(json.contains("\"name\":\"Empty\""));
         assertTrue(json.contains("\"events\""));
+        assertTrue(json.contains("\"flakiness\":{\"flakyCandidate\":false,\"totalRetries\":0,\"timeLostMs\":0,\"policy\":\"REPORT_ONLY\",\"policyTriggered\":false"));
+    }
+
+    @Test
+    void exportContainsStableFlakinessAggregation() {
+        UiTestLensSession session = UiTestLensSession.start("retry", RetryOutcomePolicy.WARN, 0);
+        session.addEvent(TraceEvent.builder(TraceEventType.RETRY, TraceStatus.WARNING, "retry")
+                .duration(Duration.ofMillis(37))
+                .attribute("retry.action", "click")
+                .attribute("retry.locator", "save")
+                .attribute("retry.exceptionType", "org.openqa.selenium.StaleElementReferenceException")
+                .build());
+        session.finishPassed();
+
+        String json = session.exportJson();
+
+        assertTrue(json.contains("\"flakyCandidate\":true"));
+        assertTrue(json.contains("\"totalRetries\":1"));
+        assertTrue(json.contains("\"timeLostMs\":37"));
+        assertTrue(json.contains("\"policy\":\"WARN\""));
+        assertTrue(json.contains("\"byAction\":{\"click\":1}"));
+        assertTrue(json.contains("\"byLocator\":{\"save\":1}"));
+        assertTrue(json.contains("\"byException\":{\"org.openqa.selenium.StaleElementReferenceException\":1}"));
     }
 
     @Test

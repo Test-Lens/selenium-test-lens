@@ -7,6 +7,60 @@ search:
 
 Generated binary-surface details. For behavior and examples, return to the [functional reference](../index.md) or follow the mapped documentation link.
 
+## `io.github.testlens.core.trace.RetryOutcomePolicy` {#io-github-testlens-core-trace-retryoutcomepolicy}
+
+- Artifact/module: `selenium-test-lens-core`
+- Package: `io.github.testlens.core.trace`
+- Classification: `USER_API`
+- Type kind: `enum`
+- Functional documentation: [docs/observability/flakiness.md](../../observability/flakiness.md)
+
+```java
+public static final io.github.testlens.core.trace.RetryOutcomePolicy REPORT_ONLY
+public static final io.github.testlens.core.trace.RetryOutcomePolicy WARN
+public static final io.github.testlens.core.trace.RetryOutcomePolicy FAIL_AFTER_N
+public static final io.github.testlens.core.trace.RetryOutcomePolicy FAIL_ON_ANY_RETRY
+public static io.github.testlens.core.trace.RetryOutcomePolicy[] values()
+public static io.github.testlens.core.trace.RetryOutcomePolicy valueOf(java.lang.String)
+```
+
+## `io.github.testlens.core.trace.RetryPolicyViolationException` {#io-github-testlens-core-trace-retrypolicyviolationexception}
+
+- Artifact/module: `selenium-test-lens-core`
+- Package: `io.github.testlens.core.trace`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/observability/flakiness.md](../../observability/flakiness.md)
+
+```java
+public io.github.testlens.core.trace.RetryPolicyViolationException(io.github.testlens.core.trace.RetryOutcomePolicy, io.github.testlens.core.trace.RetrySummary)
+public io.github.testlens.core.trace.RetryOutcomePolicy policy()
+public io.github.testlens.core.trace.RetrySummary retrySummary()
+```
+
+## `io.github.testlens.core.trace.RetrySummary` {#io-github-testlens-core-trace-retrysummary}
+
+- Artifact/module: `selenium-test-lens-core`
+- Package: `io.github.testlens.core.trace`
+- Classification: `USER_API`
+- Type kind: `record`
+- Functional documentation: [docs/observability/flakiness.md](../../observability/flakiness.md)
+
+```java
+public io.github.testlens.core.trace.RetrySummary(long, java.time.Duration, boolean, io.github.testlens.core.trace.RetryOutcomePolicy, boolean, java.util.Map<java.lang.String, java.lang.Long>, java.util.Map<java.lang.String, java.lang.Long>, java.util.Map<java.lang.String, java.lang.Long>)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public long totalRetries()
+public java.time.Duration timeLost()
+public boolean flakyCandidate()
+public io.github.testlens.core.trace.RetryOutcomePolicy policy()
+public boolean policyTriggered()
+public java.util.Map<java.lang.String, java.lang.Long> byAction()
+public java.util.Map<java.lang.String, java.lang.Long> byLocator()
+public java.util.Map<java.lang.String, java.lang.Long> byException()
+```
+
 ## `io.github.testlens.core.trace.TraceArtifact` {#io-github-testlens-core-trace-traceartifact}
 
 - Artifact/module: `selenium-test-lens-core`
@@ -130,6 +184,8 @@ public static final io.github.testlens.core.trace.TraceEventType OVERLAY_HANDLED
 public static final io.github.testlens.core.trace.TraceEventType ACTIONABILITY_CHECK
 public static final io.github.testlens.core.trace.TraceEventType LOCATOR_RESOLVE
 public static final io.github.testlens.core.trace.TraceEventType LOCATOR_ACTION
+public static final io.github.testlens.core.trace.TraceEventType RETRY
+public static final io.github.testlens.core.trace.TraceEventType RETRY_SUMMARY
 public static final io.github.testlens.core.trace.TraceEventType NETWORK_EVENT
 public static final io.github.testlens.core.trace.TraceEventType NETWORK_WAIT
 public static final io.github.testlens.core.trace.TraceEventType SCREENSHOT
@@ -324,10 +380,12 @@ public synchronized java.util.List<io.github.testlens.core.trace.TraceEvent> eve
 
 ```java
 public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String)
+public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int)
 public java.lang.String id()
 public synchronized io.github.testlens.core.trace.TraceMetadata metadata()
 public synchronized java.util.List<io.github.testlens.core.trace.TraceEvent> events()
 public synchronized java.util.List<io.github.testlens.core.trace.TraceArtifact> artifacts()
+public synchronized io.github.testlens.core.trace.RetrySummary retrySummary()
 public synchronized io.github.testlens.core.trace.TraceEvent addEvent(io.github.testlens.core.trace.TraceEvent)
 public synchronized io.github.testlens.core.trace.TraceArtifact attachArtifact(io.github.testlens.core.trace.TraceArtifact)
 public io.github.testlens.core.trace.TraceArtifact attachScreenshot(java.lang.String, java.nio.file.Path)

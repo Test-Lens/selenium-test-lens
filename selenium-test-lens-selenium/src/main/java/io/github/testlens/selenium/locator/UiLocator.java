@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.LongSupplier;
 
 public final class UiLocator {
     private final WebDriver driver;
@@ -39,6 +40,7 @@ public final class UiLocator {
     private final OverlayLogger logger;
     private final Integer collectionIndex;
     private final boolean lastCollectionElement;
+    private final LongSupplier nanoTicker;
 
     public UiLocator(WebDriver driver,
                      By by,
@@ -46,7 +48,12 @@ public final class UiLocator {
                      JsOverlayDebug overlay,
                      UiLocatorOptions options,
                      OverlayLogger logger) {
-        this(driver, by, label, overlay, options, logger, null, false);
+        this(driver, by, label, overlay, options, logger, null, false, System::nanoTime);
+    }
+
+    UiLocator(WebDriver driver, By by, String label, JsOverlayDebug overlay,
+              UiLocatorOptions options, OverlayLogger logger, LongSupplier nanoTicker) {
+        this(driver, by, label, overlay, options, logger, null, false, nanoTicker);
     }
 
     private UiLocator(WebDriver driver,
@@ -56,7 +63,8 @@ public final class UiLocator {
                       UiLocatorOptions options,
                       OverlayLogger logger,
                       Integer collectionIndex,
-                      boolean lastCollectionElement) {
+                      boolean lastCollectionElement,
+                      LongSupplier nanoTicker) {
         this.driver = Objects.requireNonNull(driver, "driver must not be null");
         this.overlay = Objects.requireNonNull(overlay, "overlay must not be null");
         this.description = UiLocatorDescription.of(by, label);
@@ -65,6 +73,7 @@ public final class UiLocator {
         this.logger = logger != null ? logger : OverlayLogger.noop();
         this.collectionIndex = collectionIndex;
         this.lastCollectionElement = lastCollectionElement;
+        this.nanoTicker = nanoTicker == null ? System::nanoTime : nanoTicker;
     }
 
     public UiLocator click() {
@@ -213,15 +222,15 @@ public final class UiLocator {
     }
 
     public UiLocator nth(int index) {
-        return new UiLocator(driver, by(), collectionLabel("[" + index + "]"), overlay, options, logger, index, false);
+        return new UiLocator(driver, by(), collectionLabel("[" + index + "]"), overlay, options, logger, index, false, nanoTicker);
     }
 
     public UiLocator first() {
-        return new UiLocator(driver, by(), collectionLabel("[first]"), overlay, options, logger, 0, false);
+        return new UiLocator(driver, by(), collectionLabel("[first]"), overlay, options, logger, 0, false, nanoTicker);
     }
 
     public UiLocator last() {
-        return new UiLocator(driver, by(), collectionLabel("[last]"), overlay, options, logger, null, true);
+        return new UiLocator(driver, by(), collectionLabel("[last]"), overlay, options, logger, null, true, nanoTicker);
     }
 
     public UiLocator waitUntilVisible() {
@@ -392,8 +401,12 @@ public final class UiLocator {
         RuntimeException lastFailure = null;
         String lastActionabilitySummary = "";
         for (int attempt = 1; attempt <= options.maxRetries(); attempt++) {
+            long attemptStarted = 0;
+            boolean operationStarted = false;
             try {
                 WebElement element = resolve();
+                attemptStarted = nanoTicker.getAsLong();
+                operationStarted = true;
                 ActionabilityReport report = operation.apply(element);
                 lastActionabilitySummary = report == null ? "" : report.summary();
                 emit(UiTestLensEventType.LOCATOR_ACTION_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
@@ -406,8 +419,10 @@ public final class UiLocator {
                             "Locator action failed", action, attempt, valueLength, e);
                     throw locatorException(action, e, lastActionabilitySummary);
                 }
-                emit(UiTestLensEventType.LOCATOR_RETRY, UiTestLensStatus.WARN, UiTestLensLogLevel.WARN,
-                        "Retrying locator action", action, attempt, valueLength, e);
+                if (operationStarted) {
+                    emitRecoveryRetry("action", action, attempt, attempt + 1,
+                            elapsedNanos(attemptStarted), effectiveRetryCause(e), valueLength);
+                }
             }
         }
         throw locatorException(action, lastFailure, lastActionabilitySummary);
@@ -419,8 +434,13 @@ public final class UiLocator {
                 "Locator read started", action, 0, null, null);
         RuntimeException lastFailure = null;
         for (int attempt = 1; attempt <= options.maxRetries(); attempt++) {
+            long attemptStarted = 0;
+            boolean operationStarted = false;
             try {
-                T value = operation.apply(resolve());
+                WebElement element = resolve();
+                attemptStarted = nanoTicker.getAsLong();
+                operationStarted = true;
+                T value = operation.apply(element);
                 emit(UiTestLensEventType.LOCATOR_ACTION_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
                         "Locator read passed", action, attempt, null, null);
                 return value;
@@ -431,8 +451,10 @@ public final class UiLocator {
                             "Locator read failed", action, attempt, null, e);
                     throw locatorException(action, e, "");
                 }
-                emit(UiTestLensEventType.LOCATOR_RETRY, UiTestLensStatus.WARN, UiTestLensLogLevel.WARN,
-                        "Retrying locator read", action, attempt, null, e);
+                if (operationStarted) {
+                    emitRecoveryRetry("read", action, attempt, attempt + 1,
+                            elapsedNanos(attemptStarted), effectiveRetryCause(e), null);
+                }
             }
         }
         throw locatorException(action, lastFailure, "");
@@ -467,23 +489,62 @@ public final class UiLocator {
     }
 
     private boolean shouldRetry(RuntimeException e) {
-        if (e instanceof StaleElementReferenceException) {
+        Throwable effective = effectiveRetryCause(e);
+        if (effective instanceof StaleElementReferenceException) {
             return options.retryOnStaleElement();
         }
-        if (e instanceof ElementClickInterceptedException) {
+        if (effective instanceof ElementClickInterceptedException) {
             return options.retryOnClickIntercepted();
         }
-        if (e instanceof ElementNotInteractableException) {
+        if (effective instanceof ElementNotInteractableException) {
             return options.retryOnNotInteractable();
         }
-        String message = e.getMessage();
-        if (message == null) {
-            return false;
+        return false;
+    }
+
+    private static Throwable effectiveRetryCause(Throwable failure) {
+        Throwable current = failure;
+        Throwable effective = failure;
+        java.util.Set<Throwable> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        while (current != null && seen.add(current)) {
+            if (current instanceof StaleElementReferenceException
+                    || current instanceof ElementClickInterceptedException
+                    || current instanceof ElementNotInteractableException) {
+                effective = current;
+            }
+            current = current.getCause();
         }
-        String lower = message.toLowerCase();
-        return (options.retryOnClickIntercepted() && lower.contains("intercepted"))
-                || (options.retryOnNotInteractable() && lower.contains("not interactable"))
-                || (options.retryOnStaleElement() && lower.contains("stale"));
+        return effective;
+    }
+
+    private long elapsedNanos(long started) {
+        return Math.max(0, nanoTicker.getAsLong() - started);
+    }
+
+    private void emitRecoveryRetry(String kind, String action, int attempt, int nextAttempt,
+                                   long failedAttemptDurationNanos, Throwable cause, Integer valueLength) {
+        try {
+            UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder()
+                    .level(UiTestLensLogLevel.WARN)
+                    .eventType(UiTestLensEventType.LOCATOR_RETRY)
+                    .status(UiTestLensStatus.WARN)
+                    .message("Retrying locator " + kind + ": " + description.displayName())
+                    .action("locator." + action)
+                    .metadata("locator", by().toString())
+                    .metadata("description", description.displayName())
+                    .metadata("retryKind", "recovery")
+                    .metadata("retryAction", action)
+                    .metadata("retryLocator", by().toString())
+                    .metadata("attempt", String.valueOf(attempt))
+                    .metadata("nextAttempt", String.valueOf(nextAttempt))
+                    .metadata("exceptionType", cause == null ? "" : cause.getClass().getName())
+                    .metadata("failedAttemptDurationNanos", String.valueOf(failedAttemptDurationNanos))
+                    .throwable(cause);
+            if (valueLength != null) builder.metadata("valueLength", String.valueOf(valueLength));
+            logger.emit(builder.build());
+        } catch (RuntimeException ignored) {
+            // Retry diagnostics must not alter the operation.
+        }
     }
 
     private UiLocatorException locatorException(String action, RuntimeException cause, String actionabilitySummary) {

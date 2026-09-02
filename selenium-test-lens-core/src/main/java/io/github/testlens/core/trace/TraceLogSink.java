@@ -8,6 +8,7 @@ import io.github.testlens.core.logging.UiTestLensStatus;
 
 import java.util.Map;
 import java.util.Objects;
+import java.time.Duration;
 
 public final class TraceLogSink implements UiTestLensLogSink {
     private final UiTestLensSession session;
@@ -21,7 +22,8 @@ public final class TraceLogSink implements UiTestLensLogSink {
         if (entry == null) {
             return;
         }
-        TraceEvent.Builder builder = TraceEvent.builder(typeFor(entry.eventType()), statusFor(entry.status(), entry.level()), nameFor(entry))
+        boolean recoveryRetry = isRecoveryRetry(entry);
+        TraceEvent.Builder builder = TraceEvent.builder(typeFor(entry.eventType(), recoveryRetry), statusFor(entry.status(), entry.level()), nameFor(entry))
                 .timestamp(entry.timestamp())
                 .message(entry.message())
                 .attribute("uiEventType", entry.eventType() == null ? "" : entry.eventType().name())
@@ -30,6 +32,15 @@ public final class TraceLogSink implements UiTestLensLogSink {
                 .attribute("logStatus", entry.status() == null ? "" : entry.status().name())
                 .attribute("action", entry.action() == null ? "" : entry.action())
                 .attribute("step", entry.step() == null ? "" : entry.step());
+        if (recoveryRetry) {
+            builder.attribute("retry.kind", entry.metadata().getOrDefault("retryKind", "operation"))
+                    .attribute("retry.action", entry.metadata().getOrDefault("retryAction", entry.action()))
+                    .attribute("retry.locator", entry.metadata().getOrDefault("retryLocator", ""))
+                    .attribute("retry.attempt", entry.metadata().getOrDefault("attempt", ""))
+                    .attribute("retry.nextAttempt", entry.metadata().getOrDefault("nextAttempt", ""))
+                    .attribute("retry.exceptionType", entry.metadata().getOrDefault("exceptionType", ""))
+                    .duration(duration(entry.metadata().get("failedAttemptDurationNanos")));
+        }
         addTargetAttributes(builder, entry);
         for (Map.Entry<String, String> metadata : entry.metadata().entrySet()) {
             builder.attribute("metadata." + metadata.getKey(), metadata.getValue());
@@ -85,7 +96,7 @@ public final class TraceLogSink implements UiTestLensLogSink {
         return TraceStatus.INFO;
     }
 
-    private static TraceEventType typeFor(UiTestLensEventType type) {
+    private static TraceEventType typeFor(UiTestLensEventType type, boolean recoveryRetry) {
         if (type == null) {
             return TraceEventType.CUSTOM;
         }
@@ -94,7 +105,8 @@ public final class TraceLogSink implements UiTestLensLogSink {
             case STEP_PASSED -> TraceEventType.STEP_PASSED;
             case STEP_FAILED -> TraceEventType.STEP_FAILED;
             case LOCATOR_RESOLVE_STARTED, LOCATOR_RESOLVE_PASSED, LOCATOR_RESOLVE_FAILED -> TraceEventType.LOCATOR_RESOLVE;
-            case ACTION, LOCATOR_RETRY -> TraceEventType.LOCATOR_ACTION;
+            case LOCATOR_RETRY -> recoveryRetry ? TraceEventType.RETRY : TraceEventType.LOCATOR_ACTION;
+            case ACTION -> TraceEventType.LOCATOR_ACTION;
             case LOCATOR_ACTION_STARTED -> TraceEventType.ACTION_STARTED;
             case LOCATOR_ACTION_PASSED -> TraceEventType.ACTION_PASSED;
             case LOCATOR_ACTION_FAILED -> TraceEventType.ACTION_FAILED;
@@ -113,6 +125,20 @@ public final class TraceLogSink implements UiTestLensLogSink {
             case NETWORK_WAIT_STARTED, NETWORK_WAIT_PASSED, NETWORK_WAIT_FAILED, NETWORK_WAIT_TIMED_OUT -> TraceEventType.NETWORK_WAIT;
             default -> TraceEventType.CUSTOM;
         };
+    }
+
+    private static boolean isRecoveryRetry(UiTestLensLogEntry entry) {
+        return entry.eventType() == UiTestLensEventType.LOCATOR_RETRY
+                && "recovery".equals(entry.metadata().get("retryKind"));
+    }
+
+    private static Duration duration(String nanos) {
+        if (nanos == null) return Duration.ZERO;
+        try {
+            return Duration.ofNanos(Math.max(0, Long.parseLong(nanos)));
+        } catch (NumberFormatException ignored) {
+            return Duration.ZERO;
+        }
     }
 }
 

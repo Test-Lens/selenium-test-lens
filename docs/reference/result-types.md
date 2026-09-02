@@ -11,9 +11,10 @@ record TestLensFinalizationResult(
     Path failureScreenshot,
     List<Throwable> diagnosticFailures)
 boolean fullySuccessful()
+RetrySummary retrySummary()
 ```
 
-`session` and all paths can be null when no session exists or a corresponding operation failed. `failureScreenshot` is always null for passed or skipped finalization, and can also be null when failed-session capture is disabled or unsuccessful. `diagnosticFailures` is an immutable/non-null list of best-effort capture/export/cleanup failures. `fullySuccessful()` means only that this list is empty; it does not redefine the test outcome.
+`session` and all paths can be null when no session exists or a corresponding operation failed. `failureScreenshot` is null for a final `PASSED` or `SKIPPED` session, and can also be null when failed-session capture is disabled or unsuccessful. `diagnosticFailures` is immutable/non-null. `retrySummary()` is computed from the attached session. `fullySuccessful()` means only that diagnostics are empty; it does not redefine the outcome.
 
 ## Operation results
 

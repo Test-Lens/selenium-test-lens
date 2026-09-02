@@ -6,6 +6,8 @@ import io.github.testlens.core.trace.TraceEvent;
 import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.trace.RetryOutcomePolicy;
+import io.github.testlens.core.trace.RetryPolicyViolationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +33,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -203,6 +206,20 @@ class TestLensTestNgListenerTest {
         assertEquals(2, Harness.observations.stream().map(o -> o.session.id()).distinct().count());
         assertEquals(Set.of(TraceStatus.FAILED, TraceStatus.PASSED),
                 Harness.observations.stream().map(o -> o.session.metadata().status()).collect(java.util.stream.Collectors.toSet()));
+    }
+
+    @Test
+    void retryPolicyViolationExplicitlyFailsResultAndKeepsQuitFailureSuppressed() {
+        Harness.quitFailure.set(true);
+        run(PolicyFixture.class);
+
+        ITestResult result = Harness.failed().get(0);
+        assertTrue(result.getThrowable() instanceof RetryPolicyViolationException);
+        assertEquals("quit failed", result.getThrowable().getSuppressed()[0].getMessage());
+        Observation observation = Harness.onlyObservation();
+        assertEquals(TraceStatus.FAILED, observation.session.metadata().status());
+        assertTrue(onlyFinishedEvent(observation.session).failure() != null);
+        assertReportsExist(observation);
     }
 
     private static void run(Class<?>... fixtures) {
@@ -380,6 +397,17 @@ class TestLensTestNgListenerTest {
         @Override public boolean retry(ITestResult result) { return retried.compareAndSet(false, true); }
     }
 
+    @Listeners(TestLensTestNgListener.class)
+    @TestLensTestNg(factory = PolicyFactory.class)
+    public static class PolicyFixture {
+        @org.testng.annotations.Test public void policyFailure() {
+            Harness.observe("policy");
+            TestLensTestNgContext.current().session().addEvent(
+                    TraceEvent.builder(TraceEventType.RETRY, TraceStatus.WARNING, "retry")
+                            .duration(Duration.ofMillis(1)).build());
+        }
+    }
+
     public static class HarnessFactory implements TestLensTestNgFactory {
         public HarnessFactory() { Harness.factoryInstances.incrementAndGet(); }
         @Override public WebDriver createDriver() {
@@ -395,6 +423,11 @@ class TestLensTestNgListenerTest {
         public CustomFactory() { }
         @Override public TestLensOptions lensOptions() { return Harness.customOptions; }
         @Override public String sessionName(ITestResult result) { return "custom-session"; }
+    }
+
+    public static class PolicyFactory extends HarnessFactory {
+        public PolicyFactory() { }
+        @Override public TestLensOptions lensOptions() { return Harness.policyOptions; }
     }
 
     private static final class ResultCollector implements org.testng.ITestListener {
@@ -413,6 +446,9 @@ class TestLensTestNgListenerTest {
                 .outputRoot(outputRoot).screenshotOnFailure(false).build();
         private static final TestLensOptions customOptions = TestLensOptions.builder()
                 .outputRoot(customOutputRoot).screenshotOnFailure(false).build();
+        private static final TestLensOptions policyOptions = TestLensOptions.builder()
+                .outputRoot(outputRoot).screenshotOnFailure(false)
+                .retryOutcomePolicy(RetryOutcomePolicy.FAIL_ON_ANY_RETRY).build();
         private static final List<TrackingDriver> drivers = new CopyOnWriteArrayList<>();
         private static final List<Observation> observations = new CopyOnWriteArrayList<>();
         private static final List<ITestResult> results = new CopyOnWriteArrayList<>();

@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 225
-# Public callable methods/constructors: 1652
+# Types: 228
+# Public callable methods/constructors: 1677
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -215,6 +215,30 @@ TYPE io.github.testlens.core.logging.export.PlainTextLogExporter
   public java.lang.String export(java.util.List<io.github.testlens.core.logging.UiTestLensLogEntry>)
 TYPE io.github.testlens.core.logging.export.UiTestLensLogExporter
   public abstract java.lang.String export(java.util.List<io.github.testlens.core.logging.UiTestLensLogEntry>)
+TYPE io.github.testlens.core.trace.RetryOutcomePolicy
+  public static final io.github.testlens.core.trace.RetryOutcomePolicy REPORT_ONLY
+  public static final io.github.testlens.core.trace.RetryOutcomePolicy WARN
+  public static final io.github.testlens.core.trace.RetryOutcomePolicy FAIL_AFTER_N
+  public static final io.github.testlens.core.trace.RetryOutcomePolicy FAIL_ON_ANY_RETRY
+  public static io.github.testlens.core.trace.RetryOutcomePolicy[] values()
+  public static io.github.testlens.core.trace.RetryOutcomePolicy valueOf(java.lang.String)
+TYPE io.github.testlens.core.trace.RetryPolicyViolationException
+  public io.github.testlens.core.trace.RetryPolicyViolationException(io.github.testlens.core.trace.RetryOutcomePolicy, io.github.testlens.core.trace.RetrySummary)
+  public io.github.testlens.core.trace.RetryOutcomePolicy policy()
+  public io.github.testlens.core.trace.RetrySummary retrySummary()
+TYPE io.github.testlens.core.trace.RetrySummary
+  public io.github.testlens.core.trace.RetrySummary(long, java.time.Duration, boolean, io.github.testlens.core.trace.RetryOutcomePolicy, boolean, java.util.Map<java.lang.String, java.lang.Long>, java.util.Map<java.lang.String, java.lang.Long>, java.util.Map<java.lang.String, java.lang.Long>)
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public long totalRetries()
+  public java.time.Duration timeLost()
+  public boolean flakyCandidate()
+  public io.github.testlens.core.trace.RetryOutcomePolicy policy()
+  public boolean policyTriggered()
+  public java.util.Map<java.lang.String, java.lang.Long> byAction()
+  public java.util.Map<java.lang.String, java.lang.Long> byLocator()
+  public java.util.Map<java.lang.String, java.lang.Long> byException()
 TYPE io.github.testlens.core.trace.TraceArtifact
   public static io.github.testlens.core.trace.TraceArtifact screenshot(java.lang.String, java.nio.file.Path)
   public static io.github.testlens.core.trace.TraceArtifact video(java.lang.String, java.nio.file.Path)
@@ -295,6 +319,8 @@ TYPE io.github.testlens.core.trace.TraceEventType
   public static final io.github.testlens.core.trace.TraceEventType ACTIONABILITY_CHECK
   public static final io.github.testlens.core.trace.TraceEventType LOCATOR_RESOLVE
   public static final io.github.testlens.core.trace.TraceEventType LOCATOR_ACTION
+  public static final io.github.testlens.core.trace.TraceEventType RETRY
+  public static final io.github.testlens.core.trace.TraceEventType RETRY_SUMMARY
   public static final io.github.testlens.core.trace.TraceEventType NETWORK_EVENT
   public static final io.github.testlens.core.trace.TraceEventType NETWORK_WAIT
   public static final io.github.testlens.core.trace.TraceEventType SCREENSHOT
@@ -390,10 +416,12 @@ TYPE io.github.testlens.core.trace.TraceTimeline
   public synchronized java.util.List<io.github.testlens.core.trace.TraceEvent> events()
 TYPE io.github.testlens.core.trace.UiTestLensSession
   public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String)
+  public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int)
   public java.lang.String id()
   public synchronized io.github.testlens.core.trace.TraceMetadata metadata()
   public synchronized java.util.List<io.github.testlens.core.trace.TraceEvent> events()
   public synchronized java.util.List<io.github.testlens.core.trace.TraceArtifact> artifacts()
+  public synchronized io.github.testlens.core.trace.RetrySummary retrySummary()
   public synchronized io.github.testlens.core.trace.TraceEvent addEvent(io.github.testlens.core.trace.TraceEvent)
   public synchronized io.github.testlens.core.trace.TraceArtifact attachArtifact(io.github.testlens.core.trace.TraceArtifact)
   public io.github.testlens.core.trace.TraceArtifact attachScreenshot(java.lang.String, java.nio.file.Path)
@@ -893,6 +921,7 @@ TYPE io.github.testlens.TestLens
   public org.openqa.selenium.WebDriver driver()
   public io.github.testlens.core.trace.UiTestLensSession startSession(java.lang.String)
   public java.util.Optional<io.github.testlens.core.trace.UiTestLensSession> session()
+  public io.github.testlens.core.trace.RetrySummary retrySummary()
   public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By)
   public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By, java.lang.String)
   public io.github.testlens.selenium.assertions.UiExpect expect(org.openqa.selenium.By)
@@ -934,6 +963,7 @@ TYPE io.github.testlens.TestLensAlert
 TYPE io.github.testlens.TestLensFinalizationResult
   public io.github.testlens.TestLensFinalizationResult(io.github.testlens.core.trace.UiTestLensSession, java.nio.file.Path, java.nio.file.Path, java.nio.file.Path, java.nio.file.Path, java.util.List<java.lang.Throwable>)
   public boolean fullySuccessful()
+  public io.github.testlens.core.trace.RetrySummary retrySummary()
   public final java.lang.String toString()
   public final int hashCode()
   public final boolean equals(java.lang.Object)
@@ -949,6 +979,8 @@ TYPE io.github.testlens.TestLensOptions$Builder
   public io.github.testlens.TestLensOptions$Builder outputRoot(java.nio.file.Path)
   public io.github.testlens.TestLensOptions$Builder screenshotOnFailure(boolean)
   public io.github.testlens.TestLensOptions$Builder cleanupHudOnFinish(boolean)
+  public io.github.testlens.TestLensOptions$Builder retryOutcomePolicy(io.github.testlens.core.trace.RetryOutcomePolicy)
+  public io.github.testlens.TestLensOptions$Builder allowedRetries(int)
   public io.github.testlens.TestLensOptions build()
 TYPE io.github.testlens.TestLensOptions
   public static io.github.testlens.TestLensOptions defaults()
@@ -958,6 +990,8 @@ TYPE io.github.testlens.TestLensOptions
   public java.nio.file.Path outputRoot()
   public boolean screenshotOnFailure()
   public boolean cleanupHudOnFinish()
+  public io.github.testlens.core.trace.RetryOutcomePolicy retryOutcomePolicy()
+  public int allowedRetries()
 TYPE io.github.testlens.actions.AssertActions$OverlayAssertionResult
   public io.github.testlens.actions.AssertActions$OverlayAssertionResult(boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, long)
   public boolean isSuccess()

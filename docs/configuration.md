@@ -13,8 +13,19 @@ The default configuration is enough for normal use. When you need to customize T
 | `outputRoot(...)` | Changes the root directory for session reports and diagnostics. |
 | `screenshotOnFailure(...)` | Controls automatic screenshot capture during failed finalization. |
 | `cleanupHudOnFinish(...)` | Controls whether the HUD, borders, and tooltips are cleared during finalization. |
+| `retryOutcomePolicy(...)` | Controls an otherwise passed session containing recovery retries; default `REPORT_ONLY`. |
+| `allowedRetries(...)` | Number permitted by `FAIL_AFTER_N`; default `0`, must be non-negative. |
 
 By default, session output is written beneath `target/ui-test-lens`, and visual debug artifacts are cleared during finalization.
+
+```java
+TestLensOptions.builder().retryOutcomePolicy(RetryOutcomePolicy.REPORT_ONLY).build();
+TestLensOptions.builder().retryOutcomePolicy(RetryOutcomePolicy.WARN).build();
+TestLensOptions.builder().retryOutcomePolicy(RetryOutcomePolicy.FAIL_ON_ANY_RETRY).build();
+TestLensOptions.builder().retryOutcomePolicy(RetryOutcomePolicy.FAIL_AFTER_N).allowedRetries(2).build();
+```
+
+These policies apply only to `finishPassed()`. Explicit failed and skipped outcomes are never replaced.
 
 ```java
 OverlayConfig overlayConfig = OverlayConfig.builder()
@@ -138,7 +149,7 @@ See [Configuration builders](reference/configuration.md) or Javadoc for individu
 
 ## Notes and limits
 
-- With the default options, only `finishFailed(Throwable)` attempts an automatic screenshot—even when the throwable is null. Passed and skipped finalization never do. Capture is best-effort and can be disabled with `TestLensOptions.screenshotOnFailure(...)`.
+- With the default options, a final `FAILED` result attempts an automatic screenshot—including `finishFailed(null)` and policy-induced failure. Passed and skipped results never do. Capture is best-effort and can be disabled with `TestLensOptions.screenshotOnFailure(...)`.
 - Network diagnostics omit headers by default. When headers are included, sensitive headers are masked by default.
 - Network diagnostics default to explicit `MANUAL` events. Session attachment requires an explicit `NetworkDiagnostics.attachToSession(...)` call.
 - Captured authentication state is written only when `AuthState.save(...)` is called. Saved files can contain cookies and tokens, so do not commit them.

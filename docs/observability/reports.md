@@ -17,11 +17,11 @@ Path htmlReport = result.htmlReport();
 Path jsonReport = result.jsonReport();
 ```
 
-Open the returned HTML path in a browser to inspect the status, timeline, failures, and evidence. Feed the JSON path to reporting or archival tooling when structured data is required. On failure, call `finishFailed(Throwable)` with the original exception; for an aborted or skipped test, call `finishSkipped(reason)`.
+Open the returned HTML path in a browser to inspect the status, timeline, failures, evidence, and the dedicated `Flakiness` section. Feed the JSON path to reporting or archival tooling when structured data is required. On failure, call `finishFailed(Throwable)` with the original exception; for an aborted or skipped test, call `finishSkipped(reason)`.
 
 All three facade finalizers—`finishPassed()`, `finishFailed(Throwable)`, and `finishSkipped(String)`—attempt per-session `trace.json` and `report.html`. The reports retain `PASSED`, `FAILED`, or `SKIPPED` respectively, and a skip reason is stored on the `SESSION_FINISHED` event. Each export is best effort: its `Path` can be null and the error appears in `TestLensFinalizationResult.diagnosticFailures()` without changing the session status.
 
-The destination is derived from the session output configuration. See [session lifecycle and finalization](../reference/test-lens.md#creation-and-lifecycle), [`TestLensOptions`](../reference/configuration.md#testlensoptions), and [trace/report options](../reference/configuration.md#trace-and-report-options). Reports observe the completed session; they do not alter test status or retry behavior.
+The session JSON always contains a top-level `flakiness` object with `flakyCandidate`, `totalRetries`, `timeLostMs`, `policy`, `policyTriggered`, `byAction`, `byLocator`, and `byException`. HTML renders the same data neutrally for zero retries, as information for `REPORT_ONLY`, as a warning for `WARN`, and as a failure for a triggered fail policy. The destination is derived from the session output configuration. See [Flakiness and retry outcomes](flakiness.md), [session lifecycle and finalization](../reference/test-lens.md#creation-and-lifecycle), and [`TestLensOptions`](../reference/configuration.md#testlensoptions).
 
 ## Advanced exporters
 

@@ -8,6 +8,9 @@ import io.github.testlens.TestLens;
 import io.github.testlens.TestLensFinalizationResult;
 import io.github.testlens.TestLensOptions;
 import io.github.testlens.core.trace.TraceStatus;
+import io.github.testlens.core.trace.RetryOutcomePolicy;
+import io.github.testlens.core.trace.RetryPolicyViolationException;
+import io.github.testlens.core.trace.UiTestLensSession;
 import io.github.testlens.selenium.assertions.UiAssertionError;
 import io.github.testlens.selenium.assertions.UiAssertionFailureReason;
 import io.github.testlens.selenium.assertions.UiAssertionOptions;
@@ -26,6 +29,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -36,9 +40,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.Set;
 import java.util.UUID;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -262,6 +269,42 @@ class RealBrowserContractsIT {
         assertTrue(result.attempts() >= 2);
     }
 
+    @Test
+    void realStaleRecoveryIsReportedWithoutChangingPassedOutcome() throws Exception {
+        open("/clicks");
+        TestLens lens = retryLens(RetryOutcomePolicy.REPORT_ONLY);
+        UiTestLensSession session = lens.startSession("real-stale-report-only-" + UUID.randomUUID());
+
+        lens.locator(staleOnce(By.id("count-button")), "Stale once button").click();
+        awaitClickCount(1);
+        TestLensFinalizationResult result = lens.finishPassed();
+
+        assertEquals(TraceStatus.PASSED, session.metadata().status());
+        assertEquals(1, result.retrySummary().totalRetries());
+        assertClickCounts(1);
+        assertTrue(Files.readString(result.jsonReport()).contains("\"flakyCandidate\":true"));
+        assertTrue(Files.readString(result.htmlReport()).contains("<h2>Flakiness</h2>"));
+    }
+
+    @Test
+    void realStaleRecoveryCanFailPassedOutcomeAfterWritingReports() throws Exception {
+        open("/clicks");
+        TestLens lens = retryLens(RetryOutcomePolicy.FAIL_ON_ANY_RETRY);
+        UiTestLensSession session = lens.startSession("real-stale-policy-failure-" + UUID.randomUUID());
+
+        lens.locator(staleOnce(By.id("count-button")), "Stale once button").click();
+        awaitClickCount(1);
+        RetryPolicyViolationException failure = assertThrows(RetryPolicyViolationException.class, lens::finishPassed);
+
+        Path directory = Path.of("target", "ui-test-lens", browserName())
+                .resolve(session.metadata().name().toLowerCase(java.util.Locale.ROOT)).resolve(session.id());
+        assertEquals(TraceStatus.FAILED, session.metadata().status());
+        assertEquals(1, failure.retrySummary().totalRetries());
+        assertClickCounts(1);
+        assertTrue(Files.isRegularFile(directory.resolve("trace.json")));
+        assertTrue(Files.readString(directory.resolve("report.html")).contains("flaky-failure"));
+    }
+
     private static Stream<Arguments> finalizationCases() {
         return Stream.of(
                 Arguments.of(TraceStatus.PASSED, true),
@@ -309,6 +352,47 @@ class RealBrowserContractsIT {
                 .screenshotOnFailure(false)
                 .outputRoot(Path.of("target", "ui-test-lens", browserName()))
                 .build());
+    }
+
+    private TestLens retryLens(RetryOutcomePolicy policy) {
+        return TestLens.attach(driver, TestLensOptions.builder()
+                .overlayConfig(overlayConfig(false))
+                .locatorOptions(io.github.testlens.selenium.locator.UiLocatorOptions.builder()
+                        .timeout(Duration.ofSeconds(2)).pollInterval(Duration.ofMillis(25)).maxRetries(2).build())
+                .retryOutcomePolicy(policy)
+                .screenshotOnFailure(false)
+                .outputRoot(Path.of("target", "ui-test-lens", browserName()))
+                .build());
+    }
+
+    private By staleOnce(By delegate) {
+        WebElement stale = driver.findElement(delegate);
+        ((JavascriptExecutor) driver).executeScript("""
+                const replacement = arguments[0].cloneNode(true);
+                replacement.addEventListener('click', event => {
+                  window.applicationClicks += 1;
+                  if (event.isTrusted) window.trustedApplicationClicks += 1;
+                  document.getElementById('click-count').textContent = String(window.applicationClicks);
+                });
+                arguments[0].replaceWith(replacement);
+                """, stale);
+        AtomicInteger calls = new AtomicInteger();
+        return new By() {
+            @Override
+            public WebElement findElement(SearchContext context) {
+                return calls.getAndIncrement() == 0 ? stale : context.findElement(delegate);
+            }
+
+            @Override
+            public List<WebElement> findElements(SearchContext context) {
+                return List.of(findElement(context));
+            }
+
+            @Override
+            public String toString() {
+                return delegate.toString();
+            }
+        };
     }
 
     private void awaitClickCount(long expected) {

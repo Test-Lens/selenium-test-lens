@@ -95,3 +95,7 @@ If setup fails after driver creation, the extension closes that driver and rethr
 Each `@ParameterizedTest` value and each `@RepeatedTest` repetition receives a different driver, Lens, session ID, and report directory. Nested tests are isolated the same way. The same extension object can serve concurrent invocations because current state is never kept in extension fields, a global singleton, or a `ThreadLocal`; it resides in `ExtensionContext.Store` under `context.getUniqueId()`.
 
 Your driver factory and application test data must still be parallel-safe. Do not share a driver returned by the factory across invocations.
+
+## Recovery-retry policy
+
+Pass the policy through `lensOptions(...)`. If `finishPassed()` raises `RetryPolicyViolationException`, the extension fails that invocation after JSON/HTML and the optional failure screenshot are produced, then quits the driver. A quit failure is suppressed on the policy violation, and the session is not finalized a second time. Parameterized and repeated invocations each evaluate their own session summary.

@@ -71,6 +71,7 @@ nav:
       - Screenshots & evidence: observability/screenshots-evidence.md
       - Trace: observability/trace.md
       - HTML, JSON & ZIP reports: observability/reports.md
+      - Flakiness and retry outcomes: observability/flakiness.md
       - Logging: observability/logging.md
   - Advanced Features:
       - Advanced features overview: advanced/index.md

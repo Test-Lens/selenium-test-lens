@@ -1,6 +1,6 @@
 # Element actions
 
-All action methods resolve the current element, emit structured operation events, and return the same `UiLocator` for chaining. Resolution/action retry is governed by [`UiLocatorOptions`](../reference/configuration.md#uilocatoroptions). A final failure is wrapped as `UiLocatorException`; `action()`, `locatorDescription()`, and `actionabilitySummary()` add context and the underlying WebDriver failure remains the cause.
+All action methods resolve the current element, emit structured operation events, and return the same `UiLocator` for chaining. Resolution/action retry is governed by [`UiLocatorOptions`](../reference/configuration.md#uilocatoroptions). A physical action/read failure that schedules another attempt emits a dedicated `RETRY` trace event; a terminal failure does not add an extra retry. Diagnostics do not add WebDriver calls or change their order. A final failure is wrapped as `UiLocatorException`; `action()`, `locatorDescription()`, and `actionabilitySummary()` add context and the underlying WebDriver failure remains the cause.
 
 ## click()
 

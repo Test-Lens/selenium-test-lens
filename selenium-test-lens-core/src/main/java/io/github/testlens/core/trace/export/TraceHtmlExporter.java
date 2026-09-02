@@ -9,6 +9,8 @@ import io.github.testlens.core.trace.TraceJsonExporter;
 import io.github.testlens.core.trace.TraceMetadata;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.trace.RetrySummary;
+import io.github.testlens.core.trace.RetryOutcomePolicy;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -43,6 +45,7 @@ public final class TraceHtmlExporter {
         OVERLAYS("Overlays"),
         EVIDENCE("Evidence"),
         NETWORK("Network"),
+        FLAKINESS("Flakiness"),
         OTHER("Other");
 
         private final String label;
@@ -72,6 +75,7 @@ public final class TraceHtmlExporter {
                 .append("<style>").append(css(effectiveOptions.theme())).append("</style></head><body>");
         appendHeader(out, session, effectiveOptions);
         appendSummary(out, session, effectiveOptions);
+        appendFlakiness(out, session);
         if (effectiveOptions.includeFailureSummary()) {
             appendFailureSummary(out, session.events(), effectiveOptions);
         }
@@ -328,6 +332,7 @@ public final class TraceHtmlExporter {
                 out.append("</details>");
             }
             appendFailureSummary(out, session.events(), options);
+            appendFlakiness(out, session);
             appendTimeline(out, session.events(), options);
             if (options.includeArtifacts()) {
                 appendArtifacts(out, session.artifacts(), options, artifactBaseDirectory, artifactPathOverrides);
@@ -416,6 +421,47 @@ public final class TraceHtmlExporter {
                     .append("<td>").append(categoryEvents.stream().filter(event -> event.status() == TraceStatus.WARNING).count()).append("</td></tr>");
         }
         out.append("</tbody></table></div></section>");
+    }
+
+    private void appendFlakiness(StringBuilder out, UiTestLensSession session) {
+        RetrySummary summary = session.retrySummary();
+        String cssClass = summary.policyTriggered() ? "flaky-failure"
+                : summary.flakyCandidate() && summary.policy() == RetryOutcomePolicy.WARN
+                ? "flaky-warning" : "flaky-info";
+        out.append("<section><h2>Flakiness</h2><div class=\"").append(cssClass).append("\">");
+        if (!summary.flakyCandidate()) {
+            out.append("<p>No recovery retries were recorded.</p>");
+        } else if (summary.policyTriggered()) {
+            out.append("<p><strong>Retry policy failed this otherwise successful session.</strong></p>");
+        } else if (summary.policy() == RetryOutcomePolicy.WARN) {
+            out.append("<p><strong>Warning: this session is a flaky candidate.</strong></p>");
+        } else {
+            out.append("<p>This session is a flaky candidate and remains report-only.</p>");
+        }
+        out.append("<div class=\"cards\">");
+        card(out, "Recovery retries", String.valueOf(summary.totalRetries()));
+        card(out, "Time lost", duration(summary.timeLost()));
+        card(out, "Policy", summary.policy().name());
+        card(out, "Policy triggered", String.valueOf(summary.policyTriggered()));
+        out.append("</div>");
+        appendRetryGroup(out, "By action", summary.byAction());
+        appendRetryGroup(out, "By locator", summary.byLocator());
+        appendRetryGroup(out, "By exception", summary.byException());
+        out.append("</div></section>");
+    }
+
+    private void appendRetryGroup(StringBuilder out, String title, Map<String, Long> values) {
+        out.append("<h3>").append(escape(title)).append("</h3>");
+        if (values.isEmpty()) {
+            out.append("<p class=\"muted\">No entries.</p>");
+            return;
+        }
+        out.append("<div class=\"table-wrap\"><table><thead><tr><th>Value</th><th>Retries</th></tr></thead><tbody>");
+        for (Map.Entry<String, Long> entry : new TreeMap<>(values).entrySet()) {
+            out.append("<tr><td class=\"mono\">").append(escape(entry.getKey()))
+                    .append("</td><td>").append(entry.getValue()).append("</td></tr>");
+        }
+        out.append("</tbody></table></div>");
     }
 
     private void appendTimeline(StringBuilder out, List<TraceEvent> events, TraceHtmlExportOptions options) {
@@ -773,6 +819,7 @@ public final class TraceHtmlExporter {
             case OVERLAY_DETECTED, OVERLAY_HANDLED -> EventCategory.OVERLAYS;
             case SCREENSHOT, VIDEO, ARTIFACT_ATTACHED -> EventCategory.EVIDENCE;
             case NETWORK_EVENT, NETWORK_WAIT -> EventCategory.NETWORK;
+            case RETRY, RETRY_SUMMARY -> EventCategory.FLAKINESS;
             case CUSTOM -> EventCategory.OTHER;
         };
     }
@@ -917,6 +964,7 @@ public final class TraceHtmlExporter {
                 .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:8px;background:var(--panel-muted)}table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid var(--border-soft);vertical-align:top;text-align:left}tr:hover td{background:var(--row-hover)}th{position:sticky;top:0;background:var(--table-head);color:var(--table-head-text);font-size:12px;text-transform:uppercase;z-index:1}
                 .timeline td{min-width:90px}.event-list{display:grid;gap:12px}.event-card,.artifact-card{padding:14px;border:1px solid var(--border);border-radius:8px;background:var(--panel-muted)}.event-card.failure{border-color:var(--danger-border);background:var(--danger-bg)}.event-title{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.artifact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
                 .failure-box{margin-top:10px;padding:10px;border-left:4px solid var(--danger);background:var(--code-bg)}.ok-line{padding:10px 12px;border:1px solid var(--success-border);background:var(--success-bg);border-radius:8px;color:var(--success-text)}.muted{color:var(--muted)}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}.kv{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:4px 10px}.kv.compact{margin-top:8px}.kv dt{font-weight:700}.kv dd{margin:0;word-break:break-word}.details summary{cursor:pointer;color:var(--heading);font-weight:700}pre{white-space:pre-wrap;overflow:auto;background:var(--code-bg);color:var(--code-text);padding:14px;border-radius:8px;border:1px solid var(--border)}a{color:var(--link);word-break:break-word}.artifact-warning{display:inline-flex;margin-left:6px;padding:1px 6px;border-radius:999px;background:var(--warning-bg);color:var(--warning-text);font-size:12px;font-weight:700}.artifact-thumb{display:block;max-width:100%;max-height:180px;margin-top:10px;border:1px solid var(--border);border-radius:8px;object-fit:contain;background:var(--code-bg)}
+                .flaky-info,.flaky-warning,.flaky-failure{padding:14px;border:1px solid var(--border);border-radius:8px}.flaky-info{background:var(--info-bg);color:var(--info-text)}.flaky-warning{background:var(--warning-bg);border-color:var(--warning-border);color:var(--warning-text)}.flaky-failure{background:var(--danger-bg);border-color:var(--danger-border);color:var(--danger-text)}
                 @media (max-width:720px){.hero,section{margin:14px 10px;padding:16px}.event-title{display:block}.badge{margin-top:4px}}@media print{body{background:#fff;color:#111}.hero,section,.session-detail{box-shadow:none;break-inside:avoid}.table-wrap{overflow:visible}th{position:static}}
                 """;
     }

@@ -26,7 +26,7 @@ Finalization attempts to write `trace.json` below the configured session output 
 
 The facade maps finalization directly to trace status: `finishPassed()` produces `PASSED`, `finishFailed(...)` produces `FAILED` even for a null throwable, and `finishSkipped(reason)` produces `SKIPPED`. The skip reason is the message of the single `SESSION_FINISHED` event; a null reason is normalized to an empty message by the session model.
 
-Trace collection observes operations; it does not change their wait conditions, retry intervals, or failure outcome. Names, messages, paths, and attached metadata are persisted, so avoid putting credentials or tokens in them.
+Recovery retries use `TraceEventType.RETRY`; the summary and policy decision are recorded before `SESSION_FINISHED`. Polling events retain their timeline visibility but never become retry events or make `flakyCandidate` true. The default policy observes without changing outcomes; configured fail policies act only during `finishPassed()`. Names, messages, paths, and attached metadata are persisted, so avoid putting credentials or tokens in them.
 
 ## Direct session and log integration
 

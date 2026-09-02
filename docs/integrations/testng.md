@@ -96,3 +96,7 @@ Disabled tests, configuration methods, dependency-skipped methods, and tests blo
 State is stored as a namespaced attribute of the physical `ITestResult`, not on the test class or listener. Parallel methods and parallel DataProviders therefore cannot see one another's drivers or sessions, and reusing a test instance is safe. Every RetryAnalyzer attempt gets its own factory, driver, Lens, session ID, report directory, and final status: a failed attempt is recorded as `FAILED`, while a later successful attempt is a separate `PASSED` session.
 
 The default name contains the class, method, public TestNG invocation counter, and an opaque per-attempt token. It deliberately excludes DataProvider values. A custom `sessionName(ITestResult)` may return a different name, but should not include credentials or other parameter secrets.
+
+## Recovery-retry policy
+
+Return configured `TestLensOptions` from the factory. A policy violation from an otherwise successful method is written into the completed reports, then the listener explicitly changes its `ITestResult` to `FAILURE` and installs the `RetryPolicyViolationException` as throwable. Driver quit still happens exactly once; later cleanup errors are suppressed. `IRetryAnalyzer` attempts remain independent sessions rather than one aggregated summary.

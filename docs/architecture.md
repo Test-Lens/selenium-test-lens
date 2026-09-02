@@ -69,11 +69,15 @@ Evidence-producing operation
 
 Finalized session
       |
+      +--> per-session retry summary and policy decision
+      |
       +--> HTML diagnostics (best effort)
       +--> JSON diagnostics (best effort)
 ```
 
 Screenshots and other evidence are attached to the active session when produced. Finalization marks the accumulated session passed, failed, or skipped and attempts to export its HTML and JSON diagnostics beneath the configured Test Lens output root.
+
+Recovery retry aggregation is deliberately per session and runner-neutral. Typed `RETRY` events feed an immutable summary before `SESSION_FINISHED`; ordinary waits and assertion polling remain timeline diagnostics and do not enter that summary. JUnit 5 and TestNG propagate a policy-induced failure from the shared runtime, while runner-level retries continue to create independent sessions.
 
 Direct logger and sink APIs are intended for lower-level integrations.
 

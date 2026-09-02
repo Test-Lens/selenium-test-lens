@@ -4,6 +4,8 @@ import io.github.testlens.core.trace.TraceEvent;
 import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.trace.RetryOutcomePolicy;
+import io.github.testlens.core.trace.RetryPolicyViolationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.openqa.selenium.JavascriptExecutor;
@@ -16,11 +18,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TestLensTest {
     @TempDir Path temp;
+
+    @Test
+    void retryPolicyDefaultsRemainBackwardCompatible() {
+        TestLensOptions options = TestLensOptions.defaults();
+        assertEquals(RetryOutcomePolicy.REPORT_ONLY, options.retryOutcomePolicy());
+        assertEquals(0, options.allowedRetries());
+    }
 
     @Test
     void attachesExistingDriverAndFinalizesIntoUniqueSessionDirectory() {
@@ -114,6 +124,63 @@ class TestLensTest {
     }
 
     @Test
+    void reportOnlyAndWarnKeepPassedOutcomeAndExposeSummary() throws Exception {
+        for (RetryOutcomePolicy policy : List.of(RetryOutcomePolicy.REPORT_ONLY, RetryOutcomePolicy.WARN)) {
+            TestLens lens = TestLens.attach(driver(false), TestLensOptions.builder()
+                    .outputRoot(temp).retryOutcomePolicy(policy).build());
+            UiTestLensSession session = lens.startSession(policy.name());
+            session.addEvent(retryEvent());
+
+            TestLensFinalizationResult result = lens.finishPassed();
+
+            assertEquals(TraceStatus.PASSED, result.session().metadata().status());
+            assertEquals(1, result.retrySummary().totalRetries());
+            assertEquals(policy, lens.retrySummary().policy());
+            String html = Files.readString(result.htmlReport());
+            if (policy == RetryOutcomePolicy.WARN) assertTrue(html.contains("flaky-warning"));
+        }
+    }
+
+    @Test
+    void failOnAnyRetryFinalizesReportsAndScreenshotBeforeThrowingViolation() {
+        AtomicInteger screenshotCalls = new AtomicInteger();
+        TestLens lens = TestLens.attach(screenshotDriver(screenshotCalls), TestLensOptions.builder()
+                .outputRoot(temp).retryOutcomePolicy(RetryOutcomePolicy.FAIL_ON_ANY_RETRY).build());
+        UiTestLensSession session = lens.startSession("policy failure");
+        session.addEvent(retryEvent());
+
+        RetryPolicyViolationException failure = assertThrows(RetryPolicyViolationException.class, lens::finishPassed);
+
+        Path directory = temp.resolve("policy-failure").resolve(session.id());
+        assertEquals(TraceStatus.FAILED, session.metadata().status());
+        assertEquals(1, failure.retrySummary().totalRetries());
+        assertTrue(Files.exists(directory.resolve("trace.json")));
+        assertTrue(Files.exists(directory.resolve("report.html")));
+        assertEquals(1, screenshotCalls.get());
+        assertEquals(1, finishedEvents(session).size());
+    }
+
+    @Test
+    void failAfterNUsesAllowedRecoveryRetryBoundaryAndValidatesLimit() {
+        assertThrows(IllegalArgumentException.class,
+                () -> TestLensOptions.builder().allowedRetries(-1));
+        for (int retries : List.of(0, 1, 2)) {
+            TestLens lens = TestLens.attach(driver(false), TestLensOptions.builder()
+                    .outputRoot(temp).screenshotOnFailure(false)
+                    .retryOutcomePolicy(RetryOutcomePolicy.FAIL_AFTER_N).allowedRetries(1).build());
+            UiTestLensSession session = lens.startSession("limit " + retries);
+            for (int i = 0; i < retries; i++) session.addEvent(retryEvent());
+            if (retries <= 1) {
+                assertDoesNotThrow(lens::finishPassed);
+                assertEquals(TraceStatus.PASSED, session.metadata().status());
+            } else {
+                assertThrows(RetryPolicyViolationException.class, lens::finishPassed);
+                assertEquals(TraceStatus.FAILED, session.metadata().status());
+            }
+        }
+    }
+
+    @Test
     void observabilityFailuresDoNotTurnPassedTestIntoFailure() {
         TestLens lens = TestLens.attach(driver(true), TestLensOptions.builder().outputRoot(temp).build());
         lens.startSession("hud failure");
@@ -198,6 +265,15 @@ class TestLensTest {
         return session.events().stream()
                 .filter(event -> event.type() == TraceEventType.SESSION_FINISHED)
                 .toList();
+    }
+
+    private static TraceEvent retryEvent() {
+        return TraceEvent.builder(TraceEventType.RETRY, TraceStatus.WARNING, "retry")
+                .duration(Duration.ofMillis(7))
+                .attribute("retry.action", "click")
+                .attribute("retry.locator", "save")
+                .attribute("retry.exceptionType", "StaleElementReferenceException")
+                .build();
     }
 
     private static WebDriver driver(boolean failJavascript) {

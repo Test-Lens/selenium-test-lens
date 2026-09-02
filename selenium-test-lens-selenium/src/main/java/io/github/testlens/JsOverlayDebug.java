@@ -345,6 +345,14 @@ public final class JsOverlayDebug {
         return started;
     }
 
+    UiTestLensSession startSession(String name,
+                                   io.github.testlens.core.trace.RetryOutcomePolicy policy,
+                                   int allowedRetries) {
+        UiTestLensSession started = UiTestLensSession.start(name, policy, allowedRetries);
+        attachSession(started);
+        return started;
+    }
+
     public TraceArtifact attachScreenshot(String name, Path path) {
         return requireSession().attachScreenshot(name, path);
     }

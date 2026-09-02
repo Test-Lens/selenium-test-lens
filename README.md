@@ -6,6 +6,8 @@
 
 Selenium Test Lens adds observable, retryable interactions, an in-browser diagnostic HUD, trace reports, and evidence capture to the Selenium `WebDriver` your test framework already owns.
 
+Successful operations that required a recovery retry are exposed as a per-session `RetrySummary`. The default `REPORT_ONLY` policy preserves existing outcomes; `WARN`, `FAIL_AFTER_N`, and `FAIL_ON_ANY_RETRY` can make flaky candidates visible or reject an otherwise passed test after reports are written.
+
 - [Documentation](https://test-lens.github.io/selenium-test-lens/)
 - [Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0)
 - [Javadoc](https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/)
@@ -86,6 +88,15 @@ class LoginTest {
 ```
 
 The listener owns a fresh driver for every physical invocation, including DataProvider and retry attempts, finalizes Lens, and then calls `quit()`. Both annotations are required. See the [TestNG integration guide](docs/integrations/testng.md).
+
+```java
+TestLensOptions options = TestLensOptions.builder()
+        .retryOutcomePolicy(RetryOutcomePolicy.FAIL_AFTER_N)
+        .allowedRetries(1)
+        .build();
+```
+
+`allowedRetries` is the permitted number of recovery retries; `FAIL_AFTER_N` fails only when the session total is greater than that limit. See [Flakiness and retry outcomes](docs/observability/flakiness.md).
 
 ## First session
 

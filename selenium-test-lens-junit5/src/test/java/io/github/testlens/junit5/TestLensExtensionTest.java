@@ -6,6 +6,8 @@ import io.github.testlens.core.trace.TraceEvent;
 import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.trace.RetryOutcomePolicy;
+import io.github.testlens.core.trace.RetryPolicyViolationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +23,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
+import org.junit.platform.engine.TestExecutionResult;
 import org.opentest4j.TestAbortedException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -38,6 +41,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -138,6 +142,23 @@ class TestLensExtensionTest {
         execute(PassedFixture.class).testEvents()
                 .assertStatistics(stats -> stats.started(1).failed(1));
         assertEquals(TraceStatus.PASSED, Harness.onlyObservation().session.metadata().status());
+    }
+
+    @Test
+    void retryPolicyViolationFailsInvocationOnceAndOwnsQuitFailureAsSuppressed() {
+        Harness.quitFailure.set(true);
+        EngineExecutionResults results = execute(PolicyFixture.class);
+        results.testEvents().assertStatistics(stats -> stats.started(1).failed(1));
+
+        Throwable failure = results.testEvents().failed().list().get(0)
+                .getRequiredPayload(TestExecutionResult.class).getThrowable().orElseThrow();
+        assertTrue(failure instanceof RetryPolicyViolationException);
+        assertEquals(1, failure.getSuppressed().length);
+        assertEquals("quit failed", failure.getSuppressed()[0].getMessage());
+        Observation observation = Harness.onlyObservation();
+        assertEquals(TraceStatus.FAILED, observation.session.metadata().status());
+        assertNotNull(onlyFinishedEvent(observation.session).failure());
+        assertReportsExist(observation.session);
     }
 
     @Test
@@ -386,6 +407,22 @@ class TestLensExtensionTest {
         @Test
         void disabled(WebDriver driver, TestLens lens) {
             Harness.observe("disabled", driver, lens);
+        }
+    }
+
+    static final class PolicyFixture {
+        @RegisterExtension
+        static final TestLensExtension LENS = TestLensExtension.builder(Harness::newDriver)
+                .lensOptions(TestLensOptions.builder().outputRoot(Harness.outputRoot)
+                        .screenshotOnFailure(false)
+                        .retryOutcomePolicy(RetryOutcomePolicy.FAIL_ON_ANY_RETRY).build())
+                .build();
+
+        @Test
+        void policyFailure(WebDriver driver, TestLens lens) {
+            Harness.observe("policy", driver, lens);
+            lens.session().orElseThrow().addEvent(TraceEvent.builder(TraceEventType.RETRY, TraceStatus.WARNING, "retry")
+                    .duration(Duration.ofMillis(1)).build());
         }
     }
 

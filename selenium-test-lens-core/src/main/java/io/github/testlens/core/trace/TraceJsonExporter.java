@@ -38,6 +38,7 @@ public final class TraceJsonExporter {
         if (session != null) {
             root.put("session", sessionMap(session, effectiveOptions));
             root.put("metadata", metadataMap(session.metadata()));
+            root.put("flakiness", flakinessMap(session.retrySummary()));
             root.put("events", session.events().stream()
                     .map(event -> eventMap(event, effectiveOptions))
                     .toList());
@@ -150,6 +151,7 @@ public final class TraceJsonExporter {
             out.put("labels", sortedMap(metadata.labels()));
         }
         out.put("summary", sessionSummary(session));
+        out.put("flakiness", flakinessMap(session.retrySummary()));
         out.put("events", session.events().stream()
                 .map(event -> eventMap(event, options))
                 .toList());
@@ -200,6 +202,19 @@ public final class TraceJsonExporter {
         out.put("totalArtifacts", TraceReportSupport.artifactCount(sessions));
         out.put("screenshots", TraceReportSupport.screenshotCount(sessions));
         out.put("durationMs", TraceReportSupport.totalSessionDuration(sessions).toMillis());
+        return out;
+    }
+
+    private Map<String, Object> flakinessMap(RetrySummary summary) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("flakyCandidate", summary.flakyCandidate());
+        out.put("totalRetries", summary.totalRetries());
+        out.put("timeLostMs", summary.timeLost().toMillis());
+        out.put("policy", summary.policy().name());
+        out.put("policyTriggered", summary.policyTriggered());
+        out.put("byAction", new TreeMap<>(summary.byAction()));
+        out.put("byLocator", new TreeMap<>(summary.byLocator()));
+        out.put("byException", new TreeMap<>(summary.byException()));
         return out;
     }
 

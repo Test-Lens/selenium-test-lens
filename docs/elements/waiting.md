@@ -1,6 +1,6 @@
 # Element waiting and retry
 
-Waiting occurs at two levels: operation retry and explicit condition waits. Both use `UiLocatorOptions.timeout()` and `pollInterval()`; operation retries additionally honor `maxRetries()` and the three retry flags.
+Waiting occurs at two levels: operation retry and explicit condition waits. A recovery retry exists only after a physical operation attempt fails with a configured retryable exception and the library schedules another attempt. Expected-condition checks, resolver DOM reads, missing-element waits, and unsatisfied assertions are polling, not recovery retries.
 
 <!-- SCREENSHOT TODO: assets/screenshots/wait-feedback-active.png
 Show an explicit UiLocator wait while its condition is still unsatisfied.
@@ -60,6 +60,8 @@ Related: [Assertions](assertions.md), [`UiLocatorOptions`](../reference/configur
 
 ## Retryable failures
 
-`StaleElementReferenceException`, `ElementClickInterceptedException`, and `ElementNotInteractableException` are retried only when their corresponding flags are enabled. Other WebDriver exceptions fail immediately. `maxRetries` counts attempts and must be at least 1. Poll/timeout durations must be positive.
+`StaleElementReferenceException`, `ElementClickInterceptedException`, and `ElementNotInteractableException` are retried only when their corresponding flags are enabled. Wrapped failures are classified by their exception cause chain, never by message text. Other WebDriver exceptions fail immediately. The historical name `maxRetries` is retained for compatibility, but its value is the maximum number of physical **attempts**, not retries: three failed attempts schedule only two retries. Poll/timeout durations must be positive.
+
+Runner-level retry is separate again: for example, every TestNG `IRetryAnalyzer` attempt owns a new Lens session and is not aggregated across sessions. See [Flakiness and retry outcomes](../observability/flakiness.md).
 
 Assertions have their own [`UiAssertionOptions`](../reference/configuration.md#uiassertionoptions) and retry loop; see [Assertions](assertions.md).

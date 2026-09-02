@@ -5,6 +5,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added runner-neutral recovery-retry observability with immutable per-session summaries, deterministic action/locator/exception grouping, lost-time accounting, configurable passed-outcome policies, JSON/HTML Flakiness sections, and propagation through the JUnit 5 and TestNG adapters.
 - Added the published optional `selenium-test-lens-testng` module with an explicit per-invocation listener, factory configuration, current-invocation context, TestNG status mapping, and isolated retry/DataProvider/parallel lifecycle ownership.
 - Added the published optional `selenium-test-lens-junit5` module with `TestLensExtension`, per-invocation WebDriver/Lens injection, passed/failed/aborted mapping, parallel-safe JUnit store isolation, and cleanup-safe driver ownership.
 - Added `TestLens.finishSkipped(String)` so runner integrations can finalize aborted, assumed, or skipped tests as `SKIPPED` while retaining the common JSON/HTML and HUD-cleanup pipeline.

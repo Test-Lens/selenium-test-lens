@@ -29,6 +29,7 @@ Selenium Test Lens attaches observability, retryable element operations, diagnos
 | Reads | [`UiLocator`](elements/information.md) | Text, value, attribute, DOM property, visibility, enabled state, count, and resolved elements. |
 | Collections | `resolveAll`, `count`, `first`, `last`, `nth` | `nth` is zero-based; derived locators remain lazy. |
 | Retry/wait | [`UiLocatorOptions`](reference/configuration.md#uilocatoroptions) | Retries configured transient element failures; explicit visibility/clickability/text waits use timeout and polling settings. |
+| Flaky outcomes | [`RetrySummary`](observability/flakiness.md) | Aggregates physical failures that caused another operation attempt; polling and runner-level retries remain distinct. |
 | Assertions | [`UiExpect`](elements/assertions.md) | Retryable visibility, enabled, text, substring, value, and value-substring assertions. |
 
 Every instrumented locator operation emits structured start/pass/retry/failure events. Operations can update the HUD. The overlay-aware `click()` path highlights its resolved target when `OverlayConfig.enabled()` is true; other locator actions do not currently apply that click decoration. Read methods also resolve through the locator retry policy. Sensitive field values are represented by safe previews or lengths in diagnostics where implemented; this is not a general secret-classification system.
@@ -47,6 +48,7 @@ Every instrumented locator operation emits structured start/pass/retry/failure e
 - `TraceJsonExporter` and `TraceHtmlExporter` produce JSON and standalone HTML for one session or a suite.
 - `TraceReportBundleExporter` creates a ZIP bundle and can copy referenced artifacts.
 - `TestLens.finish*` writes per-session `trace.json` and `report.html` and optionally a failure screenshot.
+- Reports always contain a `Flakiness` summary. Passed-session retry policy defaults to `REPORT_ONLY` and can warn or reject a passed outcome.
 - `ScreenshotCapture` produces PNG evidence and can attach it to a session.
 - `VideoEvidence` attaches an existing local video or URL; it does **not** record video.
 - Structured logging supports console, consumer, composite, memory, JSON, HTML, and plain-text sinks/exporters.

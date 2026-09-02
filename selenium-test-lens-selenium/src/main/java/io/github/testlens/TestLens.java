@@ -1,6 +1,9 @@
 package io.github.testlens;
 
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.trace.RetryPolicyViolationException;
+import io.github.testlens.core.trace.RetrySummary;
+import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.selenium.assertions.UiExpect;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureOptions;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureResult;
@@ -40,7 +43,7 @@ public final class TestLens {
 
     public WebDriver driver() { return delegate.getDriver(); }
     public UiTestLensSession startSession(String name) {
-        UiTestLensSession session = delegate.startSession(name);
+        UiTestLensSession session = delegate.startSession(name, options.retryOutcomePolicy(), options.allowedRetries());
         // Safe even before the first document exists; subsequent native events lazily reinject it.
         try { delegate.initHud(session.metadata().name(), ""); } catch (RuntimeException ignored) {
             // The browser may not have a document yet. Native events will retry lazily.
@@ -48,6 +51,11 @@ public final class TestLens {
         return session;
     }
     public Optional<UiTestLensSession> session() { return delegate.session(); }
+    public RetrySummary retrySummary() {
+        return delegate.session().map(UiTestLensSession::retrySummary)
+                .orElseGet(() -> new RetrySummary(0, java.time.Duration.ZERO, false,
+                        options.retryOutcomePolicy(), false, java.util.Map.of(), java.util.Map.of(), java.util.Map.of()));
+    }
 
     public UiLocator locator(By by) { return delegate.locator(by, options.locatorOptions()); }
     public UiLocator locator(By by, String label) { return delegate.locator(by, label, options.locatorOptions()); }
@@ -149,8 +157,21 @@ public final class TestLens {
         }
 
         Path directory = sessionOutputDirectory(session);
+        RetryPolicyViolationException policyViolation = null;
+        try {
+            switch (outcome) {
+                case PASSED -> session.finishPassed();
+                case FAILED -> session.finishFailed(originalFailure);
+                case SKIPPED -> session.finishSkipped(skipReason);
+            }
+        } catch (RetryPolicyViolationException failure) {
+            policyViolation = failure;
+        } catch (RuntimeException failure) {
+            diagnostics.add(failure);
+        }
+
         Path screenshotPath = null;
-        if (outcome == FinalizationOutcome.FAILED && options.screenshotOnFailure()) {
+        if (session.metadata().status() == TraceStatus.FAILED && options.screenshotOnFailure()) {
             try {
                 ScreenshotCaptureResult screenshot = delegate.captureScreenshot("failure", ScreenshotCaptureOptions.builder()
                         .outputDirectory(directory.resolve("screenshots"))
@@ -166,16 +187,6 @@ public final class TestLens {
             }
         }
 
-        try {
-            switch (outcome) {
-                case PASSED -> session.finishPassed();
-                case FAILED -> session.finishFailed(originalFailure);
-                case SKIPPED -> session.finishSkipped(skipReason);
-            }
-        } catch (RuntimeException failure) {
-            diagnostics.add(failure);
-        }
-
         Path json = directory.resolve("trace.json");
         Path html = directory.resolve("report.html");
         try { session.exportJson(json); } catch (RuntimeException failure) { diagnostics.add(failure); json = null; }
@@ -183,7 +194,15 @@ public final class TestLens {
         if (options.cleanupHudOnFinish()) {
             try { delegate.clearDebugArtifacts(); } catch (RuntimeException failure) { diagnostics.add(failure); }
         }
-        return new TestLensFinalizationResult(session, directory, json, html, screenshotPath, diagnostics);
+        TestLensFinalizationResult result = new TestLensFinalizationResult(session, directory, json, html, screenshotPath, diagnostics);
+        if (policyViolation != null) {
+            RetryPolicyViolationException finalPolicyViolation = policyViolation;
+            diagnostics.forEach(failure -> {
+                if (failure != finalPolicyViolation) finalPolicyViolation.addSuppressed(failure);
+            });
+            throw finalPolicyViolation;
+        }
+        return result;
     }
 
     private enum FinalizationOutcome {

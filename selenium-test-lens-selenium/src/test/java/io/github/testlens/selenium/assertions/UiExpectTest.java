@@ -9,6 +9,8 @@ import io.github.testlens.core.logging.UiTestLensLogger;
 import io.github.testlens.selenium.locator.UiLocator;
 import io.github.testlens.selenium.locator.UiLocatorException;
 import io.github.testlens.selenium.locator.UiLocatorOptions;
+import io.github.testlens.core.trace.TraceLogSink;
+import io.github.testlens.core.trace.UiTestLensSession;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -111,6 +113,22 @@ class UiExpectTest {
         assertEquals(1, countEvents(sink.entries(), UiTestLensEventType.ASSERTION_TIMED_OUT));
         assertEventAbsent(sink.entries(), UiTestLensEventType.LOCATOR_RESOLVE_FAILED);
         assertEventAbsent(sink.entries(), UiTestLensEventType.LOCATOR_ACTION_FAILED);
+    }
+
+    @Test
+    void assertionPollingDoesNotMarkSessionAsFlaky() {
+        InMemoryLogSink sink = new InMemoryLogSink();
+        UiTestLensSession session = UiTestLensSession.start("assertion polling");
+        FakeBrowser browser = FakeBrowser.withTexts("Loading", "Saved");
+        UiLocator locator = new UiLocator(browser.driver(), By.id("modal"), "modal", fastOverlay(browser.driver()),
+                fastLocatorOptions(), OverlayLogger.from(UiTestLensLogger.builder()
+                .sink(sink).sink(new TraceLogSink(session)).build()));
+
+        UiAssertionResult result = locator.expect().toHaveText("Saved");
+
+        assertTrue(result.attempts() > 1);
+        assertEventPresent(sink.entries(), UiTestLensEventType.ASSERTION_RETRY);
+        assertEquals(0, session.retrySummary().totalRetries());
     }
 
     @Test

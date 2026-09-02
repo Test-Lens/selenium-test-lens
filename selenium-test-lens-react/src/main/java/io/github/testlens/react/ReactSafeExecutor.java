@@ -23,18 +23,30 @@ public class ReactSafeExecutor {
     private final int maxRetries;
     private final Duration retryDelay;
     private final Duration waitPerAttempt;
+    private final RetryTraceSink retryTraceSink;
 
     public ReactSafeExecutor(WebDriver driver,
                              ReactOverlaySupport overlay,
                              int maxRetries,
                              Duration retryDelay,
                              Duration waitPerAttempt) {
+        this(driver, overlay, maxRetries, retryDelay, waitPerAttempt,
+                overlay instanceof RetryTraceSink sink ? sink : RetryTraceSink.noop());
+    }
+
+    ReactSafeExecutor(WebDriver driver,
+                      ReactOverlaySupport overlay,
+                      int maxRetries,
+                      Duration retryDelay,
+                      Duration waitPerAttempt,
+                      RetryTraceSink retryTraceSink) {
         this.driver = driver;
         this.overlay = overlay;
         this.reactSelect = new ReactSelectHelper(driver);
         this.maxRetries = maxRetries <= 0 ? 3 : maxRetries;
         this.retryDelay = retryDelay != null ? retryDelay : Duration.ofMillis(200);
         this.waitPerAttempt = waitPerAttempt != null ? waitPerAttempt : Duration.ofSeconds(15);
+        this.retryTraceSink = retryTraceSink == null ? RetryTraceSink.noop() : retryTraceSink;
     }
 
     public ReactSafeExecutor(WebDriver driver, ReactOverlaySupport overlay) {
@@ -49,6 +61,8 @@ public class ReactSafeExecutor {
         NoSuchElementException lastNse = null;
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            boolean operationStarted = false;
+            long operationStartedAt = 0;
             try {
                 if (overlay != null && overlay.getConfig().isShowHudPanel()) {
                     overlay.setStep(String.format(
@@ -64,16 +78,21 @@ public class ReactSafeExecutor {
                     overlay.highlightElement(element, actionDescription);
                 }
 
+                operationStartedAt = System.nanoTime();
+                operationStarted = true;
                 return op.apply(element);
 
             } catch (StaleElementReferenceException e) {
                 lastStale = e;
+                recordRecoveryRetry(operationStarted, locator, actionDescription, attempt, operationStartedAt, e);
                 sleep(retryDelay);
             } catch (NoSuchElementException e) {
                 lastNse = e;
+                recordRecoveryRetry(operationStarted, locator, actionDescription, attempt, operationStartedAt, e);
                 sleep(retryDelay);
             } catch (ElementClickInterceptedException e) {
                 // React overlays can appear between presence and interaction; retry with a fresh element.
+                recordRecoveryRetry(operationStarted, locator, actionDescription, attempt, operationStartedAt, e);
                 sleep(retryDelay);
             }
         }
@@ -100,6 +119,26 @@ public class ReactSafeExecutor {
             Thread.sleep(d.toMillis());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        }
+    }
+
+    private void recordRecoveryRetry(boolean operationStarted, By locator, String action, int attempt,
+                                     long operationStartedAt, RuntimeException failure) {
+        if (!operationStarted || attempt >= maxRetries) return;
+        try {
+            retryTraceSink.record(action, locator.toString(), attempt, attempt + 1, failure,
+                    Math.max(0, System.nanoTime() - operationStartedAt));
+        } catch (RuntimeException ignored) {
+            // Retry diagnostics must not change React operation behavior.
+        }
+    }
+
+    interface RetryTraceSink {
+        void record(String action, String locator, int attempt, int nextAttempt,
+                    RuntimeException failure, long durationNanos);
+
+        static RetryTraceSink noop() {
+            return (action, locator, attempt, nextAttempt, failure, durationNanos) -> { };
         }
     }
 

@@ -30,11 +30,13 @@ try {
 
     try {
         runTest(driver, lens);
-        lens.finishPassed();
     } catch (Exception | Error failure) {
         lens.finishFailed(failure);
         throw failure;
     }
+    // Keep this outside the catch above: a retry policy may finalize FAILED
+    // and throw RetryPolicyViolationException after writing the reports.
+    lens.finishPassed();
 } finally {
     driver.quit();
 }
@@ -62,6 +64,8 @@ void savesOrder(WebDriver driver, TestLens lens) {
 
 Register it once per test class. Parameterized, repeated, nested, and parallel invocations receive separate state keyed by JUnit's unique context ID. The extension maps normal completion to `finishPassed()`, `TestAbortedException` (including assumptions) to `finishSkipped(reason)`, and other failures to `finishFailed(originalFailure)`.
 
+If `finishPassed()` detects a configured retry-policy violation, the extension propagates it as the invocation failure after Lens has finalized and exported the session. It does not call `finishFailed()` a second time.
+
 The extension owns the driver returned by the factory. It finalizes reports before calling `driver.quit()`, so do not add another quit in `@AfterEach`. Disabled tests do not create drivers or sessions. See the dedicated [JUnit 5 integration guide](integrations/junit5.md) for dependencies, configuration, cleanup errors, and the complete concurrency contract.
 
 ## TestNG
@@ -81,6 +85,8 @@ class OrderTest {
 ```
 
 Both annotations are required; there is no automatic ServiceLoader registration. The adapter maps success, failure, skip, and success-percentage failure, owns `quit()`, and isolates state on the physical `ITestResult`. See the dedicated [TestNG integration guide](integrations/testng.md) for factory construction, retry/DataProvider/parallel behavior, and cleanup policy. A hand-written `@BeforeMethod`/`@AfterMethod` integration remains a legacy/manual alternative when a project needs a different ownership model.
+
+For a retry-policy violation on an otherwise successful invocation, the listener explicitly changes the `ITestResult` to `FAILURE` and installs the policy exception as its throwable; throwing only from a listener callback is not relied upon.
 
 ## Allure coexistence
 

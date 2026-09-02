@@ -8,6 +8,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 /**
@@ -18,9 +20,16 @@ import java.util.UUID;
 public final class UiTestLensSession {
     private final List<TraceEvent> events = new ArrayList<>();
     private final List<TraceArtifact> artifacts = new ArrayList<>();
+    private final RetryOutcomePolicy retryOutcomePolicy;
+    private final int allowedRetries;
     private TraceMetadata metadata;
+    private boolean retryDecisionRecorded;
+    private boolean retryPolicyTriggered;
 
-    private UiTestLensSession(String name) {
+    private UiTestLensSession(String name, RetryOutcomePolicy retryOutcomePolicy, int allowedRetries) {
+        if (allowedRetries < 0) throw new IllegalArgumentException("allowedRetries must not be negative");
+        this.retryOutcomePolicy = retryOutcomePolicy == null ? RetryOutcomePolicy.REPORT_ONLY : retryOutcomePolicy;
+        this.allowedRetries = allowedRetries;
         String id = UUID.randomUUID().toString();
         this.metadata = TraceMetadata.builder(id, name == null || name.isBlank() ? "Selenium Test Lens session" : name.trim())
                 .status(TraceStatus.STARTED)
@@ -32,7 +41,11 @@ public final class UiTestLensSession {
     }
 
     public static UiTestLensSession start(String name) {
-        return new UiTestLensSession(name);
+        return new UiTestLensSession(name, RetryOutcomePolicy.REPORT_ONLY, 0);
+    }
+
+    public static UiTestLensSession start(String name, RetryOutcomePolicy policy, int allowedRetries) {
+        return new UiTestLensSession(name, policy, allowedRetries);
     }
 
     public String id() {
@@ -49,6 +62,24 @@ public final class UiTestLensSession {
 
     public synchronized List<TraceArtifact> artifacts() {
         return Collections.unmodifiableList(new ArrayList<>(artifacts));
+    }
+
+    public synchronized RetrySummary retrySummary() {
+        Map<String, Long> byAction = new TreeMap<>();
+        Map<String, Long> byLocator = new TreeMap<>();
+        Map<String, Long> byException = new TreeMap<>();
+        long total = 0;
+        DurationAccumulator timeLost = new DurationAccumulator();
+        for (TraceEvent event : events) {
+            if (event.type() != TraceEventType.RETRY) continue;
+            total++;
+            timeLost.add(event.duration());
+            increment(byAction, event.attributes().get("retry.action"));
+            increment(byLocator, event.attributes().get("retry.locator"));
+            increment(byException, event.attributes().get("retry.exceptionType"));
+        }
+        return new RetrySummary(total, timeLost.value(), total > 0, retryOutcomePolicy,
+                retryPolicyTriggered, byAction, byLocator, byException);
     }
 
     public synchronized TraceEvent addEvent(TraceEvent event) {
@@ -87,14 +118,27 @@ public final class UiTestLensSession {
     }
 
     public synchronized void finishPassed() {
-        finish(TraceStatus.PASSED, null, "");
+        RetrySummary beforeDecision = retrySummary();
+        retryPolicyTriggered = triggersPolicy(beforeDecision.totalRetries());
+        RetrySummary decided = retrySummary();
+        if (retryPolicyTriggered) {
+            RetryPolicyViolationException retryPolicyViolation = new RetryPolicyViolationException(retryOutcomePolicy, decided);
+            recordRetryDecision(decided);
+            finish(TraceStatus.FAILED, retryPolicyViolation, retryPolicyViolation.getMessage());
+            throw retryPolicyViolation;
+        } else {
+            recordRetryDecision(decided);
+            finish(TraceStatus.PASSED, null, "");
+        }
     }
 
     public synchronized void finishFailed(Throwable throwable) {
+        recordRetryDecision(retrySummary());
         finish(TraceStatus.FAILED, throwable, "");
     }
 
     public synchronized void finishSkipped(String reason) {
+        recordRetryDecision(retrySummary());
         finish(TraceStatus.SKIPPED, null, reason);
     }
 
@@ -160,6 +204,43 @@ public final class UiTestLensSession {
             event.failure(TraceFailure.from(throwable, false)).message(throwable.getMessage());
         }
         addEvent(event.build());
+    }
+
+    private boolean triggersPolicy(long totalRetries) {
+        return switch (retryOutcomePolicy) {
+            case REPORT_ONLY, WARN -> false;
+            case FAIL_ON_ANY_RETRY -> totalRetries >= 1;
+            case FAIL_AFTER_N -> totalRetries > allowedRetries;
+        };
+    }
+
+    private void recordRetryDecision(RetrySummary summary) {
+        if (retryDecisionRecorded) return;
+        retryDecisionRecorded = true;
+        TraceStatus status = summary.policyTriggered() ? TraceStatus.FAILED
+                : summary.policy() == RetryOutcomePolicy.WARN && summary.flakyCandidate()
+                ? TraceStatus.WARNING : TraceStatus.INFO;
+        addEvent(TraceEvent.builder(TraceEventType.RETRY_SUMMARY, status, "Retry summary")
+                .message(summary.flakyCandidate() ? "Recovery retry summary" : "No recovery retries recorded")
+                .attribute("flakyCandidate", String.valueOf(summary.flakyCandidate()))
+                .attribute("totalRetries", String.valueOf(summary.totalRetries()))
+                .attribute("timeLostMs", String.valueOf(summary.timeLost().toMillis()))
+                .attribute("policy", summary.policy().name())
+                .attribute("policyTriggered", String.valueOf(summary.policyTriggered()))
+                .attribute("allowedRetries", String.valueOf(allowedRetries))
+                .build());
+    }
+
+    private static void increment(Map<String, Long> target, String key) {
+        if (key != null && !key.isBlank()) target.merge(key, 1L, Long::sum);
+    }
+
+    private static final class DurationAccumulator {
+        private java.time.Duration value = java.time.Duration.ZERO;
+        void add(java.time.Duration duration) {
+            if (duration != null && !duration.isNegative()) value = value.plus(duration);
+        }
+        java.time.Duration value() { return value; }
     }
 }
 

@@ -33,6 +33,7 @@ The browser gate verifies:
 - frame switching, new-window waiting/switching, and `TestLensAlert` work through a real browser;
 - strict page CSP does not allow a diagnostic decoration failure to change the intended Selenium click outcome.
 - the JUnit 5 extension and TestNG listener each create, expose, finalize, report, and close a real browser invocation through their public adapter APIs.
+- a real stale element causes exactly one recovery retry and one successful physical click; report-only and fail-on-any-retry paths verify Flakiness JSON/HTML.
 
 ## CI
 
