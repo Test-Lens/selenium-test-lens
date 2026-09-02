@@ -21,7 +21,7 @@ Selenium Test Lens attaches observability, retryable element operations, diagnos
 | Capability | Public entry point | Behavior and boundary |
 | --- | --- | --- |
 | Attach to an existing driver | [`TestLens.attach(...)`](reference/test-lens.md#creation-and-lifecycle) | Keeps the same driver; Lens neither creates nor closes it. |
-| Session lifecycle | `startSession`, `session`, `finishPassed`, `finishFailed` | Records a trace and performs best-effort final exports. Finish methods do not quit the driver. |
+| Session lifecycle | `startSession`, `session`, `finishPassed`, `finishFailed`, `finishSkipped` | Records passed, failed, or skipped trace status and performs best-effort final exports. Only failed finalization can request an automatic failure screenshot. Finish methods do not quit the driver. |
 | Named steps | [`step(...)`](advanced/steps-business-assertions.md#named-steps) | Records start/pass/failure, optionally HUD output, nested events, stack trace, and a failure screenshot. |
 | Selenium locators | [`locator(By...)`](elements/locators.md) | Accepts any Selenium `By`, with an optional diagnostic label. |
 | User-facing locators | `getByTestId`, `getByText`, `getByTextContaining`, `getByRole` | Test-id uses `[data-testid=...]`; text and role helpers have the documented DOM/ARIA limits. |

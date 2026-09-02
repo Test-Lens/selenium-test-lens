@@ -13,7 +13,7 @@ record TestLensFinalizationResult(
 boolean fullySuccessful()
 ```
 
-`session` and all paths can be null when no session exists or a corresponding operation failed. `failureScreenshot` is normally null for passed finalization or when disabled/failed. `diagnosticFailures` is an immutable/non-null list of best-effort capture/export/cleanup failures. `fullySuccessful()` means only that this list is empty; it does not redefine the test outcome.
+`session` and all paths can be null when no session exists or a corresponding operation failed. `failureScreenshot` is always null for passed or skipped finalization, and can also be null when failed-session capture is disabled or unsuccessful. `diagnosticFailures` is an immutable/non-null list of best-effort capture/export/cleanup failures. `fullySuccessful()` means only that this list is empty; it does not redefine the test outcome.
 
 ## Operation results
 

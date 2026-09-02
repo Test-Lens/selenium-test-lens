@@ -79,6 +79,8 @@ final class LensExtension implements BeforeEachCallback, AfterEachCallback {
         try {
             if (failure == null) {
                 state.lens().finishPassed();
+            } else if (failure instanceof org.opentest4j.TestAbortedException) {
+                state.lens().finishSkipped(failure.getMessage());
             } else {
                 state.lens().finishFailed(failure);
             }
@@ -93,7 +95,7 @@ final class LensExtension implements BeforeEachCallback, AfterEachCallback {
 
 Register the extension once per test class. Parameterized and repeated tests receive a separate JUnit invocation and therefore separate stored state.
 
-Test Lens 0.1.0 exposes passed/failed session finalization. In this example, any JUnit execution exception is recorded as a failed Lens session.
+JUnit 5 represents aborted tests, including failed assumptions, with `org.opentest4j.TestAbortedException`. Map that outcome to `finishSkipped(reason)` as shown above. Other execution exceptions are genuine failures and belong in `finishFailed(...)`. This is integration code in the consuming test project; Selenium Test Lens runtime does not depend on JUnit or OpenTest4J.
 
 ## TestNG
 
@@ -121,16 +123,17 @@ public void afterMethod(ITestResult result) {
     try {
         if (current != null) {
             int status = result.getStatus();
-            if (status == ITestResult.SUCCESS) {
-                current.lens().finishPassed();
-            } else {
-                Throwable failure = result.getThrowable();
-                if (failure == null) {
-                    failure = status == ITestResult.SKIP
-                            ? new SkipException("TestNG invocation skipped")
-                            : new AssertionError("TestNG result status: " + status);
+            switch (status) {
+                case ITestResult.SUCCESS -> current.lens().finishPassed();
+                case ITestResult.FAILURE -> current.lens().finishFailed(result.getThrowable());
+                case ITestResult.SKIP -> {
+                    Throwable skipped = result.getThrowable();
+                    String reason = skipped == null
+                            ? "TestNG invocation skipped"
+                            : skipped.getMessage();
+                    current.lens().finishSkipped(reason);
                 }
-                current.lens().finishFailed(failure);
+                default -> current.lens().finishFailed(result.getThrowable());
             }
         }
     } finally {
@@ -144,7 +147,7 @@ public void afterMethod(ITestResult result) {
 private record State(WebDriver driver, TestLens lens) {}
 ```
 
-In this example, skipped TestNG invocations are recorded as failed Lens sessions because Test Lens 0.1.0 has no skipped finalizer. `SkipException` supplies the reason when TestNG provides no throwable. If your suite uses a different reporting policy for skipped tests, map that status explicitly in your integration.
+The three TestNG terminal states map directly to the three Lens finalizers. Do not manufacture a `SkipException` merely to persist a reason: pass the runner-provided message, or a plain fallback string, to `finishSkipped(reason)`. This snippet belongs in the consuming TestNG project; the Test Lens runtime itself has no TestNG dependency.
 
 ## Allure coexistence
 

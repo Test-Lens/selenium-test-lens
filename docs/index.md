@@ -68,7 +68,7 @@ try {
 }
 ```
 
-`finishPassed()` and `finishFailed(Throwable)` finalize the Lens session and write its reports and diagnostics.
+`finishPassed()`, `finishFailed(Throwable)`, and `finishSkipped(String)` finalize the Lens session with the matching passed, failed, or skipped status and write its reports and diagnostics. None of them closes the driver.
 
 ## Why Test Lens?
 

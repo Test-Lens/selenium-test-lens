@@ -18,11 +18,12 @@ UiTestLensSession startSession(String name)
 Optional<UiTestLensSession> session()
 TestLensFinalizationResult finishPassed()
 TestLensFinalizationResult finishFailed(Throwable originalFailure)
+TestLensFinalizationResult finishSkipped(String reason)
 ```
 
 All `attach` overloads require a usable existing driver; the first uses all defaults, the second changes overlay configuration, and the third accepts complete facade options. Lens never creates or closes the driver. `startSession` activates a new trace and attempts HUD initialization. `session` is empty before start.
 
-Finalization completes the active session, attempts failure screenshot (failed finish only), JSON, HTML, and HUD cleanup. Diagnostics are best effort and collected in the result. Calling finish without a session returns a result containing an `IllegalStateException` diagnostic rather than throwing it.
+Finalization completes the active session, writes JSON and HTML, and applies configured HUD cleanup. `finishPassed()` records `PASSED`; `finishFailed(...)` always records `FAILED`, including when its argument is null; and `finishSkipped(reason)` records `SKIPPED`, with a null reason normalized to an empty event message. Only failed finalization can attempt the automatic failure screenshot. Diagnostics are best effort and collected in the result without replacing the requested status. Calling any finish method without a session returns a result containing an `IllegalStateException` diagnostic rather than throwing it. Finalization never closes the driver.
 
 ```java
 TestLens lens = TestLens.attach(driver);

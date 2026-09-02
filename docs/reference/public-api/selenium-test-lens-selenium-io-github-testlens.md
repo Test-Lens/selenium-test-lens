@@ -268,6 +268,7 @@ public io.github.testlens.TestLens switchToNewWindow(java.util.Set<java.lang.Str
 public io.github.testlens.TestLensAlert alert()
 public io.github.testlens.TestLensFinalizationResult finishPassed()
 public io.github.testlens.TestLensFinalizationResult finishFailed(java.lang.Throwable)
+public io.github.testlens.TestLensFinalizationResult finishSkipped(java.lang.String)
 ```
 
 ## `io.github.testlens.TestLensAlert` {#io-github-testlens-testlensalert}

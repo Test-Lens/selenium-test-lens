@@ -138,7 +138,7 @@ See [Configuration builders](reference/configuration.md) or Javadoc for individu
 
 ## Notes and limits
 
-- With the default options, `finishFailed(Throwable)` attempts a screenshot. Capture is best-effort and can be disabled with `TestLensOptions.screenshotOnFailure(...)`.
+- With the default options, only `finishFailed(Throwable)` attempts an automatic screenshot—even when the throwable is null. Passed and skipped finalization never do. Capture is best-effort and can be disabled with `TestLensOptions.screenshotOnFailure(...)`.
 - Network diagnostics omit headers by default. When headers are included, sensitive headers are masked by default.
 - Network diagnostics default to explicit `MANUAL` events. Session attachment requires an explicit `NetworkDiagnostics.attachToSession(...)` call.
 - Captured authentication state is written only when `AuthState.save(...)` is called. Saved files can contain cookies and tokens, so do not commit them.

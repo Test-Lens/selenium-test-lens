@@ -17,9 +17,9 @@ Path htmlReport = result.htmlReport();
 Path jsonReport = result.jsonReport();
 ```
 
-Open the returned HTML path in a browser to inspect the status, timeline, failures, and evidence. Feed the JSON path to reporting or archival tooling when structured data is required. On failure, call `finishFailed(Throwable)` with the original exception instead of `finishPassed()`.
+Open the returned HTML path in a browser to inspect the status, timeline, failures, and evidence. Feed the JSON path to reporting or archival tooling when structured data is required. On failure, call `finishFailed(Throwable)` with the original exception; for an aborted or skipped test, call `finishSkipped(reason)`.
 
-`TestLens.finishPassed()` and `finishFailed(Throwable)` attempt per-session `trace.json` and `report.html`. Each export is best effort: its `Path` can be null and the error appears in `TestLensFinalizationResult.diagnosticFailures()`.
+All three facade finalizers—`finishPassed()`, `finishFailed(Throwable)`, and `finishSkipped(String)`—attempt per-session `trace.json` and `report.html`. The reports retain `PASSED`, `FAILED`, or `SKIPPED` respectively, and a skip reason is stored on the `SESSION_FINISHED` event. Each export is best effort: its `Path` can be null and the error appears in `TestLensFinalizationResult.diagnosticFailures()` without changing the session status.
 
 The destination is derived from the session output configuration. See [session lifecycle and finalization](../reference/test-lens.md#creation-and-lifecycle), [`TestLensOptions`](../reference/configuration.md#testlensoptions), and [trace/report options](../reference/configuration.md#trace-and-report-options). Reports observe the completed session; they do not alter test status or retry behavior.
 

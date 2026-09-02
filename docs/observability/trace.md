@@ -24,6 +24,8 @@ System.out.println(result.jsonReport());
 
 Finalization attempts to write `trace.json` below the configured session output directory. The returned path can be null if export failed; inspect `diagnosticFailures()` rather than assuming the file exists. See [session lifecycle and finalization](../reference/test-lens.md#creation-and-lifecycle), [`TestLensOptions`](../reference/configuration.md#testlensoptions), and [trace/report export options](../reference/configuration.md#trace-and-report-options).
 
+The facade maps finalization directly to trace status: `finishPassed()` produces `PASSED`, `finishFailed(...)` produces `FAILED` even for a null throwable, and `finishSkipped(reason)` produces `SKIPPED`. The skip reason is the message of the single `SESSION_FINISHED` event; a null reason is normalized to an empty message by the session model.
+
 Trace collection observes operations; it does not change their wait conditions, retry intervals, or failure outcome. Names, messages, paths, and attached metadata are persisted, so avoid putting credentials or tokens in them.
 
 ## Direct session and log integration

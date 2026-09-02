@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
 # Types: 219
-# Public callable methods/constructors: 1632
+# Public callable methods/constructors: 1633
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -924,6 +924,7 @@ TYPE io.github.testlens.TestLens
   public io.github.testlens.TestLensAlert alert()
   public io.github.testlens.TestLensFinalizationResult finishPassed()
   public io.github.testlens.TestLensFinalizationResult finishFailed(java.lang.Throwable)
+  public io.github.testlens.TestLensFinalizationResult finishSkipped(java.lang.String)
 TYPE io.github.testlens.TestLensAlert
   public io.github.testlens.TestLensAlert waitUntilPresent()
   public java.lang.String text()

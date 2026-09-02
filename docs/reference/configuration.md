@@ -11,7 +11,7 @@ All option objects are immutable after `build()` unless their API explicitly exp
 | `overlayConfig(value)` | `OverlayConfig` | `OverlayConfig.builder().build()` | Visual runtime behavior; null is rejected when options are built/used. |
 | `locatorOptions(value)` | `UiLocatorOptions` | `UiLocatorOptions.defaults()` | Locator wait, retry, and actionability. The nested retained `highlightBeforeAction` value is currently not consulted by `UiLocator`. |
 | `outputRoot(value)` | `Path` | `target/ui-test-lens` | Root for per-session artifacts; must be usable/non-null. Do not point at a tracked or public directory. |
-| `screenshotOnFailure(value)` | `boolean` | `true` | Enables best-effort failure screenshot in `finishFailed`. |
+| `screenshotOnFailure(value)` | `boolean` | `true` | Enables the best-effort automatic screenshot only for explicit `finishFailed(...)`; passed and skipped finalization never request it. |
 | `cleanupHudOnFinish(value)` | `boolean` | `true` | Best-effort removal of injected visual artifacts. |
 
 Accessor methods have the same names without arguments; `build()` returns options.

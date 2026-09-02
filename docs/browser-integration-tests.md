@@ -28,7 +28,7 @@ The browser gate verifies:
 - decorative `highlightClick()` and `highlightElement()` never dispatch an application click with the overlay enabled or disabled;
 - `highlightThenClick()` and `UiLocator.click()` dispatch exactly one trusted application click in both overlay modes;
 - highlight markup lives in the Test Lens shadow root and both its host and marker ignore pointer events;
-- the HUD initializes, is injected again after navigation, and is retained or cleaned by `finishPassed()` and `finishFailed()` according to `cleanupHudOnFinish`;
+- the HUD initializes, is injected again after navigation, and is retained or cleaned for `finishPassed()`, `finishFailed(...)`, and `finishSkipped(...)` according to `cleanupHudOnFinish`; skipped finalization retains `SKIPPED` metadata and never creates a failure screenshot;
 - a prepared blocking overlay is closed deterministically before exactly one target click;
 - frame switching, new-window waiting/switching, and `TestLensAlert` work through a real browser;
 - strict page CSP does not allow a diagnostic decoration failure to change the intended Selenium click outcome.

@@ -4,7 +4,11 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Added `TestLens.finishSkipped(String)` so runner integrations can finalize aborted, assumed, or skipped tests as `SKIPPED` while retaining the common JSON/HTML and HUD-cleanup pipeline.
+
 ### Changed
+- Made facade finalization outcome explicit: `finishFailed(null)` now remains `FAILED`, and only failed finalization can request an automatic failure screenshot.
 - Fixed `UiAssertionOptions.failFastOnMissingElement(true)` for the normal `UiLocator.expect(options)` path: genuinely missing required elements now fail on the first observation, while the default remains retryable. Missing elements still satisfy `toBeHidden`, and stale elements remain a distinct retryable state.
 - Made `MANUAL` the default and only active `NetworkDiagnostics` capture mode. `AUTO`, `BIDI`, and `PERFORMANCE_LOGS` now report `UNSUPPORTED` without falling back or waiting for unavailable browser events.
 - Deprecated `NetworkDiagnosticsOptions.attachToSession` for removal in 0.2.0. Network diagnostics are attached only through explicit `NetworkDiagnostics.attachToSession(...)` calls.

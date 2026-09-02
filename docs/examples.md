@@ -69,7 +69,7 @@ lens.finishPassed();
 
 With the default `TestLensOptions`, finalization writes `report.html` and `trace.json` under a session-specific directory beneath `target/ui-test-lens`. `captureScreenshot(...)` captures through Selenium and attaches the result to the active session.
 
-Use `finishFailed(Throwable)` instead when the test fails. The [framework integration guide](framework-integration.md) shows runner lifecycle patterns.
+Use `finishFailed(Throwable)` when the test fails and `finishSkipped(String)` when the runner reports an aborted, assumed, or skipped test. The [framework integration guide](framework-integration.md) shows runner lifecycle patterns.
 
 ## Reporting APIs
 
@@ -104,7 +104,7 @@ new TraceHtmlExporter().exportSuiteToDefault(sessions,
                 .build());
 ```
 
-`exportSuiteToDefault(...)` writes `target/ui-test-lens-report/index.html`. `UiTestLensSession.finishSkipped(...)` belongs to this low-level trace model; the high-level `TestLens` facade in 0.1.0 exposes `finishPassed()` and `finishFailed(Throwable)`.
+`exportSuiteToDefault(...)` writes `target/ui-test-lens-report/index.html`. Normal consumers can record the same skipped outcome through `TestLens.finishSkipped(reason)`; direct `UiTestLensSession.finishSkipped(...)` remains available to lower-level trace integrations.
 
 ### JSON and portable bundles
 

@@ -63,7 +63,7 @@ try {
 }
 ```
 
-Lens finalization writes the session diagnostics. Keep your existing `WebDriver` cleanup as-is.
+Lens finalization writes the session diagnostics. Use `finishSkipped(reason)` for an aborted test or unmet assumption; unlike `finishFailed(...)`, it does not request a failure screenshot. Keep your existing `WebDriver` cleanup as-is.
 
 For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md).
 

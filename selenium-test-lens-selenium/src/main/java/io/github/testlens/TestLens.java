@@ -126,10 +126,21 @@ public final class TestLens {
 
     public TestLensAlert alert() { return new TestLensAlert(driver(), options.locatorOptions(), delegate); }
 
-    public TestLensFinalizationResult finishPassed() { return finish(null); }
-    public TestLensFinalizationResult finishFailed(Throwable originalFailure) { return finish(originalFailure); }
+    public TestLensFinalizationResult finishPassed() {
+        return finish(FinalizationOutcome.PASSED, null, null);
+    }
 
-    private TestLensFinalizationResult finish(Throwable originalFailure) {
+    public TestLensFinalizationResult finishFailed(Throwable originalFailure) {
+        return finish(FinalizationOutcome.FAILED, originalFailure, null);
+    }
+
+    public TestLensFinalizationResult finishSkipped(String reason) {
+        return finish(FinalizationOutcome.SKIPPED, null, reason);
+    }
+
+    private TestLensFinalizationResult finish(FinalizationOutcome outcome,
+                                              Throwable originalFailure,
+                                              String skipReason) {
         List<Throwable> diagnostics = new ArrayList<>();
         UiTestLensSession session = delegate.session().orElse(null);
         if (session == null) {
@@ -139,7 +150,7 @@ public final class TestLens {
 
         Path directory = sessionOutputDirectory(session);
         Path screenshotPath = null;
-        if (originalFailure != null && options.screenshotOnFailure()) {
+        if (outcome == FinalizationOutcome.FAILED && options.screenshotOnFailure()) {
             try {
                 ScreenshotCaptureResult screenshot = delegate.captureScreenshot("failure", ScreenshotCaptureOptions.builder()
                         .outputDirectory(directory.resolve("screenshots"))
@@ -156,7 +167,11 @@ public final class TestLens {
         }
 
         try {
-            if (originalFailure == null) session.finishPassed(); else session.finishFailed(originalFailure);
+            switch (outcome) {
+                case PASSED -> session.finishPassed();
+                case FAILED -> session.finishFailed(originalFailure);
+                case SKIPPED -> session.finishSkipped(skipReason);
+            }
         } catch (RuntimeException failure) {
             diagnostics.add(failure);
         }
@@ -169,6 +184,12 @@ public final class TestLens {
             try { delegate.clearDebugArtifacts(); } catch (RuntimeException failure) { diagnostics.add(failure); }
         }
         return new TestLensFinalizationResult(session, directory, json, html, screenshotPath, diagnostics);
+    }
+
+    private enum FinalizationOutcome {
+        PASSED,
+        FAILED,
+        SKIPPED
     }
 
     private TestLens contextOperation(String action, String description, Runnable operation) {

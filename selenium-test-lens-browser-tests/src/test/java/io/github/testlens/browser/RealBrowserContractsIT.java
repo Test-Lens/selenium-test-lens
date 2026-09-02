@@ -5,7 +5,9 @@ import com.sun.net.httpserver.HttpServer;
 import io.github.testlens.JsOverlayDebug;
 import io.github.testlens.OverlayConfig;
 import io.github.testlens.TestLens;
+import io.github.testlens.TestLensFinalizationResult;
 import io.github.testlens.TestLensOptions;
+import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.selenium.assertions.UiAssertionError;
 import io.github.testlens.selenium.assertions.UiAssertionFailureReason;
 import io.github.testlens.selenium.assertions.UiAssertionOptions;
@@ -41,6 +43,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -154,22 +157,27 @@ class RealBrowserContractsIT {
 
     @ParameterizedTest(name = "finish {0}, cleanup={1}")
     @MethodSource("finalizationCases")
-    void finalizationCleansHudAccordingToConfiguration(boolean passed, boolean cleanup) {
+    void finalizationCleansHudAccordingToConfiguration(TraceStatus status, boolean cleanup) {
         open("/clicks");
         TestLens lens = configuredLens(true, cleanup);
-        lens.startSession("finish-" + passed + "-cleanup-" + cleanup + "-" + UUID.randomUUID());
+        lens.startSession("finish-" + status + "-cleanup-" + cleanup + "-" + UUID.randomUUID());
         assertTrue(await(hudPresent()));
         lens.locator(By.id("count-button"), "Finalization target").click();
         assertTrue(await(highlightPresent()));
 
-        if (passed) {
-            lens.finishPassed();
-        } else {
-            lens.finishFailed(new AssertionError("expected integration-test failure state"));
-        }
+        TestLensFinalizationResult result = switch (status) {
+            case PASSED -> lens.finishPassed();
+            case FAILED -> lens.finishFailed(new AssertionError("expected integration-test failure state"));
+            case SKIPPED -> lens.finishSkipped("not applicable in this browser");
+            default -> throw new IllegalArgumentException("Unsupported finalization status: " + status);
+        };
 
+        assertEquals(status, result.session().metadata().status());
         assertEquals(!cleanup, hudPresent().apply(driver));
         assertEquals(!cleanup, highlightPresent().apply(driver));
+        if (status == TraceStatus.SKIPPED) {
+            assertNull(result.failureScreenshot());
+        }
     }
 
     @Test
@@ -256,10 +264,12 @@ class RealBrowserContractsIT {
 
     private static Stream<Arguments> finalizationCases() {
         return Stream.of(
-                Arguments.of(true, true),
-                Arguments.of(false, true),
-                Arguments.of(true, false),
-                Arguments.of(false, false));
+                Arguments.of(TraceStatus.PASSED, true),
+                Arguments.of(TraceStatus.FAILED, true),
+                Arguments.of(TraceStatus.SKIPPED, true),
+                Arguments.of(TraceStatus.PASSED, false),
+                Arguments.of(TraceStatus.FAILED, false),
+                Arguments.of(TraceStatus.SKIPPED, false));
     }
 
     private void open(String path) {
