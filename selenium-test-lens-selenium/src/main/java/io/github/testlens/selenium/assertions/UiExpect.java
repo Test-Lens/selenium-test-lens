@@ -212,6 +212,7 @@ public final class UiExpect {
             attempts++;
             try {
                 Evaluation evaluation = evaluationSupplier.get();
+                lastException = null;
                 lastEvaluation = evaluation;
                 if (evaluation.passed()) {
                     UiAssertionResult result = UiAssertionResult.passed(assertionName, locator.description(), expectedPreview,
@@ -219,22 +220,18 @@ public final class UiExpect {
                     reporter.passed(result);
                     return result;
                 }
+                if (options.failFastOnMissingElement()
+                        && evaluation.failureReason() == UiAssertionFailureReason.ELEMENT_NOT_FOUND) {
+                    throw failedAssertion(assertionName, expectedPreview, evaluation, attempts, started);
+                }
             } catch (RuntimeException e) {
                 lastException = e;
                 lastEvaluation = Evaluation.notReady(reasonFor(e), "", messageFor(e));
                 if (!isRetryableAssertionMiss(e)) {
-                    UiAssertionResult result = UiAssertionResult.failed(assertionName, lastEvaluation.failureReason(),
-                            locator.description(), expectedPreview, lastEvaluation.actualPreview(), attempts,
-                            Duration.between(started, Instant.now()), lastEvaluation.message());
-                    reporter.failed(result);
-                    throw new UiAssertionError(result);
+                    throw failedAssertion(assertionName, expectedPreview, lastEvaluation, attempts, started);
                 }
                 if (options.failFastOnMissingElement() && isMissingElement(e)) {
-                    UiAssertionResult result = UiAssertionResult.failed(assertionName, lastEvaluation.failureReason(),
-                            locator.description(), expectedPreview, lastEvaluation.actualPreview(), attempts,
-                            Duration.between(started, Instant.now()), lastEvaluation.message());
-                    reporter.failed(result);
-                    throw new UiAssertionError(result);
+                    throw failedAssertion(assertionName, expectedPreview, lastEvaluation, attempts, started);
                 }
             }
 
@@ -254,6 +251,18 @@ public final class UiExpect {
         }
     }
 
+    private UiAssertionError failedAssertion(String assertionName,
+                                               String expectedPreview,
+                                               Evaluation evaluation,
+                                               int attempts,
+                                               Instant started) {
+        UiAssertionResult result = UiAssertionResult.failed(assertionName, evaluation.failureReason(),
+                locator.description(), expectedPreview, evaluation.actualPreview(), attempts,
+                Duration.between(started, Instant.now()), evaluation.message());
+        reporter.failed(result);
+        return new UiAssertionError(result);
+    }
+
     private static String timeoutMessage(Evaluation evaluation, RuntimeException exception, boolean valueAssertion) {
         if (exception != null) {
             return messageFor(exception);
@@ -268,7 +277,7 @@ public final class UiExpect {
         if (isMissingElement(e)) {
             return UiAssertionFailureReason.ELEMENT_NOT_FOUND;
         }
-        if (e instanceof StaleElementReferenceException || messageContains(e, "stale")) {
+        if (isStaleElement(e)) {
             return UiAssertionFailureReason.STALE_ELEMENT;
         }
         return UiAssertionFailureReason.UNKNOWN;
@@ -280,12 +289,12 @@ public final class UiExpect {
     }
 
     private static boolean isRetryableAssertionMiss(RuntimeException e) {
-        return isMissingElement(e) || e instanceof StaleElementReferenceException || messageContains(e, "stale");
+        return isMissingElement(e) || isStaleElement(e);
     }
 
-    private static boolean messageContains(RuntimeException e, String needle) {
-        String message = e.getMessage();
-        return message != null && message.toLowerCase().contains(needle);
+    private static boolean isStaleElement(RuntimeException e) {
+        return e instanceof StaleElementReferenceException || e instanceof UiLocatorException locatorException
+                && locatorException.getCause() instanceof StaleElementReferenceException;
     }
 
     private static String messageFor(RuntimeException e) {

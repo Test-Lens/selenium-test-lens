@@ -6,6 +6,11 @@ import io.github.testlens.JsOverlayDebug;
 import io.github.testlens.OverlayConfig;
 import io.github.testlens.TestLens;
 import io.github.testlens.TestLensOptions;
+import io.github.testlens.selenium.assertions.UiAssertionError;
+import io.github.testlens.selenium.assertions.UiAssertionFailureReason;
+import io.github.testlens.selenium.assertions.UiAssertionOptions;
+import io.github.testlens.selenium.assertions.UiAssertionResult;
+import io.github.testlens.selenium.assertions.UiAssertionStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,6 +41,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RealBrowserContractsIT {
@@ -220,6 +226,34 @@ class RealBrowserContractsIT {
         assertClickCounts(1);
     }
 
+    @Test
+    void missingElementFailsOnFirstRealBrowserObservationWhenFailFastIsEnabled() {
+        open("/assertions");
+        TestLens lens = TestLens.attach(driver, overlayConfig(false));
+
+        UiAssertionError error = assertThrows(UiAssertionError.class, () -> lens
+                .locator(By.id("never-present"), "Never present")
+                .expect(assertionOptions(true))
+                .toBeVisible());
+
+        assertEquals(UiAssertionStatus.FAILED, error.result().status());
+        assertEquals(UiAssertionFailureReason.ELEMENT_NOT_FOUND, error.result().failureReason());
+        assertEquals(1, error.result().attempts());
+    }
+
+    @Test
+    void defaultRetryPolicyFindsElementAddedAsynchronouslyToRealDom() {
+        open("/assertions");
+        TestLens lens = TestLens.attach(driver, overlayConfig(false));
+
+        UiAssertionResult result = lens.locator(By.id("async-element"), "Async element")
+                .expect(assertionOptions(false))
+                .toBeVisible();
+
+        assertEquals(UiAssertionStatus.PASSED, result.status());
+        assertTrue(result.attempts() >= 2);
+    }
+
     private static Stream<Arguments> finalizationCases() {
         return Stream.of(
                 Arguments.of(true, true),
@@ -244,6 +278,14 @@ class RealBrowserContractsIT {
         return OverlayConfig.builder()
                 .enabled(enabled)
                 .decorationDurationMs(5_000)
+                .build();
+    }
+
+    private UiAssertionOptions assertionOptions(boolean failFast) {
+        return UiAssertionOptions.builder()
+                .timeout(Duration.ofSeconds(3))
+                .pollInterval(Duration.ofMillis(50))
+                .failFastOnMissingElement(failFast)
                 .build();
     }
 
@@ -343,6 +385,7 @@ class RealBrowserContractsIT {
             case "/popup-target" -> html(exchange, page("Popup", "<p id='popup-value'>popup ready</p>"), false);
             case "/second" -> html(exchange, page("Second", "<button id='count-button'>Count after navigation</button><span id='click-count'>0</span>"), false);
             case "/csp" -> html(exchange, page("CSP", "<button id='count-button'>CSP count</button><span id='click-count'>0</span>"), true);
+            case "/assertions" -> html(exchange, page("Assertions", "<div id='async-container'></div>"), false);
             case "/app.js" -> response(exchange, "application/javascript; charset=utf-8", APP_JS, false);
             case "/app.css" -> response(exchange, "text/css; charset=utf-8", APP_CSS, false);
             default -> response(exchange, "text/plain; charset=utf-8", "not found", false, 404);
@@ -398,6 +441,13 @@ class RealBrowserContractsIT {
               alert('Test Lens alert');
               document.getElementById('alert-result').textContent = 'accepted';
             });
+            const asyncContainer = document.getElementById('async-container');
+            if (asyncContainer) setTimeout(() => {
+              const element = document.createElement('div');
+              element.id = 'async-element';
+              element.textContent = 'ready';
+              asyncContainer.appendChild(element);
+            }, 250);
             """;
 
     private static final String APP_CSS = """

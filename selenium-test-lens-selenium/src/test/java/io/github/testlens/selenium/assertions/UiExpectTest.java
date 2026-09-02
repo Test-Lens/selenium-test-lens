@@ -10,11 +10,14 @@ import io.github.testlens.selenium.locator.UiLocator;
 import io.github.testlens.selenium.locator.UiLocatorException;
 import io.github.testlens.selenium.locator.UiLocatorOptions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.openqa.selenium.By;
 import org.openqa.selenium.InvalidSelectorException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.NoSuchSessionException;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -102,9 +105,29 @@ class UiExpectTest {
 
         assertEquals(UiAssertionStatus.TIMED_OUT, error.result().status());
         assertEquals(UiAssertionFailureReason.ELEMENT_NOT_FOUND, error.result().failureReason());
+        assertTrue(error.result().attempts() > 1);
         assertTrue(error.getMessage().contains("toBeVisible TIMED_OUT"));
         assertTrue(error.getMessage().contains("modal"));
         assertEquals(1, countEvents(sink.entries(), UiTestLensEventType.ASSERTION_TIMED_OUT));
+        assertEventAbsent(sink.entries(), UiTestLensEventType.LOCATOR_RESOLVE_FAILED);
+        assertEventAbsent(sink.entries(), UiTestLensEventType.LOCATOR_ACTION_FAILED);
+    }
+
+    @Test
+    void missingElementFailsImmediatelyWhenFailFastIsEnabled() {
+        InMemoryLogSink sink = new InMemoryLogSink();
+        UiLocator locator = loggedLocator(FakeBrowser.missing().driver(), sink);
+        UiAssertionOptions options = assertionOptions(true);
+
+        UiAssertionError error = assertThrows(UiAssertionError.class,
+                () -> locator.expect(options).toBeVisible());
+
+        assertEquals(UiAssertionStatus.FAILED, error.result().status());
+        assertEquals(UiAssertionFailureReason.ELEMENT_NOT_FOUND, error.result().failureReason());
+        assertEquals(1, error.result().attempts());
+        assertEquals(1, countEvents(sink.entries(), UiTestLensEventType.ASSERTION_FAILED));
+        assertEventAbsent(sink.entries(), UiTestLensEventType.ASSERTION_RETRY);
+        assertEventAbsent(sink.entries(), UiTestLensEventType.ASSERTION_TIMED_OUT);
         assertEventAbsent(sink.entries(), UiTestLensEventType.LOCATOR_RESOLVE_FAILED);
         assertEventAbsent(sink.entries(), UiTestLensEventType.LOCATOR_ACTION_FAILED);
     }
@@ -151,16 +174,21 @@ class UiExpectTest {
         assertEventAbsent(sink.entries(), UiTestLensEventType.ASSERTION_PASSED);
     }
 
-    @Test
-    void hiddenPassesWhenElementIsMissing() {
-        FakeBrowser browser = FakeBrowser.missing();
-        UiLocator locator = fastOverlay(browser.driver()).locator(By.id("modal"), fastLocatorOptions());
-        UiExpect expect = new UiExpect(locator, fastAssertionOptions(), null);
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void hiddenPassesWhenElementIsMissingRegardlessOfFailFast(boolean failFast) {
+        InMemoryLogSink sink = new InMemoryLogSink();
+        UiLocator locator = loggedLocator(FakeBrowser.missing().driver(), sink);
 
-        UiAssertionResult result = expect.toBeHidden();
+        UiAssertionResult result = locator.expect(assertionOptions(failFast)).toBeHidden();
 
         assertTrue(result.isPassed());
         assertEquals("missing", result.actualPreview());
+        assertEquals(1, result.attempts());
+        assertEventPresent(sink.entries(), UiTestLensEventType.ASSERTION_PASSED);
+        assertEventAbsent(sink.entries(), UiTestLensEventType.ASSERTION_RETRY);
+        assertEventAbsent(sink.entries(), UiTestLensEventType.ASSERTION_FAILED);
+        assertEventAbsent(sink.entries(), UiTestLensEventType.ASSERTION_TIMED_OUT);
     }
 
     @Test
@@ -188,6 +216,7 @@ class UiExpectTest {
 
         assertTrue(result.isPassed());
         assertEquals("hidden", result.actualPreview());
+        assertEquals(1, result.attempts());
         assertEventPresent(sink.entries(), UiTestLensEventType.ASSERTION_PASSED);
         assertEventAbsent(sink.entries(), UiTestLensEventType.LOCATOR_RESOLVE_FAILED);
         assertEventAbsent(sink.entries(), UiTestLensEventType.LOCATOR_ACTION_FAILED);
@@ -236,9 +265,42 @@ class UiExpectTest {
         UiAssertionError error = assertThrows(UiAssertionError.class, () -> locator.expect().toBeHidden());
 
         assertEquals(UiAssertionStatus.FAILED, error.result().status());
+        assertEquals(1, error.result().attempts());
         assertTrue(error.getMessage().contains("browser session closed"));
-        assertEventPresent(sink.entries(), UiTestLensEventType.ASSERTION_FAILED);
+        assertEquals(1, countEvents(sink.entries(), UiTestLensEventType.ASSERTION_FAILED));
+        assertEventAbsent(sink.entries(), UiTestLensEventType.ASSERTION_RETRY);
+        assertEventAbsent(sink.entries(), UiTestLensEventType.ASSERTION_TIMED_OUT);
         assertEventAbsent(sink.entries(), UiTestLensEventType.ASSERTION_PASSED);
+    }
+
+    @Test
+    void staleElementRetriesAndCanPassWithMissingFailFastEnabled() {
+        InMemoryLogSink sink = new InMemoryLogSink();
+        UiLocator locator = loggedLocator(FakeBrowser.staleThenDisplayed().driver(), sink);
+
+        UiAssertionResult result = locator.expect(assertionOptions(true)).toBeVisible();
+
+        assertEquals(UiAssertionStatus.PASSED, result.status());
+        assertTrue(result.attempts() > 1);
+        assertEventPresent(sink.entries(), UiTestLensEventType.ASSERTION_RETRY);
+        assertEventAbsent(sink.entries(), UiTestLensEventType.ASSERTION_FAILED);
+        assertEventAbsent(sink.entries(), UiTestLensEventType.ASSERTION_TIMED_OUT);
+    }
+
+    @Test
+    void persistentStaleElementTimesOutAsStaleEvenWithMissingFailFastEnabled() {
+        InMemoryLogSink sink = new InMemoryLogSink();
+        UiLocator locator = loggedLocator(FakeBrowser.alwaysStale().driver(), sink);
+
+        UiAssertionError error = assertThrows(UiAssertionError.class,
+                () -> locator.expect(assertionOptions(true)).toBeVisible());
+
+        assertEquals(UiAssertionStatus.TIMED_OUT, error.result().status());
+        assertEquals(UiAssertionFailureReason.STALE_ELEMENT, error.result().failureReason());
+        assertTrue(error.result().attempts() > 1);
+        assertEventPresent(sink.entries(), UiTestLensEventType.ASSERTION_RETRY);
+        assertEventPresent(sink.entries(), UiTestLensEventType.ASSERTION_TIMED_OUT);
+        assertEventAbsent(sink.entries(), UiTestLensEventType.ASSERTION_FAILED);
     }
 
     @Test
@@ -318,6 +380,14 @@ class UiExpectTest {
                 .build();
     }
 
+    private static UiAssertionOptions assertionOptions(boolean failFast) {
+        return UiAssertionOptions.builder()
+                .timeout(Duration.ofMillis(60))
+                .pollInterval(Duration.ofMillis(5))
+                .failFastOnMissingElement(failFast)
+                .build();
+    }
+
     private static UiLocator loggedLocator(WebDriver driver, InMemoryLogSink sink) {
         return new UiLocator(driver, By.id("modal"), "modal", fastOverlay(driver), fastLocatorOptions(),
                 OverlayLogger.from(UiTestLensLogger.builder().sink(sink).build()));
@@ -345,41 +415,58 @@ class UiExpectTest {
         private final boolean missing;
         private final Queue<Boolean> displayed;
         private final Queue<String> texts;
+        private final Queue<RuntimeException> displayFailures;
         private final String value;
         private final RuntimeException webDriverFailure;
 
-        private FakeBrowser(boolean missing, Queue<Boolean> displayed, Queue<String> texts, String value, RuntimeException webDriverFailure) {
+        private FakeBrowser(boolean missing, Queue<Boolean> displayed, Queue<String> texts,
+                            Queue<RuntimeException> displayFailures, String value, RuntimeException webDriverFailure) {
             this.missing = missing;
             this.displayed = displayed;
             this.texts = texts;
+            this.displayFailures = displayFailures;
             this.value = value;
             this.webDriverFailure = webDriverFailure;
         }
 
         private static FakeBrowser withTexts(String... texts) {
-            return new FakeBrowser(false, queue(Boolean.TRUE), new ArrayDeque<>(java.util.List.of(texts)), "", null);
+            return new FakeBrowser(false, queue(Boolean.TRUE), new ArrayDeque<>(java.util.List.of(texts)),
+                    new ArrayDeque<>(), "", null);
         }
 
         private static FakeBrowser withValue(String value) {
-            return new FakeBrowser(false, queue(Boolean.TRUE), new ArrayDeque<>(java.util.List.of("")), value, null);
+            return new FakeBrowser(false, queue(Boolean.TRUE), new ArrayDeque<>(java.util.List.of("")),
+                    new ArrayDeque<>(), value, null);
         }
 
         private static FakeBrowser missing() {
-            return new FakeBrowser(true, new ArrayDeque<>(), new ArrayDeque<>(), "", null);
+            return new FakeBrowser(true, new ArrayDeque<>(), new ArrayDeque<>(), new ArrayDeque<>(), "", null);
         }
 
         private static FakeBrowser displayed(boolean displayed) {
-            return new FakeBrowser(false, queue(displayed), new ArrayDeque<>(java.util.List.of("")), "", null);
+            return new FakeBrowser(false, queue(displayed), new ArrayDeque<>(java.util.List.of("")),
+                    new ArrayDeque<>(), "", null);
         }
 
         private static FakeBrowser visibilitySequence(Boolean... displayedStates) {
             return new FakeBrowser(false, new LinkedList<>(java.util.Arrays.asList(displayedStates)),
-                    new ArrayDeque<>(java.util.List.of("")), "", null);
+                    new ArrayDeque<>(java.util.List.of("")), new ArrayDeque<>(), "", null);
         }
 
         private static FakeBrowser visibilitySequenceWithTexts(Boolean[] displayedStates, String... texts) {
             return new FakeBrowser(false, new LinkedList<>(java.util.Arrays.asList(displayedStates)),
-                    new ArrayDeque<>(java.util.List.of(texts)), "", null);
+                    new ArrayDeque<>(java.util.List.of(texts)), new ArrayDeque<>(), "", null);
+        }
+
+        private static FakeBrowser staleThenDisplayed() {
+            return new FakeBrowser(false, queue(Boolean.TRUE), new ArrayDeque<>(java.util.List.of("")),
+                    new LinkedList<>(java.util.Arrays.asList(
+                            new StaleElementReferenceException("stale once"), null)), "", null);
+        }
+
+        private static FakeBrowser alwaysStale() {
+            return new FakeBrowser(false, queue(Boolean.TRUE), new ArrayDeque<>(java.util.List.of("")),
+                    new ArrayDeque<>(java.util.List.of(new StaleElementReferenceException("always stale"))), "", null);
         }
 
         private static FakeBrowser webDriverFailure(String message) {
@@ -387,7 +474,7 @@ class UiExpectTest {
         }
 
         private static FakeBrowser webDriverFailure(RuntimeException failure) {
-            return new FakeBrowser(false, new ArrayDeque<>(), new ArrayDeque<>(), "", failure);
+            return new FakeBrowser(false, new ArrayDeque<>(), new ArrayDeque<>(), new ArrayDeque<>(), "", failure);
         }
 
         private static Queue<Boolean> queue(Boolean value) {
@@ -434,6 +521,12 @@ class UiExpectTest {
         }
 
         private boolean nextDisplayed() {
+            if (!displayFailures.isEmpty()) {
+                RuntimeException failure = displayFailures.size() == 1 ? displayFailures.peek() : displayFailures.remove();
+                if (failure != null) {
+                    throw failure;
+                }
+            }
             if (displayed.isEmpty()) {
                 return true;
             }

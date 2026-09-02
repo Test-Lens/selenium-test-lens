@@ -40,7 +40,9 @@ UiAssertionResult toBeEnabled()
 UiAssertionResult toBeDisabled()
 ```
 
-`toBeVisible` requires a present, displayed element. `toBeHidden` passes when the element is missing or present but not displayed. Enabled/disabled assertions require a present element. Missing and stale-element outcomes are retryable unless `failFastOnMissingElement` applies; unrelated WebDriver failures fail immediately.
+`toBeVisible` requires a present, displayed element. Enabled/disabled assertions also require a present element. By default, a missing element is retryable: it may appear during polling, while a permanent absence ends as `TIMED_OUT` with `ELEMENT_NOT_FOUND`. With `failFastOnMissingElement(true)`, the first missing-element observation ends immediately as `FAILED` with `ELEMENT_NOT_FOUND`.
+
+`toBeHidden` is intentionally different: a missing element satisfies the assertion on its first attempt, regardless of `failFastOnMissingElement`; its result uses `actualPreview="missing"`. A present but non-displayed element also passes. A stale element is not treated as missing: it remains retryable even when missing-element fail-fast is enabled, and a persistent stale condition times out with `STALE_ELEMENT`. Unrelated WebDriver failures end immediately as `FAILED`.
 
 ## Text
 
@@ -51,6 +53,8 @@ UiAssertionResult toContainText(String expectedSubstring)
 ```
 
 Reads `WebElement.getText()`. Exact/sub-string comparison follows whitespace, trimming, and case options. Result previews are truncated to `actualTextPreviewLimit`; the assertion input can still be written to trace/report data, so do not assert secrets as literal text.
+
+Both text assertions require a present element and follow the missing/stale retry policy described above.
 
 ```java
 lens.getByTestId("status").expect().toContainText("Saved");
@@ -65,6 +69,8 @@ UiAssertionResult toContainValue(String expectedSubstring)
 ```
 
 Reads the element's `value` attribute and applies the same normalization rules. Value previews are redacted/limited by the implementation, but screenshots or application DOM may still expose sensitive input.
+
+Both value assertions require a present element and follow the same missing/stale retry policy.
 
 ## Result and failure
 

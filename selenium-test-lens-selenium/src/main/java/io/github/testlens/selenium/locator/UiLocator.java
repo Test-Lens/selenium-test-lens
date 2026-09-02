@@ -445,10 +445,10 @@ public final class UiLocator {
                 return element.isDisplayed()
                         ? UiExpect.VisibilityProbeResult.visibleElement()
                         : UiExpect.VisibilityProbeResult.hiddenElement();
-            } catch (NoSuchElementException | StaleElementReferenceException e) {
+            } catch (NoSuchElementException e) {
                 return UiExpect.VisibilityProbeResult.missingElement();
             }
-        } catch (NoSuchElementException | StaleElementReferenceException e) {
+        } catch (NoSuchElementException e) {
             return UiExpect.VisibilityProbeResult.missingElement();
         }
     }
@@ -458,10 +458,10 @@ public final class UiLocator {
             WebElement element = currentElement(driver);
             try {
                 return UiExpect.ElementProbeResult.present(operation.apply(element));
-            } catch (NoSuchElementException | StaleElementReferenceException e) {
+            } catch (NoSuchElementException e) {
                 return UiExpect.ElementProbeResult.missingElement();
             }
-        } catch (NoSuchElementException | StaleElementReferenceException e) {
+        } catch (NoSuchElementException e) {
             return UiExpect.ElementProbeResult.missingElement();
         }
     }

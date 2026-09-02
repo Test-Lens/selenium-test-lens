@@ -38,6 +38,15 @@ class UiAssertionOptionsTest {
     }
 
     @Test
+    void builderEnablesMissingElementFailFast() {
+        UiAssertionOptions options = UiAssertionOptions.builder()
+                .failFastOnMissingElement(true)
+                .build();
+
+        assertTrue(options.failFastOnMissingElement());
+    }
+
+    @Test
     void normalizesTextAccordingToOptions() {
         UiAssertionOptions options = UiAssertionOptions.builder()
                 .caseSensitive(false)

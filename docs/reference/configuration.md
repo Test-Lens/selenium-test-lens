@@ -39,7 +39,7 @@ Accessor methods have the same names without arguments; `build()` returns option
 | `caseSensitive(value)` | `boolean` | `true` | Case-sensitive comparison. |
 | `actualTextPreviewLimit(value)` | `int` | 300 | Diagnostic preview length; non-negative. |
 | `trimText(value)` | `boolean` | `true` | Trim before comparison. |
-| `failFastOnMissingElement(value)` | `boolean` | `false` | Stop rather than poll when element is missing. |
+| `failFastOnMissingElement(value)` | `boolean` | `false` | For assertions requiring presence, `false` retries a missing element until pass/`TIMED_OUT`; `true` ends the first missing observation as `FAILED`. `toBeHidden` still passes for missing elements. Stale elements remain separately retryable and time out as `STALE_ELEMENT`. |
 
 Comparison settings affect retry success; preview length affects diagnostics/reports/HUD, not matching input itself.
 
