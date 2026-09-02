@@ -61,6 +61,7 @@ jobs:
 
       - name: Set up Chrome
         if: matrix.browser == 'chrome'
+        id: setup-chrome
         uses: browser-actions/setup-chrome@v2
         with:
           install-chromedriver: true
@@ -75,8 +76,28 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run real-browser integration tests
-        run: mvn -Pbrowser-it -Dbrowser=${{ matrix.browser }} -Dheaded=false verify
+      - name: Report selected Chrome binaries
+        if: matrix.browser == 'chrome'
+        env:
+          TEST_CHROME_BINARY: ${{ steps.setup-chrome.outputs.chrome-path }}
+          TEST_CHROMEDRIVER_BINARY: ${{ steps.setup-chrome.outputs.chromedriver-path }}
+        run: |
+          echo "Chrome binary: $TEST_CHROME_BINARY"
+          "$TEST_CHROME_BINARY" --version
+          echo "ChromeDriver binary: $TEST_CHROMEDRIVER_BINARY"
+          "$TEST_CHROMEDRIVER_BINARY" --version
+
+      - name: Run Chrome real-browser integration tests
+        if: matrix.browser == 'chrome'
+        run: >-
+          mvn -Pbrowser-it -Dbrowser=chrome -Dheaded=false
+          -Dtest.chrome.binary="${{ steps.setup-chrome.outputs.chrome-path }}"
+          -Dwebdriver.chrome.driver="${{ steps.setup-chrome.outputs.chromedriver-path }}"
+          verify
+
+      - name: Run Firefox real-browser integration tests
+        if: matrix.browser == 'firefox'
+        run: mvn -Pbrowser-it -Dbrowser=firefox -Dheaded=false verify
 
       - name: Upload browser failure diagnostics
         if: failure()
@@ -107,12 +128,27 @@ jobs:
           cache: maven
 
       - name: Set up Chrome
+        id: setup-chrome
         uses: browser-actions/setup-chrome@v2
         with:
           install-chromedriver: true
 
+      - name: Report selected Chrome binaries
+        env:
+          TEST_CHROME_BINARY: ${{ steps.setup-chrome.outputs.chrome-path }}
+          TEST_CHROMEDRIVER_BINARY: ${{ steps.setup-chrome.outputs.chromedriver-path }}
+        run: |
+          echo "Chrome binary: $TEST_CHROME_BINARY"
+          "$TEST_CHROME_BINARY" --version
+          echo "ChromeDriver binary: $TEST_CHROMEDRIVER_BINARY"
+          "$TEST_CHROMEDRIVER_BINARY" --version
+
       - name: Run headed Chrome smoke under Xvfb
-        run: xvfb-run -a mvn -Pbrowser-it -Dbrowser=chrome -Dheaded=true verify
+        run: >-
+          xvfb-run -a mvn -Pbrowser-it -Dbrowser=chrome -Dheaded=true
+          -Dtest.chrome.binary="${{ steps.setup-chrome.outputs.chrome-path }}"
+          -Dwebdriver.chrome.driver="${{ steps.setup-chrome.outputs.chromedriver-path }}"
+          verify
 
       - name: Upload headed smoke failure diagnostics
         if: failure()

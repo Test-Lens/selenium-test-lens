@@ -300,6 +300,10 @@ class RealBrowserContractsIT {
             case "chrome" -> {
                 ChromeOptions options = new ChromeOptions();
                 options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
+                String configuredBinary = System.getProperty("test.chrome.binary", "").trim();
+                if (!configuredBinary.isEmpty()) {
+                    options.setBinary(configuredBinary);
+                }
                 options.addArguments("--window-size=1280,900", "--disable-dev-shm-usage", "--no-sandbox");
                 if (!headed) options.addArguments("--headless=new");
                 yield new ChromeDriver(options);
