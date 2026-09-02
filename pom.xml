@@ -46,6 +46,7 @@
         <module>selenium-test-lens-core</module>
         <module>selenium-test-lens-overlay</module>
         <module>selenium-test-lens-selenium</module>
+        <module>selenium-test-lens-junit5</module>
         <module>selenium-test-lens-react</module>
         <module>selenium-test-lens-examples</module>
     </modules>

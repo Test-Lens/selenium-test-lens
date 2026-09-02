@@ -4,7 +4,7 @@ This review separates supported user APIs from implementation-shaped classes tha
 
 | Classification | Types | Meaning |
 | --- | ---: | --- |
-| `USER_API` | 28 | Normal facade, element/assertion/lifecycle/configuration types. |
+| `USER_API` | 30 | Normal facade, element/assertion/lifecycle/configuration and JUnit 5 integration types. |
 | `ADVANCED_API` | 133 | Supported specialized diagnostics, models, exporters, auth/network/evidence, and React. |
 | `LOW_LEVEL_API` | 20 | Lower-abstraction helpers that consumers may deliberately compose. |
 | `INTERNAL_STYLE_PUBLIC` | 38 | Implementation-shaped binary surface; not recommended for consumer code. |

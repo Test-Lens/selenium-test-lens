@@ -5,6 +5,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added the published optional `selenium-test-lens-junit5` module with `TestLensExtension`, per-invocation WebDriver/Lens injection, passed/failed/aborted mapping, parallel-safe JUnit store isolation, and cleanup-safe driver ownership.
 - Added `TestLens.finishSkipped(String)` so runner integrations can finalize aborted, assumed, or skipped tests as `SKIPPED` while retaining the common JSON/HTML and HUD-cleanup pipeline.
 
 ### Changed

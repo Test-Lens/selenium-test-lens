@@ -8,6 +8,7 @@ $modules = [ordered]@{
     "selenium-test-lens-core" = "selenium-test-lens-core"
     "selenium-test-lens-overlay" = "selenium-test-lens-overlay"
     "selenium-test-lens-selenium" = "selenium-test-lens-selenium"
+    "selenium-test-lens-junit5" = "selenium-test-lens-junit5"
     "selenium-test-lens-react" = "selenium-test-lens-react"
 }
 $manifestPath = Join-Path $repositoryRoot "docs/reference/public-api-manifest.txt"

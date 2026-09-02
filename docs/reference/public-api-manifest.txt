@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 219
-# Public callable methods/constructors: 1633
+# Types: 221
+# Public callable methods/constructors: 1641
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -2061,6 +2061,17 @@ TYPE io.github.testlens.selenium.steps.UiStepStatus
   public static final io.github.testlens.selenium.steps.UiStepStatus SKIPPED
   public static io.github.testlens.selenium.steps.UiStepStatus[] values()
   public static io.github.testlens.selenium.steps.UiStepStatus valueOf(java.lang.String)
+MODULE selenium-test-lens-junit5
+TYPE io.github.testlens.junit5.TestLensExtension$Builder
+  public io.github.testlens.junit5.TestLensExtension$Builder lensOptions(io.github.testlens.TestLensOptions)
+  public io.github.testlens.junit5.TestLensExtension$Builder sessionName(java.util.function.Function<org.junit.jupiter.api.extension.ExtensionContext, java.lang.String>)
+  public io.github.testlens.junit5.TestLensExtension build()
+TYPE io.github.testlens.junit5.TestLensExtension
+  public static io.github.testlens.junit5.TestLensExtension$Builder builder(java.util.function.Supplier<? extends org.openqa.selenium.WebDriver>)
+  public void beforeEach(org.junit.jupiter.api.extension.ExtensionContext) throws java.lang.Exception
+  public void afterEach(org.junit.jupiter.api.extension.ExtensionContext) throws java.lang.Exception
+  public boolean supportsParameter(org.junit.jupiter.api.extension.ParameterContext, org.junit.jupiter.api.extension.ExtensionContext)
+  public java.lang.Object resolveParameter(org.junit.jupiter.api.extension.ParameterContext, org.junit.jupiter.api.extension.ExtensionContext)
 MODULE selenium-test-lens-react
 TYPE io.github.testlens.react.ReactOverlaySupport
   public abstract io.github.testlens.OverlayConfig getConfig()

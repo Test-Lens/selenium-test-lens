@@ -18,6 +18,7 @@ $components = @(
     @{ Artifact = "selenium-test-lens-core"; Directory = (Join-Path $repo "selenium-test-lens-core"); Packaging = "jar" },
     @{ Artifact = "selenium-test-lens-overlay"; Directory = (Join-Path $repo "selenium-test-lens-overlay"); Packaging = "jar" },
     @{ Artifact = "selenium-test-lens"; Directory = (Join-Path $repo "selenium-test-lens-selenium"); Packaging = "jar" },
+    @{ Artifact = "selenium-test-lens-junit5"; Directory = (Join-Path $repo "selenium-test-lens-junit5"); Packaging = "jar" },
     @{ Artifact = "selenium-test-lens-react"; Directory = (Join-Path $repo "selenium-test-lens-react"); Packaging = "jar" }
 )
 

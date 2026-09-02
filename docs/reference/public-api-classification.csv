@@ -206,6 +206,8 @@
 "selenium-test-lens-selenium","io.github.testlens.TestLensFinalizationResult","USER_API","docs/reference/result-types.md"
 "selenium-test-lens-selenium","io.github.testlens.TestLensOptions$Builder","USER_API","docs/reference/configuration.md"
 "selenium-test-lens-selenium","io.github.testlens.TestLensOptions","USER_API","docs/reference/configuration.md"
+"selenium-test-lens-junit5","io.github.testlens.junit5.TestLensExtension$Builder","USER_API","docs/integrations/junit5.md"
+"selenium-test-lens-junit5","io.github.testlens.junit5.TestLensExtension","USER_API","docs/integrations/junit5.md"
 "selenium-test-lens-react","io.github.testlens.react.actionability.ReactActionabilityChecker","ADVANCED_API",""
 "selenium-test-lens-react","io.github.testlens.react.actionability.ReactActionabilityOptions$Builder","ADVANCED_API",""
 "selenium-test-lens-react","io.github.testlens.react.actionability.ReactActionabilityOptions","ADVANCED_API",""

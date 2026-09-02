@@ -34,6 +34,19 @@ Keep Selenium as an explicit dependency and use the version already managed by y
 </dependency>
 ```
 
+For JUnit 5, add the optional published integration as a test dependency. It brings the lifecycle extension, while your project still selects the Selenium version:
+
+```xml
+<dependency>
+    <groupId>io.github.test-lens</groupId>
+    <artifactId>selenium-test-lens-junit5</artifactId>
+    <version>0.1.1-SNAPSHOT</version>
+    <scope>test</scope>
+</dependency>
+```
+
+See [JUnit 5 integration](integrations/junit5.md) for `@RegisterExtension` and parameter injection.
+
 ## Your first Lens session
 
 Attach Lens after your project creates its driver. Start a session before using Lens operations, then finalize it with the test outcome.
@@ -65,7 +78,7 @@ try {
 
 Lens finalization writes the session diagnostics. Use `finishSkipped(reason)` for an aborted test or unmet assumption; unlike `finishFailed(...)`, it does not request a failure screenshot. Keep your existing `WebDriver` cleanup as-is.
 
-For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md).
+For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The published JUnit 5 module is the recommended JUnit path.
 
 ## Run your test
 
@@ -103,6 +116,7 @@ The HUD is only a diagnostic aid and does not change test execution or assertion
 ## Next steps
 
 - [Integrate Lens with JUnit, TestNG, or an existing reporter](framework-integration.md)
+- [Use the JUnit 5 lifecycle extension](integrations/junit5.md)
 - [Use locators, actions, waits, and assertions](elements/index.md)
 - [Configure Test Lens](configuration.md)
 - [Migrate incrementally from raw Selenium](migration.md)

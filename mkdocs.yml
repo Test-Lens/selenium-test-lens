@@ -82,6 +82,7 @@ nav:
       - JsOverlayDebug advanced facade: advanced/js-overlay-debug.md
   - Integrations:
       - Integrations overview: integrations/index.md
+      - JUnit 5: integrations/junit5.md
       - Optional React API: integrations/react.md
   - Migration:
       - From raw Selenium: migration.md

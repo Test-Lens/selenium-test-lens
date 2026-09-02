@@ -11,7 +11,7 @@ lens.startSession(testName);
 
 ## Integration model
 
-Your project remains responsible for creating and closing `WebDriver`. Test Lens attaches to that driver, records Lens operations, and writes session diagnostics when the test finishes.
+In a manual integration, your project remains responsible for creating and closing `WebDriver`. Test Lens attaches to that driver, records Lens operations, and writes session diagnostics when the test finishes. The optional JUnit 5 extension is the deliberate exception: it owns drivers returned by the configured factory.
 
 A typical integration has three lifecycle points:
 
@@ -46,56 +46,23 @@ You can introduce Lens gradually. Existing Page Objects and direct Selenium call
 
 ## JUnit 5
 
-A JUnit 5 extension can create one driver and Lens instance in `beforeEach`, then finalize and clean them up in `afterEach`.
+Use the published `selenium-test-lens-junit5` module instead of copying lifecycle callbacks into each project:
 
 ```java
-final class LensExtension implements BeforeEachCallback, AfterEachCallback {
-    private static final ExtensionContext.Namespace NAMESPACE =
-            ExtensionContext.Namespace.create(LensExtension.class);
+@RegisterExtension
+final TestLensExtension testLens =
+        TestLensExtension.builder(ExistingDriverFactory::create).build();
 
-    @Override
-    public void beforeEach(ExtensionContext context) {
-        WebDriver driver = ExistingDriverFactory.create();
-        try {
-            TestLens lens = TestLens.attach(driver);
-            lens.startSession(context.getDisplayName());
-            context.getStore(NAMESPACE).put(context.getUniqueId(),
-                    new State(driver, lens));
-        } catch (RuntimeException | Error failure) {
-            driver.quit();
-            throw failure;
-        }
-    }
-
-    @Override
-    public void afterEach(ExtensionContext context) {
-        State state = context.getStore(NAMESPACE)
-                .remove(context.getUniqueId(), State.class);
-        if (state == null) {
-            return;
-        }
-
-        Throwable failure = context.getExecutionException().orElse(null);
-        try {
-            if (failure == null) {
-                state.lens().finishPassed();
-            } else if (failure instanceof org.opentest4j.TestAbortedException) {
-                state.lens().finishSkipped(failure.getMessage());
-            } else {
-                state.lens().finishFailed(failure);
-            }
-        } finally {
-            state.driver().quit();
-        }
-    }
-
-    private record State(WebDriver driver, TestLens lens) {}
+@Test
+void savesOrder(WebDriver driver, TestLens lens) {
+    driver.get(applicationUrl);
+    lens.getByTestId("save").click();
 }
 ```
 
-Register the extension once per test class. Parameterized and repeated tests receive a separate JUnit invocation and therefore separate stored state.
+Register it once per test class. Parameterized, repeated, nested, and parallel invocations receive separate state keyed by JUnit's unique context ID. The extension maps normal completion to `finishPassed()`, `TestAbortedException` (including assumptions) to `finishSkipped(reason)`, and other failures to `finishFailed(originalFailure)`.
 
-JUnit 5 represents aborted tests, including failed assumptions, with `org.opentest4j.TestAbortedException`. Map that outcome to `finishSkipped(reason)` as shown above. Other execution exceptions are genuine failures and belong in `finishFailed(...)`. This is integration code in the consuming test project; Selenium Test Lens runtime does not depend on JUnit or OpenTest4J.
+The extension owns the driver returned by the factory. It finalizes reports before calling `driver.quit()`, so do not add another quit in `@AfterEach`. Disabled tests do not create drivers or sessions. See the dedicated [JUnit 5 integration guide](integrations/junit5.md) for dependencies, configuration, cleanup errors, and the complete concurrency contract.
 
 ## TestNG
 

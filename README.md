@@ -38,6 +38,31 @@ Selenium is consumer-owned and must be declared separately at the version manage
 </dependency>
 ```
 
+JUnit 5 users can add the published lifecycle extension instead of writing per-test setup and teardown:
+
+```xml
+<dependency>
+    <groupId>io.github.test-lens</groupId>
+    <artifactId>selenium-test-lens-junit5</artifactId>
+    <version>0.1.1-SNAPSHOT</version>
+    <scope>test</scope>
+</dependency>
+```
+
+```java
+@RegisterExtension
+final TestLensExtension testLens =
+        TestLensExtension.builder(ChromeDriver::new).build();
+
+@Test
+void savesOrder(WebDriver driver, TestLens lens) {
+    driver.get(applicationUrl);
+    lens.getByTestId("save").click();
+}
+```
+
+The extension owns one driver per JUnit invocation, maps passed, failed, and aborted outcomes to Lens, writes reports, and then calls `quit()`. Do not also quit that driver in `@AfterEach`. See the [JUnit 5 integration guide](docs/integrations/junit5.md).
+
 ## First session
 
 ```java
@@ -63,7 +88,7 @@ try {
 }
 ```
 
-Test Lens does not own browser lifecycle or displace JUnit, TestNG, Allure, or another reporter. Existing raw Selenium remains valid for operations the Lens facade does not wrap. React-specific support is available as a separate, optional module.
+The main Test Lens facade does not own browser lifecycle or displace JUnit, TestNG, Allure, or another reporter. The optional JUnit 5 extension deliberately owns drivers created by its factory. Existing raw Selenium remains valid for operations the Lens facade does not wrap. React-specific support is available as a separate, optional module.
 
 Finalize every session with its real runner outcome: `finishPassed()`, `finishFailed(Throwable)`, or `finishSkipped(String)`. Skipped finalization records the reason and writes reports without taking a failure screenshot or closing the driver.
 
