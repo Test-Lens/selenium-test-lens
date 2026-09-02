@@ -24,6 +24,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.LockSupport;
 
+/**
+ * Records caller-supplied network events in {@link NetworkCaptureMode#MANUAL} mode.
+ * Automatic, BiDi, and performance-log capture are not implemented in the current version.
+ */
 public final class NetworkDiagnostics {
     private final WebDriver driver;
     private final OverlayLogger logger;
@@ -45,23 +49,34 @@ public final class NetworkDiagnostics {
         this.logger = logger == null ? OverlayLogger.noop() : logger;
     }
 
+    /**
+     * Starts manual collection, disables collection for {@code OFF}, or records an
+     * {@code UNSUPPORTED} status for capture modes not implemented by this version.
+     */
     public synchronized NetworkDiagnostics start(NetworkDiagnosticsOptions options) {
         this.options = options == null ? NetworkDiagnosticsOptions.defaults() : options;
-        this.started = this.options.captureMode() != NetworkCaptureMode.OFF;
-        if (this.options.captureMode() == NetworkCaptureMode.OFF) {
+        NetworkCaptureMode mode = this.options.captureMode();
+        if (mode == NetworkCaptureMode.MANUAL) {
+            this.started = true;
+            this.status = NetworkDiagnosticsStatus.STARTED;
+            addInternal(NetworkEvent.info("Network diagnostics started in MANUAL mode"));
+            emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
+                    "Network diagnostics started in MANUAL mode", null);
+        } else if (mode == NetworkCaptureMode.OFF) {
+            this.started = false;
             this.status = NetworkDiagnosticsStatus.STOPPED;
             addInternal(NetworkEvent.info("Network diagnostics disabled"));
-        } else if (this.options.captureMode() == NetworkCaptureMode.PERFORMANCE_LOGS
-                || this.options.captureMode() == NetworkCaptureMode.BIDI) {
-            this.status = NetworkDiagnosticsStatus.UNSUPPORTED;
-            this.started = true;
-            addInternal(NetworkEvent.warning("Requested network capture mode is not implemented without optional browser-specific dependencies; using manual collector"));
+            emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STOPPED, UiTestLensStatus.SKIPPED, UiTestLensLogLevel.INFO,
+                    "Network diagnostics are disabled (OFF)", null);
         } else {
-            this.status = NetworkDiagnosticsStatus.STARTED;
-            addInternal(NetworkEvent.info("Network diagnostics started in " + effectiveMode().name() + " mode"));
+            this.started = false;
+            this.status = NetworkDiagnosticsStatus.UNSUPPORTED;
+            String message = "Network capture mode " + mode.name()
+                    + " is not implemented; use MANUAL and addManualEvent()";
+            addInternal(NetworkEvent.warning(message));
+            emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED, UiTestLensStatus.SKIPPED, UiTestLensLogLevel.WARN,
+                    message, null);
         }
-        emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
-                "Network diagnostics started", null);
         return this;
     }
 
@@ -85,6 +100,7 @@ public final class NetworkDiagnostics {
         return NetworkSummary.from(events, ignoredEvents, options.failedStatusThreshold(), status);
     }
 
+    /** Adds an event supplied by the caller; this is the collection input used by MANUAL mode. */
     public synchronized NetworkEvent addManualEvent(NetworkEvent event) {
         if (event == null) {
             return null;
@@ -131,26 +147,31 @@ public final class NetworkDiagnostics {
                 .build());
     }
 
+    /**
+     * Polls manually collected events. Unsupported modes and inactive capture return a skipped
+     * result immediately without entering the polling loop.
+     */
     public NetworkWaitResult waitForResponse(NetworkWaitCondition condition) {
         NetworkWaitCondition effectiveCondition = condition == null ? NetworkWaitCondition.builder().build() : condition;
         Instant startedAt = Instant.now();
         int attempts = 0;
         emit(UiTestLensEventType.NETWORK_WAIT_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
                 "Network wait started: " + effectiveCondition.summary(), null);
-        if (!isStarted()) {
+        if (summary().status() == NetworkDiagnosticsStatus.UNSUPPORTED) {
             NetworkWaitResult result = NetworkWaitResult.skipped(effectiveCondition,
-                    "Network diagnostics capture is not started",
-                    NetworkWaitFailureReason.CAPTURE_NOT_STARTED,
+                    "Network capture mode " + options.captureMode().name()
+                            + " is unsupported; use MANUAL and addManualEvent()",
+                    NetworkWaitFailureReason.UNSUPPORTED_CAPTURE_MODE,
                     attempts,
                     elapsedSince(startedAt));
             emit(UiTestLensEventType.NETWORK_WAIT_FAILED, UiTestLensStatus.SKIPPED, UiTestLensLogLevel.WARN,
                     result.message(), null);
             return result;
         }
-        if (summary().status() == NetworkDiagnosticsStatus.UNSUPPORTED) {
+        if (!isStarted()) {
             NetworkWaitResult result = NetworkWaitResult.skipped(effectiveCondition,
-                    "Network capture mode is unsupported; only already collected/manual events can be matched",
-                    NetworkWaitFailureReason.UNSUPPORTED_CAPTURE_MODE,
+                    "Network diagnostics capture is not started",
+                    NetworkWaitFailureReason.CAPTURE_NOT_STARTED,
                     attempts,
                     elapsedSince(startedAt));
             emit(UiTestLensEventType.NETWORK_WAIT_FAILED, UiTestLensStatus.SKIPPED, UiTestLensLogLevel.WARN,
@@ -203,6 +224,7 @@ public final class NetworkDiagnostics {
                 .findFirst();
     }
 
+    /** Explicitly attaches the current summary to a session. Options never invoke this automatically. */
     public NetworkDiagnosticsResult attachToSession(UiTestLensSession session) {
         if (session == null) {
             return NetworkDiagnosticsResult.failed("No UiTestLensSession attached", summary(), null, Duration.ZERO);
@@ -220,6 +242,7 @@ public final class NetworkDiagnostics {
         return NetworkDiagnosticsResult.of(NetworkDiagnosticsStatus.ATTACHED, "Network diagnostics summary attached", summary(), Duration.ZERO);
     }
 
+    /** Explicitly exports the current manual event log and attaches it to a session. */
     public NetworkDiagnosticsResult attachToSession(UiTestLensSession session, Path outputPath) {
         Instant startedAt = Instant.now();
         if (session == null) {
@@ -279,13 +302,6 @@ public final class NetworkDiagnostics {
 
     private void addInternal(NetworkEvent event) {
         events.add(event);
-    }
-
-    private NetworkCaptureMode effectiveMode() {
-        if (options.captureMode() == NetworkCaptureMode.AUTO) {
-            return NetworkCaptureMode.MANUAL;
-        }
-        return options.captureMode();
     }
 
     private NetworkEvent sanitize(NetworkEvent event) {

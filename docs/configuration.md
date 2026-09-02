@@ -131,7 +131,7 @@ Some features expose dedicated configuration types close to the API that uses th
 | `VideoEvidenceOptions` | Existing video file or URL metadata and session attachment |
 | `AuthStateOptions` | Authentication-state capture scope and metadata |
 | `AuthRestoreOptions` | Authentication-state navigation, clearing, validation, and restore behavior |
-| `NetworkDiagnosticsOptions` | Capture mode, failure threshold, ignored URLs, headers, and session attachment |
+| `NetworkDiagnosticsOptions` | Manual capture mode, failure threshold, ignored URLs, and headers; its deprecated `attachToSession` option has no automatic effect |
 | `NetworkWaitCondition` | URL, method, status, timeout, and polling conditions for network waits |
 
 See [Configuration builders](reference/configuration.md) or Javadoc for individual builder methods.
@@ -140,6 +140,7 @@ See [Configuration builders](reference/configuration.md) or Javadoc for individu
 
 - With the default options, `finishFailed(Throwable)` attempts a screenshot. Capture is best-effort and can be disabled with `TestLensOptions.screenshotOnFailure(...)`.
 - Network diagnostics omit headers by default. When headers are included, sensitive headers are masked by default.
+- Network diagnostics default to explicit `MANUAL` events. Session attachment requires an explicit `NetworkDiagnostics.attachToSession(...)` call.
 - Captured authentication state is written only when `AuthState.save(...)` is called. Saved files can contain cookies and tokens, so do not commit them.
 - Video evidence attaches an existing local file or URL; Test Lens does not record video.
 

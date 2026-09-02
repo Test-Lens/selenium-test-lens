@@ -19,7 +19,7 @@ NetworkEvent addManualEvent(NetworkEvent event)
 String exportJson()
 ```
 
-Capture is passive and capability-dependent. `AUTO` chooses an available strategy; unsupported/failed capture is represented by diagnostics status/failure rather than becoming request interception. Snapshots are immutable copies where exposed.
+`MANUAL` is the only implemented active capture mode and is the default. Call `addManualEvent(...)` from your own HTTP instrumentation, test fixture, proxy, or application hook. `OFF` leaves capture stopped. The retained `AUTO`, `BIDI`, and `PERFORMANCE_LOGS` enum values are not implemented and produce `NetworkDiagnosticsStatus.UNSUPPORTED`; no mode silently falls back to `MANUAL`. Snapshots are immutable copies where exposed.
 
 ## Assertions and waits
 
@@ -32,7 +32,7 @@ NetworkResponseExpectation expectResponse()
 Optional<NetworkEvent> findMatchingEvent(NetworkWaitCondition condition)
 ```
 
-The convenience overload builds a URL-substring/status condition. The condition overload polls captured events. `expectResponse()` provides a fluent `urlContains`, `urlRegex`, `exactUrl`, `method`, `status`, `statusBetween`, `within`, `waitNow` API. Failed assertions throw `NetworkAssertionError` with summary/wait context.
+The convenience overload builds a URL-substring/status condition. In `MANUAL` mode, the condition overload polls events supplied through `addManualEvent(...)`. In an unsupported mode it returns immediately as `SKIPPED` with `UNSUPPORTED_CAPTURE_MODE` and zero polling attempts; with `OFF` or before `start(...)`, it returns `CAPTURE_NOT_STARTED`. `expectResponse()` provides a fluent `urlContains`, `urlRegex`, `exactUrl`, `method`, `status`, `statusBetween`, `within`, `waitNow` API. Failed assertions throw `NetworkAssertionError` with summary/wait context.
 
 ## Session attachment
 
@@ -42,7 +42,7 @@ NetworkDiagnosticsResult attachToSession(UiTestLensSession session)
 NetworkDiagnosticsResult attachToSession(UiTestLensSession session, Path outputPath)
 ```
 
-Exports/attaches network JSON evidence. Paths and export failures appear in the result.
+Exports/attaches network JSON evidence. Attachment occurs only when one of these methods is called explicitly. The deprecated `NetworkDiagnosticsOptions.attachToSession(boolean)` option has no automatic effect and is scheduled for removal in 0.2.0. Paths and export failures appear in the result.
 
 ## Supporting results and statuses
 
@@ -52,6 +52,6 @@ Exports/attaches network JSON evidence. Paths and export failures appear in the 
 
 ## Limitations and security
 
-No request blocking, modification, mocking, body rewrite, or general CDP/BiDi wrapper is implemented. Headers/URLs can contain credentials, query tokens, internal hostnames, and personal data. Sensitive-header masking defaults on, but custom headers, URLs, bodies, manual events, and screenshots still require caller review.
+No automatic browser capture, Selenium BiDi integration, performance-log collector, request blocking, modification, mocking, body rewrite, or general CDP/BiDi wrapper is implemented. Headers/URLs can contain credentials, query tokens, internal hostnames, and personal data. Sensitive-header masking defaults on, but custom headers, URLs, bodies, manual events, and screenshots still require caller review.
 
 See [network options](../reference/configuration.md#network-options) and the [complete signatures](../reference/public-api-catalog.md).

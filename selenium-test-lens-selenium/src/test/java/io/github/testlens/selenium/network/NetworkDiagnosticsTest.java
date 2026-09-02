@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,6 +24,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class NetworkDiagnosticsTest {
     @TempDir
     Path tempDir;
+
+    @Test
+    void manualModeStartsAsStarted() {
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver())
+                .start(NetworkDiagnosticsOptions.defaults());
+
+        assertTrue(diagnostics.isStarted());
+        assertEquals(NetworkDiagnosticsStatus.STARTED, diagnostics.summary().status());
+    }
 
     @Test
     void manualModeRecordsEventsAndAssertPassesWithoutFailures() {
@@ -90,12 +100,52 @@ class NetworkDiagnosticsTest {
     }
 
     @Test
-    void unsupportedCaptureModeFallsBackWithoutCrash() {
-        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver())
-                .start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI).build());
+    void automaticCaptureModesAreUnsupportedWithoutManualFallback() {
+        for (NetworkCaptureMode mode : new NetworkCaptureMode[]{
+                NetworkCaptureMode.AUTO,
+                NetworkCaptureMode.BIDI,
+                NetworkCaptureMode.PERFORMANCE_LOGS}) {
+            NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver())
+                    .start(NetworkDiagnosticsOptions.builder().captureMode(mode).build());
 
-        assertTrue(diagnostics.isStarted());
-        assertEquals(NetworkDiagnosticsStatus.UNSUPPORTED, diagnostics.summary().status());
+            assertFalse(diagnostics.isStarted(), mode.name());
+            assertEquals(NetworkDiagnosticsStatus.UNSUPPORTED, diagnostics.summary().status(), mode.name());
+            assertTrue(diagnostics.events().get(0).message().contains(mode.name()), mode.name());
+        }
+    }
+
+    @Test
+    void waitForResponseSkipsUnsupportedModeImmediatelyWithoutPolling() {
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver())
+                .start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.AUTO).build());
+        NetworkWaitCondition condition = NetworkWaitCondition.builder()
+                .urlContains("/api/orders")
+                .timeout(Duration.ofSeconds(2))
+                .pollInterval(Duration.ofMillis(100))
+                .build();
+        long startedNanos = System.nanoTime();
+
+        NetworkWaitResult result = diagnostics.waitForResponse(condition);
+
+        Duration elapsed = Duration.ofNanos(System.nanoTime() - startedNanos);
+        assertEquals(NetworkWaitStatus.SKIPPED, result.status());
+        assertEquals(NetworkWaitFailureReason.UNSUPPORTED_CAPTURE_MODE, result.failureReason());
+        assertEquals(0, result.attempts());
+        assertTrue(elapsed.compareTo(Duration.ofMillis(250)) < 0);
+    }
+
+    @Test
+    void offModeDoesNotStartCaptureOrAllowWaiting() {
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver())
+                .start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.OFF).build());
+
+        NetworkWaitResult result = diagnostics.waitForResponse("/api/orders", 200);
+
+        assertFalse(diagnostics.isStarted());
+        assertEquals(NetworkDiagnosticsStatus.STOPPED, diagnostics.summary().status());
+        assertEquals(NetworkWaitStatus.SKIPPED, result.status());
+        assertEquals(NetworkWaitFailureReason.CAPTURE_NOT_STARTED, result.failureReason());
+        assertEquals(0, result.attempts());
     }
 
     @Test
@@ -153,12 +203,14 @@ class NetworkDiagnosticsTest {
         NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver()).start(NetworkDiagnosticsOptions.defaults());
         diagnostics.addManualEvent(NetworkEvent.request(new NetworkRequest("req-1", "POST", "/api/orders", "", null, null)));
         diagnostics.addManualEvent(NetworkEvent.response(NetworkResponse.of("req-1", "/api/orders", 201)));
-
-        NetworkWaitResult result = diagnostics.waitForResponse(NetworkWaitCondition.builder()
+        NetworkWaitCondition condition = NetworkWaitCondition.builder()
                 .urlContains("/api/orders")
                 .method("POST")
                 .status(201)
-                .build());
+                .build();
+
+        assertTrue(diagnostics.findMatchingEvent(condition).isPresent());
+        NetworkWaitResult result = diagnostics.waitForResponse(condition);
 
         assertEquals(NetworkWaitStatus.MATCHED, result.status());
         assertEquals("POST", result.matchedRequest().method());

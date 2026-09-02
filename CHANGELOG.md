@@ -2,6 +2,12 @@
 
 All notable changes to Selenium Test Lens will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- Made `MANUAL` the default and only active `NetworkDiagnostics` capture mode. `AUTO`, `BIDI`, and `PERFORMANCE_LOGS` now report `UNSUPPORTED` without falling back or waiting for unavailable browser events.
+- Deprecated `NetworkDiagnosticsOptions.attachToSession` for removal in 0.2.0. Network diagnostics are attached only through explicit `NetworkDiagnostics.attachToSession(...)` calls.
+
 ## [0.1.0]
 
 ### Added

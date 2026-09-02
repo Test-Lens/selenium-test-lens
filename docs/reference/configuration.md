@@ -134,7 +134,7 @@ The builder exposes **all** of: `background`, `foreground`, `mutedForeground`, `
 
 ## Network options
 
-`NetworkDiagnosticsOptions`: `captureMode(AUTO)`, `includeHeaders(false)`, `maskSensitiveHeaders(true)`, `failedStatusThreshold(400)` (values `<= 0` normalize to 400), repeatable `ignoreUrlPattern(regex)` (regex validated), and `attachToSession(true)`. Header capture/artifact attachment has security impact.
+`NetworkDiagnosticsOptions`: `captureMode(MANUAL)`, `includeHeaders(false)`, `maskSensitiveHeaders(true)`, `failedStatusThreshold(400)` (values `<= 0` normalize to 400), and repeatable `ignoreUrlPattern(regex)` (regex validated). `MANUAL` is the only implemented active mode. `OFF` is inactive; `AUTO`, `BIDI`, and `PERFORMANCE_LOGS` return `UNSUPPORTED` without fallback. The retained `attachToSession(boolean)` option is deprecated for removal in 0.2.0 and has no automatic effect. Attach only through an explicit `NetworkDiagnostics.attachToSession(...)` call. Headers and exported artifacts can contain sensitive data.
 
 `NetworkWaitCondition`: URL substring/regex/exact URL, method, exact/min/max/range status are unset by default; timeout 5 s; poll interval 100 ms; `includeFailedResponses=true`; `matchRequestOnly=false`. Regex is compiled/validated; durations must be positive and status bounds must be coherent.
 

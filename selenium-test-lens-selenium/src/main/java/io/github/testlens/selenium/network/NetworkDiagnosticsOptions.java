@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/** Options for manual network diagnostics collection. */
 public final class NetworkDiagnosticsOptions {
     private final NetworkCaptureMode captureMode;
     private final boolean includeHeaders;
@@ -14,7 +15,7 @@ public final class NetworkDiagnosticsOptions {
     private final boolean attachToSession;
 
     private NetworkDiagnosticsOptions(Builder builder) {
-        this.captureMode = builder.captureMode == null ? NetworkCaptureMode.AUTO : builder.captureMode;
+        this.captureMode = builder.captureMode == null ? NetworkCaptureMode.MANUAL : builder.captureMode;
         this.includeHeaders = builder.includeHeaders;
         this.maskSensitiveHeaders = builder.maskSensitiveHeaders;
         this.failedStatusThreshold = builder.failedStatusThreshold <= 0 ? 400 : builder.failedStatusThreshold;
@@ -50,6 +51,13 @@ public final class NetworkDiagnosticsOptions {
         return ignoredUrlPatterns;
     }
 
+    /**
+     * Retained for binary compatibility. This value does not attach diagnostics automatically;
+     * use {@link NetworkDiagnostics#attachToSession(io.github.testlens.core.trace.UiTestLensSession)} explicitly.
+     *
+     * @deprecated No automatic attachment is performed. Scheduled for removal in 0.2.0.
+     */
+    @Deprecated(forRemoval = true, since = "0.1.1")
     public boolean attachToSession() {
         return attachToSession;
     }
@@ -60,7 +68,7 @@ public final class NetworkDiagnosticsOptions {
     }
 
     public static final class Builder {
-        private NetworkCaptureMode captureMode = NetworkCaptureMode.AUTO;
+        private NetworkCaptureMode captureMode = NetworkCaptureMode.MANUAL;
         private boolean includeHeaders;
         private boolean maskSensitiveHeaders = true;
         private int failedStatusThreshold = 400;
@@ -96,6 +104,13 @@ public final class NetworkDiagnosticsOptions {
             return this;
         }
 
+        /**
+         * Retained for binary compatibility. The configured value has no automatic effect;
+         * call {@link NetworkDiagnostics#attachToSession(io.github.testlens.core.trace.UiTestLensSession)} explicitly.
+         *
+         * @deprecated No automatic attachment is performed. Scheduled for removal in 0.2.0.
+         */
+        @Deprecated(forRemoval = true, since = "0.1.1")
         public Builder attachToSession(boolean attachToSession) {
             this.attachToSession = attachToSession;
             return this;

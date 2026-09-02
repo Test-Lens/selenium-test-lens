@@ -2,21 +2,37 @@ package io.github.testlens.selenium.network;
 
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@SuppressWarnings("removal")
 class NetworkDiagnosticsOptionsTest {
 
     @Test
-    void defaultsUseAutoWithoutHeaders() {
+    void defaultsUseManualWithoutHeaders() {
         NetworkDiagnosticsOptions options = NetworkDiagnosticsOptions.defaults();
 
-        assertEquals(NetworkCaptureMode.AUTO, options.captureMode());
+        assertEquals(NetworkCaptureMode.MANUAL, options.captureMode());
         assertFalse(options.includeHeaders());
         assertTrue(options.maskSensitiveHeaders());
         assertEquals(400, options.failedStatusThreshold());
         assertTrue(options.attachToSession());
+    }
+
+    @Test
+    void attachToSessionOptionIsDeprecatedForRemovalWithoutAutomaticSemantics() throws Exception {
+        Method accessor = NetworkDiagnosticsOptions.class.getMethod("attachToSession");
+        Method builderMethod = NetworkDiagnosticsOptions.Builder.class.getMethod("attachToSession", boolean.class);
+
+        Deprecated accessorDeprecated = accessor.getAnnotation(Deprecated.class);
+        Deprecated builderDeprecated = builderMethod.getAnnotation(Deprecated.class);
+        assertTrue(accessorDeprecated.forRemoval());
+        assertEquals("0.1.1", accessorDeprecated.since());
+        assertTrue(builderDeprecated.forRemoval());
+        assertEquals("0.1.1", builderDeprecated.since());
     }
 
     @Test

@@ -60,7 +60,7 @@ See [observability](observability/index.md) for artifact paths, nullable results
 
 ## Network diagnostics
 
-[`NetworkDiagnostics`](advanced/network.md) records passive browser network events when the driver/environment exposes a supported capture path, summarizes failures, exports JSON, waits for matching responses, and asserts response conditions. Matching supports URL substring/regex/exact URL, method, status/range, timeout, polling, failed responses, and request-only mode.
+[`NetworkDiagnostics`](advanced/network.md) records events supplied explicitly through `addManualEvent(...)`, summarizes failures, exports JSON, waits for matching manual responses, and asserts response conditions. `MANUAL` is the only active capture mode in the current version and is the default. `AUTO`, `BIDI`, and `PERFORMANCE_LOGS` report `UNSUPPORTED`; they do not select or fall back to another collector. Matching supports URL substring/regex/exact URL, method, status/range, timeout, polling, failed responses, and request-only mode.
 
 This is diagnostics and observation, not request interception, response mocking, or a general HTTP client.
 
