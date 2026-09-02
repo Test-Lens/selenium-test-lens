@@ -72,6 +72,7 @@ nav:
       - Trace: observability/trace.md
       - HTML, JSON & ZIP reports: observability/reports.md
       - Flakiness and retry outcomes: observability/flakiness.md
+      - Failure bundles: observability/failure-bundles.md
       - Logging: observability/logging.md
   - Advanced Features:
       - Advanced features overview: advanced/index.md

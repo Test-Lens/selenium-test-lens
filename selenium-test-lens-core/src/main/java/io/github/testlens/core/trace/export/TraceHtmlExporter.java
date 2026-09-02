@@ -76,6 +76,7 @@ public final class TraceHtmlExporter {
         appendHeader(out, session, effectiveOptions);
         appendSummary(out, session, effectiveOptions);
         appendFlakiness(out, session);
+        appendFailureBundle(out, session.events());
         if (effectiveOptions.includeFailureSummary()) {
             appendFailureSummary(out, session.events(), effectiveOptions);
         }
@@ -333,6 +334,7 @@ public final class TraceHtmlExporter {
             }
             appendFailureSummary(out, session.events(), options);
             appendFlakiness(out, session);
+            appendFailureBundle(out, session.events());
             appendTimeline(out, session.events(), options);
             if (options.includeArtifacts()) {
                 appendArtifacts(out, session.artifacts(), options, artifactBaseDirectory, artifactPathOverrides);
@@ -462,6 +464,27 @@ public final class TraceHtmlExporter {
                     .append("</td><td>").append(entry.getValue()).append("</td></tr>");
         }
         out.append("</tbody></table></div>");
+    }
+
+    private void appendFailureBundle(StringBuilder out, List<TraceEvent> events) {
+        List<TraceEvent> captures = events.stream()
+                .filter(event -> event.type() == TraceEventType.FAILURE_BUNDLE)
+                .toList();
+        if (captures.isEmpty()) return;
+        String archive = captures.get(0).attributes().getOrDefault("archive", "failure-bundle.zip");
+        out.append("<section><h2>Failure bundle</h2><p><a class=\"mono\" href=\"")
+                .append(escape(archive)).append("\">Download failure-bundle.zip</a></p>")
+                .append("<div class=\"table-wrap\"><table><thead><tr>")
+                .append("<th>Component</th><th>Status</th><th>Size</th><th>Path</th><th>Message</th>")
+                .append("</tr></thead><tbody>");
+        captures.stream().sorted(Comparator.comparing(event -> event.attributes().getOrDefault("component", "")))
+                .forEach(event -> out.append("<tr><td>")
+                        .append(escape(event.attributes().getOrDefault("component", "")))
+                        .append("</td><td>").append(escape(event.attributes().getOrDefault("componentStatus", "")))
+                        .append("</td><td>").append(escape(event.attributes().getOrDefault("sizeBytes", "")))
+                        .append("</td><td class=\"mono\">").append(escape(event.attributes().getOrDefault("path", "")))
+                        .append("</td><td>").append(escape(event.message())).append("</td></tr>"));
+        out.append("</tbody></table></div></section>");
     }
 
     private void appendTimeline(StringBuilder out, List<TraceEvent> events, TraceHtmlExportOptions options) {
@@ -817,7 +840,7 @@ public final class TraceHtmlExporter {
             case ASSERTION_STARTED, ASSERTION_PASSED, ASSERTION_FAILED -> EventCategory.ASSERTIONS;
             case BUSINESS_ASSERTION_STARTED, BUSINESS_ASSERTION_PASSED, BUSINESS_ASSERTION_FAILED -> EventCategory.BUSINESS;
             case OVERLAY_DETECTED, OVERLAY_HANDLED -> EventCategory.OVERLAYS;
-            case SCREENSHOT, VIDEO, ARTIFACT_ATTACHED -> EventCategory.EVIDENCE;
+            case SCREENSHOT, VIDEO, ARTIFACT_ATTACHED, FAILURE_BUNDLE -> EventCategory.EVIDENCE;
             case NETWORK_EVENT, NETWORK_WAIT -> EventCategory.NETWORK;
             case RETRY, RETRY_SUMMARY -> EventCategory.FLAKINESS;
             case CUSTOM -> EventCategory.OTHER;

@@ -53,6 +53,7 @@ public synchronized io.github.testlens.selenium.network.NetworkDiagnostics stop(
 public synchronized boolean isStarted()
 public synchronized java.util.List<io.github.testlens.selenium.network.NetworkEvent> events()
 public synchronized io.github.testlens.selenium.network.NetworkSummary summary()
+public synchronized io.github.testlens.selenium.network.NetworkCaptureMode captureMode()
 public synchronized io.github.testlens.selenium.network.NetworkEvent addManualEvent(io.github.testlens.selenium.network.NetworkEvent)
 public io.github.testlens.selenium.network.NetworkDiagnosticsResult assertNoFailedRequests()
 public io.github.testlens.selenium.network.NetworkWaitResult waitForResponse(java.lang.String, int)

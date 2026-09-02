@@ -16,6 +16,7 @@ import io.github.testlens.selenium.assertions.UiAssertionFailureReason;
 import io.github.testlens.selenium.assertions.UiAssertionOptions;
 import io.github.testlens.selenium.assertions.UiAssertionResult;
 import io.github.testlens.selenium.assertions.UiAssertionStatus;
+import io.github.testlens.selenium.evidence.FailureBundleOptions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -47,6 +48,7 @@ import java.util.UUID;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
+import java.util.zip.ZipFile;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -303,6 +305,49 @@ class RealBrowserContractsIT {
         assertClickCounts(1);
         assertTrue(Files.isRegularFile(directory.resolve("trace.json")));
         assertTrue(Files.readString(directory.resolve("report.html")).contains("flaky-failure"));
+    }
+
+    @ParameterizedTest(name = "failure bundle remains CSP-safe on {0}")
+    @ValueSource(strings = {"/clicks", "/csp"})
+    void realFailureBundleCapturesHudCleanViewAndKeepsDriverAlive(String page) throws Exception {
+        open(page);
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+                .overlayConfig(OverlayConfig.builder().enabled(true).decorationDurationMs(60_000).build())
+                .cleanupHudOnFinish(false)
+                .failureBundleOptions(FailureBundleOptions.complete())
+                .outputRoot(Path.of("target", "ui-test-lens", browserName()))
+                .build());
+        lens.startSession("real-failure-bundle-" + page.substring(1) + "-" + UUID.randomUUID());
+        overlay(true).highlightClick(driver.findElement(By.id("count-button")), "Failure bundle target");
+        assertTrue(await(hudPresent()));
+        assertTrue(await(highlightPresent()));
+
+        TestLensFinalizationResult result = lens.finishFailed(new AssertionError("expected browser IT failure"));
+
+        assertEquals(TraceStatus.FAILED, result.session().metadata().status());
+        assertTrue(Files.isRegularFile(result.failureScreenshot()));
+        assertTrue(Files.isRegularFile(result.failureBundleDirectory().orElseThrow().resolve("failure-clean.png")));
+        assertTrue(Files.isRegularFile(result.failureBundleDirectory().orElseThrow().resolve("page-source.html")));
+        String context = Files.readString(result.failureBundleDirectory().orElseThrow().resolve("context.json"));
+        assertTrue(context.contains("currentUrl"));
+        assertTrue(context.contains("127.0.0.1"));
+        assertTrue(context.contains("title"));
+        assertTrue(context.contains("currentWindowHandle"));
+        assertTrue(Files.readString(result.failureBundleDirectory().orElseThrow().resolve("runtime.json")).contains(browserName()));
+        assertTrue(Files.isRegularFile(result.jsonReport()));
+        assertTrue(Files.isRegularFile(result.htmlReport()));
+        assertTrue(result.failureBundleManifest().isPresent());
+        assertTrue(result.failureBundleArchive().isPresent());
+        assertTrue(hudPresent().apply(driver), "cleanup=false must restore HUD after clean capture");
+        assertTrue(highlightPresent().apply(driver), "cleanup=false must restore highlight after clean capture");
+        assertFalse(driver.getTitle().isBlank(), "finishFailed must leave the WebDriver alive");
+        try (ZipFile zip = new ZipFile(result.failureBundleArchive().orElseThrow().toFile())) {
+            assertTrue(zip.getEntry("manifest.json") != null);
+            assertTrue(zip.getEntry("trace.json") != null);
+            assertTrue(zip.getEntry("report.html") != null);
+            assertTrue(zip.getEntry("failure-diagnostic.png") != null);
+            assertTrue(zip.getEntry("failure-clean.png") != null);
+        }
     }
 
     private static Stream<Arguments> finalizationCases() {

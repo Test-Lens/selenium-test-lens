@@ -12,6 +12,7 @@ The default configuration is enough for normal use. When you need to customize T
 | `locatorOptions(...)` | Sets the default locator timeout, polling, retries, and actionability behavior. |
 | `outputRoot(...)` | Changes the root directory for session reports and diagnostics. |
 | `screenshotOnFailure(...)` | Controls automatic screenshot capture during failed finalization. |
+| `failureBundleOptions(...)` | Controls automatic failed-session collectors, limits, and ZIP creation. |
 | `cleanupHudOnFinish(...)` | Controls whether the HUD, borders, and tooltips are cleared during finalization. |
 | `retryOutcomePolicy(...)` | Controls an otherwise passed session containing recovery retries; default `REPORT_ONLY`. |
 | `allowedRetries(...)` | Number permitted by `FAIL_AFTER_N`; default `0`, must be non-negative. |
@@ -150,6 +151,7 @@ See [Configuration builders](reference/configuration.md) or Javadoc for individu
 ## Notes and limits
 
 - With the default options, a final `FAILED` result attempts an automatic screenshot—including `finishFailed(null)` and policy-induced failure. Passed and skipped results never do. Capture is best-effort and can be disabled with `TestLensOptions.screenshotOnFailure(...)`.
+- Failure bundles are enabled by default. Diagnostic/clean screenshots, context, trace diagnostics, manual-network summary, runtime/configuration allowlists, manifest, and ZIP are enabled; page source and browser console are disabled because they may contain secrets. See [Failure bundles](observability/failure-bundles.md).
 - Network diagnostics omit headers by default. When headers are included, sensitive headers are masked by default.
 - Network diagnostics default to explicit `MANUAL` events. Session attachment requires an explicit `NetworkDiagnostics.attachToSession(...)` call.
 - Captured authentication state is written only when `AuthState.save(...)` is called. Saved files can contain cookies and tokens, so do not commit them.

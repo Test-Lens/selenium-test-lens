@@ -7,7 +7,7 @@ search:
 
 This generated catalog is the optional binary-surface reference for every published public type, constructor, method, and field. Start with [Capabilities](../capabilities.md) and the functional navigation for behavior, workflows, and examples. Internal-style types appear only because Java consumers can currently access them.
 
-Inventory: **228 public types** and **1677 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
+Inventory: **230 public types** and **1713 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
 
 Classifications: USER_API is the normal consumer path; ADVANCED_API is supported specialized functionality; LOW_LEVEL_API exposes lower abstractions; INTERNAL_STYLE_PUBLIC is binary-public implementation surface and is not recommended for application code.
 
@@ -174,6 +174,8 @@ Signature details are split by published artifact and Java package to keep indiv
 | io.github.testlens.selenium.business.BusinessAssertionResult | io.github.testlens.selenium.business | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-business.md#io-github-testlens-selenium-business-businessassertionresult) |
 | io.github.testlens.selenium.business.BusinessAssertionStatus | io.github.testlens.selenium.business | ADVANCED_API | enum | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-business.md#io-github-testlens-selenium-business-businessassertionstatus) |
 | io.github.testlens.selenium.business.BusinessAssertions | io.github.testlens.selenium.business | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-business.md#io-github-testlens-selenium-business-businessassertions) |
+| io.github.testlens.selenium.evidence.FailureBundleOptions$Builder | io.github.testlens.selenium.evidence | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence.md#io-github-testlens-selenium-evidence-failurebundleoptions-builder) |
+| io.github.testlens.selenium.evidence.FailureBundleOptions | io.github.testlens.selenium.evidence | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence.md#io-github-testlens-selenium-evidence-failurebundleoptions) |
 | io.github.testlens.selenium.evidence.ScreenshotCapture | io.github.testlens.selenium.evidence | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence.md#io-github-testlens-selenium-evidence-screenshotcapture) |
 | io.github.testlens.selenium.evidence.ScreenshotCaptureException | io.github.testlens.selenium.evidence | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence.md#io-github-testlens-selenium-evidence-screenshotcaptureexception) |
 | io.github.testlens.selenium.evidence.ScreenshotCaptureOptions$Builder | io.github.testlens.selenium.evidence | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence.md#io-github-testlens-selenium-evidence-screenshotcaptureoptions-builder) |

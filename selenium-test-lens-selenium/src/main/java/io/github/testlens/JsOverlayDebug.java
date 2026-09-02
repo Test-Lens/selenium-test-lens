@@ -345,6 +345,10 @@ public final class JsOverlayDebug {
         return started;
     }
 
+    Optional<NetworkDiagnostics> networkDiagnosticsSnapshot() {
+        return Optional.ofNullable(networkDiagnostics);
+    }
+
     UiTestLensSession startSession(String name,
                                    io.github.testlens.core.trace.RetryOutcomePolicy policy,
                                    int allowedRetries) {
@@ -789,6 +793,26 @@ public final class JsOverlayDebug {
     /** Clears all overlay elements (HUD, borders, tooltips). */
     public void clearDebugArtifacts() {
         rootManager.clearAll();
+    }
+
+    Object hideDebugArtifactsTemporarily() {
+        if (!(driver instanceof JavascriptExecutor executor)) {
+            throw new UnsupportedOperationException("WebDriver does not implement JavascriptExecutor");
+        }
+        return executor.executeScript(
+                "var h=document.getElementById('selenium-overlay-host');"
+                        + "if(!h){return {present:false};}"
+                        + "var v=h.style.visibility;h.style.visibility='hidden';"
+                        + "return {present:true,visibility:v};");
+    }
+
+    void restoreDebugArtifacts(Object token) {
+        if (!(driver instanceof JavascriptExecutor executor)) {
+            throw new UnsupportedOperationException("WebDriver does not implement JavascriptExecutor");
+        }
+        executor.executeScript(
+                "var t=arguments[0],h=document.getElementById('selenium-overlay-host');"
+                        + "if(t&&t.present&&h){h.style.visibility=t.visibility||'';}", token);
     }
 
     // ======================================================================

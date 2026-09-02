@@ -19,7 +19,7 @@ try {
 }
 ```
 
-Finalization attempts a timestamp-free `failure*.png` below the session output directory when the resulting status is `FAILED` and screenshot-on-failure is enabled. Thus `finishFailed(null)` still captures, and a passed test rejected by retry outcome policy captures after becoming failed. Ordinary passed and skipped finalization never requests it. Capture is best effort and never replaces the primary failure or policy violation. Disable it with `TestLensOptions.builder().screenshotOnFailure(false)`. See [`TestLensOptions`](../reference/configuration.md#testlensoptions) and [session finalization](../reference/test-lens.md#creation-and-lifecycle).
+Failed finalization first attempts `failure-diagnostic.png` with the current HUD/highlight, then temporarily hides only Test Lens artifacts for `failure-bundle/failure-clean.png`. Both are controlled by `screenshotOnFailure`; independent flags live in `FailureBundleOptions`. Previous HUD visibility is restored in `finally` before normal cleanup. No failed action, click, locator resolve, frame switch, or navigation is repeated. Passed and skipped finalization never requests either screenshot. See [Failure bundles](failure-bundles.md).
 
 ## Explicit screenshots
 

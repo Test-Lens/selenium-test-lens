@@ -21,6 +21,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class TraceHtmlExporterTest {
+    @Test
+    void rendersFailureBundleLinkAndEscapedComponentStatuses() {
+        UiTestLensSession session = UiTestLensSession.start("bundle");
+        session.addEvent(TraceEvent.builder(TraceEventType.FAILURE_BUNDLE, TraceStatus.INFO, "capture")
+                .message("unavailable <reason>")
+                .attribute("component", "browserConsole")
+                .attribute("componentStatus", "UNSUPPORTED")
+                .attribute("archive", "failure-bundle.zip")
+                .build());
+        session.finishFailed(new AssertionError("expected"));
+
+        String html = new TraceHtmlExporter().export(session);
+
+        assertTrue(html.contains("<h2>Failure bundle</h2>"));
+        assertTrue(html.contains("href=\"failure-bundle.zip\""));
+        assertTrue(html.contains("UNSUPPORTED"));
+        assertTrue(html.contains("unavailable &lt;reason&gt;"));
+    }
     @TempDir
     Path tempDir;
 

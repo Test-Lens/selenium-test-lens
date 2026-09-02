@@ -89,6 +89,8 @@ The listener maps `SUCCESS` to `finishPassed()`, `FAILURE` and `SUCCESS_PERCENTA
 
 If cleanup fails after an already failed or skipped test, the cleanup error is suppressed on the original throwable. Cleanup failure after a passed test changes the TestNG result to failure. A setup failure remains primary; a driver already created before attach/session failure is still closed once.
 
+For `FAILURE` and `SUCCESS_PERCENTAGE_FAILURE`, the listener completes the failure bundle before its single `driver.quit()`. A partial bundle does not change TestNG status or replace the original throwable. Policy-induced failure follows the same ordering and is not finalized twice.
+
 Disabled tests, configuration methods, dependency-skipped methods, and tests blocked by a failed `@BeforeMethod` do not create a driver or empty session. Calling `TestLensTestNgContext.current()` outside a managed test method throws `IllegalStateException`.
 
 ## DataProvider, retry, and parallel execution

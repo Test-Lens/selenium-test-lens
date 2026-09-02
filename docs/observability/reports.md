@@ -23,6 +23,8 @@ All three facade finalizers—`finishPassed()`, `finishFailed(Throwable)`, and `
 
 The session JSON always contains a top-level `flakiness` object with `flakyCandidate`, `totalRetries`, `timeLostMs`, `policy`, `policyTriggered`, `byAction`, `byLocator`, and `byException`. HTML renders the same data neutrally for zero retries, as information for `REPORT_ONLY`, as a warning for `WARN`, and as a failure for a triggered fail policy. The destination is derived from the session output configuration. See [Flakiness and retry outcomes](flakiness.md), [session lifecycle and finalization](../reference/test-lens.md#creation-and-lifecycle), and [`TestLensOptions`](../reference/configuration.md#testlensoptions).
 
+For final `FAILED`, HTML also contains a `Failure bundle` section linking the predictable ZIP and listing every component status, size, path, or collection error. The ZIP is assembled after final trace/report exports, so it contains their final versions without recursively containing itself. See [Failure bundles](failure-bundles.md).
+
 ## Advanced exporters
 
 Use the exporter classes only when you need an in-memory string, an explicit destination, a suite report, or a ZIP bundle.

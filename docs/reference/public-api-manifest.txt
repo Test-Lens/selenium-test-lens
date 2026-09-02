@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 228
-# Public callable methods/constructors: 1677
+# Types: 230
+# Public callable methods/constructors: 1713
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -321,6 +321,7 @@ TYPE io.github.testlens.core.trace.TraceEventType
   public static final io.github.testlens.core.trace.TraceEventType LOCATOR_ACTION
   public static final io.github.testlens.core.trace.TraceEventType RETRY
   public static final io.github.testlens.core.trace.TraceEventType RETRY_SUMMARY
+  public static final io.github.testlens.core.trace.TraceEventType FAILURE_BUNDLE
   public static final io.github.testlens.core.trace.TraceEventType NETWORK_EVENT
   public static final io.github.testlens.core.trace.TraceEventType NETWORK_WAIT
   public static final io.github.testlens.core.trace.TraceEventType SCREENSHOT
@@ -964,6 +965,9 @@ TYPE io.github.testlens.TestLensFinalizationResult
   public io.github.testlens.TestLensFinalizationResult(io.github.testlens.core.trace.UiTestLensSession, java.nio.file.Path, java.nio.file.Path, java.nio.file.Path, java.nio.file.Path, java.util.List<java.lang.Throwable>)
   public boolean fullySuccessful()
   public io.github.testlens.core.trace.RetrySummary retrySummary()
+  public java.util.Optional<java.nio.file.Path> failureBundleDirectory()
+  public java.util.Optional<java.nio.file.Path> failureBundleManifest()
+  public java.util.Optional<java.nio.file.Path> failureBundleArchive()
   public final java.lang.String toString()
   public final int hashCode()
   public final boolean equals(java.lang.Object)
@@ -981,6 +985,7 @@ TYPE io.github.testlens.TestLensOptions$Builder
   public io.github.testlens.TestLensOptions$Builder cleanupHudOnFinish(boolean)
   public io.github.testlens.TestLensOptions$Builder retryOutcomePolicy(io.github.testlens.core.trace.RetryOutcomePolicy)
   public io.github.testlens.TestLensOptions$Builder allowedRetries(int)
+  public io.github.testlens.TestLensOptions$Builder failureBundleOptions(io.github.testlens.selenium.evidence.FailureBundleOptions)
   public io.github.testlens.TestLensOptions build()
 TYPE io.github.testlens.TestLensOptions
   public static io.github.testlens.TestLensOptions defaults()
@@ -992,6 +997,7 @@ TYPE io.github.testlens.TestLensOptions
   public boolean cleanupHudOnFinish()
   public io.github.testlens.core.trace.RetryOutcomePolicy retryOutcomePolicy()
   public int allowedRetries()
+  public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOptions()
 TYPE io.github.testlens.actions.AssertActions$OverlayAssertionResult
   public io.github.testlens.actions.AssertActions$OverlayAssertionResult(boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, long)
   public boolean isSuccess()
@@ -1555,6 +1561,40 @@ TYPE io.github.testlens.selenium.business.BusinessAssertions
   public io.github.testlens.selenium.business.BusinessAssertionResult verify()
   public java.lang.String subject()
   public java.util.List<io.github.testlens.selenium.business.BusinessAssertionResult> results()
+TYPE io.github.testlens.selenium.evidence.FailureBundleOptions$Builder
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder enabled(boolean)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder diagnosticScreenshot(boolean)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder cleanScreenshot(boolean)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder context(boolean)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder diagnostics(boolean)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder pageSource(boolean)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder browserConsole(boolean)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder networkSummary(boolean)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder runtimeMetadata(boolean)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder configurationSnapshot(boolean)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder zipArchive(boolean)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder maxTextArtifactBytes(long)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder maxConsoleEntries(int)
+  public io.github.testlens.selenium.evidence.FailureBundleOptions build()
+TYPE io.github.testlens.selenium.evidence.FailureBundleOptions
+  public static final long DEFAULT_MAX_TEXT_ARTIFACT_BYTES
+  public static final int DEFAULT_MAX_CONSOLE_ENTRIES
+  public static io.github.testlens.selenium.evidence.FailureBundleOptions defaults()
+  public static io.github.testlens.selenium.evidence.FailureBundleOptions complete()
+  public static io.github.testlens.selenium.evidence.FailureBundleOptions$Builder builder()
+  public boolean enabled()
+  public boolean diagnosticScreenshot()
+  public boolean cleanScreenshot()
+  public boolean context()
+  public boolean diagnostics()
+  public boolean pageSource()
+  public boolean browserConsole()
+  public boolean networkSummary()
+  public boolean runtimeMetadata()
+  public boolean configurationSnapshot()
+  public boolean zipArchive()
+  public long maxTextArtifactBytes()
+  public int maxConsoleEntries()
 TYPE io.github.testlens.selenium.evidence.ScreenshotCapture
   public io.github.testlens.selenium.evidence.ScreenshotCapture(org.openqa.selenium.WebDriver)
   public io.github.testlens.selenium.evidence.ScreenshotCaptureResult capture(java.lang.String, io.github.testlens.selenium.evidence.ScreenshotCaptureOptions)
@@ -1782,6 +1822,7 @@ TYPE io.github.testlens.selenium.network.NetworkDiagnostics
   public synchronized boolean isStarted()
   public synchronized java.util.List<io.github.testlens.selenium.network.NetworkEvent> events()
   public synchronized io.github.testlens.selenium.network.NetworkSummary summary()
+  public synchronized io.github.testlens.selenium.network.NetworkCaptureMode captureMode()
   public synchronized io.github.testlens.selenium.network.NetworkEvent addManualEvent(io.github.testlens.selenium.network.NetworkEvent)
   public io.github.testlens.selenium.network.NetworkDiagnosticsResult assertNoFailedRequests()
   public io.github.testlens.selenium.network.NetworkWaitResult waitForResponse(java.lang.String, int)

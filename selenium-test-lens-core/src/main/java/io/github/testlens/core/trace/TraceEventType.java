@@ -25,6 +25,7 @@ public enum TraceEventType {
     LOCATOR_ACTION,
     RETRY,
     RETRY_SUMMARY,
+    FAILURE_BUNDLE,
     NETWORK_EVENT,
     NETWORK_WAIT,
     SCREENSHOT,

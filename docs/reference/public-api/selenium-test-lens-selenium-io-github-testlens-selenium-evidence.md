@@ -7,6 +7,60 @@ search:
 
 Generated binary-surface details. For behavior and examples, return to the [functional reference](../index.md) or follow the mapped documentation link.
 
+## `io.github.testlens.selenium.evidence.FailureBundleOptions$Builder` {#io-github-testlens-selenium-evidence-failurebundleoptions-builder}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens.selenium.evidence`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/observability/failure-bundles.md](../../observability/failure-bundles.md)
+
+```java
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder enabled(boolean)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder diagnosticScreenshot(boolean)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder cleanScreenshot(boolean)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder context(boolean)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder diagnostics(boolean)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder pageSource(boolean)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder browserConsole(boolean)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder networkSummary(boolean)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder runtimeMetadata(boolean)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder configurationSnapshot(boolean)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder zipArchive(boolean)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder maxTextArtifactBytes(long)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder maxConsoleEntries(int)
+public io.github.testlens.selenium.evidence.FailureBundleOptions build()
+```
+
+## `io.github.testlens.selenium.evidence.FailureBundleOptions` {#io-github-testlens-selenium-evidence-failurebundleoptions}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens.selenium.evidence`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/observability/failure-bundles.md](../../observability/failure-bundles.md)
+
+```java
+public static final long DEFAULT_MAX_TEXT_ARTIFACT_BYTES
+public static final int DEFAULT_MAX_CONSOLE_ENTRIES
+public static io.github.testlens.selenium.evidence.FailureBundleOptions defaults()
+public static io.github.testlens.selenium.evidence.FailureBundleOptions complete()
+public static io.github.testlens.selenium.evidence.FailureBundleOptions$Builder builder()
+public boolean enabled()
+public boolean diagnosticScreenshot()
+public boolean cleanScreenshot()
+public boolean context()
+public boolean diagnostics()
+public boolean pageSource()
+public boolean browserConsole()
+public boolean networkSummary()
+public boolean runtimeMetadata()
+public boolean configurationSnapshot()
+public boolean zipArchive()
+public long maxTextArtifactBytes()
+public int maxConsoleEntries()
+```
+
 ## `io.github.testlens.selenium.evidence.ScreenshotCapture` {#io-github-testlens-selenium-evidence-screenshotcapture}
 
 - Artifact/module: `selenium-test-lens-selenium`

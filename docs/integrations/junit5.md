@@ -99,3 +99,5 @@ Your driver factory and application test data must still be parallel-safe. Do no
 ## Recovery-retry policy
 
 Pass the policy through `lensOptions(...)`. If `finishPassed()` raises `RetryPolicyViolationException`, the extension fails that invocation after JSON/HTML and the optional failure screenshot are produced, then quits the driver. A quit failure is suppressed on the policy violation, and the session is not finalized a second time. Parameterized and repeated invocations each evaluate their own session summary.
+
+For final `FAILED`, the extension waits for the complete failure-bundle pipeline—including reports, HUD cleanup, manifest, and ZIP—before `driver.quit()`. Partial evidence never replaces the test throwable. Configure it through the same `lensOptions(...)`; raw page source and browser console remain opt-in.

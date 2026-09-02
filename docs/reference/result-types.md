@@ -12,9 +12,12 @@ record TestLensFinalizationResult(
     List<Throwable> diagnosticFailures)
 boolean fullySuccessful()
 RetrySummary retrySummary()
+Optional<Path> failureBundleDirectory()
+Optional<Path> failureBundleManifest()
+Optional<Path> failureBundleArchive()
 ```
 
-`session` and all paths can be null when no session exists or a corresponding operation failed. `failureScreenshot` is null for a final `PASSED` or `SKIPPED` session, and can also be null when failed-session capture is disabled or unsuccessful. `diagnosticFailures` is immutable/non-null. `retrySummary()` is computed from the attached session. `fullySuccessful()` means only that diagnostics are empty; it does not redefine the outcome.
+`session` and all record-component paths can be null when no session exists or a corresponding operation failed. `failureScreenshot` retains its existing meaning: the diagnostic screenshot with current Test Lens HUD/highlight. It is null for a final `PASSED` or `SKIPPED` session, and can also be null when failed-session capture is disabled or unsuccessful. The three bundle methods are computed from the session output and do not change the public record constructor. `diagnosticFailures` is immutable/non-null. `retrySummary()` is computed from the attached session. `fullySuccessful()` means only that diagnostics are empty; it does not redefine the outcome.
 
 ## Operation results
 

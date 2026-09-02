@@ -12,11 +12,14 @@ All option objects are immutable after `build()` unless their API explicitly exp
 | `locatorOptions(value)` | `UiLocatorOptions` | `UiLocatorOptions.defaults()` | Locator wait, retry, and actionability. The nested retained `highlightBeforeAction` value is currently not consulted by `UiLocator`. |
 | `outputRoot(value)` | `Path` | `target/ui-test-lens` | Root for per-session artifacts; must be usable/non-null. Do not point at a tracked or public directory. |
 | `screenshotOnFailure(value)` | `boolean` | `true` | Enables best-effort automatic screenshot for a final `FAILED` result, including policy-induced failure; final passed/skipped results never request it. |
+| `failureBundleOptions(value)` | `FailureBundleOptions` | safe defaults | Configures automatic bundle collectors and limits for final `FAILED`; raw page source and browser console default to disabled. |
 | `cleanupHudOnFinish(value)` | `boolean` | `true` | Best-effort removal of injected visual artifacts. |
 | `retryOutcomePolicy(value)` | `RetryOutcomePolicy` | `REPORT_ONLY` | Policy evaluated only by `finishPassed()` when the session contains recovery retries. |
 | `allowedRetries(value)` | `int` | `0` | Non-negative number allowed by `FAIL_AFTER_N`; failure occurs when `totalRetries > allowedRetries`. |
 
 Accessor methods have the same names without arguments; `build()` returns options.
+
+`FailureBundleOptions.defaults()` enables the bundle, diagnostic/clean screenshots, context, trace diagnostics, manual-network summary, runtime/configuration allowlists, and ZIP. It disables page source and browser console. `complete()` explicitly enables both sensitive collectors. Defaults are 5 MiB per text artifact and 1000 console entries. `screenshotOnFailure(false)` disables both screenshots only; `FailureBundleOptions.enabled(false)` disables the additional bundle while preserving the historical screenshot setting.
 
 Runner adapters consume the same immutable options per invocation. JUnit 5 configures them with `TestLensExtension.Builder.lensOptions(...)`. TestNG factories override `TestLensTestNgFactory.lensOptions()` and may override `sessionName(ITestResult)`; the factory type must have a public no-argument constructor and is instantiated afresh for each physical invocation. See [TestNG integration](../integrations/testng.md).
 

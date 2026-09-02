@@ -4,6 +4,7 @@ import io.github.testlens.core.trace.UiTestLensSession;
 import io.github.testlens.core.trace.RetryPolicyViolationException;
 import io.github.testlens.core.trace.RetrySummary;
 import io.github.testlens.core.trace.TraceStatus;
+import io.github.testlens.core.trace.RetryOutcomePolicy;
 import io.github.testlens.selenium.assertions.UiExpect;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureOptions;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureResult;
@@ -158,6 +159,24 @@ public final class TestLens {
 
         Path directory = sessionOutputDirectory(session);
         RetryPolicyViolationException policyViolation = null;
+        RetryPolicyViolationException predictedPolicyViolation = policyViolationFor(outcome, session);
+        boolean failedOutcome = outcome == FinalizationOutcome.FAILED || predictedPolicyViolation != null;
+        FailureBundleCapture bundle = failedOutcome && options.failureBundleOptions().enabled()
+                ? new FailureBundleCapture(driver(), delegate, session, options, directory) : null;
+        Path screenshotPath = null;
+
+        if (failedOutcome) {
+            Throwable effectiveFailure = outcome == FinalizationOutcome.FAILED
+                    ? originalFailure : predictedPolicyViolation;
+            if (bundle != null) {
+                screenshotPath = bundle.captureDiagnosticScreenshot(options.screenshotOnFailure());
+                bundle.captureCleanScreenshot(options.screenshotOnFailure());
+                bundle.captureRemaining(effectiveFailure, predictedPolicyViolation != null);
+            } else if (options.screenshotOnFailure()) {
+                screenshotPath = captureLegacyFailureScreenshot(directory, diagnostics);
+            }
+        }
+
         try {
             switch (outcome) {
                 case PASSED -> session.finishPassed();
@@ -170,29 +189,16 @@ public final class TestLens {
             diagnostics.add(failure);
         }
 
-        Path screenshotPath = null;
-        if (session.metadata().status() == TraceStatus.FAILED && options.screenshotOnFailure()) {
-            try {
-                ScreenshotCaptureResult screenshot = delegate.captureScreenshot("failure", ScreenshotCaptureOptions.builder()
-                        .outputDirectory(directory.resolve("screenshots"))
-                        .fileNamePrefix("failure")
-                        .includeTimestamp(false)
-                        .overwriteExisting(false)
-                        .attachToSession(true)
-                        .build());
-                screenshotPath = screenshot.path();
-                if (!screenshot.isCaptured() && screenshot.exception() != null) diagnostics.add(screenshot.exception());
-            } catch (RuntimeException failure) {
-                diagnostics.add(failure);
-            }
-        }
-
         Path json = directory.resolve("trace.json");
         Path html = directory.resolve("report.html");
         try { session.exportJson(json); } catch (RuntimeException failure) { diagnostics.add(failure); json = null; }
         try { session.exportHtml(html); } catch (RuntimeException failure) { diagnostics.add(failure); html = null; }
         if (options.cleanupHudOnFinish()) {
             try { delegate.clearDebugArtifacts(); } catch (RuntimeException failure) { diagnostics.add(failure); }
+        }
+        if (bundle != null) {
+            bundle.complete(json, html);
+            diagnostics.addAll(bundle.failures());
         }
         TestLensFinalizationResult result = new TestLensFinalizationResult(session, directory, json, html, screenshotPath, diagnostics);
         if (policyViolation != null) {
@@ -203,6 +209,34 @@ public final class TestLens {
             throw finalPolicyViolation;
         }
         return result;
+    }
+
+    private RetryPolicyViolationException policyViolationFor(FinalizationOutcome outcome, UiTestLensSession session) {
+        if (outcome != FinalizationOutcome.PASSED) return null;
+        long retries = session.retrySummary().totalRetries();
+        boolean triggered = switch (options.retryOutcomePolicy()) {
+            case REPORT_ONLY, WARN -> false;
+            case FAIL_ON_ANY_RETRY -> retries >= 1;
+            case FAIL_AFTER_N -> retries > options.allowedRetries();
+        };
+        return triggered ? new RetryPolicyViolationException(options.retryOutcomePolicy(), session.retrySummary()) : null;
+    }
+
+    private Path captureLegacyFailureScreenshot(Path directory, List<Throwable> diagnostics) {
+        try {
+            ScreenshotCaptureResult screenshot = delegate.captureScreenshot("failure", ScreenshotCaptureOptions.builder()
+                    .outputDirectory(directory.resolve("screenshots"))
+                    .fileNamePrefix("failure")
+                    .includeTimestamp(false)
+                    .overwriteExisting(false)
+                    .attachToSession(true)
+                    .build());
+            if (!screenshot.isCaptured() && screenshot.exception() != null) diagnostics.add(screenshot.exception());
+            return screenshot.path();
+        } catch (RuntimeException failure) {
+            diagnostics.add(failure);
+            return null;
+        }
     }
 
     private enum FinalizationOutcome {

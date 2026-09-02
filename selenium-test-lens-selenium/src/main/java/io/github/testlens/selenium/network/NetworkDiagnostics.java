@@ -100,6 +100,11 @@ public final class NetworkDiagnostics {
         return NetworkSummary.from(events, ignoredEvents, options.failedStatusThreshold(), status);
     }
 
+    /** Returns the configured capture mode without starting or changing capture. */
+    public synchronized NetworkCaptureMode captureMode() {
+        return options.captureMode();
+    }
+
     /** Adds an event supplied by the caller; this is the collection input used by MANUAL mode. */
     public synchronized NetworkEvent addManualEvent(NetworkEvent event) {
         if (event == null) {

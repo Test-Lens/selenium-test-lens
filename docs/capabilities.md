@@ -21,7 +21,7 @@ Selenium Test Lens attaches observability, retryable element operations, diagnos
 | Capability | Public entry point | Behavior and boundary |
 | --- | --- | --- |
 | Attach to an existing driver | [`TestLens.attach(...)`](reference/test-lens.md#creation-and-lifecycle) | Keeps the same driver; Lens neither creates nor closes it. |
-| Session lifecycle | `startSession`, `session`, `finishPassed`, `finishFailed`, `finishSkipped` | Records passed, failed, or skipped trace status and performs best-effort final exports. Only failed finalization can request an automatic failure screenshot. Finish methods do not quit the driver. |
+| Session lifecycle | `startSession`, `session`, `finishPassed`, `finishFailed`, `finishSkipped` | Records passed, failed, or skipped trace status and performs best-effort final exports. Final `FAILED` creates the configured failure bundle; finish methods do not quit the driver. |
 | Named steps | [`step(...)`](advanced/steps-business-assertions.md#named-steps) | Records start/pass/failure, optionally HUD output, nested events, stack trace, and a failure screenshot. |
 | Selenium locators | [`locator(By...)`](elements/locators.md) | Accepts any Selenium `By`, with an optional diagnostic label. |
 | User-facing locators | `getByTestId`, `getByText`, `getByTextContaining`, `getByRole` | Test-id uses `[data-testid=...]`; text and role helpers have the documented DOM/ARIA limits. |
@@ -47,7 +47,7 @@ Every instrumented locator operation emits structured start/pass/retry/failure e
 - `UiTestLensSession` stores metadata, timeline events, failures, and artifacts.
 - `TraceJsonExporter` and `TraceHtmlExporter` produce JSON and standalone HTML for one session or a suite.
 - `TraceReportBundleExporter` creates a ZIP bundle and can copy referenced artifacts.
-- `TestLens.finish*` writes per-session `trace.json` and `report.html` and optionally a failure screenshot.
+- `TestLens.finish*` writes per-session `trace.json` and `report.html`; final `FAILED` additionally builds a versioned, best-effort failure bundle and ZIP by default.
 - Reports always contain a `Flakiness` summary. Passed-session retry policy defaults to `REPORT_ONLY` and can warn or reject a passed outcome.
 - `ScreenshotCapture` produces PNG evidence and can attach it to a session.
 - `VideoEvidence` attaches an existing local video or URL; it does **not** record video.

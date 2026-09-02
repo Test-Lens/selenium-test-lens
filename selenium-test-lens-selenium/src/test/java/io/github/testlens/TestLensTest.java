@@ -33,6 +33,13 @@ class TestLensTest {
     }
 
     @Test
+    void finalizationResultCanonicalConstructorRemainsUnchanged() {
+        assertEquals(6, TestLensFinalizationResult.class.getRecordComponents().length);
+        assertDoesNotThrow(() -> TestLensFinalizationResult.class.getDeclaredConstructor(
+                UiTestLensSession.class, Path.class, Path.class, Path.class, Path.class, List.class));
+    }
+
+    @Test
     void attachesExistingDriverAndFinalizesIntoUniqueSessionDirectory() {
         WebDriver driver = driver(false);
         TestLens first = TestLens.attach(driver, TestLensOptions.builder().outputRoot(temp).build());
@@ -101,11 +108,14 @@ class TestLensTest {
         assertEquals(TraceStatus.FAILED, result.session().metadata().status());
         assertEquals(TraceStatus.FAILED, finishedEvents(result.session()).get(0).status());
         assertNull(finishedEvents(result.session()).get(0).failure());
-        assertEquals(1, screenshotCalls.get());
+        assertEquals(2, screenshotCalls.get());
         assertNotNull(result.failureScreenshot());
         assertTrue(Files.exists(result.failureScreenshot()));
         assertTrue(Files.exists(result.jsonReport()));
         assertTrue(Files.exists(result.htmlReport()));
+        assertTrue(result.failureBundleDirectory().isPresent());
+        assertTrue(result.failureBundleManifest().isPresent());
+        assertTrue(result.failureBundleArchive().isPresent());
     }
 
     @Test
@@ -156,7 +166,7 @@ class TestLensTest {
         assertEquals(1, failure.retrySummary().totalRetries());
         assertTrue(Files.exists(directory.resolve("trace.json")));
         assertTrue(Files.exists(directory.resolve("report.html")));
-        assertEquals(1, screenshotCalls.get());
+        assertEquals(2, screenshotCalls.get());
         assertEquals(1, finishedEvents(session).size());
     }
 

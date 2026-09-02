@@ -186,6 +186,7 @@ public static final io.github.testlens.core.trace.TraceEventType LOCATOR_RESOLVE
 public static final io.github.testlens.core.trace.TraceEventType LOCATOR_ACTION
 public static final io.github.testlens.core.trace.TraceEventType RETRY
 public static final io.github.testlens.core.trace.TraceEventType RETRY_SUMMARY
+public static final io.github.testlens.core.trace.TraceEventType FAILURE_BUNDLE
 public static final io.github.testlens.core.trace.TraceEventType NETWORK_EVENT
 public static final io.github.testlens.core.trace.TraceEventType NETWORK_WAIT
 public static final io.github.testlens.core.trace.TraceEventType SCREENSHOT

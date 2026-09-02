@@ -2,6 +2,7 @@ package io.github.testlens;
 
 import io.github.testlens.core.trace.RetryOutcomePolicy;
 import io.github.testlens.selenium.locator.UiLocatorOptions;
+import io.github.testlens.selenium.evidence.FailureBundleOptions;
 
 import java.nio.file.Path;
 
@@ -14,6 +15,7 @@ public final class TestLensOptions {
     private final boolean cleanupHudOnFinish;
     private final RetryOutcomePolicy retryOutcomePolicy;
     private final int allowedRetries;
+    private final FailureBundleOptions failureBundleOptions;
 
     private TestLensOptions(Builder builder) {
         this.overlayConfig = builder.overlayConfig == null ? OverlayConfig.builder().build() : builder.overlayConfig;
@@ -23,6 +25,8 @@ public final class TestLensOptions {
         this.cleanupHudOnFinish = builder.cleanupHudOnFinish;
         this.retryOutcomePolicy = builder.retryOutcomePolicy;
         this.allowedRetries = builder.allowedRetries;
+        this.failureBundleOptions = builder.failureBundleOptions == null
+                ? FailureBundleOptions.defaults() : builder.failureBundleOptions;
     }
 
     public static TestLensOptions defaults() { return builder().build(); }
@@ -34,6 +38,7 @@ public final class TestLensOptions {
     public boolean cleanupHudOnFinish() { return cleanupHudOnFinish; }
     public RetryOutcomePolicy retryOutcomePolicy() { return retryOutcomePolicy; }
     public int allowedRetries() { return allowedRetries; }
+    public FailureBundleOptions failureBundleOptions() { return failureBundleOptions; }
 
     public static final class Builder {
         private OverlayConfig overlayConfig;
@@ -43,6 +48,7 @@ public final class TestLensOptions {
         private boolean cleanupHudOnFinish = true;
         private RetryOutcomePolicy retryOutcomePolicy = RetryOutcomePolicy.REPORT_ONLY;
         private int allowedRetries;
+        private FailureBundleOptions failureBundleOptions = FailureBundleOptions.defaults();
         private Builder() {}
         public Builder overlayConfig(OverlayConfig value) { overlayConfig = value; return this; }
         public Builder locatorOptions(UiLocatorOptions value) { locatorOptions = value; return this; }
@@ -56,6 +62,10 @@ public final class TestLensOptions {
         public Builder allowedRetries(int value) {
             if (value < 0) throw new IllegalArgumentException("allowedRetries must not be negative");
             allowedRetries = value;
+            return this;
+        }
+        public Builder failureBundleOptions(FailureBundleOptions value) {
+            failureBundleOptions = value == null ? FailureBundleOptions.defaults() : value;
             return this;
         }
         public TestLensOptions build() { return new TestLensOptions(this); }
