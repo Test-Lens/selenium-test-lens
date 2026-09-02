@@ -42,7 +42,10 @@ class SeleniumUsageExampleTest {
         overlay.hudLog("info", "Opening checkout page", "local");
 
         WebElement saveButton = driver.findElement(By.cssSelector("[data-testid='save']"));
+        // Purely visual: does not click the application.
         overlay.highlightElement(saveButton, "SAVE");
+        // Decoration plus one explicit Selenium click (also clicks when decoration is disabled).
+        overlay.highlightThenClick(saveButton, "SAVE");
         overlay.clearDebugArtifacts();
     }
 }

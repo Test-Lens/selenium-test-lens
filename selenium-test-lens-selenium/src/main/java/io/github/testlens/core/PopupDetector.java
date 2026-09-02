@@ -254,9 +254,8 @@ public boolean highlightPopupIfPresent(String label) {
                         button,
                         (closeButtonLabel != null && !closeButtonLabel.isBlank()) ? closeButtonLabel : "CLOSE"
                 );
-            } else {
-                button.click();
             }
+            button.click();
 
             // dajmy chwilę na zniknięcie popupa
             try {

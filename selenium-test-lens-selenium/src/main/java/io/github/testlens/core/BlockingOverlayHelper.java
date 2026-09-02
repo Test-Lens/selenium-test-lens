@@ -53,9 +53,8 @@ public class BlockingOverlayHelper {
         if (config.isEnabled() && highlightActions != null) {
             highlightActions.highlightClick(btn,
                     closeButtonLabel != null ? closeButtonLabel : "CLOSE");
-        } else {
-            btn.click();
         }
+        btn.click();
 
         try {
             Thread.sleep(500); // daj czas, żeby popup zniknął
@@ -96,9 +95,8 @@ public class BlockingOverlayHelper {
         if (config.isEnabled()) {
             highlightActions.highlightClick(closeButton,
                     closeButtonLabel != null ? closeButtonLabel : "CLOSE");
-        } else {
-            closeButton.click();
         }
+        closeButton.click();
 
         try {
             Thread.sleep(500);

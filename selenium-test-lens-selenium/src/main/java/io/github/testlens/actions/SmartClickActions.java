@@ -133,9 +133,8 @@ public class SmartClickActions {
     private void clickTarget(WebElement target, String label) {
         if (config.isEnabled()) {
             highlightActions.highlightClick(target, label);
-        } else {
-            target.click();
         }
+        target.click();
     }
 
     private boolean handleConfiguredOverlayPolicy() {

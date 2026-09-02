@@ -728,6 +728,9 @@ public final class JsOverlayDebug {
     /** Common case: decoration + classic click(). */
     public void highlightThenClick(WebElement element, String label) {
         highlightActions.highlightClick(element, label);
+        if (element != null) {
+            element.click();
+        }
     }
 
     // ======================================================================

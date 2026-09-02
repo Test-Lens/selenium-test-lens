@@ -108,7 +108,7 @@ void highlightThenClick(WebElement element, String label)
 void clearDebugArtifacts()
 ```
 
-The highlight methods inject temporary DOM decoration. Despite its historical name, `highlightThenClick(...)` currently delegates only to the highlight operation and does **not** call Selenium `click()`; use `smartClickWithOverlayHandler(...)` when a click is required. `highlightElement(...)` returns the supplied element for chaining. Parent/ancestor/closest methods change which DOM node is decorated. HUD and cleanup operations are best-effort browser decoration and do not change test conditions.
+The `highlightClick(...)`, `highlightElement(...)`, `highlightParent(...)`, `highlightAncestor(...)`, and `highlightClosest(...)` methods only inject temporary DOM decoration; they never click or otherwise act on the application. `highlightElement(...)` returns the supplied element for chaining, while the parent/ancestor/closest variants change which DOM node is decorated. Use `highlightThenClick(...)` for decoration followed by exactly one Selenium `click()`, or `smartClickWithOverlayHandler(...)` when overlay handling and click retries are required. With the visual overlay disabled, decoration is skipped but `highlightThenClick(...)` still clicks once. HUD and cleanup operations are best-effort browser decoration and do not change test conditions.
 
 ## Typing and click helpers
 
