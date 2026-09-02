@@ -16,6 +16,8 @@ All option objects are immutable after `build()` unless their API explicitly exp
 
 Accessor methods have the same names without arguments; `build()` returns options.
 
+Runner adapters consume the same immutable options per invocation. JUnit 5 configures them with `TestLensExtension.Builder.lensOptions(...)`. TestNG factories override `TestLensTestNgFactory.lensOptions()` and may override `sessionName(ITestResult)`; the factory type must have a public no-argument constructor and is instantiated afresh for each physical invocation. See [TestNG integration](../integrations/testng.md).
+
 ## UiLocatorOptions
 
 | Builder method | Type | Default | Effect / validation |

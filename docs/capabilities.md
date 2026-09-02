@@ -13,7 +13,7 @@ Selenium Test Lens attaches observability, retryable element operations, diagnos
 | understand HUD, highlights, waits, and assertion feedback | [Visual runtime diagnostics](observability/visual-diagnostics.md) |
 | find failure screenshots, trace, HTML/JSON, ZIP, or logs | [Observability](observability/index.md) |
 | configure retry, timeouts, overlay, artifacts, auth, or network | [Configuration builders](reference/configuration.md) |
-| integrate JUnit, TestNG, Page Objects, Allure, or parallel tests | [JUnit 5 integration](integrations/junit5.md) / [Framework integration](framework-integration.md) |
+| integrate JUnit, TestNG, Page Objects, Allure, or parallel tests | [JUnit 5 integration](integrations/junit5.md) / [TestNG integration](integrations/testng.md) / [Framework integration](framework-integration.md) |
 | add React-specific retry/select/readiness helpers | [Optional React API](integrations/react.md) |
 
 ## Session and interaction model
@@ -70,11 +70,11 @@ The separate `selenium-test-lens-react` artifact adds retry helpers for re-rende
 
 ## Framework coexistence
 
-Lens is runner-agnostic. JUnit and TestNG retain test lifecycle and assertion ownership. The optional [`selenium-test-lens-junit5`](integrations/junit5.md) module creates one driver/Lens/session per invocation and injects them as parameters; manual integrations attach Lens after driver creation and finalize it in teardown. Existing Page Objects may accept/use `TestLens`, return `UiLocator`, or continue using raw Selenium beside Lens. Reports are independent artifacts and can be attached to Allure or another reporter. Do not share mutable drivers or sessions across threads.
+Lens is runner-agnostic. JUnit and TestNG retain test lifecycle and assertion ownership. The optional [`selenium-test-lens-junit5`](integrations/junit5.md) and [`selenium-test-lens-testng`](integrations/testng.md) modules create one driver/Lens/session per invocation through their native runner callbacks; manual integrations attach Lens after driver creation and finalize it in teardown. Existing Page Objects may accept/use `TestLens`, return `UiLocator`, or continue using raw Selenium beside Lens. Reports are independent artifacts and can be attached to Allure or another reporter. Do not share mutable drivers or sessions across threads.
 
 ## What Test Lens does NOT do
 
-- The main facade does not create, configure, pool, or close `WebDriver` instances. The optional JUnit 5 extension creates and closes drivers supplied by its configured factory; it does not pool them.
+- The main facade does not create, configure, pool, or close `WebDriver` instances. Optional runner adapters create and close drivers supplied by their configured factories; they do not pool them.
 - It does not replace Selenium, Page Objects, JUnit, TestNG, or their lifecycle rules.
 - It does not record video; it only attaches a file/URL supplied by another recorder.
 - It does not implement network request interception, mocking, or response rewriting.

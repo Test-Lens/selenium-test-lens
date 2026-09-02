@@ -1,0 +1,98 @@
+# TestNG integration
+
+The published optional `selenium-test-lens-testng` module owns one `WebDriver`, `TestLens`, and session for every physical TestNG test-method invocation. It uses TestNG's invocation listener and `ITestResult` attributes; adding the dependency alone does not register a listener.
+
+## Installation
+
+```xml
+<dependency>
+    <groupId>io.github.test-lens</groupId>
+    <artifactId>selenium-test-lens-testng</artifactId>
+    <version>0.1.1-SNAPSHOT</version>
+    <scope>test</scope>
+</dependency>
+```
+
+Declare Selenium separately at the version selected by the test project. TestNG is a dependency of this adapter only; core, overlay, the main runtime, React, and the JUnit 5 adapter do not depend on it.
+
+## Factory and listener
+
+Factories need an accessible public no-argument constructor. A new factory is constructed for every physical invocation.
+
+```java
+public final class ChromeFactory implements TestLensTestNgFactory {
+    public ChromeFactory() {}
+
+    @Override
+    public WebDriver createDriver() {
+        return new ChromeDriver();
+    }
+
+    @Override
+    public TestLensOptions lensOptions() {
+        return TestLensOptions.builder()
+                .outputRoot(Path.of("target", "ui-test-lens"))
+                .build();
+    }
+}
+```
+
+Register the listener explicitly and configure its factory separately. `@Listeners` is not used as a meta-annotation, and there is no `META-INF/services` registration, so **both annotations are required**.
+
+```java
+@Listeners(TestLensTestNgListener.class)
+@TestLensTestNg(factory = ChromeFactory.class)
+class LoginTest {
+    @Test
+    void login() {
+        TestLensTestNgContext invocation = TestLensTestNgContext.current();
+        WebDriver driver = invocation.driver();
+        TestLens lens = invocation.lens();
+        UiTestLensSession session = invocation.session();
+
+        driver.get(applicationUrl);
+        lens.getByTestId("login").click();
+    }
+}
+```
+
+<!-- API SIGNATURES: io.github.testlens.testng.TestLensTestNg -->
+```java
+public abstract Class<? extends TestLensTestNgFactory> factory()
+```
+
+<!-- API SIGNATURES: io.github.testlens.testng.TestLensTestNgFactory -->
+```java
+public abstract WebDriver createDriver()
+public TestLensOptions lensOptions()
+public String sessionName(ITestResult result)
+```
+
+<!-- API SIGNATURES: io.github.testlens.testng.TestLensTestNgContext -->
+```java
+public static TestLensTestNgContext current()
+public WebDriver driver()
+public TestLens lens()
+public UiTestLensSession session()
+```
+
+<!-- API SIGNATURES: io.github.testlens.testng.TestLensTestNgListener -->
+```java
+public TestLensTestNgListener()
+public void beforeInvocation(IInvokedMethod method, ITestResult result)
+public void afterInvocation(IInvokedMethod method, ITestResult result)
+```
+
+## Outcome and ownership contract
+
+The listener maps `SUCCESS` to `finishPassed()`, `FAILURE` and `SUCCESS_PERCENTAGE_FAILURE` to `finishFailed(originalThrowable)`, and `SKIP`/`SkipException` to `finishSkipped(reason)`. It finalizes reports before calling `driver.quit()` and then removes the `ITestResult` state. Do not call `quit()` again from `@AfterMethod`.
+
+If cleanup fails after an already failed or skipped test, the cleanup error is suppressed on the original throwable. Cleanup failure after a passed test changes the TestNG result to failure. A setup failure remains primary; a driver already created before attach/session failure is still closed once.
+
+Disabled tests, configuration methods, dependency-skipped methods, and tests blocked by a failed `@BeforeMethod` do not create a driver or empty session. Calling `TestLensTestNgContext.current()` outside a managed test method throws `IllegalStateException`.
+
+## DataProvider, retry, and parallel execution
+
+State is stored as a namespaced attribute of the physical `ITestResult`, not on the test class or listener. Parallel methods and parallel DataProviders therefore cannot see one another's drivers or sessions, and reusing a test instance is safe. Every RetryAnalyzer attempt gets its own factory, driver, Lens, session ID, report directory, and final status: a failed attempt is recorded as `FAILED`, while a later successful attempt is a separate `PASSED` session.
+
+The default name contains the class, method, public TestNG invocation counter, and an opaque per-attempt token. It deliberately excludes DataProvider values. A custom `sessionName(ITestResult)` may return a different name, but should not include credentials or other parameter secrets.

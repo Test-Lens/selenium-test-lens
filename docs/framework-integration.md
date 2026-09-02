@@ -11,7 +11,7 @@ lens.startSession(testName);
 
 ## Integration model
 
-In a manual integration, your project remains responsible for creating and closing `WebDriver`. Test Lens attaches to that driver, records Lens operations, and writes session diagnostics when the test finishes. The optional JUnit 5 extension is the deliberate exception: it owns drivers returned by the configured factory.
+In a manual integration, your project remains responsible for creating and closing `WebDriver`. Test Lens attaches to that driver, records Lens operations, and writes session diagnostics when the test finishes. The optional JUnit 5 and TestNG integrations deliberately own drivers returned by their configured factories.
 
 A typical integration has three lifecycle points:
 
@@ -66,55 +66,21 @@ The extension owns the driver returned by the factory. It finalizes reports befo
 
 ## TestNG
 
-With TestNG, attach Lens in `@BeforeMethod` and finalize it in an `@AfterMethod(alwaysRun = true)` method. A `ThreadLocal` keeps invocation state separate when methods run in parallel.
+Use the published `selenium-test-lens-testng` listener rather than copying `@BeforeMethod`/`@AfterMethod` lifecycle code:
 
 ```java
-private final ThreadLocal<State> state = new ThreadLocal<>();
-
-@BeforeMethod
-public void beforeMethod(Method method) {
-    WebDriver driver = ExistingDriverFactory.create();
-    try {
-        TestLens lens = TestLens.attach(driver);
-        lens.startSession(method.getName());
-        state.set(new State(driver, lens));
-    } catch (RuntimeException | Error failure) {
-        driver.quit();
-        throw failure;
+@Listeners(TestLensTestNgListener.class)
+@TestLensTestNg(factory = ExistingDriverFactory.class)
+class OrderTest {
+    @Test
+    void savesOrder() {
+        TestLens lens = TestLensTestNgContext.current().lens();
+        lens.getByTestId("save").click();
     }
 }
-
-@AfterMethod(alwaysRun = true)
-public void afterMethod(ITestResult result) {
-    State current = state.get();
-    try {
-        if (current != null) {
-            int status = result.getStatus();
-            switch (status) {
-                case ITestResult.SUCCESS -> current.lens().finishPassed();
-                case ITestResult.FAILURE -> current.lens().finishFailed(result.getThrowable());
-                case ITestResult.SKIP -> {
-                    Throwable skipped = result.getThrowable();
-                    String reason = skipped == null
-                            ? "TestNG invocation skipped"
-                            : skipped.getMessage();
-                    current.lens().finishSkipped(reason);
-                }
-                default -> current.lens().finishFailed(result.getThrowable());
-            }
-        }
-    } finally {
-        if (current != null) {
-            current.driver().quit();
-        }
-        state.remove();
-    }
-}
-
-private record State(WebDriver driver, TestLens lens) {}
 ```
 
-The three TestNG terminal states map directly to the three Lens finalizers. Do not manufacture a `SkipException` merely to persist a reason: pass the runner-provided message, or a plain fallback string, to `finishSkipped(reason)`. This snippet belongs in the consuming TestNG project; the Test Lens runtime itself has no TestNG dependency.
+Both annotations are required; there is no automatic ServiceLoader registration. The adapter maps success, failure, skip, and success-percentage failure, owns `quit()`, and isolates state on the physical `ITestResult`. See the dedicated [TestNG integration guide](integrations/testng.md) for factory construction, retry/DataProvider/parallel behavior, and cleanup policy. A hand-written `@BeforeMethod`/`@AfterMethod` integration remains a legacy/manual alternative when a project needs a different ownership model.
 
 ## Allure coexistence
 
@@ -134,7 +100,7 @@ Allure continues to produce `allure-results`; Test Lens writes its own diagnosti
 Associate each `TestLens` instance with exactly one driver and test invocation. Do not store a driver or Lens instance in a shared static field.
 
 - In JUnit 5, store invocation state in `ExtensionContext.Store` using the invocation's unique ID.
-- In TestNG, use a `ThreadLocal` or an invocation-ID keyed map when methods or data providers run in parallel.
+- In TestNG, prefer the adapter's namespaced `ITestResult` state; manual integrations must provide equivalent per-invocation isolation.
 - Give retry attempts distinct session names if their reports are collected together.
 
 ## Optional React extension

@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 221
-# Public callable methods/constructors: 1641
+# Types: 225
+# Public callable methods/constructors: 1652
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -2072,6 +2072,22 @@ TYPE io.github.testlens.junit5.TestLensExtension
   public void afterEach(org.junit.jupiter.api.extension.ExtensionContext) throws java.lang.Exception
   public boolean supportsParameter(org.junit.jupiter.api.extension.ParameterContext, org.junit.jupiter.api.extension.ExtensionContext)
   public java.lang.Object resolveParameter(org.junit.jupiter.api.extension.ParameterContext, org.junit.jupiter.api.extension.ExtensionContext)
+MODULE selenium-test-lens-testng
+TYPE io.github.testlens.testng.TestLensTestNg
+  public abstract java.lang.Class<? extends io.github.testlens.testng.TestLensTestNgFactory> factory()
+TYPE io.github.testlens.testng.TestLensTestNgContext
+  public static io.github.testlens.testng.TestLensTestNgContext current()
+  public org.openqa.selenium.WebDriver driver()
+  public io.github.testlens.TestLens lens()
+  public io.github.testlens.core.trace.UiTestLensSession session()
+TYPE io.github.testlens.testng.TestLensTestNgFactory
+  public abstract org.openqa.selenium.WebDriver createDriver()
+  public default io.github.testlens.TestLensOptions lensOptions()
+  public default java.lang.String sessionName(org.testng.ITestResult)
+TYPE io.github.testlens.testng.TestLensTestNgListener
+  public io.github.testlens.testng.TestLensTestNgListener()
+  public void beforeInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
+  public void afterInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
 MODULE selenium-test-lens-react
 TYPE io.github.testlens.react.ReactOverlaySupport
   public abstract io.github.testlens.OverlayConfig getConfig()

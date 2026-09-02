@@ -118,7 +118,7 @@ TestLens.attach(driver)
         +--> reports and evidence
 ```
 
-Test Lens does not replace your test runner or reporting stack. JUnit, TestNG, Allure and existing Page Objects can stay where they are. JUnit 5 users may add the optional published [`selenium-test-lens-junit5`](integrations/junit5.md) lifecycle extension for per-invocation driver/Lens creation and parameter injection.
+Test Lens does not replace your test runner or reporting stack. JUnit, TestNG, Allure and existing Page Objects can stay where they are. JUnit 5 and TestNG users may add the optional published [`selenium-test-lens-junit5`](integrations/junit5.md) or [`selenium-test-lens-testng`](integrations/testng.md) adapter for per-invocation driver/Lens creation and native lifecycle mapping.
 
 The React module is optional. For lower-level browser interactions that Lens doesn't wrap, use Selenium directly.
 

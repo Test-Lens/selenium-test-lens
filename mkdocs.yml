@@ -83,6 +83,7 @@ nav:
   - Integrations:
       - Integrations overview: integrations/index.md
       - JUnit 5: integrations/junit5.md
+      - TestNG: integrations/testng.md
       - Optional React API: integrations/react.md
   - Migration:
       - From raw Selenium: migration.md

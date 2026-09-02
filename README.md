@@ -63,6 +63,30 @@ void savesOrder(WebDriver driver, TestLens lens) {
 
 The extension owns one driver per JUnit invocation, maps passed, failed, and aborted outcomes to Lens, writes reports, and then calls `quit()`. Do not also quit that driver in `@AfterEach`. See the [JUnit 5 integration guide](docs/integrations/junit5.md).
 
+TestNG users can use the published listener adapter:
+
+```xml
+<dependency>
+    <groupId>io.github.test-lens</groupId>
+    <artifactId>selenium-test-lens-testng</artifactId>
+    <version>0.1.1-SNAPSHOT</version>
+    <scope>test</scope>
+</dependency>
+```
+
+```java
+@Listeners(TestLensTestNgListener.class)
+@TestLensTestNg(factory = ChromeFactory.class)
+class LoginTest {
+    @Test
+    void login() {
+        TestLensTestNgContext.current().lens().getByTestId("login").click();
+    }
+}
+```
+
+The listener owns a fresh driver for every physical invocation, including DataProvider and retry attempts, finalizes Lens, and then calls `quit()`. Both annotations are required. See the [TestNG integration guide](docs/integrations/testng.md).
+
 ## First session
 
 ```java
@@ -88,7 +112,7 @@ try {
 }
 ```
 
-The main Test Lens facade does not own browser lifecycle or displace JUnit, TestNG, Allure, or another reporter. The optional JUnit 5 extension deliberately owns drivers created by its factory. Existing raw Selenium remains valid for operations the Lens facade does not wrap. React-specific support is available as a separate, optional module.
+The main Test Lens facade does not own browser lifecycle or displace JUnit, TestNG, Allure, or another reporter. The optional JUnit 5 and TestNG adapters deliberately own drivers created by their factories. Existing raw Selenium remains valid for operations the Lens facade does not wrap. React-specific support is available as a separate, optional module.
 
 Finalize every session with its real runner outcome: `finishPassed()`, `finishFailed(Throwable)`, or `finishSkipped(String)`. Skipped finalization records the reason and writes reports without taking a failure screenshot or closing the driver.
 

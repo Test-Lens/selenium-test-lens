@@ -7,7 +7,7 @@ search:
 
 This generated catalog is the optional binary-surface reference for every published public type, constructor, method, and field. Start with [Capabilities](../capabilities.md) and the functional navigation for behavior, workflows, and examples. Internal-style types appear only because Java consumers can currently access them.
 
-Inventory: **221 public types** and **1641 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
+Inventory: **225 public types** and **1652 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
 
 Classifications: USER_API is the normal consumer path; ADVANCED_API is supported specialized functionality; LOW_LEVEL_API exposes lower abstractions; INTERNAL_STYLE_PUBLIC is binary-public implementation surface and is not recommended for application code.
 
@@ -241,6 +241,15 @@ Signature details are split by published artifact and Java package to keep indiv
 | --- | --- | --- | --- | --- |
 | io.github.testlens.junit5.TestLensExtension$Builder | io.github.testlens.junit5 | USER_API | class | [signatures](public-api/selenium-test-lens-junit5-io-github-testlens-junit5.md#io-github-testlens-junit5-testlensextension-builder) |
 | io.github.testlens.junit5.TestLensExtension | io.github.testlens.junit5 | USER_API | class | [signatures](public-api/selenium-test-lens-junit5-io-github-testlens-junit5.md#io-github-testlens-junit5-testlensextension) |
+
+## selenium-test-lens-testng
+
+| Type | Package | Classification | Kind | Surface |
+| --- | --- | --- | --- | --- |
+| io.github.testlens.testng.TestLensTestNg | io.github.testlens.testng | USER_API | interface | [signatures](public-api/selenium-test-lens-testng-io-github-testlens-testng.md#io-github-testlens-testng-testlenstestng) |
+| io.github.testlens.testng.TestLensTestNgContext | io.github.testlens.testng | USER_API | class | [signatures](public-api/selenium-test-lens-testng-io-github-testlens-testng.md#io-github-testlens-testng-testlenstestngcontext) |
+| io.github.testlens.testng.TestLensTestNgFactory | io.github.testlens.testng | USER_API | interface | [signatures](public-api/selenium-test-lens-testng-io-github-testlens-testng.md#io-github-testlens-testng-testlenstestngfactory) |
+| io.github.testlens.testng.TestLensTestNgListener | io.github.testlens.testng | USER_API | class | [signatures](public-api/selenium-test-lens-testng-io-github-testlens-testng.md#io-github-testlens-testng-testlenstestnglistener) |
 
 ## selenium-test-lens-react
 

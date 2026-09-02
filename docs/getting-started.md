@@ -47,6 +47,8 @@ For JUnit 5, add the optional published integration as a test dependency. It bri
 
 See [JUnit 5 integration](integrations/junit5.md) for `@RegisterExtension` and parameter injection.
 
+For TestNG, add `selenium-test-lens-testng` with test scope and register both `@Listeners(TestLensTestNgListener.class)` and `@TestLensTestNg(factory = YourFactory.class)`. The listener exposes the current driver, Lens, and session through `TestLensTestNgContext.current()` and owns driver shutdown. See [TestNG integration](integrations/testng.md).
+
 ## Your first Lens session
 
 Attach Lens after your project creates its driver. Start a session before using Lens operations, then finalize it with the test outcome.
@@ -78,7 +80,7 @@ try {
 
 Lens finalization writes the session diagnostics. Use `finishSkipped(reason)` for an aborted test or unmet assumption; unlike `finishFailed(...)`, it does not request a failure screenshot. Keep your existing `WebDriver` cleanup as-is.
 
-For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The published JUnit 5 module is the recommended JUnit path.
+For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The published runner adapters are the recommended JUnit 5 and TestNG paths.
 
 ## Run your test
 
