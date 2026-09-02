@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -38,3 +39,88 @@ jobs:
       - name: Validate release artifact whitelist and licenses
         shell: pwsh
         run: ./scripts/validate-release-packaging.ps1
+
+  browser-integration:
+    name: Browser integration (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Set up Chrome
+        if: matrix.browser == 'chrome'
+        uses: browser-actions/setup-chrome@v2
+        with:
+          install-chromedriver: true
+
+      - name: Set up Firefox
+        if: matrix.browser == 'firefox'
+        uses: browser-actions/setup-firefox@v1
+
+      - name: Set up geckodriver
+        if: matrix.browser == 'firefox'
+        uses: browser-actions/setup-geckodriver@latest
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run real-browser integration tests
+        run: mvn -Pbrowser-it -Dbrowser=${{ matrix.browser }} -Dheaded=false verify
+
+      - name: Upload browser failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-integration-${{ matrix.browser }}-failure
+          if-no-files-found: warn
+          path: |
+            **/target/surefire-reports/**
+            **/target/failsafe-reports/**
+            **/target/ui-test-lens/**
+
+  headed-chrome-smoke:
+    name: Headed Chrome smoke (non-blocking)
+    if: github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Set up Chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          install-chromedriver: true
+
+      - name: Run headed Chrome smoke under Xvfb
+        run: xvfb-run -a mvn -Pbrowser-it -Dbrowser=chrome -Dheaded=true verify
+
+      - name: Upload headed smoke failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: headed-chrome-smoke-failure
+          if-no-files-found: warn
+          path: |
+            **/target/surefire-reports/**
+            **/target/failsafe-reports/**
+            **/target/ui-test-lens/**

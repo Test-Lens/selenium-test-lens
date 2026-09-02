@@ -73,6 +73,17 @@ See the [getting-started guide](https://test-lens.github.io/selenium-test-lens/g
 mvn clean verify
 ```
 
+The default build runs the fast unit suite. Real-browser integration tests are isolated in an unpublished consumer module and enabled explicitly:
+
+```powershell
+mvn -Pbrowser-it -Dbrowser=chrome -Dheaded=false verify
+mvn -Pbrowser-it -Dbrowser=firefox -Dheaded=false verify
+```
+
+Use `-Dheaded=true` for local visual debugging. The current CI browser gate covers local Chrome and Firefox drivers; Edge and `RemoteWebDriver` grids are not part of this matrix.
+
+See [Real-browser integration tests](docs/browser-integration-tests.md) for prerequisites, scenarios, and CI behavior.
+
 ## License
 
 Licensed under the [Apache License 2.0](LICENSE).

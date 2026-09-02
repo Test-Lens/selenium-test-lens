@@ -9,8 +9,8 @@ $pom = [xml](Get-Content -Raw (Join-Path $repo "pom.xml"))
 $ns = New-Object System.Xml.XmlNamespaceManager($pom.NameTable)
 $ns.AddNamespace("m", "http://maven.apache.org/POM/4.0.0")
 $excluded = $pom.SelectSingleNode("//m:plugin[m:artifactId='central-publishing-maven-plugin']/m:configuration/m:excludeArtifacts", $ns)
-if ($null -eq $excluded -or $excluded.InnerText.Trim() -ne "selenium-test-lens-examples") {
-    throw "Central configuration must exclude selenium-test-lens-examples"
+if ($null -eq $excluded -or $excluded.InnerText.Trim() -ne "selenium-test-lens-examples,selenium-test-lens-browser-tests") {
+    throw "Central configuration must exclude examples and browser integration tests"
 }
 
 $components = @(
@@ -41,6 +41,8 @@ foreach ($component in $components) {
 
 $unexpected = Get-ChildItem -LiteralPath $StagingDirectory -Recurse -File | Where-Object { $_.Name -like "*selenium-test-lens-examples*" }
 if ($unexpected) { throw "Examples artifact found in release staging" }
+$unexpectedBrowserTests = Get-ChildItem -LiteralPath $StagingDirectory -Recurse -File | Where-Object { $_.Name -like "*selenium-test-lens-browser-tests*" }
+if ($unexpectedBrowserTests) { throw "Browser integration test artifact found in release staging" }
 
 Write-Output "Release staging validation PASS: $StagingDirectory"
 Get-ChildItem -LiteralPath $StagingDirectory -Recurse -File | ForEach-Object { $_.FullName.Substring($StagingDirectory.Length + 1) }

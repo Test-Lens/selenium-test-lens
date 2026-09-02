@@ -94,6 +94,7 @@ nav:
       - Advanced / low-level API: reference/advanced-low-level.md
       - Binary API catalog (optional): reference/public-api-catalog.md
       - Architecture: architecture.md
+      - Real-browser integration tests: browser-integration-tests.md
       - Changelog: https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md
       - Maven Central: https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0
       - Javadoc: https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/
@@ -143,4 +144,3 @@ extra:
         - accept
         - reject
         - manage
-

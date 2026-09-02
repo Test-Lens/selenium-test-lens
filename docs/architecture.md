@@ -11,6 +11,7 @@ Selenium Test Lens is split into small Maven modules so Selenium code, browser o
 | `selenium-test-lens` | Public `TestLens` runtime for Selenium tests | Depends on core and overlay; Selenium is optional and supplied by the consumer |
 | `selenium-test-lens-react` | Optional React- and SPA-specific Selenium helpers | Depends directly on the main runtime, core, overlay, and Selenium |
 | `selenium-test-lens-examples` | Compile-checked and documentation examples | Depends on the main runtime and React module; built with the reactor but excluded from Maven Central publication |
+| `selenium-test-lens-browser-tests` | Consumer-level Chrome and Firefox integration tests against deterministic local pages | Added to the reactor only by `browser-it`; depends on the built main artifact and is never published |
 
 The `selenium-test-lens` artifact is built from the source directory `selenium-test-lens-selenium/`.
 
@@ -22,9 +23,18 @@ selenium-test-lens -> core
 selenium-test-lens -> overlay -> core
 selenium-test-lens-react -> selenium-test-lens, overlay, core, Selenium
 selenium-test-lens-examples -> selenium-test-lens, selenium-test-lens-react
+selenium-test-lens-browser-tests -> selenium-test-lens, Selenium, JUnit
 ```
 
 The main runtime declares Selenium as optional, so the consuming project remains responsible for its version.
+
+## Build and verification boundaries
+
+`mvn test` runs unit and contract tests without starting a browser. The `browser-it` profile adds the unpublished `selenium-test-lens-browser-tests` module and binds its `*IT` classes to Maven Failsafe's `integration-test` and `verify` phases. That module consumes `selenium-test-lens` through a normal Maven dependency, so it verifies the same artifact boundary used by an application rather than reaching into runtime test classes.
+
+The real-browser fixture uses a JDK `HttpServer` on an ephemeral loopback port. It serves deterministic click, navigation, frame, popup, alert, blocking-overlay, and CSP pages without internet resources. Every test owns and closes its driver; the server is stopped after the suite.
+
+Chrome and Firefox headless runs are required in CI. A headed Chrome run under Xvfb is available as a non-blocking manual smoke test. Edge and remote-grid execution are not currently in the browser matrix.
 
 ## Selenium boundary
 

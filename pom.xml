@@ -64,6 +64,7 @@
         <maven.javadoc.plugin.version>3.7.0</maven.javadoc.plugin.version>
         <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
+        <maven.failsafe.plugin.version>3.2.5</maven.failsafe.plugin.version>
         <maven.gpg.plugin.version>3.2.7</maven.gpg.plugin.version>
         <central.publishing.maven.plugin.version>0.11.0</central.publishing.maven.plugin.version>
         <central.publishing.serverId>central</central.publishing.serverId>
@@ -186,6 +187,13 @@
 
     <profiles>
         <profile>
+            <id>browser-it</id>
+            <modules>
+                <module>selenium-test-lens-browser-tests</module>
+            </modules>
+        </profile>
+
+        <profile>
             <id>release-artifacts</id>
             <build>
                 <plugins>
@@ -245,7 +253,7 @@
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>${central.publishing.serverId}</publishingServerId>
-                            <excludeArtifacts>selenium-test-lens-examples</excludeArtifacts>
+                            <excludeArtifacts>selenium-test-lens-examples,selenium-test-lens-browser-tests</excludeArtifacts>
                             <autoPublish>false</autoPublish>
                             <waitUntil>validated</waitUntil>
                         </configuration>
