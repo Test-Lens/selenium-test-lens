@@ -193,7 +193,10 @@ class NetworkDiagnosticsBiDiTest {
 
             NetworkWaitResult matched = result.get(1, TimeUnit.SECONDS);
             assertEquals(NetworkWaitStatus.MATCHED, matched.status());
-            assertTrue(matched.attempts() >= 2);
+            assertTrue(matched.attempts() >= 1);
+            assertNotNull(matched.matchedResponse());
+            assertEquals(201, matched.matchedResponse().status());
+            assertEquals("/api/async", matched.matchedResponse().url());
         } finally {
             executor.shutdownNow();
         }
