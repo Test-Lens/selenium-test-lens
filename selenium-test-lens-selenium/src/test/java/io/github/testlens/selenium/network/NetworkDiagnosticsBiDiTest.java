@@ -281,6 +281,114 @@ class NetworkDiagnosticsBiDiTest {
                 .urlContains("/api/standalone").status(204).build()).isPresent());
     }
 
+    @Test
+    void embeddedRequestMakesResponseBeforeRequestImmediatelyCorrelatable() {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+        FakeSource source = factory.latest();
+        source.fire(responseWithRequest("race", "POST", "/api/request", "/api/response", 201, 0));
+
+        NetworkWaitResult matched = diagnostics.waitForResponse(NetworkWaitCondition.builder()
+                .urlContains("/api/response").method("POST").status(201).build());
+
+        assertEquals(NetworkWaitStatus.MATCHED, matched.status());
+        assertNotNull(matched.matchedRequest());
+        assertEquals(matched.matchedResponse().requestId(), matched.matchedRequest().id());
+        assertEquals("/api/request", matched.matchedRequest().url());
+        assertEquals("/api/response", matched.matchedResponse().url());
+        assertEquals(0, diagnostics.summary().totalRequests());
+        assertEquals(1, diagnostics.summary().totalResponses());
+
+        source.fire(request("race", "/api/request", 0));
+        assertEquals(1, diagnostics.summary().totalRequests());
+        assertEquals(1, diagnostics.summary().totalResponses());
+        assertEquals(1, diagnostics.events().stream()
+                .filter(event -> event.type() == NetworkEventType.REQUEST).count());
+    }
+
+    @Test
+    void requestBeforeResponseStillUsesTheMatchingRequest() {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+        FakeSource source = factory.latest();
+        source.fire(request("ordered", "/api/ordered", 0));
+        source.fire(responseWithRequest("ordered", "GET", "/api/ordered", "/api/ordered", 200, 0));
+
+        NetworkWaitResult matched = diagnostics.waitForResponse(NetworkWaitCondition.builder()
+                .urlContains("/api/ordered").method("GET").status(200).build());
+
+        assertEquals(NetworkWaitStatus.MATCHED, matched.status());
+        assertEquals("ordered", matched.matchedRequest().id());
+        assertEquals(1, diagnostics.summary().totalRequests());
+        assertEquals(1, diagnostics.summary().totalResponses());
+    }
+
+    @Test
+    void standaloneResponseWithoutRequestDataRemainsMatchableWithNullRequest() {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+        factory.latest().fire(response("standalone", "/api/standalone", 204, 0));
+
+        NetworkWaitResult matched = diagnostics.waitForResponse(NetworkWaitCondition.builder()
+                .urlContains("/api/standalone").status(204).build());
+
+        assertEquals(NetworkWaitStatus.MATCHED, matched.status());
+        assertNotNull(matched.matchedResponse());
+        assertNull(matched.matchedRequest());
+    }
+
+    @Test
+    void embeddedRequestsKeepRedirectsWithTheSameIdSeparatedByRedirectCount() {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+        FakeSource source = factory.latest();
+        source.fire(responseWithRequest("shared", "GET", "/redirect", "/redirect", 302, 0));
+        source.fire(responseWithRequest("shared", "POST", "/api/final", "/api/final", 200, 1));
+
+        NetworkWaitResult redirect = diagnostics.waitForResponse(NetworkWaitCondition.builder()
+                .urlContains("/redirect").method("GET").status(302).includeFailedResponses(true).build());
+        NetworkWaitResult target = diagnostics.waitForResponse(NetworkWaitCondition.builder()
+                .urlContains("/api/final").method("POST").status(200).build());
+
+        assertEquals("/redirect", redirect.matchedRequest().url());
+        assertEquals("/api/final", target.matchedRequest().url());
+        assertEquals("shared", redirect.matchedRequest().id());
+        assertEquals("shared", target.matchedRequest().id());
+        assertEquals(0, diagnostics.summary().totalRequests());
+        assertEquals(2, diagnostics.summary().totalResponses());
+    }
+
+    @Test
+    void responseWithoutEmbeddedDataNeverBorrowsARequestFromAnotherRedirect() {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+        FakeSource source = factory.latest();
+        source.fire(request("shared", "/redirect", 0));
+        source.fire(response("shared", "/api/final", 200, 1));
+
+        assertTrue(diagnostics.findMatchingEvent(NetworkWaitCondition.builder()
+                .urlContains("/api/final").method("GET").status(200).build()).isEmpty());
+    }
+
+    @Test
+    void embeddedCorrelationDoesNotConsumeAnExtraEventLimitSlot() {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(NetworkDiagnosticsOptions.builder()
+                .captureMode(NetworkCaptureMode.BIDI).maxCapturedEvents(1).build());
+        FakeSource source = factory.latest();
+        source.fire(responseWithRequest("limited", "POST", "/api/limited", "/api/limited", 201, 0));
+
+        NetworkWaitResult matched = diagnostics.waitForResponse(NetworkWaitCondition.builder()
+                .urlContains("/api/limited").method("POST").status(201).build());
+        source.fire(request("limited", "/api/limited", 0));
+
+        assertEquals(NetworkWaitStatus.MATCHED, matched.status());
+        assertEquals("limited", matched.matchedRequest().id());
+        assertEquals(0, diagnostics.summary().totalRequests());
+        assertEquals(1, diagnostics.summary().totalResponses());
+        assertEquals(1, diagnostics.summary().droppedEvents());
+    }
+
     private NetworkDiagnostics diagnostics(FakeFactory factory) {
         return new NetworkDiagnostics(fakeDriver(), OverlayLogger.noop(), factory);
     }
@@ -296,6 +404,13 @@ class NetworkDiagnosticsBiDiTest {
 
     private static NetworkEvent response(String id, String url, int status, int redirect) {
         return NetworkEvent.response(NetworkResponse.of(id, url, status), Instant.now(),
+                Map.of("redirectCount", String.valueOf(redirect)));
+    }
+
+    private static NetworkEvent responseWithRequest(String id, String method, String requestUrl,
+                                                    String responseUrl, int status, int redirect) {
+        NetworkRequest request = new NetworkRequest(id, method, requestUrl, "fetch", Instant.now(), Map.of());
+        return NetworkEvent.response(NetworkResponse.of(id, responseUrl, status), request, Instant.now(),
                 Map.of("redirectCount", String.valueOf(redirect)));
     }
 

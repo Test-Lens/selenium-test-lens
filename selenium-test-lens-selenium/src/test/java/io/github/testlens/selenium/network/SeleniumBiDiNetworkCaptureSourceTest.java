@@ -74,12 +74,35 @@ class SeleniumBiDiNetworkCaptureSourceTest {
         assertEquals("false", request.attributes().get("resourceTypeAvailable"));
         assertEquals(201, response.response().status());
         assertEquals("req-7", response.response().requestId());
+        assertNotNull(response.correlatedRequest());
+        assertEquals("req-7", response.correlatedRequest().id());
+        assertEquals("POST", response.correlatedRequest().method());
+        assertEquals("/api/orders", response.correlatedRequest().url());
         assertEquals(Duration.ofMillis(27), response.response().duration());
         assertEquals("true", response.attributes().get("durationAvailable"));
         assertEquals("false", response.attributes().get("fromCache"));
         assertEquals("req-8", failure.failure().requestId());
         assertEquals("FETCH_ERROR", failure.failure().failureType());
         assertEquals("connection reset", failure.failure().message());
+    }
+
+    @Test
+    void responseBeforeRequestRetainsRequestDataWithoutCreatingADuplicateRequestEvent() {
+        FakeModule module = new FakeModule();
+        RecordingSink sink = new RecordingSink();
+        SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.defaults(), sink);
+
+        module.response.accept(ResponseDetails.fromJsonMap(response(
+                "race", "/api/race", 0, 201, 1_700_000_000_150L, 10, 37)));
+        module.before.accept(BeforeRequestSent.fromJsonMap(base(
+                "race", "/api/race", 0, 1_700_000_000_123L)));
+
+        assertEquals(2, sink.events.size());
+        assertEquals(NetworkEventType.RESPONSE, sink.events.get(0).type());
+        assertEquals(NetworkEventType.REQUEST, sink.events.get(1).type());
+        assertEquals("race", sink.events.get(0).correlatedRequest().id());
+        assertEquals(1, sink.events.stream().filter(event -> event.type() == NetworkEventType.REQUEST).count());
+        assertEquals(1, sink.events.stream().filter(event -> event.type() == NetworkEventType.RESPONSE).count());
     }
 
     @Test

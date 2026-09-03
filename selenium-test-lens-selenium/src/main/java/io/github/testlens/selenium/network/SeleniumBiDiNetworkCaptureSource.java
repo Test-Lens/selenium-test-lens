@@ -129,7 +129,15 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
                 duration.value,
                 timestamp(event.getTimestamp()),
                 headers(response == null ? List.of() : response.getHeaders(), options));
-        sink.recorded(NetworkEvent.response(mapped, timestamp(event.getTimestamp()), attributes));
+        NetworkRequest correlatedRequest = correlatedRequest(request, event.getTimestamp(), options);
+        sink.recorded(NetworkEvent.response(mapped, correlatedRequest, timestamp(event.getTimestamp()), attributes));
+    }
+
+    private static NetworkRequest correlatedRequest(RequestData request, long timestamp,
+                                                    NetworkDiagnosticsOptions options) {
+        if (request == null || safe(request.getRequestId()).isBlank()) return null;
+        return new NetworkRequest(request.getRequestId(), safe(request.getMethod()), safe(request.getUrl()), "",
+                timestamp(timestamp), headers(request.getHeaders(), options));
     }
 
     private static void fetchError(FetchError event, NetworkDiagnosticsOptions options, NetworkCaptureSink sink) {

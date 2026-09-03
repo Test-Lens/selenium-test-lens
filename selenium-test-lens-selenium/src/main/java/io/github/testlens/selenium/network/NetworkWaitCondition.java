@@ -135,16 +135,19 @@ public final class NetworkWaitCondition {
     private Optional<NetworkRequest> findRequest(NetworkEvent responseEvent, List<NetworkEvent> allEvents) {
         String requestId = responseEvent == null || responseEvent.response() == null
                 ? "" : responseEvent.response().requestId();
-        if (requestId == null || requestId.isBlank() || allEvents == null) {
+        if (requestId == null || requestId.isBlank()) {
             return Optional.empty();
         }
+        NetworkRequest embedded = responseEvent.correlatedRequest();
+        if (embedded != null && requestId.equals(embedded.id())) return Optional.of(embedded);
+        if (allEvents == null) return Optional.empty();
         String redirectCount = responseEvent.attributes().get("redirectCount");
         Optional<NetworkRequest> correlated = allEvents.stream()
                 .filter(event -> event.request() != null && requestId.equals(event.request().id()))
                 .filter(event -> redirectCount == null
                         || redirectCount.equals(event.attributes().get("redirectCount")))
                 .map(NetworkEvent::request).findFirst();
-        return correlated.isPresent() ? correlated : allEvents.stream()
+        return correlated.isPresent() || redirectCount != null ? correlated : allEvents.stream()
                 .map(NetworkEvent::request).filter(Objects::nonNull)
                 .filter(request -> requestId.equals(request.id())).findFirst();
     }

@@ -467,12 +467,14 @@ public final class NetworkDiagnostics {
     private Optional<NetworkRequest> findRequestFor(NetworkEvent responseEvent, List<NetworkEvent> snapshot) {
         if (responseEvent == null || responseEvent.response() == null) return Optional.empty();
         String requestId = responseEvent.response().requestId();
+        NetworkRequest embedded = responseEvent.correlatedRequest();
+        if (embedded != null && requestId.equals(embedded.id())) return Optional.of(embedded);
         String redirect = responseEvent.attributes().get("redirectCount");
         Optional<NetworkRequest> correlated = snapshot.stream()
                 .filter(event -> event.request() != null && requestId.equals(event.request().id()))
                 .filter(event -> redirect == null || redirect.equals(event.attributes().get("redirectCount")))
                 .map(NetworkEvent::request).findFirst();
-        if (correlated.isPresent()) return correlated;
+        if (correlated.isPresent() || redirect != null) return correlated;
         return snapshot.stream().map(NetworkEvent::request).filter(Objects::nonNull)
                 .filter(request -> requestId.equals(request.id())).findFirst();
     }
