@@ -658,7 +658,7 @@ public final class JsOverlayDebug {
         }
     }
 
-    private static final class HudLogSink implements UiTestLensLogSink {
+    static final class HudLogSink implements UiTestLensLogSink {
         private volatile HudPanel hud;
         private volatile WebDriver driver;
         private final java.util.Queue<UiTestLensLogEntry> deferredDuringAlert = new java.util.concurrent.ConcurrentLinkedQueue<>();
@@ -669,6 +669,8 @@ public final class JsOverlayDebug {
         public void accept(UiTestLensLogEntry entry) {
             HudPanel current = hud;
             if (current == null || entry == null || entry.eventType() == UiTestLensEventType.HUD) return;
+            if (isRawNetworkEntry(entry.eventType())
+                    && "false".equalsIgnoreCase(entry.metadata().get("hudVisible"))) return;
             WebDriver currentDriver = driver;
             if (currentDriver != null) {
                 try {
@@ -686,6 +688,12 @@ public final class JsOverlayDebug {
             UiTestLensLogEntry deferred;
             while ((deferred = deferredDuringAlert.poll()) != null) append(current, deferred);
             append(current, entry);
+        }
+
+        private static boolean isRawNetworkEntry(UiTestLensEventType eventType) {
+            return eventType == UiTestLensEventType.NETWORK_REQUEST_RECORDED
+                    || eventType == UiTestLensEventType.NETWORK_RESPONSE_RECORDED
+                    || eventType == UiTestLensEventType.NETWORK_FAILURE_RECORDED;
         }
 
         private static void append(HudPanel hud, UiTestLensLogEntry entry) {

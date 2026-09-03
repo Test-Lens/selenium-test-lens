@@ -7,7 +7,7 @@ search:
 
 This generated catalog is the optional binary-surface reference for every published public type, constructor, method, and field. Start with [Capabilities](../capabilities.md) and the functional navigation for behavior, workflows, and examples. Internal-style types appear only because Java consumers can currently access them.
 
-Inventory: **214 public types** and **1653 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
+Inventory: **216 public types** and **1672 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
 
 Classifications: USER_API is the normal consumer path; ADVANCED_API is supported specialized functionality; LOW_LEVEL_API exposes lower abstractions; INTERNAL_STYLE_PUBLIC is binary-public implementation surface and is not recommended for application code.
 
@@ -197,6 +197,8 @@ Signature details are split by published artifact and Java package to keep indiv
 | io.github.testlens.selenium.network.NetworkEvent | io.github.testlens.selenium.network | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network.md#io-github-testlens-selenium-network-networkevent) |
 | io.github.testlens.selenium.network.NetworkEventType | io.github.testlens.selenium.network | ADVANCED_API | enum | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network.md#io-github-testlens-selenium-network-networkeventtype) |
 | io.github.testlens.selenium.network.NetworkFailure | io.github.testlens.selenium.network | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network.md#io-github-testlens-selenium-network-networkfailure) |
+| io.github.testlens.selenium.network.NetworkHudFilter$Builder | io.github.testlens.selenium.network | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network.md#io-github-testlens-selenium-network-networkhudfilter-builder) |
+| io.github.testlens.selenium.network.NetworkHudFilter | io.github.testlens.selenium.network | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network.md#io-github-testlens-selenium-network-networkhudfilter) |
 | io.github.testlens.selenium.network.NetworkLogExporter | io.github.testlens.selenium.network | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network.md#io-github-testlens-selenium-network-networklogexporter) |
 | io.github.testlens.selenium.network.NetworkRequest | io.github.testlens.selenium.network | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network.md#io-github-testlens-selenium-network-networkrequest) |
 | io.github.testlens.selenium.network.NetworkResponse | io.github.testlens.selenium.network | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network.md#io-github-testlens-selenium-network-networkresponse) |

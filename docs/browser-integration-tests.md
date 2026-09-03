@@ -35,7 +35,7 @@ The browser gate verifies:
 - the JUnit 5 extension and TestNG listener each create, expose, finalize, report, and close a real browser invocation through their public adapter APIs.
 - failed finalization captures diagnostic and clean screenshots, restores HUD for `cleanupHudOnFinish=false`, collects explicitly enabled page source plus context/runtime, writes manifest/reports/ZIP, remains CSP-safe, and leaves the driver alive until test or adapter cleanup.
 - a real stale element causes exactly one recovery retry and one successful physical click; report-only and fail-on-any-retry paths verify Flakiness JSON/HTML.
-- dedicated Chrome and Firefox drivers created with `enableBiDi()` validate real `BIDI` and `AUTO` startup, request/response/fetch-error capture, 503 accounting, redirect correlation, event-driven waits, sensitive-header masking, ignored URLs, restart/stop isolation, JSON, and failure-bundle network snapshots. Existing browser contracts are not globally switched to BiDi.
+- dedicated Chrome and Firefox drivers created with `enableBiDi()` validate real `BIDI` and `AUTO` startup, request/response/fetch-error capture, 503 accounting, redirect correlation, event-driven waits, sensitive-header masking, ignored URLs, restart/stop isolation, JSON, failure-bundle network snapshots, and HUD-only URL filtering that preserves hidden evidence. Existing browser contracts are not globally switched to BiDi. These tests do not assert fetch/XHR/beacon resource classification because Selenium Java 4.39.0 does not expose it through typed `RequestData`.
 
 ## CI
 

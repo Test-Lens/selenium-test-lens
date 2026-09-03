@@ -163,6 +163,8 @@
 "selenium-test-lens-selenium","io.github.testlens.selenium.network.NetworkEvent","ADVANCED_API",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.network.NetworkEventType","ADVANCED_API",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.network.NetworkFailure","ADVANCED_API",""
+"selenium-test-lens-selenium","io.github.testlens.selenium.network.NetworkHudFilter$Builder","ADVANCED_API","docs/advanced/network.md"
+"selenium-test-lens-selenium","io.github.testlens.selenium.network.NetworkHudFilter","ADVANCED_API","docs/advanced/network.md"
 "selenium-test-lens-selenium","io.github.testlens.selenium.network.NetworkLogExporter","ADVANCED_API",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.network.NetworkRequest","ADVANCED_API",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.network.NetworkResponse","ADVANCED_API",""

@@ -46,6 +46,8 @@ Selenium types belong in the main integration module and extensions that explici
 
 Passive network capture is contained in the main Selenium module behind a package-private adapter. It creates one official Selenium 4.39 `Network` module per capture generation and subscribes to before-request, response-completed, and fetch-error events. Public Test Lens signatures do not expose beta BiDi types. The adapter uses neither CDP nor performance logs and closes only its own Network subscriptions, never the shared BiDi connection or WebDriver.
 
+Network HUD filtering is a presentation boundary after capture: every raw entry is retained and emitted to the shared logger with a deterministic `hudVisible` decision. The trace and external sinks ignore that flag; only the HUD sink suppresses the three raw network event types, before alert deferral. Selenium 4.39.0 does not expose reliable fetch/XHR/beacon classification in its typed request model, so this layer uses explicit URL rules rather than resource heuristics.
+
 ## Runtime flow
 
 `TestLens` first attaches to the existing `WebDriver`. A diagnostic session starts when `startSession(...)` is called. During that session, Lens operations can invoke browser behavior and emit diagnostic events. The active `UiTestLensSession` records them; HUD updates are best-effort.

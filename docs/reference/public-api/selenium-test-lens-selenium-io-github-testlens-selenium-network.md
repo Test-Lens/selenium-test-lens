@@ -92,6 +92,7 @@ public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder mas
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder failedStatusThreshold(int)
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder ignoreUrlPattern(java.lang.String)
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder maxCapturedEvents(int)
+public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder hudFilter(io.github.testlens.selenium.network.NetworkHudFilter)
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions build()
 ```
 
@@ -112,6 +113,7 @@ public boolean maskSensitiveHeaders()
 public int failedStatusThreshold()
 public java.util.List<java.util.regex.Pattern> ignoredUrlPatterns()
 public int maxCapturedEvents()
+public io.github.testlens.selenium.network.NetworkHudFilter hudFilter()
 public boolean isIgnored(java.lang.String)
 ```
 
@@ -208,6 +210,45 @@ public java.lang.String url()
 public java.lang.String message()
 public java.lang.String failureType()
 public java.time.Instant timestamp()
+```
+
+## `io.github.testlens.selenium.network.NetworkHudFilter$Builder` {#io-github-testlens-selenium-network-networkhudfilter-builder}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens.selenium.network`
+- Classification: `ADVANCED_API`
+- Type kind: `class`
+- Functional documentation: [docs/advanced/network.md](../../advanced/network.md)
+
+```java
+public io.github.testlens.selenium.network.NetworkHudFilter$Builder showRequests(boolean)
+public io.github.testlens.selenium.network.NetworkHudFilter$Builder showResponses(boolean)
+public io.github.testlens.selenium.network.NetworkHudFilter$Builder showFailures(boolean)
+public io.github.testlens.selenium.network.NetworkHudFilter$Builder showFailedResponses(boolean)
+public io.github.testlens.selenium.network.NetworkHudFilter$Builder includeUrlPattern(java.lang.String)
+public io.github.testlens.selenium.network.NetworkHudFilter$Builder excludeUrlPattern(java.lang.String)
+public io.github.testlens.selenium.network.NetworkHudFilter build()
+```
+
+## `io.github.testlens.selenium.network.NetworkHudFilter` {#io-github-testlens-selenium-network-networkhudfilter}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens.selenium.network`
+- Classification: `ADVANCED_API`
+- Type kind: `class`
+- Functional documentation: [docs/advanced/network.md](../../advanced/network.md)
+
+```java
+public static io.github.testlens.selenium.network.NetworkHudFilter defaults()
+public static io.github.testlens.selenium.network.NetworkHudFilter all()
+public static io.github.testlens.selenium.network.NetworkHudFilter none()
+public static io.github.testlens.selenium.network.NetworkHudFilter$Builder builder()
+public boolean showRequests()
+public boolean showResponses()
+public boolean showFailures()
+public boolean showFailedResponses()
+public java.util.List<java.lang.String> includeUrlPatterns()
+public java.util.List<java.lang.String> excludeUrlPatterns()
 ```
 
 ## `io.github.testlens.selenium.network.NetworkLogExporter` {#io-github-testlens-selenium-network-networklogexporter}

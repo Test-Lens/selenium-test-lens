@@ -12,6 +12,7 @@ import io.github.testlens.selenium.network.NetworkDiagnostics;
 import io.github.testlens.selenium.network.NetworkDiagnosticsOptions;
 import io.github.testlens.selenium.network.NetworkEvent;
 import io.github.testlens.selenium.network.NetworkEventType;
+import io.github.testlens.selenium.network.NetworkHudFilter;
 import io.github.testlens.selenium.network.NetworkWaitCondition;
 import io.github.testlens.selenium.network.NetworkWaitResult;
 import io.github.testlens.selenium.network.NetworkWaitStatus;
@@ -166,6 +167,75 @@ class NetworkBiDiBrowserIT {
         }
     }
 
+    @Test
+    void hudFilterChangesOnlyPresentationAndKeepsCompleteBiDiEvidence() throws Exception {
+        WebDriver driver = createBiDiDriver();
+        try {
+            Path output = Path.of("target", "ui-test-lens", browserName(), "network-hud-filter");
+            TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+                    .overlayConfig(OverlayConfig.builder().enabled(true).showHudPanel(true).build())
+                    .outputRoot(output).build());
+            lens.startSession("network-hud-filter");
+            NetworkDiagnostics network = lens.network().start(NetworkDiagnosticsOptions.builder()
+                    .captureMode(NetworkCaptureMode.BIDI)
+                    .hudFilter(NetworkHudFilter.builder()
+                            .includeUrlPattern("/api/.*")
+                            .excludeUrlPattern("/api/hud-excluded-failure$")
+                            .build())
+                    .build());
+
+            driver.get(baseUrl + "/network-page");
+            fetch(driver, "/api/hud-visible", false);
+            fetch(driver, "/assets/hud-hidden", false);
+            fetch(driver, "/assets/hud-failed", false);
+            fetch(driver, "/api/hud-excluded-failure", false);
+
+            new WebDriverWait(driver, Duration.ofSeconds(5)).until(ignored -> {
+                long captured = network.events().stream().filter(event -> event.response() != null)
+                        .filter(event -> List.of("/api/hud-visible", "/assets/hud-hidden",
+                                "/assets/hud-failed", "/api/hud-excluded-failure").stream()
+                                .anyMatch(path -> event.url().contains(path))).count();
+                if (captured < 4) return false;
+                String text = hudText(driver);
+                return text.contains("/api/hud-visible") && text.contains("/assets/hud-failed");
+            });
+            String hud = hudText(driver);
+            assertTrue(hud.contains("/api/hud-visible"));
+            assertTrue(hud.contains("/assets/hud-failed"));
+            assertFalse(hud.contains("/assets/hud-hidden"));
+            assertFalse(hud.contains("/api/hud-excluded-failure"));
+
+            assertEquals(NetworkWaitStatus.MATCHED, network.waitForResponse("/api/hud-visible", 200).status());
+            assertEquals(NetworkWaitStatus.MATCHED, network.waitForResponse("/assets/hud-hidden", 200).status());
+            assertEquals(NetworkWaitStatus.MATCHED, network.waitForResponse(
+                    NetworkWaitCondition.builder().urlContains("/assets/hud-failed").status(503)
+                            .includeFailedResponses(true).build()).status());
+            assertEquals(NetworkWaitStatus.MATCHED, network.waitForResponse(
+                    NetworkWaitCondition.builder().urlContains("/api/hud-excluded-failure").status(503)
+                            .includeFailedResponses(true).build()).status());
+
+            for (String path : List.of("/api/hud-visible", "/assets/hud-hidden",
+                    "/assets/hud-failed", "/api/hud-excluded-failure")) {
+                assertTrue(network.events().stream().anyMatch(event -> event.response() != null
+                        && event.url().contains(path)), path + " must remain captured");
+            }
+            assertTrue(network.summary().totalResponses() >= 4);
+            String networkJson = network.exportJson();
+            assertTrue(networkJson.contains("/api/hud-visible"));
+            assertTrue(networkJson.contains("/assets/hud-hidden"));
+
+            TestLensFinalizationResult result = lens.finishPassed();
+            String trace = Files.readString(result.jsonReport());
+            String report = Files.readString(result.htmlReport());
+            assertTrue(trace.contains("/api/hud-visible"));
+            assertTrue(trace.contains("/assets/hud-hidden"));
+            assertTrue(report.contains("/api/hud-visible"));
+            assertTrue(report.contains("/assets/hud-hidden"));
+        } finally {
+            driver.quit();
+        }
+    }
+
     private static void awaitSummary(WebDriver driver, NetworkDiagnostics network,
                                      int failedResponses, int failedRequests) {
         NetworkWaitResult failedStatus = network.waitForResponse(NetworkWaitCondition.builder()
@@ -197,6 +267,15 @@ class NetworkBiDiBrowserIT {
     private static int countResponses(List<NetworkEvent> events, String urlPart) {
         return (int) events.stream().filter(event -> event.response() != null)
                 .filter(event -> event.response().url().contains(urlPart)).count();
+    }
+
+    private static String hudText(WebDriver driver) {
+        Object value = ((JavascriptExecutor) driver).executeScript("""
+                const host = document.getElementById('selenium-overlay-host');
+                const hud = host && host.shadowRoot && host.shadowRoot.querySelector('#selenium-hud-panel');
+                return hud ? hud.textContent : '';
+                """);
+        return value == null ? "" : String.valueOf(value);
     }
 
     private static WebDriver createBiDiDriver() {
@@ -235,7 +314,10 @@ class NetworkBiDiBrowserIT {
             case "/network-page" -> response(exchange, 200,
                     "text/html; charset=utf-8", "<!doctype html><title>BiDi network</title><p>ready</p>");
             case "/api/success" -> response(exchange, 201, "application/json", "{\"ok\":true}");
-            case "/api/failure" -> response(exchange, 503, "application/json", "{\"ok\":false}");
+            case "/api/failure", "/assets/hud-failed", "/api/hud-excluded-failure" ->
+                    response(exchange, 503, "application/json", "{\"ok\":false}");
+            case "/api/hud-visible", "/assets/hud-hidden" ->
+                    response(exchange, 200, "application/json", "{\"ok\":true}");
             case "/redirect" -> {
                 exchange.getResponseHeaders().set("Location", "/api/final");
                 exchange.sendResponseHeaders(302, -1);

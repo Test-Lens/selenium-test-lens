@@ -4,6 +4,8 @@ import io.github.testlens.core.OverlayLogger;
 import io.github.testlens.core.logging.UiTestLensEventType;
 import io.github.testlens.core.logging.UiTestLensLogger;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
+import io.github.testlens.core.trace.TraceLogSink;
+import io.github.testlens.core.trace.UiTestLensSession;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WrapsDriver;
@@ -55,6 +57,85 @@ class NetworkDiagnosticsBiDiTest {
         assertTrue(entries.stream().anyMatch(entry -> entry.eventType() == UiTestLensEventType.NETWORK_RESPONSE_RECORDED));
         assertTrue(entries.stream().anyMatch(entry -> entry.eventType() == UiTestLensEventType.NETWORK_FAILURE_RECORDED));
         assertTrue(entries.stream().anyMatch(entry -> entry.eventType() == UiTestLensEventType.NETWORK_DIAGNOSTICS_STOPPED));
+    }
+
+    @Test
+    void hiddenHudTrafficStillReachesCaptureWaitAssertionTraceAndExternalSink() {
+        List<UiTestLensLogEntry> external = new ArrayList<>();
+        UiTestLensSession session = UiTestLensSession.start("hidden-network");
+        OverlayLogger logger = OverlayLogger.from(UiTestLensLogger.builder()
+                .sink(external::add).sink(new TraceLogSink(session)).build());
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), logger, factory)
+                .start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI)
+                        .hudFilter(NetworkHudFilter.builder().includeUrlPattern("/visible$")
+                                .excludeUrlPattern("/hidden.*").build()).build());
+
+        factory.latest().fire(response("hidden", "/hidden", 200, 0));
+        factory.latest().fire(response("hidden-failure", "/hidden-failure", 503, 0));
+
+        assertEquals(2, diagnostics.summary().totalResponses());
+        assertEquals(NetworkWaitStatus.MATCHED, diagnostics.waitForResponse("/hidden", 200).status());
+        assertThrows(NetworkAssertionError.class, diagnostics::assertNoFailedRequests);
+        UiTestLensLogEntry raw = external.stream()
+                .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_RESPONSE_RECORDED)
+                .findFirst().orElseThrow();
+        assertEquals("false", raw.metadata().get("hudVisible"));
+        assertEquals("RESPONSE", raw.metadata().get("networkEventType"));
+        assertEquals("hidden", raw.metadata().get("requestId"));
+        assertEquals("/hidden", raw.metadata().get("url"));
+        assertEquals("200", raw.metadata().get("status"));
+        assertEquals("false", raw.metadata().get("resourceTypeAvailable"));
+        assertTrue(session.events().stream().anyMatch(event ->
+                "false".equals(event.attributes().get("metadata.hudVisible"))));
+        assertTrue(diagnostics.exportJson().contains("/hidden"));
+    }
+
+    @Test
+    void restartUsesNewHudFilterWithoutChangingHistoryOrCounters() {
+        List<UiTestLensLogEntry> entries = new ArrayList<>();
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(),
+                OverlayLogger.from(UiTestLensLogger.builder().sink(entries::add).build()), factory)
+                .start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI)
+                        .hudFilter(NetworkHudFilter.none()).build());
+        factory.latest().fire(response("one", "/one", 200, 0));
+
+        diagnostics.start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI)
+                .hudFilter(NetworkHudFilter.all()).build());
+        factory.latest().fire(response("two", "/two", 200, 0));
+
+        List<UiTestLensLogEntry> raw = entries.stream()
+                .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_RESPONSE_RECORDED).toList();
+        assertEquals(List.of("false", "true"), raw.stream()
+                .map(entry -> entry.metadata().get("hudVisible")).toList());
+        assertEquals(2, diagnostics.summary().totalResponses());
+        assertEquals(0, diagnostics.summary().droppedEvents());
+    }
+
+    @Test
+    void manualResourceTypeAndSafeMetadataArePreservedWithoutLeakingUrlSecrets() {
+        List<UiTestLensLogEntry> entries = new ArrayList<>();
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(),
+                OverlayLogger.from(UiTestLensLogger.builder().sink(entries::add).build()))
+                .start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.MANUAL)
+                        .hudFilter(NetworkHudFilter.all()).build());
+
+        diagnostics.addManualEvent(NetworkEvent.request(new NetworkRequest("manual", "POST",
+                "https://user:password@example.test/api/orders?token=secret#private", "custom-api",
+                Instant.now(), Map.of())));
+
+        UiTestLensLogEntry raw = entries.stream()
+                .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_REQUEST_RECORDED)
+                .findFirst().orElseThrow();
+        assertEquals("custom-api", raw.metadata().get("resourceType"));
+        assertEquals("true", raw.metadata().get("resourceTypeAvailable"));
+        assertEquals("/api/orders", raw.metadata().get("url"));
+        assertFalse(raw.message().contains("secret"));
+        assertFalse(raw.message().contains("password"));
+        assertEquals("POST /api/orders", raw.message());
+        assertEquals("custom-api", diagnostics.events().stream()
+                .filter(event -> event.request() != null).findFirst().orElseThrow().request().resourceType());
     }
 
     @Test

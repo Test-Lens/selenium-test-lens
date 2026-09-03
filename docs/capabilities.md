@@ -64,6 +64,8 @@ See [observability](observability/index.md) for artifact paths, nullable results
 
 [`NetworkDiagnostics`](advanced/network.md) supports explicit `MANUAL` events and passive Selenium 4.39 WebDriver BiDi capture. `MANUAL` remains the default. `BIDI` requires a session created with `enableBiDi()`; `AUTO` selects only a working BiDi subscription, without fallback. `PERFORMANCE_LOGS` remains unsupported. Capture includes requests, completed responses, fetch errors, redirect correlation, bounded storage, waits, assertions, JSON, trace events, and failure-bundle summaries. It does not collect bodies or a separate cookie collection.
 
+`NetworkHudFilter` controls only raw network rows shown in the browser HUD. Capture-level `ignoreUrlPattern(...)` removes data everywhere; HUD URL patterns preserve events and evidence. Selenium Java 4.39.0 does not expose reliable fetch/XHR/beacon classification through typed `RequestData`, so successful API traffic should be selected by explicit URL patterns rather than resource-type heuristics.
+
 This is diagnostics and observation, not request interception, response mocking, or a general HTTP client.
 
 ## Optional React API

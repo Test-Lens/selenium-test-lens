@@ -25,6 +25,53 @@ String exportJson()
 
 `captureMode()` is the requested mode. `activeCaptureMode()` is present only while a source is active: `MANUAL` for manual capture and `BIDI` for both successful `BIDI` and `AUTO`. A successful start registers one listener each for before-request, response-completed, and fetch-error; `stop()` removes the module subscriptions without closing the driver. Repeated starts replace the prior generation, and late callbacks are discarded. Event snapshots are immutable and safe while BiDi callback threads are active.
 
+## HUD-only filtering
+
+<!-- API SIGNATURES: io.github.testlens.selenium.network.NetworkHudFilter -->
+```java
+static NetworkHudFilter defaults()
+static NetworkHudFilter all()
+static NetworkHudFilter none()
+static NetworkHudFilter.Builder builder()
+boolean showRequests()
+boolean showResponses()
+boolean showFailures()
+boolean showFailedResponses()
+List<String> includeUrlPatterns()
+List<String> excludeUrlPatterns()
+```
+
+<!-- API SIGNATURES: io.github.testlens.selenium.network.NetworkHudFilter$Builder -->
+```java
+NetworkHudFilter.Builder showRequests(boolean value)
+NetworkHudFilter.Builder showResponses(boolean value)
+NetworkHudFilter.Builder showFailures(boolean value)
+NetworkHudFilter.Builder showFailedResponses(boolean value)
+NetworkHudFilter.Builder includeUrlPattern(String regex)
+NetworkHudFilter.Builder excludeUrlPattern(String regex)
+NetworkHudFilter build()
+```
+
+`NetworkDiagnosticsOptions.hudFilter(...)` controls only raw `REQUEST`, `RESPONSE`, and `FAILED` lines rendered in the HUD. The default hides request lines, shows responses and failures, and shows HTTP responses at or above `failedStatusThreshold`. `all()` shows all three raw types; `none()` hides all three. Control entries such as capture lifecycle, waits, assertions, attach/export, mode information, and diagnostic warnings remain visible for every preset.
+
+```java
+NetworkDiagnosticsOptions options = NetworkDiagnosticsOptions.builder()
+        .captureMode(NetworkCaptureMode.BIDI)
+        .hudFilter(NetworkHudFilter.defaults())
+        .build();
+
+NetworkDiagnosticsOptions apiOnly = NetworkDiagnosticsOptions.builder()
+        .hudFilter(NetworkHudFilter.builder()
+                .includeUrlPattern("/api/.*")
+                .excludeUrlPattern("/api/health(?:\\?.*)?$")
+                .build())
+        .build();
+```
+
+Includes restrict ordinary requests and successful responses. Enabled fetch failures and failed HTTP responses bypass includes so errors remain prominent. An exclude always wins, including for failures. Matching uses the original full event URL; HUD messages and log metadata use only a sanitized path without userinfo, query, or fragment. Invalid regular expressions fail while the filter is built. Passing a null filter to the options builder restores `defaults()`.
+
+This is distinct from `ignoreUrlPattern(...)`: ignore rules remove matching traffic from capture, events, counts, waits, trace, JSON, and failure evidence and increment `ignoredEvents`. A HUD filter never changes those data. Every hidden raw entry still reaches the session trace and external `UiTestLensLogSink`s with `hudVisible=false`.
+
 ## Enabling WebDriver BiDi
 
 ```java
@@ -90,5 +137,7 @@ Exports/attaches network JSON evidence. Attachment occurs only when one of these
 Headers are disabled by default. When enabled, string and base64 BiDi values are converted deterministically and repeated names are preserved in order. `Authorization`, `Proxy-Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`, and `X-Auth-Token` are masked case-insensitively by default. Disabling masking can expose secrets. Request/response bodies and BiDi's separate cookie collection are never collected. URLs are retained in the event model and query strings can contain secrets.
 
 This is passive diagnostics, not interception, blocking, mocking, body capture, CDP, performance logs, or a general BiDi wrapper. The implementation deliberately isolates Selenium's beta 4.39 BiDi API behind an internal adapter.
+
+The typed `RequestData` shipped in Selenium Java 4.39.0 does not expose destination or a fetch/XHR/beacon initiator classification. Lens does not inspect raw protocol events and does not guess from URL suffixes, MIME types, or headers. Consequently BiDi `NetworkRequest.resourceType()` can be empty and raw log metadata reports `resourceTypeAvailable=false`. Manual events retain a resource type explicitly supplied by their producer. Configure successful API traffic in the HUD with explicit URL patterns.
 
 See [network options](../reference/configuration.md#network-options) and the [complete signatures](../reference/public-api-catalog.md).

@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 214
-# Public callable methods/constructors: 1653
+# Types: 216
+# Public callable methods/constructors: 1672
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -1765,6 +1765,7 @@ TYPE io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder
   public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder failedStatusThreshold(int)
   public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder ignoreUrlPattern(java.lang.String)
   public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder maxCapturedEvents(int)
+  public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder hudFilter(io.github.testlens.selenium.network.NetworkHudFilter)
   public io.github.testlens.selenium.network.NetworkDiagnosticsOptions build()
 TYPE io.github.testlens.selenium.network.NetworkDiagnosticsOptions
   public static final int DEFAULT_MAX_CAPTURED_EVENTS
@@ -1776,6 +1777,7 @@ TYPE io.github.testlens.selenium.network.NetworkDiagnosticsOptions
   public int failedStatusThreshold()
   public java.util.List<java.util.regex.Pattern> ignoredUrlPatterns()
   public int maxCapturedEvents()
+  public io.github.testlens.selenium.network.NetworkHudFilter hudFilter()
   public boolean isIgnored(java.lang.String)
 TYPE io.github.testlens.selenium.network.NetworkDiagnosticsResult
   public io.github.testlens.selenium.network.NetworkDiagnosticsResult(io.github.testlens.selenium.network.NetworkDiagnosticsStatus, java.lang.String, io.github.testlens.selenium.network.NetworkSummary, java.lang.Throwable, java.time.Duration)
@@ -1827,6 +1829,25 @@ TYPE io.github.testlens.selenium.network.NetworkFailure
   public java.lang.String message()
   public java.lang.String failureType()
   public java.time.Instant timestamp()
+TYPE io.github.testlens.selenium.network.NetworkHudFilter$Builder
+  public io.github.testlens.selenium.network.NetworkHudFilter$Builder showRequests(boolean)
+  public io.github.testlens.selenium.network.NetworkHudFilter$Builder showResponses(boolean)
+  public io.github.testlens.selenium.network.NetworkHudFilter$Builder showFailures(boolean)
+  public io.github.testlens.selenium.network.NetworkHudFilter$Builder showFailedResponses(boolean)
+  public io.github.testlens.selenium.network.NetworkHudFilter$Builder includeUrlPattern(java.lang.String)
+  public io.github.testlens.selenium.network.NetworkHudFilter$Builder excludeUrlPattern(java.lang.String)
+  public io.github.testlens.selenium.network.NetworkHudFilter build()
+TYPE io.github.testlens.selenium.network.NetworkHudFilter
+  public static io.github.testlens.selenium.network.NetworkHudFilter defaults()
+  public static io.github.testlens.selenium.network.NetworkHudFilter all()
+  public static io.github.testlens.selenium.network.NetworkHudFilter none()
+  public static io.github.testlens.selenium.network.NetworkHudFilter$Builder builder()
+  public boolean showRequests()
+  public boolean showResponses()
+  public boolean showFailures()
+  public boolean showFailedResponses()
+  public java.util.List<java.lang.String> includeUrlPatterns()
+  public java.util.List<java.lang.String> excludeUrlPatterns()
 TYPE io.github.testlens.selenium.network.NetworkLogExporter
   public io.github.testlens.selenium.network.NetworkLogExporter()
   public java.lang.String export(io.github.testlens.selenium.network.NetworkDiagnostics)

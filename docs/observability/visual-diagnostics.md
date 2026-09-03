@@ -15,6 +15,8 @@ lens.startSession("Checkout");
 
 The HUD is especially useful when debugging a headed test, demonstrating a flow, or investigating a wait/retry. It does not replace the persistent trace or test-runner output.
 
+Raw network rows can be reduced independently with [`NetworkHudFilter`](../advanced/network.md#hud-only-filtering). Its default hides duplicate request rows and shows responses and failures. This affects only the HUD: capture, waits, counters, trace, JSON, reports, external sinks, and failure evidence remain complete.
+
 ### Enable and configure the HUD
 
 Configure the HUD through [`OverlayConfig`](../reference/configuration.md#overlayconfig) and pass it to the public [`TestLens.attach(WebDriver, OverlayConfig)`](../reference/test-lens.md#creation-and-lifecycle) overload:

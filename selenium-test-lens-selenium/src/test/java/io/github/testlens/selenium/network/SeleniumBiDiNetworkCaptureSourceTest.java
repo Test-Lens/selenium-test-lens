@@ -72,6 +72,7 @@ class SeleniumBiDiNetworkCaptureSourceTest {
         assertEquals("nav-1", request.attributes().get("navigationId"));
         assertEquals("2", request.attributes().get("redirectCount"));
         assertEquals("false", request.attributes().get("resourceTypeAvailable"));
+        assertEquals("", request.request().resourceType());
         assertEquals(201, response.response().status());
         assertEquals("req-7", response.response().requestId());
         assertNotNull(response.correlatedRequest());

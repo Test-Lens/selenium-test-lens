@@ -70,3 +70,5 @@ static LogExportOptions compact()
 `defaults()` enables metadata, throwables, and pretty printing and uses a maximum field length of 500. `compact()` disables those three flags and also uses 500. A non-positive `maxFieldLength` passed to the record constructor is normalized to 500. These options control exported entry content and formatting; they do not select an output path or report title.
 
 Arbitrary log messages, metadata, throwables, and targets are not automatically secret-safe. Sanitize before sending logs to consoles or external reporters.
+
+Network capture always emits raw traffic entries through the complete logger fan-out. `NetworkHudFilter` records its presentation decision as `hudVisible`; only the built-in HUD sink suppresses raw network request/response/failure entries explicitly marked false. The trace sink and external sinks receive them unchanged. Older or manually created network log entries without this metadata remain visible. Control events are never suppressed by this filter.

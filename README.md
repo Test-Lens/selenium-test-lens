@@ -134,6 +134,19 @@ Every final `FAILED` session receives a best-effort [failure bundle](docs/observ
 
 Passive network capture is available through Selenium 4.39 WebDriver BiDi. Create Chrome or Firefox options with `enableBiDi()`, then start `lens.network()` in `BIDI` or `AUTO`; neither mode falls back when BiDi is unavailable. `MANUAL` remains the default and performance logs remain unsupported. See [Network diagnostics](docs/advanced/network.md).
 
+Raw network traffic shown in the HUD is presentation-filtered without removing evidence. The default hides duplicate request lines and shows responses and failures; use URL patterns for a focused view:
+
+```java
+NetworkDiagnosticsOptions.builder()
+        .captureMode(NetworkCaptureMode.BIDI)
+        .hudFilter(NetworkHudFilter.builder()
+                .includeUrlPattern("/api/.*")
+                .build())
+        .build();
+```
+
+`ignoreUrlPattern(...)` removes matching events from capture, waits, trace, JSON, and failure evidence. `hudFilter(...)` changes only the HUD; hidden entries remain available everywhere else. Selenium 4.39.0's typed BiDi model does not expose enough request classification to distinguish fetch, XHR, and beacon reliably, so Lens uses no resource-type heuristics and BiDi `resourceType` can remain unknown.
+
 Finalize every session with its real runner outcome: `finishPassed()`, `finishFailed(Throwable)`, or `finishSkipped(String)`. Skipped finalization records the reason and writes reports without taking a failure screenshot or closing the driver.
 
 See the [getting-started guide](https://test-lens.github.io/selenium-test-lens/getting-started/) and [framework integration guide](https://test-lens.github.io/selenium-test-lens/framework-integration/) for lifecycle patterns and the full usage documentation.

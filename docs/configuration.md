@@ -143,7 +143,7 @@ Some features expose dedicated configuration types close to the API that uses th
 | `VideoEvidenceOptions` | Existing video file or URL metadata and session attachment |
 | `AuthStateOptions` | Authentication-state capture scope and metadata |
 | `AuthRestoreOptions` | Authentication-state navigation, clearing, validation, and restore behavior |
-| `NetworkDiagnosticsOptions` | Requested manual/BiDi mode, failure threshold, ignored URLs, optional masked headers, and event limit |
+| `NetworkDiagnosticsOptions` | Requested manual/BiDi mode, failure threshold, capture ignores, HUD-only filter, optional masked headers, and event limit |
 | `NetworkWaitCondition` | URL, method, status, timeout, and polling conditions for network waits |
 
 See [Configuration builders](reference/configuration.md) or Javadoc for individual builder methods.
@@ -153,7 +153,7 @@ See [Configuration builders](reference/configuration.md) or Javadoc for individu
 - With the default options, a final `FAILED` result attempts an automatic screenshot—including `finishFailed(null)` and policy-induced failure. Passed and skipped results never do. Capture is best-effort and can be disabled with `TestLensOptions.screenshotOnFailure(...)`.
 - Failure bundles are enabled by default. Diagnostic/clean screenshots, context, trace diagnostics, the current network summary, runtime/configuration allowlists, manifest, and ZIP are enabled; page source and browser console are disabled because they may contain secrets. See [Failure bundles](observability/failure-bundles.md).
 - Network diagnostics omit headers by default. When headers are included, sensitive headers are masked by default.
-- Network diagnostics default to explicit `MANUAL` events. `BIDI`/`AUTO` require BiDi to be enabled when the WebDriver session is created and never fall back. Captured events default to a 10,000-event cap. Session attachment requires an explicit `NetworkDiagnostics.attachToSession(...)` call.
+- Network diagnostics default to explicit `MANUAL` events. `BIDI`/`AUTO` require BiDi to be enabled when the WebDriver session is created and never fall back. Captured events default to a 10,000-event cap. `ignoreUrlPattern` removes data from capture; `hudFilter` only reduces raw HUD lines and defaults to responses/failures without duplicate request lines. Session attachment requires an explicit `NetworkDiagnostics.attachToSession(...)` call.
 - Captured authentication state is written only when `AuthState.save(...)` is called. Saved files can contain cookies and tokens, so do not commit them.
 - Video evidence attaches an existing local file or URL; Test Lens does not record video.
 

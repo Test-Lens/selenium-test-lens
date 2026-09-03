@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -18,6 +19,8 @@ class NetworkDiagnosticsOptionsTest {
         assertTrue(options.maskSensitiveHeaders());
         assertEquals(400, options.failedStatusThreshold());
         assertEquals(10_000, options.maxCapturedEvents());
+        assertFalse(options.hudFilter().showRequests());
+        assertTrue(options.hudFilter().showResponses());
     }
 
     @Test
@@ -45,6 +48,17 @@ class NetworkDiagnosticsOptionsTest {
                 () -> NetworkDiagnosticsOptions.builder().maxCapturedEvents(0));
         assertThrows(IllegalArgumentException.class,
                 () -> NetworkDiagnosticsOptions.builder().maxCapturedEvents(-1));
+    }
+
+    @Test
+    void customHudFilterIsRetainedAndNullRestoresDefaults() {
+        NetworkHudFilter none = NetworkHudFilter.none();
+        assertSame(none, NetworkDiagnosticsOptions.builder().hudFilter(none).build().hudFilter());
+
+        NetworkHudFilter normalized = NetworkDiagnosticsOptions.builder().hudFilter(null).build().hudFilter();
+        assertFalse(normalized.showRequests());
+        assertTrue(normalized.showResponses());
+        assertTrue(normalized.showFailures());
     }
 }
 

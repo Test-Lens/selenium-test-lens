@@ -16,6 +16,7 @@ public final class NetworkDiagnosticsOptions {
     private final int failedStatusThreshold;
     private final List<Pattern> ignoredUrlPatterns;
     private final int maxCapturedEvents;
+    private final NetworkHudFilter hudFilter;
 
     private NetworkDiagnosticsOptions(Builder builder) {
         this.captureMode = builder.captureMode == null ? NetworkCaptureMode.MANUAL : builder.captureMode;
@@ -24,6 +25,7 @@ public final class NetworkDiagnosticsOptions {
         this.failedStatusThreshold = builder.failedStatusThreshold <= 0 ? 400 : builder.failedStatusThreshold;
         this.ignoredUrlPatterns = Collections.unmodifiableList(new ArrayList<>(builder.ignoredUrlPatterns));
         this.maxCapturedEvents = builder.maxCapturedEvents;
+        this.hudFilter = builder.hudFilter == null ? NetworkHudFilter.defaults() : builder.hudFilter;
     }
 
     public static NetworkDiagnosticsOptions defaults() {
@@ -59,6 +61,9 @@ public final class NetworkDiagnosticsOptions {
         return maxCapturedEvents;
     }
 
+    /** Presentation-only rules for raw network entries shown in the HUD. */
+    public NetworkHudFilter hudFilter() { return hudFilter; }
+
     public boolean isIgnored(String url) {
         String safe = url == null ? "" : url;
         return ignoredUrlPatterns.stream().anyMatch(pattern -> pattern.matcher(safe).matches());
@@ -71,6 +76,7 @@ public final class NetworkDiagnosticsOptions {
         private int failedStatusThreshold = 400;
         private final List<Pattern> ignoredUrlPatterns = new ArrayList<>();
         private int maxCapturedEvents = DEFAULT_MAX_CAPTURED_EVENTS;
+        private NetworkHudFilter hudFilter = NetworkHudFilter.defaults();
 
         private Builder() {}
 
@@ -107,6 +113,12 @@ public final class NetworkDiagnosticsOptions {
                 throw new IllegalArgumentException("maxCapturedEvents must be positive");
             }
             this.maxCapturedEvents = value;
+            return this;
+        }
+
+        /** Sets HUD-only filtering; {@code null} restores {@link NetworkHudFilter#defaults()}. */
+        public Builder hudFilter(NetworkHudFilter value) {
+            this.hudFilter = value == null ? NetworkHudFilter.defaults() : value;
             return this;
         }
 

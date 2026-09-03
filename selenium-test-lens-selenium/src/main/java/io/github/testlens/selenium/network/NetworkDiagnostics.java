@@ -10,6 +10,8 @@ import io.github.testlens.core.trace.UiTestLensSession;
 import org.openqa.selenium.WebDriver;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -218,6 +220,7 @@ public final class NetworkDiagnostics {
     public NetworkEvent addManualEvent(NetworkEvent event) {
         if (event == null) return null;
         NetworkEvent recorded = null;
+        RawLogEmission emission = null;
         boolean warnLimit = false;
         lock.lock();
         try {
@@ -229,9 +232,10 @@ public final class NetworkDiagnostics {
             NetworkEvent sanitized = sanitize(event);
             AddResult result = addCaptured(sanitized);
             recorded = result == AddResult.ADDED ? sanitized : null;
+            if (recorded != null) emission = prepareRawLog(recorded);
             warnLimit = result == AddResult.DROPPED_WITH_WARNING;
         } finally { lock.unlock(); }
-        if (recorded != null) emitRecorded(recorded);
+        if (emission != null) emitRecorded(emission);
         if (warnLimit) emitLimitWarning();
         return recorded == null ? event : recorded;
     }
@@ -383,15 +387,17 @@ public final class NetworkDiagnostics {
     private void recordCaptured(long token, NetworkEvent event) {
         if (event == null) return;
         boolean recorded = false;
+        RawLogEmission emission = null;
         boolean warnLimit = false;
         lock.lock();
         try {
             if (!started || activeMode != NetworkCaptureMode.BIDI || generation != token) return;
             AddResult result = addCaptured(event);
             recorded = result == AddResult.ADDED;
+            if (recorded) emission = prepareRawLog(event);
             warnLimit = result == AddResult.DROPPED_WITH_WARNING;
         } finally { lock.unlock(); }
-        if (recorded) emitRecorded(event);
+        if (recorded) emitRecorded(emission);
         if (warnLimit) emitLimitWarning();
     }
 
@@ -536,14 +542,28 @@ public final class NetworkDiagnostics {
                 UiTestLensLogLevel.WARN, statusMessage(), null, startFailure());
     }
 
-    private void emitRecorded(NetworkEvent event) {
+    private void emitRecorded(RawLogEmission emission) {
+        NetworkEvent event = emission.event();
         UiTestLensEventType eventType = switch (event.type()) {
             case REQUEST -> UiTestLensEventType.NETWORK_REQUEST_RECORDED;
             case RESPONSE -> UiTestLensEventType.NETWORK_RESPONSE_RECORDED;
             case FAILED -> UiTestLensEventType.NETWORK_FAILURE_RECORDED;
             default -> UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED;
         };
-        emit(eventType, UiTestLensStatus.INFO, UiTestLensLogLevel.INFO, event.message(), event.url(), null);
+        RawLogDetails details = emission.details();
+        Map<String, String> metadata = new LinkedHashMap<>();
+        metadata.put("networkEventType", event.type().name());
+        metadata.put("requestId", details.requestId());
+        metadata.put("method", details.method());
+        metadata.put("url", details.safeUrl());
+        metadata.put("status", details.status());
+        metadata.put("resourceType", details.resourceType());
+        metadata.put("resourceTypeAvailable", String.valueOf(!details.resourceType().isBlank()));
+        metadata.put("redirectCount", event.attributes().getOrDefault("redirectCount", ""));
+        metadata.put("durationMs", details.durationMs());
+        metadata.put("hudVisible", String.valueOf(emission.hudVisible()));
+        emit(eventType, UiTestLensStatus.INFO, UiTestLensLogLevel.INFO,
+                compactMessage(event, details), event.url(), null, metadata);
     }
 
     private void emitLimitWarning() {
@@ -576,9 +596,14 @@ public final class NetworkDiagnostics {
 
     private void emit(UiTestLensEventType eventType, UiTestLensStatus eventStatus, UiTestLensLogLevel level,
                       String message, String url, Throwable throwable) {
+        emit(eventType, eventStatus, level, message, url, throwable, Map.of());
+    }
+
+    private void emit(UiTestLensEventType eventType, UiTestLensStatus eventStatus, UiTestLensLogLevel level,
+                      String message, String url, Throwable throwable, Map<String, String> extraMetadata) {
         try {
             NetworkSummary current = summary();
-            logger.emit(UiTestLensLogEntry.builder().level(level).eventType(eventType).status(eventStatus)
+            UiTestLensLogEntry.Builder entry = UiTestLensLogEntry.builder().level(level).eventType(eventType).status(eventStatus)
                     .message(message).action("network.diagnostics")
                     .metadata("requestedMode", captureMode().name())
                     .metadata("activeMode", activeCaptureMode().map(Enum::name).orElse(""))
@@ -589,10 +614,60 @@ public final class NetworkDiagnostics {
                     .metadata("failedRequests", String.valueOf(current.failedRequests()))
                     .metadata("ignoredEvents", String.valueOf(current.ignoredEvents()))
                     .metadata("droppedEvents", String.valueOf(current.droppedEvents()))
-                    .throwable(throwable).build());
+                    .throwable(throwable);
+            extraMetadata.forEach(entry::metadata);
+            logger.emit(entry.build());
         } catch (RuntimeException ignored) {
             // Diagnostics must not change application behavior.
         }
+    }
+
+    /** Must be called while {@link #lock} is held so filter and correlation use one capture snapshot. */
+    private RawLogEmission prepareRawLog(NetworkEvent event) {
+        List<NetworkEvent> snapshot = List.copyOf(events);
+        NetworkRequest request = event.request();
+        if (request == null && event.response() != null) {
+            request = findRequestFor(event, snapshot).orElse(null);
+        } else if (request == null && event.failure() != null) {
+            String requestId = event.failure().requestId();
+            String redirect = event.attributes().get("redirectCount");
+            request = snapshot.stream()
+                    .filter(candidate -> candidate.request() != null && requestId.equals(candidate.request().id()))
+                    .filter(candidate -> redirect == null
+                            || redirect.equals(candidate.attributes().get("redirectCount")))
+                    .map(NetworkEvent::request).findFirst().orElse(null);
+        }
+        String requestId = request != null ? request.id()
+                : event.response() != null ? event.response().requestId()
+                : event.failure() != null ? event.failure().requestId() : "";
+        String method = request == null ? "" : request.method();
+        String resourceType = request == null ? "" : request.resourceType();
+        String status = event.response() == null ? "" : String.valueOf(event.response().status());
+        String durationMs = event.response() != null
+                && Boolean.parseBoolean(event.attributes().getOrDefault("durationAvailable", "false"))
+                ? String.valueOf(event.response().duration().toMillis()) : "";
+        RawLogDetails details = new RawLogDetails(safe(requestId), safe(method), safeUrlPreview(event.url()),
+                status, safe(resourceType), durationMs);
+        boolean hudVisible = options.hudFilter().isVisible(event, options.failedStatusThreshold());
+        return new RawLogEmission(event, details, hudVisible);
+    }
+
+    private static String compactMessage(NetworkEvent event, RawLogDetails details) {
+        String target = join(details.method(), details.safeUrl());
+        if (event.type() == NetworkEventType.REQUEST) return target.isBlank() ? "Network request" : target;
+        if (event.type() == NetworkEventType.RESPONSE) {
+            String base = target.isBlank() ? "Network response" : target;
+            if (!details.status().isBlank()) base += " → " + details.status();
+            return !details.durationMs().isBlank() ? base + " (" + details.durationMs() + " ms)" : base;
+        }
+        String base = target.isBlank() ? "Network request" : target;
+        return base + " → failed";
+    }
+
+    private static String join(String left, String right) {
+        if (left == null || left.isBlank()) return right == null ? "" : right;
+        if (right == null || right.isBlank()) return left;
+        return left + " " + right;
     }
 
     private String statusMessage() {
@@ -621,11 +696,26 @@ public final class NetworkDiagnostics {
     }
 
     private static String safeUrlPreview(String url) {
-        String safe = url == null ? "" : url;
-        int query = safe.indexOf('?');
-        String withoutQuery = query >= 0 ? safe.substring(0, query) : safe;
-        return withoutQuery.length() <= 180 ? withoutQuery : withoutQuery.substring(0, 177) + "...";
+        String value = safe(url).trim();
+        try {
+            URI uri = new URI(value);
+            String path = uri.getRawPath();
+            value = path == null || path.isBlank() ? "/" : path;
+        } catch (URISyntaxException ignored) {
+            int query = value.indexOf('?');
+            if (query >= 0) value = value.substring(0, query);
+            int fragment = value.indexOf('#');
+            if (fragment >= 0) value = value.substring(0, fragment);
+            int userInfo = value.indexOf('@');
+            int scheme = value.indexOf("://");
+            if (scheme >= 0 && userInfo > scheme) {
+                value = value.substring(0, scheme + 3) + value.substring(userInfo + 1);
+            }
+        }
+        return value.length() <= 180 ? value : value.substring(0, 177) + "...";
     }
+
+    private static String safe(String value) { return value == null ? "" : value; }
 
     private static Duration elapsedSince(Instant started) {
         Duration elapsed = Duration.between(started, Instant.now());
@@ -638,4 +728,8 @@ public final class NetworkDiagnostics {
     }
 
     private enum AddResult { ADDED, DROPPED, DROPPED_WITH_WARNING }
+
+    private record RawLogEmission(NetworkEvent event, RawLogDetails details, boolean hudVisible) {}
+    private record RawLogDetails(String requestId, String method, String safeUrl, String status,
+                                 String resourceType, String durationMs) {}
 }
