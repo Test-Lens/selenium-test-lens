@@ -219,7 +219,8 @@ class NetworkDiagnosticsBiDiTest {
             NetworkWaitResult stopped = result.get(1, TimeUnit.SECONDS);
             assertEquals(NetworkWaitStatus.SKIPPED, stopped.status());
             assertEquals(NetworkWaitFailureReason.CAPTURE_NOT_STARTED, stopped.failureReason());
-            assertTrue(stopped.attempts() >= 1);
+            assertFalse(diagnostics.isStarted());
+            assertEquals(1, factory.latest().closes.get());
         } finally {
             executor.shutdownNow();
         }

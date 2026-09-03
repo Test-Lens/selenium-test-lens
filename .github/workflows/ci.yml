@@ -78,6 +78,22 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Resolve geckodriver path
+        if: matrix.browser == 'firefox'
+        id: resolve-geckodriver
+        shell: bash
+        run: |
+          geckodriver_path="$(command -v geckodriver || true)"
+          if [[ -z "$geckodriver_path" ]]; then
+            echo "::error::geckodriver was installed but could not be resolved from PATH"
+            exit 1
+          fi
+          if [[ ! -x "$geckodriver_path" ]]; then
+            echo "::error::resolved geckodriver is not executable: $geckodriver_path"
+            exit 1
+          fi
+          echo "geckodriver-path=$geckodriver_path" >> "$GITHUB_OUTPUT"
+
       - name: Report selected Chrome binaries
         if: matrix.browser == 'chrome'
         env:
@@ -94,11 +110,13 @@ jobs:
         if: matrix.browser == 'firefox'
         env:
           TEST_FIREFOX_BINARY: ${{ steps.setup-firefox.outputs.firefox-path }}
-          TEST_GECKODRIVER_BINARY: ${{ steps.setup-geckodriver.outputs.geckodriver-path }}
+          TEST_GECKODRIVER_BINARY: ${{ steps.resolve-geckodriver.outputs.geckodriver-path }}
         run: |
           echo "Firefox binary: $TEST_FIREFOX_BINARY"
+          test -x "$TEST_FIREFOX_BINARY" || { echo "::error::Firefox binary is not executable: $TEST_FIREFOX_BINARY"; exit 1; }
           "$TEST_FIREFOX_BINARY" --version
           echo "GeckoDriver binary: $TEST_GECKODRIVER_BINARY"
+          test -x "$TEST_GECKODRIVER_BINARY" || { echo "::error::GeckoDriver binary is not executable: $TEST_GECKODRIVER_BINARY"; exit 1; }
           "$TEST_GECKODRIVER_BINARY" --version
           echo "WebDriver BiDi: enabled for dedicated network integration tests"
 
@@ -115,7 +133,7 @@ jobs:
         run: >-
           mvn -Pbrowser-it -Dbrowser=firefox -Dheaded=false
           -Dtest.firefox.binary="${{ steps.setup-firefox.outputs.firefox-path }}"
-          -Dwebdriver.gecko.driver="${{ steps.setup-geckodriver.outputs.geckodriver-path }}"
+          -Dwebdriver.gecko.driver="${{ steps.resolve-geckodriver.outputs.geckodriver-path }}"
           verify
 
       - name: Upload browser failure diagnostics
