@@ -50,7 +50,7 @@ public final class UiStepScope {
         }
     }
 
-    public UiStepContext context() {
+    UiStepContext context() {
         return context;
     }
 

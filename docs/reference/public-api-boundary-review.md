@@ -1,57 +1,76 @@
 # Public API boundary review
 
-This review separates supported user APIs from implementation-shaped classes that are nevertheless binary-public today. It proposes work for a dedicated pre-1.0 compatibility review; **no visibility or behavior changes are made here**.
+This is the first controlled pre-1.0 API-boundary cleanup, planned for the 0.2.x line. The recommended `TestLens` API, the supported `JsOverlayDebug` facade, lifecycle, locators, assertions, retry, evidence, network, runner adapters, React API, and their public models remain supported. Only implementation-shaped types and construction seams were hidden.
 
-| Classification | Types | Meaning |
-| --- | ---: | --- |
-| `USER_API` | 37 | Normal facade, element/assertion/lifecycle/configuration, retry outcome and runner integration types. |
-| `ADVANCED_API` | 133 | Supported specialized diagnostics, models, exporters, auth/network/evidence, and React. |
-| `LOW_LEVEL_API` | 20 | Lower-abstraction helpers that consumers may deliberately compose. |
-| `INTERNAL_STYLE_PUBLIC` | 38 | Implementation-shaped binary surface; not recommended for consumer code. |
+## Result
 
-| Type | Module | Current classification | Why suspicious | Suggested future action |
-| --- | --- | --- | --- | --- |
-| `BrowserScriptExecutor` | core | INTERNAL_STYLE_PUBLIC | Browser adapter SPI used by overlay integration. | Keep public only if documented as a supported SPI; otherwise hide. |
-| `TraceHtmlEscaper` | core | INTERNAL_STYLE_PUBLIC | Output-encoding implementation helper. | Package-private. |
-| `TraceJsonWriter` | core | INTERNAL_STYLE_PUBLIC | JSON serialization implementation helper. | Package-private or refactor behind exporters. |
-| `TraceReportSupport` | core | INTERNAL_STYLE_PUBLIC | Shared exporter constants/path mechanics. | Refactor behind exporter facade. |
-| `JsResources` | core | INTERNAL_STYLE_PUBLIC | Classpath JavaScript resource loader. | Package-private. |
-| `ApiOverlayJs` | overlay | INTERNAL_STYLE_PUBLIC | Raw JavaScript wrapper. | Package-private. |
-| `ApiOverlayPanel` | overlay | INTERNAL_STYLE_PUBLIC | Concrete injected panel implementation. | Refactor behind facade. |
-| `AssertionBadgesJs` | overlay | INTERNAL_STYLE_PUBLIC | Raw JavaScript resource wrapper. | Package-private. |
-| `HighlightJs` | overlay | INTERNAL_STYLE_PUBLIC | Raw JavaScript resource wrapper. | Package-private. |
-| `HudPanelJs` | overlay | INTERNAL_STYLE_PUBLIC | Raw JavaScript resource wrapper. | Package-private. |
-| `OverlayRootManager` | overlay | INTERNAL_STYLE_PUBLIC | DOM lifecycle implementation detail. | Refactor behind overlay facade. |
-| `ScrollArrowJs` | overlay | INTERNAL_STYLE_PUBLIC | Raw JavaScript resource wrapper. | Package-private. |
-| `TypeHintJs` | overlay | INTERNAL_STYLE_PUBLIC | Raw JavaScript resource wrapper. | Package-private. |
-| `UiTestLensRuntimeNames` | overlay | INTERNAL_STYLE_PUBLIC | Internal DOM/runtime identifier constants. | Package-private. |
-| `WaitHudJs` | overlay | INTERNAL_STYLE_PUBLIC | Raw JavaScript resource wrapper. | Package-private. |
-| `ApiCallActions` | selenium | INTERNAL_STYLE_PUBLIC | Facade implementation used by `apiCallWithModal`. | Refactor behind `TestLens`. |
-| `ApiOverlayContext` | selenium | INTERNAL_STYLE_PUBLIC | Data carrier for overlay planning internals. | Package-private. |
-| `ApiOverlayPlan` | selenium | INTERNAL_STYLE_PUBLIC | Internal execution plan. | Package-private. |
-| `ApiOverlayRule` | selenium | INTERNAL_STYLE_PUBLIC | Internal rule representation. | Package-private. |
-| `OverlayBrowserScriptExecutors` | selenium | INTERNAL_STYLE_PUBLIC | Adapter selection/factory mechanics. | Package-private. |
-| `SeleniumBrowserScriptExecutor` | selenium | INTERNAL_STYLE_PUBLIC | Concrete browser adapter implementation. | Hide behind supported SPI/factory. |
-| `OverlayLogger` | selenium | INTERNAL_STYLE_PUBLIC | Internal bridge between legacy overlay and structured logging. | Refactor behind facade or supported SPI. |
-| `ScriptExecutor` | selenium | INTERNAL_STYLE_PUBLIC | Raw JavaScript execution helper. | Package-private; raw Selenium remains available. |
-| `UiAssertionReporter` | selenium | INTERNAL_STYLE_PUBLIC | Assertion event plumbing. | Expose a deliberate reporter SPI or hide. |
-| `UiExpect.ElementProbe` | selenium | INTERNAL_STYLE_PUBLIC | Test/integration seam embedded in assertion implementation. | Package-private or move to test support. |
-| `UiExpect.ElementProbeResult` | selenium | INTERNAL_STYLE_PUBLIC | Companion test seam data. | Package-private or move to test support. |
-| `UiExpect.VisibilityProbe` | selenium | INTERNAL_STYLE_PUBLIC | Test/integration seam embedded in assertion implementation. | Package-private or supported SPI. |
-| `UiExpect.VisibilityProbeResult` | selenium | INTERNAL_STYLE_PUBLIC | Companion test seam data. | Package-private or move to test support. |
-| `BusinessAssertionReporter` | selenium | INTERNAL_STYLE_PUBLIC | Event plumbing rather than task API. | Expose supported reporter SPI or hide. |
-| `UiLocatorResolver` | selenium | INTERNAL_STYLE_PUBLIC | Resolution implementation behind `UiLocator`. | Package-private. |
-| `UiLocatorResult` | selenium | INTERNAL_STYLE_PUBLIC | Result model is not returned by the recommended locator facade. | Package-private or expose deliberately through a supported diagnostic result API. |
-| `UiLocatorResult.Builder` | selenium | INTERNAL_STYLE_PUBLIC | Builder for an otherwise internal-style result. | Package-private with its result. |
-| `UiLocatorFailureReason` | selenium | INTERNAL_STYLE_PUBLIC | Failure enum belongs to the unused/internal result path. | Package-private unless surfaced by the facade. |
-| `UiLocatorStatus` | selenium | INTERNAL_STYLE_PUBLIC | Status enum belongs to the unused/internal result path. | Package-private unless surfaced by the facade. |
-| `OverlayPolicyExecutor` | selenium | INTERNAL_STYLE_PUBLIC | Executor behind public policy configuration. | Refactor behind policy/facade. |
-| `UiStepContext` | selenium | INTERNAL_STYLE_PUBLIC | Mutable/current-step plumbing. | Package-private. |
-| `UiStepReporter` | selenium | INTERNAL_STYLE_PUBLIC | Step event plumbing. | Expose supported reporter SPI or hide. |
-| `UiStepScope` | selenium | INTERNAL_STYLE_PUBLIC | Scope implementation used by step execution. | Package-private or keep only as deliberate advanced API. |
+| Classification | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| `USER_API` | 39 | 39 | 0 |
+| `ADVANCED_API` | 133 | 133 | 0 |
+| `LOW_LEVEL_API` | 20 | 21 | +1 |
+| `INTERNAL_STYLE_PUBLIC` | 38 | 21 | -17 |
+| **All public types** | **230** | **214** | **-16** |
+| **Public callables** | **1719** | **1655** | **-64** |
 
-See the versioned [`public-api-classification.csv`](public-api-classification.csv) for the classification of every binary-public type. New public types fail the API check until explicitly classified.
+`BrowserScriptExecutor` is the one consciously supported low-level SPI and was reclassified rather than hidden. Sixteen implementation types were made package-private or removed. Every remaining internal-style type is deferred because hiding it requires a deliberate package or Maven-module boundary refactor.
 
-## Supported facade with legacy construction seams
+## Audit of the original 38 internal-style types
 
-`JsOverlayDebug` remains `ADVANCED_API` because its documented locator, wait, visual, popup, assertion, evidence, trace, and API-overlay families are supported for deliberate advanced use. Its three constructors that accept `ApiOverlayPanel`, `ApiCallActions`, `Guards`, and logger bridge implementations are legacy implementation-shaped surface. A future cleanup should retain the `WebDriver` and `WebDriver`/`OverlayConfig` constructors and move component injection behind an internal factory or a deliberately documented extension SPI.
+“Signature exposure” records whether the type occurs in a supported public signature. Test/docs usage refers to repository consumers before this cleanup.
+
+| Type | Module | Production consumers | Cross-module use | Tests / examples / docs | Signature exposure | Decision | Technical reason |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `BrowserScriptExecutor` | core | Overlay JS wrappers and Selenium overlay factory | core → overlay → selenium | Unit tests; core package docs | Constructors of low-level overlay wrappers | `SUPPORTED_SPI` | Framework-neutral script bridge is a real composition seam; classified `LOW_LEVEL_API`. |
+| `TraceHtmlEscaper` | core | HTML exporter package only | None | Escaper/exporter tests; generated catalog | None | `HIDE_NOW` | Pure output-encoding helper; package-private. |
+| `TraceJsonWriter` | core | `TraceJsonExporter` and bundle exporters | Cross-package inside core | Exporter tests; generated catalog | None | `DEFERRED_CROSS_MODULE` | Shared across `trace` and `trace.export`; needs exporter-boundary consolidation. |
+| `TraceReportSupport` | core | JSON/HTML/bundle exporters | Cross-package inside core | Exporter tests; generated catalog | None | `DEFERRED_CROSS_MODULE` | Shared paths/constants need relocation before visibility can shrink. |
+| `JsResources` | core | All overlay raw-JS wrappers | core → overlay | Resource and wrapper tests | Public wrapper implementation | `DEFERRED_CROSS_MODULE` | Resource loader is required across Maven artifacts; hide with an overlay resource-boundary refactor. |
+| `ApiOverlayJs` | overlay | `ApiOverlayPanel`, `JsOverlayDebug` | overlay → selenium | Wrapper tests; generated docs | Raw constants used across artifact | `DEFERRED_CROSS_MODULE` | Selenium facade still consumes the wrapper directly. |
+| `ApiOverlayPanel` | overlay | `JsOverlayDebug`, `SeleniumOverlayFactory` | overlay → selenium | Panel tests and factory tests | Low-level factory return/arguments | `DEFERRED_CROSS_MODULE` | Concrete panel spans artifact boundary; injection constructors were removed first. |
+| `AssertionBadgesJs` | overlay | `AssertActions` | overlay → selenium | Wrapper/action tests | Constructor dependency of low-level action | `DEFERRED_CROSS_MODULE` | Requires moving badge orchestration behind overlay artifact boundary. |
+| `HighlightJs` | overlay | `HighlightActions` | overlay → selenium | Wrapper/action tests | Constructor dependency of low-level action | `DEFERRED_CROSS_MODULE` | Raw wrapper is consumed from the Selenium artifact. |
+| `HudPanelJs` | overlay | `HudPanel` | Within overlay | Wrapper/HUD tests | None directly | `DEFERRED_CROSS_MODULE` | Coupled to public low-level `HudPanel`; consolidate its implementation in a later overlay pass. |
+| `OverlayRootManager` | overlay | HUD, actions, popup, policies, factory | overlay → selenium | Broad overlay/action tests and examples | Many supported low-level constructors/factory methods | `DEFERRED_CROSS_MODULE` | Central cross-artifact DOM lifecycle dependency; hiding needs a coordinated facade boundary. |
+| `ScrollArrowJs` | overlay | `ScrollActions` | overlay → selenium | Wrapper/action tests | Constructor dependency of low-level action | `DEFERRED_CROSS_MODULE` | Raw wrapper is consumed from the Selenium artifact. |
+| `TypeHintJs` | overlay | `TypingActions` | overlay → selenium | Wrapper/action tests | Constructor dependency of low-level action | `DEFERRED_CROSS_MODULE` | Raw wrapper is consumed from the Selenium artifact. |
+| `UiTestLensRuntimeNames` | overlay | HUD and Selenium cleanup/evidence | overlay → selenium | Runtime-name/browser tests | Public constants referenced across artifact | `DEFERRED_CROSS_MODULE` | Shared DOM identifiers need an internal bridge owned by overlay. |
+| `WaitHudJs` | overlay | `JsOverlayDebug` waits | overlay → selenium | Wrapper/wait tests | None directly | `DEFERRED_CROSS_MODULE` | Selenium facade currently invokes this raw wrapper across artifact boundary. |
+| `ApiCallActions` | selenium | `JsOverlayDebug.apiCallWithModal` | None | Injection examples and generated docs | Removed `JsOverlayDebug` constructors | `HIDE_NOW` | Behavior moved privately into the facade; type deleted without changing facade behavior. |
+| `ApiOverlayContext` | selenium | No production consumer | None | Generated docs only | None | `HIDE_NOW` | Unused ThreadLocal plumbing; package-private. |
+| `ApiOverlayPlan` | selenium | No production consumer | None | Generated docs only | None | `HIDE_NOW` | Unused mutable plan helper; package-private. |
+| `ApiOverlayRule` | selenium | No production consumer | None | Generated docs only | None | `HIDE_NOW` | Unused rule helper; package-private. |
+| `OverlayBrowserScriptExecutors` | selenium | No production consumer | None | Generated docs only | None | `HIDE_NOW` | Redundant adapter factory; package-private. |
+| `SeleniumBrowserScriptExecutor` | selenium | `JsOverlayDebug`, `SeleniumOverlayFactory` | Cross-package inside selenium | Dedicated adapter tests and generated docs | Factory returns neutral SPI, not concrete type | `DEFERRED_CROSS_MODULE` | Concrete adapter still bridges root facade and factory packages; next pass can nest/relocate it behind the factory. |
+| `OverlayLogger` | selenium | Facade, actions, assertions, locators, steps | Cross-package throughout selenium | Broad unit tests and old examples | Many supported low-level constructors | `DEFERRED_CROSS_MODULE` | Removing it requires coordinated constructor cleanup across supported low-level APIs. |
+| `ScriptExecutor` | selenium | No production consumer | None | Generated docs only | None | `HIDE_NOW` | Empty implementation artifact; package-private. |
+| `UiAssertionReporter` | selenium | `UiExpect` package only | None | Reporter test | None | `HIDE_NOW` | Assertion event plumbing; package-private. |
+| `UiExpect.ElementProbe` | selenium | `UiLocator.expect` → `UiExpect` | Cross-package inside selenium | `UiExpectTest`; assertions docs | Public injection constructor on `UiExpect` | `DEFERRED_CROSS_MODULE` | Cross-package one-shot DOM observation preserves no-nested-wait assertion semantics; needs a dedicated package-boundary refactor. |
+| `UiExpect.ElementProbeResult` | selenium | Same probe path | Cross-package inside selenium | `UiExpectTest`; assertions docs | Probe return type | `DEFERRED_CROSS_MODULE` | Must move with the probe contract without changing assertion polling. |
+| `UiExpect.VisibilityProbe` | selenium | `UiLocator.expect` → `UiExpect` | Cross-package inside selenium | `UiExpectTest`; assertions docs | Public injection constructor on `UiExpect` | `DEFERRED_CROSS_MODULE` | Same protected one-observation assertion seam; not safe to replace with `resolve()`. |
+| `UiExpect.VisibilityProbeResult` | selenium | Same probe path | Cross-package inside selenium | `UiExpectTest`; assertions docs | Probe return type | `DEFERRED_CROSS_MODULE` | Must move with the probe contract while retaining missing/stale distinction. |
+| `BusinessAssertionReporter` | selenium | `BusinessAssertions` package only | None | Reporter behavior covered through business tests | None | `HIDE_NOW` | Event plumbing; package-private. |
+| `UiLocatorResolver` | selenium | `UiLocator` package only | None | Dedicated resolver tests | None in supported API | `HIDE_NOW` | Resolver implementation; package-private. |
+| `UiLocatorResult` | selenium | Resolver/locator package only | None | Result/resolver tests; result docs | Not returned by recommended locator facade | `HIDE_NOW` | Internal result carrier; package-private. |
+| `UiLocatorResult.Builder` | selenium | Resolver package only | None | Result tests | Only through internal result | `HIDE_NOW` | Builder hidden with its owning result. |
+| `UiLocatorFailureReason` | selenium | Resolver/result package only | None | Resolver/result tests | Only through internal result | `HIDE_NOW` | Internal failure taxonomy; package-private. |
+| `UiLocatorStatus` | selenium | Resolver/result package only | None | Resolver/result tests | Only through internal result | `HIDE_NOW` | Internal status taxonomy; package-private. |
+| `OverlayPolicyExecutor` | selenium | `JsOverlayDebug`, click/actionability paths | Cross-package inside selenium | Policy/actionability tests | Public low-level constructors | `DEFERRED_CROSS_MODULE` | Hiding requires coordinated low-level constructor refactor, not a local visibility edit. |
+| `UiStepContext` | selenium | `UiStepScope` package only | None | Scope tests | Formerly returned only by internal-style scope | `HIDE_NOW` | Mutable stack plumbing and its accessor are package-private. |
+| `UiStepReporter` | selenium | `UiStepScope` package only | None | Reporter/scope tests | None | `HIDE_NOW` | Step event plumbing; package-private. |
+| `UiStepScope` | selenium | Constructed and used by `JsOverlayDebug` | Cross-package inside selenium | Step tests and advanced step docs | Facade implementation field only | `DEFERRED_CROSS_MODULE` | Hiding requires moving scope construction behind a same-package internal step facade. |
+
+## `JsOverlayDebug` construction boundary
+
+The supported public constructors are now exactly:
+
+```java
+new JsOverlayDebug(driver);
+new JsOverlayDebug(driver, overlayConfig);
+```
+
+The three constructors accepting combinations of `ApiOverlayPanel`, `ApiCallActions`, `Guards`, `UiTestLensLogger`, and `OverlayLogger` were implementation injection seams and have been removed. Consumers using those pre-1.0 constructors must migrate to one of the two supported constructors. No replacement public builder or test-support SPI was added.
+
+## Deferred next stage
+
+The next boundary stage should address three coherent groups rather than moving isolated classes: (1) exporter writer/support ownership inside core, (2) the core/overlay/selenium JavaScript-wrapper boundary, and (3) cross-package assertion, policy, logging, and step construction. Those refactors must preserve the current single-observation assertion contract and supported low-level APIs.

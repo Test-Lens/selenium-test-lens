@@ -1,5 +1,5 @@
 package io.github.testlens.core;
 
-public class ScriptExecutor {
+final class ScriptExecutor {
 }
 

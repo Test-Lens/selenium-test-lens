@@ -14,7 +14,7 @@ JsOverlayDebug(WebDriver driver)
 JsOverlayDebug(WebDriver driver, OverlayConfig config)
 ```
 
-The longer public constructors accept implementation components such as `ApiOverlayPanel`, `ApiCallActions`, `Guards`, and logger bridges. They remain binary-public legacy construction seams and are not supported as normal application composition API.
+These are the only public constructors. The pre-1.0 component-injection constructors accepting `ApiOverlayPanel`, `ApiCallActions`, `Guards`, or logger bridges were removed for the planned 0.2.x line. Migrate custom construction to one of the two forms above; no supported advanced operation was removed.
 
 ## Locators, assertions, and actionability
 

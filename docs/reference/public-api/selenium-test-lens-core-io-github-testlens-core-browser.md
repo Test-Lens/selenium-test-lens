@@ -11,8 +11,9 @@ Generated binary-surface details. For behavior and examples, return to the [func
 
 - Artifact/module: `selenium-test-lens-core`
 - Package: `io.github.testlens.core.browser`
-- Classification: `INTERNAL_STYLE_PUBLIC`
+- Classification: `LOW_LEVEL_API`
 - Type kind: `interface`
+- Functional documentation: [docs/reference/core-model.md](../../reference/core-model.md)
 
 ```java
 public abstract java.lang.Object execute(java.lang.String, java.lang.Object...)

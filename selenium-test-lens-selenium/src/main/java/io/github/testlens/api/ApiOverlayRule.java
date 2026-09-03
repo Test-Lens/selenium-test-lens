@@ -2,7 +2,7 @@ package io.github.testlens.api;
 
 import java.util.regex.Pattern;
 
-public final class ApiOverlayRule {
+final class ApiOverlayRule {
     private static final ThreadLocal<Pattern> URL_PATTERN =
             ThreadLocal.withInitial(() -> Pattern.compile(".*")); // default: wszystko
 

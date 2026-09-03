@@ -12,7 +12,7 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public final class UiLocatorResolver {
+final class UiLocatorResolver {
     private final WebDriver driver;
 
     public UiLocatorResolver(WebDriver driver) {

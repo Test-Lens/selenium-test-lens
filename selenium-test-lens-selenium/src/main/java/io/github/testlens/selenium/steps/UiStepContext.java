@@ -4,7 +4,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
-public final class UiStepContext {
+final class UiStepContext {
     private final Deque<String> stack = new ArrayDeque<>();
 
     public void push(String name) {

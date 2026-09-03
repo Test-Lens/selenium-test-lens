@@ -6,7 +6,7 @@ import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.logging.UiTestLensLogLevel;
 import io.github.testlens.core.logging.UiTestLensStatus;
 
-public final class UiAssertionReporter {
+final class UiAssertionReporter {
     private final OverlayLogger logger;
 
     public UiAssertionReporter(OverlayLogger logger) {

@@ -2,7 +2,7 @@ package io.github.testlens.selenium.locator;
 
 import java.time.Duration;
 
-public final class UiLocatorResult {
+final class UiLocatorResult {
     private final UiLocatorStatus status;
     private final UiLocatorFailureReason failureReason;
     private final String action;
@@ -57,7 +57,7 @@ public final class UiLocatorResult {
         return status == UiLocatorStatus.PASSED;
     }
 
-    public static final class Builder {
+    static final class Builder {
         private final UiLocatorStatus status;
         private UiLocatorFailureReason failureReason;
         private String action;

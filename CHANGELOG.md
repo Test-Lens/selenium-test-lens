@@ -13,10 +13,14 @@ All notable changes to Selenium Test Lens will be documented in this file.
 - Added `TestLens.finishSkipped(String)` so runner integrations can finalize aborted, assumed, or skipped tests as `SKIPPED` while retaining the common JSON/HTML and HUD-cleanup pipeline.
 
 ### Changed
+- Reduced the accidental pre-1.0 binary surface from 230 types/1719 callables to 214 types/1655 callables. Recommended user APIs are unchanged; local reporters, locator result plumbing, unused plans/helpers, and the HTML escaper are now implementation-private. `BrowserScriptExecutor` is now explicitly classified as a supported low-level SPI.
 - Made facade finalization outcome explicit: `finishFailed(null)` now remains `FAILED`, and only failed finalization can request an automatic failure screenshot.
 - Fixed `UiAssertionOptions.failFastOnMissingElement(true)` for the normal `UiLocator.expect(options)` path: genuinely missing required elements now fail on the first observation, while the default remains retryable. Missing elements still satisfy `toBeHidden`, and stale elements remain a distinct retryable state.
 - Kept `MANUAL` as the default network mode. `BIDI` and `AUTO` now use an explicitly enabled WebDriver BiDi session without fallback; `PERFORMANCE_LOGS` remains `UNSUPPORTED`.
 - Deprecated `NetworkDiagnosticsOptions.attachToSession` for removal in 0.2.0. Network diagnostics are attached only through explicit `NetworkDiagnostics.attachToSession(...)` calls.
+
+### Removed
+- Removed the three implementation-injection constructors of `JsOverlayDebug`; migrate to `JsOverlayDebug(WebDriver)` or `JsOverlayDebug(WebDriver, OverlayConfig)`. Removed the implementation-only `ApiCallActions` type and hid local assertion, business, locator, step, plan, script, and exporter plumbing. This intentional pre-1.0 break is planned for the 0.2.x line.
 
 ## [0.1.0]
 

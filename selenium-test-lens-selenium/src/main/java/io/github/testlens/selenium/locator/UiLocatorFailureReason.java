@@ -1,6 +1,6 @@
 package io.github.testlens.selenium.locator;
 
-public enum UiLocatorFailureReason {
+enum UiLocatorFailureReason {
     NOT_FOUND,
     STALE_ELEMENT,
     CLICK_INTERCEPTED,

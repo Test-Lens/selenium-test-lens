@@ -3,7 +3,6 @@ package io.github.testlens;
 import lombok.Getter;
 import org.openqa.selenium.*;
 import io.github.testlens.actions.*;
-import io.github.testlens.api.ApiCallActions;
 import io.github.testlens.api.ApiOverlayJs;
 import io.github.testlens.api.ApiOverlayPanel;
 import io.github.testlens.core.Guards;
@@ -14,7 +13,6 @@ import io.github.testlens.core.PopupDetector;
 import io.github.testlens.core.UiTestLensRuntimeNames;
 import io.github.testlens.core.WaitHudJs;
 import io.github.testlens.core.browser.BrowserScriptExecutor;
-import io.github.testlens.core.browser.SeleniumBrowserScriptExecutor;
 import io.github.testlens.core.logging.UiTestLensEventType;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.logging.UiTestLensLogLevel;
@@ -92,7 +90,6 @@ public final class JsOverlayDebug {
     private final AssertActions assertActions;
     private final TargetResolverActions targetResolverActions;
     private final ApiOverlayPanel apiPanel;
-    private final ApiCallActions apiCalls;
     private boolean waitHudInjected = false;
     private final Guards guards;
     private final OverlayLogger logger;
@@ -117,30 +114,15 @@ public final class JsOverlayDebug {
     }
 
     private JsOverlayDebug(WebDriver driver, OverlayConfig config, DefaultComponents components) {
-        this(driver, config, components.apiPanel(), components.apiCalls(), components.guards(), components.logger());
+        this(driver, config, components.apiPanel(), components.guards(), components.logger());
     }
 
-    public JsOverlayDebug(WebDriver driver, OverlayConfig config, ApiOverlayPanel apiPanel, ApiCallActions apiCalls, Guards guards) {
-        this(driver, config, apiPanel, apiCalls, guards, OverlayLogger.noop());
-    }
-
-    public JsOverlayDebug(WebDriver driver,
-                          OverlayConfig config,
-                          ApiOverlayPanel apiPanel,
-                          ApiCallActions apiCalls,
-                          Guards guards,
-                          UiTestLensLogger logger) {
-        this(driver, config, apiPanel, apiCalls, guards, OverlayLogger.from(logger));
-    }
-
-    public JsOverlayDebug(WebDriver driver,
-                          OverlayConfig config,
-                          ApiOverlayPanel apiPanel,
-                          ApiCallActions apiCalls,
-                          Guards guards,
-                          OverlayLogger logger) {
+    private JsOverlayDebug(WebDriver driver,
+                           OverlayConfig config,
+                           ApiOverlayPanel apiPanel,
+                           Guards guards,
+                           OverlayLogger logger) {
         this.apiPanel = apiPanel;
-        this.apiCalls = apiCalls;
         this.guards = guards;
         OverlayLogger baseLogger = logger != null ? logger : OverlayLogger.noop();
         this.logger = baseLogger.withSink(sessionTraceLogSink).withSink(hudLogSink);
@@ -153,7 +135,7 @@ public final class JsOverlayDebug {
         this.driver = driver;
         this.config = config;
 
-        BrowserScriptExecutor scriptExecutor = new SeleniumBrowserScriptExecutor(driver);
+        BrowserScriptExecutor scriptExecutor = SeleniumOverlayFactory.scriptExecutor(driver);
 
         this.rootManager = new OverlayRootManager(scriptExecutor, config);
         this.highlightActions = new HighlightActions(driver, rootManager, config, this.logger);
@@ -172,10 +154,10 @@ public final class JsOverlayDebug {
     private static DefaultComponents createDefaultComponents(WebDriver driver, OverlayConfig config, OverlayLogger logger) {
         OverlayRootManager rootManager = SeleniumOverlayFactory.overlayRoot(driver, config);
         ApiOverlayPanel apiPanel = SeleniumOverlayFactory.apiOverlayPanel(driver, rootManager, config);
-        return new DefaultComponents(apiPanel, new ApiCallActions(apiPanel), new Guards(driver, logger), logger);
+        return new DefaultComponents(apiPanel, new Guards(driver, logger), logger);
     }
 
-    private record DefaultComponents(ApiOverlayPanel apiPanel, ApiCallActions apiCalls, Guards guards, OverlayLogger logger) {}
+    private record DefaultComponents(ApiOverlayPanel apiPanel, Guards guards, OverlayLogger logger) {}
 
     public void setOverlayPolicy(OverlayPolicy overlayPolicy) {
         this.overlayPolicy = overlayPolicy != null ? overlayPolicy : OverlayPolicy.none();
@@ -1633,7 +1615,41 @@ public final class JsOverlayDebug {
                                   long timeoutMs,
                                   java.util.concurrent.Callable<T> call,
                                   java.util.function.Function<T, String> responsePreview) {
-        return apiCalls.callWithModal(title, method, url, payloadPreview, timeoutMs, call, responsePreview);
+        apiPanel.ensureOpen();
+        String requestId = apiPanel.showRequest(title, method, url, payloadPreview);
+        if (requestId == null) {
+            throw new IllegalStateException("API modal requestId is null - modal not initialized correctly");
+        }
+        apiPanel.setPending(requestId, timeoutMs);
+
+        long started = System.currentTimeMillis();
+        try {
+            T result = call.call();
+            long elapsed = System.currentTimeMillis() - started;
+            String body = responsePreview != null ? responsePreview.apply(result) : String.valueOf(result);
+            apiPanel.setResponse(requestId, 200, elapsed, "", trimApiPreview(body));
+            return result;
+        } catch (Exception failure) {
+            long elapsed = System.currentTimeMillis() - started;
+            apiPanel.setError(requestId,
+                    failure.getClass().getSimpleName() + " after " + elapsed + "ms",
+                    trimApiPreview(stackTrace(failure)));
+            throw new RuntimeException(failure);
+        }
+    }
+
+    private static String trimApiPreview(String value) {
+        if (value == null) {
+            return "";
+        }
+        int maxLength = 7000;
+        return value.length() > maxLength ? value.substring(0, maxLength) + "\n...(trimmed)" : value;
+    }
+
+    private static String stackTrace(Throwable failure) {
+        java.io.StringWriter output = new java.io.StringWriter();
+        failure.printStackTrace(new java.io.PrintWriter(output));
+        return output.toString();
     }
     public String apiShowRequest(String title, String method, String url, String payloadPreview) {
         try {

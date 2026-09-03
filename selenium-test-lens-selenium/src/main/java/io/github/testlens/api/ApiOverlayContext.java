@@ -2,7 +2,7 @@ package io.github.testlens.api;
 
 import io.github.testlens.JsOverlayDebug;
 
-public final class ApiOverlayContext {
+final class ApiOverlayContext {
     private static final ThreadLocal<JsOverlayDebug> TL = new ThreadLocal<>();
 
     private ApiOverlayContext() {}

@@ -84,25 +84,6 @@ public java.lang.String locatorDescription()
 public java.lang.String actionabilitySummary()
 ```
 
-## `io.github.testlens.selenium.locator.UiLocatorFailureReason` {#io-github-testlens-selenium-locator-uilocatorfailurereason}
-
-- Artifact/module: `selenium-test-lens-selenium`
-- Package: `io.github.testlens.selenium.locator`
-- Classification: `INTERNAL_STYLE_PUBLIC`
-- Type kind: `enum`
-
-```java
-public static final io.github.testlens.selenium.locator.UiLocatorFailureReason NOT_FOUND
-public static final io.github.testlens.selenium.locator.UiLocatorFailureReason STALE_ELEMENT
-public static final io.github.testlens.selenium.locator.UiLocatorFailureReason CLICK_INTERCEPTED
-public static final io.github.testlens.selenium.locator.UiLocatorFailureReason NOT_INTERACTABLE
-public static final io.github.testlens.selenium.locator.UiLocatorFailureReason ACTIONABILITY_NOT_READY
-public static final io.github.testlens.selenium.locator.UiLocatorFailureReason TIMEOUT
-public static final io.github.testlens.selenium.locator.UiLocatorFailureReason UNKNOWN
-public static io.github.testlens.selenium.locator.UiLocatorFailureReason[] values()
-public static io.github.testlens.selenium.locator.UiLocatorFailureReason valueOf(java.lang.String)
-```
-
 ## `io.github.testlens.selenium.locator.UiLocatorOptions$Builder` {#io-github-testlens-selenium-locator-uilocatoroptions-builder}
 
 - Artifact/module: `selenium-test-lens-selenium`
@@ -144,55 +125,6 @@ public boolean retryOnNotInteractable()
 public boolean highlightBeforeAction()
 ```
 
-## `io.github.testlens.selenium.locator.UiLocatorResolver` {#io-github-testlens-selenium-locator-uilocatorresolver}
-
-- Artifact/module: `selenium-test-lens-selenium`
-- Package: `io.github.testlens.selenium.locator`
-- Classification: `INTERNAL_STYLE_PUBLIC`
-- Type kind: `class`
-
-```java
-public io.github.testlens.selenium.locator.UiLocatorResolver(org.openqa.selenium.WebDriver)
-public org.openqa.selenium.WebElement resolve(org.openqa.selenium.By, io.github.testlens.selenium.locator.UiLocatorOptions)
-public io.github.testlens.selenium.locator.UiLocatorResult resolveResult(org.openqa.selenium.By, io.github.testlens.selenium.locator.UiLocatorOptions)
-```
-
-## `io.github.testlens.selenium.locator.UiLocatorResult$Builder` {#io-github-testlens-selenium-locator-uilocatorresult-builder}
-
-- Artifact/module: `selenium-test-lens-selenium`
-- Package: `io.github.testlens.selenium.locator`
-- Classification: `INTERNAL_STYLE_PUBLIC`
-- Type kind: `class`
-
-```java
-public io.github.testlens.selenium.locator.UiLocatorResult$Builder failureReason(io.github.testlens.selenium.locator.UiLocatorFailureReason)
-public io.github.testlens.selenium.locator.UiLocatorResult$Builder action(java.lang.String)
-public io.github.testlens.selenium.locator.UiLocatorResult$Builder description(java.lang.String)
-public io.github.testlens.selenium.locator.UiLocatorResult$Builder attempts(int)
-public io.github.testlens.selenium.locator.UiLocatorResult$Builder elapsed(java.time.Duration)
-public io.github.testlens.selenium.locator.UiLocatorResult$Builder message(java.lang.String)
-public io.github.testlens.selenium.locator.UiLocatorResult build()
-```
-
-## `io.github.testlens.selenium.locator.UiLocatorResult` {#io-github-testlens-selenium-locator-uilocatorresult}
-
-- Artifact/module: `selenium-test-lens-selenium`
-- Package: `io.github.testlens.selenium.locator`
-- Classification: `INTERNAL_STYLE_PUBLIC`
-- Type kind: `class`
-
-```java
-public static io.github.testlens.selenium.locator.UiLocatorResult$Builder builder(io.github.testlens.selenium.locator.UiLocatorStatus)
-public io.github.testlens.selenium.locator.UiLocatorStatus status()
-public io.github.testlens.selenium.locator.UiLocatorFailureReason failureReason()
-public java.lang.String action()
-public java.lang.String description()
-public int attempts()
-public java.time.Duration elapsed()
-public java.lang.String message()
-public boolean passed()
-```
-
 ## `io.github.testlens.selenium.locator.UiLocatorSelectors` {#io-github-testlens-selenium-locator-uilocatorselectors}
 
 - Artifact/module: `selenium-test-lens-selenium`
@@ -205,19 +137,4 @@ public static java.lang.String xpathLiteral(java.lang.String)
 public static java.lang.String normalizeSpaceExpression(java.lang.String)
 public static java.lang.String cssAttributeEquals(java.lang.String, java.lang.String)
 public static java.lang.String cssString(java.lang.String)
-```
-
-## `io.github.testlens.selenium.locator.UiLocatorStatus` {#io-github-testlens-selenium-locator-uilocatorstatus}
-
-- Artifact/module: `selenium-test-lens-selenium`
-- Package: `io.github.testlens.selenium.locator`
-- Classification: `INTERNAL_STYLE_PUBLIC`
-- Type kind: `enum`
-
-```java
-public static final io.github.testlens.selenium.locator.UiLocatorStatus PASSED
-public static final io.github.testlens.selenium.locator.UiLocatorStatus FAILED
-public static final io.github.testlens.selenium.locator.UiLocatorStatus RETRYING
-public static io.github.testlens.selenium.locator.UiLocatorStatus[] values()
-public static io.github.testlens.selenium.locator.UiLocatorStatus valueOf(java.lang.String)
 ```

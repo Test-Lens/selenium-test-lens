@@ -70,21 +70,6 @@ public boolean includeStackTrace()
 public int messagePreviewLimit()
 ```
 
-## `io.github.testlens.selenium.business.BusinessAssertionReporter` {#io-github-testlens-selenium-business-businessassertionreporter}
-
-- Artifact/module: `selenium-test-lens-selenium`
-- Package: `io.github.testlens.selenium.business`
-- Classification: `INTERNAL_STYLE_PUBLIC`
-- Type kind: `class`
-
-```java
-public io.github.testlens.selenium.business.BusinessAssertionReporter(io.github.testlens.core.OverlayLogger)
-public void groupStarted(java.lang.String, int)
-public void checkStarted(java.lang.String, java.lang.String)
-public void checkFinished(io.github.testlens.selenium.business.BusinessAssertionResult)
-public void groupFinished(java.lang.String, boolean, int, int)
-```
-
 ## `io.github.testlens.selenium.business.BusinessAssertionResult` {#io-github-testlens-selenium-business-businessassertionresult}
 
 - Artifact/module: `selenium-test-lens-selenium`

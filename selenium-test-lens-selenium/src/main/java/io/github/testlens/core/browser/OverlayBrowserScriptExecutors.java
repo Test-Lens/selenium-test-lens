@@ -6,7 +6,7 @@ import org.openqa.selenium.WebDriver;
 /**
  * Selenium compatibility helper for creating neutral browser script executors.
  */
-public final class OverlayBrowserScriptExecutors {
+final class OverlayBrowserScriptExecutors {
     private OverlayBrowserScriptExecutors() {}
 
     public static BrowserScriptExecutor from(WebDriver driver) {

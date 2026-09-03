@@ -115,14 +115,3 @@ public boolean highlightPopupIfPresent(java.lang.String)
 public boolean closePopupIfPresent(java.lang.String, java.lang.String)
 public boolean closePopupIfPresent()
 ```
-
-## `io.github.testlens.core.ScriptExecutor` {#io-github-testlens-core-scriptexecutor}
-
-- Artifact/module: `selenium-test-lens-selenium`
-- Package: `io.github.testlens.core`
-- Classification: `INTERNAL_STYLE_PUBLIC`
-- Type kind: `class`
-
-```java
-public io.github.testlens.core.ScriptExecutor()
-```

@@ -1,6 +1,6 @@
 package io.github.testlens.core.trace.export;
 
-public final class TraceHtmlEscaper {
+final class TraceHtmlEscaper {
     private TraceHtmlEscaper() {
     }
 

@@ -2,11 +2,6 @@ package io.github.testlens.react.actionability;
 
 import io.github.testlens.JsOverlayDebug;
 import io.github.testlens.OverlayConfig;
-import io.github.testlens.api.ApiCallActions;
-import io.github.testlens.api.ApiOverlayPanel;
-import io.github.testlens.core.Guards;
-import io.github.testlens.core.OverlayRootManager;
-import io.github.testlens.core.browser.BrowserScriptExecutor;
 import io.github.testlens.selenium.actionability.ActionabilityOptions;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
@@ -85,16 +80,7 @@ class ReactActionabilityCheckerTest {
 
     private static JsOverlayDebug overlay(WebDriver driver) {
         OverlayConfig config = OverlayConfig.builder().build();
-        BrowserScriptExecutor executor = (script, args) -> null;
-        OverlayRootManager rootManager = new OverlayRootManager(executor, config);
-        ApiOverlayPanel apiPanel = new ApiOverlayPanel(executor, rootManager, config);
-        return new JsOverlayDebug(
-                driver,
-                config,
-                apiPanel,
-                new ApiCallActions(apiPanel),
-                new Guards(driver)
-        );
+        return new JsOverlayDebug(driver, config);
     }
 
     private static Map<String, Object> inactive() {

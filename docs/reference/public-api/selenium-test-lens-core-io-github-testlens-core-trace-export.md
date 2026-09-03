@@ -59,17 +59,6 @@ public java.nio.file.Path outputDirectory()
 public io.github.testlens.core.trace.export.HtmlReportTheme htmlTheme()
 ```
 
-## `io.github.testlens.core.trace.export.TraceHtmlEscaper` {#io-github-testlens-core-trace-export-tracehtmlescaper}
-
-- Artifact/module: `selenium-test-lens-core`
-- Package: `io.github.testlens.core.trace.export`
-- Classification: `INTERNAL_STYLE_PUBLIC`
-- Type kind: `class`
-
-```java
-public static java.lang.String escape(java.lang.String)
-```
-
 ## `io.github.testlens.core.trace.export.TraceHtmlExportOptions$Builder` {#io-github-testlens-core-trace-export-tracehtmlexportoptions-builder}
 
 - Artifact/module: `selenium-test-lens-core`

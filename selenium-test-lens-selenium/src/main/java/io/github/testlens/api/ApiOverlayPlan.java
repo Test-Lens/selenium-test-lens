@@ -3,7 +3,7 @@ package io.github.testlens.api;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ApiOverlayPlan {
+final class ApiOverlayPlan {
     private static final ThreadLocal<Boolean> ENABLED = ThreadLocal.withInitial(() -> true);
     private static final ThreadLocal<List<String>> PATHS = ThreadLocal.withInitial(ArrayList::new);
     private static final ThreadLocal<List<String>> KEYS  = ThreadLocal.withInitial(ArrayList::new);

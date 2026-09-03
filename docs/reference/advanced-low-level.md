@@ -13,10 +13,12 @@ These types are public in the current artifacts but are not the recommended cons
 ## Internal-style / likely accidental exposure
 
 - JavaScript wrappers and resource internals: `AssertionBadgesJs`, `HighlightJs`, `HudPanelJs`, `ScrollArrowJs`, `TypeHintJs`, `WaitHudJs`, `ApiOverlayJs`, `JsResources`.
-- browser/overlay infrastructure: `BrowserScriptExecutor`, `SeleniumBrowserScriptExecutor`, `OverlayBrowserScriptExecutors`, `OverlayRootManager`, `UiTestLensRuntimeNames`, `ScriptExecutor`, `OverlayLogger`.
-- resolver/reporter mechanics: `UiLocatorResolver`, `UiAssertionReporter`, `UiStepReporter`, `BusinessAssertionReporter`, policy executors and low-level contexts.
-- HTML/JSON implementation helpers: `TraceHtmlEscaper`, `TraceJsonWriter`, `TraceReportSupport`.
-- low-level API overlay planning/context classes: `ApiCallActions`, `ApiOverlayContext`, `ApiOverlayPlan`, `ApiOverlayRule`, `ApiOverlayPanel`.
+- browser/overlay infrastructure still crossing artifact boundaries: `SeleniumBrowserScriptExecutor`, `OverlayRootManager`, `UiTestLensRuntimeNames`, and `OverlayLogger`.
+- deferred assertion probes, policy execution, and step scope construction.
+- JSON/report implementation helpers shared across core packages: `TraceJsonWriter` and `TraceReportSupport`.
+- `ApiOverlayPanel`, whose implementation is still shared by overlay and Selenium artifacts.
+
+`BrowserScriptExecutor` is intentionally supported as a `LOW_LEVEL_API` SPI for framework-neutral execution of overlay scripts. Local reporters, locator result/resolver types, unused overlay plans, `ScriptExecutor`, `OverlayBrowserScriptExecutors`, `ApiCallActions`, `UiStepContext`, and `TraceHtmlEscaper` are no longer binary-public. See the [boundary review](public-api-boundary-review.md) for the complete decision table and deferred work.
 
 No stability promise beyond the published Java surface is implied here. These APIs accept raw scripts/selectors/browser objects, can mutate page decoration, and may bypass high-level retry, trace, HUD, evidence, or redaction conventions. Prefer raw Selenium itself when the desired operation is fundamentally a Selenium/CDP/BiDi concern.
 

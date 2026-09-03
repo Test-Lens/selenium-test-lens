@@ -7,20 +7,6 @@ search:
 
 Generated binary-surface details. For behavior and examples, return to the [functional reference](../index.md) or follow the mapped documentation link.
 
-## `io.github.testlens.selenium.steps.UiStepContext` {#io-github-testlens-selenium-steps-uistepcontext}
-
-- Artifact/module: `selenium-test-lens-selenium`
-- Package: `io.github.testlens.selenium.steps`
-- Classification: `INTERNAL_STYLE_PUBLIC`
-- Type kind: `class`
-
-```java
-public io.github.testlens.selenium.steps.UiStepContext()
-public void push(java.lang.String)
-public void pop()
-public java.util.List<java.lang.String> currentPath()
-```
-
 ## `io.github.testlens.selenium.steps.UiStepError` {#io-github-testlens-selenium-steps-uisteperror}
 
 - Artifact/module: `selenium-test-lens-selenium`
@@ -89,20 +75,6 @@ public io.github.testlens.selenium.evidence.ScreenshotCaptureOptions screenshotC
 public int messagePreviewLimit()
 ```
 
-## `io.github.testlens.selenium.steps.UiStepReporter` {#io-github-testlens-selenium-steps-uistepreporter}
-
-- Artifact/module: `selenium-test-lens-selenium`
-- Package: `io.github.testlens.selenium.steps`
-- Classification: `INTERNAL_STYLE_PUBLIC`
-- Type kind: `class`
-
-```java
-public io.github.testlens.selenium.steps.UiStepReporter(io.github.testlens.core.OverlayLogger)
-public void started(java.lang.String, io.github.testlens.selenium.steps.UiStepOptions)
-public void finished(io.github.testlens.selenium.steps.UiStepResult, io.github.testlens.selenium.steps.UiStepOptions)
-public static java.lang.String formatFailure(io.github.testlens.selenium.steps.UiStepResult)
-```
-
 ## `io.github.testlens.selenium.steps.UiStepResult` {#io-github-testlens-selenium-steps-uistepresult}
 
 - Artifact/module: `selenium-test-lens-selenium`
@@ -136,7 +108,6 @@ public java.lang.String summary()
 ```java
 public io.github.testlens.selenium.steps.UiStepScope(io.github.testlens.core.OverlayLogger, java.util.function.Consumer<java.lang.String>, java.util.function.Consumer<java.lang.String>)
 public io.github.testlens.selenium.steps.UiStepResult run(java.lang.String, io.github.testlens.selenium.steps.UiStepOptions, java.lang.Runnable)
-public io.github.testlens.selenium.steps.UiStepContext context()
 ```
 
 ## `io.github.testlens.selenium.steps.UiStepStatus` {#io-github-testlens-selenium-steps-uistepstatus}

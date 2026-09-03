@@ -82,22 +82,6 @@ public boolean trimText()
 public boolean failFastOnMissingElement()
 ```
 
-## `io.github.testlens.selenium.assertions.UiAssertionReporter` {#io-github-testlens-selenium-assertions-uiassertionreporter}
-
-- Artifact/module: `selenium-test-lens-selenium`
-- Package: `io.github.testlens.selenium.assertions`
-- Classification: `INTERNAL_STYLE_PUBLIC`
-- Type kind: `class`
-
-```java
-public io.github.testlens.selenium.assertions.UiAssertionReporter(io.github.testlens.core.OverlayLogger)
-public static io.github.testlens.selenium.assertions.UiAssertionReporter noop()
-public void started(java.lang.String, java.lang.String)
-public void retry(java.lang.String, java.lang.String, int, java.lang.String, java.lang.String)
-public void passed(io.github.testlens.selenium.assertions.UiAssertionResult)
-public void failed(io.github.testlens.selenium.assertions.UiAssertionResult)
-```
-
 ## `io.github.testlens.selenium.assertions.UiAssertionResult` {#io-github-testlens-selenium-assertions-uiassertionresult}
 
 - Artifact/module: `selenium-test-lens-selenium`

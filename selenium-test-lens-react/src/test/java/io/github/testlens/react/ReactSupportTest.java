@@ -2,11 +2,6 @@ package io.github.testlens.react;
 
 import io.github.testlens.JsOverlayDebug;
 import io.github.testlens.OverlayConfig;
-import io.github.testlens.api.ApiCallActions;
-import io.github.testlens.api.ApiOverlayPanel;
-import io.github.testlens.core.Guards;
-import io.github.testlens.core.OverlayRootManager;
-import io.github.testlens.core.browser.BrowserScriptExecutor;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -21,17 +16,7 @@ class ReactSupportTest {
     void createsReactSafeExecutorFromSeleniumFacade() {
         FakeJavascriptWebDriver driver = new FakeJavascriptWebDriver();
         OverlayConfig config = OverlayConfig.builder().build();
-        BrowserScriptExecutor executor = (script, args) -> null;
-        OverlayRootManager rootManager = new OverlayRootManager(executor, config);
-        ApiOverlayPanel apiPanel = new ApiOverlayPanel(executor, rootManager, config);
-
-        JsOverlayDebug overlay = new JsOverlayDebug(
-                driver,
-                config,
-                apiPanel,
-                new ApiCallActions(apiPanel),
-                new Guards(driver)
-        );
+        JsOverlayDebug overlay = new JsOverlayDebug(driver, config);
 
         assertNotNull(ReactSupport.overlaySupport(overlay));
         assertNotNull(ReactSupport.reactSafe(overlay));

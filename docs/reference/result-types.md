@@ -31,4 +31,4 @@ Optional<Path> failureBundleArchive()
 
 Nullable/empty semantics differ by result; consult the relevant functional page and the [exact accessor/factory signatures](public-api-catalog.md). Exceptions stored in results may contain driver/session/environment details.
 
-`UiLocatorResult` and its builder/status/failure enums are binary-public but are not returned by the current recommended `UiLocator` operations. They are classified `INTERNAL_STYLE_PUBLIC`; normal locator failures use `UiLocatorException`.
+Locator resolution plumbing is implementation-private. Normal locator failures use the supported `UiLocatorException`; no separate low-level locator result is returned by the recommended API.

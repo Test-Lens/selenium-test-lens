@@ -4,6 +4,17 @@ You do not need to rewrite an existing Selenium suite to adopt Test Lens. Attach
 
 Raw Selenium can remain in the same Page Objects and tests.
 
+## Migrating pre-1.0 overlay construction for 0.2.x
+
+The first 0.2.x API-boundary cleanup removes only implementation constructors and types; the recommended `TestLens` API is unchanged. If older code assembled `JsOverlayDebug` with `ApiOverlayPanel`, `ApiCallActions`, `Guards`, or logger bridge arguments, replace that construction with one of the two supported forms:
+
+```java
+JsOverlayDebug overlay = new JsOverlayDebug(driver);
+JsOverlayDebug configured = new JsOverlayDebug(driver, overlayConfig);
+```
+
+Component injection through those longer constructors was never a supported extension point. The facade still provides the same documented overlay behavior. Public locator-result plumbing and local reporter/helper types that were not returned by recommended APIs are now implementation-private. Because this is a deliberate pre-1.0 binary break, consumers of those internals must remove those imports before upgrading to the 0.2.x line.
+
 ## Add Test Lens
 
 Add the stable runtime to your Maven project:
