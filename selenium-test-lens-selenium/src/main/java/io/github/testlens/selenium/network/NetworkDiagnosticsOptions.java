@@ -15,7 +15,6 @@ public final class NetworkDiagnosticsOptions {
     private final boolean maskSensitiveHeaders;
     private final int failedStatusThreshold;
     private final List<Pattern> ignoredUrlPatterns;
-    private final boolean attachToSession;
     private final int maxCapturedEvents;
 
     private NetworkDiagnosticsOptions(Builder builder) {
@@ -24,7 +23,6 @@ public final class NetworkDiagnosticsOptions {
         this.maskSensitiveHeaders = builder.maskSensitiveHeaders;
         this.failedStatusThreshold = builder.failedStatusThreshold <= 0 ? 400 : builder.failedStatusThreshold;
         this.ignoredUrlPatterns = Collections.unmodifiableList(new ArrayList<>(builder.ignoredUrlPatterns));
-        this.attachToSession = builder.attachToSession;
         this.maxCapturedEvents = builder.maxCapturedEvents;
     }
 
@@ -61,17 +59,6 @@ public final class NetworkDiagnosticsOptions {
         return maxCapturedEvents;
     }
 
-    /**
-     * Retained for binary compatibility. This value does not attach diagnostics automatically;
-     * use {@link NetworkDiagnostics#attachToSession(io.github.testlens.core.trace.UiTestLensSession)} explicitly.
-     *
-     * @deprecated No automatic attachment is performed. Scheduled for removal in 0.2.0.
-     */
-    @Deprecated(forRemoval = true, since = "0.1.1")
-    public boolean attachToSession() {
-        return attachToSession;
-    }
-
     public boolean isIgnored(String url) {
         String safe = url == null ? "" : url;
         return ignoredUrlPatterns.stream().anyMatch(pattern -> pattern.matcher(safe).matches());
@@ -83,7 +70,6 @@ public final class NetworkDiagnosticsOptions {
         private boolean maskSensitiveHeaders = true;
         private int failedStatusThreshold = 400;
         private final List<Pattern> ignoredUrlPatterns = new ArrayList<>();
-        private boolean attachToSession = true;
         private int maxCapturedEvents = DEFAULT_MAX_CAPTURED_EVENTS;
 
         private Builder() {}
@@ -121,18 +107,6 @@ public final class NetworkDiagnosticsOptions {
                 throw new IllegalArgumentException("maxCapturedEvents must be positive");
             }
             this.maxCapturedEvents = value;
-            return this;
-        }
-
-        /**
-         * Retained for binary compatibility. The configured value has no automatic effect;
-         * call {@link NetworkDiagnostics#attachToSession(io.github.testlens.core.trace.UiTestLensSession)} explicitly.
-         *
-         * @deprecated No automatic attachment is performed. Scheduled for removal in 0.2.0.
-         */
-        @Deprecated(forRemoval = true, since = "0.1.1")
-        public Builder attachToSession(boolean attachToSession) {
-            this.attachToSession = attachToSession;
             return this;
         }
 

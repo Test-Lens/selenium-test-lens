@@ -75,7 +75,7 @@ NetworkDiagnosticsResult attachToSession(UiTestLensSession session)
 NetworkDiagnosticsResult attachToSession(UiTestLensSession session, Path outputPath)
 ```
 
-Exports/attaches network JSON evidence. Attachment occurs only when one of these methods is called explicitly. The deprecated `NetworkDiagnosticsOptions.attachToSession(boolean)` option has no automatic effect and is scheduled for removal in 0.2.0. Paths and export failures appear in the result.
+Exports/attaches network JSON evidence. Attachment occurs only when one of these methods is called explicitly. The former no-op `NetworkDiagnosticsOptions.attachToSession(boolean)` option was removed in the 0.2.0 development line. Paths and export failures appear in the result. Finalizing a failed Test Lens session still snapshots the current network summary into its failure bundle without invoking these attachment methods.
 
 ## Supporting results and statuses
 

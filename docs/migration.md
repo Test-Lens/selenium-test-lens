@@ -15,6 +15,15 @@ JsOverlayDebug configured = new JsOverlayDebug(driver, overlayConfig);
 
 Component injection through those longer constructors was never a supported extension point. The facade still provides the same documented overlay behavior. Public locator-result plumbing and local reporter/helper types that were not returned by recommended APIs are now implementation-private. Because this is a deliberate pre-1.0 binary break, consumers of those internals must remove those imports before upgrading to the 0.2.x line.
 
+`NetworkDiagnosticsOptions.Builder.attachToSession(boolean)` and the corresponding options accessor were deprecated no-ops in the 0.1.x development cycle and were removed for 0.2.0. Remove that builder call and attach exported network evidence explicitly when needed:
+
+```java
+network.attachToSession(session);
+network.attachToSession(session, outputPath);
+```
+
+Failure finalization remains unchanged: Test Lens automatically snapshots the current network summary into a failure bundle. This is separate from explicitly exporting and attaching a network log artifact.
+
 ## Add Test Lens
 
 Add the stable runtime to your Maven project:

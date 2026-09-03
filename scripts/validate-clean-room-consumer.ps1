@@ -1,27 +1,104 @@
 param(
-    [string]$ReleaseVersion = "0.1.0"
+    [string]$ReleaseVersion
 )
 
 $ErrorActionPreference = "Stop"
 $repo = Split-Path -Parent $PSScriptRoot
+$mavenCommandName = if ($env:OS -eq "Windows_NT") { "mvn.cmd" } else { "mvn" }
+$mavenCommand = (Get-Command $mavenCommandName -ErrorAction Stop).Source
+$rootPomPath = Join-Path $repo "pom.xml"
+if (-not (Test-Path -LiteralPath $rootPomPath -PathType Leaf)) {
+    throw "Cannot read source version: root pom.xml does not exist at $rootPomPath"
+}
+try {
+    [xml]$rootPom = [IO.File]::ReadAllText($rootPomPath)
+    $rootNamespace = [System.Xml.XmlNamespaceManager]::new($rootPom.NameTable)
+    $rootNamespace.AddNamespace("m", "http://maven.apache.org/POM/4.0.0")
+    $sourceVersionNode = $rootPom.SelectSingleNode("/m:project/m:version", $rootNamespace)
+    $SourceVersion = if ($null -eq $sourceVersionNode) { "" } else { $sourceVersionNode.InnerText.Trim() }
+} catch {
+    throw "Cannot read source version from root pom.xml: $($_.Exception.Message)"
+}
+if ([string]::IsNullOrWhiteSpace($SourceVersion)) {
+    throw "Cannot read source version from root pom.xml"
+}
+if (-not $SourceVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)) {
+    throw "Clean-room source version must be a -SNAPSHOT version, found '$SourceVersion'"
+}
+if ([string]::IsNullOrWhiteSpace($ReleaseVersion)) {
+    $ReleaseVersion = $SourceVersion.Substring(0, $SourceVersion.Length - "-SNAPSHOT".Length)
+}
+if ([string]::IsNullOrWhiteSpace($ReleaseVersion)) {
+    throw "Release version must not be blank"
+}
 $work = Join-Path ([System.IO.Path]::GetTempPath()) ("selenium-test-lens-clean-room-" + [guid]::NewGuid())
 $source = Join-Path $work "release-source"
 $staging = Join-Path $work "staging"
 $emptyM2 = Join-Path $work "empty-m2"
 $consumer = Join-Path $work "consumer"
 
+function Copy-ReleaseTree([string]$SourceDirectory, [string]$DestinationDirectory) {
+    New-Item -ItemType Directory -Force -Path $DestinationDirectory | Out-Null
+    foreach ($file in Get-ChildItem -LiteralPath $SourceDirectory -File -Force) {
+        [IO.File]::Copy($file.FullName, (Join-Path $DestinationDirectory $file.Name), $true)
+    }
+    foreach ($directory in Get-ChildItem -LiteralPath $SourceDirectory -Directory -Force) {
+        if ($directory.Name -eq "target" -or ($directory.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+            continue
+        }
+        Copy-ReleaseTree $directory.FullName (Join-Path $DestinationDirectory $directory.Name)
+    }
+}
+
 New-Item -ItemType Directory -Force -Path $source, $staging, $emptyM2, (Join-Path $consumer "src/test/java/cleanroom") | Out-Null
 if (Get-ChildItem -LiteralPath $emptyM2 -Force) { throw "Clean-room Maven repository is not empty" }
 Get-ChildItem -LiteralPath $repo -Force |
     Where-Object { $_.Name -notin @(".git", ".agents", ".codex", "target") } |
-    Copy-Item -Destination $source -Recurse -Force
+    Where-Object {
+        $trackedEntries = @(& git -C $repo ls-files -- $_.Name)
+        if ($LASTEXITCODE -ne 0) {
+            throw "Cannot determine whether '$($_.Name)' belongs to the release source"
+        }
+        $trackedEntries.Count -gt 0
+    } |
+    ForEach-Object {
+        if ($_.PSIsContainer) {
+            Copy-ReleaseTree $_.FullName (Join-Path $source $_.Name)
+        } else {
+            [IO.File]::Copy($_.FullName, (Join-Path $source $_.Name), $true)
+        }
+    }
 
-Get-ChildItem -LiteralPath $source -Recurse -Filter pom.xml | ForEach-Object {
-    $content = [IO.File]::ReadAllText($_.FullName)
-    [IO.File]::WriteAllText($_.FullName, $content.Replace("0.1.0-SNAPSHOT", $ReleaseVersion))
+$reactorPoms = @(Get-ChildItem -LiteralPath $source -Recurse -Filter pom.xml |
+    Where-Object { $_.FullName -notmatch '[\\/]target[\\/]' })
+if ($reactorPoms.Count -eq 0) {
+    throw "No reactor POMs found in temporary release source"
 }
+$transformedPoms = 0
+$reactorPoms | ForEach-Object {
+    $content = [IO.File]::ReadAllText($_.FullName)
+    if (-not $content.Contains($SourceVersion)) {
+        throw "Reactor POM does not reference source version '$SourceVersion': $($_.FullName)"
+    }
+    $updated = $content.Replace($SourceVersion, $ReleaseVersion)
+    if ($updated -eq $content) {
+        throw "Release-version transformation made no change in $($_.FullName)"
+    }
+    [IO.File]::WriteAllText($_.FullName, $updated)
+    $transformedPoms++
+}
+if ($transformedPoms -ne $reactorPoms.Count) {
+    throw "Release-version transformation covered $transformedPoms of $($reactorPoms.Count) reactor POMs"
+}
+$staleSnapshotPoms = @($reactorPoms | Where-Object {
+    [IO.File]::ReadAllText($_.FullName).Contains($SourceVersion)
+})
+if ($staleSnapshotPoms.Count -gt 0) {
+    throw "Source snapshot '$SourceVersion' remains in transformed POMs: $($staleSnapshotPoms.FullName -join ', ')"
+}
+Write-Output "Clean-room version transform: $SourceVersion -> $ReleaseVersion ($transformedPoms reactor POMs)"
 
-& mvn -f (Join-Path $source "pom.xml") clean package -Prelease-artifacts -DskipTests
+& $mavenCommand -f (Join-Path $source "pom.xml") clean package -Prelease-artifacts -DskipTests
 if ($LASTEXITCODE -ne 0) { throw "Temporary release build failed" }
 & (Join-Path $source "scripts/validate-release-packaging.ps1") -Version $ReleaseVersion -StagingDirectory $staging
 if ($LASTEXITCODE -ne 0) { throw "Release staging validation failed" }
@@ -130,11 +207,11 @@ class ReleaseConsumerTest {
 $repoArg = "-Dmaven.repo.local=$emptyM2"
 Push-Location $consumer
 try {
-    & mvn $repoArg dependency:tree
+    & $mavenCommand $repoArg dependency:tree
     if ($LASTEXITCODE -ne 0) { throw "Clean-room dependency tree failed" }
-    & mvn $repoArg test-compile
+    & $mavenCommand $repoArg test-compile
     if ($LASTEXITCODE -ne 0) { throw "Clean-room test compilation failed" }
-    & mvn $repoArg test
+    & $mavenCommand $repoArg test
     if ($LASTEXITCODE -ne 0) { throw "Clean-room browser smoke failed" }
 } finally {
     Pop-Location

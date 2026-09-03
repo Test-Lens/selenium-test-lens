@@ -22,6 +22,11 @@ Successful operations that required a recovery retry are exposed as a per-sessio
 
 ## Install
 
+The latest Maven Central release is `0.1.0`. The repository itself is on the
+unreleased `0.2.0-SNAPSHOT` development line; snapshot coordinates shown for
+the runner adapters require a local source build or a configured snapshot
+repository.
+
 ```xml
 <dependency>
     <groupId>io.github.test-lens</groupId>
@@ -40,13 +45,13 @@ Selenium is consumer-owned and must be declared separately at the version manage
 </dependency>
 ```
 
-JUnit 5 users can add the published lifecycle extension instead of writing per-test setup and teardown:
+When building the current source tree, JUnit 5 users can add the lifecycle extension instead of writing per-test setup and teardown:
 
 ```xml
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-junit5</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -65,13 +70,13 @@ void savesOrder(WebDriver driver, TestLens lens) {
 
 The extension owns one driver per JUnit invocation, maps passed, failed, and aborted outcomes to Lens, writes reports, and then calls `quit()`. Do not also quit that driver in `@AfterEach`. See the [JUnit 5 integration guide](docs/integrations/junit5.md).
 
-TestNG users can use the published listener adapter:
+When building the current source tree, TestNG users can use the listener adapter:
 
 ```xml
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-testng</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <scope>test</scope>
 </dependency>
 ```

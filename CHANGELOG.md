@@ -4,6 +4,8 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+The next planned release line is 0.2.0. Changes below are under development and have not been released.
+
 ### Added
 - Added passive browser-network capture through Selenium 4.39 WebDriver BiDi. `BIDI` subscribes to request, completed-response, and fetch-error events; `AUTO` selects BiDi only when an active connection can be subscribed, while `MANUAL` remains the default and `PERFORMANCE_LOGS` remains unsupported. Capture now exposes requested/active modes, bounded event storage, dropped-event counts, redirect correlation, asynchronous waits, trace events, and failure-bundle summaries.
 - Added automatic best-effort failure bundles for final `FAILED` sessions, including diagnostic/clean screenshots, context, trace diagnostics, safe runtime/configuration snapshots, network summary, optional page source/console, a versioned manifest, and deterministic ZIP packaging.
@@ -13,11 +15,11 @@ All notable changes to Selenium Test Lens will be documented in this file.
 - Added `TestLens.finishSkipped(String)` so runner integrations can finalize aborted, assumed, or skipped tests as `SKIPPED` while retaining the common JSON/HTML and HUD-cleanup pipeline.
 
 ### Changed
-- Reduced the accidental pre-1.0 binary surface from 230 types/1719 callables to 214 types/1655 callables. Recommended user APIs are unchanged; local reporters, locator result plumbing, unused plans/helpers, and the HTML escaper are now implementation-private. `BrowserScriptExecutor` is now explicitly classified as a supported low-level SPI.
+- Reduced the accidental pre-1.0 binary surface from 230 types/1719 callables to 214 types/1653 callables. Recommended user APIs are unchanged; local reporters, locator result plumbing, unused plans/helpers, and the HTML escaper are now implementation-private. `BrowserScriptExecutor` is now explicitly classified as a supported low-level SPI, and the two previously deprecated no-op network-options callables were removed for the 0.2.0 line.
 - Made facade finalization outcome explicit: `finishFailed(null)` now remains `FAILED`, and only failed finalization can request an automatic failure screenshot.
 - Fixed `UiAssertionOptions.failFastOnMissingElement(true)` for the normal `UiLocator.expect(options)` path: genuinely missing required elements now fail on the first observation, while the default remains retryable. Missing elements still satisfy `toBeHidden`, and stale elements remain a distinct retryable state.
 - Kept `MANUAL` as the default network mode. `BIDI` and `AUTO` now use an explicitly enabled WebDriver BiDi session without fallback; `PERFORMANCE_LOGS` remains `UNSUPPORTED`.
-- Deprecated `NetworkDiagnosticsOptions.attachToSession` for removal in 0.2.0. Network diagnostics are attached only through explicit `NetworkDiagnostics.attachToSession(...)` calls.
+- Removed the previously deprecated, no-op `NetworkDiagnosticsOptions.attachToSession` accessor and builder method for 0.2.0 development. Network diagnostics are attached only through explicit `NetworkDiagnostics.attachToSession(...)` calls; failure-bundle finalization still snapshots the active network summary automatically.
 
 ### Removed
 - Removed the three implementation-injection constructors of `JsOverlayDebug`; migrate to `JsOverlayDebug(WebDriver)` or `JsOverlayDebug(WebDriver, OverlayConfig)`. Removed the implementation-only `ApiCallActions` type and hid local assertion, business, locator, step, plan, script, and exporter plumbing. This intentional pre-1.0 break is planned for the 0.2.x line.

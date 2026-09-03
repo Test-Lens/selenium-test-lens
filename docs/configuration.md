@@ -143,7 +143,7 @@ Some features expose dedicated configuration types close to the API that uses th
 | `VideoEvidenceOptions` | Existing video file or URL metadata and session attachment |
 | `AuthStateOptions` | Authentication-state capture scope and metadata |
 | `AuthRestoreOptions` | Authentication-state navigation, clearing, validation, and restore behavior |
-| `NetworkDiagnosticsOptions` | Requested manual/BiDi mode, failure threshold, ignored URLs, optional masked headers, and event limit; its deprecated `attachToSession` option has no automatic effect |
+| `NetworkDiagnosticsOptions` | Requested manual/BiDi mode, failure threshold, ignored URLs, optional masked headers, and event limit |
 | `NetworkWaitCondition` | URL, method, status, timeout, and polling conditions for network waits |
 
 See [Configuration builders](reference/configuration.md) or Javadoc for individual builder methods.

@@ -10,7 +10,7 @@ This guide shows the shortest path from the Maven dependency to a working Lens s
 - Maven 3.x
 - A Selenium `WebDriver` created by your test project
 
-Selenium Test Lens 0.1.0 has been verified with Selenium 4.39.0.
+The latest published Selenium Test Lens release is `0.1.0`, verified with Selenium 4.39.0. The source tree is currently the unreleased `0.2.0-SNAPSHOT` development line.
 
 ## Installation
 
@@ -34,13 +34,13 @@ Keep Selenium as an explicit dependency and use the version already managed by y
 </dependency>
 ```
 
-For JUnit 5, add the optional published integration as a test dependency. It brings the lifecycle extension, while your project still selects the Selenium version:
+For a source build of the current development line, add the optional JUnit 5 integration as a test dependency. The `0.2.0-SNAPSHOT` coordinate below is not the stable Maven Central release. It brings the lifecycle extension, while your project still selects the Selenium version:
 
 ```xml
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-junit5</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -80,7 +80,7 @@ try {
 
 Lens finalization writes the session diagnostics. Use `finishSkipped(reason)` for an aborted test or unmet assumption; unlike `finishFailed(...)`, it does not request a failure screenshot. Keep your existing `WebDriver` cleanup as-is.
 
-For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The published runner adapters are the recommended JUnit 5 and TestNG paths.
+For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The runner adapters are the recommended JUnit 5 and TestNG paths for the `0.2.0-SNAPSHOT` development line.
 
 ## Run your test
 

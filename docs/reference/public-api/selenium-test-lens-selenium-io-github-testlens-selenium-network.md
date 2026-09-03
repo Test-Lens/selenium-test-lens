@@ -92,7 +92,6 @@ public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder mas
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder failedStatusThreshold(int)
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder ignoreUrlPattern(java.lang.String)
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder maxCapturedEvents(int)
-public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder attachToSession(boolean)
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions build()
 ```
 
@@ -113,7 +112,6 @@ public boolean maskSensitiveHeaders()
 public int failedStatusThreshold()
 public java.util.List<java.util.regex.Pattern> ignoredUrlPatterns()
 public int maxCapturedEvents()
-public boolean attachToSession()
 public boolean isIgnored(java.lang.String)
 ```
 

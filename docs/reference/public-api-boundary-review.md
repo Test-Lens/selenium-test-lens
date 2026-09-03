@@ -11,7 +11,7 @@ This is the first controlled pre-1.0 API-boundary cleanup, planned for the 0.2.x
 | `LOW_LEVEL_API` | 20 | 21 | +1 |
 | `INTERNAL_STYLE_PUBLIC` | 38 | 21 | -17 |
 | **All public types** | **230** | **214** | **-16** |
-| **Public callables** | **1719** | **1655** | **-64** |
+| **Public callables** | **1719** | **1653** | **-66** |
 
 `BrowserScriptExecutor` is the one consciously supported low-level SPI and was reclassified rather than hidden. Sixteen implementation types were made package-private or removed. Every remaining internal-style type is deferred because hiding it requires a deliberate package or Maven-module boundary refactor.
 

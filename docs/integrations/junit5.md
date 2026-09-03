@@ -1,6 +1,6 @@
 # JUnit 5 integration
 
-The published `selenium-test-lens-junit5` module is the recommended JUnit Jupiter integration. It creates one `WebDriver`, `TestLens`, and trace session for every test invocation, injects the driver and Lens into the test method, finalizes diagnostics, and only then closes the driver.
+The `selenium-test-lens-junit5` module is the recommended JUnit Jupiter integration. The coordinate below follows the unreleased `0.2.0-SNAPSHOT` source tree and therefore requires a local source build or a configured snapshot repository. It creates one `WebDriver`, `TestLens`, and trace session for every test invocation, injects the driver and Lens into the test method, finalizes diagnostics, and only then closes the driver.
 
 ## Install
 
@@ -10,7 +10,7 @@ Add the extension in test scope and keep Selenium explicit at the version manage
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-junit5</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <scope>test</scope>
 </dependency>
 

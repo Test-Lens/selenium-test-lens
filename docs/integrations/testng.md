@@ -1,6 +1,6 @@
 # TestNG integration
 
-The published optional `selenium-test-lens-testng` module owns one `WebDriver`, `TestLens`, and session for every physical TestNG test-method invocation. It uses TestNG's invocation listener and `ITestResult` attributes; adding the dependency alone does not register a listener.
+The optional `selenium-test-lens-testng` module owns one `WebDriver`, `TestLens`, and session for every physical TestNG test-method invocation. The coordinate below follows the unreleased `0.2.0-SNAPSHOT` source tree and therefore requires a local source build or a configured snapshot repository. It uses TestNG's invocation listener and `ITestResult` attributes; adding the dependency alone does not register a listener.
 
 ## Installation
 
@@ -8,7 +8,7 @@ The published optional `selenium-test-lens-testng` module owns one `WebDriver`, 
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-testng</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <scope>test</scope>
 </dependency>
 ```

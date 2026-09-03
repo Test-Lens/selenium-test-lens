@@ -18,6 +18,10 @@ jobs:
           java-version: "17"
           cache: maven
 
+      - name: Check reactor version
+        shell: pwsh
+        run: ./scripts/check-reactor-versions.ps1 -ExpectedVersion 0.2.0-SNAPSHOT
+
       - name: Run tests
         run: mvn -q test
 
