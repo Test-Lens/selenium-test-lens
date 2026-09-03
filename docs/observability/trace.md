@@ -28,6 +28,8 @@ The facade maps finalization directly to trace status: `finishPassed()` produces
 
 Recovery retries use `TraceEventType.RETRY`; the summary and policy decision are recorded before `SESSION_FINISHED`. Polling events retain their timeline visibility but never become retry events or make `flakyCandidate` true. The default policy observes without changing outcomes; configured fail policies act only during `finishPassed()`. Names, messages, paths, and attached metadata are persisted, so avoid putting credentials or tokens in them.
 
+Network diagnostics emit typed start/stop, request, response, fetch-error, wait, and assertion log events into the attached trace. General log metadata removes query strings from its URL preview; explicit network event exports retain their normal URL value, so query parameters still require secret-aware handling. Lens-owned capture is stopped before `SESSION_FINISHED`.
+
 ## Direct session and log integration
 
 Direct `UiTestLensSession` construction is advanced API for integrations that do not use the `TestLens` facade. Its public methods cover `start`, event and artifact recording, finalization, snapshots/accessors, and HTML/JSON export overloads. There is no public general-purpose log-recording method on the session. To include structured log entries, create a `TraceLogSink` and add it to a `UiTestLensLogger`; the sink maps accepted entries to trace events:

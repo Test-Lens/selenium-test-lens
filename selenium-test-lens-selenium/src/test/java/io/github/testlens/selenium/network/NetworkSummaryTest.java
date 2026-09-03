@@ -26,5 +26,16 @@ class NetworkSummaryTest {
         assertTrue(summary.hasFailures());
         assertTrue(summary.failureSummary().contains("responses=1"));
     }
+
+    @Test
+    void preservesOldConstructorAndReportsDroppedEvents() {
+        NetworkSummary legacy = new NetworkSummary(1, 2, 0, 0, 3, null,
+                NetworkDiagnosticsStatus.STARTED);
+        NetworkSummary bounded = new NetworkSummary(1, 2, 0, 0, 3, 4, null,
+                NetworkDiagnosticsStatus.STARTED);
+
+        assertEquals(0, legacy.droppedEvents());
+        assertEquals(4, bounded.droppedEvents());
+    }
 }
 

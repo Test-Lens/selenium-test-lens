@@ -62,7 +62,7 @@ See [observability](observability/index.md) for artifact paths, nullable results
 
 ## Network diagnostics
 
-[`NetworkDiagnostics`](advanced/network.md) records events supplied explicitly through `addManualEvent(...)`, summarizes failures, exports JSON, waits for matching manual responses, and asserts response conditions. `MANUAL` is the only active capture mode in the current version and is the default. `AUTO`, `BIDI`, and `PERFORMANCE_LOGS` report `UNSUPPORTED`; they do not select or fall back to another collector. Matching supports URL substring/regex/exact URL, method, status/range, timeout, polling, failed responses, and request-only mode.
+[`NetworkDiagnostics`](advanced/network.md) supports explicit `MANUAL` events and passive Selenium 4.39 WebDriver BiDi capture. `MANUAL` remains the default. `BIDI` requires a session created with `enableBiDi()`; `AUTO` selects only a working BiDi subscription, without fallback. `PERFORMANCE_LOGS` remains unsupported. Capture includes requests, completed responses, fetch errors, redirect correlation, bounded storage, waits, assertions, JSON, trace events, and failure-bundle summaries. It does not collect bodies or a separate cookie collection.
 
 This is diagnostics and observation, not request interception, response mocking, or a general HTTP client.
 

@@ -7,13 +7,30 @@ import java.util.TreeMap;
 public final class NetworkLogExporter {
     public String export(NetworkDiagnostics diagnostics) {
         if (diagnostics == null) {
-            return "[]";
+            return "{}";
         }
-        return export(diagnostics.events());
+        NetworkSummary summary = diagnostics.summary();
+        StringBuilder out = new StringBuilder();
+        out.append('{');
+        field(out, "requestedCaptureMode", diagnostics.captureMode().name(), true);
+        field(out, "activeCaptureMode", diagnostics.activeCaptureMode().map(Enum::name).orElse(""), false);
+        field(out, "status", summary.status().name(), false);
+        number(out, "ignoredEvents", summary.ignoredEvents(), false);
+        number(out, "droppedEvents", summary.droppedEvents(), false);
+        comma(out, false);
+        name(out, "events");
+        appendEvents(out, diagnostics.events());
+        out.append('}');
+        return out.toString();
     }
 
     public String export(List<NetworkEvent> events) {
         StringBuilder out = new StringBuilder();
+        appendEvents(out, events);
+        return out.toString();
+    }
+
+    private void appendEvents(StringBuilder out, List<NetworkEvent> events) {
         out.append('[');
         int written = 0;
         for (NetworkEvent event : events == null ? List.<NetworkEvent>of() : events) {
@@ -22,7 +39,6 @@ public final class NetworkLogExporter {
             appendEvent(out, event);
         }
         out.append(']');
-        return out.toString();
     }
 
     private void appendEvent(StringBuilder out, NetworkEvent event) {

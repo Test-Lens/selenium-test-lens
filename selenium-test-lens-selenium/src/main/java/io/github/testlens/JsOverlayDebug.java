@@ -349,6 +349,13 @@ public final class JsOverlayDebug {
         return Optional.ofNullable(networkDiagnostics);
     }
 
+    void stopNetworkDiagnostics() {
+        NetworkDiagnostics current = networkDiagnostics;
+        if (current != null && current.isStarted()) {
+            current.stop();
+        }
+    }
+
     UiTestLensSession startSession(String name,
                                    io.github.testlens.core.trace.RetryOutcomePolicy policy,
                                    int allowedRetries) {

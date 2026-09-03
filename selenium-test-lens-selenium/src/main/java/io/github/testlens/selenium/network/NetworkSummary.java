@@ -3,27 +3,41 @@ package io.github.testlens.selenium.network;
 import java.util.List;
 import java.util.Optional;
 
+/** Immutable counts for a network capture snapshot. */
 public final class NetworkSummary {
     private final int totalRequests;
     private final int totalResponses;
     private final int failedResponses;
     private final int failedRequests;
     private final int ignoredEvents;
+    private final int droppedEvents;
     private final NetworkEvent firstFailure;
     private final NetworkDiagnosticsStatus status;
 
     public NetworkSummary(int totalRequests, int totalResponses, int failedResponses, int failedRequests,
                           int ignoredEvents, NetworkEvent firstFailure, NetworkDiagnosticsStatus status) {
+        this(totalRequests, totalResponses, failedResponses, failedRequests, ignoredEvents, 0, firstFailure, status);
+    }
+
+    public NetworkSummary(int totalRequests, int totalResponses, int failedResponses, int failedRequests,
+                          int ignoredEvents, int droppedEvents, NetworkEvent firstFailure,
+                          NetworkDiagnosticsStatus status) {
         this.totalRequests = totalRequests;
         this.totalResponses = totalResponses;
         this.failedResponses = failedResponses;
         this.failedRequests = failedRequests;
         this.ignoredEvents = ignoredEvents;
+        this.droppedEvents = droppedEvents;
         this.firstFailure = firstFailure;
         this.status = status == null ? NetworkDiagnosticsStatus.STOPPED : status;
     }
 
     public static NetworkSummary from(List<NetworkEvent> events, int ignoredEvents, int failedStatusThreshold, NetworkDiagnosticsStatus status) {
+        return from(events, ignoredEvents, 0, failedStatusThreshold, status);
+    }
+
+    static NetworkSummary from(List<NetworkEvent> events, int ignoredEvents, int droppedEvents,
+                               int failedStatusThreshold, NetworkDiagnosticsStatus status) {
         int requests = 0;
         int responses = 0;
         int failedResponses = 0;
@@ -47,7 +61,8 @@ public final class NetworkSummary {
                 }
             }
         }
-        return new NetworkSummary(requests, responses, failedResponses, failedRequests, ignoredEvents, firstFailure, status);
+        return new NetworkSummary(requests, responses, failedResponses, failedRequests,
+                ignoredEvents, droppedEvents, firstFailure, status);
     }
 
     public int totalRequests() { return totalRequests; }
@@ -55,6 +70,8 @@ public final class NetworkSummary {
     public int failedResponses() { return failedResponses; }
     public int failedRequests() { return failedRequests; }
     public int ignoredEvents() { return ignoredEvents; }
+    /** Captured events rejected after the configured retention limit was reached. */
+    public int droppedEvents() { return droppedEvents; }
     public Optional<NetworkEvent> firstFailure() { return Optional.ofNullable(firstFailure); }
     public NetworkDiagnosticsStatus status() { return status; }
 

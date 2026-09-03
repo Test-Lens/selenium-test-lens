@@ -54,7 +54,7 @@ public final class NetworkWaitCondition {
         if (!includeFailedResponses && event.response().status() >= 400) {
             return false;
         }
-        return matchesResponse(event.response(), allEvents);
+        return matchesResponse(event, allEvents);
     }
 
     boolean matchesFailedResponse(NetworkEvent event, List<NetworkEvent> allEvents) {
@@ -63,7 +63,7 @@ public final class NetworkWaitCondition {
         }
         return matchesUrl(event.response().url())
                 && matchesStatus(event.response().status())
-                && matchesMethod(event.response().requestId(), allEvents);
+                && matchesMethod(event, allEvents);
     }
 
     public String summary() {
@@ -96,10 +96,11 @@ public final class NetworkWaitCondition {
         return matchesUrl(request.url()) && (method.isBlank() || method.equalsIgnoreCase(request.method()));
     }
 
-    private boolean matchesResponse(NetworkResponse response, List<NetworkEvent> allEvents) {
+    private boolean matchesResponse(NetworkEvent event, List<NetworkEvent> allEvents) {
+        NetworkResponse response = event.response();
         return matchesUrl(response.url())
                 && matchesStatus(response.status())
-                && matchesMethod(response.requestId(), allEvents);
+                && matchesMethod(event, allEvents);
     }
 
     private boolean matchesUrl(String url) {
@@ -123,23 +124,29 @@ public final class NetworkWaitCondition {
         return maxStatus == null || responseStatus <= maxStatus;
     }
 
-    private boolean matchesMethod(String requestId, List<NetworkEvent> allEvents) {
+    private boolean matchesMethod(NetworkEvent responseEvent, List<NetworkEvent> allEvents) {
         if (method.isBlank()) {
             return true;
         }
-        Optional<NetworkRequest> request = findRequest(requestId, allEvents);
+        Optional<NetworkRequest> request = findRequest(responseEvent, allEvents);
         return request.map(value -> method.equalsIgnoreCase(value.method())).orElse(false);
     }
 
-    private Optional<NetworkRequest> findRequest(String requestId, List<NetworkEvent> allEvents) {
+    private Optional<NetworkRequest> findRequest(NetworkEvent responseEvent, List<NetworkEvent> allEvents) {
+        String requestId = responseEvent == null || responseEvent.response() == null
+                ? "" : responseEvent.response().requestId();
         if (requestId == null || requestId.isBlank() || allEvents == null) {
             return Optional.empty();
         }
-        return allEvents.stream()
-                .map(NetworkEvent::request)
-                .filter(Objects::nonNull)
-                .filter(request -> requestId.equals(request.id()))
-                .findFirst();
+        String redirectCount = responseEvent.attributes().get("redirectCount");
+        Optional<NetworkRequest> correlated = allEvents.stream()
+                .filter(event -> event.request() != null && requestId.equals(event.request().id()))
+                .filter(event -> redirectCount == null
+                        || redirectCount.equals(event.attributes().get("redirectCount")))
+                .map(NetworkEvent::request).findFirst();
+        return correlated.isPresent() ? correlated : allEvents.stream()
+                .map(NetworkEvent::request).filter(Objects::nonNull)
+                .filter(request -> requestId.equals(request.id())).findFirst();
     }
 
     private static Pattern compile(String regex) {

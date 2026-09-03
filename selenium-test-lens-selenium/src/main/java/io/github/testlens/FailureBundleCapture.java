@@ -266,12 +266,16 @@ final class FailureBundleCapture {
         if (current.isEmpty()) {
             Map<String, Object> data = orderedMap();
             data.put("captureMode", "NOT_INITIALIZED");
+            data.put("requestedCaptureMode", "NOT_INITIALIZED");
+            data.put("activeCaptureMode", "");
             data.put("status", "STOPPED");
             data.put("totalRequests", 0);
             data.put("totalResponses", 0);
             data.put("failedResponses", 0);
             data.put("failedRequests", 0);
             data.put("pending", 0);
+            data.put("ignoredEvents", 0);
+            data.put("droppedEvents", 0);
             data.put("responseStatuses", Map.of());
             writeJsonComponent("networkSummary", "network-summary.json", data);
             return;
@@ -287,6 +291,8 @@ final class FailureBundleCapture {
             }
             Map<String, Object> data = orderedMap();
             data.put("captureMode", diagnostics.captureMode().name());
+            data.put("requestedCaptureMode", diagnostics.captureMode().name());
+            data.put("activeCaptureMode", diagnostics.activeCaptureMode().map(Enum::name).orElse(""));
             data.put("status", summary.status().name());
             data.put("totalRequests", summary.totalRequests());
             data.put("totalResponses", summary.totalResponses());
@@ -294,6 +300,7 @@ final class FailureBundleCapture {
             data.put("failedRequests", summary.failedRequests());
             data.put("pending", Math.max(0, summary.totalRequests() - summary.totalResponses() - summary.failedRequests()));
             data.put("ignoredEvents", summary.ignoredEvents());
+            data.put("droppedEvents", summary.droppedEvents());
             data.put("responseStatuses", statuses);
             writeJsonComponent("networkSummary", "network-summary.json", data);
         } catch (RuntimeException failure) {

@@ -5,14 +5,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/** Options for manual network diagnostics collection. */
+/** Options for bounded manual or WebDriver BiDi network diagnostics collection. */
 public final class NetworkDiagnosticsOptions {
+    /** Default maximum number of captured request, response, and fetch-error events. */
+    public static final int DEFAULT_MAX_CAPTURED_EVENTS = 10_000;
+
     private final NetworkCaptureMode captureMode;
     private final boolean includeHeaders;
     private final boolean maskSensitiveHeaders;
     private final int failedStatusThreshold;
     private final List<Pattern> ignoredUrlPatterns;
     private final boolean attachToSession;
+    private final int maxCapturedEvents;
 
     private NetworkDiagnosticsOptions(Builder builder) {
         this.captureMode = builder.captureMode == null ? NetworkCaptureMode.MANUAL : builder.captureMode;
@@ -21,6 +25,7 @@ public final class NetworkDiagnosticsOptions {
         this.failedStatusThreshold = builder.failedStatusThreshold <= 0 ? 400 : builder.failedStatusThreshold;
         this.ignoredUrlPatterns = Collections.unmodifiableList(new ArrayList<>(builder.ignoredUrlPatterns));
         this.attachToSession = builder.attachToSession;
+        this.maxCapturedEvents = builder.maxCapturedEvents;
     }
 
     public static NetworkDiagnosticsOptions defaults() {
@@ -51,6 +56,11 @@ public final class NetworkDiagnosticsOptions {
         return ignoredUrlPatterns;
     }
 
+    /** Maximum captured events retained before later events are counted as dropped. */
+    public int maxCapturedEvents() {
+        return maxCapturedEvents;
+    }
+
     /**
      * Retained for binary compatibility. This value does not attach diagnostics automatically;
      * use {@link NetworkDiagnostics#attachToSession(io.github.testlens.core.trace.UiTestLensSession)} explicitly.
@@ -74,6 +84,7 @@ public final class NetworkDiagnosticsOptions {
         private int failedStatusThreshold = 400;
         private final List<Pattern> ignoredUrlPatterns = new ArrayList<>();
         private boolean attachToSession = true;
+        private int maxCapturedEvents = DEFAULT_MAX_CAPTURED_EVENTS;
 
         private Builder() {}
 
@@ -101,6 +112,15 @@ public final class NetworkDiagnosticsOptions {
             if (pattern != null && !pattern.isBlank()) {
                 ignoredUrlPatterns.add(Pattern.compile(pattern));
             }
+            return this;
+        }
+
+        /** Sets the positive per-diagnostics event retention limit. */
+        public Builder maxCapturedEvents(int value) {
+            if (value <= 0) {
+                throw new IllegalArgumentException("maxCapturedEvents must be positive");
+            }
+            this.maxCapturedEvents = value;
             return this;
         }
 

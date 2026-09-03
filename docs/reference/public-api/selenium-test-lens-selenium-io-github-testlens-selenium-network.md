@@ -48,13 +48,14 @@ public static io.github.testlens.selenium.network.NetworkCaptureMode valueOf(jav
 ```java
 public io.github.testlens.selenium.network.NetworkDiagnostics(org.openqa.selenium.WebDriver)
 public io.github.testlens.selenium.network.NetworkDiagnostics(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayLogger)
-public synchronized io.github.testlens.selenium.network.NetworkDiagnostics start(io.github.testlens.selenium.network.NetworkDiagnosticsOptions)
-public synchronized io.github.testlens.selenium.network.NetworkDiagnostics stop()
-public synchronized boolean isStarted()
-public synchronized java.util.List<io.github.testlens.selenium.network.NetworkEvent> events()
-public synchronized io.github.testlens.selenium.network.NetworkSummary summary()
-public synchronized io.github.testlens.selenium.network.NetworkCaptureMode captureMode()
-public synchronized io.github.testlens.selenium.network.NetworkEvent addManualEvent(io.github.testlens.selenium.network.NetworkEvent)
+public io.github.testlens.selenium.network.NetworkDiagnostics start(io.github.testlens.selenium.network.NetworkDiagnosticsOptions)
+public io.github.testlens.selenium.network.NetworkDiagnostics stop()
+public boolean isStarted()
+public java.util.List<io.github.testlens.selenium.network.NetworkEvent> events()
+public io.github.testlens.selenium.network.NetworkSummary summary()
+public io.github.testlens.selenium.network.NetworkCaptureMode captureMode()
+public java.util.Optional<io.github.testlens.selenium.network.NetworkCaptureMode> activeCaptureMode()
+public io.github.testlens.selenium.network.NetworkEvent addManualEvent(io.github.testlens.selenium.network.NetworkEvent)
 public io.github.testlens.selenium.network.NetworkDiagnosticsResult assertNoFailedRequests()
 public io.github.testlens.selenium.network.NetworkWaitResult waitForResponse(java.lang.String, int)
 public io.github.testlens.selenium.network.NetworkWaitResult waitForResponse(io.github.testlens.selenium.network.NetworkWaitCondition)
@@ -62,7 +63,7 @@ public io.github.testlens.selenium.network.NetworkResponseExpectation expectResp
 public java.util.Optional<io.github.testlens.selenium.network.NetworkEvent> findMatchingEvent(io.github.testlens.selenium.network.NetworkWaitCondition)
 public io.github.testlens.selenium.network.NetworkDiagnosticsResult attachToSession(io.github.testlens.core.trace.UiTestLensSession)
 public io.github.testlens.selenium.network.NetworkDiagnosticsResult attachToSession(io.github.testlens.core.trace.UiTestLensSession, java.nio.file.Path)
-public synchronized java.lang.String exportJson()
+public java.lang.String exportJson()
 ```
 
 ## `io.github.testlens.selenium.network.NetworkDiagnosticsException` {#io-github-testlens-selenium-network-networkdiagnosticsexception}
@@ -90,6 +91,7 @@ public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder inc
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder maskSensitiveHeaders(boolean)
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder failedStatusThreshold(int)
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder ignoreUrlPattern(java.lang.String)
+public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder maxCapturedEvents(int)
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder attachToSession(boolean)
 public io.github.testlens.selenium.network.NetworkDiagnosticsOptions build()
 ```
@@ -102,6 +104,7 @@ public io.github.testlens.selenium.network.NetworkDiagnosticsOptions build()
 - Type kind: `class`
 
 ```java
+public static final int DEFAULT_MAX_CAPTURED_EVENTS
 public static io.github.testlens.selenium.network.NetworkDiagnosticsOptions defaults()
 public static io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder builder()
 public io.github.testlens.selenium.network.NetworkCaptureMode captureMode()
@@ -109,6 +112,7 @@ public boolean includeHeaders()
 public boolean maskSensitiveHeaders()
 public int failedStatusThreshold()
 public java.util.List<java.util.regex.Pattern> ignoredUrlPatterns()
+public int maxCapturedEvents()
 public boolean attachToSession()
 public boolean isIgnored(java.lang.String)
 ```
@@ -286,12 +290,14 @@ public io.github.testlens.selenium.network.NetworkWaitResult waitNow()
 
 ```java
 public io.github.testlens.selenium.network.NetworkSummary(int, int, int, int, int, io.github.testlens.selenium.network.NetworkEvent, io.github.testlens.selenium.network.NetworkDiagnosticsStatus)
+public io.github.testlens.selenium.network.NetworkSummary(int, int, int, int, int, int, io.github.testlens.selenium.network.NetworkEvent, io.github.testlens.selenium.network.NetworkDiagnosticsStatus)
 public static io.github.testlens.selenium.network.NetworkSummary from(java.util.List<io.github.testlens.selenium.network.NetworkEvent>, int, int, io.github.testlens.selenium.network.NetworkDiagnosticsStatus)
 public int totalRequests()
 public int totalResponses()
 public int failedResponses()
 public int failedRequests()
 public int ignoredEvents()
+public int droppedEvents()
 public java.util.Optional<io.github.testlens.selenium.network.NetworkEvent> firstFailure()
 public io.github.testlens.selenium.network.NetworkDiagnosticsStatus status()
 public boolean hasFailures()
@@ -358,6 +364,7 @@ public static final io.github.testlens.selenium.network.NetworkWaitFailureReason
 public static final io.github.testlens.selenium.network.NetworkWaitFailureReason FAILED_RESPONSE_MATCHED
 public static final io.github.testlens.selenium.network.NetworkWaitFailureReason CAPTURE_NOT_STARTED
 public static final io.github.testlens.selenium.network.NetworkWaitFailureReason UNSUPPORTED_CAPTURE_MODE
+public static final io.github.testlens.selenium.network.NetworkWaitFailureReason CAPTURE_START_FAILED
 public static final io.github.testlens.selenium.network.NetworkWaitFailureReason UNKNOWN
 public static io.github.testlens.selenium.network.NetworkWaitFailureReason[] values()
 public static io.github.testlens.selenium.network.NetworkWaitFailureReason valueOf(java.lang.String)

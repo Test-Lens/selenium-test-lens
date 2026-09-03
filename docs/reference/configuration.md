@@ -19,7 +19,7 @@ All option objects are immutable after `build()` unless their API explicitly exp
 
 Accessor methods have the same names without arguments; `build()` returns options.
 
-`FailureBundleOptions.defaults()` enables the bundle, diagnostic/clean screenshots, context, trace diagnostics, manual-network summary, runtime/configuration allowlists, and ZIP. It disables page source and browser console. `complete()` explicitly enables both sensitive collectors. Defaults are 5 MiB per text artifact and 1000 console entries. `screenshotOnFailure(false)` disables both screenshots only; `FailureBundleOptions.enabled(false)` disables the additional bundle while preserving the historical screenshot setting.
+`FailureBundleOptions.defaults()` enables the bundle, diagnostic/clean screenshots, context, trace diagnostics, current network summary, runtime/configuration allowlists, and ZIP. It disables page source and browser console. `complete()` explicitly enables both sensitive collectors. Defaults are 5 MiB per text artifact and 1000 console entries. `screenshotOnFailure(false)` disables both screenshots only; `FailureBundleOptions.enabled(false)` disables the additional bundle while preserving the historical screenshot setting.
 
 Runner adapters consume the same immutable options per invocation. JUnit 5 configures them with `TestLensExtension.Builder.lensOptions(...)`. TestNG factories override `TestLensTestNgFactory.lensOptions()` and may override `sessionName(ITestResult)`; the factory type must have a public no-argument constructor and is instantiated afresh for each physical invocation. See [TestNG integration](../integrations/testng.md).
 
@@ -141,7 +141,7 @@ The builder exposes **all** of: `background`, `foreground`, `mutedForeground`, `
 
 ## Network options
 
-`NetworkDiagnosticsOptions`: `captureMode(MANUAL)`, `includeHeaders(false)`, `maskSensitiveHeaders(true)`, `failedStatusThreshold(400)` (values `<= 0` normalize to 400), and repeatable `ignoreUrlPattern(regex)` (regex validated). `MANUAL` is the only implemented active mode. `OFF` is inactive; `AUTO`, `BIDI`, and `PERFORMANCE_LOGS` return `UNSUPPORTED` without fallback. The retained `attachToSession(boolean)` option is deprecated for removal in 0.2.0 and has no automatic effect. Attach only through an explicit `NetworkDiagnostics.attachToSession(...)` call. Headers and exported artifacts can contain sensitive data.
+`NetworkDiagnosticsOptions`: `captureMode(MANUAL)`, `includeHeaders(false)`, `maskSensitiveHeaders(true)`, `failedStatusThreshold(400)` (values `<= 0` normalize to 400), `maxCapturedEvents(10_000)` (positive), and repeatable `ignoreUrlPattern(regex)` (regex validated). `OFF` is inactive. `BIDI` requires an already BiDi-enabled WebDriver session; `AUTO` selects only a successfully subscribed BiDi source. Neither falls back, and `PERFORMANCE_LOGS` remains unsupported. The retained `attachToSession(boolean)` option is deprecated for removal in 0.2.0 and has no automatic effect. Attach only through an explicit `NetworkDiagnostics.attachToSession(...)` call. Headers default off, sensitive-header masking defaults on, and URLs/query strings plus unmasked custom headers can contain secrets.
 
 `NetworkWaitCondition`: URL substring/regex/exact URL, method, exact/min/max/range status are unset by default; timeout 5 s; poll interval 100 ms; `includeFailedResponses=true`; `matchRequestOnly=false`. Regex is compiled/validated; durations must be positive and status bounds must be coherent.
 

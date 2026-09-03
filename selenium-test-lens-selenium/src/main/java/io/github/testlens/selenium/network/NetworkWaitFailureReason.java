@@ -6,6 +6,7 @@ public enum NetworkWaitFailureReason {
     FAILED_RESPONSE_MATCHED,
     CAPTURE_NOT_STARTED,
     UNSUPPORTED_CAPTURE_MODE,
+    CAPTURE_START_FAILED,
     UNKNOWN
 }
 

@@ -5,7 +5,8 @@ All notable changes to Selenium Test Lens will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- Added automatic best-effort failure bundles for final `FAILED` sessions, including diagnostic/clean screenshots, context, trace diagnostics, safe runtime/configuration snapshots, manual-network summary, optional page source/console, a versioned manifest, and deterministic ZIP packaging.
+- Added passive browser-network capture through Selenium 4.39 WebDriver BiDi. `BIDI` subscribes to request, completed-response, and fetch-error events; `AUTO` selects BiDi only when an active connection can be subscribed, while `MANUAL` remains the default and `PERFORMANCE_LOGS` remains unsupported. Capture now exposes requested/active modes, bounded event storage, dropped-event counts, redirect correlation, asynchronous waits, trace events, and failure-bundle summaries.
+- Added automatic best-effort failure bundles for final `FAILED` sessions, including diagnostic/clean screenshots, context, trace diagnostics, safe runtime/configuration snapshots, network summary, optional page source/console, a versioned manifest, and deterministic ZIP packaging.
 - Added runner-neutral recovery-retry observability with immutable per-session summaries, deterministic action/locator/exception grouping, lost-time accounting, configurable passed-outcome policies, JSON/HTML Flakiness sections, and propagation through the JUnit 5 and TestNG adapters.
 - Added the published optional `selenium-test-lens-testng` module with an explicit per-invocation listener, factory configuration, current-invocation context, TestNG status mapping, and isolated retry/DataProvider/parallel lifecycle ownership.
 - Added the published optional `selenium-test-lens-junit5` module with `TestLensExtension`, per-invocation WebDriver/Lens injection, passed/failed/aborted mapping, parallel-safe JUnit store isolation, and cleanup-safe driver ownership.
@@ -14,7 +15,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 ### Changed
 - Made facade finalization outcome explicit: `finishFailed(null)` now remains `FAILED`, and only failed finalization can request an automatic failure screenshot.
 - Fixed `UiAssertionOptions.failFastOnMissingElement(true)` for the normal `UiLocator.expect(options)` path: genuinely missing required elements now fail on the first observation, while the default remains retryable. Missing elements still satisfy `toBeHidden`, and stale elements remain a distinct retryable state.
-- Made `MANUAL` the default and only active `NetworkDiagnostics` capture mode. `AUTO`, `BIDI`, and `PERFORMANCE_LOGS` now report `UNSUPPORTED` without falling back or waiting for unavailable browser events.
+- Kept `MANUAL` as the default network mode. `BIDI` and `AUTO` now use an explicitly enabled WebDriver BiDi session without fallback; `PERFORMANCE_LOGS` remains `UNSUPPORTED`.
 - Deprecated `NetworkDiagnosticsOptions.attachToSession` for removal in 0.2.0. Network diagnostics are attached only through explicit `NetworkDiagnostics.attachToSession(...)` calls.
 
 ## [0.1.0]

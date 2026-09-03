@@ -267,6 +267,7 @@ public io.github.testlens.TestLens switchToWindow(java.lang.String, java.lang.St
 public java.lang.String waitForNewWindow(java.util.Set<java.lang.String>)
 public io.github.testlens.TestLens switchToNewWindow(java.util.Set<java.lang.String>, java.lang.String)
 public io.github.testlens.TestLensAlert alert()
+public io.github.testlens.selenium.network.NetworkDiagnostics network()
 public io.github.testlens.TestLensFinalizationResult finishPassed()
 public io.github.testlens.TestLensFinalizationResult finishFailed(java.lang.Throwable)
 public io.github.testlens.TestLensFinalizationResult finishSkipped(java.lang.String)

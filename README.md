@@ -125,7 +125,9 @@ try {
 
 The main Test Lens facade does not own browser lifecycle or displace JUnit, TestNG, Allure, or another reporter. The optional JUnit 5 and TestNG adapters deliberately own drivers created by their factories. Existing raw Selenium remains valid for operations the Lens facade does not wrap. React-specific support is available as a separate, optional module.
 
-Every final `FAILED` session receives a best-effort [failure bundle](docs/observability/failure-bundles.md): diagnostic and clean screenshots, context, trace-derived diagnostics, runtime/configuration allowlists, manual-network summary, manifest, final reports, and ZIP. Raw page source and browser console are disabled by default because they can contain secrets; enable them explicitly with `FailureBundleOptions.complete()`.
+Every final `FAILED` session receives a best-effort [failure bundle](docs/observability/failure-bundles.md): diagnostic and clean screenshots, context, trace-derived diagnostics, runtime/configuration allowlists, current network summary, manifest, final reports, and ZIP. Raw page source and browser console are disabled by default because they can contain secrets; enable them explicitly with `FailureBundleOptions.complete()`.
+
+Passive network capture is available through Selenium 4.39 WebDriver BiDi. Create Chrome or Firefox options with `enableBiDi()`, then start `lens.network()` in `BIDI` or `AUTO`; neither mode falls back when BiDi is unavailable. `MANUAL` remains the default and performance logs remain unsupported. See [Network diagnostics](docs/advanced/network.md).
 
 Finalize every session with its real runner outcome: `finishPassed()`, `finishFailed(Throwable)`, or `finishSkipped(String)`. Skipped finalization records the reason and writes reports without taking a failure screenshot or closing the driver.
 

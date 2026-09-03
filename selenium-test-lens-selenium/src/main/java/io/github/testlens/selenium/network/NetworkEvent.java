@@ -30,12 +30,24 @@ public final class NetworkEvent {
         return new NetworkEvent(NetworkEventType.REQUEST, request, null, null, "Request recorded", Instant.now(), Map.of());
     }
 
+    static NetworkEvent request(NetworkRequest request, Instant timestamp, Map<String, String> attributes) {
+        return new NetworkEvent(NetworkEventType.REQUEST, request, null, null, "Request recorded", timestamp, attributes);
+    }
+
     public static NetworkEvent response(NetworkResponse response) {
         return new NetworkEvent(NetworkEventType.RESPONSE, null, response, null, "Response recorded", Instant.now(), Map.of());
     }
 
+    static NetworkEvent response(NetworkResponse response, Instant timestamp, Map<String, String> attributes) {
+        return new NetworkEvent(NetworkEventType.RESPONSE, null, response, null, "Response recorded", timestamp, attributes);
+    }
+
     public static NetworkEvent failed(NetworkFailure failure) {
         return new NetworkEvent(NetworkEventType.FAILED, null, null, failure, "Network failure recorded", Instant.now(), Map.of());
+    }
+
+    static NetworkEvent failed(NetworkFailure failure, Instant timestamp, Map<String, String> attributes) {
+        return new NetworkEvent(NetworkEventType.FAILED, null, null, failure, "Network failure recorded", timestamp, attributes);
     }
 
     public static NetworkEvent info(String message) {

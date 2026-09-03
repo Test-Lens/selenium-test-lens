@@ -9,6 +9,7 @@ import io.github.testlens.selenium.assertions.UiExpect;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureOptions;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureResult;
 import io.github.testlens.selenium.locator.UiLocator;
+import io.github.testlens.selenium.network.NetworkDiagnostics;
 import io.github.testlens.selenium.steps.UiStepOptions;
 import io.github.testlens.selenium.steps.UiStepResult;
 import org.openqa.selenium.By;
@@ -135,6 +136,9 @@ public final class TestLens {
 
     public TestLensAlert alert() { return new TestLensAlert(driver(), options.locatorOptions(), delegate); }
 
+    /** Returns the network diagnostics owned by this Lens facade. */
+    public NetworkDiagnostics network() { return delegate.network(); }
+
     public TestLensFinalizationResult finishPassed() {
         return finish(FinalizationOutcome.PASSED, null, null);
     }
@@ -175,6 +179,12 @@ public final class TestLens {
             } else if (options.screenshotOnFailure()) {
                 screenshotPath = captureLegacyFailureScreenshot(directory, diagnostics);
             }
+        }
+
+        try {
+            delegate.stopNetworkDiagnostics();
+        } catch (RuntimeException failure) {
+            diagnostics.add(failure);
         }
 
         try {

@@ -6,6 +6,10 @@ import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
 import io.github.testlens.core.trace.RetryOutcomePolicy;
 import io.github.testlens.core.trace.RetryPolicyViolationException;
+import io.github.testlens.selenium.network.NetworkCaptureMode;
+import io.github.testlens.selenium.network.NetworkDiagnostics;
+import io.github.testlens.selenium.network.NetworkDiagnosticsOptions;
+import io.github.testlens.selenium.network.NetworkDiagnosticsStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.openqa.selenium.JavascriptExecutor;
@@ -131,6 +135,31 @@ class TestLensTest {
         assertEquals(TraceStatus.PASSED, result.session().metadata().status());
         assertNull(result.failureScreenshot());
         assertEquals(0, screenshotCalls.get());
+    }
+
+    @Test
+    void everyFinalizerStopsOwnedNetworkCaptureWithoutClosingDriver() {
+        for (TraceStatus finalStatus : List.of(TraceStatus.PASSED, TraceStatus.FAILED, TraceStatus.SKIPPED)) {
+            AtomicInteger quitCalls = new AtomicInteger();
+            WebDriver driver = lifecycleDriver(quitCalls);
+            TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+                    .outputRoot(temp).screenshotOnFailure(false).build());
+            lens.startSession("network " + finalStatus);
+            NetworkDiagnostics network = lens.network().start(NetworkDiagnosticsOptions.builder()
+                    .captureMode(NetworkCaptureMode.MANUAL).build());
+
+            TestLensFinalizationResult result = switch (finalStatus) {
+                case PASSED -> lens.finishPassed();
+                case FAILED -> lens.finishFailed(new AssertionError("expected"));
+                case SKIPPED -> lens.finishSkipped("expected");
+                default -> throw new IllegalArgumentException(finalStatus.name());
+            };
+
+            assertEquals(finalStatus, result.session().metadata().status());
+            assertFalse(network.isStarted());
+            assertEquals(NetworkDiagnosticsStatus.STOPPED, network.summary().status());
+            assertEquals(0, quitCalls.get(), "Lens finalizers must not own WebDriver.quit()");
+        }
     }
 
     @Test
@@ -292,6 +321,22 @@ class TestLensTest {
                     if (method.getName().startsWith("execute") && failJavascript) throw new RuntimeException("HUD unavailable");
                     if (method.getName().startsWith("execute")) return null;
                     if (method.getName().equals("toString")) return "existing-driver";
+                    Class<?> type = method.getReturnType();
+                    if (type == boolean.class) return false;
+                    if (type.isPrimitive()) return 0;
+                    return null;
+                });
+    }
+
+    private static WebDriver lifecycleDriver(AtomicInteger quitCalls) {
+        return (WebDriver) Proxy.newProxyInstance(TestLensTest.class.getClassLoader(),
+                new Class<?>[]{WebDriver.class, JavascriptExecutor.class}, (proxy, method, args) -> {
+                    if (method.getName().equals("quit")) {
+                        quitCalls.incrementAndGet();
+                        return null;
+                    }
+                    if (method.getName().startsWith("execute")) return null;
+                    if (method.getName().equals("toString")) return "lifecycle-driver";
                     Class<?> type = method.getReturnType();
                     if (type == boolean.class) return false;
                     if (type.isPrimitive()) return 0;

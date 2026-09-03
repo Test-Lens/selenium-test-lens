@@ -17,7 +17,7 @@ Set `-Dheaded=true` to watch the same tests locally. A missing browser or unusab
 
 ## Fixture and isolation
 
-The suite starts a JDK `HttpServer` on a random loopback port and serves all HTML, JavaScript, and CSS locally. There are no external pages, CDNs, or fixed ports. The fixture includes click counters, navigation, an iframe, a popup, a native alert, a deterministic blocking overlay, and a strict CSP page.
+The suite starts a JDK `HttpServer` on a random loopback port and serves all HTML, JavaScript, CSS, and API traffic locally. There are no external pages, CDNs, or fixed ports. The fixture includes click counters, navigation, an iframe, a popup, a native alert, a deterministic blocking overlay, a strict CSP page, redirects, failed responses, and a deterministic truncated response that produces a fetch error.
 
 Each test invocation creates its own `WebDriver` and closes it in teardown. Conditions use `WebDriverWait`; the tests contain no timing sleeps. Page state and driver state are not shared, so Maven/JUnit may schedule tests in parallel safely. The server is always stopped after the suite.
 
@@ -35,6 +35,7 @@ The browser gate verifies:
 - the JUnit 5 extension and TestNG listener each create, expose, finalize, report, and close a real browser invocation through their public adapter APIs.
 - failed finalization captures diagnostic and clean screenshots, restores HUD for `cleanupHudOnFinish=false`, collects explicitly enabled page source plus context/runtime, writes manifest/reports/ZIP, remains CSP-safe, and leaves the driver alive until test or adapter cleanup.
 - a real stale element causes exactly one recovery retry and one successful physical click; report-only and fail-on-any-retry paths verify Flakiness JSON/HTML.
+- dedicated Chrome and Firefox drivers created with `enableBiDi()` validate real `BIDI` and `AUTO` startup, request/response/fetch-error capture, 503 accounting, redirect correlation, event-driven waits, sensitive-header masking, ignored URLs, restart/stop isolation, JSON, and failure-bundle network snapshots. Existing browser contracts are not globally switched to BiDi.
 
 ## CI
 
@@ -45,3 +46,5 @@ mvn -Pbrowser-it -Dbrowser=<browser> -Dheaded=false verify
 ```
 
 A workflow-dispatch-only Chrome job runs the suite headed under `xvfb-run` and is non-blocking. On failure, both jobs upload Surefire/Failsafe reports and any `target/ui-test-lens` diagnostics. Edge and `RemoteWebDriver` grids are not covered by the current matrix.
+
+The required job prints the selected browser and driver paths/versions and notes that BiDi is enabled for the dedicated network contracts. A remote Grid may pass a WebSocket URL through its node, but real Grid/RemoteWebDriver execution is not claimed by this matrix.

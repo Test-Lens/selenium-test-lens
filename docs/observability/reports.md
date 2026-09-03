@@ -25,6 +25,8 @@ The session JSON always contains a top-level `flakiness` object with `flakyCandi
 
 For final `FAILED`, HTML also contains a `Failure bundle` section linking the predictable ZIP and listing every component status, size, path, or collection error. The ZIP is assembled after final trace/report exports, so it contains their final versions without recursively containing itself. See [Failure bundles](failure-bundles.md).
 
+An explicitly attached network JSON export is an object containing the requested and active capture modes, capture status, ignored/dropped counters, and request/response/fetch-error events with correlation attributes. A failed session's bundle contains a smaller `network-summary.json` snapshot taken before Lens stops its active capture; it does not start capture or include request/response bodies.
+
 ## Advanced exporters
 
 Use the exporter classes only when you need an in-memory string, an explicit destination, a suite report, or a ZIP bundle.

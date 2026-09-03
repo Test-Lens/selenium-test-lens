@@ -68,10 +68,12 @@ jobs:
 
       - name: Set up Firefox
         if: matrix.browser == 'firefox'
+        id: setup-firefox
         uses: browser-actions/setup-firefox@v1
 
       - name: Set up geckodriver
         if: matrix.browser == 'firefox'
+        id: setup-geckodriver
         uses: browser-actions/setup-geckodriver@latest
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -86,6 +88,19 @@ jobs:
           "$TEST_CHROME_BINARY" --version
           echo "ChromeDriver binary: $TEST_CHROMEDRIVER_BINARY"
           "$TEST_CHROMEDRIVER_BINARY" --version
+          echo "WebDriver BiDi: enabled for dedicated network integration tests"
+
+      - name: Report selected Firefox binaries
+        if: matrix.browser == 'firefox'
+        env:
+          TEST_FIREFOX_BINARY: ${{ steps.setup-firefox.outputs.firefox-path }}
+          TEST_GECKODRIVER_BINARY: ${{ steps.setup-geckodriver.outputs.geckodriver-path }}
+        run: |
+          echo "Firefox binary: $TEST_FIREFOX_BINARY"
+          "$TEST_FIREFOX_BINARY" --version
+          echo "GeckoDriver binary: $TEST_GECKODRIVER_BINARY"
+          "$TEST_GECKODRIVER_BINARY" --version
+          echo "WebDriver BiDi: enabled for dedicated network integration tests"
 
       - name: Run Chrome real-browser integration tests
         if: matrix.browser == 'chrome'
@@ -97,7 +112,11 @@ jobs:
 
       - name: Run Firefox real-browser integration tests
         if: matrix.browser == 'firefox'
-        run: mvn -Pbrowser-it -Dbrowser=firefox -Dheaded=false verify
+        run: >-
+          mvn -Pbrowser-it -Dbrowser=firefox -Dheaded=false
+          -Dtest.firefox.binary="${{ steps.setup-firefox.outputs.firefox-path }}"
+          -Dwebdriver.gecko.driver="${{ steps.setup-geckodriver.outputs.geckodriver-path }}"
+          verify
 
       - name: Upload browser failure diagnostics
         if: failure()
