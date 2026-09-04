@@ -85,6 +85,19 @@ The main facade also exposes lazy semantic factories: `getByLabel`, `getByPlaceh
 
 Collections can be composed without leaving `UiLocator`: scope a descendant with `locator(...)`, keep parents with `filterHas(...)`, filter visible text or DOM attributes, then wait for a current count. The order of filters, positional selection, and descendant lookup is preserved.
 
+Collection and state assertions use the same fresh-DOM polling model:
+
+```java
+lens.locator(By.cssSelector(".product-card"))
+        .filterByAttribute("data-status", "available")
+        .expect()
+        .toHaveCount(3);
+lens.getByTestId("save").expect().toHaveAttribute("aria-busy", "false");
+lens.getByRole("checkbox", "Terms").expect().toBeChecked();
+```
+
+These assertions read state only. They do not click controls or mutate the page, and their polling does not count as a recovery retry.
+
 Lens finalization writes the session diagnostics. Use `finishSkipped(reason)` for an aborted test or unmet assumption; unlike `finishFailed(...)`, it does not request a failure screenshot. Keep your existing `WebDriver` cleanup as-is.
 
 For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The runner adapters are the recommended JUnit 5 and TestNG paths for the `0.2.0-SNAPSHOT` development line.

@@ -27,6 +27,8 @@ For final `FAILED`, HTML also contains a `Failure bundle` section linking the pr
 
 An explicitly attached network JSON export is an object containing the requested and active capture modes, capture status, ignored/dropped counters, and request/response/fetch-error events with correlation attributes. A failed session's bundle contains a smaller `network-summary.json` snapshot taken before Lens stops its active capture; it does not start capture or include request/response bodies.
 
+Polling assertions add their start/retry/pass/timeout/failure events to the normal trace and HTML timeline. Count and state results include actual attempt and elapsed values, while attribute diagnostics expose only the attribute name, presence, and value lengths. Class diagnostics bound the expected token, and CSS previews redact `url(...)` contents. These assertion events do not create recovery `RETRY` entries or affect the Flakiness section.
+
 ## Advanced exporters
 
 Use the exporter classes only when you need an in-memory string, an explicit destination, a suite report, or a ZIP bundle.

@@ -21,3 +21,5 @@ String name = lens.getByRole("button", "Save order").accessibleName();
 ```
 
 Reads can expose page data in caller code and diagnostic messages. Avoid placing tokens or secrets in labels and exported metadata.
+
+For polling verification, prefer [`UiExpect`](assertions.md): `toHaveAttribute` reads the real DOM attribute, `toHaveCss` reads computed CSS, and selected/checked assertions use explicit native or ARIA state. Unlike a one-off information read, these expectations re-observe the current DOM until success or timeout.

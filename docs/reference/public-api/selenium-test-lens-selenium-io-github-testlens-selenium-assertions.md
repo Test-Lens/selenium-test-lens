@@ -36,6 +36,16 @@ public static final io.github.testlens.selenium.assertions.UiAssertionFailureRea
 public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason ELEMENT_NOT_DISABLED
 public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason TEXT_MISMATCH
 public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason VALUE_MISMATCH
+public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason COUNT_MISMATCH
+public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason ATTRIBUTE_MISMATCH
+public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason CLASS_MISMATCH
+public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason CSS_MISMATCH
+public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason ELEMENT_NOT_SELECTED
+public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason ELEMENT_NOT_CHECKED
+public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason ELEMENT_STILL_CHECKED
+public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason ELEMENT_NOT_ATTACHED
+public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason ELEMENT_STILL_ATTACHED
+public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason UNSUPPORTED_ELEMENT_STATE
 public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason STALE_ELEMENT
 public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason TIMEOUT
 public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason UNKNOWN
@@ -203,4 +213,13 @@ public io.github.testlens.selenium.assertions.UiAssertionResult toHaveText(java.
 public io.github.testlens.selenium.assertions.UiAssertionResult toContainText(java.lang.String)
 public io.github.testlens.selenium.assertions.UiAssertionResult toHaveValue(java.lang.String)
 public io.github.testlens.selenium.assertions.UiAssertionResult toContainValue(java.lang.String)
+public io.github.testlens.selenium.assertions.UiAssertionResult toHaveCount(int)
+public io.github.testlens.selenium.assertions.UiAssertionResult toHaveAttribute(java.lang.String, java.lang.String)
+public io.github.testlens.selenium.assertions.UiAssertionResult toHaveClass(java.lang.String)
+public io.github.testlens.selenium.assertions.UiAssertionResult toHaveCss(java.lang.String, java.lang.String)
+public io.github.testlens.selenium.assertions.UiAssertionResult toBeSelected()
+public io.github.testlens.selenium.assertions.UiAssertionResult toBeChecked()
+public io.github.testlens.selenium.assertions.UiAssertionResult toBeUnchecked()
+public io.github.testlens.selenium.assertions.UiAssertionResult toBeAttached()
+public io.github.testlens.selenium.assertions.UiAssertionResult toBeDetached()
 ```

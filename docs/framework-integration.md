@@ -135,5 +135,7 @@ The main `selenium-test-lens` artifact has no React dependency. Standard DOM int
 
 - [Install Selenium Test Lens](getting-started.md#installation)
 - [Use locators, waits, assertions, and browser contexts](elements/index.md)
+
+Framework adapters do not change assertion semantics: state and collection assertions poll inside the current invocation and return/throw the same `UiAssertionResult`/`UiAssertionError` as manual lifecycle usage. Their polling is not a runner retry and does not mark a session flaky.
 - [Migrate incrementally from raw Selenium](migration.md)
 - [Browse practical examples](examples.md)

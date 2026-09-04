@@ -94,6 +94,8 @@ lens.locator(By.id("newsletter"), "Newsletter").uncheck();
 boolean selected = lens.locator(By.id("plan"), "Plan").isChecked();
 ```
 
+Use `expect().toBeChecked()` or `expect().toBeUnchecked()` when state may settle asynchronously. These assertions share the semantic control resolver but are read-only: they never activate the control, close an overlay, or increment click/change counters.
+
 ## upload(Path... files)
 
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->

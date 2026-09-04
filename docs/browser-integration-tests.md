@@ -4,6 +4,8 @@ The ordinary Maven test lifecycle is intentionally fast and browser-free. It exe
 
 The Chrome/Firefox contract suite additionally checks scoped semantic descendants, visible-text/DOM-attribute/has filters, exact single-button activation, and dynamic count waits across rerenders. These scenarios complement unit tests of query ordering, stale snapshots, and terminal errors.
 
+The gate also exercises polling collection/state assertions against dynamic local pages: composed counts, changing DOM attributes and class tokens, computed CSS, native and ARIA selected/checked state, attachment, detachment, and same-locator replacement. Both HUD modes are covered, and click/change counters prove that assertions remain read-only.
+
 ```powershell
 mvn test -Dheaded=false
 ```

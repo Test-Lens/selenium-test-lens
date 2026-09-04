@@ -72,6 +72,72 @@ Reads the element's `value` attribute and applies the same normalization rules. 
 
 Both value assertions require a present element and follow the same missing/stale retry policy.
 
+## Collections and attachment
+
+<!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiExpect -->
+```java
+UiAssertionResult toHaveCount(int expected)
+UiAssertionResult toBeAttached()
+UiAssertionResult toBeDetached()
+```
+
+`toHaveCount` evaluates the complete lazy query pipeline once per poll, including scoping, filters, semantic matching, and collection selection. Zero is a valid count. `toBeAttached` means that a fresh query returns at least one element; visibility, enabled state, and viewport position do not matter. `toBeDetached` means that the fresh query returns none, so replacing an element with another matching instance is still attached.
+
+With missing-element fail-fast enabled, count zero immediately fails `toHaveCount(expected > 0)` and `toBeAttached`; `toHaveCount(0)` and `toBeDetached` still pass. A nonzero but mismatched count continues polling.
+
+```java
+lens.locator(By.cssSelector(".product-card"))
+        .filterByAttribute("data-status", "available")
+        .expect()
+        .toHaveCount(3);
+lens.getByRole("status").expect().toBeAttached();
+```
+
+## DOM attributes, classes, and CSS
+
+<!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiExpect -->
+```java
+UiAssertionResult toHaveAttribute(String attributeName, String expectedValue)
+UiAssertionResult toHaveClass(String className)
+UiAssertionResult toHaveCss(String propertyName, String expectedValue)
+```
+
+`toHaveAttribute` uses `getDomAttribute`, compares exactly and case-sensitively, and distinguishes a missing attribute from a present empty attribute. Text comparison options do not apply. Diagnostic output records the attribute name, presence, and value lengths—not raw values.
+
+`toHaveClass` checks one complete, case-sensitive HTML class token. It never treats `button` as matching `button-primary`. `toHaveCss` uses `getCssValue` and compares the trimmed browser-computed result exactly; browsers can serialize equivalent colors, units, and URLs differently. CSS diagnostic previews are bounded and redact the contents of `url(...)`.
+
+```java
+lens.getByTestId("save").expect().toHaveAttribute("aria-busy", "false");
+lens.getByTestId("save").expect().toHaveClass("ready");
+lens.getByTestId("panel").expect().toHaveCss("display", "block");
+```
+
+## Selected and checked state
+
+<!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiExpect -->
+```java
+UiAssertionResult toBeSelected()
+UiAssertionResult toBeChecked()
+UiAssertionResult toBeUnchecked()
+```
+
+Selected and checked are intentionally separate. `toBeSelected` supports native `option` elements and explicit ARIA selected-state roles (`option`, `tab`, `row`, `gridcell`, `rowheader`, `columnheader`, and `treeitem`) with a valid `aria-selected`. It does not infer state from CSS classes or `data-*` attributes.
+
+Checked assertions reuse the same semantic-control resolver as `check()`, `uncheck()`, and `isChecked()`: native checkbox/radio inputs, associated labels and their descendants, plus ARIA checkbox/radio/switch controls. Native state comes from `isSelected`; ARIA state comes from `aria-checked`. `mixed` satisfies neither checked nor unchecked. Unsupported or malformed states fail immediately with `UNSUPPORTED_ELEMENT_STATE`.
+
+Assertions never click, run overlay recovery, or mutate `checked`, `aria-checked`, or the DOM:
+
+```java
+lens.getByRole("checkbox", "Terms").expect().toBeChecked();
+lens.locator(By.cssSelector("option:checked")).expect().toBeSelected();
+```
+
+## Polling, fail-fast, and failure reasons
+
+Each attempt performs one current observation: one complete collection snapshot or one freshly resolved element read. Missing elements and stale references are retryable unless the assertion's success contract or `failFastOnMissingElement` says otherwise. Invalid selectors, lost sessions, unsupported states, and other nontransient WebDriver errors fail on their first attempt and preserve the cause.
+
+Assertion polling may emit `ASSERTION_RETRY`, but never the recovery `RETRY` trace event, never increments `RetrySummary`, and never marks the session flaky. New timeout reasons are `COUNT_MISMATCH`, `ATTRIBUTE_MISMATCH`, `CLASS_MISMATCH`, `CSS_MISMATCH`, `ELEMENT_NOT_SELECTED`, `ELEMENT_NOT_CHECKED`, `ELEMENT_STILL_CHECKED`, `ELEMENT_NOT_ATTACHED`, and `ELEMENT_STILL_ATTACHED`; invalid state uses `UNSUPPORTED_ELEMENT_STATE`.
+
 ## Result and failure
 
 Successful assertions return a `UiAssertionResult`. Its consumer accessors are:

@@ -4,6 +4,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+- Added polling `UiExpect` assertions for collection count, DOM attributes, class tokens, computed CSS, selected/checked state, and DOM attachment. Every poll observes one fresh locator snapshot; assertion polling remains separate from recovery retry and does not mark a session flaky.
 - Added lazy locator composition: scoped descendant lookup, visible-text/DOM-attribute/descendant filters, order-preserving collection stages, and count waits. Count polling observes fresh snapshots without being classified as recovery retry or flakiness.
 - Added lazy semantic accessibility locators on the main `TestLens` facade for labels, placeholders, and alt text, plus browser-computed `UiLocator.accessibleName()`. Named role matching now uses WebDriver `getAccessibleName()` and `getAriaRole()` without falling back to element text or a partial in-library accessible-name algorithm.
 

@@ -67,3 +67,5 @@ Related: [Assertions](assertions.md), [`UiLocatorOptions`](../reference/configur
 Runner-level retry is separate again: for example, every TestNG `IRetryAnalyzer` attempt owns a new Lens session and is not aggregated across sessions. See [Flakiness and retry outcomes](../observability/flakiness.md).
 
 Assertions have their own [`UiAssertionOptions`](../reference/configuration.md#uiassertionoptions) and retry loop; see [Assertions](assertions.md).
+
+State assertions such as `toHaveCount`, `toHaveAttribute`, `toBeChecked`, and `toBeAttached` use that assertion loop and take exactly one current observation per attempt. Their `ASSERTION_RETRY` events remain polling diagnostics and do not contribute to recovery-retry flakiness.

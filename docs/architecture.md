@@ -89,6 +89,8 @@ Screenshots and other evidence are attached to the active session when produced.
 
 Recovery retry aggregation is deliberately per session and runner-neutral. Typed `RETRY` events feed an immutable summary before `SESSION_FINISHED`; ordinary waits and assertion polling remain timeline diagnostics and do not enter that summary. JUnit 5 and TestNG propagate a policy-induced failure from the shared runtime, while runner-level retries continue to create independent sessions.
 
+`UiExpect` owns assertion polling. Through the locator's internal observation seam, each attempt executes one current query snapshot or one current element-state read, avoiding nested locator waits and duplicate operation logs. Collection/attachment assertions reevaluate the immutable composite query pipeline; checked assertions reuse the semantic control resolver without invoking its activation path. These reads do not mutate the application.
+
 Failed facade finalization uses a per-session evidence pipeline in the Selenium module: snapshot trace diagnostics (including the active network summary), capture the HUD view, temporarily hide only the Test Lens shadow host for the clean view, run independent probes, stop Lens-owned network capture, record capture events, finalize, export reports, clean the HUD, then write the manifest and deterministic ZIP. Every finalizer stops active Lens-owned capture before `SESSION_FINISHED`; standalone diagnostics remain explicitly owned by their caller. Neither collector nor network adapter closes WebDriver.
 
 Direct logger and sink APIs are intended for lower-level integrations.

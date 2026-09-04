@@ -5,17 +5,25 @@ import io.github.testlens.selenium.locator.UiLocator;
 import io.github.testlens.selenium.locator.UiLocatorException;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Supplier;
 
 public final class UiExpect {
+    private static final String INTERNAL_OBSERVATION_PREFIX = "test-lens-assertion:";
+    private static final String DOM_ATTRIBUTE_MISSING = "\u0000test-lens:dom-attribute-missing";
+    private static final String DOM_ATTRIBUTE_PRESENT = "\u0000test-lens:dom-attribute-present:";
+    private static final Set<String> ARIA_SELECTED_ROLES = Set.of(
+            "option", "tab", "row", "gridcell", "rowheader", "columnheader", "treeitem");
     private final UiLocator locator;
     private final UiAssertionOptions options;
     private final UiAssertionReporter reporter;
@@ -43,7 +51,7 @@ public final class UiExpect {
             if (elementProbe != null) {
                 ElementProbeResult probeResult = elementProbe.probe(element -> String.valueOf(element.isDisplayed()));
                 if (!probeResult.present()) {
-                    return Evaluation.notReady(UiAssertionFailureReason.ELEMENT_NOT_FOUND, "missing", "Element is not present");
+                    return missingElement();
                 }
                 boolean visible = Boolean.parseBoolean(probeResult.value());
                 return visible
@@ -84,7 +92,7 @@ public final class UiExpect {
             if (elementProbe != null) {
                 ElementProbeResult probeResult = elementProbe.probe(element -> String.valueOf(element.isEnabled()));
                 if (!probeResult.present()) {
-                    return Evaluation.notReady(UiAssertionFailureReason.ELEMENT_NOT_FOUND, "missing", "Element is not present");
+                    return missingElement();
                 }
                 boolean enabled = Boolean.parseBoolean(probeResult.value());
                 return enabled
@@ -103,7 +111,7 @@ public final class UiExpect {
             if (elementProbe != null) {
                 ElementProbeResult probeResult = elementProbe.probe(element -> String.valueOf(element.isEnabled()));
                 if (!probeResult.present()) {
-                    return Evaluation.notReady(UiAssertionFailureReason.ELEMENT_NOT_FOUND, "missing", "Element is not present");
+                    return missingElement();
                 }
                 boolean enabled = Boolean.parseBoolean(probeResult.value());
                 return !enabled
@@ -123,7 +131,7 @@ public final class UiExpect {
         return assertUntil("toHaveText", expectedPreview, false, () -> {
             ElementProbeResult probeResult = probeTextContent();
             if (!probeResult.present()) {
-                return Evaluation.notReady(UiAssertionFailureReason.ELEMENT_NOT_FOUND, "missing", "Element is not present");
+                return missingElement();
             }
             String actual = UiAssertionText.normalize(probeResult.value(), options);
             String actualPreview = UiAssertionText.preview(actual, options.actualTextPreviewLimit());
@@ -139,7 +147,7 @@ public final class UiExpect {
         return assertUntil("toContainText", expectedPreview, false, () -> {
             ElementProbeResult probeResult = probeTextContent();
             if (!probeResult.present()) {
-                return Evaluation.notReady(UiAssertionFailureReason.ELEMENT_NOT_FOUND, "missing", "Element is not present");
+                return missingElement();
             }
             String actual = UiAssertionText.normalize(probeResult.value(), options);
             String actualPreview = UiAssertionText.preview(actual, options.actualTextPreviewLimit());
@@ -155,7 +163,7 @@ public final class UiExpect {
         return assertUntil("toHaveValue", expectedPreview, true, () -> {
             ElementProbeResult probeResult = probeValue();
             if (!probeResult.present()) {
-                return Evaluation.notReady(UiAssertionFailureReason.ELEMENT_NOT_FOUND, "missing", "Element is not present");
+                return missingElement();
             }
             String actualRaw = probeResult.value();
             String actual = UiAssertionText.normalize(actualRaw, options);
@@ -172,7 +180,7 @@ public final class UiExpect {
         return assertUntil("toContainValue", expectedPreview, true, () -> {
             ElementProbeResult probeResult = probeValue();
             if (!probeResult.present()) {
-                return Evaluation.notReady(UiAssertionFailureReason.ELEMENT_NOT_FOUND, "missing", "Element is not present");
+                return missingElement();
             }
             String actualRaw = probeResult.value();
             String actual = UiAssertionText.normalize(actualRaw, options);
@@ -180,6 +188,120 @@ public final class UiExpect {
             return actual.contains(expectedNormalized)
                     ? Evaluation.passed(actualPreview, "Element value contained expected substring")
                     : Evaluation.notReady(UiAssertionFailureReason.VALUE_MISMATCH, actualPreview, "Element value did not contain expected substring");
+        });
+    }
+
+    public UiAssertionResult toHaveCount(int expected) {
+        if (expected < 0) throw new IllegalArgumentException("expected count must be >= 0");
+        return assertUntil("toHaveCount", String.valueOf(expected), false, () -> {
+            int actual = Integer.parseInt(observe("count"));
+            if (actual == expected) return Evaluation.passed(String.valueOf(actual), "Element count matched");
+            return Evaluation.notReady(UiAssertionFailureReason.COUNT_MISMATCH, String.valueOf(actual),
+                    "Element count did not match", expected > 0 && actual == 0);
+        });
+    }
+
+    public UiAssertionResult toHaveAttribute(String attributeName, String expectedValue) {
+        if (attributeName == null || attributeName.isBlank()) {
+            throw new IllegalArgumentException("attribute name must not be blank");
+        }
+        Objects.requireNonNull(expectedValue, "expected attribute value must not be null");
+        String expectedPreview = attributeName + " present expectedLength=" + expectedValue.length();
+        return assertUntil("toHaveAttribute", expectedPreview, false, () -> {
+            ElementProbeResult probe = probeElement(element -> {
+                String value = element.getDomAttribute(attributeName);
+                return value == null ? DOM_ATTRIBUTE_MISSING : DOM_ATTRIBUTE_PRESENT + value;
+            });
+            if (!probe.present()) return missingElement();
+            boolean attributePresent = probe.value().startsWith(DOM_ATTRIBUTE_PRESENT);
+            String actual = attributePresent ? probe.value().substring(DOM_ATTRIBUTE_PRESENT.length()) : null;
+            String actualPreview = !attributePresent
+                    ? attributeName + " missing"
+                    : attributeName + " present actualLength=" + actual.length();
+            return expectedValue.equals(actual)
+                    ? Evaluation.passed(actualPreview, "DOM attribute matched")
+                    : Evaluation.notReady(UiAssertionFailureReason.ATTRIBUTE_MISMATCH, actualPreview,
+                    "DOM attribute did not match");
+        });
+    }
+
+    public UiAssertionResult toHaveClass(String className) {
+        if (className == null || className.isBlank()) {
+            throw new IllegalArgumentException("class name must not be blank");
+        }
+        if (containsHtmlAsciiWhitespace(className)) {
+            throw new IllegalArgumentException("class name must be one token without HTML whitespace");
+        }
+        String expectedPreview = UiAssertionText.preview(className, options.actualTextPreviewLimit());
+        return assertUntil("toHaveClass", expectedPreview, false, () -> {
+            ElementProbeResult probe = probeElement(element -> element.getDomAttribute("class"));
+            if (!probe.present()) return missingElement();
+            String[] tokens = classTokens(probe.value());
+            for (String token : tokens) {
+                if (token.equals(className)) {
+                    return Evaluation.passed("classTokenCount=" + tokens.length, "Class token was present");
+                }
+            }
+            return Evaluation.notReady(UiAssertionFailureReason.CLASS_MISMATCH,
+                    "classTokenCount=" + tokens.length, "Class token was not present");
+        });
+    }
+
+    public UiAssertionResult toHaveCss(String propertyName, String expectedValue) {
+        if (propertyName == null || propertyName.isBlank()) {
+            throw new IllegalArgumentException("CSS property name must not be blank");
+        }
+        Objects.requireNonNull(expectedValue, "expected CSS value must not be null");
+        String expected = expectedValue;
+        String expectedPreview = cssPreview(expected);
+        return assertUntil("toHaveCss", propertyName + "=" + expectedPreview, false, () -> {
+            ElementProbeResult probe = probeElement(element -> element.getCssValue(propertyName));
+            if (!probe.present()) return missingElement();
+            String actual = probe.value() == null ? "" : probe.value().trim();
+            String actualPreview = propertyName + "=" + cssPreview(actual);
+            return actual.equals(expected)
+                    ? Evaluation.passed(actualPreview, "Computed CSS matched")
+                    : Evaluation.notReady(UiAssertionFailureReason.CSS_MISMATCH, actualPreview,
+                    "Computed CSS did not match");
+        });
+    }
+
+    public UiAssertionResult toBeSelected() {
+        return assertUntil("toBeSelected", "selected", false, () -> {
+            ElementProbeResult probe = probeElement(UiExpect::selectedState);
+            if (!probe.present()) return missingElement();
+            return "SELECTED".equals(probe.value())
+                    ? Evaluation.passed("selected", "Element is selected")
+                    : Evaluation.notReady(UiAssertionFailureReason.ELEMENT_NOT_SELECTED, "not selected",
+                    "Element is not selected");
+        });
+    }
+
+    public UiAssertionResult toBeChecked() {
+        return checkedAssertion("toBeChecked", "CHECKED", UiAssertionFailureReason.ELEMENT_NOT_CHECKED);
+    }
+
+    public UiAssertionResult toBeUnchecked() {
+        return checkedAssertion("toBeUnchecked", "UNCHECKED", UiAssertionFailureReason.ELEMENT_STILL_CHECKED);
+    }
+
+    public UiAssertionResult toBeAttached() {
+        return assertUntil("toBeAttached", "attached", false, () -> {
+            int count = Integer.parseInt(observe("count"));
+            return count > 0
+                    ? Evaluation.passed("attached count=" + count, "Element is attached")
+                    : Evaluation.notReady(UiAssertionFailureReason.ELEMENT_NOT_ATTACHED, "detached count=0",
+                    "Element is not attached", true);
+        });
+    }
+
+    public UiAssertionResult toBeDetached() {
+        return assertUntil("toBeDetached", "detached", false, () -> {
+            int count = Integer.parseInt(observe("count"));
+            return count == 0
+                    ? Evaluation.passed("detached count=0", "Element is detached")
+                    : Evaluation.notReady(UiAssertionFailureReason.ELEMENT_STILL_ATTACHED,
+                    "attached count=" + count, "Element is still attached");
         });
     }
 
@@ -195,6 +317,78 @@ public final class UiExpect {
             return elementProbe.probe(element -> element.getAttribute("value"));
         }
         return ElementProbeResult.present(locator.resolve().getAttribute("value"));
+    }
+
+    private ElementProbeResult probeElement(Function<WebElement, String> reader) {
+        if (elementProbe == null) throw new IllegalStateException("Assertion observation is unavailable");
+        return elementProbe.probe(reader);
+    }
+
+    private String observe(String observation) {
+        if (elementProbe == null) throw new IllegalStateException("Assertion observation is unavailable");
+        ElementProbeResult result = elementProbe.probe(new ObservationRequest(observation));
+        return result.value();
+    }
+
+    private UiAssertionResult checkedAssertion(String assertionName,
+                                               String expectedState,
+                                               UiAssertionFailureReason mismatchReason) {
+        return assertUntil(assertionName, expectedState.toLowerCase(Locale.ROOT), false, () -> {
+            ElementProbeResult probe = probeElement(new ObservationRequest("checkedState"));
+            if (!probe.present()) return missingElement();
+            String state = probe.value();
+            return expectedState.equals(state)
+                    ? Evaluation.passed(state.toLowerCase(Locale.ROOT), "Checked state matched")
+                    : Evaluation.notReady(mismatchReason,
+                    state == null ? "unknown" : state.toLowerCase(Locale.ROOT), "Checked state did not match");
+        });
+    }
+
+    private static Evaluation missingElement() {
+        return Evaluation.notReady(UiAssertionFailureReason.ELEMENT_NOT_FOUND,
+                "missing", "Element is not present", true);
+    }
+
+    private static String selectedState(WebElement element) {
+        if ("option".equalsIgnoreCase(element.getTagName())) {
+            return element.isSelected() ? "SELECTED" : "NOT_SELECTED";
+        }
+        String explicitRole = safeLower(element.getDomAttribute("role"));
+        String role = explicitRole.isEmpty() ? safeLower(element.getAriaRole()) : explicitRole;
+        if (!ARIA_SELECTED_ROLES.contains(role)) {
+            throw new UnsupportedOperationException("Element does not expose a supported selected state");
+        }
+        String selected = safeLower(element.getDomAttribute("aria-selected"));
+        return switch (selected) {
+            case "true" -> "SELECTED";
+            case "false" -> "NOT_SELECTED";
+            default -> throw new UnsupportedOperationException(
+                    "Element has no valid aria-selected state for role " + role);
+        };
+    }
+
+    private static String safeLower(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static boolean containsHtmlAsciiWhitespace(String value) {
+        for (int index = 0; index < value.length(); index++) {
+            char current = value.charAt(index);
+            if (current == '\t' || current == '\n' || current == '\f' || current == '\r' || current == ' ') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String[] classTokens(String value) {
+        if (value == null || value.isBlank()) return new String[0];
+        return value.trim().split("[\\t\\n\\f\\r ]+");
+    }
+
+    private String cssPreview(String value) {
+        String redacted = value == null ? "" : value.replaceAll("(?i)url\\s*\\([^)]*\\)", "url(***)");
+        return UiAssertionText.preview(redacted, options.actualTextPreviewLimit());
     }
 
     private UiAssertionResult assertUntil(String assertionName,
@@ -220,18 +414,17 @@ public final class UiExpect {
                     reporter.passed(result);
                     return result;
                 }
-                if (options.failFastOnMissingElement()
-                        && evaluation.failureReason() == UiAssertionFailureReason.ELEMENT_NOT_FOUND) {
-                    throw failedAssertion(assertionName, expectedPreview, evaluation, attempts, started);
+                if (options.failFastOnMissingElement() && evaluation.missingElement()) {
+                    throw failedAssertion(assertionName, expectedPreview, evaluation, attempts, started, null);
                 }
             } catch (RuntimeException e) {
                 lastException = e;
-                lastEvaluation = Evaluation.notReady(reasonFor(e), "", messageFor(e));
+                lastEvaluation = Evaluation.notReady(reasonFor(e, assertionName), "", messageFor(e));
                 if (!isRetryableAssertionMiss(e)) {
-                    throw failedAssertion(assertionName, expectedPreview, lastEvaluation, attempts, started);
+                    throw failedAssertion(assertionName, expectedPreview, lastEvaluation, attempts, started, e);
                 }
                 if (options.failFastOnMissingElement() && isMissingElement(e)) {
-                    throw failedAssertion(assertionName, expectedPreview, lastEvaluation, attempts, started);
+                    throw failedAssertion(assertionName, expectedPreview, lastEvaluation, attempts, started, e);
                 }
             }
 
@@ -243,7 +436,10 @@ public final class UiExpect {
                         locator.description(), expectedPreview, lastEvaluation.actualPreview(), attempts,
                         Duration.between(started, Instant.now()), timeoutMessage(lastEvaluation, lastException, valueAssertion));
                 reporter.failed(result);
-                throw new UiAssertionError(result);
+                UiAssertionError error = new UiAssertionError(result);
+                error.initCause(new TimeoutException(
+                        timeoutMessage(lastEvaluation, lastException, valueAssertion), lastException));
+                throw error;
             }
 
             reporter.retry(assertionName, locator.description(), attempts, expectedPreview, lastEvaluation.actualPreview());
@@ -255,12 +451,15 @@ public final class UiExpect {
                                                String expectedPreview,
                                                Evaluation evaluation,
                                                int attempts,
-                                               Instant started) {
+                                               Instant started,
+                                               RuntimeException cause) {
         UiAssertionResult result = UiAssertionResult.failed(assertionName, evaluation.failureReason(),
                 locator.description(), expectedPreview, evaluation.actualPreview(), attempts,
                 Duration.between(started, Instant.now()), evaluation.message());
         reporter.failed(result);
-        return new UiAssertionError(result);
+        UiAssertionError error = new UiAssertionError(result);
+        if (cause != null) error.initCause(cause);
+        return error;
     }
 
     private static String timeoutMessage(Evaluation evaluation, RuntimeException exception, boolean valueAssertion) {
@@ -273,7 +472,13 @@ public final class UiExpect {
         return evaluation.message();
     }
 
-    private static UiAssertionFailureReason reasonFor(RuntimeException e) {
+    private static UiAssertionFailureReason reasonFor(RuntimeException e, String assertionName) {
+        boolean stateAssertion = "toBeSelected".equals(assertionName)
+                || "toBeChecked".equals(assertionName)
+                || "toBeUnchecked".equals(assertionName);
+        if (stateAssertion && (e instanceof UnsupportedOperationException || e instanceof IllegalStateException)) {
+            return UiAssertionFailureReason.UNSUPPORTED_ELEMENT_STATE;
+        }
         if (isMissingElement(e)) {
             return UiAssertionFailureReason.ELEMENT_NOT_FOUND;
         }
@@ -284,8 +489,7 @@ public final class UiExpect {
     }
 
     private static boolean isMissingElement(RuntimeException e) {
-        return e instanceof NoSuchElementException || e instanceof UiLocatorException locatorException
-                && locatorException.getCause() instanceof NoSuchElementException;
+        return hasCause(e, NoSuchElementException.class);
     }
 
     private static boolean isRetryableAssertionMiss(RuntimeException e) {
@@ -293,8 +497,14 @@ public final class UiExpect {
     }
 
     private static boolean isStaleElement(RuntimeException e) {
-        return e instanceof StaleElementReferenceException || e instanceof UiLocatorException locatorException
-                && locatorException.getCause() instanceof StaleElementReferenceException;
+        return hasCause(e, StaleElementReferenceException.class);
+    }
+
+    private static boolean hasCause(Throwable failure, Class<? extends Throwable> type) {
+        for (Throwable current = failure; current != null; current = current.getCause()) {
+            if (type.isInstance(current)) return true;
+        }
+        return false;
     }
 
     private static String messageFor(RuntimeException e) {
@@ -308,14 +518,27 @@ public final class UiExpect {
     private record Evaluation(boolean passed,
                               UiAssertionFailureReason failureReason,
                               String actualPreview,
-                              String message) {
+                              String message,
+                              boolean missingElement) {
         private static Evaluation passed(String actualPreview, String message) {
-            return new Evaluation(true, null, actualPreview, message);
+            return new Evaluation(true, null, actualPreview, message, false);
         }
 
         private static Evaluation notReady(UiAssertionFailureReason failureReason, String actualPreview, String message) {
-            return new Evaluation(false, failureReason, actualPreview, message);
+            return notReady(failureReason, actualPreview, message, false);
         }
+
+        private static Evaluation notReady(UiAssertionFailureReason failureReason,
+                                           String actualPreview,
+                                           String message,
+                                           boolean missingElement) {
+            return new Evaluation(false, failureReason, actualPreview, message, missingElement);
+        }
+    }
+
+    private record ObservationRequest(String observation) implements Function<WebElement, String> {
+        @Override public String apply(WebElement ignored) { return INTERNAL_OBSERVATION_PREFIX + observation; }
+        @Override public String toString() { return INTERNAL_OBSERVATION_PREFIX + observation; }
     }
 
     @FunctionalInterface

@@ -543,6 +543,10 @@ public final class UiLocator {
     }
 
     private SemanticControl resolveSemanticControl(WebElement origin) {
+        return resolveSemanticControl(origin, true);
+    }
+
+    private SemanticControl resolveSemanticControl(WebElement origin, boolean validateAriaState) {
         String tag = normalized(origin.getTagName());
         String type = normalized(origin.getDomAttribute("type"));
         String role = normalized(origin.getDomAttribute("role"));
@@ -561,12 +565,19 @@ public final class UiLocator {
                 case "switch" -> ControlKind.ARIA_SWITCH;
                 default -> ControlKind.ARIA_RADIO;
             };
-            validateAriaState(origin, tag, type, role);
+            if (validateAriaState) validateAriaState(origin, tag, type, role);
             return new SemanticControl(origin, origin, kind, ActivationKind.CONTROL, tag, type, role);
         }
         SemanticControl labeled = controlFromClosestLabel(origin);
         if (labeled != null) return labeled;
         throw unsupportedControl(tag, type, role, "element is not a supported checked control");
+    }
+
+    private void validateAriaState(WebElement element, String tag, String type, String role) {
+        String state = normalized(element.getDomAttribute("aria-checked"));
+        if (!("true".equals(state) || "false".equals(state) || "mixed".equals(state))) {
+            throw unsupportedControl(tag, type, role, "ARIA control requires aria-checked=true, false, or mixed");
+        }
     }
 
     private WebElement visibleLabel(WebElement input) {
@@ -622,13 +633,6 @@ public final class UiLocator {
             default -> throw unsupportedControl(control.tag(), control.type(), control.role(),
                     "ARIA control requires aria-checked=true, false, or mixed");
         };
-    }
-
-    private void validateAriaState(WebElement element, String tag, String type, String role) {
-        String state = normalized(element.getDomAttribute("aria-checked"));
-        if (!("true".equals(state) || "false".equals(state) || "mixed".equals(state))) {
-            throw unsupportedControl(tag, type, role, "ARIA control requires aria-checked=true, false, or mixed");
-        }
     }
 
     private void requireTargetSupported(SemanticControl control, CheckedState target) {
@@ -812,8 +816,20 @@ public final class UiLocator {
 
     private UiExpect.ElementProbeResult probeElementForAssertion(Function<WebElement, String> operation) {
         try {
+            String observation = String.valueOf(operation);
+            if ("test-lens-assertion:count".equals(observation)) {
+                try {
+                    return UiExpect.ElementProbeResult.present(String.valueOf(CompositeBy.find(driver, by()).size()));
+                } catch (CollectionSelectionException missingSelection) {
+                    return UiExpect.ElementProbeResult.present("0");
+                }
+            }
             WebElement element = currentElement(driver);
             try {
+                if ("test-lens-assertion:checkedState".equals(observation)) {
+                    return UiExpect.ElementProbeResult.present(
+                            readCheckedState(resolveSemanticControl(element, false)).name());
+                }
                 return UiExpect.ElementProbeResult.present(operation.apply(element));
             } catch (NoSuchElementException e) {
                 return UiExpect.ElementProbeResult.missingElement();

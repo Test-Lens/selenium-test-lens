@@ -46,7 +46,7 @@ Runner adapters consume the same immutable options per invocation. JUnit 5 confi
 | `caseSensitive(value)` | `boolean` | `true` | Case-sensitive comparison. |
 | `actualTextPreviewLimit(value)` | `int` | 300 | Diagnostic preview length; non-negative. |
 | `trimText(value)` | `boolean` | `true` | Trim before comparison. |
-| `failFastOnMissingElement(value)` | `boolean` | `false` | For assertions requiring presence, `false` retries a missing element until pass/`TIMED_OUT`; `true` ends the first missing observation as `FAILED`. `toBeHidden` still passes for missing elements. Stale elements remain separately retryable and time out as `STALE_ELEMENT`. |
+| `failFastOnMissingElement(value)` | `boolean` | `false` | For assertions requiring presence, `false` retries a missing element until pass/`TIMED_OUT`; `true` ends the first missing observation as `FAILED`. This includes `toBeAttached` and `toHaveCount(expected > 0)` when the count is zero. `toBeHidden`, `toBeDetached`, and `toHaveCount(0)` still pass when absent. A nonzero count mismatch keeps polling. Stale elements remain separately retryable and time out as `STALE_ELEMENT`. |
 
 Comparison settings affect retry success; preview length affects diagnostics/reports/HUD, not matching input itself.
 

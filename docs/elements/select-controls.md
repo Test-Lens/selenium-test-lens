@@ -18,3 +18,5 @@ UiLocator country = lens.getByTestId("country");
 country.selectByValue("PL");
 assertEquals("Poland", country.selectedText());
 ```
+
+Use `optionLocator.expect().toBeSelected()` to poll a native option's selected state. `toBeSelected()` is distinct from `toBeChecked()`: checkbox and radio state belongs to the checked assertion family, while selected state belongs to native options and supported `aria-selected` roles.

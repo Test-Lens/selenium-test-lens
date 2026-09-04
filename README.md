@@ -158,6 +158,17 @@ cards.waitUntilCountAtLeast(1)
 
 `locator(...)` searches descendants inside each current parent; `filterHas(...)` keeps the parent. Pipeline order is significant, and count polling is state observation rather than recovery retry or a flaky outcome.
 
+The same polling pipeline supports collection and state assertions without exposing a raw `WebElement`:
+
+```java
+cards.expect().toHaveCount(3);
+lens.getByTestId("save").expect().toHaveAttribute("aria-busy", "false");
+lens.getByRole("checkbox", "Terms").expect().toBeChecked();
+lens.getByRole("status").expect().toBeAttached();
+```
+
+DOM attributes are compared without exporting their raw values, classes match one complete token, CSS uses the browser-computed value, and selected/checked and hidden/detached remain distinct states. Assertion polling emits assertion diagnostics but is not a recovery retry or flaky outcome.
+
 The main Test Lens facade does not own browser lifecycle or displace JUnit, TestNG, Allure, or another reporter. The optional JUnit 5 and TestNG adapters deliberately own drivers created by their factories. Existing raw Selenium remains valid for operations the Lens facade does not wrap. React-specific support is available as a separate, optional module.
 
 Every final `FAILED` session receives a best-effort [failure bundle](docs/observability/failure-bundles.md): diagnostic and clean screenshots, context, trace-derived diagnostics, runtime/configuration allowlists, current network summary, manifest, final reports, and ZIP. Raw page source and browser console are disabled by default because they can contain secrets; enable them explicitly with `FailureBundleOptions.complete()`.

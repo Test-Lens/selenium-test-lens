@@ -53,6 +53,7 @@ import java.util.zip.ZipFile;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -317,6 +318,77 @@ class RealBrowserContractsIT {
         assertEquals(1, dynamicItems.count());
         assertEquals("final", dynamicItems.first().attribute("data-phase"));
         assertEquals("Composite locators", driver.getTitle());
+        lens.finishPassed();
+    }
+
+    @ParameterizedTest(name = "collection and value assertions (overlay enabled={0})")
+    @ValueSource(booleans = {true, false})
+    void locatorStateAssertionsPollCollectionsAttributesClassesAndCss(boolean enabled) {
+        open("/assertion-states");
+        TestLens lens = configuredLens(enabled, true);
+        lens.startSession("state-values-" + enabled + "-" + UUID.randomUUID());
+        lens.locator(By.id("start-state-changes")).click();
+
+        UiAssertionResult count = lens.locator(By.cssSelector("#state-list .state-item"))
+                .filterByAttribute("data-status", "available")
+                .expect(assertionOptions(false)).toHaveCount(3);
+        UiAssertionResult attribute = lens.locator(By.id("busy-control"))
+                .expect(assertionOptions(false)).toHaveAttribute("aria-busy", "false");
+        UiAssertionResult classResult = lens.locator(By.id("class-control"))
+                .expect(assertionOptions(false)).toHaveClass("ready");
+        UiAssertionResult css = lens.locator(By.id("css-control"))
+                .expect(assertionOptions(false)).toHaveCss("display", "block");
+
+        for (UiAssertionResult result : List.of(count, attribute, classResult, css)) {
+            assertEquals(UiAssertionStatus.PASSED, result.status());
+            assertTrue(result.attempts() >= 1);
+            assertFalse(result.assertionName().isBlank());
+            assertNotNull(result.elapsed());
+        }
+        assertTrue(count.attempts() >= 1);
+        lens.finishPassed();
+    }
+
+    @ParameterizedTest(name = "selected and checked assertions (overlay enabled={0})")
+    @ValueSource(booleans = {true, false})
+    void locatorStateAssertionsReadSelectedAndCheckedWithoutActivation(boolean enabled) {
+        open("/assertion-states");
+        TestLens lens = configuredLens(enabled, true);
+        lens.startSession("state-controls-" + enabled + "-" + UUID.randomUUID());
+
+        assertTrue(lens.locator(By.id("native-option")).expect().toBeSelected().isPassed());
+        assertTrue(lens.locator(By.id("native-checked")).expect().toBeChecked().isPassed());
+        assertTrue(lens.locator(By.cssSelector("#styled-label .decoration")).expect().toBeChecked().isPassed());
+        assertTrue(lens.locator(By.id("aria-checkbox")).expect().toBeChecked().isPassed());
+        assertTrue(lens.locator(By.id("aria-switch")).expect().toBeUnchecked().isPassed());
+        assertTrue(lens.locator(By.id("aria-option")).expect().toBeSelected().isPassed());
+
+        assertEquals(0L, number("return window.assertionClicks || 0"));
+        assertEquals(0L, number("return window.assertionChanges || 0"));
+        lens.finishPassed();
+    }
+
+    @ParameterizedTest(name = "attachment assertions (overlay enabled={0})")
+    @ValueSource(booleans = {true, false})
+    void locatorStateAssertionsTrackAttachmentDetachmentAndReplacement(boolean enabled) {
+        open("/assertion-states");
+        TestLens lens = configuredLens(enabled, true);
+        lens.startSession("state-attachment-" + enabled + "-" + UUID.randomUUID());
+        var added = lens.locator(By.id("late-attached"));
+        var removed = lens.locator(By.id("will-detach"));
+        var replacement = lens.locator(By.id("replacement-target"))
+                .filterByAttribute("data-version", "new");
+
+        lens.locator(By.id("start-attachment-changes")).click();
+        UiAssertionResult attached = added.expect(assertionOptions(false)).toBeAttached();
+        UiAssertionResult detached = removed.expect(assertionOptions(false)).toBeDetached();
+        UiAssertionResult replaced = replacement.expect(assertionOptions(false)).toBeAttached();
+
+        assertEquals(UiAssertionStatus.PASSED, attached.status());
+        assertEquals(UiAssertionStatus.PASSED, detached.status());
+        assertEquals(UiAssertionStatus.PASSED, replaced.status());
+        assertTrue(attached.attempts() >= 1);
+        assertEquals("new", replacement.attribute("data-version"));
         lens.finishPassed();
     }
 
@@ -775,6 +847,22 @@ class RealBrowserContractsIT {
                     <button id='start-dynamic'>Start changes</button>
                     <div id='dynamic-list'><div class='dynamic-item' data-phase='initial'>Initial</div></div>
                     """), false);
+            case "/assertion-states" -> html(exchange, page("Locator state assertions", """
+                    <button id='start-state-changes'>Start state changes</button>
+                    <div id='state-list'><div class='state-item' data-status='pending'>Pending</div></div>
+                    <div id='busy-control' aria-busy='true'></div>
+                    <div id='class-control' class='control waiting'></div>
+                    <div id='css-control' style='display: block'></div>
+                    <select><option id='native-option' selected>Chosen</option></select>
+                    <input id='native-checked' type='checkbox' checked>
+                    <label id='styled-label'><input id='styled-checked' type='checkbox' checked hidden><span class='decoration'>Styled</span></label>
+                    <button id='aria-checkbox' role='checkbox' aria-checked='true'>ARIA checkbox</button>
+                    <button id='aria-switch' role='switch' aria-checked='false'>ARIA switch</button>
+                    <div id='aria-option' role='option' aria-selected='true'>ARIA option</div>
+                    <button id='start-attachment-changes'>Start attachment changes</button>
+                    <div id='will-detach'>Remove me</div>
+                    <div id='replacement-target' data-version='old'>Old</div>
+                    """), false);
             case "/app.js" -> response(exchange, "application/javascript; charset=utf-8", APP_JS, false);
             case "/app.css" -> response(exchange, "text/css; charset=utf-8", APP_CSS, false);
             default -> response(exchange, "text/plain; charset=utf-8", "not found", false, 404);
@@ -888,6 +976,40 @@ class RealBrowserContractsIT {
               setTimeout(() => {
                 list.innerHTML = '<div class="dynamic-item" data-phase="final">Final</div>';
               }, 800);
+            });
+            window.assertionClicks = 0;
+            window.assertionChanges = 0;
+            document.querySelectorAll('#native-checked, #styled-checked, #aria-checkbox, #aria-switch').forEach(control => {
+              control.addEventListener('click', () => window.assertionClicks += 1);
+              control.addEventListener('change', () => window.assertionChanges += 1);
+            });
+            const startStateChanges = document.getElementById('start-state-changes');
+            if (startStateChanges) startStateChanges.addEventListener('click', () => {
+              setTimeout(() => {
+                document.getElementById('state-list').innerHTML =
+                  '<div class="state-item" data-status="available">One</div>'
+                  + '<div class="state-item" data-status="available">Two</div>'
+                  + '<div class="state-item" data-status="available">Three</div>';
+                document.getElementById('busy-control').setAttribute('aria-busy', 'false');
+                document.getElementById('class-control').className = 'control ready';
+              }, 150);
+            });
+            const startAttachmentChanges = document.getElementById('start-attachment-changes');
+            if (startAttachmentChanges) startAttachmentChanges.addEventListener('click', () => {
+              setTimeout(() => {
+                const added = document.createElement('div');
+                added.id = 'late-attached';
+                added.textContent = 'Added';
+                document.body.appendChild(added);
+              }, 100);
+              setTimeout(() => document.getElementById('will-detach')?.remove(), 250);
+              setTimeout(() => {
+                const old = document.getElementById('replacement-target');
+                const replacement = old.cloneNode(true);
+                replacement.setAttribute('data-version', 'new');
+                replacement.textContent = 'New';
+                old.replaceWith(replacement);
+              }, 350);
             });
             """;
 
