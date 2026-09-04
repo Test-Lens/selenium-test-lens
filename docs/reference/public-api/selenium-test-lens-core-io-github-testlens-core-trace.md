@@ -382,6 +382,7 @@ public synchronized java.util.List<io.github.testlens.core.trace.TraceEvent> eve
 ```java
 public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String)
 public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int)
+public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int, io.github.testlens.core.redaction.RedactionPolicy)
 public java.lang.String id()
 public synchronized io.github.testlens.core.trace.TraceMetadata metadata()
 public synchronized java.util.List<io.github.testlens.core.trace.TraceEvent> events()

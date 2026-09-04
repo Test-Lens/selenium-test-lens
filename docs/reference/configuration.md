@@ -13,6 +13,7 @@ All option objects are immutable after `build()` unless their API explicitly exp
 | `outputRoot(value)` | `Path` | `target/ui-test-lens` | Root for per-session artifacts; must be usable/non-null. Do not point at a tracked or public directory. |
 | `screenshotOnFailure(value)` | `boolean` | `true` | Enables best-effort automatic screenshot for a final `FAILED` result, including policy-induced failure; final passed/skipped results never request it. |
 | `failureBundleOptions(value)` | `FailureBundleOptions` | safe defaults | Configures automatic bundle collectors and limits for final `FAILED`; raw page source and browser console default to disabled. |
+| `redactionPolicy(value)` | `RedactionPolicy` | `RedactionPolicy.defaults()` | Central diagnostic redaction used by logger fan-out, trace, network/API overlays, reports, and failure-bundle text; null restores the safe default. |
 | `cleanupHudOnFinish(value)` | `boolean` | `true` | Best-effort removal of injected visual artifacts. |
 | `retryOutcomePolicy(value)` | `RetryOutcomePolicy` | `REPORT_ONLY` | Policy evaluated only by `finishPassed()` when the session contains recovery retries. |
 | `allowedRetries(value)` | `int` | `0` | Non-negative number allowed by `FAIL_AFTER_N`; failure occurs when `totalRetries > allowedRetries`. |

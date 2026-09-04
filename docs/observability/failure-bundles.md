@@ -10,13 +10,15 @@ The diagnostic screenshot is taken with the current HUD/highlight. For the clean
 
 ## Safe defaults and complete capture
 
-Raw page source and browser console are disabled by default because they can contain credentials, personal data, tokens, or application secrets. They are not redacted. Enable them deliberately:
+Raw page source and browser console are disabled by default because they can contain credentials, personal data, tokens, or application secrets. When enabled, recognized structured secrets and configured literal values receive best-effort central redaction before writing. Enable them deliberately:
 
 ```java
 TestLensOptions options = TestLensOptions.builder()
         .failureBundleOptions(FailureBundleOptions.complete())
         .build();
 ```
+
+Redaction cannot infer arbitrary personal data, and screenshots/video are not pixel-redacted. The configuration component records only the redaction enabled flag, replacement, and counts of caller-added keys/secrets. Replayable auth/storage state is not transformed or automatically bundled. See [Sensitive-data redaction](../security/redaction.md).
 
 The equivalent explicit builder is:
 

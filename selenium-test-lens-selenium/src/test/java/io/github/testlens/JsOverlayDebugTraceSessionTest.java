@@ -25,13 +25,53 @@ import java.io.File;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsOverlayDebugTraceSessionTest {
+
+    @Test
+    void directlyCreatedFacadeUsesSafeDefaultRedaction() {
+        JsOverlayDebug overlay = new JsOverlayDebug(fakeDriver());
+        UiTestLensSession session = overlay.startSession("token=direct-canary");
+
+        assertFalse(session.metadata().name().contains("direct-canary"));
+        assertTrue(session.metadata().name().contains("[REDACTED]"));
+    }
+
+    @Test
+    void apiOverlayReceivesOnlyRedactedArguments() {
+        String secret = "api-overlay-canary-91f4";
+        List<Object[]> calls = new ArrayList<>();
+        WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[]{WebDriver.class, JavascriptExecutor.class}, (proxy, method, args) -> {
+                    if ("executeScript".equals(method.getName())) {
+                        calls.add(args == null ? new Object[0] : args.clone());
+                        return "request-id";
+                    }
+                    if ("toString".equals(method.getName())) return "api-redaction-driver";
+                    return null;
+                });
+        JsOverlayDebug overlay = new JsOverlayDebug(driver);
+
+        overlay.apiShowRequest("token=" + secret, "POST",
+                "https://user:" + secret + "@example.test/orders?access_token=" + secret + "#fragment",
+                "{\"client_secret\":\"" + secret + "\"}");
+        overlay.apiSetResponse("request-id", 200, 1,
+                "Authorization: Bearer " + secret, "refresh_token=" + secret);
+        overlay.setStep("token=" + secret);
+        overlay.hudLog("info", "password=" + secret, "now");
+
+        String diagnosticArguments = java.util.Arrays.deepToString(calls.toArray());
+        assertFalse(diagnosticArguments.contains(secret));
+        assertTrue(diagnosticArguments.contains("[REDACTED]"));
+    }
     @TempDir
     Path tempDir;
 

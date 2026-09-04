@@ -3,6 +3,7 @@ package io.github.testlens.core;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.logging.UiTestLensLogSink;
 import io.github.testlens.core.logging.UiTestLensLogger;
+import io.github.testlens.core.redaction.RedactionPolicy;
 
 public final class OverlayLogger {
     private final UiTestLensLogger delegate;
@@ -18,6 +19,8 @@ public final class OverlayLogger {
     public static OverlayLogger from(UiTestLensLogger logger) {
         return new OverlayLogger(logger);
     }
+
+    public RedactionPolicy redactionPolicy() { return delegate.redactionPolicy(); }
 
     public OverlayLogger withSink(UiTestLensLogSink sink) {
         return new OverlayLogger(delegate.withSink(sink));

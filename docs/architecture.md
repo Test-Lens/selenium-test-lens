@@ -6,7 +6,7 @@ Selenium Test Lens is split into small Maven modules so Selenium code, browser o
 
 | Module | Responsibility | Dependency boundary |
 | --- | --- | --- |
-| `selenium-test-lens-core` | Trace, logging, evidence metadata, and report exporters | Has no Selenium dependency |
+| `selenium-test-lens-core` | Trace, logging, central redaction, evidence metadata, and report exporters | Has no Selenium dependency |
 | `selenium-test-lens-overlay` | Browser overlay resources, HUD support, and visual configuration | Depends on core; has no Selenium dependency |
 | `selenium-test-lens` | Public `TestLens` runtime for Selenium tests | Depends on core and overlay; Selenium is optional and supplied by the consumer |
 | `selenium-test-lens-junit5` | Published optional JUnit 5 lifecycle and parameter injection | Depends on the main runtime and JUnit Jupiter API; Selenium remains optional |
@@ -96,6 +96,8 @@ Recovery retry aggregation is deliberately per session and runner-neutral. Typed
 Failed facade finalization uses a per-session evidence pipeline in the Selenium module: snapshot trace diagnostics (including the active network summary), capture the HUD view, temporarily hide only the Test Lens shadow host for the clean view, run independent probes, stop Lens-owned network capture, record capture events, finalize, export reports, clean the HUD, then write the manifest and deterministic ZIP. Every finalizer stops active Lens-owned capture before `SESSION_FINISHED`; standalone diagnostics remain explicitly owned by their caller. Neither collector nor network adapter closes WebDriver.
 
 Direct logger and sink APIs are intended for lower-level integrations.
+
+Redaction is a cross-cutting diagnostic boundary owned by core. `UiTestLensLogger` creates one immutable safe entry before fan-out, so adding a sink does not duplicate secret rules. Direct session events are sanitized when stored; Selenium-layer boundaries apply the same effective policy to network/API-overlay values and failure-bundle text that bypasses logger fan-out. Matching and test control still use original runtime values, and propagated exceptions remain the originals.
 
 ## Overlay runtime
 

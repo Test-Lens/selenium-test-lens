@@ -106,3 +106,5 @@ The default name contains the class, method, public TestNG invocation counter, a
 Return configured `TestLensOptions` from the factory. A policy violation from an otherwise successful method is written into the completed reports, then the listener explicitly changes its `ITestResult` to `FAILURE` and installs the `RetryPolicyViolationException` as throwable. Driver quit still happens exactly once; later cleanup errors are suppressed. `IRetryAnalyzer` attempts remain independent sessions rather than one aggregated summary.
 
 Lens-owned network capture is stopped by every finalizer before the listener's single `driver.quit()`. A factory that selects `BIDI` or `AUTO` must create Chrome/Firefox options with `enableBiDi()`; missing BiDi is reported as unsupported and never falls back to manual events.
+
+The factory's `TestLensOptions.redactionPolicy(...)` is used for that physical invocation through final report/bundle creation. Redaction errors remain diagnostic and never replace the original TestNG throwable or alter status mapping; the listener still quits its owned driver exactly once afterward. Screenshot pixels remain outside this protection.

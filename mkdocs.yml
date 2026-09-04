@@ -74,6 +74,8 @@ nav:
       - Flakiness and retry outcomes: observability/flakiness.md
       - Failure bundles: observability/failure-bundles.md
       - Logging: observability/logging.md
+  - Security:
+      - Sensitive-data redaction: security/redaction.md
   - Advanced Features:
       - Advanced features overview: advanced/index.md
       - Steps & business assertions: advanced/steps-business-assertions.md

@@ -1,5 +1,6 @@
 package io.github.testlens.selenium.network;
 
+import io.github.testlens.core.redaction.RedactionPolicy;
 import java.time.Duration;
 
 public final class NetworkWaitResult {
@@ -87,6 +88,13 @@ public final class NetworkWaitResult {
     public String message() { return message; }
     public NetworkWaitFailureReason failureReason() { return failureReason; }
     public Throwable exception() { return exception; }
+
+    NetworkWaitResult redacted(RedactionPolicy policy, NetworkEvent event, NetworkRequest request) {
+        if (policy == null || !policy.enabled()) return this;
+        return new NetworkWaitResult(status, policy.redact(conditionSummary), event, request,
+                event == null ? null : event.response(), attempts, elapsed, policy.redact(message),
+                failureReason, exception);
+    }
 
     private static String timeoutMessage(NetworkWaitCondition condition, Duration elapsed, NetworkSummary summary) {
         String unit = condition != null && condition.matchRequestOnly() ? "request" : "response";

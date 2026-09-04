@@ -4,6 +4,7 @@ import io.github.testlens.core.trace.RetryOutcomePolicy;
 import io.github.testlens.core.trace.RetryPolicyViolationException;
 import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.evidence.FailureBundleOptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -167,6 +168,44 @@ class FailureBundleCaptureTest {
         assertEquals(2, fixture.screenshots.get());
         assertEquals(TraceStatus.FAILED, session.metadata().status());
         assertTrue(violation.getSuppressed().length >= 0);
+    }
+
+    @Test
+    void centralPolicyRedactsFailurePageSourceConsoleTraceReportsAndZip() throws Exception {
+        String secret = "bundle-canary-81d0";
+        DriverFixture fixture = driver("<html><body>token=" + secret + "</body></html>",
+                List.of(new LogEntry(Level.WARNING, 1, "Authorization: Bearer " + secret)));
+        TestLensOptions configured = TestLensOptions.builder().outputRoot(temp)
+                .redactionPolicy(RedactionPolicy.builder().sensitiveKey("tenant-session").secret(secret).build())
+                .failureBundleOptions(FailureBundleOptions.complete()).build();
+        TestLens lens = TestLens.attach(fixture.driver, configured);
+        var session = lens.startSession("session " + secret);
+        session.addEvent(io.github.testlens.core.trace.TraceEvent.info("step " + secret,
+                "tenant-session=" + secret));
+
+        AssertionError original = new AssertionError("failure " + secret);
+        TestLensFinalizationResult result = lens.finishFailed(original);
+
+        List<Path> textFiles;
+        try (var files = Files.walk(result.outputDirectory())) {
+            textFiles = files.filter(Files::isRegularFile)
+                    .filter(path -> !path.toString().endsWith(".png") && !path.toString().endsWith(".zip"))
+                    .toList();
+        }
+        for (Path file : textFiles) {
+            String content = Files.readString(file);
+            assertFalse(content.contains(secret), file.toString());
+        }
+        try (ZipFile zip = new ZipFile(result.failureBundleArchive().orElseThrow().toFile())) {
+            for (var entry : zip.stream().filter(item -> !item.getName().endsWith(".png")).toList()) {
+                String content = new String(zip.getInputStream(entry).readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                assertFalse(content.contains(secret), entry.getName());
+            }
+        }
+        assertTrue(Files.readString(result.jsonReport()).contains("[REDACTED]"));
+        String configuration = Files.readString(result.outputDirectory().resolve("failure-bundle/configuration.json"));
+        assertTrue(configuration.contains("additionalSensitiveKeys"));
+        assertTrue(configuration.contains("literalSecrets"));
     }
 
     private TestLensOptions options(FailureBundleOptions bundle) {

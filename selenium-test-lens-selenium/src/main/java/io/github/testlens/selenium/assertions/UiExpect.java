@@ -1,6 +1,7 @@
 package io.github.testlens.selenium.assertions;
 
 import io.github.testlens.core.OverlayLogger;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.locator.UiLocator;
 import io.github.testlens.selenium.locator.UiLocatorException;
 import org.openqa.selenium.NoSuchElementException;
@@ -29,6 +30,7 @@ public final class UiExpect {
     private final UiAssertionReporter reporter;
     private final VisibilityProbe visibilityProbe;
     private final ElementProbe elementProbe;
+    private final RedactionPolicy redactionPolicy;
 
     public UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger) {
         this(locator, options, logger, null, null);
@@ -42,6 +44,7 @@ public final class UiExpect {
         this.locator = Objects.requireNonNull(locator, "locator must not be null");
         this.options = options != null ? options : UiAssertionOptions.defaults();
         this.reporter = new UiAssertionReporter(logger);
+        this.redactionPolicy = logger == null ? RedactionPolicy.defaults() : logger.redactionPolicy();
         this.visibilityProbe = visibilityProbe;
         this.elementProbe = elementProbe;
     }
@@ -409,8 +412,8 @@ public final class UiExpect {
                 lastException = null;
                 lastEvaluation = evaluation;
                 if (evaluation.passed()) {
-                    UiAssertionResult result = UiAssertionResult.passed(assertionName, locator.description(), expectedPreview,
-                            evaluation.actualPreview(), attempts, Duration.between(started, Instant.now()), evaluation.message());
+                    UiAssertionResult result = safe(UiAssertionResult.passed(assertionName, locator.description(), expectedPreview,
+                            evaluation.actualPreview(), attempts, Duration.between(started, Instant.now()), evaluation.message()));
                     reporter.passed(result);
                     return result;
                 }
@@ -429,12 +432,12 @@ public final class UiExpect {
             }
 
             if (!Instant.now().plus(options.pollInterval()).isBefore(deadline)) {
-                UiAssertionResult result = UiAssertionResult.timedOut(assertionName,
+                UiAssertionResult result = safe(UiAssertionResult.timedOut(assertionName,
                         lastEvaluation.failureReason() == UiAssertionFailureReason.UNKNOWN
                                 ? UiAssertionFailureReason.TIMEOUT
                                 : lastEvaluation.failureReason(),
                         locator.description(), expectedPreview, lastEvaluation.actualPreview(), attempts,
-                        Duration.between(started, Instant.now()), timeoutMessage(lastEvaluation, lastException, valueAssertion));
+                        Duration.between(started, Instant.now()), timeoutMessage(lastEvaluation, lastException, valueAssertion)));
                 reporter.failed(result);
                 UiAssertionError error = new UiAssertionError(result);
                 error.initCause(new TimeoutException(
@@ -453,13 +456,17 @@ public final class UiExpect {
                                                int attempts,
                                                Instant started,
                                                RuntimeException cause) {
-        UiAssertionResult result = UiAssertionResult.failed(assertionName, evaluation.failureReason(),
+        UiAssertionResult result = safe(UiAssertionResult.failed(assertionName, evaluation.failureReason(),
                 locator.description(), expectedPreview, evaluation.actualPreview(), attempts,
-                Duration.between(started, Instant.now()), evaluation.message());
+                Duration.between(started, Instant.now()), evaluation.message()));
         reporter.failed(result);
         UiAssertionError error = new UiAssertionError(result);
         if (cause != null) error.initCause(cause);
         return error;
+    }
+
+    private UiAssertionResult safe(UiAssertionResult result) {
+        return result.redacted(redactionPolicy);
     }
 
     private static String timeoutMessage(Evaluation evaluation, RuntimeException exception, boolean valueAssertion) {

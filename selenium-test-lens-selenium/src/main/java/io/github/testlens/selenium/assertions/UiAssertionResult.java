@@ -1,5 +1,6 @@
 package io.github.testlens.selenium.assertions;
 
+import io.github.testlens.core.redaction.RedactionPolicy;
 import java.time.Duration;
 import java.util.Objects;
 
@@ -132,6 +133,13 @@ public final class UiAssertionResult {
             sb.append(" message=").append(message);
         }
         return sb.toString();
+    }
+
+    UiAssertionResult redacted(RedactionPolicy policy) {
+        if (policy == null || !policy.enabled()) return this;
+        return new UiAssertionResult(policy.redact(assertionName), status, failureReason,
+                policy.redact(locatorDescription), policy.redact(expectedPreview), policy.redact(actualPreview),
+                attempts, elapsed, policy.redact(message));
     }
 
     private static String safe(String value) {

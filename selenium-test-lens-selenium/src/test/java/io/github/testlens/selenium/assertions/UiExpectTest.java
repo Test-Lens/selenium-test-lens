@@ -11,6 +11,7 @@ import io.github.testlens.selenium.locator.UiLocatorException;
 import io.github.testlens.selenium.locator.UiLocatorOptions;
 import io.github.testlens.core.trace.TraceLogSink;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -396,6 +397,27 @@ class UiExpectTest {
                 .timeout(Duration.ofMillis(60))
                 .pollInterval(Duration.ofMillis(5))
                 .build();
+    }
+
+    @Test
+    void assertionResultErrorAndLogsUseConfiguredRedactionWithoutChangingPolling() {
+        String secret = "assertion-canary-b872";
+        InMemoryLogSink sink = new InMemoryLogSink();
+        OverlayLogger logger = OverlayLogger.from(UiTestLensLogger.builder()
+                .redactionPolicy(RedactionPolicy.builder().secret(secret).build())
+                .sink(sink).build());
+        FakeBrowser browser = FakeBrowser.withTexts("actual token=" + secret);
+        UiLocator locator = new UiLocator(browser.driver(), By.id("modal"), "label token=" + secret,
+                fastOverlay(browser.driver()), fastLocatorOptions(), logger);
+
+        UiAssertionError error = assertThrows(UiAssertionError.class,
+                () -> new UiExpect(locator, fastAssertionOptions(), logger)
+                        .toHaveText("expected token=" + secret));
+
+        String diagnostics = error.getMessage() + error.result() + sink.entries();
+        assertTrue(diagnostics.contains("[REDACTED]"));
+        assertTrue(!diagnostics.contains(secret));
+        assertEquals(UiAssertionStatus.TIMED_OUT, error.result().status());
     }
 
     private static UiAssertionOptions assertionOptions(boolean failFast) {

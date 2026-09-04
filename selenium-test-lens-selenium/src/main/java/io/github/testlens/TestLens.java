@@ -36,7 +36,7 @@ public final class TestLens {
 
     private TestLens(WebDriver driver, TestLensOptions options) {
         this.options = options == null ? TestLensOptions.defaults() : options;
-        this.delegate = new JsOverlayDebug(driver, this.options.overlayConfig());
+        this.delegate = new JsOverlayDebug(driver, this.options.overlayConfig(), this.options.redactionPolicy());
     }
 
     public static TestLens attach(WebDriver driver) { return new TestLens(driver, TestLensOptions.defaults()); }
@@ -47,7 +47,8 @@ public final class TestLens {
 
     public WebDriver driver() { return delegate.getDriver(); }
     public UiTestLensSession startSession(String name) {
-        UiTestLensSession session = delegate.startSession(name, options.retryOutcomePolicy(), options.allowedRetries());
+        UiTestLensSession session = delegate.startSession(name, options.retryOutcomePolicy(), options.allowedRetries(),
+                options.redactionPolicy());
         // Safe even before the first document exists; subsequent native events lazily reinject it.
         try { delegate.initHud(session.metadata().name(), ""); } catch (RuntimeException ignored) {
             // The browser may not have a document yet. Native events will retry lazily.
@@ -165,7 +166,7 @@ public final class TestLens {
         UiTestLensSession session = delegate.session().orElse(null);
         if (session == null) {
             diagnostics.add(new IllegalStateException("No Test Lens session was started"));
-            return new TestLensFinalizationResult(null, null, null, null, null, diagnostics);
+            return new TestLensFinalizationResult(null, null, null, null, null, safeDiagnostics(diagnostics));
         }
 
         Path directory = sessionOutputDirectory(session);
@@ -217,10 +218,12 @@ public final class TestLens {
             bundle.complete(json, html);
             diagnostics.addAll(bundle.failures());
         }
-        TestLensFinalizationResult result = new TestLensFinalizationResult(session, directory, json, html, screenshotPath, diagnostics);
+        List<Throwable> safeDiagnostics = safeDiagnostics(diagnostics);
+        TestLensFinalizationResult result = new TestLensFinalizationResult(
+                session, directory, json, html, screenshotPath, safeDiagnostics);
         if (policyViolation != null) {
             RetryPolicyViolationException finalPolicyViolation = policyViolation;
-            diagnostics.forEach(failure -> {
+            safeDiagnostics.forEach(failure -> {
                 if (failure != finalPolicyViolation) finalPolicyViolation.addSuppressed(failure);
             });
             throw finalPolicyViolation;
@@ -237,6 +240,22 @@ public final class TestLens {
             case FAIL_AFTER_N -> retries > options.allowedRetries();
         };
         return triggered ? new RetryPolicyViolationException(options.retryOutcomePolicy(), session.retrySummary()) : null;
+    }
+
+    private List<Throwable> safeDiagnostics(List<Throwable> failures) {
+        return failures.stream().map(failure -> diagnosticCopy(failure, 0)).toList();
+    }
+
+    private Throwable diagnosticCopy(Throwable failure, int depth) {
+        if (failure == null || depth >= 16) return null;
+        DiagnosticFailure safe = new DiagnosticFailure(failure.getClass().getName(),
+                options.redactionPolicy().redact(failure.getMessage()), diagnosticCopy(failure.getCause(), depth + 1));
+        safe.setStackTrace(failure.getStackTrace());
+        for (Throwable suppressed : failure.getSuppressed()) {
+            Throwable copy = diagnosticCopy(suppressed, depth + 1);
+            if (copy != null) safe.addSuppressed(copy);
+        }
+        return safe;
     }
 
     private Path captureLegacyFailureScreenshot(Path directory, List<Throwable> diagnostics) {
@@ -260,6 +279,17 @@ public final class TestLens {
         PASSED,
         FAILED,
         SKIPPED
+    }
+
+    private static final class DiagnosticFailure extends RuntimeException {
+        private final String originalType;
+        private DiagnosticFailure(String originalType, String message, Throwable cause) {
+            super(message, cause, true, true);
+            this.originalType = originalType;
+        }
+        @Override public String toString() {
+            return originalType + (getMessage() == null ? "" : ": " + getMessage());
+        }
     }
 
     private TestLens contextOperation(String action, String description, Runnable operation) {

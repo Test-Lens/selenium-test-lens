@@ -1,6 +1,7 @@
 package io.github.testlens;
 
 import io.github.testlens.core.trace.RetryOutcomePolicy;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.locator.UiLocatorOptions;
 import io.github.testlens.selenium.evidence.FailureBundleOptions;
 
@@ -16,6 +17,7 @@ public final class TestLensOptions {
     private final RetryOutcomePolicy retryOutcomePolicy;
     private final int allowedRetries;
     private final FailureBundleOptions failureBundleOptions;
+    private final RedactionPolicy redactionPolicy;
 
     private TestLensOptions(Builder builder) {
         this.overlayConfig = builder.overlayConfig == null ? OverlayConfig.builder().build() : builder.overlayConfig;
@@ -27,6 +29,7 @@ public final class TestLensOptions {
         this.allowedRetries = builder.allowedRetries;
         this.failureBundleOptions = builder.failureBundleOptions == null
                 ? FailureBundleOptions.defaults() : builder.failureBundleOptions;
+        this.redactionPolicy = builder.redactionPolicy == null ? RedactionPolicy.defaults() : builder.redactionPolicy;
     }
 
     public static TestLensOptions defaults() { return builder().build(); }
@@ -39,6 +42,7 @@ public final class TestLensOptions {
     public RetryOutcomePolicy retryOutcomePolicy() { return retryOutcomePolicy; }
     public int allowedRetries() { return allowedRetries; }
     public FailureBundleOptions failureBundleOptions() { return failureBundleOptions; }
+    public RedactionPolicy redactionPolicy() { return redactionPolicy; }
 
     public static final class Builder {
         private OverlayConfig overlayConfig;
@@ -49,6 +53,7 @@ public final class TestLensOptions {
         private RetryOutcomePolicy retryOutcomePolicy = RetryOutcomePolicy.REPORT_ONLY;
         private int allowedRetries;
         private FailureBundleOptions failureBundleOptions = FailureBundleOptions.defaults();
+        private RedactionPolicy redactionPolicy = RedactionPolicy.defaults();
         private Builder() {}
         public Builder overlayConfig(OverlayConfig value) { overlayConfig = value; return this; }
         public Builder locatorOptions(UiLocatorOptions value) { locatorOptions = value; return this; }
@@ -66,6 +71,10 @@ public final class TestLensOptions {
         }
         public Builder failureBundleOptions(FailureBundleOptions value) {
             failureBundleOptions = value == null ? FailureBundleOptions.defaults() : value;
+            return this;
+        }
+        public Builder redactionPolicy(RedactionPolicy value) {
+            redactionPolicy = value == null ? RedactionPolicy.defaults() : value;
             return this;
         }
         public TestLensOptions build() { return new TestLensOptions(this); }

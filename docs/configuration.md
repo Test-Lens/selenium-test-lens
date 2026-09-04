@@ -145,10 +145,13 @@ Some features expose dedicated configuration types close to the API that uses th
 | `AuthRestoreOptions` | Authentication-state navigation, clearing, validation, and restore behavior |
 | `NetworkDiagnosticsOptions` | Requested manual/BiDi mode, failure threshold, capture ignores, HUD-only filter, optional masked headers, and event limit |
 | `NetworkWaitCondition` | URL, method, status, timeout, and polling conditions for network waits |
+| `RedactionPolicy` | Enabled-by-default masking for diagnostic text, structured sensitive keys, URLs, and explicitly supplied literal secrets |
 
 See [Configuration builders](reference/configuration.md) or Javadoc for individual builder methods.
 
 ## Notes and limits
+
+`TestLensOptions.redactionPolicy(...)` defaults to `RedactionPolicy.defaults()`; passing null restores that default. `UiTestLensLogger.Builder.redactionPolicy(...)` applies the policy once before fan-out, including caller-provided sinks. Use `RedactionPolicy.disabled()` only as a deliberate opt-out. Configuration exports contain only the enabled flag, replacement, and counts of custom keys/secrets—not their values. See [Sensitive-data redaction](security/redaction.md).
 
 - With the default options, a final `FAILED` result attempts an automatic screenshot—including `finishFailed(null)` and policy-induced failure. Passed and skipped results never do. Capture is best-effort and can be disabled with `TestLensOptions.screenshotOnFailure(...)`.
 - Failure bundles are enabled by default. Diagnostic/clean screenshots, context, trace diagnostics, the current network summary, runtime/configuration allowlists, manifest, and ZIP are enabled; page source and browser console are disabled because they may contain secrets. See [Failure bundles](observability/failure-bundles.md).

@@ -48,6 +48,8 @@ Locator composition is runner-neutral. A locator can be created in setup or page
 
 For a final `FAILED` status, finalization also completes the best-effort failure bundle before it returns. This preserves the live browser for screenshots, context and optional DOM/console capture. The JUnit 5 extension and TestNG listener therefore keep the same ordering: finish Lens and all bundle/report work first, then call `driver.quit()` exactly once.
 
+Pass one immutable `RedactionPolicy` through `TestLensOptions` when attaching the driver. The same policy protects logger sinks, trace, network/API diagnostics, reports, and failure-bundle text before runner-owned cleanup; it never replaces the throwable used by JUnit or TestNG. See [Sensitive-data redaction](security/redaction.md).
+
 You can introduce Lens gradually. Existing Page Objects and direct Selenium calls can continue to use the attached driver.
 
 Page Objects can keep form interaction behind `UiLocator`: `check()`, `uncheck()`, `isChecked()`, `upload(Path...)`, `focus()`, and `scrollIntoView()` avoid exposing a raw `WebElement`. The lifecycle ownership rules below are unchanged by these actions.

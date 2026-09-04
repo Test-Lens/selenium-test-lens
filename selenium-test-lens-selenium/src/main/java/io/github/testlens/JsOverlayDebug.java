@@ -18,6 +18,7 @@ import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.logging.UiTestLensLogLevel;
 import io.github.testlens.core.logging.UiTestLensLogSink;
 import io.github.testlens.core.logging.UiTestLensLogger;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.core.logging.UiTestLensStatus;
 import io.github.testlens.core.trace.TraceArtifact;
 import io.github.testlens.core.trace.TraceLogSink;
@@ -94,6 +95,7 @@ public final class JsOverlayDebug {
     private boolean waitHudInjected = false;
     private final Guards guards;
     private final OverlayLogger logger;
+    private final RedactionPolicy redactionPolicy;
     private final SessionTraceLogSink sessionTraceLogSink = new SessionTraceLogSink();
     private final HudLogSink hudLogSink = new HudLogSink();
     private OverlayPolicy overlayPolicy = OverlayPolicy.none();
@@ -111,20 +113,28 @@ public final class JsOverlayDebug {
     }
 
     public JsOverlayDebug(WebDriver driver, OverlayConfig config) {
-        this(driver, config, createDefaultComponents(driver, config, OverlayLogger.noop()));
+        this(driver, config, RedactionPolicy.defaults());
     }
 
-    private JsOverlayDebug(WebDriver driver, OverlayConfig config, DefaultComponents components) {
-        this(driver, config, components.apiPanel(), components.guards(), components.logger());
+    JsOverlayDebug(WebDriver driver, OverlayConfig config, RedactionPolicy redactionPolicy) {
+        this(driver, config, redactionPolicy, createDefaultComponents(driver, config,
+                OverlayLogger.from(UiTestLensLogger.builder().redactionPolicy(redactionPolicy).build())));
+    }
+
+    private JsOverlayDebug(WebDriver driver, OverlayConfig config, RedactionPolicy redactionPolicy,
+                           DefaultComponents components) {
+        this(driver, config, redactionPolicy, components.apiPanel(), components.guards(), components.logger());
     }
 
     private JsOverlayDebug(WebDriver driver,
                            OverlayConfig config,
+                           RedactionPolicy redactionPolicy,
                            ApiOverlayPanel apiPanel,
                            Guards guards,
                            OverlayLogger logger) {
         this.apiPanel = apiPanel;
         this.guards = guards;
+        this.redactionPolicy = redactionPolicy == null ? RedactionPolicy.defaults() : redactionPolicy;
         OverlayLogger baseLogger = logger != null ? logger : OverlayLogger.noop();
         this.logger = baseLogger.withSink(sessionTraceLogSink).withSink(hudLogSink);
         if (driver == null) {
@@ -338,8 +348,9 @@ public final class JsOverlayDebug {
 
     UiTestLensSession startSession(String name,
                                    io.github.testlens.core.trace.RetryOutcomePolicy policy,
-                                   int allowedRetries) {
-        UiTestLensSession started = UiTestLensSession.start(name, policy, allowedRetries);
+                                   int allowedRetries,
+                                   RedactionPolicy redactionPolicy) {
+        UiTestLensSession started = UiTestLensSession.start(name, policy, allowedRetries, redactionPolicy);
         attachSession(started);
         return started;
     }
@@ -503,12 +514,12 @@ public final class JsOverlayDebug {
 
     /** Initializes the HUD with test name and pipeline ID. */
     public void initHud(String testName, String pipelineId) {
-        hudPanel.init(testName, pipelineId);
+        hudPanel.init(redact(testName), redact(pipelineId));
     }
 
     /** Updates the description of the current step in the HUD. */
     public void setStep(String stepDescription) {
-        hudPanel.updateStep(stepDescription);
+        hudPanel.updateStep(redact(stepDescription));
         emit(UiTestLensLogEntry.builder()
                 .level(UiTestLensLogLevel.INFO)
                 .eventType(UiTestLensEventType.STEP)
@@ -520,7 +531,7 @@ public final class JsOverlayDebug {
     }
 
     public void hudLog(String level, String message, String timestamp) {
-        hudPanel.appendLog(level, message, timestamp);
+        hudPanel.appendLog(redact(level), redact(message), redact(timestamp));
         emit(UiTestLensLogEntry.builder()
                 .level(toLogLevel(level))
                 .eventType(UiTestLensEventType.HUD)
@@ -1591,12 +1602,12 @@ public final class JsOverlayDebug {
     //  API shooter
     // ======================================================================
     public void showApiCall(String title, String method, String url, String payloadPreview, long timeoutMs) {
-        String id = apiPanel.showRequest(title, method, url, payloadPreview);
+        String id = apiPanel.showRequest(redact(title), redact(method), redactUrl(url), redact(payloadPreview));
         apiPanel.setPending(id, timeoutMs);
     }
 
     public void showApiResponse(String requestId, int status, long durationMs, String headersPreview, String bodyPreview) {
-        apiPanel.setResponse(requestId, status, durationMs, headersPreview, bodyPreview);
+        apiPanel.setResponse(requestId, status, durationMs, redact(headersPreview), redact(bodyPreview));
     }
 
     public void hideApiModal() {
@@ -1610,7 +1621,7 @@ public final class JsOverlayDebug {
                                   java.util.concurrent.Callable<T> call,
                                   java.util.function.Function<T, String> responsePreview) {
         apiPanel.ensureOpen();
-        String requestId = apiPanel.showRequest(title, method, url, payloadPreview);
+        String requestId = apiPanel.showRequest(redact(title), redact(method), redactUrl(url), redact(payloadPreview));
         if (requestId == null) {
             throw new IllegalStateException("API modal requestId is null - modal not initialized correctly");
         }
@@ -1621,13 +1632,13 @@ public final class JsOverlayDebug {
             T result = call.call();
             long elapsed = System.currentTimeMillis() - started;
             String body = responsePreview != null ? responsePreview.apply(result) : String.valueOf(result);
-            apiPanel.setResponse(requestId, 200, elapsed, "", trimApiPreview(body));
+            apiPanel.setResponse(requestId, 200, elapsed, "", redact(trimApiPreview(body)));
             return result;
         } catch (Exception failure) {
             long elapsed = System.currentTimeMillis() - started;
             apiPanel.setError(requestId,
                     failure.getClass().getSimpleName() + " after " + elapsed + "ms",
-                    trimApiPreview(stackTrace(failure)));
+                    redact(trimApiPreview(stackTrace(failure))));
             throw new RuntimeException(failure);
         }
     }
@@ -1650,7 +1661,7 @@ public final class JsOverlayDebug {
             return (String) ((JavascriptExecutor) driver).executeScript(
                     ApiOverlayJs.INIT_MODAL +
                             "return window.__seleniumApiModal.showRequest(arguments[0], arguments[1], arguments[2], arguments[3]);",
-                    title, method, url, payloadPreview
+                    redact(title), redact(method), redactUrl(url), redact(payloadPreview)
             );
         } catch (Exception e) {
             return null;
@@ -1672,9 +1683,17 @@ public final class JsOverlayDebug {
             ((JavascriptExecutor) driver).executeScript(
                     ApiOverlayJs.INIT_MODAL +
                             "window.__seleniumApiModal.setResponse(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);",
-                    reqId, status, durationMs, headersPreview, bodyPreview
+                    reqId, status, durationMs, redact(headersPreview), redact(bodyPreview)
             );
         } catch (Exception ignored) {}
+    }
+
+    private String redact(String value) {
+        return redactionPolicy.redact(value);
+    }
+
+    private String redactUrl(String value) {
+        return redactionPolicy.redactUrl(value);
     }
 
     public boolean apiHighlightJsonPath(String path) {
@@ -1682,7 +1701,7 @@ public final class JsOverlayDebug {
             Object r = ((JavascriptExecutor) driver).executeScript(
                     ApiOverlayJs.INIT_MODAL +
                             "return window.__seleniumApiModal.highlightPath(arguments[0]);",
-                    path
+                    redact(path)
             );
             return r instanceof Boolean && (Boolean) r;
         } catch (Exception ignored) {
@@ -1695,7 +1714,7 @@ public final class JsOverlayDebug {
             Object r = ((JavascriptExecutor) driver).executeScript(
                     ApiOverlayJs.INIT_MODAL +
                             "return window.__seleniumApiModal.highlightKeyAnimated(arguments[0], arguments[1], arguments[2]);",
-                    key, delayMs, maxHits
+                    redact(key), delayMs, maxHits
             );
             return (r instanceof Number) ? ((Number) r).intValue() : 0;
         } catch (Exception ignored) {
@@ -1707,7 +1726,7 @@ public final class JsOverlayDebug {
         ((JavascriptExecutor) driver).executeScript(
                 "return window.__seleniumApiModal && window.__seleniumApiModal.highlightPathAnimated"
                         + " ? window.__seleniumApiModal.highlightPathAnimated(arguments[0], arguments[1]) : false;",
-                path, stepDelayMs
+                redact(path), stepDelayMs
         );
     }
     public void apiHighlightJsonPathsAnimated(List<String> paths, long delayMs) {
@@ -1717,7 +1736,7 @@ public final class JsOverlayDebug {
             ((JavascriptExecutor) driver).executeScript(
                     ApiOverlayJs.INIT_MODAL +
                             "window.__seleniumApiModal.highlightManyPaths(arguments[0], arguments[1]);",
-                    paths, delayMs
+                    paths.stream().map(this::redact).toList(), delayMs
             );
         } catch (Exception ignored) {
             // overlay nie może wysadzać testów

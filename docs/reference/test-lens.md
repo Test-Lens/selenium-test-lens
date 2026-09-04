@@ -27,6 +27,8 @@ All `attach` overloads require a usable existing driver; the first uses all defa
 
 Finalization completes the active session, writes JSON and HTML, and applies configured HUD cleanup. `finishPassed()` normally records `PASSED`, but a configured retry fail policy can finalize it as `FAILED` and throw `RetryPolicyViolationException` only after evidence, reports, cleanup, manifest, and ZIP. `finishFailed(...)` always records `FAILED`, including when its argument is null; `finishSkipped(reason)` records `SKIPPED`. A policy never replaces explicit failed/skipped status. Any final `FAILED` status can request the automatic failure bundle. Diagnostics remain secondary. Calling a finish method without a session returns a diagnostic result. Finalization never closes the driver. `failureBundleDirectory()`, `failureBundleManifest()`, and `failureBundleArchive()` expose successfully created paths without changing the finalization-result record constructor.
 
+`TestLensOptions.redactionPolicy(...)` supplies one enabled-by-default policy to the facade, logger/HUD fan-out, session, network and API overlays, exports, and failure-bundle text. The exception returned to the runner remains the original; stored diagnostic throwable text is a redacted copy. See [Sensitive-data redaction](../security/redaction.md).
+
 ```java
 TestLens lens = TestLens.attach(driver);
 lens.startSession("checkout");

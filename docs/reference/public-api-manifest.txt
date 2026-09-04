@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 217
-# Public callable methods/constructors: 1713
+# Types: 219
+# Public callable methods/constructors: 1734
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -164,10 +164,12 @@ TYPE io.github.testlens.core.logging.UiTestLensLogSink
   public abstract void accept(io.github.testlens.core.logging.UiTestLensLogEntry)
 TYPE io.github.testlens.core.logging.UiTestLensLogger$Builder
   public io.github.testlens.core.logging.UiTestLensLogger$Builder sink(io.github.testlens.core.logging.UiTestLensLogSink)
+  public io.github.testlens.core.logging.UiTestLensLogger$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
   public io.github.testlens.core.logging.UiTestLensLogger build()
 TYPE io.github.testlens.core.logging.UiTestLensLogger
   public static io.github.testlens.core.logging.UiTestLensLogger noop()
   public static io.github.testlens.core.logging.UiTestLensLogger$Builder builder()
+  public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
   public void emit(io.github.testlens.core.logging.UiTestLensLogEntry)
   public void trace(java.lang.String)
   public void debug(java.lang.String)
@@ -215,6 +217,23 @@ TYPE io.github.testlens.core.logging.export.PlainTextLogExporter
   public java.lang.String export(java.util.List<io.github.testlens.core.logging.UiTestLensLogEntry>)
 TYPE io.github.testlens.core.logging.export.UiTestLensLogExporter
   public abstract java.lang.String export(java.util.List<io.github.testlens.core.logging.UiTestLensLogEntry>)
+TYPE io.github.testlens.core.redaction.RedactionPolicy$Builder
+  public io.github.testlens.core.redaction.RedactionPolicy$Builder enabled(boolean)
+  public io.github.testlens.core.redaction.RedactionPolicy$Builder replacement(java.lang.String)
+  public io.github.testlens.core.redaction.RedactionPolicy$Builder sensitiveKey(java.lang.String)
+  public io.github.testlens.core.redaction.RedactionPolicy$Builder secret(java.lang.String)
+  public io.github.testlens.core.redaction.RedactionPolicy build()
+TYPE io.github.testlens.core.redaction.RedactionPolicy
+  public static io.github.testlens.core.redaction.RedactionPolicy defaults()
+  public static io.github.testlens.core.redaction.RedactionPolicy disabled()
+  public static io.github.testlens.core.redaction.RedactionPolicy$Builder builder()
+  public boolean enabled()
+  public java.lang.String replacement()
+  public int additionalSensitiveKeyCount()
+  public int literalSecretCount()
+  public java.lang.String redact(java.lang.String)
+  public java.lang.String redact(java.lang.String, java.lang.String)
+  public java.lang.String redactUrl(java.lang.String)
 TYPE io.github.testlens.core.trace.RetryOutcomePolicy
   public static final io.github.testlens.core.trace.RetryOutcomePolicy REPORT_ONLY
   public static final io.github.testlens.core.trace.RetryOutcomePolicy WARN
@@ -418,6 +437,7 @@ TYPE io.github.testlens.core.trace.TraceTimeline
 TYPE io.github.testlens.core.trace.UiTestLensSession
   public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String)
   public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int)
+  public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int, io.github.testlens.core.redaction.RedactionPolicy)
   public java.lang.String id()
   public synchronized io.github.testlens.core.trace.TraceMetadata metadata()
   public synchronized java.util.List<io.github.testlens.core.trace.TraceEvent> events()
@@ -991,6 +1011,7 @@ TYPE io.github.testlens.TestLensOptions$Builder
   public io.github.testlens.TestLensOptions$Builder retryOutcomePolicy(io.github.testlens.core.trace.RetryOutcomePolicy)
   public io.github.testlens.TestLensOptions$Builder allowedRetries(int)
   public io.github.testlens.TestLensOptions$Builder failureBundleOptions(io.github.testlens.selenium.evidence.FailureBundleOptions)
+  public io.github.testlens.TestLensOptions$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
   public io.github.testlens.TestLensOptions build()
 TYPE io.github.testlens.TestLensOptions
   public static io.github.testlens.TestLensOptions defaults()
@@ -1003,6 +1024,7 @@ TYPE io.github.testlens.TestLensOptions
   public io.github.testlens.core.trace.RetryOutcomePolicy retryOutcomePolicy()
   public int allowedRetries()
   public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOptions()
+  public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
 TYPE io.github.testlens.actions.AssertActions$OverlayAssertionResult
   public io.github.testlens.actions.AssertActions$OverlayAssertionResult(boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, long)
   public boolean isSuccess()
@@ -1093,6 +1115,7 @@ TYPE io.github.testlens.core.Guards
 TYPE io.github.testlens.core.OverlayLogger
   public static io.github.testlens.core.OverlayLogger noop()
   public static io.github.testlens.core.OverlayLogger from(io.github.testlens.core.logging.UiTestLensLogger)
+  public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
   public io.github.testlens.core.OverlayLogger withSink(io.github.testlens.core.logging.UiTestLensLogSink)
   public void debug(java.lang.String)
   public void info(java.lang.String)

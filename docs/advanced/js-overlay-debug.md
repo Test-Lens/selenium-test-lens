@@ -214,7 +214,7 @@ void highlightPathAnimated(String path, int stepDelayMs)
 void apiHighlightJsonPathsAnimated(List<String> paths, long delayMs)
 ```
 
-Scroll helpers use injected JavaScript and an arrow decoration; the edge overloads control alignment. API overlay methods visualize a caller-supplied request/response preview. They do not perform interception or HTTP traffic capture. `apiCallWithModal(...)` invokes the supplied synchronous callable and maps its result for display. The lower-level `api*` methods expose modal state directly and generally treat JavaScript failures as no result/false/zero; `highlightPathAnimated(...)` is an exception and can propagate script execution failure. Never pass credentials, tokens, unredacted headers, or sensitive payloads into overlay previews.
+Scroll helpers use injected JavaScript and an arrow decoration; the edge overloads control alignment. API overlay methods visualize a caller-supplied request/response preview. They do not perform interception or HTTP traffic capture. `apiCallWithModal(...)` invokes the supplied synchronous callable and maps its result for display. Title, URL, payload, response, headers, JSON paths, and error-stack strings are centrally redacted before JavaScript receives them, so secrets are not left in the browser-side overlay DOM. The lower-level `api*` methods expose modal state directly and generally treat JavaScript failures as no result/false/zero; `highlightPathAnimated(...)` is an exception and can propagate script execution failure. This protection recognizes configured/structured secrets but is not permission to display arbitrary personal data.
 
 ## Accessors
 

@@ -53,7 +53,7 @@ A directly managed session is mutable and is not a cross-thread coordination pri
 - `TraceStep`, `TraceTimeline`: step/event views.
 - enums: `TraceEventType`, `TraceStatus`, `TraceArtifactType`.
 
-Builder inputs are copied where implemented, but the model may contain file paths and arbitrary caller strings. Do not place secrets in names, labels, messages, attributes, or artifact metadata.
+Direct `UiTestLensSession.addEvent(...)` and artifact attachment store a redacted immutable copy, covering names, messages, attributes, failure text, and artifact diagnostic fields even when no logger is involved. Logger-originated trace events have already crossed the same policy before sink fan-out. Original runtime exceptions still control the test; trace failure data is a safe diagnostic copy. Avoid arbitrary personal data because central redaction recognizes structured/configured secrets rather than every sensitive value.
 
 ## TraceJsonExporter
 

@@ -1,5 +1,6 @@
 package io.github.testlens.core.trace;
 
+import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.core.trace.export.TraceHtmlExportOptions;
 import io.github.testlens.core.trace.export.TraceHtmlExporter;
 
@@ -22,16 +23,20 @@ public final class UiTestLensSession {
     private final List<TraceArtifact> artifacts = new ArrayList<>();
     private final RetryOutcomePolicy retryOutcomePolicy;
     private final int allowedRetries;
+    private final RedactionPolicy redactionPolicy;
     private TraceMetadata metadata;
     private boolean retryDecisionRecorded;
     private boolean retryPolicyTriggered;
 
-    private UiTestLensSession(String name, RetryOutcomePolicy retryOutcomePolicy, int allowedRetries) {
+    private UiTestLensSession(String name, RetryOutcomePolicy retryOutcomePolicy, int allowedRetries,
+                              RedactionPolicy redactionPolicy) {
         if (allowedRetries < 0) throw new IllegalArgumentException("allowedRetries must not be negative");
         this.retryOutcomePolicy = retryOutcomePolicy == null ? RetryOutcomePolicy.REPORT_ONLY : retryOutcomePolicy;
         this.allowedRetries = allowedRetries;
+        this.redactionPolicy = redactionPolicy == null ? RedactionPolicy.defaults() : redactionPolicy;
         String id = UUID.randomUUID().toString();
-        this.metadata = TraceMetadata.builder(id, name == null || name.isBlank() ? "Selenium Test Lens session" : name.trim())
+        String safeName = name == null || name.isBlank() ? "Selenium Test Lens session" : this.redactionPolicy.redact(name.trim());
+        this.metadata = TraceMetadata.builder(id, safeName)
                 .status(TraceStatus.STARTED)
                 .build();
         addEvent(TraceEvent.started(TraceEventType.SESSION_STARTED, this.metadata.name())
@@ -41,11 +46,16 @@ public final class UiTestLensSession {
     }
 
     public static UiTestLensSession start(String name) {
-        return new UiTestLensSession(name, RetryOutcomePolicy.REPORT_ONLY, 0);
+        return new UiTestLensSession(name, RetryOutcomePolicy.REPORT_ONLY, 0, RedactionPolicy.defaults());
     }
 
     public static UiTestLensSession start(String name, RetryOutcomePolicy policy, int allowedRetries) {
-        return new UiTestLensSession(name, policy, allowedRetries);
+        return new UiTestLensSession(name, policy, allowedRetries, RedactionPolicy.defaults());
+    }
+
+    public static UiTestLensSession start(String name, RetryOutcomePolicy policy, int allowedRetries,
+                                          RedactionPolicy redactionPolicy) {
+        return new UiTestLensSession(name, policy, allowedRetries, redactionPolicy);
     }
 
     public String id() {
@@ -86,23 +96,25 @@ public final class UiTestLensSession {
         if (event == null) {
             return null;
         }
-        events.add(event);
-        return event;
+        TraceEvent safe = redactEvent(event);
+        events.add(safe);
+        return safe;
     }
 
     public synchronized TraceArtifact attachArtifact(TraceArtifact artifact) {
         if (artifact == null) {
             throw new IllegalArgumentException("artifact must not be null");
         }
-        artifacts.add(artifact);
-        addEvent(TraceEvent.builder(TraceEventType.ARTIFACT_ATTACHED, TraceStatus.INFO, artifact.name())
+        TraceArtifact safe = redactArtifact(artifact);
+        artifacts.add(safe);
+        addEvent(TraceEvent.builder(TraceEventType.ARTIFACT_ATTACHED, TraceStatus.INFO, safe.name())
                 .message("Artifact attached")
-                .attribute("artifactType", artifact.type().name())
-                .attribute("path", artifact.path())
-                .attribute("url", artifact.url())
-                .artifact(artifact)
+                .attribute("artifactType", safe.type().name())
+                .attribute("path", safe.path())
+                .attribute("url", safe.url())
+                .artifact(safe)
                 .build());
-        return artifact;
+        return safe;
     }
 
     public TraceArtifact attachScreenshot(String name, Path path) {
@@ -233,6 +245,33 @@ public final class UiTestLensSession {
 
     private static void increment(Map<String, Long> target, String key) {
         if (key != null && !key.isBlank()) target.merge(key, 1L, Long::sum);
+    }
+
+    private TraceEvent redactEvent(TraceEvent event) {
+        Map<String, String> attributes = new java.util.LinkedHashMap<>();
+        event.attributes().forEach((key, value) -> attributes.put(key, redactionPolicy.redact(key, value)));
+        TraceEvent.Builder builder = event.toBuilder()
+                .name(redactionPolicy.redact(event.name()))
+                .message(redactionPolicy.redact(event.message()))
+                .attributes(attributes)
+                .artifacts(event.artifacts().stream().map(this::redactArtifact).toList());
+        if (event.failure() != null) builder.failure(redactFailure(event.failure()));
+        return builder.build();
+    }
+
+    private TraceFailure redactFailure(TraceFailure failure) {
+        Map<String, String> details = new java.util.LinkedHashMap<>();
+        failure.details().forEach((key, value) -> details.put(key, redactionPolicy.redact(key, value)));
+        return new TraceFailure(redactionPolicy.redact(failure.message()), failure.exceptionType(),
+                redactionPolicy.redact(failure.stackTrace()), details);
+    }
+
+    private TraceArtifact redactArtifact(TraceArtifact artifact) {
+        Map<String, String> metadata = new java.util.LinkedHashMap<>();
+        artifact.metadata().forEach((key, value) -> metadata.put(key, redactionPolicy.redact(key, value)));
+        return TraceArtifact.of(redactionPolicy.redact(artifact.name()), artifact.type(),
+                redactionPolicy.redact(artifact.path()), redactionPolicy.redactUrl(artifact.url()),
+                redactionPolicy.redact(artifact.mediaType()), artifact.createdAt(), metadata);
     }
 
     private static final class DurationAccumulator {

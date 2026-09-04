@@ -66,6 +66,7 @@ public void assertOk(java.lang.String)
 ```java
 public static io.github.testlens.core.OverlayLogger noop()
 public static io.github.testlens.core.OverlayLogger from(io.github.testlens.core.logging.UiTestLensLogger)
+public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
 public io.github.testlens.core.OverlayLogger withSink(io.github.testlens.core.logging.UiTestLensLogSink)
 public void debug(java.lang.String)
 public void info(java.lang.String)

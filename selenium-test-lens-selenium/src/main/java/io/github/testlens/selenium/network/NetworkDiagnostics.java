@@ -7,6 +7,7 @@ import io.github.testlens.core.logging.UiTestLensLogLevel;
 import io.github.testlens.core.logging.UiTestLensStatus;
 import io.github.testlens.core.trace.TraceArtifact;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import org.openqa.selenium.WebDriver;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ public final class NetworkDiagnostics {
     private final WebDriver driver;
     private final OverlayLogger logger;
     private final NetworkCaptureSourceFactory captureFactory;
+    private final RedactionPolicy redactionPolicy;
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition eventArrived = lock.newCondition();
     private final List<NetworkEvent> events = new ArrayList<>();
@@ -48,7 +50,7 @@ public final class NetworkDiagnostics {
     private int droppedEvents;
 
     public NetworkDiagnostics(WebDriver driver) {
-        this(driver, OverlayLogger.noop());
+        this(driver, OverlayLogger.noop(), SeleniumBiDiNetworkCaptureSource::open);
     }
 
     public NetworkDiagnostics(WebDriver driver, OverlayLogger logger) {
@@ -59,6 +61,7 @@ public final class NetworkDiagnostics {
         if (driver == null) throw new IllegalArgumentException("driver must not be null");
         this.driver = driver;
         this.logger = logger == null ? OverlayLogger.noop() : logger;
+        this.redactionPolicy = this.logger.redactionPolicy();
         this.captureFactory = Objects.requireNonNull(captureFactory, "captureFactory");
     }
 
@@ -193,7 +196,7 @@ public final class NetworkDiagnostics {
 
     public List<NetworkEvent> events() {
         lock.lock();
-        try { return Collections.unmodifiableList(new ArrayList<>(events)); } finally { lock.unlock(); }
+        try { return events.stream().map(this::redactEvent).toList(); } finally { lock.unlock(); }
     }
 
     public NetworkSummary summary() {
@@ -237,7 +240,7 @@ public final class NetworkDiagnostics {
         } finally { lock.unlock(); }
         if (emission != null) emitRecorded(emission);
         if (warnLimit) emitLimitWarning();
-        return recorded == null ? event : recorded;
+        return redactEvent(recorded == null ? event : recorded);
     }
 
     public NetworkDiagnosticsResult assertNoFailedRequests() {
@@ -274,15 +277,20 @@ public final class NetworkDiagnostics {
             if (result == null) result = awaitMatch(effective, startedAt);
         } finally { lock.unlock(); }
         emitWaitResult(result);
-        return result;
+        NetworkEvent safeEvent = redactEvent(result.matchedEvent());
+        NetworkRequest safeRequest = result.matchedRequest() == null ? null : redactRequest(result.matchedRequest());
+        return result.redacted(redactionPolicy, safeEvent, safeRequest);
     }
 
     public NetworkResponseExpectation expectResponse() { return new NetworkResponseExpectation(this); }
 
     public Optional<NetworkEvent> findMatchingEvent(NetworkWaitCondition condition) {
         NetworkWaitCondition effective = condition == null ? NetworkWaitCondition.builder().build() : condition;
-        List<NetworkEvent> snapshot = events();
-        return snapshot.stream().filter(event -> effective.matches(event, snapshot)).findFirst();
+        lock.lock();
+        try {
+            List<NetworkEvent> snapshot = List.copyOf(events);
+            return snapshot.stream().filter(event -> effective.matches(event, snapshot)).findFirst().map(this::redactEvent);
+        } finally { lock.unlock(); }
     }
 
     /** Explicitly attaches the current summary to a session. Options never invoke this automatically. */
@@ -489,6 +497,49 @@ public final class NetworkDiagnostics {
         if (!options.includeHeaders()) return removeHeaders(event);
         if (options.maskSensitiveHeaders()) return maskHeaders(event);
         return event;
+    }
+
+    private NetworkEvent redactEvent(NetworkEvent event) {
+        if (event == null || !redactionPolicy.enabled()) return event;
+        Map<String, String> attributes = redactMap(event.attributes());
+        if (event.request() != null) {
+            NetworkRequest request = redactRequest(event.request());
+            return NetworkEvent.redacted(event.id(), event.type(), request, null, null, null,
+                    redactionPolicy.redact(event.message()), event.timestamp(), attributes);
+        }
+        if (event.response() != null) {
+            NetworkResponse response = event.response();
+            NetworkResponse safeResponse = new NetworkResponse(redactionPolicy.redact(response.requestId()),
+                    redactionPolicy.redactUrl(response.url()), response.status(), redactionPolicy.redact(response.statusText()),
+                    redactionPolicy.redact(response.mimeType()), response.duration(), response.timestamp(),
+                    redactMap(response.headers()));
+            NetworkRequest correlated = event.correlatedRequest() == null ? null : redactRequest(event.correlatedRequest());
+            return NetworkEvent.redacted(event.id(), event.type(), null, safeResponse, correlated, null,
+                    redactionPolicy.redact(event.message()), event.timestamp(), attributes);
+        }
+        if (event.failure() != null) {
+            NetworkFailure failure = event.failure();
+            NetworkFailure safeFailure = new NetworkFailure(redactionPolicy.redact(failure.requestId()),
+                    redactionPolicy.redactUrl(failure.url()), redactionPolicy.redact(failure.message()),
+                    redactionPolicy.redact(failure.failureType()), failure.timestamp());
+            return NetworkEvent.redacted(event.id(), event.type(), null, null, null, safeFailure,
+                    redactionPolicy.redact(event.message()), event.timestamp(), attributes);
+        }
+        return NetworkEvent.redacted(event.id(), event.type(), null, null, null, null,
+                redactionPolicy.redact(event.message()), event.timestamp(), attributes);
+    }
+
+    private NetworkRequest redactRequest(NetworkRequest request) {
+        return new NetworkRequest(redactionPolicy.redact(request.id()), redactionPolicy.redact(request.method()),
+                redactionPolicy.redactUrl(request.url()), redactionPolicy.redact(request.resourceType()),
+                request.timestamp(), redactMap(request.headers()));
+    }
+
+    private Map<String, String> redactMap(Map<String, String> values) {
+        if (values == null || values.isEmpty()) return Map.of();
+        Map<String, String> safe = new LinkedHashMap<>();
+        values.forEach((key, value) -> safe.put(key, redactionPolicy.redact(key, value)));
+        return safe;
     }
 
     private NetworkEvent removeHeaders(NetworkEvent event) {

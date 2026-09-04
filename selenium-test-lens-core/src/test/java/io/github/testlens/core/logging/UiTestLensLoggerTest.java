@@ -1,5 +1,6 @@
 package io.github.testlens.core.logging;
 
+import io.github.testlens.core.redaction.RedactionPolicy;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -49,8 +50,8 @@ class UiTestLensLoggerTest {
 
         logger.emit(entry);
 
-        assertSame(entry, first.entries().get(0));
-        assertSame(entry, second.entries().get(0));
+        assertNotSame(entry, first.entries().get(0));
+        assertSame(first.entries().get(0), second.entries().get(0));
     }
 
     @Test
@@ -94,6 +95,37 @@ class UiTestLensLoggerTest {
         logger.info("entry");
 
         assertEquals(1, received.size());
+    }
+
+    @Test
+    void redactsEveryDiagnosticFieldAndThrowableBeforeFanOutAndThroughWithSink() {
+        String secret = "logger-canary-417b";
+        InMemoryLogSink first = new InMemoryLogSink();
+        InMemoryLogSink second = new InMemoryLogSink();
+        Throwable root = new IllegalArgumentException("root " + secret);
+        Throwable failure = new IllegalStateException("failure " + secret, root);
+        failure.addSuppressed(new RuntimeException("suppressed " + secret));
+        TargetDescriptor target = new TargetDescriptor("#" + secret, "label " + secret,
+                "input", "text " + secret, java.util.Map.of("access_token", secret, "other", secret));
+        UiTestLensLogger logger = UiTestLensLogger.builder()
+                .redactionPolicy(RedactionPolicy.builder().secret(secret).build()).sink(first).build().withSink(second);
+
+        logger.emit(UiTestLensLogEntry.builder().message("message " + secret).step("step " + secret)
+                .action("action " + secret).target(target)
+                .metadata(java.util.Map.of("password", secret, "other", secret)).throwable(failure).build());
+
+        assertEquals(1, first.entries().size());
+        assertSame(first.entries().get(0), second.entries().get(0));
+        UiTestLensLogEntry safe = first.entries().get(0);
+        String diagnostic = safe.toString() + safe.target() + safe.metadata() + safe.throwable()
+                + safe.throwable().getCause() + java.util.Arrays.toString(safe.throwable().getSuppressed());
+        assertFalse(diagnostic.contains(secret));
+        assertTrue(diagnostic.contains("[REDACTED]"));
+        String exports = new io.github.testlens.core.logging.export.JsonLogExporter().export(List.of(safe))
+                + new io.github.testlens.core.logging.export.HtmlLogExporter().export(List.of(safe))
+                + new io.github.testlens.core.logging.export.PlainTextLogExporter().export(List.of(safe));
+        assertFalse(exports.contains(secret));
+        assertTrue(exports.contains("[REDACTED]"));
     }
 }
 

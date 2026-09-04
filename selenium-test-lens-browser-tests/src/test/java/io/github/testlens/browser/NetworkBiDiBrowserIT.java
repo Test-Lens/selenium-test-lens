@@ -7,6 +7,8 @@ import io.github.testlens.TestLens;
 import io.github.testlens.TestLensFinalizationResult;
 import io.github.testlens.TestLensOptions;
 import io.github.testlens.core.trace.TraceStatus;
+import io.github.testlens.core.redaction.RedactionPolicy;
+import io.github.testlens.selenium.evidence.FailureBundleOptions;
 import io.github.testlens.selenium.network.NetworkCaptureMode;
 import io.github.testlens.selenium.network.NetworkDiagnostics;
 import io.github.testlens.selenium.network.NetworkDiagnosticsOptions;
@@ -39,6 +41,7 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.zip.ZipFile;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -236,6 +239,80 @@ class NetworkBiDiBrowserIT {
         }
     }
 
+    @Test
+    void centralRedactionProtectsHudTraceNetworkAndFailureBundle() throws Exception {
+        WebDriver driver = createBiDiDriver();
+        String canary = "browser-redaction-canary-7b9e2d";
+        try {
+            Path output = Path.of("target", "ui-test-lens", browserName(), "central-redaction");
+            RedactionPolicy policy = RedactionPolicy.builder()
+                    .sensitiveKey("tenant-session")
+                    .secret(canary)
+                    .build();
+            TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+                    .overlayConfig(OverlayConfig.builder().enabled(true).showHudPanel(true).build())
+                    .cleanupHudOnFinish(false)
+                    .redactionPolicy(policy)
+                    .failureBundleOptions(FailureBundleOptions.complete())
+                    .outputRoot(output)
+                    .build());
+            var session = lens.startSession("redaction " + canary);
+            NetworkDiagnostics network = lens.network().start(NetworkDiagnosticsOptions.builder()
+                    .captureMode(NetworkCaptureMode.BIDI)
+                    .includeHeaders(true)
+                    .maskSensitiveHeaders(false)
+                    .build());
+
+            driver.get(baseUrl + "/redaction-page?access_token=" + canary);
+            lens.step("step tenant-session=" + canary, () -> session.addEvent(
+                    io.github.testlens.core.trace.TraceEvent.info("metadata", "tenant-session=" + canary)));
+            lens.apiCallWithModal("API " + canary, "POST",
+                    baseUrl + "/api/redaction?token=" + canary,
+                    "{\"client_secret\":\"" + canary + "\"}", 1_000,
+                    () -> "{\"access_token\":\"" + canary + "\"}", value -> value);
+
+            fetchWithSecret(driver, "/api/redaction?tenant-session=" + canary, canary);
+            NetworkWaitResult matched = network.waitForResponse(NetworkWaitCondition.builder()
+                    .urlContains("tenant-session=" + canary).status(200)
+                    .timeout(Duration.ofSeconds(5)).build());
+            assertEquals(NetworkWaitStatus.MATCHED, matched.status());
+            assertFalse(matched.matchedResponse().url().contains(canary));
+
+            String browserUi = overlayText(driver);
+            assertFalse(browserUi.contains(canary));
+            assertTrue(browserUi.contains("[REDACTED]"));
+            assertTrue(session.events().stream().noneMatch(event ->
+                    event.name().contains(canary) || event.message().contains(canary)
+                            || event.attributes().values().stream().anyMatch(value -> value.contains(canary))));
+
+            AssertionError original = new AssertionError("controlled failure " + canary);
+            TestLensFinalizationResult result = lens.finishFailed(original);
+            assertEquals(TraceStatus.FAILED, result.session().metadata().status());
+            assertFalse(driver.getTitle().isBlank(), "Lens finalization must leave the driver alive");
+
+            boolean replacementFound = false;
+            try (var files = Files.walk(result.outputDirectory())) {
+                for (Path file : files.filter(Files::isRegularFile)
+                        .filter(path -> !path.toString().endsWith(".png") && !path.toString().endsWith(".zip"))
+                        .toList()) {
+                    String content = Files.readString(file);
+                    assertFalse(content.contains(canary), file.toString());
+                    replacementFound |= content.contains("[REDACTED]");
+                }
+            }
+            try (ZipFile zip = new ZipFile(result.failureBundleArchive().orElseThrow().toFile())) {
+                for (var entry : zip.stream().filter(item -> !item.getName().endsWith(".png")).toList()) {
+                    String content = new String(zip.getInputStream(entry).readAllBytes(), StandardCharsets.UTF_8);
+                    assertFalse(content.contains(canary), entry.getName());
+                    replacementFound |= content.contains("[REDACTED]");
+                }
+            }
+            assertTrue(replacementFound);
+        } finally {
+            driver.quit();
+        }
+    }
+
     private static void awaitSummary(WebDriver driver, NetworkDiagnostics network,
                                      int failedResponses, int failedRequests) {
         NetworkWaitResult failedStatus = network.waitForResponse(NetworkWaitCondition.builder()
@@ -258,6 +335,15 @@ class NetworkBiDiBrowserIT {
                 """, baseUrl + path, sensitiveHeader);
     }
 
+    private static Object fetchWithSecret(WebDriver driver, String path, String secret) {
+        return ((JavascriptExecutor) driver).executeAsyncScript("""
+                const url = arguments[0], secret = arguments[1], done = arguments[arguments.length - 1];
+                fetch(url, {headers: {'Authorization':'Bearer ' + secret}})
+                  .then(async response => { await response.text(); done({status: response.status}); })
+                  .catch(error => done({error: String(error)}));
+                """, baseUrl + path, secret);
+    }
+
     private static String header(NetworkEvent event, String name) {
         return event.request().headers().entrySet().stream()
                 .filter(entry -> entry.getKey().equalsIgnoreCase(name))
@@ -274,6 +360,14 @@ class NetworkBiDiBrowserIT {
                 const host = document.getElementById('selenium-overlay-host');
                 const hud = host && host.shadowRoot && host.shadowRoot.querySelector('#selenium-hud-panel');
                 return hud ? hud.textContent : '';
+                """);
+        return value == null ? "" : String.valueOf(value);
+    }
+
+    private static String overlayText(WebDriver driver) {
+        Object value = ((JavascriptExecutor) driver).executeScript("""
+                const host = document.getElementById('selenium-overlay-host');
+                return host && host.shadowRoot ? host.shadowRoot.textContent : '';
                 """);
         return value == null ? "" : String.valueOf(value);
     }
@@ -313,6 +407,11 @@ class NetworkBiDiBrowserIT {
         switch (path) {
             case "/network-page" -> response(exchange, 200,
                     "text/html; charset=utf-8", "<!doctype html><title>BiDi network</title><p>ready</p>");
+            case "/redaction-page" -> {
+                String query = exchange.getRequestURI().getRawQuery();
+                response(exchange, 200, "text/html; charset=utf-8",
+                        "<!doctype html><title>Redaction</title><script>const hidden='" + query + "';</script><p>ready</p>");
+            }
             case "/api/success" -> response(exchange, 201, "application/json", "{\"ok\":true}");
             case "/api/failure", "/assets/hud-failed", "/api/hud-excluded-failure" ->
                     response(exchange, 503, "application/json", "{\"ok\":false}");
@@ -323,7 +422,7 @@ class NetworkBiDiBrowserIT {
                 exchange.sendResponseHeaders(302, -1);
                 exchange.close();
             }
-            case "/api/final", "/api/restart", "/api/after-stop", "/api/bundle" ->
+            case "/api/final", "/api/restart", "/api/after-stop", "/api/bundle", "/api/redaction" ->
                     response(exchange, 200, "application/json", "{\"ok\":true}");
             case "/ignored" -> response(exchange, 204, "text/plain", "");
             case "/api/fetch-error" -> {

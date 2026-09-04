@@ -6,6 +6,7 @@ import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
 import io.github.testlens.core.trace.RetryOutcomePolicy;
 import io.github.testlens.core.trace.RetryPolicyViolationException;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.network.NetworkCaptureMode;
 import io.github.testlens.selenium.network.NetworkDiagnostics;
 import io.github.testlens.selenium.network.NetworkDiagnosticsOptions;
@@ -34,6 +35,23 @@ class TestLensTest {
         TestLensOptions options = TestLensOptions.defaults();
         assertEquals(RetryOutcomePolicy.REPORT_ONLY, options.retryOutcomePolicy());
         assertEquals(0, options.allowedRetries());
+        assertTrue(options.redactionPolicy().enabled());
+    }
+
+    @Test
+    void configuredRedactionPolicyFlowsIntoTheSessionWithoutChangingOriginalFailure() {
+        String secret = "lens-canary-e32a";
+        RedactionPolicy policy = RedactionPolicy.builder().secret(secret).build();
+        TestLens lens = TestLens.attach(driver(false), TestLensOptions.builder().outputRoot(temp)
+                .redactionPolicy(policy).build());
+        UiTestLensSession session = lens.startSession("session " + secret);
+        RuntimeException original = new RuntimeException("original " + secret);
+
+        lens.finishFailed(original);
+
+        assertEquals("original " + secret, original.getMessage());
+        assertFalse(session.metadata().name().contains(secret));
+        assertFalse(session.events().toString().contains(secret));
     }
 
     @Test

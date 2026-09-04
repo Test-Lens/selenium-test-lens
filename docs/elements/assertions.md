@@ -25,7 +25,7 @@ Suggested alt text: Test Lens HUD reporting a successful visible-element asserti
 
 <!-- SCREENSHOT TODO: assets/screenshots/assertion-failed.png
 Show a failed or timed-out real UiExpect assertion using synthetic expected/actual text.
-The HUD must show failure status and enough context to understand the mismatch without secrets.
+The HUD must show failure status and enough context to understand the mismatch without secrets. Assertion expected/actual previews pass through the effective central `RedactionPolicy`; typed length-only and URL sanitization rules remain stricter and diagnostic rendering never performs another observation.
 Feature documented: failed assertion diagnostics.
 Suggested alt text: Test Lens HUD reporting a timed-out text assertion with expected and actual context.
 -->

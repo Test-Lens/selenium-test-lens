@@ -10,6 +10,8 @@
 "selenium-test-lens-core","io.github.testlens.core.logging.export.UiTestLensLogExporter","ADVANCED_API",""
 "selenium-test-lens-core","io.github.testlens.core.logging.InMemoryLogSink","ADVANCED_API",""
 "selenium-test-lens-core","io.github.testlens.core.logging.TargetDescriptor","ADVANCED_API",""
+"selenium-test-lens-core","io.github.testlens.core.redaction.RedactionPolicy$Builder","USER_API","docs/security/redaction.md"
+"selenium-test-lens-core","io.github.testlens.core.redaction.RedactionPolicy","USER_API","docs/security/redaction.md"
 "selenium-test-lens-core","io.github.testlens.core.logging.UiTestLensEventType","ADVANCED_API",""
 "selenium-test-lens-core","io.github.testlens.core.logging.UiTestLensLogEntry$Builder","ADVANCED_API",""
 "selenium-test-lens-core","io.github.testlens.core.logging.UiTestLensLogEntry","ADVANCED_API",""

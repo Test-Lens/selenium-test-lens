@@ -7,7 +7,7 @@ search:
 
 This generated catalog is the optional binary-surface reference for every published public type, constructor, method, and field. Start with [Capabilities](../capabilities.md) and the functional navigation for behavior, workflows, and examples. Internal-style types appear only because Java consumers can currently access them.
 
-Inventory: **217 public types** and **1713 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
+Inventory: **219 public types** and **1734 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
 
 Classifications: USER_API is the normal consumer path; ADVANCED_API is supported specialized functionality; LOW_LEVEL_API exposes lower abstractions; INTERNAL_STYLE_PUBLIC is binary-public implementation surface and is not recommended for application code.
 
@@ -36,6 +36,8 @@ Signature details are split by published artifact and Java package to keep indiv
 | io.github.testlens.core.logging.export.LogExportOptions | io.github.testlens.core.logging.export | ADVANCED_API | record | [signatures](public-api/selenium-test-lens-core-io-github-testlens-core-logging-export.md#io-github-testlens-core-logging-export-logexportoptions) |
 | io.github.testlens.core.logging.export.PlainTextLogExporter | io.github.testlens.core.logging.export | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-core-io-github-testlens-core-logging-export.md#io-github-testlens-core-logging-export-plaintextlogexporter) |
 | io.github.testlens.core.logging.export.UiTestLensLogExporter | io.github.testlens.core.logging.export | ADVANCED_API | interface | [signatures](public-api/selenium-test-lens-core-io-github-testlens-core-logging-export.md#io-github-testlens-core-logging-export-uitestlenslogexporter) |
+| io.github.testlens.core.redaction.RedactionPolicy$Builder | io.github.testlens.core.redaction | USER_API | class | [signatures](public-api/selenium-test-lens-core-io-github-testlens-core-redaction.md#io-github-testlens-core-redaction-redactionpolicy-builder) |
+| io.github.testlens.core.redaction.RedactionPolicy | io.github.testlens.core.redaction | USER_API | class | [signatures](public-api/selenium-test-lens-core-io-github-testlens-core-redaction.md#io-github-testlens-core-redaction-redactionpolicy) |
 | io.github.testlens.core.trace.RetryOutcomePolicy | io.github.testlens.core.trace | USER_API | enum | [signatures](public-api/selenium-test-lens-core-io-github-testlens-core-trace.md#io-github-testlens-core-trace-retryoutcomepolicy) |
 | io.github.testlens.core.trace.RetryPolicyViolationException | io.github.testlens.core.trace | USER_API | class | [signatures](public-api/selenium-test-lens-core-io-github-testlens-core-trace.md#io-github-testlens-core-trace-retrypolicyviolationexception) |
 | io.github.testlens.core.trace.RetrySummary | io.github.testlens.core.trace | USER_API | record | [signatures](public-api/selenium-test-lens-core-io-github-testlens-core-trace.md#io-github-testlens-core-trace-retrysummary) |

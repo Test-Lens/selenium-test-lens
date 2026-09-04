@@ -261,6 +261,7 @@ public abstract void accept(io.github.testlens.core.logging.UiTestLensLogEntry)
 
 ```java
 public io.github.testlens.core.logging.UiTestLensLogger$Builder sink(io.github.testlens.core.logging.UiTestLensLogSink)
+public io.github.testlens.core.logging.UiTestLensLogger$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
 public io.github.testlens.core.logging.UiTestLensLogger build()
 ```
 
@@ -274,6 +275,7 @@ public io.github.testlens.core.logging.UiTestLensLogger build()
 ```java
 public static io.github.testlens.core.logging.UiTestLensLogger noop()
 public static io.github.testlens.core.logging.UiTestLensLogger$Builder builder()
+public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
 public void emit(io.github.testlens.core.logging.UiTestLensLogEntry)
 public void trace(java.lang.String)
 public void debug(java.lang.String)

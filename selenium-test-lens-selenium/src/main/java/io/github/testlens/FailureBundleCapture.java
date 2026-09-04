@@ -5,6 +5,7 @@ import io.github.testlens.core.trace.TraceEvent;
 import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.evidence.FailureBundleOptions;
 import io.github.testlens.selenium.network.NetworkDiagnostics;
 import io.github.testlens.selenium.network.NetworkEvent;
@@ -55,6 +56,7 @@ final class FailureBundleCapture {
     private final UiTestLensSession session;
     private final TestLensOptions lensOptions;
     private final FailureBundleOptions options;
+    private final RedactionPolicy redactionPolicy;
     private final Path sessionDirectory;
     private final Path bundleDirectory;
     private final Path archive;
@@ -70,6 +72,7 @@ final class FailureBundleCapture {
         this.session = session;
         this.lensOptions = lensOptions;
         this.options = lensOptions.failureBundleOptions();
+        this.redactionPolicy = lensOptions.redactionPolicy();
         this.sessionDirectory = sessionDirectory.toAbsolutePath().normalize();
         this.bundleDirectory = this.sessionDirectory.resolve("failure-bundle");
         this.archive = this.sessionDirectory.resolve("failure-bundle.zip");
@@ -258,6 +261,10 @@ final class FailureBundleCapture {
         data.put("cleanupHudOnFinish", lensOptions.cleanupHudOnFinish());
         data.put("networkCaptureMode", delegate.networkDiagnosticsSnapshot()
                 .map(NetworkDiagnostics::captureMode).map(Enum::name).orElse("NOT_INITIALIZED"));
+        data.put("redactionEnabled", redactionPolicy.enabled());
+        data.put("redactionReplacement", redactionPolicy.replacement());
+        data.put("additionalSensitiveKeys", redactionPolicy.additionalSensitiveKeyCount());
+        data.put("literalSecrets", redactionPolicy.literalSecretCount());
         writeJsonComponent("configuration", "configuration.json", data);
     }
 
@@ -347,13 +354,14 @@ final class FailureBundleCapture {
     private void capturePageSource() {
         try {
             String source = driver.getPageSource();
-            byte[] bytes = safe(source).getBytes(StandardCharsets.UTF_8);
+            String redacted = redactionPolicy.redact(safe(source));
+            byte[] bytes = redacted.getBytes(StandardCharsets.UTF_8);
             if (bytes.length == 0) {
                 component("pageSource", "EMPTY", null, "text/html", "Page source is empty");
                 return;
             }
             boolean truncated = bytes.length > options.maxTextArtifactBytes();
-            byte[] stored = truncated ? truncateUtf8(source, options.maxTextArtifactBytes()) : bytes;
+            byte[] stored = truncated ? truncateUtf8(redacted, options.maxTextArtifactBytes()) : bytes;
             Path path = bundleDirectory.resolve("page-source.html");
             atomicWrite(path, stored);
             component("pageSource", truncated ? "TRUNCATED" : "CAPTURED",
@@ -588,8 +596,26 @@ final class FailureBundleCapture {
         return sessionDirectory.relativize(normalized).toString().replace('\\', '/');
     }
 
-    private static byte[] jsonBytes(Object value) {
-        return new Json().toJson(value).getBytes(StandardCharsets.UTF_8);
+    private byte[] jsonBytes(Object value) {
+        return new Json().toJson(redactJsonValue(null, value)).getBytes(StandardCharsets.UTF_8);
+    }
+
+    private Object redactJsonValue(String key, Object value) {
+        if (value instanceof String text) return redactionPolicy.redact(key, text);
+        if (value instanceof Map<?, ?> map) {
+            Map<String, Object> safe = orderedMap();
+            map.forEach((entryKey, entryValue) -> {
+                String name = String.valueOf(entryKey);
+                safe.put(name, redactJsonValue(name, entryValue));
+            });
+            return safe;
+        }
+        if (value instanceof Iterable<?> values) {
+            List<Object> safe = new ArrayList<>();
+            values.forEach(item -> safe.add(redactJsonValue(key, item)));
+            return List.copyOf(safe);
+        }
+        return value;
     }
 
     private static byte[] truncateUtf8(String value, long maximumBytes) {

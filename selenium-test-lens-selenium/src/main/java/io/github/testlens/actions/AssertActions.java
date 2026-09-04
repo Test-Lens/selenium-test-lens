@@ -567,13 +567,13 @@ public class AssertActions {
         js.executeScript(
                 AssertionBadgesJs.INIT +
                         "window.__uiTestLens.modules.assertionBadges.show(arguments[0], { ok: arguments[1], label: arguments[3] }, { duration: arguments[2] });",
-                element, ok, duration, label
+                element, ok, duration, logger.redactionPolicy().redact(label)
         );
     }
 
     private void hudUpdate(String msg) {
         if (hudPanel != null && config.isShowHudPanel()) {
-            hudPanel.updateStep(msg);
+            hudPanel.updateStep(logger.redactionPolicy().redact(msg));
         }
     }
 

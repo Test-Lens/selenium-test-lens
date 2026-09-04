@@ -1,5 +1,7 @@
 package io.github.testlens.selenium.network;
 
+import io.github.testlens.core.OverlayLogger;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.core.trace.TraceArtifactType;
 import io.github.testlens.core.trace.UiTestLensSession;
 import org.junit.jupiter.api.Test;
@@ -83,6 +85,34 @@ class NetworkDiagnosticsTest {
 
         assertEquals("***", withHeaders.events().get(1).request().headers().get("Authorization"));
         assertEquals("ok", withHeaders.events().get(1).request().headers().get("X-Test"));
+    }
+
+    @Test
+    void centralPolicyProtectsEventsExportAndWaitEvenWhenHeaderMaskingIsDisabled() {
+        String secret = "network-canary-5b9e";
+        RedactionPolicy policy = RedactionPolicy.builder().secret(secret).build();
+        OverlayLogger logger = OverlayLogger.from(io.github.testlens.core.logging.UiTestLensLogger.builder()
+                .redactionPolicy(policy).build());
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), logger)
+                .start(NetworkDiagnosticsOptions.builder().includeHeaders(true)
+                        .maskSensitiveHeaders(false).build());
+        String url = "/api/orders?access_token=" + secret + "&page=1";
+        diagnostics.addManualEvent(NetworkEvent.request(new NetworkRequest("req-1", "GET", url, "", null,
+                Map.of("Authorization", "Bearer " + secret, "X-Test", secret))));
+        diagnostics.addManualEvent(NetworkEvent.response(NetworkResponse.of("req-1", url, 200)));
+
+        NetworkWaitResult wait = diagnostics.waitForResponse(NetworkWaitCondition.builder()
+                .exactUrl(url).status(200).build());
+
+        assertEquals(NetworkWaitStatus.MATCHED, wait.status());
+        String exposed = diagnostics.events() + diagnostics.exportJson() + wait.message()
+                + wait.conditionSummary() + wait.matchedEvent();
+        assertFalse(exposed.contains(secret));
+        assertTrue(diagnostics.exportJson().contains("[REDACTED]"));
+        assertEquals("[REDACTED]", diagnostics.events().stream().filter(event -> event.request() != null)
+                .findFirst().orElseThrow().request().headers().get("Authorization"));
+        assertEquals(1, diagnostics.summary().totalRequests());
+        assertEquals(1, diagnostics.summary().totalResponses());
     }
 
     @Test

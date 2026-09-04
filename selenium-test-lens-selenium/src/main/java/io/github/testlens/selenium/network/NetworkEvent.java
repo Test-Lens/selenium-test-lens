@@ -15,10 +15,10 @@ public final class NetworkEvent {
     private final Instant timestamp;
     private final Map<String, String> attributes;
 
-    private NetworkEvent(NetworkEventType type, NetworkRequest request, NetworkResponse response,
+    private NetworkEvent(String id, NetworkEventType type, NetworkRequest request, NetworkResponse response,
                          NetworkRequest correlatedRequest, NetworkFailure failure, String message,
                          Instant timestamp, Map<String, String> attributes) {
-        this.id = UUID.randomUUID().toString();
+        this.id = id == null || id.isBlank() ? UUID.randomUUID().toString() : id;
         this.type = type == null ? NetworkEventType.INFO : type;
         this.request = request;
         this.correlatedRequest = correlatedRequest;
@@ -30,47 +30,54 @@ public final class NetworkEvent {
     }
 
     public static NetworkEvent request(NetworkRequest request) {
-        return new NetworkEvent(NetworkEventType.REQUEST, request, null, null, null,
+        return new NetworkEvent(null, NetworkEventType.REQUEST, request, null, null, null,
                 "Request recorded", Instant.now(), Map.of());
     }
 
     static NetworkEvent request(NetworkRequest request, Instant timestamp, Map<String, String> attributes) {
-        return new NetworkEvent(NetworkEventType.REQUEST, request, null, null, null,
+        return new NetworkEvent(null, NetworkEventType.REQUEST, request, null, null, null,
                 "Request recorded", timestamp, attributes);
     }
 
     public static NetworkEvent response(NetworkResponse response) {
-        return new NetworkEvent(NetworkEventType.RESPONSE, null, response, null, null,
+        return new NetworkEvent(null, NetworkEventType.RESPONSE, null, response, null, null,
                 "Response recorded", Instant.now(), Map.of());
     }
 
     static NetworkEvent response(NetworkResponse response, Instant timestamp, Map<String, String> attributes) {
-        return new NetworkEvent(NetworkEventType.RESPONSE, null, response, null, null,
+        return new NetworkEvent(null, NetworkEventType.RESPONSE, null, response, null, null,
                 "Response recorded", timestamp, attributes);
     }
 
     static NetworkEvent response(NetworkResponse response, NetworkRequest correlatedRequest,
                                  Instant timestamp, Map<String, String> attributes) {
-        return new NetworkEvent(NetworkEventType.RESPONSE, null, response, correlatedRequest, null,
+        return new NetworkEvent(null, NetworkEventType.RESPONSE, null, response, correlatedRequest, null,
                 "Response recorded", timestamp, attributes);
     }
 
     public static NetworkEvent failed(NetworkFailure failure) {
-        return new NetworkEvent(NetworkEventType.FAILED, null, null, null, failure,
+        return new NetworkEvent(null, NetworkEventType.FAILED, null, null, null, failure,
                 "Network failure recorded", Instant.now(), Map.of());
     }
 
     static NetworkEvent failed(NetworkFailure failure, Instant timestamp, Map<String, String> attributes) {
-        return new NetworkEvent(NetworkEventType.FAILED, null, null, null, failure,
+        return new NetworkEvent(null, NetworkEventType.FAILED, null, null, null, failure,
                 "Network failure recorded", timestamp, attributes);
     }
 
     public static NetworkEvent info(String message) {
-        return new NetworkEvent(NetworkEventType.INFO, null, null, null, null, message, Instant.now(), Map.of());
+        return new NetworkEvent(null, NetworkEventType.INFO, null, null, null, null, message, Instant.now(), Map.of());
     }
 
     public static NetworkEvent warning(String message) {
-        return new NetworkEvent(NetworkEventType.WARNING, null, null, null, null, message, Instant.now(), Map.of());
+        return new NetworkEvent(null, NetworkEventType.WARNING, null, null, null, null, message, Instant.now(), Map.of());
+    }
+
+    static NetworkEvent redacted(String id, NetworkEventType type, NetworkRequest request,
+                                  NetworkResponse response, NetworkRequest correlatedRequest,
+                                  NetworkFailure failure, String message, Instant timestamp,
+                                  Map<String, String> attributes) {
+        return new NetworkEvent(id, type, request, response, correlatedRequest, failure, message, timestamp, attributes);
     }
 
     public String id() { return id; }

@@ -182,6 +182,21 @@ The main Test Lens facade does not own browser lifecycle or displace JUnit, Test
 
 Every final `FAILED` session receives a best-effort [failure bundle](docs/observability/failure-bundles.md): diagnostic and clean screenshots, context, trace-derived diagnostics, runtime/configuration allowlists, current network summary, manifest, final reports, and ZIP. Raw page source and browser console are disabled by default because they can contain secrets; enable them explicitly with `FailureBundleOptions.complete()`.
 
+Diagnostics are protected by an enabled-by-default central redaction policy before they reach the HUD, trace, built-in or external sinks, network/API overlays, reports, and failure-bundle text files:
+
+```java
+RedactionPolicy redaction = RedactionPolicy.builder()
+        .sensitiveKey("tenant-session")
+        .secret(System.getenv("TEST_CLIENT_SECRET"))
+        .build();
+
+TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+        .redactionPolicy(redaction)
+        .build());
+```
+
+See [Sensitive-data redaction](docs/security/redaction.md) for supported formats and limits. Screenshots/video are not pixel-redacted, optional page source and console protection is best effort, and replayable authentication state intentionally remains outside this transformation. `RedactionPolicy.disabled()` is an explicit opt-out that can expose secrets.
+
 Passive network capture is available through Selenium 4.39 WebDriver BiDi. Create Chrome or Firefox options with `enableBiDi()`, then start `lens.network()` in `BIDI` or `AUTO`; neither mode falls back when BiDi is unavailable. `MANUAL` remains the default and performance logs remain unsupported. See [Network diagnostics](docs/advanced/network.md).
 
 Raw network traffic shown in the HUD is presentation-filtered without removing evidence. The default hides duplicate request lines and shows responses and failures; use URL patterns for a focused view:

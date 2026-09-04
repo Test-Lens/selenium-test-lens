@@ -105,4 +105,6 @@ Pass the policy through `lensOptions(...)`. If `finishPassed()` raises `RetryPol
 If a test starts `lens.network()`, all three Lens finalizers stop its active capture before session completion and before the extension calls `quit()`. To use `BIDI` or `AUTO`, the extension's driver factory must create options with `enableBiDi()`; the adapter does not retrofit the capability or fall back to manual capture.
 
 For final `FAILED`, the extension waits for the complete failure-bundle pipeline—including reports, HUD cleanup, manifest, and ZIP—before `driver.quit()`. Partial evidence never replaces the test throwable. Configure it through the same `lensOptions(...)`; raw page source and browser console remain opt-in.
+
+The extension propagates `TestLensOptions.redactionPolicy(...)` unchanged to every invocation. Redaction completes during Lens finalization before the extension's single `driver.quit()`; it neither replaces the execution throwable nor changes passed/failed/aborted mapping. Optional page source and console remain best-effort text protection, and screenshots are not pixel-redacted.
 # JUnit 5 integration

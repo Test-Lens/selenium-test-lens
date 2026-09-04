@@ -1,6 +1,7 @@
 package io.github.testlens.selenium.assertions;
 
 import io.github.testlens.core.OverlayLogger;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 
@@ -19,11 +20,13 @@ public final class UiPageExpect {
     private final WebDriver driver;
     private final UiAssertionOptions options;
     private final UiAssertionReporter reporter;
+    private final RedactionPolicy redactionPolicy;
 
     public UiPageExpect(WebDriver driver, UiAssertionOptions options, OverlayLogger logger) {
         this.driver = Objects.requireNonNull(driver, "driver must not be null");
         this.options = options != null ? options : UiAssertionOptions.defaults();
         this.reporter = new UiAssertionReporter(logger);
+        this.redactionPolicy = logger == null ? RedactionPolicy.defaults() : logger.redactionPolicy();
     }
 
     public UiAssertionResult toHaveUrl(String expected) {
@@ -91,9 +94,9 @@ public final class UiPageExpect {
             try {
                 last = observation.get();
             } catch (RuntimeException failure) {
-                UiAssertionResult result = UiAssertionResult.failed(assertionName,
+                UiAssertionResult result = safe(UiAssertionResult.failed(assertionName,
                         UiAssertionFailureReason.UNKNOWN, PAGE_DESCRIPTION, expectedPreview, "", attempts,
-                        Duration.between(started, Instant.now()), "Page state could not be read");
+                        Duration.between(started, Instant.now()), "Page state could not be read"));
                 reporter.failed(result);
                 UiAssertionError error = new UiAssertionError(result);
                 error.initCause(failure);
@@ -101,17 +104,17 @@ public final class UiPageExpect {
             }
 
             if (last.passed()) {
-                UiAssertionResult result = UiAssertionResult.passed(assertionName, PAGE_DESCRIPTION,
+                UiAssertionResult result = safe(UiAssertionResult.passed(assertionName, PAGE_DESCRIPTION,
                         expectedPreview, last.actualPreview(), attempts, Duration.between(started, Instant.now()),
-                        last.message());
+                        last.message()));
                 reporter.passed(result);
                 return result;
             }
 
             if (!Instant.now().plus(options.pollInterval()).isBefore(deadline)) {
-                UiAssertionResult result = UiAssertionResult.timedOut(assertionName, mismatchReason,
+                UiAssertionResult result = safe(UiAssertionResult.timedOut(assertionName, mismatchReason,
                         PAGE_DESCRIPTION, expectedPreview, last.actualPreview(), attempts,
-                        Duration.between(started, Instant.now()), last.message());
+                        Duration.between(started, Instant.now()), last.message()));
                 reporter.failed(result);
                 UiAssertionError error = new UiAssertionError(result);
                 error.initCause(new TimeoutException(last.message()));
@@ -121,6 +124,10 @@ public final class UiPageExpect {
             reporter.retry(assertionName, PAGE_DESCRIPTION, attempts, expectedPreview, last.actualPreview());
             LockSupport.parkNanos(options.pollInterval().toNanos());
         }
+    }
+
+    private UiAssertionResult safe(UiAssertionResult result) {
+        return result.redacted(redactionPolicy);
     }
 
     private static String safeUrlPreview(String value, int limit) {
