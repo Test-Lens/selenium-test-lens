@@ -6,6 +6,8 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 The next planned release line is 0.2.0. Changes below are under development and have not been released.
 
+- Added semantic `UiLocator` form and element actions: idempotent `check()`/`uncheck()` and `isChecked()` for native and ARIA controls, single-operation safe file upload, and explicit focus/scroll operations. Styled native controls activate only through their standard associated label; asynchronous state confirmation never repeats a click, and upload diagnostics do not expose local paths or file names.
+
 ### Added
 - Added immutable `NetworkHudFilter` presets and URL rules for reducing raw network traffic in the HUD without changing capture, waits, summaries, trace, JSON, external log sinks, or failure evidence. Raw HUD entries now carry safe structured metadata and compact query-free messages.
 - Added passive browser-network capture through Selenium 4.39 WebDriver BiDi. `BIDI` subscribes to request, completed-response, and fetch-error events; `AUTO` selects BiDi only when an active connection can be subscribed, while `MANUAL` remains the default and `PERFORMANCE_LOGS` remains unsupported. Capture now exposes requested/active modes, bounded event storage, dropped-event counts, redirect correlation, asynchronous waits, trace events, and failure-bundle summaries.

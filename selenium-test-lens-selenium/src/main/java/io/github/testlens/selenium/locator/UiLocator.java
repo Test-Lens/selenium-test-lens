@@ -13,6 +13,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.ElementNotInteractableException;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
@@ -23,10 +24,16 @@ import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.interactions.Actions;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
@@ -379,6 +386,250 @@ public final class UiLocator {
         return value.length() <= 80 ? value : value.substring(0, 77) + "...";
     }
 
+    private UiLocator changeCheckedState(String action, CheckedState target) {
+        CheckedActionMetadata metadata = new CheckedActionMetadata();
+        metadata.targetState = target;
+        emitControl(UiTestLensEventType.LOCATOR_ACTION_STARTED, UiTestLensStatus.STARTED,
+                UiTestLensLogLevel.INFO, "Locator action started", action, 0, metadata, null);
+        RuntimeException lastFailure = null;
+        for (int attempt = 1; attempt <= options.maxRetries(); attempt++) {
+            long attemptStarted = 0;
+            boolean operationStarted = false;
+            try {
+                WebElement element = resolve();
+                attemptStarted = nanoTicker.getAsLong();
+                operationStarted = true;
+                SemanticControl control = resolveSemanticControl(element);
+                CheckedState initial = readCheckedState(control);
+                metadata.observe(control, initial);
+                requireTargetSupported(control, target);
+                if (initial == target) {
+                    metadata.finalState = initial;
+                    emitControl(UiTestLensEventType.LOCATOR_ACTION_PASSED, UiTestLensStatus.PASSED,
+                            UiTestLensLogLevel.INFO, "Locator action passed", action, attempt, metadata, null);
+                    return this;
+                }
+                requireEnabled(control);
+                requireActivation(control);
+                metadata.clickPerformed = true;
+                overlay.smartClickWithOverlayHandler(control.activationElement(), description.displayName());
+                Confirmation confirmation = confirmCheckedState(target);
+                metadata.confirmationAttempts += confirmation.attempts();
+                metadata.finalState = confirmation.state();
+                emitControl(UiTestLensEventType.LOCATOR_ACTION_PASSED, UiTestLensStatus.PASSED,
+                        UiTestLensLogLevel.INFO, "Locator action passed", action, attempt, metadata, null);
+                return this;
+            } catch (RuntimeException failure) {
+                lastFailure = failure;
+                if (!shouldRetry(failure) || attempt >= options.maxRetries()) {
+                    emitControl(UiTestLensEventType.LOCATOR_ACTION_FAILED, UiTestLensStatus.FAILED,
+                            UiTestLensLogLevel.ERROR, "Locator action failed", action, attempt, metadata, failure);
+                    throw locatorException(action, failure, "");
+                }
+                if (operationStarted) {
+                    emitRecoveryRetry("action", action, attempt, attempt + 1,
+                            elapsedNanos(attemptStarted), effectiveRetryCause(failure), null);
+                }
+            }
+        }
+        throw locatorException(action, lastFailure, "");
+    }
+
+    private Confirmation confirmCheckedState(CheckedState target) {
+        AtomicInteger attempts = new AtomicInteger();
+        CheckedState[] observed = new CheckedState[]{null};
+        try {
+            CheckedState state = new WebDriverWait(driver, options.timeout())
+                    .pollingEvery(options.pollInterval())
+                    .ignoring(NoSuchElementException.class)
+                    .ignoring(StaleElementReferenceException.class)
+                    .until(webDriver -> {
+                        attempts.incrementAndGet();
+                        SemanticControl current = resolveSemanticControl(currentElement(webDriver));
+                        CheckedState value = readCheckedState(current);
+                        observed[0] = value;
+                        return value == target ? value : null;
+                    });
+            return new Confirmation(state, attempts.get());
+        } catch (org.openqa.selenium.TimeoutException timeout) {
+            String last = observed[0] == null ? "UNAVAILABLE" : observed[0].name();
+            throw new IllegalStateException("Control state confirmation timed out; expected="
+                    + target.name() + ", lastObserved=" + last, timeout);
+        }
+    }
+
+    private SemanticControl resolveSemanticControl(WebElement origin) {
+        String tag = normalized(origin.getTagName());
+        String type = normalized(origin.getDomAttribute("type"));
+        String role = normalized(origin.getDomAttribute("role"));
+        if ("input".equals(tag) && ("checkbox".equals(type) || "radio".equals(type))) {
+            ControlKind kind = "radio".equals(type) ? ControlKind.NATIVE_RADIO : ControlKind.NATIVE_CHECKBOX;
+            var rect = origin.isDisplayed() ? origin.getRect() : null;
+            if (rect != null && rect.getWidth() > 0 && rect.getHeight() > 0) {
+                return new SemanticControl(origin, origin, kind, ActivationKind.CONTROL, tag, type, role);
+            }
+            WebElement label = visibleLabel(origin);
+            return new SemanticControl(origin, label, kind, ActivationKind.LABEL, tag, type, role);
+        }
+        if ("checkbox".equals(role) || "switch".equals(role) || "radio".equals(role)) {
+            ControlKind kind = switch (role) {
+                case "checkbox" -> ControlKind.ARIA_CHECKBOX;
+                case "switch" -> ControlKind.ARIA_SWITCH;
+                default -> ControlKind.ARIA_RADIO;
+            };
+            validateAriaState(origin, tag, type, role);
+            return new SemanticControl(origin, origin, kind, ActivationKind.CONTROL, tag, type, role);
+        }
+        SemanticControl labeled = controlFromClosestLabel(origin);
+        if (labeled != null) return labeled;
+        throw unsupportedControl(tag, type, role, "element is not a supported checked control");
+    }
+
+    private WebElement visibleLabel(WebElement input) {
+        JavascriptExecutor executor = requireJavascript("resolve a label for a hidden native control");
+        Object result = executor.executeScript("return Array.from(arguments[0].labels || []);", input);
+        if (!(result instanceof List<?> labels)) return null;
+        List<WebElement> visible = new ArrayList<>();
+        for (Object candidate : labels) {
+            if (candidate instanceof WebElement label && label.isDisplayed()) visible.add(label);
+        }
+        return visible.size() == 1 ? visible.get(0) : null;
+    }
+
+    private SemanticControl controlFromClosestLabel(WebElement origin) {
+        if (!(driver instanceof JavascriptExecutor executor)) return null;
+        Object result = executor.executeScript("""
+                const origin = arguments[0];
+                const label = origin && origin.closest ? origin.closest('label') : null;
+                if (!label || !label.control) return null;
+                return [label.control, label];
+                """, origin);
+        if (!(result instanceof List<?> pair) || pair.size() != 2
+                || !(pair.get(0) instanceof WebElement state)
+                || !(pair.get(1) instanceof WebElement label)) return null;
+        String tag = normalized(state.getTagName());
+        String type = normalized(state.getDomAttribute("type"));
+        String role = normalized(state.getDomAttribute("role"));
+        if (!"input".equals(tag) || !("checkbox".equals(type) || "radio".equals(type))) {
+            throw unsupportedControl(tag, type, role, "label is not associated with a checkbox or radio");
+        }
+        if (!label.isDisplayed()) {
+            throw unsupportedControl(tag, type, role, "associated label is not visible");
+        }
+        ControlKind kind = "radio".equals(type) ? ControlKind.NATIVE_RADIO : ControlKind.NATIVE_CHECKBOX;
+        return new SemanticControl(state, label, kind, ActivationKind.LABEL, tag, type, role);
+    }
+
+    private CheckedState readCheckedState(SemanticControl control) {
+        if (control.kind() == ControlKind.NATIVE_CHECKBOX) {
+            if (Boolean.parseBoolean(control.stateElement().getDomProperty("indeterminate"))) {
+                return CheckedState.MIXED;
+            }
+            return control.stateElement().isSelected() ? CheckedState.CHECKED : CheckedState.UNCHECKED;
+        }
+        if (control.kind() == ControlKind.NATIVE_RADIO) {
+            return control.stateElement().isSelected() ? CheckedState.CHECKED : CheckedState.UNCHECKED;
+        }
+        String value = normalized(control.stateElement().getDomAttribute("aria-checked"));
+        return switch (value) {
+            case "true" -> CheckedState.CHECKED;
+            case "false" -> CheckedState.UNCHECKED;
+            case "mixed" -> CheckedState.MIXED;
+            default -> throw unsupportedControl(control.tag(), control.type(), control.role(),
+                    "ARIA control requires aria-checked=true, false, or mixed");
+        };
+    }
+
+    private void validateAriaState(WebElement element, String tag, String type, String role) {
+        String state = normalized(element.getDomAttribute("aria-checked"));
+        if (!("true".equals(state) || "false".equals(state) || "mixed".equals(state))) {
+            throw unsupportedControl(tag, type, role, "ARIA control requires aria-checked=true, false, or mixed");
+        }
+    }
+
+    private void requireTargetSupported(SemanticControl control, CheckedState target) {
+        if (target == CheckedState.UNCHECKED
+                && (control.kind() == ControlKind.NATIVE_RADIO || control.kind() == ControlKind.ARIA_RADIO)) {
+            throw unsupportedControl(control.tag(), control.type(), control.role(), "radio controls cannot be unchecked");
+        }
+    }
+
+    private void requireEnabled(SemanticControl control) {
+        if ((control.kind() == ControlKind.NATIVE_CHECKBOX || control.kind() == ControlKind.NATIVE_RADIO)
+                && !control.stateElement().isEnabled()) {
+            throw unsupportedControl(control.tag(), control.type(), control.role(), "native control is disabled");
+        }
+        if (!(control.kind() == ControlKind.NATIVE_CHECKBOX || control.kind() == ControlKind.NATIVE_RADIO)
+                && "true".equalsIgnoreCase(control.stateElement().getDomAttribute("aria-disabled"))) {
+            throw unsupportedControl(control.tag(), control.type(), control.role(), "ARIA control is disabled");
+        }
+    }
+
+    private void requireActivation(SemanticControl control) {
+        if (control.activationElement() == null) {
+            throw unsupportedControl(control.tag(), control.type(), control.role(),
+                    "hidden control requires exactly one visible associated label");
+        }
+    }
+
+    private IllegalStateException unsupportedControl(String tag, String type, String role, String reason) {
+        return new IllegalStateException(reason + " [tag=" + safeControlValue(tag)
+                + ", type=" + safeControlValue(type) + ", role=" + safeControlValue(role) + "]");
+    }
+
+    private static String safeControlValue(String value) {
+        String normalized = normalized(value);
+        return normalized.length() <= 32 ? normalized : normalized.substring(0, 32);
+    }
+
+    private static String normalized(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private UploadPayload prepareUpload(Path[] files) {
+        if (files == null) throw new IllegalArgumentException("Upload files array must not be null");
+        if (files.length == 0) throw new IllegalArgumentException("Upload requires at least one file");
+        List<String> paths = new ArrayList<>(files.length);
+        for (int index = 0; index < files.length; index++) {
+            Path file = files[index];
+            if (file == null) throw new IllegalArgumentException("Upload file at index " + index + " must not be null");
+            String supplied = file.toString();
+            if (supplied.indexOf('\r') >= 0 || supplied.indexOf('\n') >= 0) {
+                throw new IllegalArgumentException("Upload file path at index " + index + " contains a line break");
+            }
+            Path normalized = file.toAbsolutePath().normalize();
+            if (!Files.exists(normalized) || !Files.isRegularFile(normalized)) {
+                throw new IllegalArgumentException("Upload file at index " + index + " must be an existing regular file");
+            }
+            paths.add(normalized.toString());
+        }
+        return new UploadPayload(String.join("\n", paths), paths.size());
+    }
+
+    private void requireFileInput(WebElement element, int fileCount) {
+        String tag = normalized(element.getTagName());
+        String type = normalized(element.getDomAttribute("type"));
+        if (!"input".equals(tag) || !"file".equals(type)) {
+            throw unsupportedControl(tag, type, normalized(element.getDomAttribute("role")),
+                    "upload requires input type=file");
+        }
+        if (fileCount > 1 && element.getDomAttribute("multiple") == null) {
+            throw new IllegalStateException("Multiple-file upload requires a file input with the multiple attribute");
+        }
+    }
+
+    private UiLocator executeJavaScript(String action, String script) {
+        return execute(action, element -> {
+            requireJavascript(action).executeScript(script, element);
+            return null;
+        });
+    }
+
+    private JavascriptExecutor requireJavascript(String operation) {
+        if (driver instanceof JavascriptExecutor executor) return executor;
+        throw new IllegalStateException("WebDriver must implement JavascriptExecutor to " + operation);
+    }
+
     private UiLocator execute(String action, Function<WebElement, ActionabilityReport> operation) {
         return execute(action, operation, null);
     }
@@ -502,6 +753,120 @@ public final class UiLocator {
         return false;
     }
 
+    /** Ensures that a native or ARIA checkbox, switch, or radio is checked. */
+    public UiLocator check() {
+        return changeCheckedState("check", CheckedState.CHECKED);
+    }
+
+    /** Ensures that a native/ARIA checkbox or ARIA switch is unchecked. */
+    public UiLocator uncheck() {
+        return changeCheckedState("uncheck", CheckedState.UNCHECKED);
+    }
+
+    /** Reads the current checked state of a supported native or ARIA control. */
+    public boolean isChecked() {
+        CheckedActionMetadata metadata = new CheckedActionMetadata();
+        emitControl(UiTestLensEventType.LOCATOR_ACTION_STARTED, UiTestLensStatus.STARTED,
+                UiTestLensLogLevel.INFO, "Locator read started", "isChecked", 0, metadata, null);
+        RuntimeException lastFailure = null;
+        for (int attempt = 1; attempt <= options.maxRetries(); attempt++) {
+            long attemptStarted = 0;
+            boolean observationStarted = false;
+            try {
+                WebElement element = resolve();
+                attemptStarted = nanoTicker.getAsLong();
+                observationStarted = true;
+                SemanticControl control = resolveSemanticControl(element);
+                CheckedState state = readCheckedState(control);
+                metadata.observe(control, state);
+                metadata.finalState = state;
+                emitControl(UiTestLensEventType.LOCATOR_ACTION_PASSED, UiTestLensStatus.PASSED,
+                        UiTestLensLogLevel.INFO, "Locator read passed", "isChecked", attempt, metadata, null);
+                return state == CheckedState.CHECKED;
+            } catch (RuntimeException failure) {
+                lastFailure = failure;
+                if (!shouldRetry(failure) || attempt >= options.maxRetries()) {
+                    emitControl(UiTestLensEventType.LOCATOR_ACTION_FAILED, UiTestLensStatus.FAILED,
+                            UiTestLensLogLevel.ERROR, "Locator read failed", "isChecked", attempt, metadata, failure);
+                    throw locatorException("isChecked", failure, "");
+                }
+                if (observationStarted) {
+                    emitRecoveryRetry("read", "isChecked", attempt, attempt + 1,
+                            elapsedNanos(attemptStarted), effectiveRetryCause(failure), null);
+                }
+            }
+        }
+        throw locatorException("isChecked", lastFailure, "");
+    }
+
+    /** Sends one or more local files to a file input without clicking it. */
+    public UiLocator upload(Path... files) {
+        int fileCount = files == null ? 0 : files.length;
+        emit(UiTestLensEventType.LOCATOR_ACTION_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
+                "Locator action started", "upload", 0, null, null, Map.of("fileCount", String.valueOf(fileCount)));
+        UploadPayload upload;
+        try {
+            upload = prepareUpload(files);
+        } catch (RuntimeException failure) {
+            emit(UiTestLensEventType.LOCATOR_ACTION_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
+                    "Locator action failed", "upload", 0, null, null,
+                    Map.of("fileCount", String.valueOf(fileCount)));
+            throw locatorException("upload", failure, "");
+        }
+
+        RuntimeException lastFailure = null;
+        for (int attempt = 1; attempt <= options.maxRetries(); attempt++) {
+            long attemptStarted = 0;
+            boolean preflightStarted = false;
+            boolean sendKeysStarted = false;
+            try {
+                WebElement element = resolve();
+                attemptStarted = nanoTicker.getAsLong();
+                preflightStarted = true;
+                requireFileInput(element, upload.fileCount());
+                sendKeysStarted = true;
+                element.sendKeys(upload.payload());
+                emit(UiTestLensEventType.LOCATOR_ACTION_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
+                        "Locator action passed", "upload", attempt, null, null,
+                        Map.of("fileCount", String.valueOf(upload.fileCount())));
+                return this;
+            } catch (RuntimeException failure) {
+                lastFailure = failure;
+                if (sendKeysStarted || !shouldRetry(failure) || attempt >= options.maxRetries()) {
+                    emit(UiTestLensEventType.LOCATOR_ACTION_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
+                            "Locator action failed", "upload", attempt, null, null,
+                            Map.of("fileCount", String.valueOf(upload.fileCount())));
+                    throw locatorException("upload", failure, "");
+                }
+                if (preflightStarted) {
+                    emitRecoveryRetry("action", "upload", attempt, attempt + 1,
+                            elapsedNanos(attemptStarted), effectiveRetryCause(failure), null);
+                }
+            }
+        }
+        throw locatorException("upload", lastFailure, "");
+    }
+
+    /** Focuses the current element without scrolling or clicking it. */
+    public UiLocator focus() {
+        return executeJavaScript("focus", """
+                const element = arguments[0];
+                try { element.focus({preventScroll: true}); }
+                catch (ignored) { element.focus(); }
+                """);
+    }
+
+    /** Scrolls the current element to the center/nearest viewport position. */
+    public UiLocator scrollIntoView() {
+        return executeJavaScript("scrollIntoView", """
+                arguments[0].scrollIntoView({
+                  block: "center",
+                  inline: "nearest",
+                  behavior: "instant"
+                });
+                """);
+    }
+
     private static Throwable effectiveRetryCause(Throwable failure) {
         Throwable current = failure;
         Throwable effective = failure;
@@ -563,6 +928,18 @@ public final class UiLocator {
                       int attempt,
                       Integer valueLength,
                       Throwable throwable) {
+        emit(eventType, status, level, message, action, attempt, valueLength, throwable, Map.of());
+    }
+
+    private void emit(UiTestLensEventType eventType,
+                      UiTestLensStatus status,
+                      UiTestLensLogLevel level,
+                      String message,
+                      String action,
+                      int attempt,
+                      Integer valueLength,
+                      Throwable throwable,
+                      Map<String, String> extraMetadata) {
         try {
             UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder()
                     .level(level)
@@ -577,8 +954,76 @@ public final class UiLocator {
             if (valueLength != null) {
                 builder.metadata("valueLength", String.valueOf(valueLength));
             }
+            extraMetadata.forEach(builder::metadata);
             logger.emit(builder.build());
         } catch (Exception ignored) {
+        }
+    }
+
+    private void emitControl(UiTestLensEventType eventType,
+                             UiTestLensStatus status,
+                             UiTestLensLogLevel level,
+                             String message,
+                             String action,
+                             int attempt,
+                             CheckedActionMetadata metadata,
+                             Throwable throwable) {
+        emit(eventType, status, level, message, action, attempt, null, throwable, metadata.asMap());
+    }
+
+    private enum ControlKind {
+        NATIVE_CHECKBOX,
+        NATIVE_RADIO,
+        ARIA_CHECKBOX,
+        ARIA_RADIO,
+        ARIA_SWITCH
+    }
+
+    private enum ActivationKind { CONTROL, LABEL }
+
+    private enum CheckedState { CHECKED, UNCHECKED, MIXED }
+
+    private record SemanticControl(WebElement stateElement,
+                                   WebElement activationElement,
+                                   ControlKind kind,
+                                   ActivationKind activationKind,
+                                   String tag,
+                                   String type,
+                                   String role) {}
+
+    private record Confirmation(CheckedState state, int attempts) {}
+
+    private record UploadPayload(String payload, int fileCount) {}
+
+    private static final class CheckedActionMetadata {
+        private ControlKind controlKind;
+        private ActivationKind activationKind;
+        private CheckedState initialState;
+        private CheckedState targetState;
+        private CheckedState finalState;
+        private boolean clickPerformed;
+        private int confirmationAttempts;
+
+        private void observe(SemanticControl control, CheckedState state) {
+            controlKind = control.kind();
+            activationKind = control.activationKind();
+            if (initialState == null) initialState = state;
+        }
+
+        private Map<String, String> asMap() {
+            Map<String, String> values = new LinkedHashMap<>();
+            values.put("controlKind", name(controlKind));
+            values.put("activationKind", name(activationKind));
+            values.put("initialState", name(initialState));
+            values.put("targetState", name(targetState));
+            values.put("finalState", name(finalState));
+            values.put("clickPerformed", String.valueOf(clickPerformed));
+            values.put("confirmationAttempts", String.valueOf(confirmationAttempts));
+            return values;
+        }
+
+        private static String name(Enum<?> value) {
+            return value == null ? "" : value.name();
         }
     }
 }

@@ -117,6 +117,7 @@ try {
     driver.get("https://example.test/login");
 
     lens.locator(By.id("username"), "Username").fill("john");
+    lens.locator(By.id("remember"), "Remember me").check();
     lens.locator(By.id("login"), "Login").click();
     lens.locator(By.id("welcome"), "Welcome").expect().toBeVisible();
     lens.finishPassed();
@@ -127,6 +128,8 @@ try {
     driver.quit();
 }
 ```
+
+Form controls stay behind `UiLocator`: idempotent `check()`/`uncheck()` support native and standard ARIA controls, `isChecked()` reads their current state, `upload(Path...)` handles hidden file inputs without logging local paths, and `focus()`/`scrollIntoView()` perform one explicit JavaScript operation without a click fallback. See [Element actions](docs/elements/actions.md).
 
 The main Test Lens facade does not own browser lifecycle or displace JUnit, TestNG, Allure, or another reporter. The optional JUnit 5 and TestNG adapters deliberately own drivers created by their factories. Existing raw Selenium remains valid for operations the Lens facade does not wrap. React-specific support is available as a separate, optional module.
 

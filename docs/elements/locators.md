@@ -26,6 +26,8 @@ Uses any Selenium locator and the supplied user-facing label. Blank labels fall 
 
 ```java
 lens.locator(By.cssSelector("button.save"), "Save order").click();
+lens.locator(By.id("terms"), "Terms").check();
+lens.locator(By.id("attachment"), "Attachment").upload(Path.of("document.pdf"));
 ```
 
 ## getByTestId(String testId)

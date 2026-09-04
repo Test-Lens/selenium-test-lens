@@ -73,6 +73,58 @@ Suggested alt text: Synthetic form field after fill while the HUD reports the fi
 
 Related: [`clear()`](#clear), [`press(...)`](#presscharsequence-keys), [value assertions](assertions.md#value).
 
+## Checked controls
+
+<!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
+```java
+UiLocator check()
+UiLocator uncheck()
+boolean isChecked()
+```
+
+`check()` and `uncheck()` are idempotent: they resolve and read the current state first, then perform at most one native `WebElement.click()` activation when a change is required. Native checkbox inputs, native radios, ARIA checkboxes, ARIA switches, and ARIA radios are recognized from their standard HTML/ARIA semantics. Radios support `check()` and `isChecked()` but deliberately reject `uncheck()`.
+
+For a native input hidden behind standard form styling, the locator may point to the input, its associated `label`, or a descendant of that label. Test Lens resolves the state-bearing input through `label.control`/`input.labels` semantics and clicks the visible label; it does not guess from CSS classes, text, or `data-*` attributes. Custom controls must use `role="checkbox"`, `role="switch"`, or `role="radio"` with a valid `aria-checked` value. Disabled controls fail without activation.
+
+After one activation, Test Lens polls only the freshly resolved control state until the locator timeout. This supports asynchronous rerenders without a second click. Confirmation polling is not a recovery retry and does not mark the session flaky. A mixed/indeterminate state makes `isChecked()` return `false`; `check()` or `uncheck()` still performs at most one activation and requires the requested final state.
+
+```java
+lens.locator(By.id("terms"), "Terms").check();
+lens.locator(By.id("newsletter"), "Newsletter").uncheck();
+boolean selected = lens.locator(By.id("plan"), "Plan").isChecked();
+```
+
+## upload(Path... files)
+
+<!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
+```java
+UiLocator upload(Path... files)
+```
+
+Uploads one or more existing regular files to an `input[type=file]`, including a hidden input. Multiple paths require the HTML `multiple` attribute. All paths are validated and normalized before WebDriver is called; then Selenium receives exactly one newline-separated `sendKeys(...)` invocation. The input is never clicked and JavaScript never assigns its files. Once `sendKeys` starts, its failure is terminal because repeating an ambiguous upload could duplicate the operation.
+
+Diagnostics record only `fileCount`. Local paths and file names are not included in Test Lens action messages or metadata. Page content and screenshots remain application-controlled evidence, so protect artifacts according to the normal evidence guidance.
+
+```java
+lens.locator(By.id("attachment"), "Attachment")
+        .upload(Path.of("document.pdf"));
+```
+
+## focus() and scrollIntoView()
+
+<!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
+```java
+UiLocator focus()
+UiLocator scrollIntoView()
+```
+
+`focus()` makes one `JavascriptExecutor.executeScript(...)` call and focuses the current element with `preventScroll` when supported. `scrollIntoView()` makes one script call using centered block alignment, nearest inline alignment, and instant behavior. Neither method clicks, sends keys, invokes Selenium `Actions`, or provides a click fallback. A stale element may be resolved again under the locator retry policy; another JavaScript failure is terminal.
+
+```java
+lens.locator(By.id("search"), "Search").focus();
+lens.locator(By.id("summary"), "Summary").scrollIntoView();
+```
+
 ## clear()
 
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->

@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
 # Types: 216
-# Public callable methods/constructors: 1672
+# Public callable methods/constructors: 1678
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -1686,6 +1686,12 @@ TYPE io.github.testlens.selenium.locator.UiLocator
   public io.github.testlens.selenium.actionability.ActionabilityReport checkActionability(io.github.testlens.selenium.actionability.ActionabilityOptions)
   public org.openqa.selenium.By by()
   public java.lang.String description()
+  public io.github.testlens.selenium.locator.UiLocator check()
+  public io.github.testlens.selenium.locator.UiLocator uncheck()
+  public boolean isChecked()
+  public io.github.testlens.selenium.locator.UiLocator upload(java.nio.file.Path...)
+  public io.github.testlens.selenium.locator.UiLocator focus()
+  public io.github.testlens.selenium.locator.UiLocator scrollIntoView()
 TYPE io.github.testlens.selenium.locator.UiLocatorDescription
   public static io.github.testlens.selenium.locator.UiLocatorDescription of(org.openqa.selenium.By, java.lang.String)
   public org.openqa.selenium.By by()

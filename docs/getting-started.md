@@ -66,6 +66,7 @@ try {
     driver.get("https://example.test/login");
 
     lens.locator(By.id("username"), "Username").fill("john");
+    lens.locator(By.id("remember"), "Remember me").check();
     lens.locator(By.id("login"), "Login").click();
     lens.locator(By.id("welcome"), "Welcome").expect().toBeVisible();
 
@@ -77,6 +78,8 @@ try {
     driver.quit();
 }
 ```
+
+Common form operations remain on the lazy locator abstraction: use `check()`/`uncheck()` for semantic native or ARIA controls, `upload(Path...)` for file inputs, and `focus()` or `scrollIntoView()` when those browser operations are intentional. You do not need to expose a raw `WebElement`; see [Element actions](elements/actions.md).
 
 Lens finalization writes the session diagnostics. Use `finishSkipped(reason)` for an aborted test or unmet assumption; unlike `finishFailed(...)`, it does not request a failure screenshot. Keep your existing `WebDriver` cleanup as-is.
 

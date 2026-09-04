@@ -17,6 +17,7 @@ import io.github.testlens.selenium.assertions.UiAssertionOptions;
 import io.github.testlens.selenium.assertions.UiAssertionResult;
 import io.github.testlens.selenium.assertions.UiAssertionStatus;
 import io.github.testlens.selenium.evidence.FailureBundleOptions;
+import io.github.testlens.selenium.locator.UiLocatorException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -133,6 +134,95 @@ class RealBrowserContractsIT {
 
         awaitClickCount(1);
         assertClickCounts(1);
+    }
+
+    @ParameterizedTest(name = "form and element actions (overlay enabled={0})")
+    @ValueSource(booleans = {true, false})
+    void formAndElementActionsWorkWithoutRawWebElementAccess(boolean enabled) throws Exception {
+        Path first = Files.createTempFile("lens-upload-one-", ".txt");
+        Path second = Files.createTempFile("lens-upload-two-", ".txt");
+        try {
+            Files.writeString(first, "one");
+            Files.writeString(second, "two");
+            open("/form-actions");
+            TestLens lens = configuredLens(enabled, true);
+            lens.startSession("form-actions-" + enabled + "-" + UUID.randomUUID());
+
+            lens.locator(By.id("native-check"), "Native checkbox").check().check();
+            assertTrue(driver.findElement(By.id("native-check")).isSelected());
+            assertEquals(1L, number("return window.nativeClicks"));
+            assertEquals(1L, number("return window.nativeChanges"));
+            lens.locator(By.id("native-check"), "Native checkbox").uncheck().uncheck();
+            assertFalse(driver.findElement(By.id("native-check")).isSelected());
+            assertEquals(2L, number("return window.nativeClicks"));
+
+            lens.locator(By.id("styled-mark"), "Styled checkbox").check();
+            assertTrue(driver.findElement(By.id("styled-check")).isSelected());
+            assertEquals(1L, number("return window.styledLabelClicks"));
+            assertEquals(1L, number("return window.styledChanges"));
+            lens.locator(By.id("nested-mark"), "Nested checkbox").check();
+            assertTrue(driver.findElement(By.id("nested-check")).isSelected());
+
+            lens.locator(By.id("native-radio"), "Radio").check();
+            assertTrue(driver.findElement(By.id("native-radio")).isSelected());
+            assertThrows(UiLocatorException.class,
+                    () -> lens.locator(By.id("native-radio"), "Radio").uncheck());
+
+            lens.locator(By.id("aria-check"), "ARIA checkbox").check();
+            assertTrue(await(scriptBoolean("return document.getElementById('aria-check').getAttribute('aria-checked') === 'true'")));
+            assertEquals(1L, number("return window.ariaClicks"));
+            lens.locator(By.id("aria-switch"), "ARIA switch").check().uncheck();
+            assertEquals("false", driver.findElement(By.id("aria-switch")).getDomAttribute("aria-checked"));
+            assertEquals(2L, number("return window.switchClicks"));
+
+            assertThrows(UiLocatorException.class,
+                    () -> lens.locator(By.id("fake-checkbox"), "Fake checkbox").check());
+            assertThrows(UiLocatorException.class,
+                    () -> lens.locator(By.id("disabled-check"), "Disabled checkbox").check());
+            assertEquals(0L, number("return window.disabledClicks || 0"));
+
+            lens.locator(By.id("single-file"), "Single upload").upload(first);
+            lens.locator(By.id("multi-file"), "Multiple upload").upload(first, second);
+            assertEquals(1L, number("return document.getElementById('single-file').files.length"));
+            assertEquals(2L, number("return document.getElementById('multi-file').files.length"));
+
+            lens.locator(By.id("focus-field"), "Focus field").focus();
+            assertEquals("focus-field", ((JavascriptExecutor) driver).executeScript("return document.activeElement.id"));
+            assertEquals(1L, number("return window.focusEvents"));
+            assertEquals(0L, number("return window.focusClicks"));
+            lens.locator(By.id("far-target"), "Far target").scrollIntoView();
+            assertTrue(await(scriptBoolean("""
+                    const r=document.getElementById('far-target').getBoundingClientRect();
+                    return r.top >= 0 && r.bottom <= window.innerHeight;
+                    """)));
+            assertFalse("far-target".equals(((JavascriptExecutor) driver).executeScript("return document.activeElement.id")));
+            assertEquals(0L, number("return window.farClicks || 0"));
+
+            ((JavascriptExecutor) driver).executeScript("document.getElementById('foreign-cover').style.display='block'");
+            UiLocatorException intercepted = assertThrows(UiLocatorException.class,
+                    () -> lens.locator(By.id("covered-check"), "Covered checkbox").check());
+            assertTrue(hasCause(intercepted, org.openqa.selenium.ElementClickInterceptedException.class));
+            assertFalse(driver.findElement(By.id("covered-check")).isSelected());
+
+            if (enabled) {
+                String hud = String.valueOf(((JavascriptExecutor) driver).executeScript("""
+                        const h=document.getElementById('selenium-overlay-host');
+                        return h && h.shadowRoot ? h.shadowRoot.textContent : '';
+                        """));
+                assertFalse(hud.contains(first.toString()));
+                assertFalse(hud.contains(first.getFileName().toString()));
+                assertFalse(hud.contains(second.getFileName().toString()));
+            }
+            TestLensFinalizationResult result = lens.finishPassed();
+            String reports = Files.readString(result.jsonReport()) + Files.readString(result.htmlReport());
+            assertFalse(reports.contains(first.toString()));
+            assertFalse(reports.contains(first.getFileName().toString()));
+            assertFalse(reports.contains(second.getFileName().toString()));
+            assertEquals("Form actions", driver.getTitle());
+        } finally {
+            Files.deleteIfExists(first);
+            Files.deleteIfExists(second);
+        }
     }
 
     @Test
@@ -475,6 +565,16 @@ class RealBrowserContractsIT {
         return Boolean.TRUE.equals(new WebDriverWait(driver, WAIT).until(condition));
     }
 
+    private static boolean hasCause(Throwable failure, Class<? extends Throwable> type) {
+        java.util.Set<Throwable> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        Throwable current = failure;
+        while (current != null && seen.add(current)) {
+            if (type.isInstance(current)) return true;
+            current = current.getCause();
+        }
+        return false;
+    }
+
     private static WebDriver createDriver() {
         boolean headed = Boolean.parseBoolean(System.getProperty("headed", "false"));
         return switch (browserName()) {
@@ -525,6 +625,22 @@ class RealBrowserContractsIT {
             case "/second" -> html(exchange, page("Second", "<button id='count-button'>Count after navigation</button><span id='click-count'>0</span>"), false);
             case "/csp" -> html(exchange, page("CSP", "<button id='count-button'>CSP count</button><span id='click-count'>0</span>"), true);
             case "/assertions" -> html(exchange, page("Assertions", "<div id='async-container'></div>"), false);
+            case "/form-actions" -> html(exchange, page("Form actions", """
+                    <input id='native-check' type='checkbox'>
+                    <input id='native-radio' type='radio' name='choice'>
+                    <input id='styled-check' type='checkbox' hidden>
+                    <label id='styled-label' for='styled-check'><span id='styled-mark'>Styled</span></label>
+                    <label id='nested-label'><input id='nested-check' type='checkbox' hidden><span id='nested-mark'>Nested</span></label>
+                    <div id='aria-check' role='checkbox' aria-checked='false' tabindex='0'>ARIA check</div>
+                    <button id='aria-switch' role='switch' aria-checked='false'>ARIA switch</button>
+                    <input id='disabled-check' type='checkbox' disabled>
+                    <div id='fake-checkbox' class='checkbox' data-state='unchecked'>Not semantic</div>
+                    <input id='single-file' type='file' hidden>
+                    <input id='multi-file' type='file' multiple hidden>
+                    <input id='focus-field'>
+                    <div id='covered-wrap'><input id='covered-check' type='checkbox'><div id='foreign-cover'></div></div>
+                    <div id='spacer'></div><button id='far-target'>Far target</button>
+                    """), false);
             case "/app.js" -> response(exchange, "application/javascript; charset=utf-8", APP_JS, false);
             case "/app.css" -> response(exchange, "text/css; charset=utf-8", APP_CSS, false);
             default -> response(exchange, "text/plain; charset=utf-8", "not found", false, 404);
@@ -587,6 +703,39 @@ class RealBrowserContractsIT {
               element.textContent = 'ready';
               asyncContainer.appendChild(element);
             }, 250);
+            const nativeCheck = document.getElementById('native-check');
+            if (nativeCheck) {
+              window.nativeClicks = 0; window.nativeChanges = 0;
+              nativeCheck.addEventListener('click', () => window.nativeClicks++);
+              nativeCheck.addEventListener('change', () => window.nativeChanges++);
+            }
+            const styledLabel = document.getElementById('styled-label');
+            if (styledLabel) styledLabel.addEventListener('click', () => window.styledLabelClicks = (window.styledLabelClicks || 0) + 1);
+            const styledCheck = document.getElementById('styled-check');
+            if (styledCheck) styledCheck.addEventListener('change', () => window.styledChanges = (window.styledChanges || 0) + 1);
+            const disabledCheck = document.getElementById('disabled-check');
+            if (disabledCheck) disabledCheck.addEventListener('click', () => window.disabledClicks = (window.disabledClicks || 0) + 1);
+            const ariaCheck = document.getElementById('aria-check');
+            if (ariaCheck) ariaCheck.addEventListener('click', () => {
+              window.ariaClicks = (window.ariaClicks || 0) + 1;
+              const replacement = ariaCheck.cloneNode(true);
+              replacement.setAttribute('aria-checked', 'false');
+              ariaCheck.replaceWith(replacement);
+              queueMicrotask(() => replacement.setAttribute('aria-checked', 'true'));
+            });
+            const ariaSwitch = document.getElementById('aria-switch');
+            if (ariaSwitch) ariaSwitch.addEventListener('click', () => {
+              window.switchClicks = (window.switchClicks || 0) + 1;
+              ariaSwitch.setAttribute('aria-checked', ariaSwitch.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+            });
+            const focusField = document.getElementById('focus-field');
+            if (focusField) {
+              window.focusEvents = 0; window.focusClicks = 0;
+              focusField.addEventListener('focus', () => window.focusEvents++);
+              focusField.addEventListener('click', () => window.focusClicks++);
+            }
+            const farTarget = document.getElementById('far-target');
+            if (farTarget) farTarget.addEventListener('click', () => window.farClicks = (window.farClicks || 0) + 1);
             """;
 
     private static final String APP_CSS = """
@@ -594,5 +743,9 @@ class RealBrowserContractsIT {
             button { min-width: 140px; min-height: 44px; margin: 12px; }
             iframe { width: 360px; height: 140px; display: block; }
             #blocker { position: fixed; inset: 0; z-index: 1000; background: rgba(10,20,30,.75); display: grid; place-items: center; }
+            #styled-label, #nested-label, [role='checkbox'], [role='switch'] { display: inline-block; padding: 12px; margin: 8px; border: 1px solid #777; }
+            #covered-wrap { position: relative; width: 80px; height: 40px; }
+            #foreign-cover { display: none; position: absolute; inset: 0; z-index: 20; background: rgba(200,0,0,.5); }
+            #spacer { height: 1800px; }
             """;
 }

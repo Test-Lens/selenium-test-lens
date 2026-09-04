@@ -52,6 +52,12 @@ public io.github.testlens.selenium.actionability.ActionabilityReport checkAction
 public io.github.testlens.selenium.actionability.ActionabilityReport checkActionability(io.github.testlens.selenium.actionability.ActionabilityOptions)
 public org.openqa.selenium.By by()
 public java.lang.String description()
+public io.github.testlens.selenium.locator.UiLocator check()
+public io.github.testlens.selenium.locator.UiLocator uncheck()
+public boolean isChecked()
+public io.github.testlens.selenium.locator.UiLocator upload(java.nio.file.Path...)
+public io.github.testlens.selenium.locator.UiLocator focus()
+public io.github.testlens.selenium.locator.UiLocator scrollIntoView()
 ```
 
 ## `io.github.testlens.selenium.locator.UiLocatorDescription` {#io-github-testlens-selenium-locator-uilocatordescription}

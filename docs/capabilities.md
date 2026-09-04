@@ -25,14 +25,14 @@ Selenium Test Lens attaches observability, retryable element operations, diagnos
 | Named steps | [`step(...)`](advanced/steps-business-assertions.md#named-steps) | Records start/pass/failure, optionally HUD output, nested events, stack trace, and a failure screenshot. |
 | Selenium locators | [`locator(By...)`](elements/locators.md) | Accepts any Selenium `By`, with an optional diagnostic label. |
 | User-facing locators | `getByTestId`, `getByText`, `getByTextContaining`, `getByRole` | Test-id uses `[data-testid=...]`; text and role helpers have the documented DOM/ARIA limits. |
-| Element actions | [`UiLocator`](elements/actions.md) | Click, fill, clear, key input/Enter, hover, double-click, right-click, and HTML select controls. |
+| Element actions | [`UiLocator`](elements/actions.md) | Click, fill, clear, checked-state controls, file upload, focus, scrolling, key input/Enter, hover, double-click, right-click, and HTML select controls. |
 | Reads | [`UiLocator`](elements/information.md) | Text, value, attribute, DOM property, visibility, enabled state, count, and resolved elements. |
 | Collections | `resolveAll`, `count`, `first`, `last`, `nth` | `nth` is zero-based; derived locators remain lazy. |
 | Retry/wait | [`UiLocatorOptions`](reference/configuration.md#uilocatoroptions) | Retries configured transient element failures; explicit visibility/clickability/text waits use timeout and polling settings. |
 | Flaky outcomes | [`RetrySummary`](observability/flakiness.md) | Aggregates physical failures that caused another operation attempt; polling and runner-level retries remain distinct. |
 | Assertions | [`UiExpect`](elements/assertions.md) | Retryable visibility, enabled, text, substring, value, and value-substring assertions. |
 
-Every instrumented locator operation emits structured start/pass/retry/failure events. Operations can update the HUD. The overlay-aware `click()` path highlights its resolved target when `OverlayConfig.enabled()` is true; other locator actions do not currently apply that click decoration. Read methods also resolve through the locator retry policy. Sensitive field values are represented by safe previews or lengths in diagnostics where implemented; this is not a general secret-classification system.
+Every instrumented locator operation emits structured start/pass/retry/failure events. Operations can update the HUD. The overlay-aware `click()` path highlights its resolved target when `OverlayConfig.enabled()` is true; other locator actions do not currently apply that click decoration. Checked-state operations use semantic native/ARIA controls and at most one activation before state-only confirmation polling. Upload records only the number of files, while focus and scrolling use one explicit JavaScript call without click or Actions fallback. Read methods also resolve through the locator retry policy. Sensitive field values are represented by safe previews or lengths in diagnostics where implemented; this is not a general secret-classification system.
 
 ## Browser contexts and native dialogs
 

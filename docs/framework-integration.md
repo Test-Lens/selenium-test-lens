@@ -48,6 +48,8 @@ For a final `FAILED` status, finalization also completes the best-effort failure
 
 You can introduce Lens gradually. Existing Page Objects and direct Selenium calls can continue to use the attached driver.
 
+Page Objects can keep form interaction behind `UiLocator`: `check()`, `uncheck()`, `isChecked()`, `upload(Path...)`, `focus()`, and `scrollIntoView()` avoid exposing a raw `WebElement`. The lifecycle ownership rules below are unchanged by these actions.
+
 ## JUnit 5
 
 Use the published `selenium-test-lens-junit5` module instead of copying lifecycle callbacks into each project:
