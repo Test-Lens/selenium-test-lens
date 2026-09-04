@@ -81,6 +81,8 @@ try {
 
 Common form operations remain on the lazy locator abstraction: use `check()`/`uncheck()` for semantic native or ARIA controls, `upload(Path...)` for file inputs, and `focus()` or `scrollIntoView()` when those browser operations are intentional. You do not need to expose a raw `WebElement`; see [Element actions](elements/actions.md).
 
+The main facade also exposes lazy semantic factories: `getByLabel`, `getByPlaceholder`, `getByAltText`, and named `getByRole`. Named roles and labels use the accessible name computed by WebDriver, so native labels, `aria-labelledby`, multiple references, and descendant image alt text follow the browser implementation rather than a partial `aria-label || text` approximation.
+
 Lens finalization writes the session diagnostics. Use `finishSkipped(reason)` for an aborted test or unmet assumption; unlike `finishFailed(...)`, it does not request a failure screenshot. Keep your existing `WebDriver` cleanup as-is.
 
 For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The runner adapters are the recommended JUnit 5 and TestNG paths for the `0.2.0-SNAPSHOT` development line.

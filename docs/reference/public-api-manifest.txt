@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
 # Types: 216
-# Public callable methods/constructors: 1678
+# Public callable methods/constructors: 1684
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -801,6 +801,8 @@ TYPE io.github.testlens.JsOverlayDebug
   public io.github.testlens.selenium.locator.UiLocator getByLabel(java.lang.String, java.lang.String)
   public io.github.testlens.selenium.locator.UiLocator getByRole(java.lang.String)
   public io.github.testlens.selenium.locator.UiLocator getByRole(java.lang.String, java.lang.String)
+  public io.github.testlens.selenium.locator.UiLocator getByAltText(java.lang.String)
+  public io.github.testlens.selenium.locator.UiLocator getByAltText(java.lang.String, java.lang.String)
   public io.github.testlens.selenium.assertions.UiExpect expect(org.openqa.selenium.By)
   public io.github.testlens.selenium.assertions.UiExpect expect(org.openqa.selenium.By, java.lang.String)
   public io.github.testlens.selenium.assertions.UiExpect expect(io.github.testlens.selenium.locator.UiLocator)
@@ -926,6 +928,9 @@ TYPE io.github.testlens.TestLens
   public io.github.testlens.selenium.locator.UiLocator getByText(java.lang.String)
   public io.github.testlens.selenium.locator.UiLocator getByText(java.lang.String, java.lang.String)
   public io.github.testlens.selenium.locator.UiLocator getByTextContaining(java.lang.String)
+  public io.github.testlens.selenium.locator.UiLocator getByPlaceholder(java.lang.String)
+  public io.github.testlens.selenium.locator.UiLocator getByLabel(java.lang.String)
+  public io.github.testlens.selenium.locator.UiLocator getByAltText(java.lang.String)
   public io.github.testlens.selenium.locator.UiLocator getByRole(java.lang.String)
   public io.github.testlens.selenium.locator.UiLocator getByRole(java.lang.String, java.lang.String)
   public io.github.testlens.selenium.evidence.ScreenshotCaptureResult captureScreenshot(java.lang.String)
@@ -1665,6 +1670,7 @@ TYPE io.github.testlens.selenium.locator.UiLocator
   public io.github.testlens.selenium.locator.UiLocator doubleClick()
   public io.github.testlens.selenium.locator.UiLocator rightClick()
   public java.lang.String textContent()
+  public java.lang.String accessibleName()
   public boolean isVisible()
   public boolean isEnabled()
   public java.lang.String attribute(java.lang.String)

@@ -184,6 +184,11 @@ public final class UiLocator {
         return read("textContent", WebElement::getText);
     }
 
+    /** Returns the accessible name computed by the browser/WebDriver. */
+    public String accessibleName() {
+        return read("accessibleName", WebElement::getAccessibleName);
+    }
+
     public boolean isVisible() {
         return read("isVisible", WebElement::isDisplayed);
     }

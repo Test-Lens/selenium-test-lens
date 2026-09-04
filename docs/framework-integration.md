@@ -103,6 +103,8 @@ void submitOrder() {
 }
 ```
 
+Framework adapters expose the same main facade, so tests may use `lens.getByLabel("Email").fill(...)` or `lens.getByRole("button", "Submit order")` without runner-specific locator behavior.
+
 Allure continues to produce `allure-results`; Test Lens writes its own diagnostics under `target/ui-test-lens` by default. You do not need to wrap every Allure step in `lens.step()`.
 
 ## Parallel execution

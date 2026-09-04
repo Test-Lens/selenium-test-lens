@@ -24,7 +24,7 @@ Selenium Test Lens attaches observability, retryable element operations, diagnos
 | Session lifecycle | `startSession`, `session`, `finishPassed`, `finishFailed`, `finishSkipped` | Records passed, failed, or skipped trace status and performs best-effort final exports. Final `FAILED` creates the configured failure bundle; finish methods do not quit the driver. |
 | Named steps | [`step(...)`](advanced/steps-business-assertions.md#named-steps) | Records start/pass/failure, optionally HUD output, nested events, stack trace, and a failure screenshot. |
 | Selenium locators | [`locator(By...)`](elements/locators.md) | Accepts any Selenium `By`, with an optional diagnostic label. |
-| User-facing locators | `getByTestId`, `getByText`, `getByTextContaining`, `getByRole` | Test-id uses `[data-testid=...]`; text and role helpers have the documented DOM/ARIA limits. |
+| User-facing locators | `getByTestId`, text, role, label, placeholder, alt text | Named roles and labels use browser-computed accessibility through typed WebDriver APIs; factories remain lazy. |
 | Element actions | [`UiLocator`](elements/actions.md) | Click, fill, clear, checked-state controls, file upload, focus, scrolling, key input/Enter, hover, double-click, right-click, and HTML select controls. |
 | Reads | [`UiLocator`](elements/information.md) | Text, value, attribute, DOM property, visibility, enabled state, count, and resolved elements. |
 | Collections | `resolveAll`, `count`, `first`, `last`, `nth` | `nth` is zero-based; derived locators remain lazy. |
@@ -82,7 +82,7 @@ Lens is runner-agnostic. JUnit and TestNG retain test lifecycle and assertion ow
 - It does not replace Selenium, Page Objects, JUnit, TestNG, or their lifecycle rules.
 - It does not record video; it only attaches a file/URL supplied by another recorder.
 - It does not implement network request interception, mocking, or response rewriting.
-- `getByRole` is not a full ARIA accessible-name implementation. It covers explicit/supported implicit roles and compares `aria-label` or normalized element text.
+- Test Lens does not implement the ARIA accessible-name algorithm. Named role and label matching relies on `WebElement.getAccessibleName()` and role confirmation on `getAriaRole()`; an unsupported driver command fails without fallback.
 - It does not wrap all W3C Actions, CDP, or BiDi operations. Use raw Selenium for offsets, held-key sequences, complex multi-select, unsupported contexts, and low-level browser protocols.
 - It cannot guarantee screenshots, overlays, storage access, or network capture when the driver/browser lacks the required Selenium/JavaScript capabilities.
 - It does not automatically redact every secret from screenshots, pages, arbitrary labels, metadata, reports, or network bodies/headers. Control what you capture and protect generated artifacts.

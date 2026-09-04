@@ -58,11 +58,35 @@ UiLocator getByRole(String role)
 UiLocator getByRole(String role, String accessibleName)
 ```
 
-Matches an explicit role or the library's supported implicit-role mapping. The name overload compares `aria-label` or normalized element text. It is **not** the complete ARIA accessible-name algorithm: it does not promise full `aria-labelledby`, subtree, hidden-content, or host-language computation.
+Matches an explicit or supported implicit role confirmed by WebDriver's computed `getAriaRole()`. The name overload compares the normalized, browser-computed `WebElement.getAccessibleName()` exactly and case-sensitively. Test Lens does not implement the accessibility-name algorithm itself and does not fall back to `aria-label`, text, title, or placeholder when the WebDriver endpoint fails.
 
 ```java
 lens.getByRole("button", "Save").click();
 ```
+
+Supported implicit candidate roles remain `button`, `link`, `textbox`, `checkbox`, and `radio`. The locator is lazy, preserves DOM order, and supports `count()`, `nth()`, `first()`, and `last()`.
+
+## Label, placeholder, and alt text
+
+<!-- API SIGNATURES: io.github.testlens.TestLens -->
+```java
+UiLocator getByLabel(String label)
+UiLocator getByPlaceholder(String placeholder)
+UiLocator getByAltText(String altText)
+```
+
+`getByLabel` narrows candidates to native label relationships (`label[for]`, nesting, including multiple labels) or explicit `aria-label`/`aria-labelledby`, then compares their browser-computed accessible name. A title, placeholder, button text, or neighboring text alone is not a label source.
+
+`getByPlaceholder` performs an exact placeholder-attribute match and does not treat it as a label. `getByAltText` matches a normalized real `alt` attribute on `img`, `area`, or `input[type=image]`; it does not use ARIA labels, title, SVG title, CSS, or adjacent text. Empty `alt=""` is searchable, though it normally denotes decorative content. Null alt text is rejected.
+
+```java
+lens.getByLabel("Accept terms").check();
+lens.getByLabel("Attachment").upload(Path.of("document.pdf"));
+lens.getByPlaceholder("Email address").fill("person@example.test");
+lens.getByAltText("Company logo").waitUntilVisible();
+```
+
+Semantic comparison trims and collapses Unicode whitespace (including NBSP) to one space, then compares exactly and case-sensitively. Results depend on the browser/WebDriver accessibility implementation; unsupported typed accessibility commands fail without a hidden DOM or JavaScript fallback.
 
 ## UiLocator constructor
 

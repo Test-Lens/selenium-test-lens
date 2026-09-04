@@ -228,16 +228,7 @@ public final class JsOverlayDebug {
     }
 
     public UiLocator getByLabel(String labelText, String label) {
-        String literal = UiLocatorSelectors.xpathLiteral(labelText);
-        String normalized = UiLocatorSelectors.normalizeSpaceExpression(".");
-        String xpath = "//*[" +
-                "(@aria-label = " + literal + " and (self::input or self::textarea or self::select or self::button or @contenteditable='true' or @role='textbox' or @role='combobox' or @role='checkbox' or @role='radio'))" +
-                " or (self::input or self::textarea or self::select or self::button or @contenteditable='true' or @role='textbox' or @role='combobox' or @role='checkbox' or @role='radio')" +
-                " and (@id = //label[" + normalized + " = " + literal + "]/@for" +
-                " or ancestor::label[" + normalized + " = " + literal + "]" +
-                " or @aria-labelledby = //*[" + normalized + " = " + literal + "]/@id)" +
-                "]";
-        return locator(By.xpath(xpath), label);
+        return locator(SemanticBy.label(labelText), label);
     }
 
     public UiLocator getByRole(String role) {
@@ -245,20 +236,18 @@ public final class JsOverlayDebug {
     }
 
     public UiLocator getByRole(String role, String accessibleName) {
-        String roleLiteral = UiLocatorSelectors.xpathLiteral(role);
-        String rolePredicate = "@role = " + roleLiteral + " or " + implicitRolePredicate(role);
-        String xpath = "//*[" + rolePredicate + "]";
-        if (accessibleName != null && !accessibleName.isBlank()) {
-            String nameLiteral = UiLocatorSelectors.xpathLiteral(accessibleName);
-            xpath = "//*[" + rolePredicate + "][" +
-                    "@aria-label = " + nameLiteral +
-                    " or " + UiLocatorSelectors.normalizeSpaceExpression(".") + " = " + nameLiteral +
-                    "]";
-        }
         String label = accessibleName == null || accessibleName.isBlank()
                 ? "role: " + safeLabelValue(role)
                 : "role: " + safeLabelValue(role) + ", name: " + safeLabelValue(accessibleName);
-        return locator(By.xpath(xpath), label);
+        return locator(SemanticBy.role(role, accessibleName), label);
+    }
+
+    public UiLocator getByAltText(String altText) {
+        return getByAltText(altText, "alt: " + safeLabelValue(altText));
+    }
+
+    public UiLocator getByAltText(String altText, String label) {
+        return locator(SemanticBy.altText(altText), label);
     }
 
     public UiExpect expect(By by) {
@@ -495,20 +484,8 @@ public final class JsOverlayDebug {
     }
 
     private static String safeLabelValue(String value) {
-        String input = value == null ? "" : value.trim();
+        String input = SemanticBy.normalizeText(value);
         return input.length() <= 80 ? input : input.substring(0, 77) + "...";
-    }
-
-    private static String implicitRolePredicate(String role) {
-        String normalized = role == null ? "" : role.trim().toLowerCase();
-        return switch (normalized) {
-            case "button" -> "self::button or (self::input and (@type='button' or @type='submit' or @type='reset'))";
-            case "link" -> "self::a[@href]";
-            case "textbox" -> "self::textarea or (self::input and (not(@type) or @type='text' or @type='email' or @type='search' or @type='password' or @type='tel' or @type='url'))";
-            case "checkbox" -> "self::input[@type='checkbox']";
-            case "radio" -> "self::input[@type='radio']";
-            default -> "false()";
-        };
     }
 
     // ======================================================================

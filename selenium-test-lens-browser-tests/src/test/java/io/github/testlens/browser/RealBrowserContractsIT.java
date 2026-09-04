@@ -226,6 +226,61 @@ class RealBrowserContractsIT {
     }
 
     @Test
+    void semanticRoleLocatorsUseBrowserComputedAccessibleNamesAndRemainLazy() {
+        open("/semantic-locators");
+        TestLens lens = configuredLens(true, true);
+        lens.startSession("semantic-roles-" + UUID.randomUUID());
+
+        assertEquals("labelled-button", lens.getByRole("button", "Save order").resolve().getDomAttribute("id"));
+        assertEquals("multi-button", lens.getByRole("button", "Create invoice").resolve().getDomAttribute("id"));
+        assertEquals("image-button", lens.getByRole("button", "Save image").resolve().getDomAttribute("id"));
+        assertEquals("Save order", lens.getByRole("button", "Save order").accessibleName());
+
+        var duplicates = lens.getByRole("button", "Duplicate action");
+        assertEquals(2, duplicates.count());
+        assertEquals("duplicate-one", duplicates.first().resolve().getDomAttribute("id"));
+        assertEquals("duplicate-two", duplicates.nth(1).resolve().getDomAttribute("id"));
+        assertEquals("duplicate-two", duplicates.last().resolve().getDomAttribute("id"));
+
+        var late = lens.getByRole("button", "Added later");
+        assertTrue(driver.findElements(By.id("late-semantic-button")).isEmpty());
+        ((JavascriptExecutor) driver).executeScript("""
+                const label = document.createElement('span');
+                label.id = 'late-semantic-label';
+                label.textContent = 'Added later';
+                const button = document.createElement('button');
+                button.id = 'late-semantic-button';
+                button.setAttribute('aria-labelledby', label.id);
+                document.getElementById('late-semantic-container').append(label, button);
+                """);
+        late.waitUntilVisible();
+        assertEquals("late-semantic-button", late.resolve().getDomAttribute("id"));
+        lens.finishPassed();
+    }
+
+    @Test
+    void labelPlaceholderAndAltLocatorsKeepTheirDistinctSemantics() {
+        open("/semantic-locators");
+        TestLens lens = configuredLens(false, true);
+        lens.startSession("semantic-sources-" + UUID.randomUUID());
+
+        assertEquals("email", lens.getByLabel("Email address").resolve().getDomAttribute("id"));
+        assertEquals("nested-input", lens.getByLabel("Nested field").resolve().getDomAttribute("id"));
+        assertEquals("aria-label-input", lens.getByLabel("ARIA field").resolve().getDomAttribute("id"));
+        assertEquals("aria-labelledby-input", lens.getByLabel("Referenced field").resolve().getDomAttribute("id"));
+        assertEquals("multi-label-input", lens.getByLabel("First Second").resolve().getDomAttribute("id"));
+        assertEquals(0, lens.getByLabel("Placeholder only").count());
+        assertEquals(0, lens.getByLabel("Title only").count());
+        assertEquals("placeholder-only", lens.getByPlaceholder("Placeholder only").resolve().getDomAttribute("id"));
+
+        assertEquals("logo", lens.getByAltText("Company logo").resolve().getDomAttribute("id"));
+        assertEquals("map-area", lens.getByAltText("Office map").resolve().getDomAttribute("id"));
+        assertEquals("image-submit", lens.getByAltText("Submit image").resolve().getDomAttribute("id"));
+        assertEquals("", lens.getByAltText("").accessibleName());
+        lens.finishPassed();
+    }
+
+    @Test
     void highlightLivesInShadowDomAndCannotReceivePointerEvents() {
         open("/clicks");
         overlay(true).highlightClick(driver.findElement(By.id("count-button")), "COUNT");
@@ -640,6 +695,29 @@ class RealBrowserContractsIT {
                     <input id='focus-field'>
                     <div id='covered-wrap'><input id='covered-check' type='checkbox'><div id='foreign-cover'></div></div>
                     <div id='spacer'></div><button id='far-target'>Far target</button>
+                    """), false);
+            case "/semantic-locators" -> html(exchange, page("Semantic locators", """
+                    <span id='save-label'>Save order</span>
+                    <button id='labelled-button' aria-labelledby='save-label'></button>
+                    <span id='create-label'>Create</span><span id='invoice-label'>invoice</span>
+                    <button id='multi-button' aria-labelledby='create-label invoice-label'></button>
+                    <button id='image-button'><img alt='Save image'></button>
+                    <label for='email'>Email address</label><input id='email'>
+                    <label>Nested field <input id='nested-input'></label>
+                    <input id='aria-label-input' aria-label='ARIA field'>
+                    <span id='referenced-field-label'>Referenced field</span>
+                    <input id='aria-labelledby-input' aria-labelledby='referenced-field-label'>
+                    <label for='multi-label-input'>First</label><label for='multi-label-input'>Second</label>
+                    <input id='multi-label-input'>
+                    <input id='placeholder-only' placeholder='Placeholder only'>
+                    <input id='title-only' title='Title only'>
+                    <img id='logo' alt='Company logo'>
+                    <map name='office'><area id='map-area' href='#office' alt='Office map'></map>
+                    <input id='image-submit' type='image' alt='Submit image'>
+                    <img id='decorative-image' alt=''>
+                    <button id='duplicate-one'>Duplicate action</button>
+                    <button id='duplicate-two'>Duplicate action</button>
+                    <div id='late-semantic-container'></div>
                     """), false);
             case "/app.js" -> response(exchange, "application/javascript; charset=utf-8", APP_JS, false);
             case "/app.css" -> response(exchange, "text/css; charset=utf-8", APP_CSS, false);

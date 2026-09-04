@@ -67,6 +67,9 @@ public final class TestLens {
     public UiLocator getByText(String text) { return delegate.getByText(text); }
     public UiLocator getByText(String text, String label) { return delegate.getByText(text, label); }
     public UiLocator getByTextContaining(String text) { return delegate.getByTextContaining(text); }
+    public UiLocator getByPlaceholder(String placeholder) { return delegate.getByPlaceholder(placeholder); }
+    public UiLocator getByLabel(String label) { return delegate.getByLabel(label); }
+    public UiLocator getByAltText(String altText) { return delegate.getByAltText(altText); }
     public UiLocator getByRole(String role) { return delegate.getByRole(role); }
     public UiLocator getByRole(String role, String accessibleName) { return delegate.getByRole(role, accessibleName); }
     public ScreenshotCaptureResult captureScreenshot(String name) { return delegate.captureScreenshot(name); }

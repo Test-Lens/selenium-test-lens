@@ -89,7 +89,7 @@ For a native input hidden behind standard form styling, the locator may point to
 After one activation, Test Lens polls only the freshly resolved control state until the locator timeout. This supports asynchronous rerenders without a second click. Confirmation polling is not a recovery retry and does not mark the session flaky. A mixed/indeterminate state makes `isChecked()` return `false`; `check()` or `uncheck()` still performs at most one activation and requires the requested final state.
 
 ```java
-lens.locator(By.id("terms"), "Terms").check();
+lens.getByLabel("Accept terms").check();
 lens.locator(By.id("newsletter"), "Newsletter").uncheck();
 boolean selected = lens.locator(By.id("plan"), "Plan").isChecked();
 ```
@@ -106,8 +106,7 @@ Uploads one or more existing regular files to an `input[type=file]`, including a
 Diagnostics record only `fileCount`. Local paths and file names are not included in Test Lens action messages or metadata. Page content and screenshots remain application-controlled evidence, so protect artifacts according to the normal evidence guidance.
 
 ```java
-lens.locator(By.id("attachment"), "Attachment")
-        .upload(Path.of("document.pdf"));
+lens.getByLabel("Attachment").upload(Path.of("document.pdf"));
 ```
 
 ## focus() and scrollIntoView()

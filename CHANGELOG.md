@@ -4,6 +4,8 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+- Added lazy semantic accessibility locators on the main `TestLens` facade for labels, placeholders, and alt text, plus browser-computed `UiLocator.accessibleName()`. Named role matching now uses WebDriver `getAccessibleName()` and `getAriaRole()` without falling back to element text or a partial in-library accessible-name algorithm.
+
 The next planned release line is 0.2.0. Changes below are under development and have not been released.
 
 - Added semantic `UiLocator` form and element actions: idempotent `check()`/`uncheck()` and `isChecked()` for native and ARIA controls, single-operation safe file upload, and explicit focus/scroll operations. Styled native controls activate only through their standard associated label; asynchronous state confirmation never repeats a click, and upload diagnostics do not expose local paths or file names.

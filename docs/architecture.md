@@ -40,6 +40,8 @@ The real-browser fixture uses a JDK `HttpServer` on an ephemeral loopback port. 
 
 Form actions stay inside the main Selenium locator layer. Semantic control resolution separates the state element from the native activation element, so a styled native input can be observed through the input and activated through its associated label. Checked-state confirmation re-resolves only state and never repeats the activation; file upload validates local input before its single `sendKeys` call; focus and scrolling are isolated one-script operations.
 
+Semantic accessibility factories are represented by an internal lazy Selenium `By`: an ordinary selector narrows candidates, while typed `WebElement.getAriaRole()` and `getAccessibleName()` perform final matching in DOM order. No element is cached and no JavaScript accessibility algorithm is maintained by Test Lens.
+
 Chrome and Firefox headless runs are required in CI. A headed Chrome run under Xvfb is available as a non-blocking manual smoke test. Edge and remote-grid execution are not currently in the browser matrix.
 
 ## Selenium boundary

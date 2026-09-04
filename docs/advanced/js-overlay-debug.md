@@ -40,13 +40,15 @@ UiLocator getByLabel(String labelText)
 UiLocator getByLabel(String labelText, String label)
 UiLocator getByRole(String role)
 UiLocator getByRole(String role, String accessibleName)
+UiLocator getByAltText(String altText)
+UiLocator getByAltText(String altText, String label)
 UiExpect expect(By by)
 UiExpect expect(By by, String label)
 UiExpect expect(UiLocator locator)
 UiExpect expect(UiLocator locator, UiAssertionOptions options)
 ```
 
-All locator factories remain lazy. Placeholder, label, text, and role factories generate DOM selectors; role/name matching has the same limited accessible-name semantics described under [Locators](../elements/locators.md). Actionability overloads inspect either a locator or an already resolved element and return a report rather than performing an action.
+All locator factories remain lazy. Named role and label factories narrow candidates with DOM selectors, then use the browser-computed role/accessibility name through typed WebDriver APIs. Alt-text matching reads only `alt`. See [Locators](../elements/locators.md). Actionability overloads inspect either a locator or an already resolved element and return a report rather than performing an action.
 
 The returned actionability model records individual `ActionabilityCheck`/`ActionabilityResult` values. `ActionabilityCheckType` identifies attachment, visibility, enabled state, stable bounds, scrolling, click-point receipt, coverage, and overlay-policy checks. `ActionabilityStatus` distinguishes ready, not-ready, failed, and skipped reports; `ActionabilityFailureReason` supplies the concrete diagnostic reason such as detached, covered, stale, timed out, or JavaScript failure. These values diagnose readiness and do not themselves click the element.
 
