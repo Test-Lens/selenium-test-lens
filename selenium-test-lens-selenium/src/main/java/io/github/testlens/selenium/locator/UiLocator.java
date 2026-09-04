@@ -45,8 +45,6 @@ public final class UiLocator {
     private final UiLocatorOptions options;
     private final UiLocatorResolver resolver;
     private final OverlayLogger logger;
-    private final Integer collectionIndex;
-    private final boolean lastCollectionElement;
     private final LongSupplier nanoTicker;
 
     public UiLocator(WebDriver driver,
@@ -55,31 +53,17 @@ public final class UiLocator {
                      JsOverlayDebug overlay,
                      UiLocatorOptions options,
                      OverlayLogger logger) {
-        this(driver, by, label, overlay, options, logger, null, false, System::nanoTime);
+        this(driver, by, label, overlay, options, logger, System::nanoTime);
     }
 
     UiLocator(WebDriver driver, By by, String label, JsOverlayDebug overlay,
               UiLocatorOptions options, OverlayLogger logger, LongSupplier nanoTicker) {
-        this(driver, by, label, overlay, options, logger, null, false, nanoTicker);
-    }
-
-    private UiLocator(WebDriver driver,
-                      By by,
-                      String label,
-                      JsOverlayDebug overlay,
-                      UiLocatorOptions options,
-                      OverlayLogger logger,
-                      Integer collectionIndex,
-                      boolean lastCollectionElement,
-                      LongSupplier nanoTicker) {
         this.driver = Objects.requireNonNull(driver, "driver must not be null");
         this.overlay = Objects.requireNonNull(overlay, "overlay must not be null");
         this.description = UiLocatorDescription.of(by, label);
         this.options = options != null ? options : UiLocatorOptions.defaults();
         this.resolver = new UiLocatorResolver(driver);
         this.logger = logger != null ? logger : OverlayLogger.noop();
-        this.collectionIndex = collectionIndex;
-        this.lastCollectionElement = lastCollectionElement;
         this.nanoTicker = nanoTicker == null ? System::nanoTime : nanoTicker;
     }
 
@@ -214,16 +198,27 @@ public final class UiLocator {
     public List<WebElement> resolveAll() {
         emit(UiTestLensEventType.LOCATOR_RESOLVE_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
                 "Resolving locator collection", "resolveAll", 0, null, null);
-        try {
-            List<WebElement> elements = List.copyOf(driver.findElements(by()));
-            emit(UiTestLensEventType.LOCATOR_RESOLVE_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
-                    "Locator collection resolved", "resolveAll", elements.size(), null, null);
-            return elements;
-        } catch (RuntimeException failure) {
-            emit(UiTestLensEventType.LOCATOR_RESOLVE_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
-                    "Locator collection resolve failed", "resolveAll", 1, null, failure);
-            throw locatorException("resolveAll", failure, "");
+        RuntimeException lastFailure = null;
+        for (int attempt = 1; attempt <= options.maxRetries(); attempt++) {
+            long started = nanoTicker.getAsLong();
+            try {
+                List<WebElement> elements = List.copyOf(CompositeBy.find(driver, by()));
+                emit(UiTestLensEventType.LOCATOR_RESOLVE_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
+                        "Locator collection resolved", "resolveAll", elements.size(), null, null);
+                return elements;
+            } catch (RuntimeException failure) {
+                lastFailure = failure;
+                if (!(effectiveRetryCause(failure) instanceof StaleElementReferenceException)
+                        || !options.retryOnStaleElement() || attempt >= options.maxRetries()) {
+                    emit(UiTestLensEventType.LOCATOR_RESOLVE_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
+                            "Locator collection resolve failed", "resolveAll", attempt, null, failure);
+                    throw locatorException("resolveAll", failure, "");
+                }
+                emitRecoveryRetry("collection", "resolveAll", attempt, attempt + 1,
+                        elapsedNanos(started), effectiveRetryCause(failure), null);
+            }
         }
+        throw locatorException("resolveAll", lastFailure, "");
     }
 
     public int count() {
@@ -234,15 +229,72 @@ public final class UiLocator {
     }
 
     public UiLocator nth(int index) {
-        return new UiLocator(driver, by(), collectionLabel("[" + index + "]"), overlay, options, logger, index, false, nanoTicker);
+        return derived(CompositeBy.index(by(), index), collectionLabel("[" + index + "]"));
     }
 
     public UiLocator first() {
-        return new UiLocator(driver, by(), collectionLabel("[first]"), overlay, options, logger, 0, false, nanoTicker);
+        return derived(CompositeBy.index(by(), 0), collectionLabel("[first]"));
     }
 
     public UiLocator last() {
-        return new UiLocator(driver, by(), collectionLabel("[last]"), overlay, options, logger, null, true, nanoTicker);
+        return derived(CompositeBy.last(by()), collectionLabel("[last]"));
+    }
+
+    public UiLocator locator(By descendant) {
+        return locator(descendant, description() + " >> " + safePreview(String.valueOf(descendant)));
+    }
+
+    public UiLocator locator(By descendant, String label) {
+        Objects.requireNonNull(descendant, "descendant locator must not be null");
+        return derived(CompositeBy.descendants(by(), descendant), label);
+    }
+
+    public UiLocator locator(UiLocator descendant) {
+        requireSameDriver(descendant);
+        return locator(descendant.by(), description() + " >> " + descendant.description());
+    }
+
+    public UiLocator filterByText(String expectedText) {
+        Objects.requireNonNull(expectedText, "expected text must not be null");
+        return derived(CompositeBy.text(by(), expectedText, false), description() + " | text equals");
+    }
+
+    public UiLocator filterByTextContaining(String expectedText) {
+        Objects.requireNonNull(expectedText, "expected text must not be null");
+        return derived(CompositeBy.text(by(), expectedText, true), description() + " | text contains");
+    }
+
+    public UiLocator filterByAttribute(String attributeName, String expectedValue) {
+        if (attributeName == null || attributeName.isBlank()) {
+            throw new IllegalArgumentException("attribute name must not be blank");
+        }
+        Objects.requireNonNull(expectedValue, "expected attribute value must not be null");
+        return derived(CompositeBy.attribute(by(), attributeName, expectedValue),
+                description() + " | attribute " + safePreview(attributeName));
+    }
+
+    public UiLocator filterHas(By descendant) {
+        Objects.requireNonNull(descendant, "descendant locator must not be null");
+        return derived(CompositeBy.has(by(), descendant),
+                description() + " | has(" + safePreview(String.valueOf(descendant)) + ")");
+    }
+
+    public UiLocator filterHas(UiLocator descendant) {
+        requireSameDriver(descendant);
+        return derived(CompositeBy.has(by(), descendant.by()),
+                description() + " | has(" + descendant.description() + ")");
+    }
+
+    public UiLocator waitUntilCount(int expected) {
+        return waitUntilCount("count ==", expected, count -> count == expected);
+    }
+
+    public UiLocator waitUntilCountAtLeast(int minimum) {
+        return waitUntilCount("count >=", minimum, count -> count >= minimum);
+    }
+
+    public UiLocator waitUntilCountAtMost(int maximum) {
+        return waitUntilCount("count <=", maximum, count -> count <= maximum);
     }
 
     public UiLocator waitUntilVisible() {
@@ -283,13 +335,20 @@ public final class UiLocator {
         emit(UiTestLensEventType.LOCATOR_RESOLVE_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
                 "Resolving locator", "resolve", 0, null, null);
         try {
-            WebElement element = isCollectionView() ? resolveCollectionElement() : resolver.resolve(by(), options);
+            WebElement element = resolver.resolve(by(), options);
             emit(UiTestLensEventType.LOCATOR_RESOLVE_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
                     "Locator resolved", "resolve", 1, null, null);
             return element;
         } catch (RuntimeException e) {
             emit(UiTestLensEventType.LOCATOR_RESOLVE_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
                     "Locator resolve failed", "resolve", 1, null, e);
+            CollectionSelectionException selection = selectionFailure(e);
+            if (selection != null) {
+                RuntimeException original = e.getCause() instanceof RuntimeException cause ? cause : e;
+                throw new UiLocatorException("resolve", description(),
+                        "Collection locator failed: " + description() + " | "
+                                + selection.getMessage().split("\n", 2)[0], original, "");
+            }
             throw e;
         }
     }
@@ -299,9 +358,10 @@ public final class UiLocator {
     }
 
     public ActionabilityReport checkActionability(io.github.testlens.selenium.actionability.ActionabilityOptions actionabilityOptions) {
-        return isCollectionView()
-                ? overlay.checkActionability(resolve(), actionabilityOptions)
-                : overlay.checkActionability(by(), actionabilityOptions);
+        if (by() instanceof By.Remotable) {
+            return overlay.checkActionability(by(), actionabilityOptions);
+        }
+        return overlay.checkActionability(resolve(), actionabilityOptions);
     }
 
     public By by() {
@@ -312,42 +372,11 @@ public final class UiLocator {
         return description.displayName();
     }
 
-    private boolean isCollectionView() {
-        return collectionIndex != null || lastCollectionElement;
-    }
-
-    private WebElement resolveCollectionElement() {
-        AtomicInteger actualCount = new AtomicInteger();
-        try {
-            return new WebDriverWait(driver, options.timeout())
-                    .pollingEvery(options.pollInterval())
-                    .ignoring(StaleElementReferenceException.class)
-                    .until(webDriver -> {
-                        List<WebElement> current = webDriver.findElements(by());
-                        actualCount.set(current.size());
-                        int requested = lastCollectionElement ? current.size() - 1 : collectionIndex;
-                        if (requested < 0 || requested >= current.size()) return null;
-                        return current.get(requested);
-                    });
-        } catch (RuntimeException failure) {
-            String requested = lastCollectionElement ? "last" : String.valueOf(collectionIndex);
-            throw new UiLocatorException("resolveCollectionElement", description(),
-                    "Collection locator failed: " + description() +
-                            " | requestedIndex=" + requested + " | actualCount=" + actualCount.get(),
-                    failure, "");
-        }
-    }
-
     private WebElement currentElement(WebDriver webDriver) {
-        if (!isCollectionView()) return webDriver.findElement(by());
-        List<WebElement> current = webDriver.findElements(by());
-        int requested = lastCollectionElement ? current.size() - 1 : collectionIndex;
-        if (requested < 0 || requested >= current.size()) {
-            throw new NoSuchElementException("Collection locator " + description() +
-                    " requestedIndex=" + (lastCollectionElement ? "last" : requested) +
-                    " actualCount=" + current.size());
-        }
-        return current.get(requested);
+        if (by() instanceof By.Remotable) return webDriver.findElement(by());
+        List<WebElement> elements = by().findElements(webDriver);
+        if (elements.isEmpty()) throw new NoSuchElementException("Composite locator matched no elements");
+        return elements.get(0);
     }
 
     private String collectionLabel(String suffix) {
@@ -389,6 +418,56 @@ public final class UiLocator {
     private static String safePreview(String value) {
         if (value == null) return "null";
         return value.length() <= 80 ? value : value.substring(0, 77) + "...";
+    }
+
+    private UiLocator derived(By query, String label) {
+        return new UiLocator(driver, query, label, overlay, options, logger, nanoTicker);
+    }
+
+    private void requireSameDriver(UiLocator descendant) {
+        Objects.requireNonNull(descendant, "descendant locator must not be null");
+        if (driver != descendant.driver) {
+            throw new IllegalArgumentException("Composed locators must belong to the same WebDriver");
+        }
+    }
+
+    private static CollectionSelectionException selectionFailure(Throwable failure) {
+        for (Throwable current = failure; current != null; current = current.getCause()) {
+            if (current instanceof CollectionSelectionException selection) return selection;
+        }
+        return null;
+    }
+
+    private UiLocator waitUntilCount(String operator, int expected, java.util.function.IntPredicate condition) {
+        if (expected < 0) throw new IllegalArgumentException("expected count must be >= 0");
+        Instant started = Instant.now();
+        AtomicInteger attempts = new AtomicInteger();
+        AtomicInteger lastCount = new AtomicInteger();
+        String conditionDescription = operator + " " + expected;
+        emit(UiTestLensEventType.WAIT, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
+                "Waiting until " + conditionDescription, "waitCount", 0, null, null);
+        try {
+            new WebDriverWait(driver, options.timeout())
+                    .pollingEvery(options.pollInterval())
+                    .ignoring(StaleElementReferenceException.class)
+                    .until(webDriver -> {
+                        attempts.incrementAndGet();
+                        int current = CompositeBy.find(webDriver, by()).size();
+                        lastCount.set(current);
+                        return condition.test(current);
+                    });
+            emit(UiTestLensEventType.WAIT, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
+                    "Count wait passed: " + conditionDescription + ", lastCount=" + lastCount.get(),
+                    "waitCount", attempts.get(), null, null);
+            return this;
+        } catch (RuntimeException failure) {
+            long elapsed = Duration.between(started, Instant.now()).toMillis();
+            emit(UiTestLensEventType.WAIT, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
+                    "Count wait failed: " + conditionDescription + ", lastCount=" + lastCount.get(),
+                    "waitCount", attempts.get(), null, failure);
+            throw locatorException("waitUntilCount(" + conditionDescription + ")", failure,
+                    "lastCount=" + lastCount.get() + ", attempts=" + attempts.get() + ", elapsed=" + elapsed + "ms");
+        }
     }
 
     private UiLocator changeCheckedState(String action, CheckedState target) {

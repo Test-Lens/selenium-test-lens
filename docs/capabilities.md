@@ -27,7 +27,7 @@ Selenium Test Lens attaches observability, retryable element operations, diagnos
 | User-facing locators | `getByTestId`, text, role, label, placeholder, alt text | Named roles and labels use browser-computed accessibility through typed WebDriver APIs; factories remain lazy. |
 | Element actions | [`UiLocator`](elements/actions.md) | Click, fill, clear, checked-state controls, file upload, focus, scrolling, key input/Enter, hover, double-click, right-click, and HTML select controls. |
 | Reads | [`UiLocator`](elements/information.md) | Text, value, attribute, DOM property, visibility, enabled state, count, and resolved elements. |
-| Collections | `resolveAll`, `count`, `first`, `last`, `nth` | `nth` is zero-based; derived locators remain lazy. |
+| Collections | `resolveAll`, `count`, `first`, `last`, `nth`, scoped `locator`, filters, count waits | Pipeline stages remain lazy and order-sensitive; count polling is not recovery retry. |
 | Retry/wait | [`UiLocatorOptions`](reference/configuration.md#uilocatoroptions) | Retries configured transient element failures; explicit visibility/clickability/text waits use timeout and polling settings. |
 | Flaky outcomes | [`RetrySummary`](observability/flakiness.md) | Aggregates physical failures that caused another operation attempt; polling and runner-level retries remain distinct. |
 | Assertions | [`UiExpect`](elements/assertions.md) | Retryable visibility, enabled, text, substring, value, and value-substring assertions. |

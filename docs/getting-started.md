@@ -83,6 +83,8 @@ Common form operations remain on the lazy locator abstraction: use `check()`/`un
 
 The main facade also exposes lazy semantic factories: `getByLabel`, `getByPlaceholder`, `getByAltText`, and named `getByRole`. Named roles and labels use the accessible name computed by WebDriver, so native labels, `aria-labelledby`, multiple references, and descendant image alt text follow the browser implementation rather than a partial `aria-label || text` approximation.
 
+Collections can be composed without leaving `UiLocator`: scope a descendant with `locator(...)`, keep parents with `filterHas(...)`, filter visible text or DOM attributes, then wait for a current count. The order of filters, positional selection, and descendant lookup is preserved.
+
 Lens finalization writes the session diagnostics. Use `finishSkipped(reason)` for an aborted test or unmet assumption; unlike `finishFailed(...)`, it does not request a failure screenshot. Keep your existing `WebDriver` cleanup as-is.
 
 For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The runner adapters are the recommended JUnit 5 and TestNG paths for the `0.2.0-SNAPSHOT` development line.

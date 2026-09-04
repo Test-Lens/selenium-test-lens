@@ -2,6 +2,8 @@
 
 Waiting occurs at two levels: operation retry and explicit condition waits. A recovery retry exists only after a physical operation attempt fails with a configured retryable exception and the library schedules another attempt. Expected-condition checks, resolver DOM reads, missing-element waits, and unsatisfied assertions are polling, not recovery retries.
 
+Collection-size waits are available directly on a composed locator: `waitUntilCount`, `waitUntilCountAtLeast`, and `waitUntilCountAtMost`. Each poll evaluates exactly one fresh query snapshot using `UiLocatorOptions.timeout()` and `pollInterval()`. This is ordinary polling, not recovery retry, so it does not affect `RetrySummary` or flaky-candidate policy. See [Element collections](collections.md#count-waits).
+
 <!-- SCREENSHOT TODO: assets/screenshots/wait-feedback-active.png
 Show an explicit UiLocator wait while its condition is still unsatisfied.
 The HUD must display the wait description/retry state and the application must show why it is waiting.

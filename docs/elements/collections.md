@@ -7,7 +7,7 @@
 List<WebElement> resolveAll()
 ```
 
-Calls `driver.findElements(by)` once against the current DOM, returns an immutable copy, and emits collection resolution events. An empty result is valid. This method does not wait for a non-empty collection.
+Evaluates one current snapshot of the locator's immutable query pipeline, returns an immutable copy, and emits collection resolution events. An empty result is valid. This method does not wait for a non-empty collection. If a filter or descendant query encounters a stale element, the whole snapshot is retried; a partial result is never returned.
 
 ## count()
 
@@ -44,3 +44,16 @@ rows.first().click();
 rows.nth(2).expect().toBeVisible();
 rows.last().click();
 ```
+
+Selection is a pipeline stage, so order matters: `rows.filterByTextContaining("Open").first()` filters before selection, while `rows.first().filterByTextContaining("Open")` can produce zero or one match after selecting the first row.
+
+## Count waits
+
+<!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
+```java
+UiLocator waitUntilCount(int expected)
+UiLocator waitUntilCountAtLeast(int minimum)
+UiLocator waitUntilCountAtMost(int maximum)
+```
+
+These waits use the locator timeout and poll interval and evaluate one fresh, complete snapshot per poll. Zero is a valid target. Count polling is ordinary state observation: it does not emit a recovery `RETRY`, increment `RetrySummary`, or mark the session as a flaky candidate.

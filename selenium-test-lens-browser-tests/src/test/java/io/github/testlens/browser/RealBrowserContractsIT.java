@@ -280,6 +280,46 @@ class RealBrowserContractsIT {
         lens.finishPassed();
     }
 
+    @ParameterizedTest(name = "composite card locators (overlay enabled={0})")
+    @ValueSource(booleans = {true, false})
+    void compositeLocatorsScopeFilterAndClickExactlyOneCardButton(boolean enabled) {
+        open("/composite-locators");
+        TestLens lens = configuredLens(enabled, true);
+        lens.startSession("composite-cards-" + enabled + "-" + UUID.randomUUID());
+        var buy = lens.getByRole("button", "Buy");
+        var cards = lens.locator(By.cssSelector(".product-card"), "Product cards")
+                .filterByTextContaining("Laptop")
+                .filterByAttribute("data-status", "available")
+                .filterHas(buy);
+
+        cards.waitUntilCountAtLeast(1).first().locator(buy).click();
+
+        assertEquals(1L, number("return window.cardBuyClicks || 0"));
+        assertEquals("laptop-available-buy", ((JavascriptExecutor) driver)
+                .executeScript("return window.lastCardBuyId"));
+        assertEquals(0L, number("return window.globalBuyClicks || 0"));
+        assertEquals(1, cards.count());
+        lens.finishPassed();
+    }
+
+    @ParameterizedTest(name = "composite count waits (overlay enabled={0})")
+    @ValueSource(booleans = {true, false})
+    void compositeCountWaitsObserveDynamicRerenders(boolean enabled) {
+        open("/composite-locators");
+        TestLens lens = configuredLens(enabled, true);
+        lens.startSession("composite-count-" + enabled + "-" + UUID.randomUUID());
+        var dynamicItems = lens.locator(By.cssSelector("#dynamic-list .dynamic-item"), "Dynamic items");
+        assertEquals(1, dynamicItems.count());
+
+        lens.locator(By.id("start-dynamic"), "Start dynamic changes").click();
+        dynamicItems.waitUntilCountAtLeast(3).waitUntilCountAtMost(1).waitUntilCount(1);
+
+        assertEquals(1, dynamicItems.count());
+        assertEquals("final", dynamicItems.first().attribute("data-phase"));
+        assertEquals("Composite locators", driver.getTitle());
+        lens.finishPassed();
+    }
+
     @Test
     void highlightLivesInShadowDomAndCannotReceivePointerEvents() {
         open("/clicks");
@@ -719,6 +759,22 @@ class RealBrowserContractsIT {
                     <button id='duplicate-two'>Duplicate action</button>
                     <div id='late-semantic-container'></div>
                     """), false);
+            case "/composite-locators" -> html(exchange, page("Composite locators", """
+                    <section class='product-card' id='laptop-sold' data-status='sold'>
+                      <h2>Laptop Basic</h2><span class='price'>49</span><span class='status'>Sold</span>
+                    </section>
+                    <section class='product-card' id='laptop-available' data-status='available'>
+                      <h2>Laptop Pro</h2><span class='price'>99</span><span class='status'>Available</span>
+                      <button id='laptop-available-buy'>Buy</button>
+                    </section>
+                    <section class='product-card' id='phone-available' data-status='available'>
+                      <h2>Phone</h2><span class='price'>59</span><span class='status'>Available</span>
+                      <button id='phone-available-buy'>Buy</button>
+                    </section>
+                    <button class='global-buy'>Buy</button><button class='global-buy'>Buy</button>
+                    <button id='start-dynamic'>Start changes</button>
+                    <div id='dynamic-list'><div class='dynamic-item' data-phase='initial'>Initial</div></div>
+                    """), false);
             case "/app.js" -> response(exchange, "application/javascript; charset=utf-8", APP_JS, false);
             case "/app.css" -> response(exchange, "text/css; charset=utf-8", APP_CSS, false);
             default -> response(exchange, "text/plain; charset=utf-8", "not found", false, 404);
@@ -814,6 +870,25 @@ class RealBrowserContractsIT {
             }
             const farTarget = document.getElementById('far-target');
             if (farTarget) farTarget.addEventListener('click', () => window.farClicks = (window.farClicks || 0) + 1);
+            document.querySelectorAll('.product-card button').forEach(button => button.addEventListener('click', () => {
+              window.cardBuyClicks = (window.cardBuyClicks || 0) + 1;
+              window.lastCardBuyId = button.id;
+            }));
+            document.querySelectorAll('.global-buy').forEach(button => button.addEventListener('click', () => {
+              window.globalBuyClicks = (window.globalBuyClicks || 0) + 1;
+            }));
+            const startDynamic = document.getElementById('start-dynamic');
+            if (startDynamic) startDynamic.addEventListener('click', () => {
+              const list = document.getElementById('dynamic-list');
+              setTimeout(() => {
+                list.innerHTML = '<div class="dynamic-item" data-phase="grown">One</div>'
+                  + '<div class="dynamic-item" data-phase="grown">Two</div>'
+                  + '<div class="dynamic-item" data-phase="grown">Three</div>';
+              }, 100);
+              setTimeout(() => {
+                list.innerHTML = '<div class="dynamic-item" data-phase="final">Final</div>';
+              }, 800);
+            });
             """;
 
     private static final String APP_CSS = """

@@ -142,6 +142,22 @@ String name = lens.getByRole("button", "Save order").accessibleName();
 
 `getByLabel` requires a native or ARIA label source, placeholder is deliberately separate, and `getByAltText` matches only the `alt` attribute. No JavaScript accessible-name algorithm or text/`aria-label` fallback is used.
 
+Collection queries also compose lazily and remain scoped to their parents:
+
+```java
+UiLocator cards = lens.locator(By.cssSelector(".product-card"))
+        .filterByTextContaining("Laptop")
+        .filterByAttribute("data-status", "available")
+        .filterHas(lens.getByRole("button", "Kup"));
+
+cards.waitUntilCountAtLeast(1)
+        .first()
+        .locator(lens.getByRole("button", "Kup"))
+        .click();
+```
+
+`locator(...)` searches descendants inside each current parent; `filterHas(...)` keeps the parent. Pipeline order is significant, and count polling is state observation rather than recovery retry or a flaky outcome.
+
 The main Test Lens facade does not own browser lifecycle or displace JUnit, TestNG, Allure, or another reporter. The optional JUnit 5 and TestNG adapters deliberately own drivers created by their factories. Existing raw Selenium remains valid for operations the Lens facade does not wrap. React-specific support is available as a separate, optional module.
 
 Every final `FAILED` session receives a best-effort [failure bundle](docs/observability/failure-bundles.md): diagnostic and clean screenshots, context, trace-derived diagnostics, runtime/configuration allowlists, current network summary, manifest, final reports, and ZIP. Raw page source and browser console are disabled by default because they can contain secrets; enable them explicitly with `FailureBundleOptions.complete()`.

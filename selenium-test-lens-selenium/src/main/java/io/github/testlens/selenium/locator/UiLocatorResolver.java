@@ -59,7 +59,10 @@ final class UiLocatorResolver {
                     .ignoring(StaleElementReferenceException.class)
                     .until(webDriver -> {
                         attempts.incrementAndGet();
-                        return webDriver.findElement(by);
+                        if (by instanceof By.Remotable) return webDriver.findElement(by);
+                        var elements = by.findElements(webDriver);
+                        if (elements.isEmpty()) throw new NoSuchElementException("Composite locator matched no elements");
+                        return elements.get(0);
                     });
             UiLocatorResult result = UiLocatorResult.builder(UiLocatorStatus.PASSED)
                     .action("resolve")
@@ -75,7 +78,7 @@ final class UiLocatorResolver {
                     UiLocatorFailureReason.TIMEOUT,
                     attempts.get(),
                     startedNanos,
-                    "Locator was not resolved before timeout",
+                    timeoutMessage(timeout),
                     timeout);
         } catch (RuntimeException failure) {
             return failedResolution(
@@ -107,6 +110,14 @@ final class UiLocatorResolver {
 
     private static Duration elapsedSince(long startedNanos) {
         return Duration.ofNanos(System.nanoTime() - startedNanos);
+    }
+
+    private static String timeoutMessage(TimeoutException timeout) {
+        Throwable cause = timeout.getCause();
+        if (cause instanceof CollectionSelectionException) {
+            return "Locator was not resolved before timeout | " + cause.getMessage().split("\n", 2)[0];
+        }
+        return "Locator was not resolved before timeout";
     }
 
     private static UiLocatorOptions effectiveOptions(UiLocatorOptions options) {

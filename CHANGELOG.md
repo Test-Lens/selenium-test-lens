@@ -4,6 +4,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+- Added lazy locator composition: scoped descendant lookup, visible-text/DOM-attribute/descendant filters, order-preserving collection stages, and count waits. Count polling observes fresh snapshots without being classified as recovery retry or flakiness.
 - Added lazy semantic accessibility locators on the main `TestLens` facade for labels, placeholders, and alt text, plus browser-computed `UiLocator.accessibleName()`. Named role matching now uses WebDriver `getAccessibleName()` and `getAriaRole()` without falling back to element text or a partial in-library accessible-name algorithm.
 
 The next planned release line is 0.2.0. Changes below are under development and have not been released.

@@ -2,6 +2,8 @@
 
 The ordinary Maven test lifecycle is intentionally fast and browser-free. It exercises logic with unit tests, fakes, and WebDriver mocks:
 
+The Chrome/Firefox contract suite additionally checks scoped semantic descendants, visible-text/DOM-attribute/has filters, exact single-button activation, and dynamic count waits across rerenders. These scenarios complement unit tests of query ordering, stale snapshots, and terminal errors.
+
 ```powershell
 mvn test -Dheaded=false
 ```

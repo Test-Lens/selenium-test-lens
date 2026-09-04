@@ -88,6 +88,26 @@ lens.getByAltText("Company logo").waitUntilVisible();
 
 Semantic comparison trims and collapses Unicode whitespace (including NBSP) to one space, then compares exactly and case-sensitively. Results depend on the browser/WebDriver accessibility implementation; unsupported typed accessibility commands fail without a hidden DOM or JavaScript fallback.
 
+## Scoped and filtered locators
+
+<!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
+```java
+UiLocator locator(By descendant)
+UiLocator locator(By descendant, String label)
+UiLocator locator(UiLocator descendant)
+UiLocator filterByText(String expectedText)
+UiLocator filterByTextContaining(String expectedText)
+UiLocator filterByAttribute(String attributeName, String expectedValue)
+UiLocator filterHas(By descendant)
+UiLocator filterHas(UiLocator descendant)
+```
+
+Composition builds an immutable, lazy query pipeline; it performs no WebDriver lookup until resolution, an action, a read, a wait, or an assertion. `locator(...)` returns descendants found inside each current parent and never performs a global child search. `filterHas(...)` instead keeps each parent that contains at least one matching descendant. A `UiLocator` descendant may be semantic, but must belong to the same `WebDriver`.
+
+Text filters use normalized visible `getText()` and remain case-sensitive. Attribute filtering uses the exact DOM attribute from `getDomAttribute()`, not a DOM property. Results retain DOM order, and duplicate descendants reached through overlapping parents are returned once at their first position.
+
+Pipeline order is significant: `cards.nth(1).locator(button)` scopes below the second card, while `cards.locator(button).nth(1)` selects the second button after flattening all card descendants. Queries remain in the current frame/window and do not cross a shadow-root boundary without the existing explicit shadow-DOM mechanism.
+
 ## UiLocator constructor
 
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->

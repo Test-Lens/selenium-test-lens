@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
 # Types: 216
-# Public callable methods/constructors: 1684
+# Public callable methods/constructors: 1695
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -1681,6 +1681,17 @@ TYPE io.github.testlens.selenium.locator.UiLocator
   public io.github.testlens.selenium.locator.UiLocator nth(int)
   public io.github.testlens.selenium.locator.UiLocator first()
   public io.github.testlens.selenium.locator.UiLocator last()
+  public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By)
+  public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By, java.lang.String)
+  public io.github.testlens.selenium.locator.UiLocator locator(io.github.testlens.selenium.locator.UiLocator)
+  public io.github.testlens.selenium.locator.UiLocator filterByText(java.lang.String)
+  public io.github.testlens.selenium.locator.UiLocator filterByTextContaining(java.lang.String)
+  public io.github.testlens.selenium.locator.UiLocator filterByAttribute(java.lang.String, java.lang.String)
+  public io.github.testlens.selenium.locator.UiLocator filterHas(org.openqa.selenium.By)
+  public io.github.testlens.selenium.locator.UiLocator filterHas(io.github.testlens.selenium.locator.UiLocator)
+  public io.github.testlens.selenium.locator.UiLocator waitUntilCount(int)
+  public io.github.testlens.selenium.locator.UiLocator waitUntilCountAtLeast(int)
+  public io.github.testlens.selenium.locator.UiLocator waitUntilCountAtMost(int)
   public io.github.testlens.selenium.locator.UiLocator waitUntilVisible()
   public io.github.testlens.selenium.locator.UiLocator waitUntilHidden()
   public io.github.testlens.selenium.locator.UiLocator waitUntilClickable()
