@@ -136,7 +136,7 @@ Some features expose dedicated configuration types close to the API that uses th
 | Type | Used for |
 |---|---|
 | `UiLocatorOptions` | Locator timeouts, polling, retries, and actionability; its retained `highlightBeforeAction` option is currently not consulted by `UiLocator` |
-| `UiAssertionOptions` | Assertion timeouts, polling, missing-element fail-fast, and text comparison; state/attribute/CSS comparisons keep their fixed typed semantics |
+| `UiAssertionOptions` | Assertion timeouts, polling, missing-element fail-fast, and text comparison; state/attribute/CSS comparisons keep their fixed typed semantics, while page URLs use only timeout/polling and page titles also use text settings |
 | `BusinessAssertionOptions` | Failure collection and fail-fast behavior in business assertion groups |
 | `UiStepOptions` | Step failure behavior, HUD logging, and failure screenshots |
 | `ScreenshotCaptureOptions` | Screenshot destination, naming, and session attachment |

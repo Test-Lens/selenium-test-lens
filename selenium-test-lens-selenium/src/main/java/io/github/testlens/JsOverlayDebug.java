@@ -32,6 +32,7 @@ import io.github.testlens.selenium.actionability.ActionabilityOptions;
 import io.github.testlens.selenium.actionability.ActionabilityReport;
 import io.github.testlens.selenium.assertions.UiAssertionOptions;
 import io.github.testlens.selenium.assertions.UiExpect;
+import io.github.testlens.selenium.assertions.UiPageExpect;
 import io.github.testlens.selenium.auth.AuthRestoreOptions;
 import io.github.testlens.selenium.auth.AuthRestoreResult;
 import io.github.testlens.selenium.auth.AuthState;
@@ -264,6 +265,14 @@ public final class JsOverlayDebug {
 
     public UiExpect expect(UiLocator locator, UiAssertionOptions options) {
         return locator.expect(options);
+    }
+
+    public UiPageExpect expectPage() {
+        return expectPage(UiAssertionOptions.defaults());
+    }
+
+    public UiPageExpect expectPage(UiAssertionOptions options) {
+        return new UiPageExpect(driver, options, logger);
     }
 
     public BusinessAssertions business(String subject) {

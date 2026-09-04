@@ -392,6 +392,47 @@ class RealBrowserContractsIT {
         lens.finishPassed();
     }
 
+    @ParameterizedTest(name = "page URL and title assertions poll safely (overlay enabled={0})")
+    @ValueSource(booleans = {true, false})
+    void pageAssertionsPollUrlAndTitleWithoutLeakingUrlSecrets(boolean enabled) throws Exception {
+        open("/page-expectations");
+        TestLens lens = configuredLens(enabled, true);
+        UiTestLensSession session = lens.startSession("page-expectations-" + enabled + "-" + UUID.randomUUID());
+        UiAssertionOptions options = assertionOptions(false);
+        String expectedUrl = baseUrl + "/page-expectations/dashboard?token=browser-secret#private-fragment";
+
+        UiAssertionResult url = lens.expectPage(options).toHaveUrl(expectedUrl);
+        UiAssertionResult title = lens.expectPage(options).toHaveTitle("Ready Dashboard");
+        assertEquals(UiAssertionStatus.PASSED, url.status());
+        assertEquals(UiAssertionStatus.PASSED, title.status());
+        assertTrue(url.attempts() >= 1);
+        assertTrue(title.attempts() >= 1);
+
+        TestLensFinalizationResult finalized = lens.finishPassed();
+        String diagnostics = session.events() + Files.readString(finalized.jsonReport())
+                + Files.readString(finalized.htmlReport());
+        assertFalse(diagnostics.contains("browser-secret"));
+        assertFalse(diagnostics.contains("private-fragment"));
+        assertFalse(diagnostics.contains("token="));
+    }
+
+    @Test
+    void pageAssertionsUseTheExplicitlySelectedPopupWindow() {
+        open("/contexts");
+        TestLens lens = configuredLens(true, true);
+        lens.startSession("page-popup-" + UUID.randomUUID());
+        Set<String> before = lens.windowHandles();
+        driver.findElement(By.id("popup-button")).click();
+        lens.switchToWindow(lens.waitForNewWindow(before), "Page assertion popup");
+
+        assertEquals(UiAssertionStatus.PASSED,
+                lens.expectPage(assertionOptions(false)).toContainUrl("/popup-target").status());
+        assertEquals(UiAssertionStatus.PASSED,
+                lens.expectPage(assertionOptions(false)).toContainTitle("Pop").status());
+        assertEquals("Popup", driver.getTitle());
+        lens.finishPassed();
+    }
+
     @Test
     void highlightLivesInShadowDomAndCannotReceivePointerEvents() {
         open("/clicks");
@@ -863,6 +904,9 @@ class RealBrowserContractsIT {
                     <div id='will-detach'>Remove me</div>
                     <div id='replacement-target' data-version='old'>Old</div>
                     """), false);
+            case "/page-expectations" -> html(exchange, page("Loading Dashboard", """
+                    <p id='page-state'>Loading</p>
+                    """), false);
             case "/app.js" -> response(exchange, "application/javascript; charset=utf-8", APP_JS, false);
             case "/app.css" -> response(exchange, "text/css; charset=utf-8", APP_CSS, false);
             default -> response(exchange, "text/plain; charset=utf-8", "not found", false, 404);
@@ -1011,6 +1055,12 @@ class RealBrowserContractsIT {
                 old.replaceWith(replacement);
               }, 350);
             });
+            const pageState = document.getElementById('page-state');
+            if (pageState) setTimeout(() => {
+              history.pushState({}, '', '/page-expectations/dashboard?token=browser-secret#private-fragment');
+              document.title = 'Ready Dashboard';
+              pageState.textContent = 'Ready';
+            }, 150);
             """;
 
     private static final String APP_CSS = """

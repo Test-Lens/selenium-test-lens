@@ -69,3 +69,5 @@ Runner-level retry is separate again: for example, every TestNG `IRetryAnalyzer`
 Assertions have their own [`UiAssertionOptions`](../reference/configuration.md#uiassertionoptions) and retry loop; see [Assertions](assertions.md).
 
 State assertions such as `toHaveCount`, `toHaveAttribute`, `toBeChecked`, and `toBeAttached` use that assertion loop and take exactly one current observation per attempt. Their `ASSERTION_RETRY` events remain polling diagnostics and do not contribute to recovery-retry flakiness.
+
+Page assertions created by `expectPage()` follow the same distinction: each attempt performs one `getCurrentUrl()` or `getTitle()` on the active window. A mismatch is assertion polling, not recovery retry; the assertion never wraps a second `WebDriverWait` or changes the active window.

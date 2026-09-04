@@ -46,6 +46,8 @@ public static final io.github.testlens.selenium.assertions.UiAssertionFailureRea
 public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason ELEMENT_NOT_ATTACHED
 public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason ELEMENT_STILL_ATTACHED
 public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason UNSUPPORTED_ELEMENT_STATE
+public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason URL_MISMATCH
+public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason TITLE_MISMATCH
 public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason STALE_ELEMENT
 public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason TIMEOUT
 public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason UNKNOWN
@@ -222,4 +224,20 @@ public io.github.testlens.selenium.assertions.UiAssertionResult toBeChecked()
 public io.github.testlens.selenium.assertions.UiAssertionResult toBeUnchecked()
 public io.github.testlens.selenium.assertions.UiAssertionResult toBeAttached()
 public io.github.testlens.selenium.assertions.UiAssertionResult toBeDetached()
+```
+
+## `io.github.testlens.selenium.assertions.UiPageExpect` {#io-github-testlens-selenium-assertions-uipageexpect}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens.selenium.assertions`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/elements/assertions.md](../../elements/assertions.md)
+
+```java
+public io.github.testlens.selenium.assertions.UiPageExpect(org.openqa.selenium.WebDriver, io.github.testlens.selenium.assertions.UiAssertionOptions, io.github.testlens.core.OverlayLogger)
+public io.github.testlens.selenium.assertions.UiAssertionResult toHaveUrl(java.lang.String)
+public io.github.testlens.selenium.assertions.UiAssertionResult toContainUrl(java.lang.String)
+public io.github.testlens.selenium.assertions.UiAssertionResult toHaveTitle(java.lang.String)
+public io.github.testlens.selenium.assertions.UiAssertionResult toContainTitle(java.lang.String)
 ```

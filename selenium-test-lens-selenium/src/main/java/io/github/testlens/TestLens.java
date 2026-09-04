@@ -6,6 +6,8 @@ import io.github.testlens.core.trace.RetrySummary;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.RetryOutcomePolicy;
 import io.github.testlens.selenium.assertions.UiExpect;
+import io.github.testlens.selenium.assertions.UiPageExpect;
+import io.github.testlens.selenium.assertions.UiAssertionOptions;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureOptions;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureResult;
 import io.github.testlens.selenium.locator.UiLocator;
@@ -63,6 +65,8 @@ public final class TestLens {
     public UiLocator locator(By by, String label) { return delegate.locator(by, label, options.locatorOptions()); }
     public UiExpect expect(By by) { return locator(by).expect(); }
     public UiExpect expect(By by, String label) { return locator(by, label).expect(); }
+    public UiPageExpect expectPage() { return delegate.expectPage(); }
+    public UiPageExpect expectPage(UiAssertionOptions options) { return delegate.expectPage(options); }
     public UiLocator getByTestId(String testId) { return delegate.getByTestId(testId); }
     public UiLocator getByText(String text) { return delegate.getByText(text); }
     public UiLocator getByText(String text, String label) { return delegate.getByText(text, label); }

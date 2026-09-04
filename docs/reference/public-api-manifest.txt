@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 216
-# Public callable methods/constructors: 1704
+# Types: 217
+# Public callable methods/constructors: 1713
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -807,6 +807,8 @@ TYPE io.github.testlens.JsOverlayDebug
   public io.github.testlens.selenium.assertions.UiExpect expect(org.openqa.selenium.By, java.lang.String)
   public io.github.testlens.selenium.assertions.UiExpect expect(io.github.testlens.selenium.locator.UiLocator)
   public io.github.testlens.selenium.assertions.UiExpect expect(io.github.testlens.selenium.locator.UiLocator, io.github.testlens.selenium.assertions.UiAssertionOptions)
+  public io.github.testlens.selenium.assertions.UiPageExpect expectPage()
+  public io.github.testlens.selenium.assertions.UiPageExpect expectPage(io.github.testlens.selenium.assertions.UiAssertionOptions)
   public io.github.testlens.selenium.business.BusinessAssertions business(java.lang.String)
   public io.github.testlens.selenium.business.BusinessAssertions business(java.lang.String, io.github.testlens.selenium.business.BusinessAssertionOptions)
   public io.github.testlens.selenium.auth.AuthStateManager auth()
@@ -924,6 +926,8 @@ TYPE io.github.testlens.TestLens
   public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By, java.lang.String)
   public io.github.testlens.selenium.assertions.UiExpect expect(org.openqa.selenium.By)
   public io.github.testlens.selenium.assertions.UiExpect expect(org.openqa.selenium.By, java.lang.String)
+  public io.github.testlens.selenium.assertions.UiPageExpect expectPage()
+  public io.github.testlens.selenium.assertions.UiPageExpect expectPage(io.github.testlens.selenium.assertions.UiAssertionOptions)
   public io.github.testlens.selenium.locator.UiLocator getByTestId(java.lang.String)
   public io.github.testlens.selenium.locator.UiLocator getByText(java.lang.String)
   public io.github.testlens.selenium.locator.UiLocator getByText(java.lang.String, java.lang.String)
@@ -1263,6 +1267,8 @@ TYPE io.github.testlens.selenium.assertions.UiAssertionFailureReason
   public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason ELEMENT_NOT_ATTACHED
   public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason ELEMENT_STILL_ATTACHED
   public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason UNSUPPORTED_ELEMENT_STATE
+  public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason URL_MISMATCH
+  public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason TITLE_MISMATCH
   public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason STALE_ELEMENT
   public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason TIMEOUT
   public static final io.github.testlens.selenium.assertions.UiAssertionFailureReason UNKNOWN
@@ -1353,6 +1359,12 @@ TYPE io.github.testlens.selenium.assertions.UiExpect
   public io.github.testlens.selenium.assertions.UiAssertionResult toBeUnchecked()
   public io.github.testlens.selenium.assertions.UiAssertionResult toBeAttached()
   public io.github.testlens.selenium.assertions.UiAssertionResult toBeDetached()
+TYPE io.github.testlens.selenium.assertions.UiPageExpect
+  public io.github.testlens.selenium.assertions.UiPageExpect(org.openqa.selenium.WebDriver, io.github.testlens.selenium.assertions.UiAssertionOptions, io.github.testlens.core.OverlayLogger)
+  public io.github.testlens.selenium.assertions.UiAssertionResult toHaveUrl(java.lang.String)
+  public io.github.testlens.selenium.assertions.UiAssertionResult toContainUrl(java.lang.String)
+  public io.github.testlens.selenium.assertions.UiAssertionResult toHaveTitle(java.lang.String)
+  public io.github.testlens.selenium.assertions.UiAssertionResult toContainTitle(java.lang.String)
 TYPE io.github.testlens.selenium.auth.AuthCookie
   public io.github.testlens.selenium.auth.AuthCookie(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.time.Instant, boolean, boolean, java.lang.String)
   public static io.github.testlens.selenium.auth.AuthCookie fromSeleniumCookie(org.openqa.selenium.Cookie)

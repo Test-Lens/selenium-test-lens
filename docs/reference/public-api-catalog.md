@@ -7,7 +7,7 @@ search:
 
 This generated catalog is the optional binary-surface reference for every published public type, constructor, method, and field. Start with [Capabilities](../capabilities.md) and the functional navigation for behavior, workflows, and examples. Internal-style types appear only because Java consumers can currently access them.
 
-Inventory: **216 public types** and **1704 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
+Inventory: **217 public types** and **1713 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
 
 Classifications: USER_API is the normal consumer path; ADVANCED_API is supported specialized functionality; LOW_LEVEL_API exposes lower abstractions; INTERNAL_STYLE_PUBLIC is binary-public implementation surface and is not recommended for application code.
 
@@ -142,6 +142,7 @@ Signature details are split by published artifact and Java package to keep indiv
 | io.github.testlens.selenium.assertions.UiExpect$VisibilityProbe | io.github.testlens.selenium.assertions | INTERNAL_STYLE_PUBLIC | interface | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions.md#io-github-testlens-selenium-assertions-uiexpect-visibilityprobe) |
 | io.github.testlens.selenium.assertions.UiExpect$VisibilityProbeResult | io.github.testlens.selenium.assertions | INTERNAL_STYLE_PUBLIC | record | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions.md#io-github-testlens-selenium-assertions-uiexpect-visibilityproberesult) |
 | io.github.testlens.selenium.assertions.UiExpect | io.github.testlens.selenium.assertions | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions.md#io-github-testlens-selenium-assertions-uiexpect) |
+| io.github.testlens.selenium.assertions.UiPageExpect | io.github.testlens.selenium.assertions | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions.md#io-github-testlens-selenium-assertions-uipageexpect) |
 | io.github.testlens.selenium.auth.AuthCookie | io.github.testlens.selenium.auth | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth.md#io-github-testlens-selenium-auth-authcookie) |
 | io.github.testlens.selenium.auth.AuthRestoreOptions$Builder | io.github.testlens.selenium.auth | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth.md#io-github-testlens-selenium-auth-authrestoreoptions-builder) |
 | io.github.testlens.selenium.auth.AuthRestoreOptions | io.github.testlens.selenium.auth | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth.md#io-github-testlens-selenium-auth-authrestoreoptions) |

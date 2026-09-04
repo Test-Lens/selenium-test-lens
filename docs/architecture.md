@@ -91,6 +91,8 @@ Recovery retry aggregation is deliberately per session and runner-neutral. Typed
 
 `UiExpect` owns assertion polling. Through the locator's internal observation seam, each attempt executes one current query snapshot or one current element-state read, avoiding nested locator waits and duplicate operation logs. Collection/attachment assertions reevaluate the immutable composite query pipeline; checked assertions reuse the semantic control resolver without invoking its activation path. These reads do not mutate the application.
 
+`UiPageExpect` is the runner-neutral counterpart for the active page. It shares assertion result/reporting semantics but represents no locator or element: each attempt directly performs one `getCurrentUrl()` or `getTitle()`. URL comparison uses the raw observation while only a sanitized scheme/host/port/path preview crosses the diagnostic boundary.
+
 Failed facade finalization uses a per-session evidence pipeline in the Selenium module: snapshot trace diagnostics (including the active network summary), capture the HUD view, temporarily hide only the Test Lens shadow host for the clean view, run independent probes, stop Lens-owned network capture, record capture events, finalize, export reports, clean the HUD, then write the manifest and deterministic ZIP. Every finalizer stops active Lens-owned capture before `SESSION_FINISHED`; standalone diagnostics remain explicitly owned by their caller. Neither collector nor network adapter closes WebDriver.
 
 Direct logger and sink APIs are intended for lower-level integrations.

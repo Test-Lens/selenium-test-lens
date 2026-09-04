@@ -2,6 +2,8 @@
 
 The `selenium-test-lens-junit5` module is the recommended JUnit Jupiter integration. The coordinate below follows the unreleased `0.2.0-SNAPSHOT` source tree and therefore requires a local source build or a configured snapshot repository. It creates one `WebDriver`, `TestLens`, and trace session for every test invocation, injects the driver and Lens into the test method, finalizes diagnostics, and only then closes the driver.
 
+Inside a test, `lens.expectPage()` polls URL or title on that invocation's active window. These checks use the normal Lens assertion events and results; they are neither JUnit retries nor recovery retries. Explicitly switch a popup before asserting its URL or title.
+
 ## Install
 
 Add the extension in test scope and keep Selenium explicit at the version managed by your project:
@@ -103,3 +105,4 @@ Pass the policy through `lensOptions(...)`. If `finishPassed()` raises `RetryPol
 If a test starts `lens.network()`, all three Lens finalizers stop its active capture before session completion and before the extension calls `quit()`. To use `BIDI` or `AUTO`, the extension's driver factory must create options with `enableBiDi()`; the adapter does not retrofit the capability or fall back to manual capture.
 
 For final `FAILED`, the extension waits for the complete failure-bundle pipeline—including reports, HUD cleanup, manifest, and ZIP—before `driver.quit()`. Partial evidence never replaces the test throwable. Configure it through the same `lensOptions(...)`; raw page source and browser console remain opt-in.
+# JUnit 5 integration

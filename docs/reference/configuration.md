@@ -50,6 +50,8 @@ Runner adapters consume the same immutable options per invocation. JUnit 5 confi
 
 Comparison settings affect retry success; preview length affects diagnostics/reports/HUD, not matching input itself.
 
+For `expectPage()`, timeout and poll interval govern both URL and title checks. Text comparison settings and preview length apply to titles. URL equality/containment always remains raw and case-sensitive; only its diagnostic preview is sanitized. `failFastOnMissingElement` has no page-level effect.
+
 ## ActionabilityOptions
 
 | Builder method | Type | Default | Notes |

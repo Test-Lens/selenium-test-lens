@@ -108,6 +108,7 @@
 "selenium-test-lens-selenium","io.github.testlens.selenium.assertions.UiExpect$VisibilityProbe","INTERNAL_STYLE_PUBLIC",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.assertions.UiExpect$VisibilityProbeResult","INTERNAL_STYLE_PUBLIC",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.assertions.UiExpect","USER_API","docs/elements/assertions.md"
+"selenium-test-lens-selenium","io.github.testlens.selenium.assertions.UiPageExpect","USER_API","docs/elements/assertions.md"
 "selenium-test-lens-selenium","io.github.testlens.selenium.auth.AuthCookie","ADVANCED_API",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.auth.AuthRestoreOptions$Builder","ADVANCED_API",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.auth.AuthRestoreOptions","ADVANCED_API",""

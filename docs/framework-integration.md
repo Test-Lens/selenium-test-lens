@@ -137,5 +137,7 @@ The main `selenium-test-lens` artifact has no React dependency. Standard DOM int
 - [Use locators, waits, assertions, and browser contexts](elements/index.md)
 
 Framework adapters do not change assertion semantics: state and collection assertions poll inside the current invocation and return/throw the same `UiAssertionResult`/`UiAssertionError` as manual lifecycle usage. Their polling is not a runner retry and does not mark a session flaky.
+
+The same rule applies to `lens.expectPage()`. JUnit 5 and TestNG tests can assert the active window's URL/title directly; this page polling remains inside the current runner invocation and is not a runner-level or recovery retry.
 - [Migrate incrementally from raw Selenium](migration.md)
 - [Browse practical examples](examples.md)

@@ -98,6 +98,15 @@ lens.getByRole("checkbox", "Terms").expect().toBeChecked();
 
 These assertions read state only. They do not click controls or mutate the page, and their polling does not count as a recovery retry.
 
+Use page assertions for navigation and document readiness without creating a locator:
+
+```java
+lens.expectPage().toContainUrl("/checkout");
+lens.expectPage().toHaveTitle("Checkout");
+```
+
+They observe the current window selected by your Selenium flow. URL matching is raw and case-sensitive; title matching follows `UiAssertionOptions` text settings. Reported URL previews omit credentials, query strings, and fragments.
+
 Lens finalization writes the session diagnostics. Use `finishSkipped(reason)` for an aborted test or unmet assumption; unlike `finishFailed(...)`, it does not request a failure screenshot. Keep your existing `WebDriver` cleanup as-is.
 
 For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The runner adapters are the recommended JUnit 5 and TestNG paths for the `0.2.0-SNAPSHOT` development line.

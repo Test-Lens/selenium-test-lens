@@ -171,3 +171,27 @@ UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger, Ui
 ```
 
 The probe types themselves are classified `INTERNAL_STYLE_PUBLIC`; do not use them as the normal assertion API.
+
+## Page URL and title assertions
+
+`TestLens.expectPage()` and `JsOverlayDebug.expectPage()` create a page assertion bound to the driver's active window. An overload accepts `UiAssertionOptions`; only timeout and poll interval affect URL assertions, while title assertions also honor whitespace normalization, trimming, case sensitivity, and the preview limit.
+
+<!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiPageExpect -->
+```java
+UiPageExpect(WebDriver driver, UiAssertionOptions options, OverlayLogger logger)
+UiAssertionResult toHaveUrl(String expected)
+UiAssertionResult toContainUrl(String expectedSubstring)
+UiAssertionResult toHaveTitle(String expected)
+UiAssertionResult toContainTitle(String expectedSubstring)
+```
+
+```java
+lens.expectPage().toContainUrl("/checkout");
+lens.expectPage().toHaveTitle("Checkout");
+```
+
+`toHaveUrl` uses case-sensitive equality on the complete raw value returned by `WebDriver.getCurrentUrl()`. `toContainUrl` uses case-sensitive `String.contains`. Neither assertion normalizes slashes, host, port, encoding, query, fragment, or parameter ordering. `toHaveTitle` and `toContainTitle` use one `WebDriver.getTitle()` observation per poll and the normal text options.
+
+Each poll performs exactly one driver read and comparison. Mismatches use `URL_MISMATCH` or `TITLE_MISMATCH`; assertion polling emits `ASSERTION_RETRY` but never a recovery `RETRY` and never marks the session flaky. `failFastOnMissingElement` is irrelevant because a page assertion has no element. Driver failures such as a closed window, lost session, active alert, or unreachable browser fail immediately and remain the cause of `UiAssertionError`.
+
+Matching uses the full URL, but diagnostics retain only a bounded scheme/host/port/path preview. Userinfo, query, and fragment are removed; an unparseable URL is represented only as `url[length=N]`. The expected substring is represented only by its length. Assertions never read page source, execute JavaScript, use network capture, or switch windows or frames.

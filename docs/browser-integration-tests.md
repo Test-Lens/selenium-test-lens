@@ -6,6 +6,8 @@ The Chrome/Firefox contract suite additionally checks scoped semantic descendant
 
 The gate also exercises polling collection/state assertions against dynamic local pages: composed counts, changing DOM attributes and class tokens, computed CSS, native and ARIA selected/checked state, attachment, detachment, and same-locator replacement. Both HUD modes are covered, and click/change counters prove that assertions remain read-only.
 
+Active-window page contracts cover delayed `history.pushState`, delayed `document.title`, and URL/title checks after an explicit popup switch. Matching sees query and fragment data, while trace and generated reports are checked to ensure those sensitive URL components are not disclosed.
+
 ```powershell
 mvn test -Dheaded=false
 ```
