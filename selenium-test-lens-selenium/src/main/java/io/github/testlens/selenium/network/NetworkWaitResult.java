@@ -89,11 +89,18 @@ public final class NetworkWaitResult {
     public NetworkWaitFailureReason failureReason() { return failureReason; }
     public Throwable exception() { return exception; }
 
-    NetworkWaitResult redacted(RedactionPolicy policy, NetworkEvent event, NetworkRequest request) {
+    NetworkWaitResult redacted(RedactionPolicy policy, NetworkEvent event, NetworkRequest request,
+                               String safeConditionSummary) {
         if (policy == null || !policy.enabled()) return this;
-        return new NetworkWaitResult(status, policy.redact(conditionSummary), event, request,
-                event == null ? null : event.response(), attempts, elapsed, policy.redact(message),
-                failureReason, exception);
+        String safeMessage = message;
+        if (status == NetworkWaitStatus.MATCHED && event != null) {
+            safeMessage = "Matched network event: " + event.url();
+        } else if (!conditionSummary.isBlank()) {
+            safeMessage = safeMessage.replace(conditionSummary, safeConditionSummary);
+        }
+        return new NetworkWaitResult(status, safeConditionSummary, event, request,
+                event == null ? null : event.response(), attempts, elapsed, policy.redact(safeMessage),
+                failureReason, NetworkDiagnosticThrowable.copy(exception, policy));
     }
 
     private static String timeoutMessage(NetworkWaitCondition condition, Duration elapsed, NetworkSummary summary) {

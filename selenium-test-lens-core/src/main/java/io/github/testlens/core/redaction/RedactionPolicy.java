@@ -101,7 +101,7 @@ public final class RedactionPolicy {
             if (authority != null) safe.append("//").append(authority);
             if (uri.getRawPath() != null) safe.append(uri.getRawPath());
             if (query != null) safe.append('?').append(query);
-            return redact(safe.toString());
+            return redactPlainTextWithoutEmbeddedUrls(safe.toString());
         } catch (URISyntaxException | RuntimeException failure) {
             return "url[length=" + url.length() + "]";
         }
@@ -114,11 +114,46 @@ public final class RedactionPolicy {
     }
 
     private String redactPlainText(String input) {
+        return redactPlainTextWithoutEmbeddedUrls(redactEmbeddedAbsoluteUrls(input));
+    }
+
+    private String redactPlainTextWithoutEmbeddedUrls(String input) {
         String result = replaceSensitivePairs(input);
         result = CREDENTIAL.matcher(result).replaceAll("$1$2" + Matcher.quoteReplacement(replacement));
         result = JWT.matcher(result).replaceAll(Matcher.quoteReplacement(replacement));
         for (String secret : literalSecrets) result = result.replace(secret, replacement);
         return result;
+    }
+
+    private String redactEmbeddedAbsoluteUrls(String input) {
+        StringBuilder output = null;
+        int copied = 0;
+        int index = 0;
+        while (index < input.length()) {
+            int start = findAbsoluteUrlStart(input, index);
+            if (start < 0) break;
+            int end = start;
+            while (end < input.length() && !isUrlBoundary(input.charAt(end))) end++;
+            if (output == null) output = new StringBuilder(input.length());
+            output.append(input, copied, start).append(redactUrl(input.substring(start, end)));
+            copied = end;
+            index = end;
+        }
+        if (output == null) return input;
+        output.append(input, copied, input.length());
+        return output.toString();
+    }
+
+    private static int findAbsoluteUrlStart(String input, int from) {
+        for (int index = from; index < input.length(); index++) {
+            if (input.regionMatches(true, index, "https://", 0, 8)
+                    || input.regionMatches(true, index, "http://", 0, 7)) return index;
+        }
+        return -1;
+    }
+
+    private static boolean isUrlBoundary(char value) {
+        return Character.isWhitespace(value) || value == '\"' || value == '<' || value == '>';
     }
 
     private String replaceJsonLikeSensitivePairs(String input) {

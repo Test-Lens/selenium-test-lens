@@ -10,6 +10,7 @@ import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.evidence.FailureBundleOptions;
 import io.github.testlens.selenium.network.NetworkCaptureMode;
+import io.github.testlens.selenium.network.NetworkAssertionError;
 import io.github.testlens.selenium.network.NetworkDiagnostics;
 import io.github.testlens.selenium.network.NetworkDiagnosticsOptions;
 import io.github.testlens.selenium.network.NetworkEvent;
@@ -245,6 +246,7 @@ class NetworkBiDiBrowserIT {
         String apostropheCanary = "o'TL_JSON_APOSTROPHE_CANARY";
         String escapedQuoteCanary = "before\\\"TL_JSON_ESCAPED_QUOTE_CANARY";
         String transportCanary = "browser-redaction-transport-canary";
+        String networkCanary = "TL_NETWORK_SUMMARY_CANARY";
         try {
             Path output = Path.of("target", "ui-test-lens", browserName(), "central-redaction");
             RedactionPolicy policy = RedactionPolicy.builder()
@@ -281,8 +283,23 @@ class NetworkBiDiBrowserIT {
             assertEquals(NetworkWaitStatus.MATCHED, matched.status());
             assertNoStructuredJsonCanary(matched.matchedResponse().url(), "matched response");
 
+            fetch(driver, "/api/failure?token=" + networkCanary + "&safe=visible#network-fragment", false);
+            NetworkWaitResult failedResponse = network.waitForResponse(NetworkWaitCondition.builder()
+                    .urlContains("/api/failure").status(503).includeFailedResponses(true)
+                    .timeout(Duration.ofSeconds(5)).build());
+            assertEquals(NetworkWaitStatus.MATCHED, failedResponse.status());
+            NetworkAssertionError networkError = assertThrows(NetworkAssertionError.class,
+                    network::assertNoFailedRequests);
+            String networkDiagnostics = network.summary().failureSummary()
+                    + network.summary().firstFailure().orElseThrow().url()
+                    + networkError.getMessage() + networkError;
+            assertFalse(networkDiagnostics.contains(networkCanary));
+            assertFalse(networkDiagnostics.contains("network-fragment"));
+            assertTrue(networkDiagnostics.contains("[REDACTED]"));
+
             String browserUi = overlayText(driver);
             assertNoStructuredJsonCanary(browserUi, "browser UI");
+            assertFalse(browserUi.contains(networkCanary), "browser UI (network summary canary)");
             assertTrue(browserUi.contains("[REDACTED]"));
             assertTrue(session.events().stream().noneMatch(event ->
                     containsStructuredJsonCanary(event.name()) || containsStructuredJsonCanary(event.message())
@@ -302,6 +319,7 @@ class NetworkBiDiBrowserIT {
                         .toList()) {
                     String content = Files.readString(file);
                     assertNoStructuredJsonCanary(content, file.toString());
+                    assertFalse(content.contains(networkCanary), file + " (network summary canary)");
                     replacementFound |= content.contains("[REDACTED]");
                 }
             }
@@ -309,6 +327,7 @@ class NetworkBiDiBrowserIT {
                 for (var entry : zip.stream().filter(item -> !item.getName().endsWith(".png")).toList()) {
                     String content = new String(zip.getInputStream(entry).readAllBytes(), StandardCharsets.UTF_8);
                     assertNoStructuredJsonCanary(content, entry.getName());
+                    assertFalse(content.contains(networkCanary), entry.getName() + " (network summary canary)");
                     replacementFound |= content.contains("[REDACTED]");
                 }
             }

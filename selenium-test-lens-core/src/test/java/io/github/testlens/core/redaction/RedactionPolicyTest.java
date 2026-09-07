@@ -175,6 +175,18 @@ class RedactionPolicyTest {
     }
 
     @Test
+    void plainDiagnosticTextRedactsSensitiveQueryValuesInsideUrls() {
+        String secret = "TL_NETWORK_SUMMARY_CANARY";
+        String safe = RedactionPolicy.defaults().redact(
+                "http://example.test/api/failure?token=" + secret
+                        + "&safe=visible#fragment - Failed to load resource");
+
+        assertFalse(safe.contains(secret));
+        assertTrue(safe.contains("token=[REDACTED]"));
+        assertTrue(safe.contains("safe=visible"));
+    }
+
+    @Test
     void builderSupportsCustomKeyReplacementDisabledAndHidesSecretConfiguration() {
         RedactionPolicy policy = RedactionPolicy.builder().replacement("***")
                 .sensitiveKey("tenant-session").secret(SECRET).build();

@@ -12,6 +12,9 @@ import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -130,6 +133,163 @@ class NetworkDiagnosticsTest {
         assertFalse(exposed.contains("o'NETWORK"));
         assertTrue(exposed.contains("[REDACTED]"));
         assertEquals(1, diagnostics.summary().totalRequests());
+    }
+
+    @Test
+    void centralPolicyRedactsSummaryAndNetworkAssertionFailure() {
+        String canary = "TL_NETWORK_SECRET";
+        String url = "https://user:pass@example.test/api?token=" + canary
+                + "&safe=visible#TL_FRAGMENT_SECRET";
+        List<io.github.testlens.core.logging.UiTestLensLogEntry> entries = new ArrayList<>();
+        OverlayLogger logger = OverlayLogger.from(io.github.testlens.core.logging.UiTestLensLogger.builder()
+                .sink(entries::add).build());
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), logger)
+                .start(NetworkDiagnosticsOptions.builder().includeHeaders(true)
+                        .maskSensitiveHeaders(false).build());
+        diagnostics.addManualEvent(NetworkEvent.response(new NetworkResponse("req-secret", url, 503,
+                "Service unavailable", "application/json", Duration.ZERO, null,
+                Map.of("Set-Cookie", "session=" + canary))));
+
+        NetworkWaitResult wait = diagnostics.waitForResponse(NetworkWaitCondition.builder()
+                .urlContains("/api").status(503).includeFailedResponses(true).build());
+
+        assertFalse(diagnostics.events().get(1).url().contains(canary));
+        NetworkSummary summary = diagnostics.summary();
+        NetworkAssertionError error = assertThrows(NetworkAssertionError.class,
+                diagnostics::assertNoFailedRequests);
+        NetworkEvent firstFailure = summary.firstFailure().orElseThrow();
+        String exposed = firstFailure.url() + firstFailure.response().headers()
+                + summary.failureSummary() + summary + firstFailure
+                + error.getMessage() + error + error.summary().failureSummary()
+                + error.summary().firstFailure().orElseThrow().url()
+                + wait.message() + entries.stream().map(entry -> entry.message() + entry.metadata())
+                .reduce("", String::concat);
+
+        assertFalse(exposed.contains(canary));
+        assertFalse(exposed.contains("user:pass"));
+        assertFalse(exposed.contains("TL_FRAGMENT_SECRET"));
+        assertTrue(firstFailure.url().contains("token=[REDACTED]"));
+        assertTrue(firstFailure.url().contains("safe=visible"));
+        assertEquals("[REDACTED]", firstFailure.response().headers().get("Set-Cookie"));
+        assertEquals(1, summary.totalResponses());
+    }
+
+    @Test
+    void fetchFailureAndCustomPolicyAreSafeAcrossSummaryErrorExportAndExternalSink() {
+        String literal = "TL_LITERAL_NETWORK_SECRET";
+        String query = "TL_CUSTOM_QUERY_SECRET";
+        String fragment = "TL_FAILURE_FRAGMENT_SECRET";
+        String replacement = "MASK\"\\\n";
+        RedactionPolicy policy = RedactionPolicy.builder()
+                .sensitiveKey("tenant-key")
+                .secret(literal)
+                .replacement(replacement)
+                .build();
+        List<io.github.testlens.core.logging.UiTestLensLogEntry> entries = new ArrayList<>();
+        OverlayLogger logger = OverlayLogger.from(io.github.testlens.core.logging.UiTestLensLogger.builder()
+                .redactionPolicy(policy).sink(entries::add).build());
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), logger)
+                .start(NetworkDiagnosticsOptions.builder().includeHeaders(true)
+                        .maskSensitiveHeaders(false).build());
+        String url = "https://user:pass@example.test/api?tenant-key=" + query
+                + "&safe=visible#" + fragment;
+        diagnostics.addManualEvent(NetworkEvent.request(new NetworkRequest("request", "GET", url, "fetch",
+                Instant.now(), Map.of("Authorization", "Bearer " + literal,
+                "Cookie", "session=" + literal))));
+        diagnostics.addManualEvent(NetworkEvent.failed(new NetworkFailure("request", url,
+                "connection failed " + literal, "FETCH_ERROR", Instant.now())));
+
+        NetworkSummary before = diagnostics.summary();
+        NetworkAssertionError error = assertThrows(NetworkAssertionError.class,
+                diagnostics::assertNoFailedRequests);
+        diagnostics.addManualEvent(NetworkEvent.response(NetworkResponse.of("later", "/later", 200)));
+
+        String sinkData = entries.stream().map(entry -> entry.message() + entry.metadata()
+                + (entry.throwable() == null ? "" : entry.throwable().toString()))
+                .reduce("", String::concat);
+        String outward = diagnostics.events() + diagnostics.exportJson() + before.failureSummary()
+                + before.firstFailure().orElseThrow().failure().message()
+                + error.getMessage() + error + error.summary().failureSummary()
+                + sinkData;
+        for (String secret : List.of(literal, query, fragment, "user:pass")) {
+            assertFalse(outward.contains(secret), secret);
+        }
+        assertTrue(outward.contains(replacement));
+        assertTrue(before.firstFailure().orElseThrow().url().contains("safe=visible"));
+        assertEquals(2, before.totalRequests() + before.failedRequests());
+        assertEquals(0, before.totalResponses(), "summary must be an immutable point-in-time snapshot");
+        assertEquals(1, diagnostics.summary().totalResponses());
+    }
+
+    @Test
+    void redactionDoesNotChangeRawWaitMatchingOrCaptureCounts() {
+        String secret = "TL_RAW_MATCH_SECRET";
+        String url = "https://example.test/api?token=" + secret + "&safe=visible#private";
+        RedactionPolicy policy = RedactionPolicy.builder().secret(secret).build();
+        OverlayLogger logger = OverlayLogger.from(io.github.testlens.core.logging.UiTestLensLogger.builder()
+                .redactionPolicy(policy).build());
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), logger)
+                .start(NetworkDiagnosticsOptions.builder().includeHeaders(true)
+                        .maskSensitiveHeaders(false).maxCapturedEvents(2).build());
+        diagnostics.addManualEvent(NetworkEvent.request(new NetworkRequest("request", "POST", url, "", null,
+                Map.of("Authorization", "Bearer " + secret))));
+        diagnostics.addManualEvent(NetworkEvent.response(NetworkResponse.of("request", url, 201)));
+
+        NetworkWaitResult result = diagnostics.waitForResponse(NetworkWaitCondition.builder()
+                .exactUrl(url).method("POST").status(201).build());
+
+        assertEquals(NetworkWaitStatus.MATCHED, result.status());
+        assertEquals("POST", result.matchedRequest().method());
+        assertFalse(result.matchedRequest().url().contains(secret));
+        assertFalse(result.matchedResponse().url().contains(secret));
+        assertFalse(result.conditionSummary().contains(secret));
+        assertFalse(result.conditionSummary().contains("#private"));
+        assertFalse(result.message().contains(secret));
+        assertFalse(result.message().contains("#private"));
+        assertEquals(1, diagnostics.summary().totalRequests());
+        assertEquals(1, diagnostics.summary().totalResponses());
+        assertEquals(0, diagnostics.summary().droppedEvents());
+    }
+
+    @Test
+    void disabledCentralPolicyIsAnExplicitRawDataOptOut() {
+        String secret = "TL_DISABLED_NETWORK_SECRET";
+        String url = "https://user:pass@example.test/api?token=" + secret + "#fragment";
+        OverlayLogger logger = OverlayLogger.from(io.github.testlens.core.logging.UiTestLensLogger.builder()
+                .redactionPolicy(RedactionPolicy.disabled()).build());
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), logger)
+                .start(NetworkDiagnosticsOptions.builder().includeHeaders(true)
+                        .maskSensitiveHeaders(false).build());
+        diagnostics.addManualEvent(NetworkEvent.response(NetworkResponse.of("request", url, 503)));
+
+        NetworkAssertionError error = assertThrows(NetworkAssertionError.class,
+                diagnostics::assertNoFailedRequests);
+
+        assertTrue(diagnostics.summary().firstFailure().orElseThrow().url().contains(secret));
+        assertTrue(error.getMessage().contains(secret));
+    }
+
+    @Test
+    void manualEventReturnIsSafeEvenWhenCaptureDoesNotRetainIt() {
+        String secret = "TL_UNRETAINED_EVENT_SECRET";
+        String url = "https://user:pass@example.test/ignored?token=" + secret + "#fragment";
+        OverlayLogger logger = OverlayLogger.from(io.github.testlens.core.logging.UiTestLensLogger.builder()
+                .redactionPolicy(RedactionPolicy.builder().secret(secret).build()).build());
+        NetworkDiagnostics stopped = new NetworkDiagnostics(fakeDriver(), logger);
+        NetworkEvent inactive = stopped.addManualEvent(NetworkEvent.failed(
+                NetworkFailure.of("inactive", url, "failure " + secret)));
+        NetworkDiagnostics ignored = new NetworkDiagnostics(fakeDriver(), logger).start(NetworkDiagnosticsOptions.builder()
+                .ignoreUrlPattern(".*ignored.*").build());
+        NetworkEvent filtered = ignored.addManualEvent(NetworkEvent.failed(
+                NetworkFailure.of("ignored", url, "failure " + secret)));
+
+        String outward = inactive.url() + inactive.failure().message()
+                + filtered.url() + filtered.failure().message();
+        assertFalse(outward.contains(secret));
+        assertFalse(outward.contains("user:pass"));
+        assertFalse(outward.contains("#fragment"));
+        assertEquals(1, ignored.summary().ignoredEvents());
+        assertEquals(0, ignored.summary().failedRequests());
     }
 
     @Test

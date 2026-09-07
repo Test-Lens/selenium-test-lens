@@ -70,6 +70,8 @@ Passive network capture is contained in the main Selenium module behind a packag
 
 Network HUD filtering is a presentation boundary after capture: every raw entry is retained and emitted to the shared logger with a deterministic `hudVisible` decision. The trace and external sinks ignore that flag; only the HUD sink suppresses the three raw network event types, before alert deferral. Selenium 4.39.0 does not expose reliable fetch/XHR/beacon classification in its typed request model, so this layer uses explicit URL rules rather than resource heuristics.
 
+The network layer has a second, independent confidentiality boundary. A private raw per-session buffer drives URL/method/status matching, redirect correlation, waits, and counters. Before data crosses into public events, summaries, assertion/wait results, logger sinks, exporters, or failure evidence, the layer creates an immutable snapshot with the logger's effective `RedactionPolicy`; throwable cause and suppressed diagnostics are copied and redacted as well. Capture restart never mutates an earlier snapshot, and disabling only network header masking cannot bypass this central boundary.
+
 ## Runtime flow
 
 `TestLens` first attaches to the existing `WebDriver`. A diagnostic session starts when `startSession(...)` is called. During that session, Lens operations can invoke browser behavior and emit diagnostic events. The active `UiTestLensSession` records them; HUD updates are best-effort.

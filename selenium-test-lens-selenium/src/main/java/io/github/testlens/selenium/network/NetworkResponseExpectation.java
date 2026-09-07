@@ -43,7 +43,7 @@ public final class NetworkResponseExpectation {
     public NetworkWaitResult within(Duration timeout) {
         NetworkWaitResult result = diagnostics.waitForResponse(builder.timeout(timeout).build());
         if (result.status() != NetworkWaitStatus.MATCHED) {
-            throw new NetworkAssertionError(result.message(), diagnostics.summary(), result);
+            throw diagnostics.assertionError(result);
         }
         return result;
     }
@@ -51,7 +51,7 @@ public final class NetworkResponseExpectation {
     public NetworkWaitResult waitNow() {
         NetworkWaitResult result = diagnostics.waitForResponse(builder.build());
         if (result.status() != NetworkWaitStatus.MATCHED) {
-            throw new NetworkAssertionError(result.message(), diagnostics.summary(), result);
+            throw diagnostics.assertionError(result);
         }
         return result;
     }

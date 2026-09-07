@@ -202,8 +202,9 @@ public final class NetworkDiagnostics {
     public NetworkSummary summary() {
         lock.lock();
         try {
-            return NetworkSummary.from(events, ignoredEvents, droppedEvents,
+            NetworkSummary raw = NetworkSummary.from(events, ignoredEvents, droppedEvents,
                     options.failedStatusThreshold(), status);
+            return redactSummary(raw);
         } finally { lock.unlock(); }
     }
 
@@ -227,10 +228,10 @@ public final class NetworkDiagnostics {
         boolean warnLimit = false;
         lock.lock();
         try {
-            if (!started || activeMode != NetworkCaptureMode.MANUAL) return event;
+            if (!started || activeMode != NetworkCaptureMode.MANUAL) return redactEvent(event);
             if (options.isIgnored(event.url())) {
                 ignoredEvents++;
-                return event;
+                return redactEvent(event);
             }
             NetworkEvent sanitized = sanitize(event);
             AddResult result = addCaptured(sanitized);
@@ -251,7 +252,7 @@ public final class NetworkDiagnostics {
                     NetworkDiagnosticsStatus.ASSERTION_FAILED, current.failureSummary(), current, elapsedSince(startedAt));
             emit(UiTestLensEventType.NETWORK_ASSERTION_FAILED, UiTestLensStatus.FAILED,
                     UiTestLensLogLevel.ERROR, result.message(), null, null);
-            throw new NetworkAssertionError(result.message(), current);
+            throw NetworkAssertionError.redacted(result.message(), current, null, redactionPolicy);
         }
         NetworkDiagnosticsResult result = NetworkDiagnosticsResult.of(
                 NetworkDiagnosticsStatus.ASSERTION_PASSED, "No failed network requests", current, elapsedSince(startedAt));
@@ -276,13 +277,20 @@ public final class NetworkDiagnostics {
             result = immediateWaitFailure(effective, startedAt);
             if (result == null) result = awaitMatch(effective, startedAt);
         } finally { lock.unlock(); }
-        emitWaitResult(result);
         NetworkEvent safeEvent = redactEvent(result.matchedEvent());
         NetworkRequest safeRequest = result.matchedRequest() == null ? null : redactRequest(result.matchedRequest());
-        return result.redacted(redactionPolicy, safeEvent, safeRequest);
+        NetworkWaitResult safeResult = result.redacted(redactionPolicy, safeEvent, safeRequest,
+                effective.diagnosticSummary(redactionPolicy));
+        emitWaitResult(safeResult);
+        return safeResult;
     }
 
     public NetworkResponseExpectation expectResponse() { return new NetworkResponseExpectation(this); }
+
+    NetworkAssertionError assertionError(NetworkWaitResult result) {
+        return NetworkAssertionError.redacted(result == null ? "Network assertion failed" : result.message(),
+                summary(), result, redactionPolicy);
+    }
 
     public Optional<NetworkEvent> findMatchingEvent(NetworkWaitCondition condition) {
         NetworkWaitCondition effective = condition == null ? NetworkWaitCondition.builder().build() : condition;
@@ -337,8 +345,9 @@ public final class NetworkDiagnostics {
             return NetworkDiagnosticsResult.of(NetworkDiagnosticsStatus.ATTACHED,
                     "Network log attached", current, elapsedSince(startedAt));
         } catch (IOException | RuntimeException failure) {
-            return NetworkDiagnosticsResult.failed("Failed to attach network log: " + messageFor(failure),
-                    summary(), failure, elapsedSince(startedAt));
+            return NetworkDiagnosticsResult.failed(redactionPolicy.redact(
+                            "Failed to attach network log: " + messageFor(failure)),
+                    summary(), NetworkDiagnosticThrowable.copy(failure, redactionPolicy), elapsedSince(startedAt));
         }
     }
 
@@ -466,8 +475,8 @@ public final class NetworkDiagnostics {
                     NetworkWaitFailureReason.CAPTURE_NOT_STARTED, attempts, elapsedSince(startedAt));
             long remaining = deadline - System.nanoTime();
             if (remaining <= 0) return NetworkWaitResult.timedOut(condition, attempts,
-                    elapsedSince(startedAt), NetworkSummary.from(events, ignoredEvents, droppedEvents,
-                            options.failedStatusThreshold(), status));
+                    elapsedSince(startedAt), redactSummary(NetworkSummary.from(events, ignoredEvents, droppedEvents,
+                            options.failedStatusThreshold(), status)));
             try {
                 eventArrived.awaitNanos(Math.min(remaining, condition.pollInterval().toNanos()));
             } catch (InterruptedException interrupted) {
@@ -527,6 +536,14 @@ public final class NetworkDiagnostics {
         }
         return NetworkEvent.redacted(event.id(), event.type(), null, null, null, null,
                 redactionPolicy.redact(event.message()), event.timestamp(), attributes);
+    }
+
+    private NetworkSummary redactSummary(NetworkSummary summary) {
+        if (summary == null || !redactionPolicy.enabled()) return summary;
+        NetworkEvent firstFailure = summary.firstFailure().map(this::redactEvent).orElse(null);
+        return new NetworkSummary(summary.totalRequests(), summary.totalResponses(), summary.failedResponses(),
+                summary.failedRequests(), summary.ignoredEvents(), summary.droppedEvents(), firstFailure,
+                summary.status());
     }
 
     private NetworkRequest redactRequest(NetworkRequest request) {

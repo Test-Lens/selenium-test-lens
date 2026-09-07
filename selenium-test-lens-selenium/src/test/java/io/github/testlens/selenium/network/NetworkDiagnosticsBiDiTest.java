@@ -3,6 +3,7 @@ package io.github.testlens.selenium.network;
 import io.github.testlens.core.OverlayLogger;
 import io.github.testlens.core.logging.UiTestLensEventType;
 import io.github.testlens.core.logging.UiTestLensLogger;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.trace.TraceLogSink;
 import io.github.testlens.core.trace.UiTestLensSession;
@@ -159,8 +160,34 @@ class NetworkDiagnosticsBiDiTest {
         assertEquals(NetworkDiagnosticsStatus.FAILED, failed.summary().status());
         assertEquals(NetworkWaitStatus.FAILED, failure.status());
         assertEquals(NetworkWaitFailureReason.CAPTURE_START_FAILED, failure.failureReason());
-        assertSame(expected, failure.exception());
+        assertNotSame(expected, failure.exception(), "public diagnostics use a safe throwable snapshot");
+        assertEquals(expected.toString(), failure.exception().toString());
         assertEquals(0, failure.attempts());
+    }
+
+    @Test
+    void startFailureAssertionRedactsCauseAndSuppressedDiagnostics() {
+        String secret = "TL_NETWORK_START_FAILURE_SECRET";
+        RuntimeException cause = new RuntimeException("cause " + secret);
+        RuntimeException original = new RuntimeException("subscribe " + secret, cause);
+        original.addSuppressed(new IllegalStateException("cleanup " + secret));
+        FakeFactory factory = new FakeFactory();
+        factory.failure = original;
+        OverlayLogger logger = OverlayLogger.from(UiTestLensLogger.builder()
+                .redactionPolicy(RedactionPolicy.builder().secret(secret).build()).build());
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), logger, factory)
+                .start(options(NetworkCaptureMode.BIDI));
+
+        NetworkAssertionError error = assertThrows(NetworkAssertionError.class,
+                () -> diagnostics.expectResponse().urlContains("/api").waitNow());
+
+        String outward = error.getMessage() + error + error.waitResult().message()
+                + error.waitResult().exception() + error.getCause() + error.getCause().getCause()
+                + error.getCause().getSuppressed()[0];
+        assertFalse(outward.contains(secret));
+        assertTrue(outward.contains("[REDACTED]"));
+        assertSame(error.waitResult().exception(), error.getCause());
+        assertTrue(original.getMessage().contains(secret));
     }
 
     @Test
@@ -437,6 +464,59 @@ class NetworkDiagnosticsBiDiTest {
         assertEquals("shared", target.matchedRequest().id());
         assertEquals(0, diagnostics.summary().totalRequests());
         assertEquals(2, diagnostics.summary().totalResponses());
+    }
+
+    @Test
+    void responseBeforeRequestAndRedirectSnapshotsUseTheCentralRedactionPolicy() {
+        String secret = "TL_BIDI_CORRELATION_SECRET";
+        RedactionPolicy policy = RedactionPolicy.builder().sensitiveKey("tenant-key")
+                .secret(secret).build();
+        FakeFactory factory = new FakeFactory();
+        OverlayLogger logger = OverlayLogger.from(UiTestLensLogger.builder()
+                .redactionPolicy(policy).build());
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), logger, factory)
+                .start(options(NetworkCaptureMode.BIDI));
+        FakeSource source = factory.latest();
+        String redirectUrl = "https://user:pass@example.test/redirect?token=" + secret + "#private";
+        String finalRequestUrl = "https://example.test/api/final?tenant-key=" + secret + "&safe=visible";
+        String finalResponseUrl = finalRequestUrl + "#response-fragment";
+        source.fire(responseWithRequest("shared", "GET", redirectUrl, redirectUrl, 302, 0));
+        source.fire(responseWithRequest("shared", "POST", finalRequestUrl, finalResponseUrl, 503, 1));
+        source.fire(request("shared", finalRequestUrl, 1));
+
+        NetworkWaitResult matched = diagnostics.waitForResponse(NetworkWaitCondition.builder()
+                .exactUrl(finalResponseUrl).method("POST").status(503)
+                .includeFailedResponses(true).build());
+        NetworkEvent failure = diagnostics.summary().firstFailure().orElseThrow();
+
+        String outward = diagnostics.events() + diagnostics.exportJson() + diagnostics.summary().failureSummary()
+                + failure.url() + failure.response().headers() + failure.correlatedRequest().url()
+                + matched.message() + matched.conditionSummary() + matched.matchedRequest().url()
+                + matched.matchedResponse().url();
+        assertFalse(outward.contains(secret));
+        assertFalse(outward.contains("user:pass"));
+        assertFalse(outward.contains("#private"));
+        assertFalse(outward.contains("#response-fragment"));
+        assertTrue(failure.url().contains("safe=visible"));
+        assertEquals("shared", matched.matchedRequest().id());
+        assertEquals(matched.matchedResponse().requestId(), matched.matchedRequest().id());
+        assertEquals(1, diagnostics.summary().totalRequests());
+        assertEquals(2, diagnostics.summary().totalResponses());
+    }
+
+    @Test
+    void malformedFailureUrlIsFailClosedAtThePublicBoundary() {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+        String malformed = "http://[broken?token=TL_MALFORMED_SECRET#TL_MALFORMED_FRAGMENT";
+        factory.latest().fire(NetworkEvent.failed(NetworkFailure.of("failed", malformed, "fetch failed")));
+
+        NetworkEvent safe = diagnostics.summary().firstFailure().orElseThrow();
+
+        assertTrue(safe.url().startsWith("url[length="));
+        assertFalse(safe.url().contains("TL_MALFORMED_SECRET"));
+        assertFalse(safe.url().contains("TL_MALFORMED_FRAGMENT"));
+        assertFalse(diagnostics.exportJson().contains("TL_MALFORMED_SECRET"));
     }
 
     @Test

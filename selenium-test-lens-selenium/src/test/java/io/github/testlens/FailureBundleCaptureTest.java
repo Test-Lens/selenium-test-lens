@@ -6,6 +6,9 @@ import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.evidence.FailureBundleOptions;
+import io.github.testlens.selenium.network.NetworkDiagnosticsOptions;
+import io.github.testlens.selenium.network.NetworkEvent;
+import io.github.testlens.selenium.network.NetworkResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.openqa.selenium.Capabilities;
@@ -182,6 +185,9 @@ class FailureBundleCaptureTest {
         var session = lens.startSession("session " + secret);
         session.addEvent(io.github.testlens.core.trace.TraceEvent.info("step " + secret,
                 "tenant-session=" + secret));
+        lens.network().start(NetworkDiagnosticsOptions.defaults()).addManualEvent(
+                NetworkEvent.response(NetworkResponse.of("request", "https://user:pass@example.test/api"
+                        + "?tenant-session=" + secret + "&safe=visible#fragment-" + secret, 503)));
 
         AssertionError original = new AssertionError("failure " + secret);
         TestLensFinalizationResult result = lens.finishFailed(original);
@@ -195,11 +201,14 @@ class FailureBundleCaptureTest {
         for (Path file : textFiles) {
             String content = Files.readString(file);
             assertFalse(content.contains(secret), file.toString());
+            assertFalse(content.contains("user:pass"), file.toString());
+            assertFalse(content.contains("fragment-" + secret), file.toString());
         }
         try (ZipFile zip = new ZipFile(result.failureBundleArchive().orElseThrow().toFile())) {
             for (var entry : zip.stream().filter(item -> !item.getName().endsWith(".png")).toList()) {
                 String content = new String(zip.getInputStream(entry).readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
                 assertFalse(content.contains(secret), entry.getName());
+                assertFalse(content.contains("user:pass"), entry.getName());
             }
         }
         assertTrue(Files.readString(result.jsonReport()).contains("[REDACTED]"));

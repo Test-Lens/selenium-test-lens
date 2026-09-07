@@ -1,5 +1,7 @@
 package io.github.testlens.selenium.network;
 
+import io.github.testlens.core.redaction.RedactionPolicy;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
@@ -75,6 +77,23 @@ public final class NetworkWaitCondition {
         if (status != null) append(builder, "status", String.valueOf(status));
         if (minStatus != null || maxStatus != null) {
             append(builder, "status range", (minStatus == null ? "*" : minStatus) + ".." + (maxStatus == null ? "*" : maxStatus));
+        }
+        if (matchRequestOnly) append(builder, "request only", "true");
+        return builder.length() == 0 ? "any network response" : builder.toString();
+    }
+
+    String diagnosticSummary(RedactionPolicy policy) {
+        RedactionPolicy effective = policy == null ? RedactionPolicy.defaults() : policy;
+        if (!effective.enabled()) return summary();
+        StringBuilder builder = new StringBuilder();
+        append(builder, "method", effective.redact(method));
+        append(builder, "url contains", redactUrlCriterion(effective, urlContains));
+        if (!urlRegex.isBlank()) append(builder, "url regex", "pattern[length=" + urlRegex.length() + "]");
+        append(builder, "exact url", redactUrlCriterion(effective, exactUrl));
+        if (status != null) append(builder, "status", String.valueOf(status));
+        if (minStatus != null || maxStatus != null) {
+            append(builder, "status range", (minStatus == null ? "*" : minStatus) + ".."
+                    + (maxStatus == null ? "*" : maxStatus));
         }
         if (matchRequestOnly) append(builder, "request only", "true");
         return builder.length() == 0 ? "any network response" : builder.toString();
@@ -173,6 +192,15 @@ public final class NetworkWaitCondition {
 
     private static String normalizeMethod(String value) {
         return value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private static String redactUrlCriterion(RedactionPolicy policy, String value) {
+        if (value == null || value.isBlank()) return "";
+        try {
+            return policy.redactUrl(value);
+        } catch (RuntimeException failure) {
+            return "url[length=" + value.length() + "]";
+        }
     }
 
     private static void append(StringBuilder builder, String key, String value) {
