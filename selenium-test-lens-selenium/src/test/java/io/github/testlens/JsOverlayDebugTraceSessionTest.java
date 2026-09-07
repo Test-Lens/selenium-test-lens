@@ -72,6 +72,33 @@ class JsOverlayDebugTraceSessionTest {
         assertFalse(diagnosticArguments.contains(secret));
         assertTrue(diagnosticArguments.contains("[REDACTED]"));
     }
+
+    @Test
+    void apiOverlayStructurallyRedactsJsonWithApostropheAndEscapedQuote() {
+        String apostropheCanary = "o'API_JSON_CANARY";
+        String quoteCanary = "before\\\"API_QUOTE_CANARY";
+        List<Object[]> calls = new ArrayList<>();
+        WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[]{WebDriver.class, JavascriptExecutor.class}, (proxy, method, args) -> {
+                    if ("executeScript".equals(method.getName())) {
+                        calls.add(args == null ? new Object[0] : args.clone());
+                        return "request-id";
+                    }
+                    if ("toString".equals(method.getName())) return "api-json-redaction-driver";
+                    return null;
+                });
+        JsOverlayDebug overlay = new JsOverlayDebug(driver);
+
+        overlay.apiShowRequest("request", "POST", "/orders",
+                "{\"password\":\"" + apostropheCanary + "\"}");
+        overlay.apiSetResponse("request-id", 200, 1,
+                "{\"access_token\":\"" + quoteCanary + "\"}", "response");
+
+        String diagnosticArguments = java.util.Arrays.deepToString(calls.toArray());
+        assertFalse(diagnosticArguments.contains("API_JSON_CANARY"));
+        assertFalse(diagnosticArguments.contains("API_QUOTE_CANARY"));
+        assertTrue(diagnosticArguments.contains("[REDACTED]"));
+    }
     @TempDir
     Path tempDir;
 

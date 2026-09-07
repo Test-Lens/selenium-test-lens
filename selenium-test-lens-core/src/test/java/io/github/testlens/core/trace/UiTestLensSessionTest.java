@@ -70,5 +70,22 @@ class UiTestLensSessionTest {
         assertFalse(session.exportHtml().contains(secret));
         assertTrue(session.exportJson().contains("[REDACTED]"));
     }
+
+    @Test
+    void directJsonEventIsStructurallyRedactedInMemoryAndInExports() {
+        String canary = "o'TRACE_JSON_CANARY";
+        UiTestLensSession session = UiTestLensSession.start("json redaction");
+        session.addEvent(TraceEvent.info("json", "{\"password\":\"" + canary + "\"}"));
+
+        String memory = session.events().toString();
+        String json = session.exportJson();
+        String html = session.exportHtml();
+
+        assertFalse(memory.contains(canary));
+        assertFalse(json.contains(canary));
+        assertFalse(html.contains(canary));
+        assertTrue(json.contains("[REDACTED]"));
+        assertTrue(html.contains("[REDACTED]"));
+    }
 }
 

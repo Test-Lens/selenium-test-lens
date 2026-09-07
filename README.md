@@ -219,7 +219,7 @@ TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
         .build());
 ```
 
-See [Sensitive-data redaction](docs/security/redaction.md) for supported formats and limits. Screenshots/video are not pixel-redacted, optional page source and console protection is best effort, and replayable authentication state intentionally remains outside this transformation. `RedactionPolicy.disabled()` is an explicit opt-out that can expose secrets.
+Complete JSON diagnostics are redacted structurally: escaped quotes, backslashes, Unicode escapes, apostrophes, nested values, arrays, and primitive values cannot break sensitive-field recognition. Malformed JSON uses a fail-closed tolerant fallback. See [Sensitive-data redaction](docs/security/redaction.md) for supported formats and limits. Screenshots/video are not pixel-redacted, optional page source and console protection is best effort, and replayable authentication state intentionally remains outside this transformation. `RedactionPolicy.disabled()` is an explicit opt-out that can expose secrets.
 
 Passive network capture is available through Selenium 4.39 WebDriver BiDi. Create Chrome or Firefox options with `enableBiDi()`, then start `lens.network()` in `BIDI` or `AUTO`; neither mode falls back when BiDi is unavailable. `MANUAL` remains the default and performance logs remain unsupported. See [Network diagnostics](docs/advanced/network.md).
 

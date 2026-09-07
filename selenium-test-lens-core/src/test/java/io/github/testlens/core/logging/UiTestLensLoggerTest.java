@@ -127,5 +127,25 @@ class UiTestLensLoggerTest {
         assertFalse(exports.contains(secret));
         assertTrue(exports.contains("[REDACTED]"));
     }
+
+    @Test
+    void structuredJsonIsRedactedBeforeExternalSinkFanOut() {
+        String canary = "o'LOGGER_JSON_CANARY";
+        InMemoryLogSink first = new InMemoryLogSink();
+        InMemoryLogSink second = new InMemoryLogSink();
+        UiTestLensLogger logger = UiTestLensLogger.builder().sink(first).build().withSink(second);
+
+        logger.emit(UiTestLensLogEntry.builder()
+                .eventType(UiTestLensEventType.ACTION)
+                .status(UiTestLensStatus.FAILED)
+                .message("{\"password\":\"" + canary + "\"}")
+                .build());
+
+        assertSame(first.entries().get(0), second.entries().get(0));
+        assertEquals("{\"password\":\"[REDACTED]\"}", first.entries().get(0).message());
+        assertEquals(UiTestLensEventType.ACTION, first.entries().get(0).eventType());
+        assertEquals(UiTestLensStatus.FAILED, first.entries().get(0).status());
+        assertFalse(first.entries().get(0).toString().contains(canary));
+    }
 }
 

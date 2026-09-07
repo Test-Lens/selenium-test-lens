@@ -2,6 +2,8 @@
 
 Selenium Test Lens applies `RedactionPolicy.defaults()` before a structured log entry is fanned out to the HUD, the session trace, or any built-in or caller-provided `UiTestLensLogSink`. The same policy is applied at direct trace, network, API-overlay, report, and failure-bundle boundaries that do not pass through the logger.
 
+Complete JSON documents are redacted structurally by a bounded, single-pass scanner. JSON apostrophes are ordinary string content, and escaped quotes, backslashes, control escapes, Unicode escapes, nested objects, arrays, duplicate keys, numbers, booleans, and null are parsed without treating them as delimiters. A sensitive key replaces its entire value—regardless of that value's JSON type—with one correctly escaped replacement string. Strings under non-sensitive keys still receive Bearer, Basic, JWT, structured-pair, and configured-literal redaction. Malformed or excessively nested JSON is never returned merely because structural parsing failed; it goes through the fail-closed plain-text and tolerant key/value fallback instead.
+
 ```java
 RedactionPolicy redaction = RedactionPolicy.builder()
         .sensitiveKey("tenant-session")
@@ -29,6 +31,7 @@ Redaction recognizes known structured secret formats and caller-provided literal
 
 - Screenshot and video pixels are not modified and may show data rendered by the application.
 - Page source and console redaction are best effort because arbitrary unknown secrets cannot be inferred.
+- Structural parsing applies only to complete valid JSON documents; mixed HTML, console prose, and partial JSON use the tolerant text boundary. Recognized fields and configured literals remain protected, but this is not a general parser for arbitrary embedded application formats.
 - Authentication/storage-state artifacts remain deliberately outside this transformation so they stay usable for session restoration, and are not automatically added to failure bundles.
 - Existing limits, query stripping, and upload-path protections remain active even when central redaction is disabled.
 

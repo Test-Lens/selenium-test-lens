@@ -27,8 +27,6 @@ public final class RedactionPolicy {
             "(?i)\\b(Bearer|Basic)(\\s+)[A-Za-z0-9._~+/-]+=*");
     private static final Pattern JWT = Pattern.compile(
             "(?<![A-Za-z0-9_-])[A-Za-z0-9_-]{8,}+\\.[A-Za-z0-9_-]{8,}+\\.[A-Za-z0-9_-]{8,}+(?![A-Za-z0-9_-])");
-    private static final Pattern QUOTED_PAIR = Pattern.compile(
-            "([\\\"'])([A-Za-z0-9_.%_-]+)\\1(\\s*:\\s*)([\\\"'])([^\\\"'\\r\\n]*)\\4");
     private static final Pattern HEADER_PAIR = Pattern.compile(
             "(?im)^(\\s*)([A-Za-z0-9_.%_-]+)(\\s*:\\s*)([^\\r\\n]*)$");
     private static final Pattern PLAIN_PAIR = Pattern.compile(
@@ -71,11 +69,8 @@ public final class RedactionPolicy {
     public String redact(String input) {
         if (input == null || !enabled) return input;
         try {
-            String result = replaceSensitivePairs(input);
-            result = CREDENTIAL.matcher(result).replaceAll("$1$2" + Matcher.quoteReplacement(replacement));
-            result = JWT.matcher(result).replaceAll(Matcher.quoteReplacement(replacement));
-            for (String secret : literalSecrets) result = result.replace(secret, replacement);
-            return result;
+            String json = JsonRedactor.redact(input, this::isSensitiveKey, this::redactPlainText, replacement);
+            return json == null ? redactPlainText(input) : json;
         } catch (RuntimeException failure) {
             return FAILURE_REPLACEMENT;
         }
@@ -113,24 +108,114 @@ public final class RedactionPolicy {
     }
 
     private String replaceSensitivePairs(String input) {
-        String headers = replacePairs(input, HEADER_PAIR, false);
-        String quoted = replacePairs(headers, QUOTED_PAIR, true);
-        return replacePairs(quoted, PLAIN_PAIR, false);
+        String headers = replacePairs(input, HEADER_PAIR);
+        String quoted = replaceJsonLikeSensitivePairs(headers);
+        return replacePairs(quoted, PLAIN_PAIR);
     }
 
-    private String replacePairs(String input, Pattern pattern, boolean quoted) {
+    private String redactPlainText(String input) {
+        String result = replaceSensitivePairs(input);
+        result = CREDENTIAL.matcher(result).replaceAll("$1$2" + Matcher.quoteReplacement(replacement));
+        result = JWT.matcher(result).replaceAll(Matcher.quoteReplacement(replacement));
+        for (String secret : literalSecrets) result = result.replace(secret, replacement);
+        return result;
+    }
+
+    private String replaceJsonLikeSensitivePairs(String input) {
+        StringBuilder output = new StringBuilder(input.length());
+        int copied = 0;
+        int index = 0;
+        while (index < input.length()) {
+            char quote = input.charAt(index);
+            if (quote != '\"' && quote != '\'') {
+                index++;
+                continue;
+            }
+            int keyEnd = findQuotedEnd(input, index + 1, quote);
+            if (keyEnd < 0) break;
+            int colon = keyEnd + 1;
+            while (colon < input.length() && Character.isWhitespace(input.charAt(colon))) colon++;
+            if (colon >= input.length() || input.charAt(colon) != ':') {
+                index = keyEnd + 1;
+                continue;
+            }
+            String rawKey = input.substring(index + 1, keyEnd);
+            String key = quote == '\"' ? JsonRedactor.decodeStringContent(rawKey) : rawKey;
+            if (key == null || !isSensitiveKey(key)) {
+                index = keyEnd + 1;
+                continue;
+            }
+            int valueStart = colon + 1;
+            while (valueStart < input.length() && Character.isWhitespace(input.charAt(valueStart))) valueStart++;
+            if (valueStart >= input.length()) break;
+            int valueEnd = findFallbackValueEnd(input, valueStart);
+            output.append(input, copied, valueStart);
+            output.append('\"').append(JsonRedactor.escape(replacement)).append('\"');
+            copied = valueEnd;
+            index = valueEnd;
+        }
+        if (copied == 0) return input;
+        output.append(input, copied, input.length());
+        return output.toString();
+    }
+
+    private static int findQuotedEnd(String input, int index, char quote) {
+        boolean escaped = false;
+        for (int i = index; i < input.length(); i++) {
+            char current = input.charAt(i);
+            if (escaped) {
+                escaped = false;
+            } else if (current == '\\') {
+                escaped = true;
+            } else if (current == quote) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static int findFallbackValueEnd(String input, int start) {
+        char first = input.charAt(start);
+        if (first == '\"' || first == '\'') {
+            int end = findQuotedEnd(input, start + 1, first);
+            return end < 0 ? input.length() : end + 1;
+        }
+        int objectDepth = 0;
+        int arrayDepth = 0;
+        boolean inString = false;
+        boolean escaped = false;
+        for (int i = start; i < input.length(); i++) {
+            char current = input.charAt(i);
+            if (inString) {
+                if (escaped) escaped = false;
+                else if (current == '\\') escaped = true;
+                else if (current == '\"') inString = false;
+                continue;
+            }
+            if (current == '\"') inString = true;
+            else if (current == '{') objectDepth++;
+            else if (current == '[') arrayDepth++;
+            else if (current == '}') {
+                if (objectDepth == 0 && arrayDepth == 0) return i;
+                objectDepth--;
+            } else if (current == ']') {
+                if (objectDepth == 0 && arrayDepth == 0) return i;
+                arrayDepth--;
+            } else if ((current == ',' || current == '&' || current == ';' || current == '\r' || current == '\n')
+                    && objectDepth == 0 && arrayDepth == 0) {
+                return i;
+            }
+        }
+        return input.length();
+    }
+
+    private String replacePairs(String input, Pattern pattern) {
         Matcher matcher = pattern.matcher(input);
         StringBuffer output = new StringBuffer(input.length());
         while (matcher.find()) {
-            String key = matcher.group(quoted ? 2 : 2);
+            String key = matcher.group(2);
             if (!isSensitiveKey(key)) continue;
-            String replacementText;
-            if (quoted) {
-                replacementText = matcher.group(1) + key + matcher.group(1) + matcher.group(3)
-                        + matcher.group(4) + replacement + matcher.group(4);
-            } else {
-                replacementText = matcher.group(1) + key + matcher.group(3) + replacement;
-            }
+            String replacementText = matcher.group(1) + key + matcher.group(3) + replacement;
             matcher.appendReplacement(output, Matcher.quoteReplacement(replacementText));
         }
         matcher.appendTail(output);

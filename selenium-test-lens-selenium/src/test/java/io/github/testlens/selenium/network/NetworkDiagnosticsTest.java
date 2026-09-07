@@ -116,6 +116,23 @@ class NetworkDiagnosticsTest {
     }
 
     @Test
+    void centralPolicyStructurallyRedactsJsonInNetworkMetadata() {
+        String canary = "o'NETWORK_JSON_CANARY";
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver())
+                .start(NetworkDiagnosticsOptions.builder().includeHeaders(true)
+                        .maskSensitiveHeaders(false).build());
+        diagnostics.addManualEvent(NetworkEvent.request(new NetworkRequest("req-json", "POST", "/api", "", null,
+                Map.of("X-Diagnostics", "{\"password\":\"" + canary + "\"}"))));
+
+        String exposed = diagnostics.events() + diagnostics.exportJson();
+
+        assertFalse(exposed.contains("NETWORK_JSON_CANARY"));
+        assertFalse(exposed.contains("o'NETWORK"));
+        assertTrue(exposed.contains("[REDACTED]"));
+        assertEquals(1, diagnostics.summary().totalRequests());
+    }
+
+    @Test
     void attachToSessionWritesNetworkLogArtifact() throws Exception {
         NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver()).start(NetworkDiagnosticsOptions.defaults());
         diagnostics.addManualEvent(NetworkEvent.response(NetworkResponse.of("1", "/api/orders", 200)));

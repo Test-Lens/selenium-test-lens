@@ -208,6 +208,54 @@ class FailureBundleCaptureTest {
         assertTrue(configuration.contains("literalSecrets"));
     }
 
+    @Test
+    void structuredJsonCanariesDoNotEscapeFailureBundleBoundaries() throws Exception {
+        String apostropheCanary = "o'BUNDLE_JSON_CANARY";
+        String escapedQuoteCanary = "before\\\"BUNDLE_QUOTE_CANARY";
+        String pageSource = "<html><script type=\"application/json\">{\"password\":\""
+                + apostropheCanary + "\"}</script></html>";
+        DriverFixture fixture = driver(pageSource,
+                List.of(new LogEntry(Level.WARNING, 1,
+                        "{\"access_token\":\"" + escapedQuoteCanary + "\"}")));
+        TestLens lens = TestLens.attach(fixture.driver, TestLensOptions.builder().outputRoot(temp)
+                .failureBundleOptions(FailureBundleOptions.complete()).build());
+        var session = lens.startSession("structured JSON redaction");
+        session.addEvent(io.github.testlens.core.trace.TraceEvent.info("json",
+                "{\"password\":\"" + apostropheCanary + "\"}"));
+        AssertionError original = new AssertionError(
+                "{\"access_token\":\"" + escapedQuoteCanary + "\"}");
+
+        TestLensFinalizationResult result = lens.finishFailed(original);
+
+        assertEquals("{\"access_token\":\"" + escapedQuoteCanary + "\"}", original.getMessage());
+        assertEquals(TraceStatus.FAILED, result.session().metadata().status());
+        assertEquals(0, result.retrySummary().totalRetries());
+        for (String name : List.of("failure.json", "diagnostics.json", "browser-console.json", "page-source.html")) {
+            assertTrue(Files.exists(result.outputDirectory().resolve("failure-bundle").resolve(name)), name);
+        }
+        try (var files = Files.walk(result.outputDirectory())) {
+            for (Path file : files.filter(Files::isRegularFile)
+                    .filter(path -> !path.toString().endsWith(".png") && !path.toString().endsWith(".zip"))
+                    .toList()) {
+                assertNoJsonCanary(Files.readString(file), file.toString());
+            }
+        }
+        try (ZipFile zip = new ZipFile(result.failureBundleArchive().orElseThrow().toFile())) {
+            for (var entry : zip.stream().filter(item -> !item.getName().endsWith(".png")).toList()) {
+                String content = new String(zip.getInputStream(entry).readAllBytes(),
+                        java.nio.charset.StandardCharsets.UTF_8);
+                assertNoJsonCanary(content, entry.getName());
+            }
+        }
+        assertTrue(Files.readString(result.jsonReport()).contains("[REDACTED]"));
+    }
+
+    private static void assertNoJsonCanary(String content, String source) {
+        assertFalse(content.contains("BUNDLE_JSON_CANARY"), source);
+        assertFalse(content.contains("BUNDLE_QUOTE_CANARY"), source);
+        assertFalse(content.contains("o'BUNDLE"), source);
+    }
+
     private TestLensOptions options(FailureBundleOptions bundle) {
         return TestLensOptions.builder().outputRoot(temp).failureBundleOptions(bundle).build();
     }

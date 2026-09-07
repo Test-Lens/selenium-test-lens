@@ -242,12 +242,14 @@ class NetworkBiDiBrowserIT {
     @Test
     void centralRedactionProtectsHudTraceNetworkAndFailureBundle() throws Exception {
         WebDriver driver = createBiDiDriver();
-        String canary = "browser-redaction-canary-7b9e2d";
+        String apostropheCanary = "o'TL_JSON_APOSTROPHE_CANARY";
+        String escapedQuoteCanary = "before\\\"TL_JSON_ESCAPED_QUOTE_CANARY";
+        String transportCanary = "browser-redaction-transport-canary";
         try {
             Path output = Path.of("target", "ui-test-lens", browserName(), "central-redaction");
             RedactionPolicy policy = RedactionPolicy.builder()
                     .sensitiveKey("tenant-session")
-                    .secret(canary)
+                    .secret(transportCanary)
                     .build();
             TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
                     .overlayConfig(OverlayConfig.builder().enabled(true).showHudPanel(true).build())
@@ -256,38 +258,41 @@ class NetworkBiDiBrowserIT {
                     .failureBundleOptions(FailureBundleOptions.complete())
                     .outputRoot(output)
                     .build());
-            var session = lens.startSession("redaction " + canary);
+            var session = lens.startSession("redaction");
             NetworkDiagnostics network = lens.network().start(NetworkDiagnosticsOptions.builder()
                     .captureMode(NetworkCaptureMode.BIDI)
                     .includeHeaders(true)
                     .maskSensitiveHeaders(false)
                     .build());
 
-            driver.get(baseUrl + "/redaction-page?access_token=" + canary);
-            lens.step("step tenant-session=" + canary, () -> session.addEvent(
-                    io.github.testlens.core.trace.TraceEvent.info("metadata", "tenant-session=" + canary)));
-            lens.apiCallWithModal("API " + canary, "POST",
-                    baseUrl + "/api/redaction?token=" + canary,
-                    "{\"client_secret\":\"" + canary + "\"}", 1_000,
-                    () -> "{\"access_token\":\"" + canary + "\"}", value -> value);
+            driver.get(baseUrl + "/redaction-page?access_token=" + transportCanary);
+            lens.step("structured JSON redaction", () -> session.addEvent(
+                    io.github.testlens.core.trace.TraceEvent.info("metadata",
+                            "{\"password\":\"" + apostropheCanary + "\"}")));
+            lens.apiCallWithModal("API", "POST",
+                    baseUrl + "/api/redaction?token=" + transportCanary,
+                    "{\"client_secret\":\"" + apostropheCanary + "\"}", 1_000,
+                    () -> "{\"access_token\":\"" + escapedQuoteCanary + "\"}", value -> value);
 
-            fetchWithSecret(driver, "/api/redaction?tenant-session=" + canary, canary);
+            fetchWithSecret(driver, "/api/redaction?tenant-session=" + transportCanary, transportCanary);
             NetworkWaitResult matched = network.waitForResponse(NetworkWaitCondition.builder()
-                    .urlContains("tenant-session=" + canary).status(200)
+                    .urlContains("/api/redaction").status(200)
                     .timeout(Duration.ofSeconds(5)).build());
             assertEquals(NetworkWaitStatus.MATCHED, matched.status());
-            assertFalse(matched.matchedResponse().url().contains(canary));
+            assertNoStructuredJsonCanary(matched.matchedResponse().url(), "matched response");
 
             String browserUi = overlayText(driver);
-            assertFalse(browserUi.contains(canary));
+            assertNoStructuredJsonCanary(browserUi, "browser UI");
             assertTrue(browserUi.contains("[REDACTED]"));
             assertTrue(session.events().stream().noneMatch(event ->
-                    event.name().contains(canary) || event.message().contains(canary)
-                            || event.attributes().values().stream().anyMatch(value -> value.contains(canary))));
+                    containsStructuredJsonCanary(event.name()) || containsStructuredJsonCanary(event.message())
+                            || event.attributes().values().stream().anyMatch(NetworkBiDiBrowserIT::containsStructuredJsonCanary)));
 
-            AssertionError original = new AssertionError("controlled failure " + canary);
+            AssertionError original = new AssertionError(
+                    "{\"access_token\":\"" + escapedQuoteCanary + "\"}");
             TestLensFinalizationResult result = lens.finishFailed(original);
             assertEquals(TraceStatus.FAILED, result.session().metadata().status());
+            assertTrue(original.getMessage().contains("TL_JSON_ESCAPED_QUOTE_CANARY"));
             assertFalse(driver.getTitle().isBlank(), "Lens finalization must leave the driver alive");
 
             boolean replacementFound = false;
@@ -296,14 +301,14 @@ class NetworkBiDiBrowserIT {
                         .filter(path -> !path.toString().endsWith(".png") && !path.toString().endsWith(".zip"))
                         .toList()) {
                     String content = Files.readString(file);
-                    assertFalse(content.contains(canary), file.toString());
+                    assertNoStructuredJsonCanary(content, file.toString());
                     replacementFound |= content.contains("[REDACTED]");
                 }
             }
             try (ZipFile zip = new ZipFile(result.failureBundleArchive().orElseThrow().toFile())) {
                 for (var entry : zip.stream().filter(item -> !item.getName().endsWith(".png")).toList()) {
                     String content = new String(zip.getInputStream(entry).readAllBytes(), StandardCharsets.UTF_8);
-                    assertFalse(content.contains(canary), entry.getName());
+                    assertNoStructuredJsonCanary(content, entry.getName());
                     replacementFound |= content.contains("[REDACTED]");
                 }
             }
@@ -311,6 +316,17 @@ class NetworkBiDiBrowserIT {
         } finally {
             driver.quit();
         }
+    }
+
+    private static boolean containsStructuredJsonCanary(String value) {
+        return value != null && (value.contains("TL_JSON_APOSTROPHE_CANARY")
+                || value.contains("TL_JSON_ESCAPED_QUOTE_CANARY"));
+    }
+
+    private static void assertNoStructuredJsonCanary(String value, String source) {
+        assertFalse(value.contains("TL_JSON_APOSTROPHE_CANARY"), source + " (apostrophe canary)");
+        assertFalse(value.contains("TL_JSON_ESCAPED_QUOTE_CANARY"), source + " (escaped-quote canary)");
+        assertFalse(value.contains("o'TL_JSON"), source + " (apostrophe prefix)");
     }
 
     private static void awaitSummary(WebDriver driver, NetworkDiagnostics network,
@@ -408,9 +424,11 @@ class NetworkBiDiBrowserIT {
             case "/network-page" -> response(exchange, 200,
                     "text/html; charset=utf-8", "<!doctype html><title>BiDi network</title><p>ready</p>");
             case "/redaction-page" -> {
-                String query = exchange.getRequestURI().getRawQuery();
                 response(exchange, 200, "text/html; charset=utf-8",
-                        "<!doctype html><title>Redaction</title><script>const hidden='" + query + "';</script><p>ready</p>");
+                        "<!doctype html><title>Redaction</title>"
+                                + "<script type=\"application/json\">"
+                                + "{\"password\":\"o'TL_JSON_APOSTROPHE_CANARY\"}"
+                                + "</script><p>ready</p>");
             }
             case "/api/success" -> response(exchange, 201, "application/json", "{\"ok\":true}");
             case "/api/failure", "/assets/hud-failed", "/api/hud-excluded-failure" ->

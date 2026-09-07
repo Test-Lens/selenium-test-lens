@@ -10,7 +10,7 @@ The diagnostic screenshot is taken with the current HUD/highlight. For the clean
 
 ## Safe defaults and complete capture
 
-Raw page source and browser console are disabled by default because they can contain credentials, personal data, tokens, or application secrets. When enabled, recognized structured secrets and configured literal values receive best-effort central redaction before writing. Enable them deliberately:
+Raw page source and browser console are disabled by default because they can contain credentials, personal data, tokens, or application secrets. When enabled, complete JSON is redacted structurally—including sensitive values containing apostrophes or escaped quotes—while mixed or malformed content uses the fail-closed tolerant text fallback. Recognized structured secrets and configured literal values receive best-effort central redaction before writing. Enable them deliberately:
 
 ```java
 TestLensOptions options = TestLensOptions.builder()

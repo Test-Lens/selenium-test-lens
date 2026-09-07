@@ -7,11 +7,115 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
+import java.util.function.UnaryOperator;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class RedactionPolicyTest {
     private static final String SECRET = "canary-secret-7f18d2";
+
+    @Test
+    void structurallyRedactsJsonStringsContainingApostrophesAndEscapes() {
+        RedactionPolicy policy = RedactionPolicy.defaults();
+
+        assertEquals("{\"password\":\"[REDACTED]\"}", policy.redact("{\"password\":\"o'SECRET\"}"));
+        assertEquals("{\"password\":\"[REDACTED]\"}", policy.redact("{\"password\":\"before\\\"SECRET\"}"));
+        assertEquals("{\"password\":\"[REDACTED]\"}", policy.redact("{\"password\":\"before\\\\SECRET\"}"));
+        assertEquals("{\"password\":\"[REDACTED]\"}", policy.redact("{\"password\":\"o'\\\"SECRET\"}"));
+    }
+
+    @Test
+    void structurallyRedactsNestedValuesArraysDuplicateKeysAndEscapedKeyNames() {
+        RedactionPolicy policy = RedactionPolicy.defaults();
+        String input = "  {\"outer\":[{\"Password\":123},{\"password\":true},{\"password\":null}],"
+                + "\"password\":{\"nested\":\"value\"},\"password\":[\"a\",\"b\"],"
+                + "\"\\u0070assword\":\"unicode-key\",\"access\\u005ftoken\":\"token-value\","
+                + "\"safe\":false}  ";
+
+        String safe = policy.redact(input);
+
+        assertEquals("  {\"outer\":[{\"Password\":\"[REDACTED]\"},{\"password\":\"[REDACTED]\"},"
+                + "{\"password\":\"[REDACTED]\"}],\"password\":\"[REDACTED]\","
+                + "\"password\":\"[REDACTED]\",\"\\u0070assword\":\"[REDACTED]\","
+                + "\"access\\u005ftoken\":\"[REDACTED]\",\"safe\":false}  ", safe);
+        assertValidJson(safe);
+    }
+
+    @Test
+    void redactsSensitiveValuesOfEveryJsonType() {
+        RedactionPolicy policy = RedactionPolicy.defaults();
+        for (String value : List.of("\"secret\"", "123456789012345678901234567890", "true", "false", "null",
+                "[\"a\",{\"b\":2}]", "{\"nested\":\"value\"}")) {
+            String safe = policy.redact("{\"password\":" + value + "}");
+            assertEquals("{\"password\":\"[REDACTED]\"}", safe, value);
+            assertValidJson(safe);
+        }
+    }
+
+    @Test
+    void redactsPlainTextCredentialsAndLiteralSecretsInsideNonSensitiveJsonStrings() {
+        RedactionPolicy policy = RedactionPolicy.builder().secret(SECRET).build();
+        List<String> inputs = List.of(
+                "Authorization: Bearer abc123",
+                "Authorization: Basic Zm9vOmJhcg==",
+                "aaaaaaaa.bbbbbbbb.cccccccc",
+                "password=inside-value",
+                "literal " + SECRET);
+
+        for (String value : inputs) {
+            String safe = policy.redact("{\"message\":\"" + jsonEscape(value) + "\"}");
+            assertFalse(safe.contains(value), value);
+            assertFalse(safe.contains(SECRET), value);
+            assertTrue(safe.contains("[REDACTED]"), value);
+            assertValidJson(safe);
+        }
+    }
+
+    @Test
+    void customKeyAndReplacementRemainValidJson() {
+        RedactionPolicy policy = RedactionPolicy.builder()
+                .sensitiveKey("tenant-session")
+                .replacement("MASK\"\\\n雪")
+                .build();
+
+        String safe = policy.redact("{\"tenant-session\":{\"secret\":true}}");
+
+        assertEquals("{\"tenant-session\":\"MASK\\\"\\\\\\n雪\"}", safe);
+        assertValidJson(safe);
+    }
+
+    @Test
+    void supportsEmptyAndTopLevelJsonValuesWithoutFalsePositives() {
+        RedactionPolicy policy = RedactionPolicy.defaults();
+        assertEquals("\"\"", policy.redact("\"\""));
+        assertEquals("[\"safe\",{\"tokenizer\":\"keep\",\"passwordPolicy\":\"keep\","
+                        + "\"sessionName\":\"keep\"}]",
+                policy.redact("[\"safe\",{\"tokenizer\":\"keep\",\"passwordPolicy\":\"keep\","
+                        + "\"sessionName\":\"keep\"}]"));
+        assertEquals("\"Bearer [REDACTED]\"", policy.redact("\"Bearer abc123\""));
+    }
+
+    @Test
+    void malformedJsonUsesFailClosedTolerantPairRedaction() {
+        RedactionPolicy policy = RedactionPolicy.defaults();
+        for (String malformed : List.of(
+                "{\"password\":\"o'SECRET\"",
+                "{\"password\":\"unterminated SECRET",
+                "{\"password\":\"bad \\u00ZZ SECRET\"}",
+                "prefix {\"password\":\"o'\\\"SECRET\"} suffix")) {
+            String safe = policy.redact(malformed);
+            assertFalse(safe.contains("SECRET"), malformed);
+            assertTrue(safe.contains("[REDACTED]"), malformed);
+        }
+    }
+
+    @Test
+    void excessiveDepthFallsBackWithoutLeakingSensitiveValue() {
+        String nested = "[".repeat(140) + "\"depth-secret\"" + "]".repeat(140);
+        String safe = RedactionPolicy.defaults().redact("{\"password\":" + nested + "}");
+        assertEquals("{\"password\":\"[REDACTED]\"}", safe);
+        assertValidJson(safe);
+    }
 
     @Test
     void defaultsRedactEverySupportedKeyWithoutSubstringFalsePositives() {
@@ -89,8 +193,12 @@ class RedactionPolicyTest {
         var executor = Executors.newFixedThreadPool(8);
         try {
             List<Callable<String>> calls = new ArrayList<>();
-            for (int i = 0; i < 100; i++) calls.add(() -> policy.redact("token=" + SECRET));
-            for (var result : executor.invokeAll(calls)) assertEquals("token=[REDACTED]", result.get());
+            for (int i = 0; i < 100; i++) {
+                calls.add(() -> policy.redact("{\"password\":\"o'" + SECRET + "\"}"));
+            }
+            for (var result : executor.invokeAll(calls)) {
+                assertEquals("{\"password\":\"[REDACTED]\"}", result.get());
+            }
         } finally {
             executor.shutdownNow();
         }
@@ -101,5 +209,21 @@ class RedactionPolicyTest {
         RedactionPolicy policy = RedactionPolicy.defaults();
         String input = "ordinary diagnostics ".repeat((5 * 1024 * 1024) / 21);
         assertTimeoutPreemptively(Duration.ofSeconds(5), () -> assertEquals(input, policy.redact(input)));
+
+        String json = "{\"message\":\"" + "ordinary diagnostics ".repeat((5 * 1024 * 1024) / 21)
+                + "\",\"password\":\"o'SECRET\"}";
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            String safe = policy.redact(json);
+            assertFalse(safe.contains("o'SECRET"));
+            assertValidJson(safe);
+        });
+    }
+
+    private static void assertValidJson(String value) {
+        assertNotNull(JsonRedactor.redact(value, ignored -> false, UnaryOperator.identity(), "unused"));
+    }
+
+    private static String jsonEscape(String value) {
+        return JsonRedactor.escape(value);
     }
 }
