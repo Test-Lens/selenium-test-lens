@@ -140,7 +140,7 @@ The builder exposes **all** of: `background`, `foreground`, `mutedForeground`, `
 
 `AuthStateOptions`: `label`, `role`, `origin`, `expiresAt` default null; `includeCookies`, `includeLocalStorage`, `includeSessionStorage` default true; repeatable `labelEntry` and `note` maps default empty. Origin/expiry affect capture metadata and later validation. Every included store can contain credentials.
 
-`AuthRestoreOptions`: `navigateToOrigin`, `clearExistingCookies`, `clearExistingStorage`, `restoreCookies`, `restoreLocalStorage`, `restoreSessionStorage`, `validateOrigin`, and `failIfExpired` all default true. Navigation and clearing mutate browser state; disable only with a deliberate lifecycle plan.
+`AuthRestoreOptions`: `navigateToOrigin`, `clearExistingCookies`, `clearExistingStorage`, `restoreCookies`, `restoreLocalStorage`, `restoreSessionStorage`, `validateOrigin`, and `failIfExpired` all default true. With validation enabled, restore preflights saved entry origins, optionally navigates, validates the resulting origin before any mutation, rechecks before cookies, and atomically guards storage operations. `validateOrigin(false)` is an explicit opt-out that can mutate the currently active origin; use it only with an independently controlled navigation lifecycle.
 
 ## Network options
 

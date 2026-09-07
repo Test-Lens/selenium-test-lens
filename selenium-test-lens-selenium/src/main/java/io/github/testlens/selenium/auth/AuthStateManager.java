@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,9 +30,21 @@ public final class AuthStateManager {
             return result;
             """;
     private static final String CLEAR_STORAGE_SCRIPT = "window.localStorage.clear(); window.sessionStorage.clear();";
+    private static final String GUARDED_CLEAR_STORAGE_SCRIPT = """
+            if (window.location.origin !== arguments[0]) return false;
+            window.localStorage.clear();
+            window.sessionStorage.clear();
+            return true;
+            """;
     private static final String SET_STORAGE_SCRIPT = """
             const storage = arguments[0] === 'session' ? window.sessionStorage : window.localStorage;
             storage.setItem(arguments[1], arguments[2]);
+            """;
+    private static final String GUARDED_SET_STORAGE_SCRIPT = """
+            if (window.location.origin !== arguments[0]) return false;
+            const storage = arguments[1] === 'session' ? window.sessionStorage : window.localStorage;
+            storage.setItem(arguments[2], arguments[3]);
+            return true;
             """;
 
     private final WebDriver driver;
@@ -103,17 +116,23 @@ public final class AuthStateManager {
                 emitRestore(result, metadata.label(), metadata.role(), metadata.origin());
                 return result;
             }
-            if (effectiveOptions.validateOrigin() && !metadata.origin().isBlank()) {
-                String currentOrigin = originOf(safeCurrentUrl());
-                if (!currentOrigin.isBlank() && !currentOrigin.equals(metadata.origin()) && !effectiveOptions.navigateToOrigin()) {
-                    AuthRestoreResult result = AuthRestoreResult.originMismatch(
-                            "Current origin does not match auth state origin", elapsedSince(started));
-                    emitRestore(result, metadata.label(), metadata.role(), metadata.origin());
-                    return result;
+            String expectedOrigin = "";
+            if (effectiveOptions.validateOrigin()) {
+                expectedOrigin = originOf(metadata.origin());
+                if (expectedOrigin.isBlank() || !storageOriginsMatch(state, expectedOrigin)) {
+                    return originMismatch(started, metadata, "Auth state origin is invalid or contains mixed-origin storage");
                 }
             }
             if (effectiveOptions.navigateToOrigin() && !metadata.origin().isBlank()) {
                 driver.get(metadata.origin());
+            }
+            if (effectiveOptions.validateOrigin() && !currentOriginMatches(expectedOrigin)) {
+                return originMismatch(started, metadata, "Current origin does not match auth state origin");
+            }
+            boolean mutatesCookies = effectiveOptions.clearExistingCookies() ||
+                    (effectiveOptions.restoreCookies() && !state.cookies().isEmpty());
+            if (effectiveOptions.validateOrigin() && mutatesCookies && !currentOriginMatches(expectedOrigin)) {
+                return originMismatch(started, metadata, "Current origin changed before cookie restore");
             }
             if (effectiveOptions.clearExistingCookies()) {
                 driver.manage().deleteAllCookies();
@@ -127,19 +146,39 @@ public final class AuthStateManager {
             }
             JavascriptExecutor js = requireJavascriptExecutor();
             if (effectiveOptions.clearExistingStorage()) {
-                js.executeScript(CLEAR_STORAGE_SCRIPT);
+                if (effectiveOptions.validateOrigin()) {
+                    if (!Boolean.TRUE.equals(js.executeScript(GUARDED_CLEAR_STORAGE_SCRIPT, expectedOrigin))) {
+                        return originMismatch(started, metadata, "Current origin changed before storage restore");
+                    }
+                } else {
+                    js.executeScript(CLEAR_STORAGE_SCRIPT);
+                }
             }
             int localStorage = 0;
             if (effectiveOptions.restoreLocalStorage()) {
                 for (AuthStorageEntry entry : state.localStorage()) {
-                    js.executeScript(SET_STORAGE_SCRIPT, "local", entry.key(), entry.value());
+                    if (effectiveOptions.validateOrigin()) {
+                        if (!Boolean.TRUE.equals(js.executeScript(GUARDED_SET_STORAGE_SCRIPT,
+                                expectedOrigin, "local", entry.key(), entry.value()))) {
+                            return originMismatch(started, metadata, "Current origin changed during storage restore");
+                        }
+                    } else {
+                        js.executeScript(SET_STORAGE_SCRIPT, "local", entry.key(), entry.value());
+                    }
                     localStorage++;
                 }
             }
             int sessionStorage = 0;
             if (effectiveOptions.restoreSessionStorage()) {
                 for (AuthStorageEntry entry : state.sessionStorage()) {
-                    js.executeScript(SET_STORAGE_SCRIPT, "session", entry.key(), entry.value());
+                    if (effectiveOptions.validateOrigin()) {
+                        if (!Boolean.TRUE.equals(js.executeScript(GUARDED_SET_STORAGE_SCRIPT,
+                                expectedOrigin, "session", entry.key(), entry.value()))) {
+                            return originMismatch(started, metadata, "Current origin changed during storage restore");
+                        }
+                    } else {
+                        js.executeScript(SET_STORAGE_SCRIPT, "session", entry.key(), entry.value());
+                    }
                     sessionStorage++;
                 }
             }
@@ -193,6 +232,33 @@ public final class AuthStateManager {
         return executor;
     }
 
+    private AuthRestoreResult originMismatch(Instant started, AuthStateMetadata metadata, String message) {
+        AuthRestoreResult result = AuthRestoreResult.originMismatch(message, elapsedSince(started));
+        emitRestore(result, metadata.label(), metadata.role(), metadata.origin());
+        return result;
+    }
+
+    private boolean currentOriginMatches(String expectedOrigin) {
+        return expectedOrigin.equals(originOf(driver.getCurrentUrl()));
+    }
+
+    private static boolean storageOriginsMatch(AuthState state, String expectedOrigin) {
+        return storageOriginsMatch(state.localStorage(), expectedOrigin)
+                && storageOriginsMatch(state.sessionStorage(), expectedOrigin);
+    }
+
+    private static boolean storageOriginsMatch(List<AuthStorageEntry> entries, String expectedOrigin) {
+        for (AuthStorageEntry entry : entries) {
+            if (!entry.origin().isBlank()) {
+                String entryOrigin = originOf(entry.origin());
+                if (entryOrigin.isBlank() || !entryOrigin.equals(expectedOrigin)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private void emitRestore(AuthRestoreResult result, String label, String role, String origin) {
         UiTestLensEventType eventType = switch (result.status()) {
             case RESTORED -> UiTestLensEventType.AUTH_STATE_RESTORE_PASSED;
@@ -244,11 +310,19 @@ public final class AuthStateManager {
                 return "";
             }
             URI uri = URI.create(url);
-            if (uri.getScheme() == null || uri.getHost() == null) {
+            if (uri.isOpaque() || uri.getScheme() == null || uri.getHost() == null) {
                 return "";
             }
+            String scheme = uri.getScheme().toLowerCase(Locale.ROOT);
+            String host = uri.getHost().toLowerCase(Locale.ROOT);
+            if (host.indexOf(':') >= 0 && !host.startsWith("[")) {
+                host = "[" + host + "]";
+            }
             int port = uri.getPort();
-            return uri.getScheme() + "://" + uri.getHost() + (port == -1 ? "" : ":" + port);
+            if (("http".equals(scheme) && port == 80) || ("https".equals(scheme) && port == 443)) {
+                port = -1;
+            }
+            return scheme + "://" + host + (port == -1 ? "" : ":" + port);
         } catch (RuntimeException e) {
             return "";
         }

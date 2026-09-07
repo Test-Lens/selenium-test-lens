@@ -58,7 +58,7 @@ See [observability](observability/index.md) for artifact paths, nullable results
 
 ## Authentication/session state
 
-[`AuthStateManager`](advanced/auth-state.md) captures selected cookies, local storage, and session storage plus metadata; exports/imports JSON; and restores state with configurable origin navigation, clearing, expiry validation, and component selection. Auth-state files can contain live credentials and must be treated as secrets.
+[`AuthStateManager`](advanced/auth-state.md) captures selected cookies, local storage, and session storage plus metadata; exports/imports JSON; and restores state with configurable origin navigation, clearing, expiry validation, and component selection. Default restore preflights entry origins, validates the final origin after navigation, rechecks before cookies, and atomically guards storage mutations against origin changes. Cross-origin SSO restore is not automatic. Auth-state files can contain live credentials and must be treated as secrets.
 
 ## Network diagnostics
 

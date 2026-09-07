@@ -4,6 +4,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+- Fixed auth-state origin isolation during restore. With origin validation enabled, Lens now preflights every storage entry, validates the browser origin after optional navigation and again before cookie mutation, and uses in-page atomic origin guards for storage clearing/writes. Redirects to SSO or another scheme/host/port are rejected before foreign-origin state is changed.
 - Added an independent Gradle Wrapper consumer gate. It resolves release-transformed `0.2.0` artifacts only from an isolated Maven repository, exercises the main, React, JUnit 5 and TestNG public APIs, validates the resolved graph and Java 17 bytecode, and runs alongside the Maven clean-room consumer on JDK 17 and 21. Java 17 remains the minimum; Java 11 is not supported.
 - Added an immutable, enabled-by-default `RedactionPolicy` shared by the logger, every sink, direct trace events, network diagnostics, the API overlay, reports, and failure-bundle text artifacts. Common structured credentials, sensitive URL parameters, JWT-shaped values, and caller-supplied literal secrets are masked before diagnostic fan-out; screenshots/video and replayable auth state remain outside the redaction boundary.
 - Added runner-neutral polling page assertions through `expectPage()`: exact/contains URL and title checks use the assertion trace/HUD pipeline, observe the active window once per poll, keep URL matching raw and case-sensitive, and sanitize URL diagnostics.

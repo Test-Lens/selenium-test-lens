@@ -115,6 +115,8 @@ Direct logger and sink APIs are intended for lower-level integrations.
 
 Redaction is a cross-cutting diagnostic boundary owned by core. `UiTestLensLogger` creates one immutable safe entry before fan-out, so adding a sink does not duplicate secret rules. Direct session events are sanitized when stored; Selenium-layer boundaries apply the same effective policy to network/API-overlay values and failure-bundle text that bypasses logger fan-out. Matching and test control still use original runtime values, and propagated exceptions remain the originals.
 
+Auth-state restoration places origin validation ahead of every mutation boundary. The Selenium layer canonicalizes and preflights the saved origin and storage-entry origins, optionally navigates, validates the resulting browser origin, rechecks immediately before cookie work, and runs storage clear/write with an atomic `window.location.origin` guard. A foreign redirect therefore produces `ORIGIN_MISMATCH` without a recovery navigation or partial mutation of that origin.
+
 ## Overlay runtime
 
 The overlay module contains resources for the HUD, highlighting and decorations, assertion and wait indicators, and API/debug overlays. The Selenium runtime injects and updates them through the driver. Consumers configure this layer through `OverlayConfig`.

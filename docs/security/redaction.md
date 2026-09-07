@@ -33,3 +33,5 @@ Redaction recognizes known structured secret formats and caller-provided literal
 - Existing limits, query stripping, and upload-path protections remain active even when central redaction is disabled.
 
 `RedactionPolicy.disabled()` is an explicit opt-out and can expose messages, metadata, network values, page source, console output, and failure details. Use it only in a controlled environment. Redaction complements, but does not replace, avoiding secrets in test names, labels, screenshots, and application-visible content.
+
+Auth-state restore separately validates origin by default; this is an isolation control, not text redaction. A cross-origin redirect is rejected before foreign cookies or storage are mutated, and storage writes carry an atomic in-page origin guard. Disabling `AuthRestoreOptions.validateOrigin` deliberately removes that protection and can write credentials into the currently active origin.
