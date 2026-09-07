@@ -16,6 +16,11 @@ Add the version matching the main artifact:
 
 The module depends on core, overlay, and Selenium Test Lens. Use it only for React/SPA re-render windows, React Select conventions, or DOM readiness conventions not covered by standard `UiLocator`.
 
+Gradle Kotlin DSL uses
+`implementation("io.github.test-lens:selenium-test-lens-react:0.1.0")`;
+Groovy DSL uses
+`implementation 'io.github.test-lens:selenium-test-lens-react:0.1.0'`.
+
 ## ReactSupport factories and helpers
 
 <!-- API SIGNATURES: io.github.testlens.react.ReactSupport -->

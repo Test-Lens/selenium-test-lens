@@ -4,6 +4,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+- Added an independent Gradle Wrapper consumer gate. It resolves release-transformed `0.2.0` artifacts only from an isolated Maven repository, exercises the main, React, JUnit 5 and TestNG public APIs, validates the resolved graph and Java 17 bytecode, and runs alongside the Maven clean-room consumer on JDK 17 and 21. Java 17 remains the minimum; Java 11 is not supported.
 - Added an immutable, enabled-by-default `RedactionPolicy` shared by the logger, every sink, direct trace events, network diagnostics, the API overlay, reports, and failure-bundle text artifacts. Common structured credentials, sensitive URL parameters, JWT-shaped values, and caller-supplied literal secrets are masked before diagnostic fan-out; screenshots/video and replayable auth state remain outside the redaction boundary.
 - Added runner-neutral polling page assertions through `expectPage()`: exact/contains URL and title checks use the assertion trace/HUD pipeline, observe the active window once per poll, keep URL matching raw and case-sensitive, and sanitize URL diagnostics.
 - Added polling `UiExpect` assertions for collection count, DOM attributes, class tokens, computed CSS, selected/checked state, and DOM attachment. Every poll observes one fresh locator snapshot; assertion polling remains separate from recovery retry and does not mark a session flaky.

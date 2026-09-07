@@ -7,7 +7,7 @@ This guide shows the shortest path from the Maven dependency to a working Lens s
 ## Requirements
 
 - Java 17 or newer
-- Maven 3.x
+- Maven 3.x or Gradle
 - A Selenium `WebDriver` created by your test project
 
 The latest published Selenium Test Lens release is `0.1.0`, verified with Selenium 4.39.0. The source tree is currently the unreleased `0.2.0-SNAPSHOT` development line.
@@ -23,6 +23,28 @@ Add the main Selenium Test Lens runtime to your Maven project:
     <version>0.1.0</version>
 </dependency>
 ```
+
+The same stable release is available to Gradle consumers.
+
+=== "Kotlin DSL"
+
+    ```kotlin
+    dependencies {
+        testImplementation("io.github.test-lens:selenium-test-lens:0.1.0")
+    }
+    ```
+
+=== "Groovy DSL"
+
+    ```groovy
+    dependencies {
+        testImplementation 'io.github.test-lens:selenium-test-lens:0.1.0'
+    }
+    ```
+
+Java 17 is the minimum runtime and bytecode level; Java 11 is not supported.
+Published-artifact consumers are continuously checked with Maven and Gradle
+on JDK 17 and JDK 21.
 
 Keep Selenium as an explicit dependency and use the version already managed by your project:
 

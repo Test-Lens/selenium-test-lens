@@ -17,7 +17,7 @@ Successful operations that required a recovery retry are exposed as a per-sessio
 ## Requirements
 
 - Java 17 or newer
-- Maven 3.x
+- Maven 3.x or Gradle
 - A Selenium `WebDriver` created and managed by the consuming test project
 
 ## Install
@@ -34,6 +34,30 @@ repository.
     <version>0.1.0</version>
 </dependency>
 ```
+
+Gradle consumers use the same published Maven coordinates. Kotlin DSL:
+
+```kotlin
+dependencies {
+    testImplementation("io.github.test-lens:selenium-test-lens:0.1.0")
+}
+```
+
+Groovy DSL:
+
+```groovy
+dependencies {
+    testImplementation 'io.github.test-lens:selenium-test-lens:0.1.0'
+}
+```
+
+Use `selenium-test-lens-junit5`, `selenium-test-lens-testng`, or
+`selenium-test-lens-react` in place of the artifact name for an optional
+integration. Java 17 is the minimum source, bytecode, and runtime level;
+Java 11 is not supported. Clean-room Maven and Gradle consumers are verified
+on JDK 17 and JDK 21. The new Gradle consumer smoke is browser-free; real
+browser behavior remains the responsibility of the separate Chrome/Firefox
+gate (the pre-existing Maven release smoke retains its browser check).
 
 Selenium is consumer-owned and must be declared separately at the version managed by your project:
 

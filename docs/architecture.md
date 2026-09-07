@@ -15,6 +15,11 @@ Selenium Test Lens is split into small Maven modules so Selenium code, browser o
 | `selenium-test-lens-examples` | Compile-checked and documentation examples | Depends on the main runtime and React module; built with the reactor but excluded from Maven Central publication |
 | `selenium-test-lens-browser-tests` | Consumer-level Chrome and Firefox integration tests against deterministic local pages | Added to the reactor only by `browser-it`; depends on the built main artifact and is never published |
 
+`consumer-tests/gradle` is deliberately outside the Maven reactor. It is an
+independent Gradle build, not a tenth Maven project, and is never published.
+Its repository configuration reserves `io.github.test-lens` exclusively for
+an isolated release staging repository.
+
 The `selenium-test-lens` artifact is built from the source directory `selenium-test-lens-selenium/`.
 
 ## Module dependency graph
@@ -45,6 +50,17 @@ Semantic accessibility factories are represented by an internal lazy Selenium `B
 Collection composition extends that approach with immutable internal `By` stages for scoped descendants, text and DOM-attribute filters, descendant-existence filters, and positional selection. Each observation replays the pipeline against the current frame/window, preserves DOM order, and discards the entire snapshot on stale-element failure.
 
 Chrome and Firefox headless runs are required in CI. A headed Chrome run under Xvfb is available as a non-blocking manual smoke test. Edge and remote-grid execution are not currently in the browser matrix.
+
+The separate consumer-compatibility matrix runs on JDK 17 and JDK 21. For
+each JVM it transforms the nine-project source reactor from
+`0.2.0-SNAPSHOT` to an unpublished `0.2.0` copy, stages exactly seven
+publishable coordinates, and executes Maven and Gradle consumers. Gradle
+cannot use reactor outputs, project dependencies, composite builds,
+`mavenLocal()`, snapshots, or Maven Central for the Test Lens group. Its
+graph check requires core and overlay transitively and one Selenium version.
+Production classes are checked for Java 17 class-file major version 61 and
+references to `jdk.internal.*`. This gate is browser-free; the browser matrix
+remains authoritative for real Chrome and Firefox behavior.
 
 ## Selenium boundary
 

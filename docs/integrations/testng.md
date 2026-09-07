@@ -17,6 +17,13 @@ The optional `selenium-test-lens-testng` module owns one `WebDriver`, `TestLens`
 
 Declare Selenium separately at the version selected by the test project. TestNG is a dependency of this adapter only; core, overlay, the main runtime, React, and the JUnit 5 adapter do not depend on it.
 
+Gradle Kotlin DSL uses
+`testImplementation("io.github.test-lens:selenium-test-lens-testng:0.1.0")`;
+Groovy DSL uses
+`testImplementation 'io.github.test-lens:selenium-test-lens-testng:0.1.0'`.
+These are the currently published coordinates; `0.2.0-SNAPSHOT` remains the
+version of the source tree.
+
 ## Factory and listener
 
 Factories need an accessible public no-argument constructor. A new factory is constructed for every physical invocation.

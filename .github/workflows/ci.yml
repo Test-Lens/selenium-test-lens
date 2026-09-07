@@ -8,6 +8,46 @@ on:
   workflow_dispatch:
 
 jobs:
+  consumer-compatibility:
+    name: Consumer compatibility (JDK ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ["17", "21"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Validate Maven and Gradle clean-room consumers
+        shell: pwsh
+        run: ./scripts/validate-consumer-compatibility.ps1 -KeepWorkDirectoryOnFailure
+
+      - name: Upload consumer failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consumer-compatibility-jdk-${{ matrix.java }}-failure
+          if-no-files-found: warn
+          path: |
+            consumer-tests/gradle/build/reports/**
+            consumer-tests/gradle/build/test-results/**
+            **/target/surefire-reports/**
+
   build:
     runs-on: ubuntu-latest
 

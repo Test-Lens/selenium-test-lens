@@ -2,6 +2,11 @@
 
 The ordinary Maven test lifecycle is intentionally fast and browser-free. It exercises logic with unit tests, fakes, and WebDriver mocks:
 
+Published-artifact compatibility is a separate boundary. The JDK 17/21
+consumer gate runs Maven and Gradle clean-room smoke tests without a browser;
+it verifies dependency metadata, linkage, and bytecode. It does not replace
+this real-browser matrix. See [Consumer compatibility](consumer-compatibility.md).
+
 The Chrome/Firefox contract suite additionally checks scoped semantic descendants, visible-text/DOM-attribute/has filters, exact single-button activation, and dynamic count waits across rerenders. These scenarios complement unit tests of query ordering, stale snapshots, and terminal errors.
 
 The gate also exercises polling collection/state assertions against dynamic local pages: composed counts, changing DOM attributes and class tokens, computed CSS, native and ARIA selected/checked state, attachment, detachment, and same-locator replacement. Both HUD modes are covered, and click/change counters prove that assertions remain read-only.

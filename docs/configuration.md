@@ -2,6 +2,10 @@
 
 The default configuration is enough for normal use. When you need to customize Test Lens, start with `TestLensOptions` and `OverlayConfig`. More specialized features expose their own options close to the API that uses them.
 
+Configuration is build-tool neutral. Maven and Gradle consumers load the same
+published JARs and require Java 17 or newer; compatibility is verified on JDK
+17 and JDK 21.
+
 ## Test Lens options
 
 `TestLensOptions` is the main configuration object supplied when attaching Test Lens to an existing driver.

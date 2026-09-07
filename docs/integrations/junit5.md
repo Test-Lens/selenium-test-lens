@@ -26,6 +26,22 @@ Add the extension in test scope and keep Selenium explicit at the version manage
 
 The extension artifact depends on `selenium-test-lens` and `junit-jupiter-api`. Its Selenium dependency is optional. JUnit engine, parameterized-test support, and Platform TestKit are not runtime dependencies of the artifact.
 
+For the currently published release, Gradle users can use Kotlin DSL:
+
+```kotlin
+dependencies {
+    testImplementation("io.github.test-lens:selenium-test-lens-junit5:0.1.0")
+}
+```
+
+or Groovy DSL:
+
+```groovy
+dependencies {
+    testImplementation 'io.github.test-lens:selenium-test-lens-junit5:0.1.0'
+}
+```
+
 ## Register and inject
 
 <!-- API SIGNATURES: io.github.testlens.junit5.TestLensExtension -->
