@@ -166,6 +166,193 @@ class NetworkDiagnosticsBiDiTest {
     }
 
     @Test
+    void assertionRejectsEveryGenerationThatNeverBecameActive() {
+        List<UiTestLensLogEntry> entries = new ArrayList<>();
+        OverlayLogger logger = OverlayLogger.from(UiTestLensLogger.builder().sink(entries::add).build());
+
+        NetworkDiagnostics neverStarted = new NetworkDiagnostics(fakeDriver(), logger, new FakeFactory());
+        neverStarted.stop();
+        NetworkDiagnostics off = new NetworkDiagnostics(fakeDriver(), logger, new FakeFactory())
+                .start(options(NetworkCaptureMode.OFF));
+        NetworkDiagnostics performanceLogs = new NetworkDiagnostics(fakeDriver(), logger, new FakeFactory())
+                .start(options(NetworkCaptureMode.PERFORMANCE_LOGS));
+        FakeFactory bidiUnsupportedFactory = new FakeFactory();
+        bidiUnsupportedFactory.unsupported = true;
+        NetworkDiagnostics bidiUnsupported = new NetworkDiagnostics(fakeDriver(), logger, bidiUnsupportedFactory)
+                .start(options(NetworkCaptureMode.BIDI));
+        FakeFactory autoUnsupportedFactory = new FakeFactory();
+        autoUnsupportedFactory.unsupported = true;
+        NetworkDiagnostics autoUnsupported = new NetworkDiagnostics(fakeDriver(), logger, autoUnsupportedFactory)
+                .start(options(NetworkCaptureMode.AUTO));
+        FakeFactory openFailedFactory = new FakeFactory();
+        openFailedFactory.failure = new IllegalStateException("adapter open failed");
+        NetworkDiagnostics openFailed = new NetworkDiagnostics(fakeDriver(), logger, openFailedFactory)
+                .start(options(NetworkCaptureMode.BIDI));
+        FakeFactory registrationFailedFactory = new FakeFactory();
+        registrationFailedFactory.failure = new IllegalStateException("listener registration failed");
+        NetworkDiagnostics registrationFailed = new NetworkDiagnostics(fakeDriver(), logger, registrationFailedFactory)
+                .start(options(NetworkCaptureMode.BIDI));
+
+        for (NetworkDiagnostics invalid : List.of(neverStarted, off, performanceLogs,
+                bidiUnsupported, autoUnsupported, openFailed, registrationFailed)) {
+            NetworkAssertionError error = assertThrows(NetworkAssertionError.class,
+                    invalid::assertNoFailedRequests);
+            assertTrue(error.getMessage().startsWith("Cannot assert network failures:"));
+            assertFalse(error.getMessage().contains("No failed network requests"));
+            assertEquals(invalid.summary().status(), error.summary().status());
+        }
+        assertEquals(7, entries.stream()
+                .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_ASSERTION_FAILED).count());
+        assertEquals(0, entries.stream()
+                .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_ASSERTION_PASSED).count());
+        assertEquals(NetworkDiagnosticsStatus.STOPPED, neverStarted.summary().status());
+        assertEquals(NetworkDiagnosticsStatus.STOPPED, off.summary().status());
+        assertEquals(NetworkDiagnosticsStatus.UNSUPPORTED, performanceLogs.summary().status());
+        assertEquals(NetworkDiagnosticsStatus.UNSUPPORTED, bidiUnsupported.summary().status());
+        assertEquals(NetworkDiagnosticsStatus.UNSUPPORTED, autoUnsupported.summary().status());
+        assertEquals(NetworkDiagnosticsStatus.FAILED, openFailed.summary().status());
+        assertEquals(NetworkDiagnosticsStatus.FAILED, registrationFailed.summary().status());
+    }
+
+    @Test
+    void validActiveAndStoppedSnapshotsCanPassAcrossManualBidiAndAuto() {
+        NetworkDiagnostics manual = diagnostics(new FakeFactory()).start(options(NetworkCaptureMode.MANUAL));
+        assertEquals(NetworkDiagnosticsStatus.ASSERTION_PASSED, manual.assertNoFailedRequests().status());
+        manual.addManualEvent(response("manual", "/ok", 200, 0));
+        manual.stop();
+        assertEquals(NetworkDiagnosticsStatus.ASSERTION_PASSED, manual.assertNoFailedRequests().status());
+        assertEquals(NetworkDiagnosticsStatus.STOPPED, manual.assertNoFailedRequests().summary().status());
+
+        for (NetworkCaptureMode mode : List.of(NetworkCaptureMode.BIDI, NetworkCaptureMode.AUTO)) {
+            FakeFactory factory = new FakeFactory();
+            NetworkDiagnostics diagnostics = diagnostics(factory).start(options(mode));
+            factory.latest().fire(response(mode.name(), "/ok", 200, 0));
+            assertEquals(NetworkDiagnosticsStatus.ASSERTION_PASSED,
+                    diagnostics.assertNoFailedRequests().status());
+        }
+    }
+
+    @Test
+    void aNewInvalidGenerationInvalidatesAnOlderValidSnapshotWithoutClearingHistory() {
+        for (NetworkCaptureMode invalidMode : List.of(NetworkCaptureMode.OFF,
+                NetworkCaptureMode.BIDI, NetworkCaptureMode.AUTO)) {
+            FakeFactory factory = new FakeFactory();
+            NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+            factory.latest().fire(response("old", "/old", 200, 0));
+            diagnostics.stop();
+            assertEquals(NetworkDiagnosticsStatus.ASSERTION_PASSED,
+                    diagnostics.assertNoFailedRequests().status());
+
+            if (invalidMode != NetworkCaptureMode.OFF) factory.unsupported = true;
+            diagnostics.start(options(invalidMode));
+
+            NetworkAssertionError error = assertThrows(NetworkAssertionError.class,
+                    diagnostics::assertNoFailedRequests);
+            assertEquals(1, error.summary().totalResponses(), "event history remains preserved");
+            assertEquals(invalidMode == NetworkCaptureMode.OFF
+                            ? NetworkDiagnosticsStatus.STOPPED : NetworkDiagnosticsStatus.UNSUPPORTED,
+                    error.summary().status());
+        }
+
+        FakeFactory failedFactory = new FakeFactory();
+        NetworkDiagnostics failed = diagnostics(failedFactory).start(options(NetworkCaptureMode.BIDI));
+        failedFactory.latest().fire(response("old", "/old", 200, 0));
+        failedFactory.failure = new IllegalStateException("new generation failed");
+        failed.start(options(NetworkCaptureMode.BIDI));
+        NetworkAssertionError error = assertThrows(NetworkAssertionError.class,
+                failed::assertNoFailedRequests);
+        assertEquals(NetworkDiagnosticsStatus.FAILED, error.summary().status());
+        assertEquals(1, error.summary().totalResponses());
+    }
+
+    @Test
+    void assertionDuringInitializationFailsImmediatelyAndSuccessfulActivationCanLaterPass() throws Exception {
+        FakeFactory factory = new FakeFactory();
+        factory.blockOpen = true;
+        NetworkDiagnostics diagnostics = diagnostics(factory);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> starting = executor.submit(() -> diagnostics.start(options(NetworkCaptureMode.BIDI)));
+            assertTrue(factory.openEntered.await(1, TimeUnit.SECONDS));
+
+            NetworkAssertionError error = assertThrows(NetworkAssertionError.class,
+                    diagnostics::assertNoFailedRequests);
+            assertTrue(error.getMessage().startsWith("Cannot assert network failures:"));
+            assertEquals(NetworkDiagnosticsStatus.STOPPED, error.summary().status());
+
+            factory.releaseOpen.countDown();
+            starting.get(1, TimeUnit.SECONDS);
+            assertEquals(NetworkDiagnosticsStatus.ASSERTION_PASSED,
+                    diagnostics.assertNoFailedRequests().status());
+        } finally {
+            factory.releaseOpen.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void invalidAssertionRedactsStartFailureAndDoesNotAffectRetryOrLifecycleStatus() {
+        String secret = "TL_INVALID_CAPTURE_SECRET";
+        RuntimeException cause = new RuntimeException("cause token=" + secret);
+        RuntimeException original = new IllegalStateException("listener token=" + secret, cause);
+        original.addSuppressed(new RuntimeException("cleanup token=" + secret));
+        FakeFactory factory = new FakeFactory();
+        factory.failure = original;
+        UiTestLensSession session = UiTestLensSession.start("invalid capture assertion");
+        List<UiTestLensLogEntry> entries = new ArrayList<>();
+        OverlayLogger logger = OverlayLogger.from(UiTestLensLogger.builder()
+                .redactionPolicy(RedactionPolicy.builder().secret(secret).build())
+                .sink(entries::add).sink(new TraceLogSink(session)).build());
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), logger, factory)
+                .start(options(NetworkCaptureMode.BIDI));
+
+        NetworkAssertionError error = assertThrows(NetworkAssertionError.class,
+                diagnostics::assertNoFailedRequests);
+
+        String outward = error.getMessage() + error + error.getCause()
+                + error.getCause().getCause() + error.getCause().getSuppressed()[0]
+                + entries + session.events();
+        assertFalse(outward.contains(secret));
+        assertTrue(outward.contains("[REDACTED]"));
+        assertEquals(NetworkDiagnosticsStatus.FAILED, error.summary().status());
+        assertEquals(0, session.retrySummary().totalRetries());
+        assertEquals(1, entries.stream()
+                .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_ASSERTION_FAILED).count());
+        assertEquals(0, entries.stream()
+                .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_ASSERTION_PASSED).count());
+        assertTrue(original.getMessage().contains(secret), "the runtime failure remains unchanged");
+    }
+
+    @Test
+    void stopAndAssertionObserveAConsistentValidSnapshot() throws Exception {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+        factory.latest().fire(response("ok", "/ok", 200, 0));
+        CountDownLatch go = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<?> stopping = executor.submit(() -> {
+                await(go);
+                diagnostics.stop();
+            });
+            Future<NetworkDiagnosticsResult> asserting = executor.submit(() -> {
+                await(go);
+                return diagnostics.assertNoFailedRequests();
+            });
+            go.countDown();
+            NetworkDiagnosticsResult result = asserting.get(1, TimeUnit.SECONDS);
+            assertEquals(NetworkDiagnosticsStatus.ASSERTION_PASSED, result.status());
+            assertTrue(List.of(NetworkDiagnosticsStatus.STARTED, NetworkDiagnosticsStatus.STOPPED)
+                    .contains(result.summary().status()));
+            stopping.get(1, TimeUnit.SECONDS);
+            assertEquals(NetworkDiagnosticsStatus.ASSERTION_PASSED,
+                    diagnostics.assertNoFailedRequests().status());
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
     void startFailureAssertionRedactsCauseAndSuppressedDiagnostics() {
         String secret = "TL_NETWORK_START_FAILURE_SECRET";
         RuntimeException cause = new RuntimeException("cause " + secret);
@@ -581,16 +768,30 @@ class NetworkDiagnosticsBiDiTest {
                         method.getName().equals("toString") ? "network-driver" : null);
     }
 
+    private static void await(CountDownLatch latch) {
+        try {
+            if (!latch.await(1, TimeUnit.SECONDS)) throw new IllegalStateException("latch timed out");
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("interrupted", interrupted);
+        }
+    }
+
     private static final class FakeFactory implements NetworkCaptureSourceFactory {
         private final AtomicInteger opens = new AtomicInteger();
         private final List<FakeSource> sources = new ArrayList<>();
         private boolean unsupported;
         private RuntimeException failure;
+        private boolean blockOpen;
+        private final CountDownLatch openEntered = new CountDownLatch(1);
+        private final CountDownLatch releaseOpen = new CountDownLatch(1);
 
         @Override
         public synchronized NetworkCaptureSource open(WebDriver driver, NetworkDiagnosticsOptions options,
                                                        NetworkCaptureSink sink) {
             opens.incrementAndGet();
+            openEntered.countDown();
+            if (blockOpen) await(releaseOpen);
             if (unsupported) throw new NetworkCaptureUnsupportedException("BiDi unavailable");
             if (failure != null) throw failure;
             FakeSource source = new FakeSource(sink);

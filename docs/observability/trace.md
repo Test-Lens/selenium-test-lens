@@ -30,6 +30,8 @@ Recovery retries use `TraceEventType.RETRY`; the summary and policy decision are
 
 Network diagnostics emit typed start/stop, request, response, fetch-error, wait, and assertion log events into the attached trace. General log metadata removes query strings from its URL preview; explicit network event exports retain their normal URL value, so query parameters still require secret-aware handling. Lens-owned capture is stopped before `SESSION_FINISHED`.
 
+An invalid network capture generation emits `NETWORK_ASSERTION_FAILED` when `assertNoFailedRequests()` is attempted and never emits a corresponding success. Its summary retains the real lifecycle status (`STOPPED`, `UNSUPPORTED`, or `FAILED`). This failure is neither recovery retry nor a flaky-candidate signal.
+
 ## Direct session and log integration
 
 Direct `UiTestLensSession` construction is advanced API for integrations that do not use the `TestLens` facade. Its public methods cover `start`, event and artifact recording, finalization, snapshots/accessors, and HTML/JSON export overloads. There is no public general-purpose log-recording method on the session. To include structured log entries, create a `TraceLogSink` and add it to a `UiTestLensLogger`; the sink maps accepted entries to trace events:

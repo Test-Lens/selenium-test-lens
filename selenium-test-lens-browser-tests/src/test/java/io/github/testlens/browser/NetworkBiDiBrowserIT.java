@@ -173,6 +173,43 @@ class NetworkBiDiBrowserIT {
     }
 
     @Test
+    void noFailedRequestsRequiresAValidCaptureSnapshotAndSurvivesStop() {
+        WebDriver driver = createBiDiDriver();
+        try {
+            driver.get(baseUrl + "/network-page");
+            TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+                    .overlayConfig(OverlayConfig.builder().enabled(false).build()).build());
+            var session = lens.startSession("valid-network-assertion-snapshot");
+            NetworkDiagnostics network = lens.network();
+
+            assertThrows(NetworkAssertionError.class, network::assertNoFailedRequests);
+            network.start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.OFF).build());
+            assertThrows(NetworkAssertionError.class, network::assertNoFailedRequests);
+            assertEquals(0, session.events().stream().filter(event ->
+                    "NETWORK_ASSERTION_PASSED".equals(event.attributes().get("logEventType"))).count());
+
+            network.start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI).build());
+            fetch(driver, "/api/success", false);
+            assertEquals(NetworkWaitStatus.MATCHED,
+                    network.waitForResponse("/api/success", 201).status());
+            assertEquals(io.github.testlens.selenium.network.NetworkDiagnosticsStatus.ASSERTION_PASSED,
+                    network.assertNoFailedRequests().status());
+
+            network.stop();
+            assertEquals(io.github.testlens.selenium.network.NetworkDiagnosticsStatus.ASSERTION_PASSED,
+                    network.assertNoFailedRequests().status());
+            assertFalse(driver.getTitle().isBlank(), "network assertions must leave the driver alive");
+            assertEquals(2, session.events().stream().filter(event ->
+                    "NETWORK_ASSERTION_FAILED".equals(event.attributes().get("logEventType"))).count());
+            assertEquals(2, session.events().stream().filter(event ->
+                    "NETWORK_ASSERTION_PASSED".equals(event.attributes().get("logEventType"))).count());
+            lens.finishPassed();
+        } finally {
+            driver.quit();
+        }
+    }
+
+    @Test
     void hudFilterChangesOnlyPresentationAndKeepsCompleteBiDiEvidence() throws Exception {
         WebDriver driver = createBiDiDriver();
         try {

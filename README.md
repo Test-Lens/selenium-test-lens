@@ -223,6 +223,8 @@ Complete JSON diagnostics are redacted structurally: escaped quotes, backslashes
 
 Passive network capture is available through Selenium 4.39 WebDriver BiDi. Create Chrome or Firefox options with `enableBiDi()`, then start `lens.network()` in `BIDI` or `AUTO`; neither mode falls back when BiDi is unavailable. `MANUAL` remains the default and performance logs remain unsupported. See [Network diagnostics](docs/advanced/network.md).
 
+`assertNoFailedRequests()` can pass only for a capture generation that actually became active. A never-started, `OFF`, unsupported, failed, or still-initializing capture throws instead of treating missing observations as zero failures. A valid snapshot remains assertable after an ordinary `stop()`.
+
 Raw network traffic shown in the HUD is presentation-filtered without removing evidence. The default hides duplicate request lines and shows responses and failures; use URL patterns for a focused view:
 
 ```java

@@ -4,6 +4,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+- Fixed `NetworkDiagnostics.assertNoFailedRequests()` falsely passing when the current capture generation was never activated. Never-started, `OFF`, unsupported, and failed/in-progress starts now produce `NetworkAssertionError`; a successfully activated generation remains assertable after `stop()`.
 - Fixed composed locator containment so descendant and `filterHas` queries cannot escape a parent subtree, including semantic locators and user XPath expressions beginning with `//`.
 
 - Fixed a network confidentiality gap where the internal raw event buffer was correctly redacted by `events()` but `NetworkSummary.firstFailure()`, wait diagnostics, and `NetworkAssertionError` could still expose credentials, sensitive query values, fragments, headers, or throwable messages. Matching and correlation continue on raw session-local data; every public diagnostic result now receives an immutable snapshot protected by the effective central redaction policy.

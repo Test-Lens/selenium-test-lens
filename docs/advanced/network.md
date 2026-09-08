@@ -112,7 +112,9 @@ NetworkResponseExpectation expectResponse()
 Optional<NetworkEvent> findMatchingEvent(NetworkWaitCondition condition)
 ```
 
-The convenience overload builds a URL-substring/status condition. BiDi callbacks signal active waits immediately; the condition still uses a global deadline and tolerates spurious wakeups. Unsupported capture returns `SKIPPED/UNSUPPORTED_CAPTURE_MODE` with zero attempts, failed BiDi startup returns `FAILED/CAPTURE_START_FAILED` with zero attempts, and `OFF`, a stopped capture, or `stop()` during a wait returns `CAPTURE_NOT_STARTED`. `expectResponse()` provides a fluent API. Failed assertions throw `NetworkAssertionError` with summary/wait context. Its message, summary, matched data, and diagnostic cause/suppressed graph are safe snapshots produced with the same effective redaction policy.
+`assertNoFailedRequests()` means “the valid capture snapshot contains no failures,” not “the event buffer happens to contain no failures.” It throws `NetworkAssertionError` when capture was never started, is `OFF`, is unsupported, failed or is still initializing. Zero events are valid only after the current generation successfully became active. A normally stopped generation retains its valid snapshot and remains assertable; starting a later invalid generation invalidates that permission without clearing historical events.
+
+The convenience wait overload builds a URL-substring/status condition. BiDi callbacks signal active waits immediately; the condition still uses a global deadline and tolerates spurious wakeups. Unsupported capture returns `SKIPPED/UNSUPPORTED_CAPTURE_MODE` with zero attempts, failed BiDi startup returns `FAILED/CAPTURE_START_FAILED` with zero attempts, and `OFF`, a stopped capture, or `stop()` during a wait returns `CAPTURE_NOT_STARTED`. These wait outcomes are unchanged. `expectResponse()` converts every non-match into `NetworkAssertionError`. Failed assertions preserve the lifecycle status in their summary and expose a redacted message and diagnostic cause/suppressed graph.
 
 ## Session attachment
 

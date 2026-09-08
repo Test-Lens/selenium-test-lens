@@ -34,5 +34,14 @@ public final class NetworkAssertionError extends AssertionError {
         if (cause != null) error.initCause(cause);
         return error;
     }
+
+    static NetworkAssertionError redacted(String message, NetworkSummary summary, NetworkWaitResult waitResult,
+                                           Throwable cause, RedactionPolicy policy) {
+        RedactionPolicy effective = policy == null ? RedactionPolicy.defaults() : policy;
+        NetworkAssertionError error = new NetworkAssertionError(effective.redact(message), summary, waitResult);
+        Throwable safeCause = NetworkDiagnosticThrowable.copy(cause, effective);
+        if (safeCause != null) error.initCause(safeCause);
+        return error;
+    }
 }
 

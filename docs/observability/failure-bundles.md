@@ -4,6 +4,8 @@ Every final `FAILED` facade session creates a best-effort, versioned failure bun
 
 The session directory retains `trace.json`, `report.html`, and `failure-diagnostic.png`. `failure-bundle/` contains `manifest.json`, failure, context, trace-derived diagnostics, runtime, allowlisted configuration, the current network summary, and `failure-clean.png`. The network snapshot reports requested and active modes, status, requests/responses/failures, ignored events, and dropped events; it is derived from the same redacted immutable summary boundary used by network assertions and never starts capture during failure handling. Active Lens-owned capture is stopped only after this snapshot and before `SESSION_FINISHED`. `failure-bundle.zip` contains the manifest, every successfully captured component, the final reports, and the diagnostic screenshot.
 
+The bundle reports the observed lifecycle state; `STOPPED`, `UNSUPPORTED`, or `FAILED` is not rewritten as “zero network failures.” Bundle collection itself does not validate or start capture, while an explicit `assertNoFailedRequests()` rejects a generation that never became active.
+
 `NetworkHudFilter` does not alter this snapshot or any captured network evidence. A raw entry hidden from the on-page HUD remains in network events, summaries, trace, reports, network JSON, and the failure bundle. Only capture-level `ignoreUrlPattern(...)` removes it.
 
 The diagnostic screenshot is taken with the current HUD/highlight. For the clean screenshot only the `selenium-overlay-host` is temporarily hidden and restored in `finally`; application DOM, frame, window, and failed actions are not touched. Normal `cleanupHudOnFinish` runs later.

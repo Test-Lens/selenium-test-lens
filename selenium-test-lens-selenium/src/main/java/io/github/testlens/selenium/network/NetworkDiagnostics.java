@@ -43,6 +43,8 @@ public final class NetworkDiagnostics {
     private Throwable startFailure;
     private String statusMessage = "Network diagnostics are not started";
     private boolean started;
+    private boolean captureSnapshotValid;
+    private boolean startInProgress;
     private boolean limitWarningEmitted;
     private long generation;
     private int capturedEvents;
@@ -81,6 +83,9 @@ public final class NetworkDiagnostics {
             activeMode = null;
             status = NetworkDiagnosticsStatus.STOPPED;
             startFailure = null;
+            captureSnapshotValid = false;
+            startInProgress = requestedMode == NetworkCaptureMode.BIDI
+                    || requestedMode == NetworkCaptureMode.AUTO;
             limitWarningEmitted = false;
             statusMessage = "Network diagnostics are not started";
             if (requestedMode == NetworkCaptureMode.OFF) {
@@ -246,7 +251,18 @@ public final class NetworkDiagnostics {
 
     public NetworkDiagnosticsResult assertNoFailedRequests() {
         Instant startedAt = Instant.now();
-        NetworkSummary current = summary();
+        AssertionCaptureSnapshot snapshot = assertionCaptureSnapshot();
+        NetworkSummary current = redactSummary(NetworkSummary.from(snapshot.events(), snapshot.ignoredEvents(),
+                snapshot.droppedEvents(), snapshot.failedStatusThreshold(), snapshot.status()));
+        if (!snapshot.valid()) {
+            String message = invalidCaptureAssertionMessage(snapshot);
+            NetworkDiagnosticsResult result = NetworkDiagnosticsResult.of(
+                    NetworkDiagnosticsStatus.ASSERTION_FAILED, message, current, elapsedSince(startedAt));
+            emit(UiTestLensEventType.NETWORK_ASSERTION_FAILED, UiTestLensStatus.FAILED,
+                    UiTestLensLogLevel.ERROR, result.message(), null, snapshot.startFailure());
+            throw NetworkAssertionError.redacted(result.message(), current, null,
+                    snapshot.startFailure(), redactionPolicy);
+        }
         if (current.hasFailures()) {
             NetworkDiagnosticsResult result = NetworkDiagnosticsResult.of(
                     NetworkDiagnosticsStatus.ASSERTION_FAILED, current.failureSummary(), current, elapsedSince(startedAt));
@@ -358,6 +374,8 @@ public final class NetworkDiagnostics {
         captureSource = source;
         activeMode = mode;
         started = true;
+        captureSnapshotValid = true;
+        startInProgress = false;
         status = NetworkDiagnosticsStatus.STARTED;
         startFailure = null;
     }
@@ -366,6 +384,8 @@ public final class NetworkDiagnostics {
         lock.lock();
         try {
             if (generation != token) return;
+            captureSnapshotValid = false;
+            startInProgress = false;
             markUnsupported("Network capture mode " + requestedMode.name() + " is unsupported: "
                     + messageFor(unsupported));
             startFailure = unsupported;
@@ -381,6 +401,8 @@ public final class NetworkDiagnostics {
             started = false;
             activeMode = null;
             captureSource = null;
+            captureSnapshotValid = false;
+            startInProgress = false;
             status = NetworkDiagnosticsStatus.FAILED;
             startFailure = failure;
             statusMessage = "WebDriver BiDi network capture failed to start for " + requestedMode.name()
@@ -394,11 +416,43 @@ public final class NetworkDiagnostics {
 
     private void markUnsupported(String message) {
         started = false;
+        captureSnapshotValid = false;
+        startInProgress = false;
         activeMode = null;
         captureSource = null;
         status = NetworkDiagnosticsStatus.UNSUPPORTED;
         statusMessage = message;
         addInternal(NetworkEvent.warning(message));
+    }
+
+    private AssertionCaptureSnapshot assertionCaptureSnapshot() {
+        lock.lock();
+        try {
+            return new AssertionCaptureSnapshot(generation, captureSnapshotValid, startInProgress,
+                    options.captureMode(), status, startFailure, List.copyOf(events), ignoredEvents,
+                    droppedEvents, options.failedStatusThreshold());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private static String invalidCaptureAssertionMessage(AssertionCaptureSnapshot snapshot) {
+        if (snapshot.startInProgress()) {
+            return "Cannot assert network failures: capture is still starting";
+        }
+        if (snapshot.generation() == 0) {
+            return "Cannot assert network failures: capture was not started";
+        }
+        if (snapshot.requestedMode() == NetworkCaptureMode.OFF) {
+            return "Cannot assert network failures: capture mode OFF";
+        }
+        if (snapshot.status() == NetworkDiagnosticsStatus.UNSUPPORTED) {
+            return "Cannot assert network failures: capture mode " + snapshot.requestedMode() + " is unsupported";
+        }
+        if (snapshot.status() == NetworkDiagnosticsStatus.FAILED) {
+            return "Cannot assert network failures: capture failed to start";
+        }
+        return "Cannot assert network failures: current capture generation was not started";
     }
 
     private void recordCaptured(long token, NetworkEvent event) {
@@ -800,4 +854,8 @@ public final class NetworkDiagnostics {
     private record RawLogEmission(NetworkEvent event, RawLogDetails details, boolean hudVisible) {}
     private record RawLogDetails(String requestId, String method, String safeUrl, String status,
                                  String resourceType, String durationMs) {}
+    private record AssertionCaptureSnapshot(long generation, boolean valid, boolean startInProgress,
+                                             NetworkCaptureMode requestedMode, NetworkDiagnosticsStatus status,
+                                             Throwable startFailure, List<NetworkEvent> events,
+                                             int ignoredEvents, int droppedEvents, int failedStatusThreshold) {}
 }
