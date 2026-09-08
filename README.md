@@ -166,6 +166,8 @@ String name = lens.getByRole("button", "Save order").accessibleName();
 
 `getByLabel` requires a native or ARIA label source, placeholder is deliberately separate, and `getByAltText` matches only the `alt` attribute. No JavaScript accessible-name algorithm or text/`aria-label` fallback is used.
 
+`TestLensOptions.locatorOptions(...)` is the instance-wide locator policy: the same timeout, polling, recovery-retry, actionability, and highlighting settings apply to `locator(...)`, every `getBy*` factory, and every locator derived through collection filtering, positional selection, or scoped chaining. Two Lens instances remain independent even when they share a driver.
+
 Collection queries also compose lazily and remain scoped to their parents:
 
 ```java

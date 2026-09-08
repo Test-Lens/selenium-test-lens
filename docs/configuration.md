@@ -13,7 +13,7 @@ published JARs and require Java 17 or newer; compatibility is verified on JDK
 | Option | Purpose |
 |---|---|
 | `overlayConfig(...)` | Configures the visual overlay and HUD. |
-| `locatorOptions(...)` | Sets the default locator timeout, polling, retries, and actionability behavior. |
+| `locatorOptions(...)` | Sets the instance-wide locator timeout, polling, retries, and actionability behavior for `locator(...)`, every `getBy*` factory, and all derived locator stages. |
 | `outputRoot(...)` | Changes the root directory for session reports and diagnostics. |
 | `screenshotOnFailure(...)` | Controls automatic screenshot capture during failed finalization. |
 | `failureBundleOptions(...)` | Controls automatic failed-session collectors, limits, and ZIP creation. |

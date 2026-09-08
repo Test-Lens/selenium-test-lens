@@ -36,7 +36,8 @@ public final class TestLens {
 
     private TestLens(WebDriver driver, TestLensOptions options) {
         this.options = options == null ? TestLensOptions.defaults() : options;
-        this.delegate = new JsOverlayDebug(driver, this.options.overlayConfig(), this.options.redactionPolicy());
+        this.delegate = new JsOverlayDebug(driver, this.options.overlayConfig(), this.options.redactionPolicy(),
+                this.options.locatorOptions());
     }
 
     public static TestLens attach(WebDriver driver) { return new TestLens(driver, TestLensOptions.defaults()); }
@@ -62,8 +63,8 @@ public final class TestLens {
                         options.retryOutcomePolicy(), false, java.util.Map.of(), java.util.Map.of(), java.util.Map.of()));
     }
 
-    public UiLocator locator(By by) { return delegate.locator(by, options.locatorOptions()); }
-    public UiLocator locator(By by, String label) { return delegate.locator(by, label, options.locatorOptions()); }
+    public UiLocator locator(By by) { return delegate.locator(by); }
+    public UiLocator locator(By by, String label) { return delegate.locator(by, label); }
     public UiExpect expect(By by) { return locator(by).expect(); }
     public UiExpect expect(By by, String label) { return locator(by, label).expect(); }
     public UiPageExpect expectPage() { return delegate.expectPage(); }

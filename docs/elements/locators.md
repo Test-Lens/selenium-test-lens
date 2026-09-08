@@ -6,6 +6,8 @@ API level: **Recommended**
 
 Create locators from an attached [`TestLens`](../reference/test-lens.md). Labels appear in trace, logs, HUD, and errors; they do not change matching.
 
+The effective `TestLensOptions.locatorOptions()` belongs to the facade instance and is used uniformly by `locator(...)` and every public `getBy*` factory. Every derived locator (`nth`/`first`/`last`, filters, `locator(...)`, and `filterHas(...)`) retains its source locator's options. A lower-level `JsOverlayDebug` created directly uses the normal defaults unless an existing explicit-options `locator(...)` overload is selected.
+
 ## locator(By by)
 
 <!-- API SIGNATURES: io.github.testlens.TestLens -->

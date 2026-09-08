@@ -96,6 +96,7 @@ public final class JsOverlayDebug {
     private final Guards guards;
     private final OverlayLogger logger;
     private final RedactionPolicy redactionPolicy;
+    private final UiLocatorOptions locatorOptions;
     private final SessionTraceLogSink sessionTraceLogSink = new SessionTraceLogSink();
     private final HudLogSink hudLogSink = new HudLogSink();
     private OverlayPolicy overlayPolicy = OverlayPolicy.none();
@@ -117,24 +118,32 @@ public final class JsOverlayDebug {
     }
 
     JsOverlayDebug(WebDriver driver, OverlayConfig config, RedactionPolicy redactionPolicy) {
-        this(driver, config, redactionPolicy, createDefaultComponents(driver, config,
+        this(driver, config, redactionPolicy, UiLocatorOptions.defaults());
+    }
+
+    JsOverlayDebug(WebDriver driver, OverlayConfig config, RedactionPolicy redactionPolicy,
+                   UiLocatorOptions locatorOptions) {
+        this(driver, config, redactionPolicy, locatorOptions, createDefaultComponents(driver, config,
                 OverlayLogger.from(UiTestLensLogger.builder().redactionPolicy(redactionPolicy).build())));
     }
 
     private JsOverlayDebug(WebDriver driver, OverlayConfig config, RedactionPolicy redactionPolicy,
-                           DefaultComponents components) {
-        this(driver, config, redactionPolicy, components.apiPanel(), components.guards(), components.logger());
+                           UiLocatorOptions locatorOptions, DefaultComponents components) {
+        this(driver, config, redactionPolicy, locatorOptions,
+                components.apiPanel(), components.guards(), components.logger());
     }
 
     private JsOverlayDebug(WebDriver driver,
                            OverlayConfig config,
                            RedactionPolicy redactionPolicy,
+                           UiLocatorOptions locatorOptions,
                            ApiOverlayPanel apiPanel,
                            Guards guards,
                            OverlayLogger logger) {
         this.apiPanel = apiPanel;
         this.guards = guards;
         this.redactionPolicy = redactionPolicy == null ? RedactionPolicy.defaults() : redactionPolicy;
+        this.locatorOptions = locatorOptions == null ? UiLocatorOptions.defaults() : locatorOptions;
         OverlayLogger baseLogger = logger != null ? logger : OverlayLogger.noop();
         this.logger = baseLogger.withSink(sessionTraceLogSink).withSink(hudLogSink);
         if (driver == null) {
@@ -184,11 +193,11 @@ public final class JsOverlayDebug {
     }
 
     public UiLocator locator(By by) {
-        return locator(by, "", UiLocatorOptions.defaults());
+        return locator(by, "", locatorOptions);
     }
 
     public UiLocator locator(By by, String label) {
-        return locator(by, label, UiLocatorOptions.defaults());
+        return locator(by, label, locatorOptions);
     }
 
     public UiLocator locator(By by, UiLocatorOptions options) {

@@ -47,6 +47,8 @@ Form actions stay inside the main Selenium locator layer. Semantic control resol
 
 Semantic accessibility factories are represented by an internal lazy Selenium `By`: an ordinary selector narrows candidates, while typed `WebElement.getAriaRole()` and `getAccessibleName()` perform final matching in DOM order. No element is cached and no JavaScript accessibility algorithm is maintained by Test Lens.
 
+Locator construction has one facade-local options boundary. `TestLens` supplies its effective `TestLensOptions.locatorOptions()` when it creates the underlying `JsOverlayDebug`; ordinary and semantic factories then share the same internal locator constructor. Immutable composite stages retain the source `UiLocatorOptions`, so chaining cannot silently return to global defaults and separate facade instances never share mutable configuration.
+
 Collection composition extends that approach with immutable internal `By` stages for scoped descendants, text and DOM-attribute filters, descendant-existence filters, and positional selection. Descendant stages run through a scoped `SearchContext` and intersect every result with the parent's actual `.//*` subtree; this contains semantic, custom, nested, and document-rooted XPath queries without parsing selector strings. Each observation replays the pipeline against the current frame/window, preserves DOM order, and discards the entire snapshot on stale-element failure.
 
 Chrome and Firefox headless runs are required in CI. A headed Chrome run under Xvfb is available as a non-blocking manual smoke test. Edge and remote-grid execution are not currently in the browser matrix.
