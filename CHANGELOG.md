@@ -4,6 +4,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+- Fixed a capture lifecycle race where `stop()` during an in-progress BiDi initialization could be undone by the late completion of that initialization. Stopping now invalidates the generation before returning; stale sources are closed once and cannot publish state or events.
 - Fixed semantic `getBy*` factories ignoring the `UiLocatorOptions` configured on their owning `TestLens`. Ordinary, semantic, and subsequently chained locators now share the same instance-scoped options; explicit locator options still take precedence.
 - Fixed `NetworkDiagnostics.assertNoFailedRequests()` falsely passing when the current capture generation was never activated. Never-started, `OFF`, unsupported, and failed/in-progress starts now produce `NetworkAssertionError`; a successfully activated generation remains assertable after `stop()`.
 - Fixed composed locator containment so descendant and `filterHas` queries cannot escape a parent subtree, including semantic locators and user XPath expressions beginning with `//`.

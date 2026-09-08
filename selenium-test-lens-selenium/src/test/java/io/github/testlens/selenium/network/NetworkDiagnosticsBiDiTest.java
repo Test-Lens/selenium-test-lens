@@ -28,6 +28,155 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class NetworkDiagnosticsBiDiTest {
     @Test
+    void stopDuringBlockedInitializationCannotBeUndoneByLateSuccessfulOpen() throws Exception {
+        FakeFactory factory = new FakeFactory();
+        factory.blockOpen = true;
+        List<UiTestLensLogEntry> entries = new ArrayList<>();
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(),
+                OverlayLogger.from(UiTestLensLogger.builder().sink(entries::add).build()), factory);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> starting = executor.submit(() -> diagnostics.start(options(NetworkCaptureMode.BIDI)));
+            assertTrue(factory.openEntered.await(1, TimeUnit.SECONDS));
+
+            diagnostics.stop();
+            diagnostics.stop();
+            assertFalse(diagnostics.isStarted());
+            assertEquals(NetworkDiagnosticsStatus.STOPPED, diagnostics.summary().status());
+
+            factory.releaseOpen.countDown();
+            starting.get(1, TimeUnit.SECONDS);
+
+            FakeSource cancelled = factory.latest();
+            assertFalse(diagnostics.isStarted());
+            assertTrue(diagnostics.activeCaptureMode().isEmpty());
+            assertEquals(NetworkDiagnosticsStatus.STOPPED, diagnostics.summary().status());
+            assertEquals(1, cancelled.closes.get());
+            cancelled.fire(response("cancelled", "/late", 200, 0));
+            assertEquals(0, diagnostics.summary().totalResponses());
+            assertEquals(0, entries.stream()
+                    .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED).count());
+            assertEquals(1, entries.stream()
+                    .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_DIAGNOSTICS_STOPPED).count());
+            assertThrows(NetworkAssertionError.class, diagnostics::assertNoFailedRequests);
+            NetworkWaitResult wait = diagnostics.waitForResponse("/late", 200);
+            assertEquals(NetworkWaitStatus.SKIPPED, wait.status());
+            assertEquals(NetworkWaitFailureReason.CAPTURE_NOT_STARTED, wait.failureReason());
+            assertEquals(0, wait.attempts());
+        } finally {
+            factory.releaseOpen.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void lateInitializationFailureCannotOverwriteStoppedState() throws Exception {
+        FakeFactory factory = new FakeFactory();
+        factory.blockOpen = true;
+        factory.failure = new IllegalStateException("late subscription failure");
+        List<UiTestLensLogEntry> entries = new ArrayList<>();
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(),
+                OverlayLogger.from(UiTestLensLogger.builder().sink(entries::add).build()), factory);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> starting = executor.submit(() -> diagnostics.start(options(NetworkCaptureMode.BIDI)));
+            assertTrue(factory.openEntered.await(1, TimeUnit.SECONDS));
+            diagnostics.stop();
+            factory.releaseOpen.countDown();
+            starting.get(1, TimeUnit.SECONDS);
+
+            assertFalse(diagnostics.isStarted());
+            assertEquals(NetworkDiagnosticsStatus.STOPPED, diagnostics.summary().status());
+            assertEquals(0, entries.stream()
+                    .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED).count());
+            assertThrows(NetworkAssertionError.class, diagnostics::assertNoFailedRequests);
+        } finally {
+            factory.releaseOpen.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void freshStartAfterCancellationCanActivateNormally() throws Exception {
+        FakeFactory factory = new FakeFactory();
+        factory.blockOpen = true;
+        NetworkDiagnostics diagnostics = diagnostics(factory);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> cancelledStart = executor.submit(() -> diagnostics.start(options(NetworkCaptureMode.BIDI)));
+            assertTrue(factory.openEntered.await(1, TimeUnit.SECONDS));
+            diagnostics.stop();
+            factory.releaseOpen.countDown();
+            cancelledStart.get(1, TimeUnit.SECONDS);
+        } finally {
+            factory.releaseOpen.countDown();
+            executor.shutdownNow();
+        }
+
+        factory.blockOpen = false;
+        diagnostics.start(options(NetworkCaptureMode.BIDI));
+        assertTrue(diagnostics.isStarted());
+        assertEquals(NetworkCaptureMode.BIDI, diagnostics.activeCaptureMode().orElseThrow());
+        assertEquals(NetworkDiagnosticsStatus.STARTED, diagnostics.summary().status());
+        diagnostics.stop();
+        assertEquals(1, factory.latest().closes.get());
+    }
+
+    @Test
+    void olderInitializationCannotOverwriteOrCloseNewerGeneration() throws Exception {
+        SequencedFactory factory = new SequencedFactory();
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), OverlayLogger.noop(), factory);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> older = executor.submit(() -> diagnostics.start(options(NetworkCaptureMode.BIDI)));
+            assertTrue(factory.firstOpenEntered.await(1, TimeUnit.SECONDS));
+
+            diagnostics.start(options(NetworkCaptureMode.BIDI));
+            FakeSource current = factory.secondSource;
+            assertTrue(diagnostics.isStarted());
+
+            factory.releaseFirstOpen.countDown();
+            older.get(1, TimeUnit.SECONDS);
+
+            assertTrue(diagnostics.isStarted());
+            assertSame(current, factory.secondSource);
+            assertEquals(1, factory.firstSource.closes.get());
+            assertEquals(0, current.closes.get());
+            factory.firstSource.fire(response("old", "/old", 200, 0));
+            current.fire(response("new", "/new", 200, 0));
+            assertEquals(1, diagnostics.summary().totalResponses());
+            assertTrue(diagnostics.events().stream().anyMatch(event -> "/new".equals(event.url())));
+            assertFalse(diagnostics.events().stream().anyMatch(event -> "/old".equals(event.url())));
+        } finally {
+            factory.releaseFirstOpen.countDown();
+            diagnostics.stop();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void cancellationOrderingIsStableAcrossOneHundredDeterministicRuns() throws Exception {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            for (int run = 0; run < 100; run++) {
+                FakeFactory factory = new FakeFactory();
+                factory.blockOpen = true;
+                NetworkDiagnostics diagnostics = diagnostics(factory);
+                Future<?> starting = executor.submit(() -> diagnostics.start(options(NetworkCaptureMode.BIDI)));
+                assertTrue(factory.openEntered.await(1, TimeUnit.SECONDS), "open did not block in run " + run);
+                diagnostics.stop();
+                factory.releaseOpen.countDown();
+                starting.get(1, TimeUnit.SECONDS);
+                assertFalse(diagnostics.isStarted(), "cancelled start reactivated in run " + run);
+                assertEquals(NetworkDiagnosticsStatus.STOPPED, diagnostics.summary().status());
+                assertEquals(1, factory.latest().closes.get());
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
     void bidiAndAutoActivateOnlyAfterFactorySucceeds() {
         for (NetworkCaptureMode requested : List.of(NetworkCaptureMode.BIDI, NetworkCaptureMode.AUTO)) {
             FakeFactory factory = new FakeFactory();
@@ -811,6 +960,32 @@ class NetworkDiagnosticsBiDiTest {
         @Override public void close() {
             closes.incrementAndGet();
             if (closeFailure != null) throw closeFailure;
+        }
+    }
+
+    private static final class SequencedFactory implements NetworkCaptureSourceFactory {
+        private final AtomicInteger opens = new AtomicInteger();
+        private final CountDownLatch firstOpenEntered = new CountDownLatch(1);
+        private final CountDownLatch releaseFirstOpen = new CountDownLatch(1);
+        private volatile FakeSource firstSource;
+        private volatile FakeSource secondSource;
+
+        @Override
+        public NetworkCaptureSource open(WebDriver driver, NetworkDiagnosticsOptions options,
+                                         NetworkCaptureSink sink) {
+            int call = opens.incrementAndGet();
+            FakeSource source = new FakeSource(sink);
+            if (call == 1) {
+                firstSource = source;
+                firstOpenEntered.countDown();
+                await(releaseFirstOpen);
+                return source;
+            }
+            if (call == 2) {
+                secondSource = source;
+                return source;
+            }
+            throw new IllegalStateException("unexpected open " + call);
         }
     }
 }

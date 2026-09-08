@@ -132,7 +132,7 @@ public final class NetworkDiagnostics {
             boolean accepted;
             lock.lock();
             try {
-                accepted = generation == token && !started && captureSource == null;
+                accepted = generation == token && startInProgress && !started && captureSource == null;
                 if (accepted) {
                     activate(token, NetworkCaptureMode.BIDI, opened);
                     statusMessage = "Network diagnostics started with WebDriver BiDi"
@@ -145,8 +145,9 @@ public final class NetworkDiagnostics {
                 lock.unlock();
             }
             if (!accepted) {
-                closeQuietly(opened, null);
+                RuntimeException cleanupFailure = closeQuietly(opened, null);
                 opened = null;
+                if (cleanupFailure != null) emitCancelledSourceCleanupFailure(cleanupFailure);
             } else {
                 emitStarted();
             }
@@ -160,14 +161,20 @@ public final class NetworkDiagnostics {
         return this;
     }
 
+    private void emitCancelledSourceCleanupFailure(RuntimeException failure) {
+        emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STOPPED, UiTestLensStatus.FAILED,
+                UiTestLensLogLevel.WARN, "Cancelled network capture cleanup failed", null, failure);
+    }
+
     /** Stops active capture, preserves collected events, and never closes the WebDriver. */
     public NetworkDiagnostics stop() {
         NetworkCaptureSource source;
         lock.lock();
         try {
-            if (!started && captureSource == null) return this;
+            if (!started && captureSource == null && !startInProgress) return this;
             generation++;
             started = false;
+            startInProgress = false;
             activeMode = null;
             status = NetworkDiagnosticsStatus.STOPPED;
             statusMessage = "Network diagnostics stopped";
