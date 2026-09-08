@@ -33,6 +33,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -248,6 +249,8 @@ class NetworkBiDiBrowserIT {
         String transportCanary = "browser-redaction-transport-canary";
         String networkCanary = "TL_NETWORK_SUMMARY_CANARY";
         try {
+            // Complete browser-controlled navigation (including implicit resource requests) before capture.
+            driver.get(baseUrl + "/redaction-page?access_token=" + transportCanary);
             Path output = Path.of("target", "ui-test-lens", browserName(), "central-redaction");
             RedactionPolicy policy = RedactionPolicy.builder()
                     .sensitiveKey("tenant-session")
@@ -267,7 +270,6 @@ class NetworkBiDiBrowserIT {
                     .maskSensitiveHeaders(false)
                     .build());
 
-            driver.get(baseUrl + "/redaction-page?access_token=" + transportCanary);
             lens.step("structured JSON redaction", () -> session.addEvent(
                     io.github.testlens.core.trace.TraceEvent.info("metadata",
                             "{\"password\":\"" + apostropheCanary + "\"}")));
@@ -288,14 +290,29 @@ class NetworkBiDiBrowserIT {
                     .urlContains("/api/failure").status(503).includeFailedResponses(true)
                     .timeout(Duration.ofSeconds(5)).build());
             assertEquals(NetworkWaitStatus.MATCHED, failedResponse.status());
+            NetworkEvent matchedFailure = failedResponse.matchedEvent();
+            String matchedDiagnostic = safeFailureDiagnostic(matchedFailure, network);
+            assertEquals(NetworkEventType.RESPONSE, matchedFailure.type(), matchedDiagnostic);
+            assertNotNull(matchedFailure.response(), matchedDiagnostic);
+            assertEquals(503, matchedFailure.response().status(), matchedDiagnostic);
+            assertEquals("/api/failure", safePath(matchedFailure.url()), matchedDiagnostic);
+            assertSafeNetworkFailure(matchedFailure.url(), networkCanary, matchedDiagnostic);
+
+            var summary = network.summary();
+            NetworkEvent firstFailure = summary.firstFailure().orElseThrow();
+            String firstDiagnostic = safeFailureDiagnostic(firstFailure, network);
+            assertEquals(NetworkEventType.RESPONSE, firstFailure.type(), firstDiagnostic);
+            assertNotNull(firstFailure.response(), firstDiagnostic);
+            assertEquals(503, firstFailure.response().status(), firstDiagnostic);
+            assertEquals("/api/failure", safePath(firstFailure.url()), firstDiagnostic);
+            assertEquals(matchedFailure.id(), firstFailure.id(), firstDiagnostic);
+            assertSafeNetworkFailure(firstFailure.url(), networkCanary, firstDiagnostic);
+
             NetworkAssertionError networkError = assertThrows(NetworkAssertionError.class,
                     network::assertNoFailedRequests);
-            String networkDiagnostics = network.summary().failureSummary()
-                    + network.summary().firstFailure().orElseThrow().url()
-                    + networkError.getMessage() + networkError;
-            assertFalse(networkDiagnostics.contains(networkCanary));
-            assertFalse(networkDiagnostics.contains("network-fragment"));
-            assertTrue(networkDiagnostics.contains("[REDACTED]"));
+            assertSafeNetworkFailure(summary.failureSummary(), networkCanary, firstDiagnostic);
+            assertSafeNetworkFailure(networkError.getMessage(), networkCanary, firstDiagnostic);
+            assertSafeNetworkFailure(networkError.toString(), networkCanary, firstDiagnostic);
 
             String browserUi = overlayText(driver);
             assertNoStructuredJsonCanary(browserUi, "browser UI");
@@ -346,6 +363,34 @@ class NetworkBiDiBrowserIT {
         assertFalse(value.contains("TL_JSON_APOSTROPHE_CANARY"), source + " (apostrophe canary)");
         assertFalse(value.contains("TL_JSON_ESCAPED_QUOTE_CANARY"), source + " (escaped-quote canary)");
         assertFalse(value.contains("o'TL_JSON"), source + " (apostrophe prefix)");
+    }
+
+    private static void assertSafeNetworkFailure(String value, String canary, String diagnostic) {
+        assertFalse(value.contains(canary), diagnostic + "; token canary leaked");
+        assertFalse(value.contains("network-fragment"), diagnostic + "; fragment leaked");
+        assertFalse(value.contains("user:pass@"), diagnostic + "; userinfo leaked");
+        assertTrue(value.contains("[REDACTED]"), diagnostic + "; replacement missing");
+    }
+
+    private static String safeFailureDiagnostic(NetworkEvent event, NetworkDiagnostics network) {
+        var summary = network.summary();
+        int status = event != null && event.response() != null ? event.response().status() : -1;
+        return "type=" + (event == null ? "NONE" : event.type())
+                + ", status=" + status
+                + ", path=" + (event == null ? "" : safePath(event.url()))
+                + ", requests=" + summary.totalRequests()
+                + ", responses=" + summary.totalResponses()
+                + ", failedResponses=" + summary.failedResponses()
+                + ", failedRequests=" + summary.failedRequests();
+    }
+
+    private static String safePath(String url) {
+        try {
+            String path = URI.create(url).getPath();
+            return path == null || path.isBlank() ? "/" : path;
+        } catch (RuntimeException failure) {
+            return "url[length=" + (url == null ? 0 : url.length()) + "]";
+        }
     }
 
     private static void awaitSummary(WebDriver driver, NetworkDiagnostics network,
@@ -444,7 +489,7 @@ class NetworkBiDiBrowserIT {
                     "text/html; charset=utf-8", "<!doctype html><title>BiDi network</title><p>ready</p>");
             case "/redaction-page" -> {
                 response(exchange, 200, "text/html; charset=utf-8",
-                        "<!doctype html><title>Redaction</title>"
+                        "<!doctype html><title>Redaction</title><link rel=\"icon\" href=\"data:,\">"
                                 + "<script type=\"application/json\">"
                                 + "{\"password\":\"o'TL_JSON_APOSTROPHE_CANARY\"}"
                                 + "</script><p>ready</p>");
@@ -462,6 +507,7 @@ class NetworkBiDiBrowserIT {
             case "/api/final", "/api/restart", "/api/after-stop", "/api/bundle", "/api/redaction" ->
                     response(exchange, 200, "application/json", "{\"ok\":true}");
             case "/ignored" -> response(exchange, 204, "text/plain", "");
+            case "/favicon.ico" -> response(exchange, 204, "image/x-icon", "");
             case "/api/fetch-error" -> {
                 byte[] partial = "partial".getBytes(StandardCharsets.UTF_8);
                 exchange.getResponseHeaders().set("Content-Type", "text/plain");
