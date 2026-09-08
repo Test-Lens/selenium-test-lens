@@ -94,16 +94,32 @@ class SeleniumBiDiNetworkCaptureSourceTest {
         SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.defaults(), sink);
 
         module.response.accept(ResponseDetails.fromJsonMap(response(
-                "race", "/api/race", 0, 201, 1_700_000_000_150L, 10, 37)));
-        module.before.accept(BeforeRequestSent.fromJsonMap(base(
-                "race", "/api/race", 0, 1_700_000_000_123L)));
+                "race", "/api/final", 1, 201, 1_700_000_000_150L, 10, 37)));
 
-        assertEquals(2, sink.events.size());
-        assertEquals(NetworkEventType.RESPONSE, sink.events.get(0).type());
-        assertEquals(NetworkEventType.REQUEST, sink.events.get(1).type());
-        assertEquals("race", sink.events.get(0).correlatedRequest().id());
-        assertEquals(1, sink.events.stream().filter(event -> event.type() == NetworkEventType.REQUEST).count());
-        assertEquals(1, sink.events.stream().filter(event -> event.type() == NetworkEventType.RESPONSE).count());
+        List<NetworkEvent> responseSnapshot = List.copyOf(sink.events);
+        assertEquals(1, responseSnapshot.size());
+        assertEquals(NetworkEventType.RESPONSE, responseSnapshot.get(0).type());
+        assertEquals("race", responseSnapshot.get(0).correlatedRequest().id());
+        assertEquals("1", responseSnapshot.get(0).attributes().get("redirectCount"));
+        assertEquals(0, responseSnapshot.stream()
+                .filter(event -> event.type() == NetworkEventType.REQUEST).count());
+
+        module.before.accept(BeforeRequestSent.fromJsonMap(base(
+                "race", "/api/final", 1, 1_700_000_000_123L)));
+
+        List<NetworkEvent> completeSnapshot = List.copyOf(sink.events);
+        assertEquals(2, completeSnapshot.size());
+        assertEquals(NetworkEventType.RESPONSE, completeSnapshot.get(0).type());
+        assertEquals(NetworkEventType.REQUEST, completeSnapshot.get(1).type());
+        assertEquals("race", completeSnapshot.get(1).request().id());
+        assertEquals("1", completeSnapshot.get(1).attributes().get("redirectCount"));
+        assertEquals(completeSnapshot.get(0).response().requestId(), completeSnapshot.get(1).request().id());
+        assertEquals(completeSnapshot.get(0).attributes().get("redirectCount"),
+                completeSnapshot.get(1).attributes().get("redirectCount"));
+        assertEquals(1, completeSnapshot.stream()
+                .filter(event -> event.type() == NetworkEventType.REQUEST).count());
+        assertEquals(1, completeSnapshot.stream()
+                .filter(event -> event.type() == NetworkEventType.RESPONSE).count());
     }
 
     @Test

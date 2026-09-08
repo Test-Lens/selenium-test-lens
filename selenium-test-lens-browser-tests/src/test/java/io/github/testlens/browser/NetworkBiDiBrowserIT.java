@@ -40,6 +40,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -110,15 +111,11 @@ class NetworkBiDiBrowserIT {
             assertTrue(network.summary().failedResponses() >= 1);
             assertTrue(network.summary().failedRequests() >= 1);
 
-            NetworkEvent finalResponse = network.events().stream()
-                    .filter(event -> event.type() == NetworkEventType.RESPONSE)
-                    .filter(event -> event.url().contains("/api/final"))
-                    .findFirst().orElseThrow();
-            assertTrue(Integer.parseInt(finalResponse.attributes().get("redirectCount")) >= 1);
-            assertTrue(network.events().stream()
-                    .filter(event -> event.request() != null)
-                    .anyMatch(event -> event.request().id().equals(finalResponse.response().requestId())
-                            && event.attributes().get("redirectCount").equals(finalResponse.attributes().get("redirectCount"))));
+            RedirectCorrelation redirect = awaitRedirectCorrelation(driver, network);
+            assertTrue(Integer.parseInt(redirect.redirectCount()) >= 1);
+            assertEquals("/api/final", safePath(redirect.response().url()));
+            assertEquals(redirect.response().response().requestId(), redirect.request().request().id());
+            assertEquals(redirect.redirectCount(), redirect.request().attributes().get("redirectCount"));
 
             String json = network.exportJson();
             assertTrue(json.contains("\"requestedCaptureMode\":\"BIDI\""));
@@ -436,9 +433,42 @@ class NetworkBiDiBrowserIT {
                 .urlContains("/api/failure").status(503).includeFailedResponses(true)
                 .timeout(Duration.ofSeconds(5)).build());
         assertEquals(NetworkWaitStatus.MATCHED, failedStatus.status());
-        new WebDriverWait(driver, Duration.ofSeconds(5)).until(ignored ->
-                network.summary().failedResponses() >= failedResponses
-                        && network.summary().failedRequests() >= failedRequests);
+        new WebDriverWait(driver, Duration.ofSeconds(5)).until(ignored -> {
+            var snapshot = network.summary();
+            return snapshot.failedResponses() >= failedResponses
+                    && snapshot.failedRequests() >= failedRequests;
+        });
+    }
+
+    private static RedirectCorrelation awaitRedirectCorrelation(WebDriver driver, NetworkDiagnostics network) {
+        return new WebDriverWait(driver, Duration.ofSeconds(5)).until(ignored -> {
+            List<NetworkEvent> snapshot = network.events();
+            Optional<NetworkEvent> response = snapshot.stream()
+                    .filter(event -> event.type() == NetworkEventType.RESPONSE)
+                    .filter(event -> event.response() != null)
+                    .filter(event -> event.url().contains("/api/final"))
+                    .findFirst();
+            if (response.isEmpty()) return null;
+
+            NetworkEvent finalResponse = response.orElseThrow();
+            String redirectCount = finalResponse.attributes().get("redirectCount");
+            if (redirectCount == null) return null;
+            try {
+                if (Integer.parseInt(redirectCount) < 1) return null;
+            } catch (NumberFormatException invalidRedirectCount) {
+                return null;
+            }
+
+            List<NetworkEvent> matchingRequests = snapshot.stream()
+                    .filter(event -> event.type() == NetworkEventType.REQUEST)
+                    .filter(event -> event.request() != null)
+                    .filter(event -> event.request().id().equals(finalResponse.response().requestId()))
+                    .filter(event -> redirectCount.equals(event.attributes().get("redirectCount")))
+                    .toList();
+            return matchingRequests.size() == 1
+                    ? new RedirectCorrelation(finalResponse, matchingRequests.get(0), redirectCount)
+                    : null;
+        });
     }
 
     private static Object fetch(WebDriver driver, String path, boolean sensitiveHeader) {
@@ -466,6 +496,8 @@ class NetworkBiDiBrowserIT {
                 .filter(entry -> entry.getKey().equalsIgnoreCase(name))
                 .map(java.util.Map.Entry::getValue).findFirst().orElse(null);
     }
+
+    private record RedirectCorrelation(NetworkEvent response, NetworkEvent request, String redirectCount) {}
 
     private static int countResponses(List<NetworkEvent> events, String urlPart) {
         return (int) events.stream().filter(event -> event.response() != null)
