@@ -10,16 +10,42 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
+
+function Invoke-Mike {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string[]]$Arguments,
+        [Parameter(Mandatory=$true)]
+        [string]$FailureMessage
+    )
+
+    $displayArguments = $Arguments | ForEach-Object {
+        if ($_ -match '\s') { '"' + ($_ -replace '"', '\"') + '"' } else { $_ }
+    }
+    Write-Host ("mike arguments: " + ($displayArguments -join " "))
+    $output = @(& mike @Arguments)
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -ne 0) { throw "$FailureMessage (exit code $exitCode)." }
+    return $output
+}
+
 Push-Location $root
 try {
-    $push = if ($NoPush) { @() } else { @("--push") }
-    $listed = (& mike list --branch $Branch 2>$null) -join "`n"
+    Invoke-Mike -Arguments @("--version") -FailureMessage "Unable to read the pinned mike version"
+    [string[]]$listArguments = @("list", "--branch", $Branch)
+    $listed = (Invoke-Mike -Arguments $listArguments -FailureMessage "Unable to read mike metadata from branch '$Branch'") -join "`n"
     if ($Operation -eq "dev") {
         if ([string]::IsNullOrWhiteSpace($Version) -or -not $Version.EndsWith("-SNAPSHOT")) {
             throw "dev publication requires the -SNAPSHOT version read from the root POM."
         }
-        & mike deploy --branch $Branch @push --update-aliases --title "$Version / coming soon" dev
-        if ($LASTEXITCODE -ne 0) { throw "mike failed to update dev; gh-pages was not force-pushed." }
+        [string[]]$deployArguments = @(
+            "deploy", "dev",
+            "--branch", $Branch,
+            "--update-aliases",
+            "--title=$Version / coming soon"
+        )
+        if (-not $NoPush) { $deployArguments += "--push" }
+        Invoke-Mike -Arguments $deployArguments -FailureMessage "mike failed to update dev; gh-pages was not force-pushed"
         return
     }
 
@@ -40,10 +66,19 @@ try {
             throw "latest already points to a newer stable release; bootstrap is forbidden."
         }
     }
-    & mike deploy --branch $Branch --config-file $config @push --update-aliases --title $Version $Version latest
-    if ($LASTEXITCODE -ne 0) { throw "mike failed to publish immutable version '$Version'." }
-    & mike set-default --branch $Branch @push latest
-    if ($LASTEXITCODE -ne 0) { throw "mike failed to set root default to latest." }
+    [string[]]$deployArguments = @(
+        "deploy", $Version, "latest",
+        "--branch", $Branch,
+        "--config-file", $config,
+        "--update-aliases",
+        "--title=$Version"
+    )
+    if (-not $NoPush) { $deployArguments += "--push" }
+    Invoke-Mike -Arguments $deployArguments -FailureMessage "mike failed to publish immutable version '$Version'"
+
+    [string[]]$defaultArguments = @("set-default", "latest", "--branch", $Branch)
+    if (-not $NoPush) { $defaultArguments += "--push" }
+    Invoke-Mike -Arguments $defaultArguments -FailureMessage "mike failed to set root default to latest"
 } finally {
     Pop-Location
 }

@@ -24,6 +24,7 @@ function TreeHash([string]$Path) {
 try {
     New-Item -ItemType Directory -Path $work | Out-Null
     $repo = Join-Path $work "repo"
+    $remote = Join-Path $work "remote.git"
     New-Item -ItemType Directory -Path $repo | Out-Null
     foreach ($directory in @("docs", "docs-versions", "docs-versioning", "overrides", "scripts")) {
         Copy-Item -LiteralPath (Join-Path $root $directory) -Destination $repo -Recurse
@@ -39,8 +40,28 @@ try {
         & git config core.autocrlf false
         & git add .
         & git commit -q -m source
-        & ./scripts/publish-versioned-docs.ps1 -Operation bootstrap-0.1.0 -Confirmation publish-immutable-0.1.0 -NoPush
-        & ./scripts/publish-versioned-docs.ps1 -Operation dev -Version $developmentVersion -NoPush
+        & git init -q --bare $remote
+        & git remote add origin $remote
+        & git push -q -u origin HEAD:main
+
+        # Exercise the no-push path independently, including the title with spaces.
+        & ./scripts/publish-versioned-docs.ps1 -Operation dev -Version $developmentVersion -Branch gh-pages-no-push -NoPush
+        $noPushMetadata = (& git show gh-pages-no-push`:versions.json) -join "`n" | ConvertFrom-Json
+        $noPushDev = $noPushMetadata | Where-Object version -eq "dev"
+        if ($null -eq $noPushDev -or $noPushDev.title -ne "$developmentVersion / coming soon") {
+            throw "No-push dev deployment did not preserve the exact title argument."
+        }
+
+        $remotePagesBefore = @(& git ls-remote --heads origin gh-pages)
+        if ($remotePagesBefore.Count -ne 0) {
+            throw "Test remote unexpectedly contained gh-pages before the first pushed deployment."
+        }
+        & ./scripts/publish-versioned-docs.ps1 -Operation dev -Version $developmentVersion
+        $remotePagesAfter = @(& git ls-remote --heads origin gh-pages)
+        if ($remotePagesAfter.Count -eq 0) {
+            throw "First pushed dev deployment did not create gh-pages in the local bare remote."
+        }
+        & ./scripts/publish-versioned-docs.ps1 -Operation bootstrap-0.1.0 -Confirmation publish-immutable-0.1.0
         $stage = Join-Path $work "site-one"
         New-Item -ItemType Directory -Path $stage | Out-Null
         & git archive gh-pages -o (Join-Path $work "pages-one.tar")
@@ -50,7 +71,7 @@ try {
         Add-Content docs/index.md "`n<!-- validation-only dev redeploy -->"
         & git add docs/index.md
         & git commit -q -m dev-change
-        & ./scripts/publish-versioned-docs.ps1 -Operation dev -Version $developmentVersion -NoPush
+        & ./scripts/publish-versioned-docs.ps1 -Operation dev -Version $developmentVersion
         $stage2 = Join-Path $work "site-two"
         New-Item -ItemType Directory -Path $stage2 | Out-Null
         & git archive gh-pages -o (Join-Path $work "pages-two.tar")
@@ -63,7 +84,7 @@ try {
 
         $env:DOCS_RELEASE_VERSION = $futureReleaseVersion
         $env:DOCS_RELEASE_EDIT_URI = "edit/v$futureReleaseVersion/docs/"
-        & ./scripts/publish-versioned-docs.ps1 -Operation release -Version $futureReleaseVersion -NoPush
+        & ./scripts/publish-versioned-docs.ps1 -Operation release -Version $futureReleaseVersion
         $stage3 = Join-Path $work "site-three"
         New-Item -ItemType Directory -Path $stage3 | Out-Null
         & git archive gh-pages -o (Join-Path $work "pages-three.tar")
@@ -97,6 +118,10 @@ try {
         }
         $versions = Get-Content (Join-Path $stage2 "versions.json") -Raw | ConvertFrom-Json
         if (-not (($versions.version -contains "0.1.0") -and ($versions.version -contains "dev"))) { throw "mike metadata lacks stable/dev versions." }
+        $devVersion = $versions | Where-Object version -eq "dev"
+        if ($null -eq $devVersion -or $devVersion.title -ne "$developmentVersion / coming soon") {
+            throw "Pushed dev metadata did not preserve the exact title argument."
+        }
         $future = Get-Content (Join-Path $stage3 "versions.json") -Raw | ConvertFrom-Json
         $futureRelease = $future | Where-Object version -eq $futureReleaseVersion
         if ($null -eq $futureRelease -or $futureRelease.aliases -notcontains "latest") { throw "Future release did not move latest." }
