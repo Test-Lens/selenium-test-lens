@@ -1,5 +1,8 @@
 # Failure bundles
 
+!!! info "Coming in 0.2.0"
+    Automatic failure bundles are part of the current development line and are not available in Maven Central `0.1.0`.
+
 Every final `FAILED` facade session creates a best-effort, versioned failure bundle by default. This includes `finishFailed(...)`, `finishFailed(null)`, and a passed test rejected by `FAIL_ON_ANY_RETRY` or `FAIL_AFTER_N`. `PASSED`, `SKIPPED`, `REPORT_ONLY`, and `WARN` outcomes do not create one. Finalization never closes the driver.
 
 The session directory retains `trace.json`, `report.html`, and `failure-diagnostic.png`. `failure-bundle/` contains `manifest.json`, failure, context, trace-derived diagnostics, runtime, allowlisted configuration, the current network summary, and `failure-clean.png`. The network snapshot reports requested and active modes, status, requests/responses/failures, ignored events, and dropped events; it is derived from the same redacted immutable summary boundary used by network assertions and never starts capture during failure handling. Active Lens-owned capture is stopped only after this snapshot and before `SESSION_FINISHED`. `failure-bundle.zip` contains the manifest, every successfully captured component, the final reports, and the diagnostic screenshot.

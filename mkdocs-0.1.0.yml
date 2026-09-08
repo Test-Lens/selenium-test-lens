@@ -1,0 +1,50 @@
+site_name: Selenium Test Lens 0.1.0
+site_description: Archived documentation for the published Selenium Test Lens 0.1.0 release.
+site_url: https://test-lens.github.io/selenium-test-lens/
+repo_name: Test-Lens/selenium-test-lens
+repo_url: https://github.com/Test-Lens/selenium-test-lens
+edit_uri: ""
+docs_dir: docs-versions/0.1.0
+strict: true
+
+theme:
+  name: material
+  language: en
+  custom_dir: overrides
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - content.code.copy
+
+plugins:
+  - search
+  - mike:
+      alias_type: copy
+      canonical_version: latest
+
+nav:
+  - Stable 0.1.0: index.md
+  - Installation: installation.md
+  - Getting started: getting-started.md
+  - Published API: published-api.md
+
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+extra:
+  version:
+    provider: mike
+    default: latest
+    current: 0.1.0
+    is_dev: false
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn

@@ -1,0 +1,10 @@
+INHERIT: mkdocs.yml
+edit_uri: !ENV [DOCS_RELEASE_EDIT_URI, ""]
+
+extra:
+  version:
+    provider: mike
+    default: latest
+    current: !ENV [DOCS_RELEASE_VERSION, release]
+    is_dev: false
+    stable_url: https://test-lens.github.io/selenium-test-lens/latest/

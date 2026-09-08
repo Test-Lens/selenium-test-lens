@@ -1,5 +1,8 @@
 # Element assertions
 
+!!! info "Coming in 0.2.0"
+    Page, collection, attribute, CSS, attachment, selected, and checked assertions are part of the current development line and are not available in Maven Central `0.1.0`.
+
 `UiExpect` is obtained from `TestLens.expect(...)` or `UiLocator.expect()`. Each assertion polls until it passes or times out, reports attempts and elapsed time, and returns `UiAssertionResult` on success. Failure throws `UiAssertionError` carrying the result.
 
 <!-- API SIGNATURES: io.github.testlens.TestLens -->

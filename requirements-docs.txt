@@ -1,3 +1,4 @@
 # Keep documentation builds reproducible across local and GitHub Actions runs.
 mkdocs==1.6.1
-mkdocs-material==9.6.20
+mkdocs-material==9.7.7
+mike==2.2.0

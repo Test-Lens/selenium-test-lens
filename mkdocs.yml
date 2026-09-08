@@ -4,6 +4,11 @@ site_url: https://test-lens.github.io/selenium-test-lens/
 repo_name: Test-Lens/selenium-test-lens
 repo_url: https://github.com/Test-Lens/selenium-test-lens
 edit_uri: edit/main/docs/
+plugins:
+  - search
+  - mike:
+      alias_type: copy
+      canonical_version: latest
 exclude_docs: |
   CURRENT_IMPLEMENTATION_AUDIT.md
   assets/brand/README.md
@@ -14,6 +19,7 @@ not_in_nav: |
 
 theme:
   name: material
+  custom_dir: overrides
   language: en
   palette:
     - media: "(prefers-color-scheme: light)"
@@ -40,6 +46,7 @@ theme:
     - search.highlight
     - content.code.copy
     - content.code.annotate
+    - content.action.edit
     - toc.follow
 
 nav:
@@ -101,6 +108,7 @@ nav:
       - Binary API catalog (optional): reference/public-api-catalog.md
       - Architecture: architecture.md
       - Consumer compatibility: consumer-compatibility.md
+      - Publishing versioned docs: maintainers/documentation-versioning.md
       - Real-browser integration tests: browser-integration-tests.md
       - Changelog: https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md
       - Maven Central: https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0
@@ -133,6 +141,12 @@ validation:
   anchors: warn
 
 extra:
+  version:
+    provider: mike
+    default: latest
+    current: 0.2.0-SNAPSHOT
+    is_dev: true
+    stable_url: https://test-lens.github.io/selenium-test-lens/0.1.0/
   analytics:
     provider: google
     property: G-T0B0XE6MS1

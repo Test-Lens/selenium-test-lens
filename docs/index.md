@@ -8,6 +8,13 @@ hide:
 
 # Selenium Test Lens
 
+| Documentation | Status | Library availability |
+|---|---|---|
+| [0.1.0 stable](https://test-lens.github.io/selenium-test-lens/0.1.0/) | Latest published release | Maven Central |
+| [0.2.0-SNAPSHOT development](https://test-lens.github.io/selenium-test-lens/dev/) | Coming soon | Source build only |
+
+The root documentation URL and `latest` always select the latest immutable Maven Central release. This `/dev/` site follows `main`, carries a global development banner, and may describe unreleased APIs.
+
 **Better visibility and diagnostics for Selenium tests.**
 
 Selenium Test Lens adds retry-aware interactions, waits and failure diagnostics on top of the `WebDriver` you already use.

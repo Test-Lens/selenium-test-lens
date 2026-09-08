@@ -63,15 +63,17 @@ The latest version actually available from Maven Central remains `0.1.0`:
 ```kotlin
 dependencies {
     testImplementation("io.github.test-lens:selenium-test-lens:0.1.0")
-    testImplementation("io.github.test-lens:selenium-test-lens-junit5:0.1.0")
+    testImplementation("io.github.test-lens:selenium-test-lens-react:0.1.0")
 }
 ```
 
 ```groovy
 dependencies {
     testImplementation 'io.github.test-lens:selenium-test-lens:0.1.0'
-    testImplementation 'io.github.test-lens:selenium-test-lens-testng:0.1.0'
+    testImplementation 'io.github.test-lens:selenium-test-lens-react:0.1.0'
 }
 ```
 
-These examples do not imply that `0.2.0` has been published.
+Dedicated runner adapters exist only in the current source line and are tested
+by the release-transformed clean-room gate; they are not Maven Central 0.1.0
+coordinates. These examples do not imply that `0.2.0` has been published.

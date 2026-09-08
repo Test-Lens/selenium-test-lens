@@ -1,5 +1,11 @@
 # Architecture
 
+## Documentation release boundary
+
+Built documentation is versioned by `mike` on a durable `gh-pages` branch. Immutable release directories and the repeatedly updated `dev` directory share one metadata file and are deployed together as a complete GitHub Pages artifact. `latest` and the root redirect select a stable release; updating `dev` cannot delete or rebuild it. Pull requests receive read-only strict builds and a local disposable simulation, while only serialized trusted push/tag/manual jobs can write `gh-pages`.
+
+The archived 0.1.0 source is deliberately separate from current `docs/` because the release tag predates the complete MkDocs site. Future stable documentation is built from the matching tag, with edit links bound to that tag rather than `main`.
+
 Selenium Test Lens is split into small Maven modules so Selenium code, browser overlay resources, reporting models, and optional React support remain separate. Normal Selenium tests integrate through the main `selenium-test-lens` artifact.
 
 ## Module boundaries

@@ -1,5 +1,8 @@
 # JUnit 5 integration
 
+!!! info "Coming in 0.2.0"
+    The `selenium-test-lens-junit5` adapter is part of the current development line and is not available in Maven Central `0.1.0`.
+
 The `selenium-test-lens-junit5` module is the recommended JUnit Jupiter integration. The coordinate below follows the unreleased `0.2.0-SNAPSHOT` source tree and therefore requires a local source build or a configured snapshot repository. It creates one `WebDriver`, `TestLens`, and trace session for every test invocation, injects the driver and Lens into the test method, finalizes diagnostics, and only then closes the driver.
 
 Inside a test, `lens.expectPage()` polls URL or title on that invocation's active window. These checks use the normal Lens assertion events and results; they are neither JUnit retries nor recovery retries. Explicitly switch a popup before asserting its URL or title.
@@ -26,11 +29,11 @@ Add the extension in test scope and keep Selenium explicit at the version manage
 
 The extension artifact depends on `selenium-test-lens` and `junit-jupiter-api`. Its Selenium dependency is optional. JUnit engine, parameterized-test support, and Platform TestKit are not runtime dependencies of the artifact.
 
-For the currently published release, Gradle users can use Kotlin DSL:
+For a local build of the current development source, Gradle users can use Kotlin DSL:
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.test-lens:selenium-test-lens-junit5:0.1.0")
+    testImplementation("io.github.test-lens:selenium-test-lens-junit5:0.2.0-SNAPSHOT")
 }
 ```
 
@@ -38,7 +41,7 @@ or Groovy DSL:
 
 ```groovy
 dependencies {
-    testImplementation 'io.github.test-lens:selenium-test-lens-junit5:0.1.0'
+    testImplementation 'io.github.test-lens:selenium-test-lens-junit5:0.2.0-SNAPSHOT'
 }
 ```
 

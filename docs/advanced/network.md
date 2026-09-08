@@ -1,5 +1,8 @@
 # Network diagnostics
 
+!!! info "Coming in 0.2.0"
+    Passive WebDriver BiDi capture, network waits/assertions, summaries, and HUD filtering are part of the current development line and are not available in Maven Central `0.1.0`.
+
 Package: `io.github.testlens.selenium.network`<br>
 Module: `selenium-test-lens-selenium`<br>
 API level: **Advanced**

@@ -1,5 +1,8 @@
 # Element actions
 
+!!! info "Coming in 0.2.0"
+    The form-control actions described on this page are part of the current development line and are not available in Maven Central `0.1.0`.
+
 All action methods resolve the current element, emit structured operation events, and return the same `UiLocator` for chaining. Actions may be invoked on composed locators: scoping and filtering are evaluated lazily immediately before the action, without exposing a raw `WebElement` or concatenating global CSS/XPath selectors. Resolution/action retry is governed by [`UiLocatorOptions`](../reference/configuration.md#uilocatoroptions). A physical action/read failure that schedules another attempt emits a dedicated `RETRY` trace event; a terminal failure does not add an extra retry. Diagnostics do not add WebDriver calls or change their order. A final failure is wrapped as `UiLocatorException`; `action()`, `locatorDescription()`, and `actionabilitySummary()` add context and the underlying WebDriver failure remains the cause.
 
 ## click()

@@ -1,0 +1,22 @@
+# Generated/audited documentation boundary: v0.1.0..main
+# Every entry is present on main and absent from tag v0.1.0. Validation checks both sides.
+MODULE selenium-test-lens-junit5
+MODULE selenium-test-lens-testng
+TYPE io.github.testlens.core.redaction.RedactionPolicy
+TYPE io.github.testlens.core.trace.RetryOutcomePolicy
+TYPE io.github.testlens.core.trace.RetryPolicyViolationException
+TYPE io.github.testlens.core.trace.RetrySummary
+TYPE io.github.testlens.selenium.assertions.UiPageExpect
+TYPE io.github.testlens.selenium.evidence.FailureBundleOptions
+TYPE io.github.testlens.selenium.network.NetworkHudFilter
+TYPE io.github.testlens.selenium.network.SeleniumBiDiNetworkCaptureSource
+TYPE io.github.testlens.SemanticBy
+TYPE io.github.testlens.selenium.locator.CompositeBy
+TYPE io.github.testlens.junit5.TestLensExtension
+TYPE io.github.testlens.testng.TestLensTestNgContext
+TYPE io.github.testlens.testng.TestLensTestNgFactory
+TYPE io.github.testlens.testng.TestLensTestNgListener
+SYMBOL expectPage(
+SYMBOL getByAltText(
+SYMBOL filterHas(
+SYMBOL waitUntilCount(

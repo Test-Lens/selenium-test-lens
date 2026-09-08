@@ -5,6 +5,10 @@ $docsRoot = Join-Path $root "docs"
 $files = @()
 $files += Join-Path $root "README.md"
 $files += Get-ChildItem -Path $docsRoot -Filter "*.md" -File -Recurse | ForEach-Object { $_.FullName }
+$versionedDocsRoot = Join-Path $root "docs-versions"
+if (Test-Path $versionedDocsRoot) {
+    $files += Get-ChildItem -Path $versionedDocsRoot -Filter "*.md" -File -Recurse | ForEach-Object { $_.FullName }
+}
 
 $linkPattern = "\[[^\]]+\]\(([^)]+)\)"
 $failures = New-Object System.Collections.Generic.List[string]

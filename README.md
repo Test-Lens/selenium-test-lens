@@ -4,6 +4,13 @@
 
 # Selenium Test Lens
 
+| Version | Status | Availability | Documentation |
+|---|---|---|---|
+| `0.1.0` | Latest stable | Maven Central | [Stable documentation — 0.1.0](https://test-lens.github.io/selenium-test-lens/0.1.0/) |
+| `0.2.0-SNAPSHOT` | Development / coming soon | Not available from Maven Central | [Development documentation — 0.2.0-SNAPSHOT](https://test-lens.github.io/selenium-test-lens/dev/) |
+
+**[Stable documentation — 0.1.0](https://test-lens.github.io/selenium-test-lens/0.1.0/)** · **[Development documentation — 0.2.0-SNAPSHOT](https://test-lens.github.io/selenium-test-lens/dev/)**
+
 Selenium Test Lens adds observable, retryable interactions, an in-browser diagnostic HUD, trace reports, and evidence capture to the Selenium `WebDriver` your test framework already owns.
 
 Successful operations that required a recovery retry are exposed as a per-session `RetrySummary`. The default `REPORT_ONLY` policy preserves existing outcomes; `WARN`, `FAIL_AFTER_N`, and `FAIL_ON_ANY_RETRY` can make flaky candidates visible or reject an otherwise passed test after reports are written.
@@ -51,9 +58,14 @@ dependencies {
 }
 ```
 
-Use `selenium-test-lens-junit5`, `selenium-test-lens-testng`, or
-`selenium-test-lens-react` in place of the artifact name for an optional
-integration. Java 17 is the minimum source, bytecode, and runtime level;
+`selenium-test-lens-react` is available in 0.1.0. The JUnit 5 and TestNG adapter
+artifacts shown below are part of the source-only development line.
+
+> **Coming in 0.2.0 — not available in the current Maven Central release (0.1.0).**
+> The `selenium-test-lens-junit5` and `selenium-test-lens-testng` modules require
+> a local build of the current source until 0.2.0 is released.
+
+Java 17 is the minimum source, bytecode, and runtime level;
 Java 11 is not supported. Clean-room Maven and Gradle consumers are verified
 on JDK 17 and JDK 21. The new Gradle consumer smoke is browser-free; real
 browser behavior remains the responsibility of the separate Chrome/Firefox
@@ -128,6 +140,11 @@ TestLensOptions options = TestLensOptions.builder()
 `allowedRetries` is the permitted number of recovery retries; `FAIL_AFTER_N` fails only when the session total is greater than that limit. See [Flakiness and retry outcomes](docs/observability/flakiness.md).
 
 ## First session
+
+> **Coming in 0.2.0 — not available in the current Maven Central release (0.1.0).**
+> The form actions, semantic/composite locators, page assertions, central redaction,
+> automatic failure bundles, and passive BiDi capture shown below belong to the
+> current development line.
 
 ```java
 import io.github.testlens.TestLens;

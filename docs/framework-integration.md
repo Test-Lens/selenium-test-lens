@@ -62,7 +62,10 @@ Page Objects can keep form interaction behind `UiLocator`: `check()`, `uncheck()
 
 ## JUnit 5
 
-Use the published `selenium-test-lens-junit5` module instead of copying lifecycle callbacks into each project:
+!!! info "Coming in 0.2.0"
+    The dedicated JUnit 5 and TestNG adapters are part of the current development line and are not available in Maven Central `0.1.0`.
+
+When building the current source, use `selenium-test-lens-junit5` instead of copying lifecycle callbacks into each project:
 
 ```java
 @RegisterExtension
@@ -84,7 +87,7 @@ The extension owns the driver returned by the factory. It finalizes reports befo
 
 ## TestNG
 
-Use the published `selenium-test-lens-testng` listener rather than copying `@BeforeMethod`/`@AfterMethod` lifecycle code:
+When building the current source, use the `selenium-test-lens-testng` listener rather than copying `@BeforeMethod`/`@AfterMethod` lifecycle code:
 
 ```java
 @Listeners(TestLensTestNgListener.class)
