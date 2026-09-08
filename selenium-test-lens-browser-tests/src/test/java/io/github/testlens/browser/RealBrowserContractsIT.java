@@ -288,16 +288,23 @@ class RealBrowserContractsIT {
         TestLens lens = configuredLens(enabled, true);
         lens.startSession("composite-cards-" + enabled + "-" + UUID.randomUUID());
         var buy = lens.getByRole("button", "Buy");
+        var emptyCard = lens.locator(By.id("laptop-sold"), "Empty card");
+        var targetCard = lens.locator(By.id("laptop-available"), "Target card");
+        var xpathCard = lens.locator(By.id("phone-available"), "XPath target card");
         var cards = lens.locator(By.cssSelector(".product-card"), "Product cards")
                 .filterByTextContaining("Laptop")
                 .filterByAttribute("data-status", "available")
                 .filterHas(buy);
 
-        cards.waitUntilCountAtLeast(1).first().locator(buy).click();
+        assertEquals(0, emptyCard.filterHas(buy).count());
+        cards.waitUntilCountAtLeast(1);
+        targetCard.locator(buy).click();
+        xpathCard.locator(By.xpath("//button[@id='phone-available-buy']")).click();
 
-        assertEquals(1L, number("return window.cardBuyClicks || 0"));
-        assertEquals("laptop-available-buy", ((JavascriptExecutor) driver)
-                .executeScript("return window.lastCardBuyId"));
+        assertEquals(1L, number("return (window.buttonClicks || {})['laptop-available-buy'] || 0"));
+        assertEquals(1L, number("return (window.buttonClicks || {})['phone-available-buy'] || 0"));
+        assertEquals(0L, number("return (window.buttonClicks || {})['global-before-buy'] || 0"));
+        assertEquals(0L, number("return (window.buttonClicks || {})['global-after-buy'] || 0"));
         assertEquals(0L, number("return window.globalBuyClicks || 0"));
         assertEquals(1, cards.count());
         lens.finishPassed();
@@ -873,6 +880,7 @@ class RealBrowserContractsIT {
                     <div id='late-semantic-container'></div>
                     """), false);
             case "/composite-locators" -> html(exchange, page("Composite locators", """
+                    <button id='global-before-buy' class='global-buy'>Buy</button>
                     <section class='product-card' id='laptop-sold' data-status='sold'>
                       <h2>Laptop Basic</h2><span class='price'>49</span><span class='status'>Sold</span>
                     </section>
@@ -884,7 +892,7 @@ class RealBrowserContractsIT {
                       <h2>Phone</h2><span class='price'>59</span><span class='status'>Available</span>
                       <button id='phone-available-buy'>Buy</button>
                     </section>
-                    <button class='global-buy'>Buy</button><button class='global-buy'>Buy</button>
+                    <button id='global-after-buy' class='global-buy'>Buy</button>
                     <button id='start-dynamic'>Start changes</button>
                     <div id='dynamic-list'><div class='dynamic-item' data-phase='initial'>Initial</div></div>
                     """), false);
@@ -1003,10 +1011,14 @@ class RealBrowserContractsIT {
             const farTarget = document.getElementById('far-target');
             if (farTarget) farTarget.addEventListener('click', () => window.farClicks = (window.farClicks || 0) + 1);
             document.querySelectorAll('.product-card button').forEach(button => button.addEventListener('click', () => {
+              window.buttonClicks = window.buttonClicks || {};
+              window.buttonClicks[button.id] = (window.buttonClicks[button.id] || 0) + 1;
               window.cardBuyClicks = (window.cardBuyClicks || 0) + 1;
               window.lastCardBuyId = button.id;
             }));
             document.querySelectorAll('.global-buy').forEach(button => button.addEventListener('click', () => {
+              window.buttonClicks = window.buttonClicks || {};
+              window.buttonClicks[button.id] = (window.buttonClicks[button.id] || 0) + 1;
               window.globalBuyClicks = (window.globalBuyClicks || 0) + 1;
             }));
             const startDynamic = document.getElementById('start-dynamic');

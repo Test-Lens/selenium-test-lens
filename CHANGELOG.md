@@ -4,6 +4,8 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+- Fixed composed locator containment so descendant and `filterHas` queries cannot escape a parent subtree, including semantic locators and user XPath expressions beginning with `//`.
+
 - Fixed a network confidentiality gap where the internal raw event buffer was correctly redacted by `events()` but `NetworkSummary.firstFailure()`, wait diagnostics, and `NetworkAssertionError` could still expose credentials, sensitive query values, fragments, headers, or throwable messages. Matching and correlation continue on raw session-local data; every public diagnostic result now receives an immutable snapshot protected by the effective central redaction policy.
 - Fixed a structured-JSON redaction bypass where legal apostrophes or escaped quotes/backslashes inside a sensitive value could prevent the old quoted-pair matcher from recognizing the field. Valid JSON is now scanned structurally with bounded depth, whole sensitive values of every JSON type are replaced safely, and malformed fragments use a fail-closed tolerant fallback.
 - Fixed auth-state origin isolation during restore. With origin validation enabled, Lens now preflights every storage entry, validates the browser origin after optional navigation and again before cookie mutation, and uses in-page atomic origin guards for storage clearing/writes. Redirects to SSO or another scheme/host/port are rejected before foreign-origin state is changed.

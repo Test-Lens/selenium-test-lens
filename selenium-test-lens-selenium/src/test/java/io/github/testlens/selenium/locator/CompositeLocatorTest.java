@@ -92,6 +92,76 @@ class CompositeLocatorTest {
     }
 
     @Test
+    void absoluteXpathAndSemanticQueriesCannotEscapeTheParentSubtree() {
+        Element globalBefore = element("global-before", "Buy", Map.of()).role("button", "Buy");
+        Element inside = element("inside", "Buy", Map.of(
+                "placeholder", "Buy", "alt", "Buy", "data-testid", "buy"))
+                .role("button", "Buy");
+        Element globalAfter = element("global-after", "Buy", Map.of()).role("button", "Buy");
+        Element populated = element("populated", "", Map.of())
+                .children(CHILDREN, inside)
+                .absoluteXpath(globalBefore, inside, globalAfter);
+        Element empty = element("empty", "", Map.of()).absoluteXpath(globalBefore, globalAfter);
+        DriverModel browser = driver(() -> List.of(populated, empty));
+        JsOverlayDebug lens = overlay(browser.driver);
+        populated.children(lens.getByTestId("buy").by(), inside);
+        UiLocator parents = lens.locator(PARENTS, "Cards", options());
+
+        assertEquals(List.of("inside"), ids(parents.first().locator(lens.getByRole("button", "Buy")).resolveAll()));
+        assertEquals(0, parents.last().filterHas(lens.getByRole("button", "Buy")).count());
+        assertEquals(List.of("inside"), ids(parents.first().locator(lens.getByText("Buy")).resolveAll()));
+        assertEquals(List.of("inside"), ids(parents.first().locator(lens.getByTextContaining("uy")).resolveAll()));
+        assertEquals(List.of("inside"), ids(parents.first().locator(lens.getByPlaceholder("Buy")).resolveAll()));
+        assertEquals(List.of("inside"), ids(parents.first().locator(lens.getByLabel("Buy")).resolveAll()));
+        assertEquals(List.of("inside"), ids(parents.first().locator(lens.getByAltText("Buy")).resolveAll()));
+        assertEquals(List.of("inside"), ids(parents.first().locator(lens.getByTestId("buy")).resolveAll()));
+        assertEquals(List.of("inside"), ids(parents.first().locator(CHILDREN).resolveAll()));
+    }
+
+    @Test
+    void userAbsoluteAndUnionXpathAreIntersectedWithActualDescendants() {
+        By absolute = By.xpath("//button");
+        By relative = By.xpath(".//button");
+        By union = By.xpath("//button | //a[@role='button']");
+        By nestedQuery = By.xpath("//span");
+        Element outside = element("outside", "", Map.of());
+        Element nested = element("nested", "", Map.of());
+        Element inside = element("inside", "", Map.of()).children(nestedQuery, nested);
+        Element parent = element("parent", "", Map.of())
+                .children(absolute, inside).children(relative, inside).children(union, inside)
+                .absoluteXpath(outside, inside);
+        DriverModel browser = driver(() -> List.of(parent));
+        UiLocator root = locator(browser, PARENTS);
+
+        assertEquals(List.of("inside"), ids(root.locator(absolute).resolveAll()));
+        assertEquals(List.of("inside"), ids(root.locator(relative).resolveAll()));
+        assertEquals(List.of("inside"), ids(root.locator(union).resolveAll()));
+        assertEquals(List.of("nested"), ids(root.locator(absolute).locator(nestedQuery).resolveAll()));
+    }
+
+    @Test
+    void customByResultsAreContainedAndStaleContainmentRestartsTheWholeSnapshot() {
+        Element outside = element("outside", "", Map.of());
+        Element inside = element("inside", "", Map.of());
+        Element parent = element("parent", "", Map.of()).children(CHILDREN, inside);
+        By contextIgnoring = new By() {
+            @Override public List<WebElement> findElements(org.openqa.selenium.SearchContext ignored) {
+                return List.of(outside.proxy, inside.proxy);
+            }
+            @Override public String toString() { return "By.contextIgnoring"; }
+        };
+        DriverModel browser = driver(() -> List.of(parent));
+        assertEquals(List.of("inside"), ids(locator(browser, PARENTS).locator(contextIgnoring).resolveAll()));
+
+        parent.descendantFailures = 1;
+        JsOverlayDebug lens = overlay(browser.driver);
+        UiTestLensSession session = lens.startSession("scoped stale");
+        lens.locator(PARENTS, "Parents", options()).locator(contextIgnoring).waitUntilCount(1);
+        assertTrue(browser.calls.get() >= 3, "stale containment must restart the parent query");
+        assertEquals(0, session.retrySummary().totalRetries(), "query polling is not recovery retry");
+    }
+
+    @Test
     void differentDriversAndInvalidArgumentsFailBeforeAnyLookup() {
         DriverModel first = driver(List::of);
         DriverModel second = driver(List::of);
@@ -237,10 +307,12 @@ class CompositeLocatorTest {
         private final AtomicInteger getAttributeCalls = new AtomicInteger();
         private final AtomicInteger getDomAttributeCalls = new AtomicInteger();
         private final WebElement proxy;
+        private List<Element> absoluteXpathResults;
         private String role = "";
         private String accessibleName = "";
         private int textFailures;
         private RuntimeException textFailure;
+        private int descendantFailures;
 
         private Element(String id, String text, Map<String, String> attributes) {
             this.id = id; this.text = text; this.attributes = attributes;
@@ -249,6 +321,14 @@ class CompositeLocatorTest {
                         case "findElements" -> {
                             By by = (By) args[0];
                             if (!(by instanceof By.Remotable)) yield by.findElements((WebElement) self);
+                            if (by.toString().equals("By.xpath: .//*")) {
+                                if (descendantFailures-- > 0) throw new StaleElementReferenceException("scope changed");
+                                yield children.values().stream().flatMap(List::stream).distinct()
+                                        .map(element -> element.proxy).toList();
+                            }
+                            if (by.toString().startsWith("By.xpath: //") && absoluteXpathResults != null) {
+                                yield absoluteXpathResults.stream().map(element -> element.proxy).toList();
+                            }
                             List<Element> matches = children.get(by.toString());
                             if (matches == null && by.toString().startsWith("By.xpath:")) {
                                 matches = children.values().stream().flatMap(List::stream).toList();
@@ -284,6 +364,7 @@ class CompositeLocatorTest {
         }
 
         private Element children(By by, Element... values) { children.put(by.toString(), List.of(values)); return this; }
+        private Element absoluteXpath(Element... values) { absoluteXpathResults = List.of(values); return this; }
         private Element role(String role, String name) { this.role = role; this.accessibleName = name; return this; }
     }
 }

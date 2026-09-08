@@ -1,6 +1,7 @@
 package io.github.testlens.selenium.locator;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebElement;
 
@@ -11,6 +12,7 @@ import java.util.Objects;
 
 /** Immutable internal query stages used by compositional locators. */
 final class CompositeBy extends By {
+    private static final By ALL_DESCENDANTS = By.xpath(".//*");
     private final Query query;
     private final String description;
 
@@ -25,7 +27,7 @@ final class CompositeBy extends By {
         return new CompositeBy(context -> {
             LinkedHashSet<WebElement> result = new LinkedHashSet<>();
             for (WebElement parent : find(context, parents)) {
-                result.addAll(find(parent, descendants));
+                result.addAll(findDescendants(parent, descendants));
             }
             return List.copyOf(result);
         }, safe(parents) + " >> " + safe(descendants));
@@ -52,7 +54,7 @@ final class CompositeBy extends By {
     static By has(By source, By descendant) {
         Objects.requireNonNull(source, "source query must not be null");
         Objects.requireNonNull(descendant, "descendant query must not be null");
-        return filter(source, element -> !find(element, descendant).isEmpty(),
+        return filter(source, element -> !findDescendants(element, descendant).isEmpty(),
                 "has(" + safe(descendant) + ")");
     }
 
@@ -116,6 +118,53 @@ final class CompositeBy extends By {
 
     static List<WebElement> find(SearchContext context, By query) {
         return query instanceof By.Remotable ? context.findElements(query) : query.findElements(context);
+    }
+
+    private static List<WebElement> findDescendants(WebElement parent, By query) {
+        DescendantSearchContext scoped = new DescendantSearchContext(parent);
+        return scoped.retain(find(scoped, query));
+    }
+
+    /**
+     * Selenium permits an XPath beginning with {@code //} to escape a WebElement search context.
+     * Every query executed through this context is therefore intersected with the parent's actual
+     * descendant set. The final intersection also protects against custom By implementations that
+     * ignore the SearchContext passed to them.
+     */
+    private static final class DescendantSearchContext implements SearchContext {
+        private final WebElement parent;
+        private List<WebElement> descendants;
+
+        private DescendantSearchContext(WebElement parent) {
+            this.parent = Objects.requireNonNull(parent, "parent element must not be null");
+        }
+
+        @Override
+        public List<WebElement> findElements(By by) {
+            Objects.requireNonNull(by, "descendant query must not be null");
+            return retain(parent.findElements(by));
+        }
+
+        @Override
+        public WebElement findElement(By by) {
+            List<WebElement> matches = findElements(by);
+            if (matches.isEmpty()) throw new NoSuchElementException("No matching descendant element");
+            return matches.get(0);
+        }
+
+        private List<WebElement> retain(List<WebElement> candidates) {
+            LinkedHashSet<WebElement> selected = new LinkedHashSet<>(candidates);
+            List<WebElement> contained = new ArrayList<>();
+            for (WebElement descendant : descendants()) {
+                if (selected.contains(descendant)) contained.add(descendant);
+            }
+            return List.copyOf(contained);
+        }
+
+        private List<WebElement> descendants() {
+            if (descendants == null) descendants = List.copyOf(parent.findElements(ALL_DESCENDANTS));
+            return descendants;
+        }
     }
 
     private static String safe(By by) {

@@ -102,7 +102,9 @@ UiLocator filterHas(By descendant)
 UiLocator filterHas(UiLocator descendant)
 ```
 
-Composition builds an immutable, lazy query pipeline; it performs no WebDriver lookup until resolution, an action, a read, a wait, or an assertion. `locator(...)` returns descendants found inside each current parent and never performs a global child search. `filterHas(...)` instead keeps each parent that contains at least one matching descendant. A `UiLocator` descendant may be semantic, but must belong to the same `WebDriver`.
+Composition builds an immutable, lazy query pipeline; it performs no WebDriver lookup until resolution, an action, a read, a wait, or an assertion. `locator(...)` returns only true descendants of each current parent: never the parent itself, its siblings, ancestors, or document-global matches. `filterHas(...)` keeps a parent only when its own subtree contains a match. A `UiLocator` descendant may be semantic, but must belong to the same `WebDriver`.
+
+The descendant contract also applies to a user XPath beginning with `//`, including union expressions. Although Selenium may evaluate such an XPath from the document when it is invoked on a `WebElement`, Test Lens intersects its results with the actual parent subtree. Prefer `.//` when expressing relative intent, but both forms remain contained when passed to `locator(By)` or `filterHas(By)`.
 
 Text filters use normalized visible `getText()` and remain case-sensitive. Attribute filtering uses the exact DOM attribute from `getDomAttribute()`, not a DOM property. Results retain DOM order, and duplicate descendants reached through overlapping parents are returned once at their first position.
 

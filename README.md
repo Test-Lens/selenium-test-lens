@@ -180,7 +180,7 @@ cards.waitUntilCountAtLeast(1)
         .click();
 ```
 
-`locator(...)` searches descendants inside each current parent; `filterHas(...)` keeps the parent. Pipeline order is significant, and count polling is state observation rather than recovery retry or a flaky outcome.
+`locator(...)` searches only true descendants inside each current parent; `filterHas(...)` keeps a parent only when its own subtree matches. This containment also applies to semantic locators and user XPath such as `By.xpath("//button")`, so an absolute-looking XPath cannot escape to the document. Pipeline order is significant, and count polling is state observation rather than recovery retry or a flaky outcome.
 
 The same polling pipeline supports collection and state assertions without exposing a raw `WebElement`:
 
