@@ -1,0 +1,4553 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+      
+      
+      
+        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/reference/public-api-catalog/">
+      
+      
+        <link rel="prev" href="../advanced-low-level/">
+      
+      
+        <link rel="next" href="../../architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Binary API catalog (optional) - Selenium Test Lens</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-T0B0XE6MS1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-T0B0XE6MS1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-T0B0XE6MS1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exhaustive-public-api-catalog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+  <style>.tl-version-switcher{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-bottom:.25rem}.tl-version-switcher select{max-width:15rem}</style>
+  <nav class="tl-version-switcher" aria-label="Documentation version"
+       data-current-version="dev">
+    <strong>Version:</strong>
+    <select aria-label="Choose documentation version" data-tl-version-select>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
+    </select>
+    <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
+  </nav>
+  <script>
+    (() => {
+      const nav = document.currentScript.previousElementSibling;
+      const select = nav.querySelector("[data-tl-version-select]");
+      const base = "https://test-lens.github.io/selenium-test-lens/";
+      const selectCurrent = () => {
+        const current = nav.dataset.currentVersion;
+        for (const option of select.options) option.selected = option.textContent === current;
+      };
+      select.addEventListener("change", () => { window.location.assign(select.value); });
+      selectCurrent();
+      fetch(base + "versions.json", { credentials: "same-origin" })
+        .then(response => response.ok ? response.json() : Promise.reject())
+        .then(versions => {
+          select.replaceChildren(...versions.map(item => {
+            const option = document.createElement("option");
+            option.value = base + item.version + "/";
+            option.textContent = item.title || item.version;
+            option.dataset.version = item.version;
+            option.selected = item.version === nav.dataset.currentVersion;
+            return option;
+          }));
+        })
+        .catch(() => selectCurrent());
+    })();
+  </script>
+  
+    Development documentation for <strong>0.2.0-SNAPSHOT</strong>.
+    These features are not yet available in the latest Maven Central release (0.1.0).
+    <a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">Read the stable 0.1.0 documentation.</a>
+  
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Selenium Test Lens" class="md-header__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Selenium Test Lens
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Binary API catalog (optional)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Test-Lens/selenium-test-lens" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Test-Lens/selenium-test-lens
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Using Test Lens
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../observability/" class="md-tabs__link">
+          
+  
+  
+  Observability
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../security/redaction/" class="md-tabs__link">
+          
+  
+  
+  Security
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../advanced/" class="md-tabs__link">
+          
+  
+  
+  Advanced Features
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../integrations/" class="md-tabs__link">
+          
+  
+  
+  Integrations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../migration/" class="md-tabs__link">
+          
+  
+  
+  Migration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Selenium Test Lens" class="md-nav__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Selenium Test Lens
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Test-Lens/selenium-test-lens" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Test-Lens/selenium-test-lens
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation & first test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../framework-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Existing WebDriver integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Test Lens
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Using Test Lens
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elements
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Elements
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elements overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/locators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Locators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/waiting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Waiting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/assertions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/information/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Element information
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/select-controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Select controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser Context
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Browser Context
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser context overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/windows-tabs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Windows & tabs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/alerts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerts, confirms & prompts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Observability
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/visual-diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual runtime diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/screenshots-evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Screenshots & evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/trace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Trace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTML, JSON & ZIP reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/flakiness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flakiness and retry outcomes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/failure-bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Failure bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Security
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensitive-data redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced features overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/steps-business-assertions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steps & business assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/auth-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication state
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Network diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/overlay-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overlay policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/visual-helpers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual helpers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/js-overlay-debug/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JsOverlayDebug advanced facade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/junit5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JUnit 5
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/testng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestNG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/react/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Optional React API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Migration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From raw Selenium
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../test-lens/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestLens
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration builders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../result-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result & data types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced-low-level/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced / low-level API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Binary API catalog (optional)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Binary API catalog (optional)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#selenium-test-lens-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        selenium-test-lens-core
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selenium-test-lens-overlay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        selenium-test-lens-overlay
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selenium-test-lens-selenium" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        selenium-test-lens-selenium
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selenium-test-lens-junit5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        selenium-test-lens-junit5
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selenium-test-lens-testng" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        selenium-test-lens-testng
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selenium-test-lens-react" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        selenium-test-lens-react
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../consumer-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Consumer compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/documentation-versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing versioned docs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-integration-tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Real-browser integration tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maven Central
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Javadoc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#selenium-test-lens-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        selenium-test-lens-core
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selenium-test-lens-overlay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        selenium-test-lens-overlay
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selenium-test-lens-selenium" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        selenium-test-lens-selenium
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selenium-test-lens-junit5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        selenium-test-lens-junit5
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selenium-test-lens-testng" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        selenium-test-lens-testng
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selenium-test-lens-react" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        selenium-test-lens-react
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/main/docs/reference/public-api-catalog.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="exhaustive-public-api-catalog">Exhaustive public API catalog<a class="headerlink" href="#exhaustive-public-api-catalog" title="Permanent link">&para;</a></h1>
+<p>This generated catalog is the optional binary-surface reference for every published public type, constructor, method, and field. Start with <a href="../../capabilities/">Capabilities</a> and the functional navigation for behavior, workflows, and examples. Internal-style types appear only because Java consumers can currently access them.</p>
+<p>Inventory: <strong>219 public types</strong> and <strong>1734 public callable methods/constructors</strong> (including public nested types and compiler-generated record/enum members).</p>
+<p>Classifications: USER_API is the normal consumer path; ADVANCED_API is supported specialized functionality; LOW_LEVEL_API exposes lower abstractions; INTERNAL_STYLE_PUBLIC is binary-public implementation surface and is not recommended for application code.</p>
+<p>Signature details are split by published artifact and Java package to keep individual pages usable. These generated pages are excluded from site search.</p>
+<h2 id="selenium-test-lens-core">selenium-test-lens-core<a class="headerlink" href="#selenium-test-lens-core" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Package</th>
+<th>Classification</th>
+<th>Kind</th>
+<th>Surface</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>io.github.testlens.core.browser.BrowserScriptExecutor</td>
+<td>io.github.testlens.core.browser</td>
+<td>LOW_LEVEL_API</td>
+<td>interface</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-browser/#io-github-testlens-core-browser-browserscriptexecutor">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.CompositeLogSink</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-compositelogsink">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.ConsoleLogSink</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-consolelogsink">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.ConsumerLogSink</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-consumerlogsink">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.InMemoryLogSink</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-inmemorylogsink">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.TargetDescriptor</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>record</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-targetdescriptor">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.UiTestLensEventType</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-uitestlenseventtype">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.UiTestLensLogEntry$Builder</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-uitestlenslogentry-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.UiTestLensLogEntry</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>record</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-uitestlenslogentry">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.UiTestLensLogLevel</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-uitestlensloglevel">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.UiTestLensLogSink</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>interface</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-uitestlenslogsink">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.UiTestLensLogger$Builder</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-uitestlenslogger-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.UiTestLensLogger</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-uitestlenslogger">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.UiTestLensStatus</td>
+<td>io.github.testlens.core.logging</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging/#io-github-testlens-core-logging-uitestlensstatus">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.export.HtmlLogExporter</td>
+<td>io.github.testlens.core.logging.export</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging-export/#io-github-testlens-core-logging-export-htmllogexporter">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.export.JsonLogExporter</td>
+<td>io.github.testlens.core.logging.export</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging-export/#io-github-testlens-core-logging-export-jsonlogexporter">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.export.LogExportOptions</td>
+<td>io.github.testlens.core.logging.export</td>
+<td>ADVANCED_API</td>
+<td>record</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging-export/#io-github-testlens-core-logging-export-logexportoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.export.PlainTextLogExporter</td>
+<td>io.github.testlens.core.logging.export</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging-export/#io-github-testlens-core-logging-export-plaintextlogexporter">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.logging.export.UiTestLensLogExporter</td>
+<td>io.github.testlens.core.logging.export</td>
+<td>ADVANCED_API</td>
+<td>interface</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-logging-export/#io-github-testlens-core-logging-export-uitestlenslogexporter">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.redaction.RedactionPolicy$Builder</td>
+<td>io.github.testlens.core.redaction</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-redaction/#io-github-testlens-core-redaction-redactionpolicy-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.redaction.RedactionPolicy</td>
+<td>io.github.testlens.core.redaction</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-redaction/#io-github-testlens-core-redaction-redactionpolicy">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.RetryOutcomePolicy</td>
+<td>io.github.testlens.core.trace</td>
+<td>USER_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-retryoutcomepolicy">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.RetryPolicyViolationException</td>
+<td>io.github.testlens.core.trace</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-retrypolicyviolationexception">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.RetrySummary</td>
+<td>io.github.testlens.core.trace</td>
+<td>USER_API</td>
+<td>record</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-retrysummary">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceArtifact</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-traceartifact">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceArtifactType</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-traceartifacttype">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceEvent$Builder</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-traceevent-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceEvent</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-traceevent">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceEventType</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-traceeventtype">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceFailure</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-tracefailure">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceJsonExportOptions$Builder</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-tracejsonexportoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceJsonExportOptions</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-tracejsonexportoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceJsonExporter</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-tracejsonexporter">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceLogSink</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-tracelogsink">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceMetadata$Builder</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-tracemetadata-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceMetadata</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-tracemetadata">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceStatus</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-tracestatus">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceStep</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>record</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-tracestep">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.TraceTimeline</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-tracetimeline">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.UiTestLensSession</td>
+<td>io.github.testlens.core.trace</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace/#io-github-testlens-core-trace-uitestlenssession">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.export.HtmlReportTheme</td>
+<td>io.github.testlens.core.trace.export</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace-export/#io-github-testlens-core-trace-export-htmlreporttheme">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.export.TraceBundleExportOptions$Builder</td>
+<td>io.github.testlens.core.trace.export</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace-export/#io-github-testlens-core-trace-export-tracebundleexportoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.export.TraceBundleExportOptions</td>
+<td>io.github.testlens.core.trace.export</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace-export/#io-github-testlens-core-trace-export-tracebundleexportoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.export.TraceHtmlExportOptions$Builder</td>
+<td>io.github.testlens.core.trace.export</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace-export/#io-github-testlens-core-trace-export-tracehtmlexportoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.export.TraceHtmlExportOptions</td>
+<td>io.github.testlens.core.trace.export</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace-export/#io-github-testlens-core-trace-export-tracehtmlexportoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.export.TraceHtmlExporter</td>
+<td>io.github.testlens.core.trace.export</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace-export/#io-github-testlens-core-trace-export-tracehtmlexporter">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.export.TraceHtmlReportSection</td>
+<td>io.github.testlens.core.trace.export</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace-export/#io-github-testlens-core-trace-export-tracehtmlreportsection">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.export.TraceJsonWriter</td>
+<td>io.github.testlens.core.trace.export</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace-export/#io-github-testlens-core-trace-export-tracejsonwriter">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.export.TraceReportBundleExporter</td>
+<td>io.github.testlens.core.trace.export</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace-export/#io-github-testlens-core-trace-export-tracereportbundleexporter">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.trace.export.TraceReportSupport</td>
+<td>io.github.testlens.core.trace.export</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-core-trace-export/#io-github-testlens-core-trace-export-tracereportsupport">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.utils.JsResources</td>
+<td>io.github.testlens.utils</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-core-io-github-testlens-utils/#io-github-testlens-utils-jsresources">signatures</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="selenium-test-lens-overlay">selenium-test-lens-overlay<a class="headerlink" href="#selenium-test-lens-overlay" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Package</th>
+<th>Classification</th>
+<th>Kind</th>
+<th>Surface</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>io.github.testlens.OverlayConfig$Builder</td>
+<td>io.github.testlens</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens/#io-github-testlens-overlayconfig-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.OverlayConfig</td>
+<td>io.github.testlens</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens/#io-github-testlens-overlayconfig">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.api.ApiOverlayJs</td>
+<td>io.github.testlens.api</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-api/#io-github-testlens-api-apioverlayjs">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.api.ApiOverlayPanel</td>
+<td>io.github.testlens.api</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-api/#io-github-testlens-api-apioverlaypanel">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.AssertionBadgesJs</td>
+<td>io.github.testlens.core</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-core/#io-github-testlens-core-assertionbadgesjs">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.HighlightJs</td>
+<td>io.github.testlens.core</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-core/#io-github-testlens-core-highlightjs">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.HudPanelJs</td>
+<td>io.github.testlens.core</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-core/#io-github-testlens-core-hudpaneljs">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.OverlayRootManager</td>
+<td>io.github.testlens.core</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-core/#io-github-testlens-core-overlayrootmanager">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.ScrollArrowJs</td>
+<td>io.github.testlens.core</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-core/#io-github-testlens-core-scrollarrowjs">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.TypeHintJs</td>
+<td>io.github.testlens.core</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-core/#io-github-testlens-core-typehintjs">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.UiTestLensRuntimeNames</td>
+<td>io.github.testlens.core</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-core/#io-github-testlens-core-uitestlensruntimenames">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.WaitHudJs</td>
+<td>io.github.testlens.core</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-core/#io-github-testlens-core-waithudjs">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.hud.HudPanel</td>
+<td>io.github.testlens.hud</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-hud/#io-github-testlens-hud-hudpanel">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.hud.HudPosition</td>
+<td>io.github.testlens.hud</td>
+<td>USER_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-hud/#io-github-testlens-hud-hudposition">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.hud.HudTheme$Builder</td>
+<td>io.github.testlens.hud</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-hud/#io-github-testlens-hud-hudtheme-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.hud.HudTheme</td>
+<td>io.github.testlens.hud</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-hud/#io-github-testlens-hud-hudtheme">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.hud.HudThemePreset</td>
+<td>io.github.testlens.hud</td>
+<td>USER_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-overlay-io-github-testlens-hud/#io-github-testlens-hud-hudthemepreset">signatures</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="selenium-test-lens-selenium">selenium-test-lens-selenium<a class="headerlink" href="#selenium-test-lens-selenium" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Package</th>
+<th>Classification</th>
+<th>Kind</th>
+<th>Surface</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>io.github.testlens.JsOverlayDebug$AssertionSummary$AssertionTextFormat</td>
+<td>io.github.testlens</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens/#io-github-testlens-jsoverlaydebug-assertionsummary-assertiontextformat">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.JsOverlayDebug$AssertionSummary</td>
+<td>io.github.testlens</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens/#io-github-testlens-jsoverlaydebug-assertionsummary">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.JsOverlayDebug$SoftAssertions</td>
+<td>io.github.testlens</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens/#io-github-testlens-jsoverlaydebug-softassertions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.JsOverlayDebug</td>
+<td>io.github.testlens</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens/#io-github-testlens-jsoverlaydebug">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.OverlayWait</td>
+<td>io.github.testlens</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens/#io-github-testlens-overlaywait">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.TestLens</td>
+<td>io.github.testlens</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens/#io-github-testlens-testlens">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.TestLensAlert</td>
+<td>io.github.testlens</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens/#io-github-testlens-testlensalert">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.TestLensFinalizationResult</td>
+<td>io.github.testlens</td>
+<td>USER_API</td>
+<td>record</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens/#io-github-testlens-testlensfinalizationresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.TestLensOptions$Builder</td>
+<td>io.github.testlens</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens/#io-github-testlens-testlensoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.TestLensOptions</td>
+<td>io.github.testlens</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens/#io-github-testlens-testlensoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.actions.AssertActions$OverlayAssertionResult</td>
+<td>io.github.testlens.actions</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-actions/#io-github-testlens-actions-assertactions-overlayassertionresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.actions.AssertActions</td>
+<td>io.github.testlens.actions</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-actions/#io-github-testlens-actions-assertactions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.actions.HighlightActions</td>
+<td>io.github.testlens.actions</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-actions/#io-github-testlens-actions-highlightactions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.actions.ScrollActions</td>
+<td>io.github.testlens.actions</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-actions/#io-github-testlens-actions-scrollactions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.actions.SmartClickActions</td>
+<td>io.github.testlens.actions</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-actions/#io-github-testlens-actions-smartclickactions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.actions.SmartInputActions</td>
+<td>io.github.testlens.actions</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-actions/#io-github-testlens-actions-smartinputactions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.actions.TargetResolverActions</td>
+<td>io.github.testlens.actions</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-actions/#io-github-testlens-actions-targetresolveractions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.actions.TypingActions</td>
+<td>io.github.testlens.actions</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-actions/#io-github-testlens-actions-typingactions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.BlockingOverlayHelper</td>
+<td>io.github.testlens.core</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-core/#io-github-testlens-core-blockingoverlayhelper">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.Guards$GuardResult</td>
+<td>io.github.testlens.core</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-core/#io-github-testlens-core-guards-guardresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.Guards</td>
+<td>io.github.testlens.core</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-core/#io-github-testlens-core-guards">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.OverlayLogger</td>
+<td>io.github.testlens.core</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-core/#io-github-testlens-core-overlaylogger">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.PageWaits</td>
+<td>io.github.testlens.core</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-core/#io-github-testlens-core-pagewaits">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.PopupDetector</td>
+<td>io.github.testlens.core</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-core/#io-github-testlens-core-popupdetector">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.core.browser.SeleniumBrowserScriptExecutor</td>
+<td>io.github.testlens.core.browser</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-core-browser/#io-github-testlens-core-browser-seleniumbrowserscriptexecutor">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.scroll.ScrollElementEdge</td>
+<td>io.github.testlens.scroll</td>
+<td>LOW_LEVEL_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-scroll/#io-github-testlens-scroll-scrollelementedge">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.scroll.ScrollViewportEdge</td>
+<td>io.github.testlens.scroll</td>
+<td>LOW_LEVEL_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-scroll/#io-github-testlens-scroll-scrollviewportedge">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.SeleniumOverlayFactory</td>
+<td>io.github.testlens.selenium</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium/#io-github-testlens-selenium-seleniumoverlayfactory">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.actionability.ActionabilityCheck</td>
+<td>io.github.testlens.selenium.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-actionability/#io-github-testlens-selenium-actionability-actionabilitycheck">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.actionability.ActionabilityCheckType</td>
+<td>io.github.testlens.selenium.actionability</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-actionability/#io-github-testlens-selenium-actionability-actionabilitychecktype">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.actionability.ActionabilityChecker</td>
+<td>io.github.testlens.selenium.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-actionability/#io-github-testlens-selenium-actionability-actionabilitychecker">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.actionability.ActionabilityFailureReason</td>
+<td>io.github.testlens.selenium.actionability</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-actionability/#io-github-testlens-selenium-actionability-actionabilityfailurereason">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.actionability.ActionabilityOptions$Builder</td>
+<td>io.github.testlens.selenium.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-actionability/#io-github-testlens-selenium-actionability-actionabilityoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.actionability.ActionabilityOptions</td>
+<td>io.github.testlens.selenium.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-actionability/#io-github-testlens-selenium-actionability-actionabilityoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.actionability.ActionabilityReport</td>
+<td>io.github.testlens.selenium.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-actionability/#io-github-testlens-selenium-actionability-actionabilityreport">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.actionability.ActionabilityResult$Builder</td>
+<td>io.github.testlens.selenium.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-actionability/#io-github-testlens-selenium-actionability-actionabilityresult-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.actionability.ActionabilityResult</td>
+<td>io.github.testlens.selenium.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-actionability/#io-github-testlens-selenium-actionability-actionabilityresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.actionability.ActionabilityStatus</td>
+<td>io.github.testlens.selenium.actionability</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-actionability/#io-github-testlens-selenium-actionability-actionabilitystatus">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.assertions.UiAssertionError</td>
+<td>io.github.testlens.selenium.assertions</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions/#io-github-testlens-selenium-assertions-uiassertionerror">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.assertions.UiAssertionFailureReason</td>
+<td>io.github.testlens.selenium.assertions</td>
+<td>USER_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions/#io-github-testlens-selenium-assertions-uiassertionfailurereason">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.assertions.UiAssertionOptions$Builder</td>
+<td>io.github.testlens.selenium.assertions</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions/#io-github-testlens-selenium-assertions-uiassertionoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.assertions.UiAssertionOptions</td>
+<td>io.github.testlens.selenium.assertions</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions/#io-github-testlens-selenium-assertions-uiassertionoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.assertions.UiAssertionResult</td>
+<td>io.github.testlens.selenium.assertions</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions/#io-github-testlens-selenium-assertions-uiassertionresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.assertions.UiAssertionStatus</td>
+<td>io.github.testlens.selenium.assertions</td>
+<td>USER_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions/#io-github-testlens-selenium-assertions-uiassertionstatus">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.assertions.UiExpect$ElementProbe</td>
+<td>io.github.testlens.selenium.assertions</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>interface</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions/#io-github-testlens-selenium-assertions-uiexpect-elementprobe">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.assertions.UiExpect$ElementProbeResult</td>
+<td>io.github.testlens.selenium.assertions</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>record</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions/#io-github-testlens-selenium-assertions-uiexpect-elementproberesult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.assertions.UiExpect$VisibilityProbe</td>
+<td>io.github.testlens.selenium.assertions</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>interface</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions/#io-github-testlens-selenium-assertions-uiexpect-visibilityprobe">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.assertions.UiExpect$VisibilityProbeResult</td>
+<td>io.github.testlens.selenium.assertions</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>record</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions/#io-github-testlens-selenium-assertions-uiexpect-visibilityproberesult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.assertions.UiExpect</td>
+<td>io.github.testlens.selenium.assertions</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions/#io-github-testlens-selenium-assertions-uiexpect">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.assertions.UiPageExpect</td>
+<td>io.github.testlens.selenium.assertions</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-assertions/#io-github-testlens-selenium-assertions-uipageexpect">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthCookie</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authcookie">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthRestoreOptions$Builder</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authrestoreoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthRestoreOptions</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authrestoreoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthRestoreResult</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authrestoreresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthRestoreStatus</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authrestorestatus">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthState</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authstate">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthStateException</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authstateexception">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthStateJsonExporter</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authstatejsonexporter">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthStateJsonParser</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authstatejsonparser">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthStateManager</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authstatemanager">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthStateMetadata$Builder</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authstatemetadata-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthStateMetadata</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authstatemetadata">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthStateOptions$Builder</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authstateoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthStateOptions</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authstateoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthStorageEntry</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authstorageentry">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.auth.AuthStorageType</td>
+<td>io.github.testlens.selenium.auth</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-auth/#io-github-testlens-selenium-auth-authstoragetype">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.business.BusinessAssertionError</td>
+<td>io.github.testlens.selenium.business</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-business/#io-github-testlens-selenium-business-businessassertionerror">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.business.BusinessAssertionFailure</td>
+<td>io.github.testlens.selenium.business</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-business/#io-github-testlens-selenium-business-businessassertionfailure">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.business.BusinessAssertionOptions$Builder</td>
+<td>io.github.testlens.selenium.business</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-business/#io-github-testlens-selenium-business-businessassertionoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.business.BusinessAssertionOptions</td>
+<td>io.github.testlens.selenium.business</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-business/#io-github-testlens-selenium-business-businessassertionoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.business.BusinessAssertionResult</td>
+<td>io.github.testlens.selenium.business</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-business/#io-github-testlens-selenium-business-businessassertionresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.business.BusinessAssertionStatus</td>
+<td>io.github.testlens.selenium.business</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-business/#io-github-testlens-selenium-business-businessassertionstatus">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.business.BusinessAssertions</td>
+<td>io.github.testlens.selenium.business</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-business/#io-github-testlens-selenium-business-businessassertions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.FailureBundleOptions$Builder</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-failurebundleoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.FailureBundleOptions</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-failurebundleoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.ScreenshotCapture</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-screenshotcapture">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.ScreenshotCaptureException</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-screenshotcaptureexception">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.ScreenshotCaptureOptions$Builder</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-screenshotcaptureoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.ScreenshotCaptureOptions</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-screenshotcaptureoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.ScreenshotCaptureResult</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-screenshotcaptureresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.ScreenshotCaptureStatus</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-screenshotcapturestatus">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.VideoEvidence</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-videoevidence">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.VideoEvidenceException</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-videoevidenceexception">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.VideoEvidenceOptions$Builder</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-videoevidenceoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.VideoEvidenceOptions</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-videoevidenceoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.VideoEvidenceResult</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-videoevidenceresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.VideoEvidenceSource</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-videoevidencesource">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.evidence.VideoEvidenceStatus</td>
+<td>io.github.testlens.selenium.evidence</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence/#io-github-testlens-selenium-evidence-videoevidencestatus">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.locator.UiLocator</td>
+<td>io.github.testlens.selenium.locator</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-locator/#io-github-testlens-selenium-locator-uilocator">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.locator.UiLocatorDescription</td>
+<td>io.github.testlens.selenium.locator</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-locator/#io-github-testlens-selenium-locator-uilocatordescription">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.locator.UiLocatorException</td>
+<td>io.github.testlens.selenium.locator</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-locator/#io-github-testlens-selenium-locator-uilocatorexception">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.locator.UiLocatorOptions$Builder</td>
+<td>io.github.testlens.selenium.locator</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-locator/#io-github-testlens-selenium-locator-uilocatoroptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.locator.UiLocatorOptions</td>
+<td>io.github.testlens.selenium.locator</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-locator/#io-github-testlens-selenium-locator-uilocatoroptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.locator.UiLocatorSelectors</td>
+<td>io.github.testlens.selenium.locator</td>
+<td>LOW_LEVEL_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-locator/#io-github-testlens-selenium-locator-uilocatorselectors">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkAssertionError</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkassertionerror">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkCaptureMode</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkcapturemode">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkDiagnostics</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkdiagnostics">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkDiagnosticsException</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkdiagnosticsexception">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkDiagnosticsOptions$Builder</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkdiagnosticsoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkDiagnosticsOptions</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkdiagnosticsoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkDiagnosticsResult</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkdiagnosticsresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkDiagnosticsStatus</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkdiagnosticsstatus">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkEvent</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkevent">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkEventType</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkeventtype">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkFailure</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkfailure">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkHudFilter$Builder</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkhudfilter-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkHudFilter</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkhudfilter">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkLogExporter</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networklogexporter">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkRequest</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkrequest">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkResponse</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkresponse">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkResponseExpectation</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkresponseexpectation">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkSummary</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networksummary">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkWaitCondition$Builder</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkwaitcondition-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkWaitCondition</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkwaitcondition">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkWaitFailureReason</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkwaitfailurereason">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkWaitResult</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkwaitresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.network.NetworkWaitStatus</td>
+<td>io.github.testlens.selenium.network</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-network/#io-github-testlens-selenium-network-networkwaitstatus">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.overlay.OverlayAction</td>
+<td>io.github.testlens.selenium.overlay</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-overlay/#io-github-testlens-selenium-overlay-overlayaction">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.overlay.OverlayActionType</td>
+<td>io.github.testlens.selenium.overlay</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-overlay/#io-github-testlens-selenium-overlay-overlayactiontype">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.overlay.OverlayHandler$Builder</td>
+<td>io.github.testlens.selenium.overlay</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-overlay/#io-github-testlens-selenium-overlay-overlayhandler-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.overlay.OverlayHandler</td>
+<td>io.github.testlens.selenium.overlay</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-overlay/#io-github-testlens-selenium-overlay-overlayhandler">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.overlay.OverlayHandlingResult</td>
+<td>io.github.testlens.selenium.overlay</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-overlay/#io-github-testlens-selenium-overlay-overlayhandlingresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.overlay.OverlayHandlingStatus</td>
+<td>io.github.testlens.selenium.overlay</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-overlay/#io-github-testlens-selenium-overlay-overlayhandlingstatus">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.overlay.OverlayPolicy$Builder</td>
+<td>io.github.testlens.selenium.overlay</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-overlay/#io-github-testlens-selenium-overlay-overlaypolicy-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.overlay.OverlayPolicy</td>
+<td>io.github.testlens.selenium.overlay</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-overlay/#io-github-testlens-selenium-overlay-overlaypolicy">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.overlay.OverlayPolicyExecutor</td>
+<td>io.github.testlens.selenium.overlay</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-overlay/#io-github-testlens-selenium-overlay-overlaypolicyexecutor">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.steps.UiStepError</td>
+<td>io.github.testlens.selenium.steps</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-steps/#io-github-testlens-selenium-steps-uisteperror">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.steps.UiStepFailure</td>
+<td>io.github.testlens.selenium.steps</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-steps/#io-github-testlens-selenium-steps-uistepfailure">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.steps.UiStepOptions$Builder</td>
+<td>io.github.testlens.selenium.steps</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-steps/#io-github-testlens-selenium-steps-uistepoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.steps.UiStepOptions</td>
+<td>io.github.testlens.selenium.steps</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-steps/#io-github-testlens-selenium-steps-uistepoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.steps.UiStepResult</td>
+<td>io.github.testlens.selenium.steps</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-steps/#io-github-testlens-selenium-steps-uistepresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.steps.UiStepScope</td>
+<td>io.github.testlens.selenium.steps</td>
+<td>INTERNAL_STYLE_PUBLIC</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-steps/#io-github-testlens-selenium-steps-uistepscope">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.steps.UiStepStatus</td>
+<td>io.github.testlens.selenium.steps</td>
+<td>USER_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-steps/#io-github-testlens-selenium-steps-uistepstatus">signatures</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="selenium-test-lens-junit5">selenium-test-lens-junit5<a class="headerlink" href="#selenium-test-lens-junit5" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Package</th>
+<th>Classification</th>
+<th>Kind</th>
+<th>Surface</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>io.github.testlens.junit5.TestLensExtension$Builder</td>
+<td>io.github.testlens.junit5</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-junit5-io-github-testlens-junit5/#io-github-testlens-junit5-testlensextension-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.junit5.TestLensExtension</td>
+<td>io.github.testlens.junit5</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-junit5-io-github-testlens-junit5/#io-github-testlens-junit5-testlensextension">signatures</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="selenium-test-lens-testng">selenium-test-lens-testng<a class="headerlink" href="#selenium-test-lens-testng" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Package</th>
+<th>Classification</th>
+<th>Kind</th>
+<th>Surface</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>io.github.testlens.testng.TestLensTestNg</td>
+<td>io.github.testlens.testng</td>
+<td>USER_API</td>
+<td>interface</td>
+<td><a href="../public-api/selenium-test-lens-testng-io-github-testlens-testng/#io-github-testlens-testng-testlenstestng">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.testng.TestLensTestNgContext</td>
+<td>io.github.testlens.testng</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-testng-io-github-testlens-testng/#io-github-testlens-testng-testlenstestngcontext">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.testng.TestLensTestNgFactory</td>
+<td>io.github.testlens.testng</td>
+<td>USER_API</td>
+<td>interface</td>
+<td><a href="../public-api/selenium-test-lens-testng-io-github-testlens-testng/#io-github-testlens-testng-testlenstestngfactory">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.testng.TestLensTestNgListener</td>
+<td>io.github.testlens.testng</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-testng-io-github-testlens-testng/#io-github-testlens-testng-testlenstestnglistener">signatures</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="selenium-test-lens-react">selenium-test-lens-react<a class="headerlink" href="#selenium-test-lens-react" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Package</th>
+<th>Classification</th>
+<th>Kind</th>
+<th>Surface</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>io.github.testlens.react.ReactOverlaySupport</td>
+<td>io.github.testlens.react</td>
+<td>ADVANCED_API</td>
+<td>interface</td>
+<td><a href="../public-api/selenium-test-lens-react-io-github-testlens-react/#io-github-testlens-react-reactoverlaysupport">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.react.ReactSafeExecutor</td>
+<td>io.github.testlens.react</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-react-io-github-testlens-react/#io-github-testlens-react-reactsafeexecutor">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.react.ReactSelectHelper</td>
+<td>io.github.testlens.react</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-react-io-github-testlens-react/#io-github-testlens-react-reactselecthelper">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.react.ReactSupport</td>
+<td>io.github.testlens.react</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-react-io-github-testlens-react/#io-github-testlens-react-reactsupport">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.react.actionability.ReactActionabilityChecker</td>
+<td>io.github.testlens.react.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-react-io-github-testlens-react-actionability/#io-github-testlens-react-actionability-reactactionabilitychecker">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.react.actionability.ReactActionabilityOptions$Builder</td>
+<td>io.github.testlens.react.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-react-io-github-testlens-react-actionability/#io-github-testlens-react-actionability-reactactionabilityoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.react.actionability.ReactActionabilityOptions</td>
+<td>io.github.testlens.react.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-react-io-github-testlens-react-actionability/#io-github-testlens-react-actionability-reactactionabilityoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.react.actionability.ReactActionabilityReport</td>
+<td>io.github.testlens.react.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-react-io-github-testlens-react-actionability/#io-github-testlens-react-actionability-reactactionabilityreport">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.react.actionability.ReactReadinessCheckType</td>
+<td>io.github.testlens.react.actionability</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-react-io-github-testlens-react-actionability/#io-github-testlens-react-actionability-reactreadinesschecktype">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.react.actionability.ReactReadinessFailureReason</td>
+<td>io.github.testlens.react.actionability</td>
+<td>ADVANCED_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-react-io-github-testlens-react-actionability/#io-github-testlens-react-actionability-reactreadinessfailurereason">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.react.actionability.ReactReadinessResult$Builder</td>
+<td>io.github.testlens.react.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-react-io-github-testlens-react-actionability/#io-github-testlens-react-actionability-reactreadinessresult-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.react.actionability.ReactReadinessResult</td>
+<td>io.github.testlens.react.actionability</td>
+<td>ADVANCED_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-react-io-github-testlens-react-actionability/#io-github-testlens-react-actionability-reactreadinessresult">signatures</a></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../advanced-low-level/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Advanced / low-level API">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Advanced / low-level API
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: Architecture">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Architecture
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0-SNAPSHOT", "default": "latest", "is_dev": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/0.1.0/"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
