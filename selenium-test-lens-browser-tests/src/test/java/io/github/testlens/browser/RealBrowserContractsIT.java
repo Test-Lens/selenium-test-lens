@@ -7,6 +7,7 @@ import io.github.testlens.OverlayConfig;
 import io.github.testlens.TestLens;
 import io.github.testlens.TestLensFinalizationResult;
 import io.github.testlens.TestLensOptions;
+import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.RetryOutcomePolicy;
 import io.github.testlens.core.trace.RetryPolicyViolationException;
@@ -48,6 +49,9 @@ import java.time.Duration;
 import java.util.Set;
 import java.util.UUID;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import java.util.zip.ZipFile;
@@ -63,6 +67,8 @@ class RealBrowserContractsIT {
     private static final Duration WAIT = Duration.ofSeconds(5);
     private static HttpServer server;
     private static String baseUrl;
+    private static final ConcurrentHashMap<String, ControlledRequest> CONTROLLED_REQUESTS =
+            new ConcurrentHashMap<>();
 
     private WebDriver driver;
 
@@ -466,7 +472,7 @@ class RealBrowserContractsIT {
 
         lens.waitForNetworkIdle(Duration.ZERO, Duration.ofSeconds(1));
         ((JavascriptExecutor) driver).executeScript(
-                "fetch('/wait-delayed')");
+                "void fetch(arguments[0]); return null;", baseUrl + "/wait-delayed");
         long firstStarted = System.nanoTime();
         lens.waitForNetworkIdle(Duration.ofMillis(100), Duration.ofSeconds(3));
         long firstElapsed = Duration.ofNanos(System.nanoTime() - firstStarted).toMillis();
@@ -475,31 +481,63 @@ class RealBrowserContractsIT {
         driver.navigate().to(baseUrl + "/page-waits-next");
         lens.waitForNetworkIdle(Duration.ZERO, Duration.ofSeconds(1));
         ((JavascriptExecutor) driver).executeScript(
-                "fetch('/wait-delayed')");
+                "void fetch(arguments[0]); return null;", baseUrl + "/wait-delayed");
         lens.waitForNetworkIdle(Duration.ofMillis(100), Duration.ofSeconds(3));
         assertEquals(0L, number("return window.__seleniumActiveRequests || 0"));
         lens.finishPassed();
     }
 
     @Test
-    void xhrFetchTrackerTimesOutWhileObservedFetchRemainsActive() {
+    void xhrFetchTrackerTimesOutWhileObservedFetchRemainsActive() throws Exception {
         open("/page-waits");
         TestLens lens = configuredLens(false, true);
         UiTestLensSession session = lens.startSession("network-idle-timeout-" + UUID.randomUUID());
         lens.waitForNetworkIdle(Duration.ZERO, Duration.ofSeconds(1));
-        ((JavascriptExecutor) driver).executeScript(
-                "fetch('/wait-hanging')");
 
-        assertThrows(TimeoutException.class,
-                () -> lens.waitForNetworkIdle(Duration.ofMillis(100), Duration.ofMillis(350)));
+        String gateId = UUID.randomUUID().toString();
+        ControlledRequest gate = new ControlledRequest();
+        assertNull(CONTROLLED_REQUESTS.putIfAbsent(gateId, gate));
+        try {
+            Object scriptResult = ((JavascriptExecutor) driver).executeScript(
+                    "void fetch(arguments[0]); return null;", baseUrl + "/wait-controlled/" + gateId);
+            assertNull(scriptResult, "the fetch launcher must not return a Promise/thenable");
+            assertTrue(gate.arrived.await(WAIT.toMillis(), TimeUnit.MILLISECONDS),
+                    "controlled request did not reach the local HTTP handler");
+            assertTrue(Boolean.TRUE.equals(((JavascriptExecutor) driver).executeScript("""
+                    return Boolean(window.__uiTestLens
+                        && window.__uiTestLens.state
+                        && window.__uiTestLens.state.network
+                        && window.__uiTestLens.state.network.trackerInstalled);
+                    """)), "XHR/fetch tracker was not installed");
+            long activeBeforeWait = number("""
+                    return window.__uiTestLens.state.network.activeRequests;
+                    """);
+            assertEquals(1L, activeBeforeWait,
+                    "tracker must observe exactly the one controlled active request");
 
-        assertEquals(0, session.events().stream()
-                .filter(event -> "page.wait".equals(event.attributes().get("action")))
-                .filter(event -> "350".equals(event.attributes().get("metadata.timeoutMs")))
-                .filter(event -> event.status() == TraceStatus.PASSED).count());
-        assertEquals(1, session.events().stream()
-                .filter(event -> "350".equals(event.attributes().get("metadata.timeoutMs")))
-                .filter(event -> "TIMEOUT".equals(event.attributes().get("metadata.reason"))).count());
+            assertThrows(TimeoutException.class,
+                    () -> lens.waitForNetworkIdle(Duration.ofMillis(100), Duration.ofMillis(350)));
+
+            assertEquals(0, session.events().stream()
+                    .filter(event -> "page.wait".equals(event.attributes().get("action")))
+                    .filter(event -> "350".equals(event.attributes().get("metadata.timeoutMs")))
+                    .filter(event -> event.status() == TraceStatus.PASSED).count());
+            assertEquals(1, session.events().stream()
+                    .filter(event -> "page.wait".equals(event.attributes().get("action")))
+                    .filter(event -> "350".equals(event.attributes().get("metadata.timeoutMs")))
+                    .filter(event -> event.status() == TraceStatus.FAILED)
+                    .filter(event -> "TIMEOUT".equals(event.attributes().get("metadata.reason"))).count());
+            assertEquals(0, session.events().stream()
+                    .filter(event -> event.type() == TraceEventType.RETRY).count());
+            assertEquals(0, session.retrySummary().totalRetries());
+        } finally {
+            gate.release.countDown();
+            CONTROLLED_REQUESTS.remove(gateId, gate);
+        }
+
+        new WebDriverWait(driver, WAIT).until(ignored -> number("""
+                return window.__uiTestLens.state.network.activeRequests;
+                """) == 0L);
         lens.finishPassed();
     }
 
@@ -890,6 +928,10 @@ class RealBrowserContractsIT {
 
     private static void serve(HttpExchange exchange) throws IOException {
         String path = exchange.getRequestURI().getPath();
+        if (path.startsWith("/wait-controlled/")) {
+            serveControlledRequest(exchange, path.substring("/wait-controlled/".length()));
+            return;
+        }
         switch (path) {
             case "/clicks" -> html(exchange, page("Clicks", "<button id='count-button'>Count</button><span id='click-count'>0</span>"), false);
             case "/covered" -> html(exchange, page("Covered", """
@@ -991,16 +1033,34 @@ class RealBrowserContractsIT {
                                 java.util.concurrent.TimeUnit.MILLISECONDS)).join();
                 response(exchange, "text/plain; charset=utf-8", "done", false);
             }
-            case "/wait-hanging" -> {
-                java.util.concurrent.CompletableFuture.runAsync(
-                        () -> { }, java.util.concurrent.CompletableFuture.delayedExecutor(1500,
-                                java.util.concurrent.TimeUnit.MILLISECONDS)).join();
-                response(exchange, "text/plain; charset=utf-8", "late", false);
-            }
             case "/app.js" -> response(exchange, "application/javascript; charset=utf-8", APP_JS, false);
             case "/app.css" -> response(exchange, "text/css; charset=utf-8", APP_CSS, false);
             default -> response(exchange, "text/plain; charset=utf-8", "not found", false, 404);
         }
+    }
+
+    private static void serveControlledRequest(HttpExchange exchange, String gateId) throws IOException {
+        ControlledRequest gate = CONTROLLED_REQUESTS.get(gateId);
+        if (gate == null) {
+            response(exchange, "text/plain; charset=utf-8", "unknown gate", false, 404);
+            return;
+        }
+        gate.arrived.countDown();
+        boolean released;
+        try {
+            released = gate.release.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            response(exchange, "text/plain; charset=utf-8", "interrupted", false, 503);
+            return;
+        }
+        response(exchange, "text/plain; charset=utf-8", released ? "released" : "gate timeout",
+                false, released ? 200 : 504);
+    }
+
+    private static final class ControlledRequest {
+        private final CountDownLatch arrived = new CountDownLatch(1);
+        private final CountDownLatch release = new CountDownLatch(1);
     }
 
     private static String page(String title, String body) {
