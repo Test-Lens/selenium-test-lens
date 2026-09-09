@@ -46,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.List;
@@ -498,26 +499,33 @@ class RealBrowserContractsIT {
         ControlledRequest gate = new ControlledRequest();
         assertNull(CONTROLLED_REQUESTS.putIfAbsent(gateId, gate));
         try {
-            Object scriptResult = ((JavascriptExecutor) driver).executeScript(
-                    "void fetch(arguments[0]); return null;", baseUrl + "/wait-controlled/" + gateId);
-            assertNull(scriptResult, "the fetch launcher must not return a Promise/thenable");
-            assertTrue(gate.arrived.await(WAIT.toMillis(), TimeUnit.MILLISECONDS),
-                    "controlled request did not reach the local HTTP handler");
-            assertTrue(Boolean.TRUE.equals(((JavascriptExecutor) driver).executeScript("""
-                    return Boolean(window.__uiTestLens
+            @SuppressWarnings("unchecked")
+            Map<String, Object> launchState = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', arguments[0], true);
+                    window.__testLensControlledXhr = xhr;
+                    xhr.send();
+
+                    const network = window.__uiTestLens
                         && window.__uiTestLens.state
-                        && window.__uiTestLens.state.network
-                        && window.__uiTestLens.state.network.trackerInstalled);
-                    """)), "XHR/fetch tracker was not installed");
-            long activeBeforeWait = number("""
-                    return window.__uiTestLens.state.network.activeRequests;
-                    """);
-            assertEquals(1L, activeBeforeWait,
+                        && window.__uiTestLens.state.network;
+                    return {
+                        trackerInstalled: Boolean(network && network.trackerInstalled),
+                        activeRequests: Number(network && network.activeRequests)
+                    };
+                    """, baseUrl + "/wait-controlled/" + gateId);
+            assertEquals(Boolean.TRUE, launchState.get("trackerInstalled"),
+                    "XHR/fetch tracker was not installed when the request was launched");
+            assertEquals(1L, ((Number) launchState.get("activeRequests")).longValue(),
                     "tracker must observe exactly the one controlled active request");
 
             assertThrows(TimeoutException.class,
                     () -> lens.waitForNetworkIdle(Duration.ofMillis(100), Duration.ofMillis(350)));
 
+            assertEquals(1, session.events().stream()
+                    .filter(event -> "page.wait".equals(event.attributes().get("action")))
+                    .filter(event -> "350".equals(event.attributes().get("metadata.timeoutMs")))
+                    .filter(event -> event.status() == TraceStatus.STARTED).count());
             assertEquals(0, session.events().stream()
                     .filter(event -> "page.wait".equals(event.attributes().get("action")))
                     .filter(event -> "350".equals(event.attributes().get("metadata.timeoutMs")))
@@ -531,13 +539,32 @@ class RealBrowserContractsIT {
                     .filter(event -> event.type() == TraceEventType.RETRY).count());
             assertEquals(0, session.retrySummary().totalRetries());
         } finally {
-            gate.release.countDown();
-            CONTROLLED_REQUESTS.remove(gateId, gate);
+            try {
+                ((JavascriptExecutor) driver).executeScript("""
+                        if (window.__testLensControlledXhr) {
+                            window.__testLensControlledXhr.abort();
+                            window.__testLensControlledXhr = null;
+                        }
+                        return null;
+                        """);
+            } finally {
+                gate.release.countDown();
+                try {
+                    new WebDriverWait(driver, WAIT).until(ignored -> number("""
+                            return window.__uiTestLens.state.network.activeRequests;
+                            """) == 0L);
+                } finally {
+                    try {
+                        if (gate.arrived.getCount() == 0L) {
+                            assertTrue(gate.completed.await(WAIT.toMillis(), TimeUnit.MILLISECONDS),
+                                    "controlled HTTP handler did not finish after release");
+                        }
+                    } finally {
+                        CONTROLLED_REQUESTS.remove(gateId, gate);
+                    }
+                }
+            }
         }
-
-        new WebDriverWait(driver, WAIT).until(ignored -> number("""
-                return window.__uiTestLens.state.network.activeRequests;
-                """) == 0L);
         lens.finishPassed();
     }
 
@@ -1046,21 +1073,22 @@ class RealBrowserContractsIT {
             return;
         }
         gate.arrived.countDown();
-        boolean released;
         try {
-            released = gate.release.await(10, TimeUnit.SECONDS);
+            boolean released = gate.release.await(10, TimeUnit.SECONDS);
+            response(exchange, "text/plain; charset=utf-8", released ? "released" : "gate timeout",
+                    false, released ? 200 : 504);
         } catch (InterruptedException interrupted) {
             Thread.currentThread().interrupt();
             response(exchange, "text/plain; charset=utf-8", "interrupted", false, 503);
-            return;
+        } finally {
+            gate.completed.countDown();
         }
-        response(exchange, "text/plain; charset=utf-8", released ? "released" : "gate timeout",
-                false, released ? 200 : 504);
     }
 
     private static final class ControlledRequest {
         private final CountDownLatch arrived = new CountDownLatch(1);
         private final CountDownLatch release = new CountDownLatch(1);
+        private final CountDownLatch completed = new CountDownLatch(1);
     }
 
     private static String page(String title, String body) {
