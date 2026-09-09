@@ -9,7 +9,7 @@ All option objects are immutable after `build()` unless their API explicitly exp
 | Builder method | Type | Default | Effect / validation |
 | --- | --- | --- | --- |
 | `overlayConfig(value)` | `OverlayConfig` | `OverlayConfig.builder().build()` | Visual runtime behavior; null is rejected when options are built/used. |
-| `locatorOptions(value)` | `UiLocatorOptions` | `UiLocatorOptions.defaults()` | Locator wait, retry, and actionability. The nested retained `highlightBeforeAction` value is currently not consulted by `UiLocator`. |
+| `locatorOptions(value)` | `UiLocatorOptions` | `UiLocatorOptions.defaults()` | Locator wait, retry, actionability, and the default timeout/poll interval for `TestLens` page waits. The nested retained `highlightBeforeAction` value is currently not consulted by `UiLocator`. |
 | `outputRoot(value)` | `Path` | `target/ui-test-lens` | Root for per-session artifacts; must be usable/non-null. Do not point at a tracked or public directory. |
 | `screenshotOnFailure(value)` | `boolean` | `true` | Enables best-effort automatic screenshot for a final `FAILED` result, including policy-induced failure; final passed/skipped results never request it. |
 | `failureBundleOptions(value)` | `FailureBundleOptions` | safe defaults | Configures automatic bundle collectors and limits for final `FAILED`; raw page source and browser console default to disabled. |

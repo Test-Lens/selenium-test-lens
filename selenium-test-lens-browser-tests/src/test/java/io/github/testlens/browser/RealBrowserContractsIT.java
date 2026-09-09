@@ -29,6 +29,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.PageLoadStrategy;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.SearchContext;
@@ -441,6 +442,68 @@ class RealBrowserContractsIT {
     }
 
     @Test
+    void pageWaitFacadeObservesDocumentReadinessWithPageLoadStrategyNone() {
+        driver = createDriver(PageLoadStrategy.NONE);
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(15));
+        driver.get(baseUrl + "/page-waits");
+        TestLens lens = configuredLens(true, true);
+        UiTestLensSession session = lens.startSession("page-ready-wait-" + UUID.randomUUID());
+
+        lens.waitForInteractiveOrComplete(Duration.ofSeconds(3));
+        lens.waitForPageReady(Duration.ofSeconds(3));
+
+        assertEquals("complete", ((JavascriptExecutor) driver).executeScript("return document.readyState"));
+        assertEquals(4, session.events().stream()
+                .filter(event -> "page.wait".equals(event.attributes().get("action"))).count());
+        lens.finishPassed();
+    }
+
+    @Test
+    void xhrFetchTrackerWaitsForCompletionAndIsReinstalledAfterNavigation() {
+        open("/page-waits");
+        TestLens lens = configuredLens(true, true);
+        lens.startSession("network-idle-wait-" + UUID.randomUUID());
+
+        lens.waitForNetworkIdle(Duration.ZERO, Duration.ofSeconds(1));
+        ((JavascriptExecutor) driver).executeScript(
+                "fetch('/wait-delayed')");
+        long firstStarted = System.nanoTime();
+        lens.waitForNetworkIdle(Duration.ofMillis(100), Duration.ofSeconds(3));
+        long firstElapsed = Duration.ofNanos(System.nanoTime() - firstStarted).toMillis();
+        assertTrue(firstElapsed >= 250, "wait returned before the observed fetch and idle window completed");
+
+        driver.navigate().to(baseUrl + "/page-waits-next");
+        lens.waitForNetworkIdle(Duration.ZERO, Duration.ofSeconds(1));
+        ((JavascriptExecutor) driver).executeScript(
+                "fetch('/wait-delayed')");
+        lens.waitForNetworkIdle(Duration.ofMillis(100), Duration.ofSeconds(3));
+        assertEquals(0L, number("return window.__seleniumActiveRequests || 0"));
+        lens.finishPassed();
+    }
+
+    @Test
+    void xhrFetchTrackerTimesOutWhileObservedFetchRemainsActive() {
+        open("/page-waits");
+        TestLens lens = configuredLens(false, true);
+        UiTestLensSession session = lens.startSession("network-idle-timeout-" + UUID.randomUUID());
+        lens.waitForNetworkIdle(Duration.ZERO, Duration.ofSeconds(1));
+        ((JavascriptExecutor) driver).executeScript(
+                "fetch('/wait-hanging')");
+
+        assertThrows(TimeoutException.class,
+                () -> lens.waitForNetworkIdle(Duration.ofMillis(100), Duration.ofMillis(350)));
+
+        assertEquals(0, session.events().stream()
+                .filter(event -> "page.wait".equals(event.attributes().get("action")))
+                .filter(event -> "350".equals(event.attributes().get("metadata.timeoutMs")))
+                .filter(event -> event.status() == TraceStatus.PASSED).count());
+        assertEquals(1, session.events().stream()
+                .filter(event -> "350".equals(event.attributes().get("metadata.timeoutMs")))
+                .filter(event -> "TIMEOUT".equals(event.attributes().get("metadata.reason"))).count());
+        lens.finishPassed();
+    }
+
+    @Test
     void highlightLivesInShadowDomAndCannotReceivePointerEvents() {
         open("/clicks");
         overlay(true).highlightClick(driver.findElement(By.id("count-button")), "COUNT");
@@ -791,11 +854,15 @@ class RealBrowserContractsIT {
     }
 
     private static WebDriver createDriver() {
+        return createDriver(PageLoadStrategy.NORMAL);
+    }
+
+    private static WebDriver createDriver(PageLoadStrategy pageLoadStrategy) {
         boolean headed = Boolean.parseBoolean(System.getProperty("headed", "false"));
         return switch (browserName()) {
             case "chrome" -> {
                 ChromeOptions options = new ChromeOptions();
-                options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
+                options.setPageLoadStrategy(pageLoadStrategy);
                 String configuredBinary = System.getProperty("test.chrome.binary", "").trim();
                 if (!configuredBinary.isEmpty()) {
                     options.setBinary(configuredBinary);
@@ -806,7 +873,7 @@ class RealBrowserContractsIT {
             }
             case "firefox" -> {
                 FirefoxOptions options = new FirefoxOptions();
-                options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
+                options.setPageLoadStrategy(pageLoadStrategy);
                 if (!headed) options.addArguments("-headless");
                 WebDriver firefox = new FirefoxDriver(options);
                 firefox.manage().window().setSize(new org.openqa.selenium.Dimension(1280, 900));
@@ -915,6 +982,21 @@ class RealBrowserContractsIT {
             case "/page-expectations" -> html(exchange, page("Loading Dashboard", """
                     <p id='page-state'>Loading</p>
                     """), false);
+            case "/page-waits", "/page-waits-next" -> html(exchange, page("Page waits", """
+                    <p id='wait-state'>Ready for observed requests</p>
+                    """), false);
+            case "/wait-delayed" -> {
+                java.util.concurrent.CompletableFuture.runAsync(
+                        () -> { }, java.util.concurrent.CompletableFuture.delayedExecutor(250,
+                                java.util.concurrent.TimeUnit.MILLISECONDS)).join();
+                response(exchange, "text/plain; charset=utf-8", "done", false);
+            }
+            case "/wait-hanging" -> {
+                java.util.concurrent.CompletableFuture.runAsync(
+                        () -> { }, java.util.concurrent.CompletableFuture.delayedExecutor(1500,
+                                java.util.concurrent.TimeUnit.MILLISECONDS)).join();
+                response(exchange, "text/plain; charset=utf-8", "late", false);
+            }
             case "/app.js" -> response(exchange, "application/javascript; charset=utf-8", APP_JS, false);
             case "/app.css" -> response(exchange, "text/css; charset=utf-8", APP_CSS, false);
             default -> response(exchange, "text/plain; charset=utf-8", "not found", false, 404);

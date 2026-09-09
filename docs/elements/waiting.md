@@ -71,3 +71,26 @@ Assertions have their own [`UiAssertionOptions`](../reference/configuration.md#u
 State assertions such as `toHaveCount`, `toHaveAttribute`, `toBeChecked`, and `toBeAttached` use that assertion loop and take exactly one current observation per attempt. Their `ASSERTION_RETRY` events remain polling diagnostics and do not contribute to recovery-retry flakiness.
 
 Page assertions created by `expectPage()` follow the same distinction: each attempt performs one `getCurrentUrl()` or `getTitle()` on the active window. A mismatch is assertion polling, not recovery retry; the assertion never wraps a second `WebDriverWait` or changes the active window.
+
+## Page and JavaScript waits
+
+!!! info "Coming in 0.2.0"
+    The `TestLens` page-wait facade is part of the current development line and is not available in Maven Central `0.1.0`. The lower-level `PageWaits` and corresponding `JsOverlayDebug` methods existed in 0.1.0.
+
+<!-- API SIGNATURES: io.github.testlens.TestLens -->
+```java
+void waitForPageReady()
+void waitForPageReady(Duration timeout)
+void waitForInteractiveOrComplete()
+void waitForInteractiveOrComplete(Duration timeout)
+void waitForNetworkIdle()
+void waitForNetworkIdle(Duration idleDuration, Duration timeout)
+```
+
+The no-argument facade methods use `TestLensOptions.locatorOptions().timeout()` and `pollInterval()`. An explicit timeout takes precedence. Timeout and idle duration must not be negative, and the configured polling interval must be positive. Every operation owns one monotonic total deadline; a timeout always throws Selenium `TimeoutException`. Terminal WebDriver or JavaScript failures stop immediately with the original failure preserved.
+
+`waitForPageReady` polls one `return document.readyState` observation at a time and accepts only `complete`. `waitForInteractiveOrComplete` accepts only `interactive` or `complete`. Neither method promises that an SPA has rendered its data. With Selenium's usual `PageLoadStrategy.NORMAL`, `get()` normally already waits for classic document loading; explicit readiness waits are mainly useful with `EAGER`, `NONE`, asynchronous navigation, or when re-observing the active document.
+
+`waitForNetworkIdle` installs an idempotent in-page tracker and requires zero observed active XHR/fetch operations for the complete idle window. The tracker balances successful, rejected, aborted, and synchronously failed calls, and is installed again in a new document after navigation. It sees only XHR/fetch started after installation. It does not guarantee visibility into earlier requests, images, CSS, scripts, WebSocket, EventSource, beacon, or full browser traffic. Use [WebDriver BiDi network diagnostics](../advanced/network.md) when passive browser-level evidence is required.
+
+The existing React/SPA combinations retain their public API but now share one deadline across document, network, root, component, and DOM-stability stages. Wait polling emits one `WAIT/STARTED` and one terminal `WAIT/PASSED` or `WAIT/FAILED`; it does not emit recovery retries, affect `RetrySummary`, or mark the session flaky. HUD state is removed in `finally`, and diagnostic DOM text is inserted with text nodes rather than unescaped HTML.

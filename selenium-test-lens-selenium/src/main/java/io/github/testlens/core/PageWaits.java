@@ -1,441 +1,456 @@
 package io.github.testlens.core;
 
 import io.github.testlens.OverlayConfig;
+import io.github.testlens.core.logging.UiTestLensEventType;
+import io.github.testlens.core.logging.UiTestLensLogEntry;
+import io.github.testlens.core.logging.UiTestLensLogLevel;
+import io.github.testlens.core.logging.UiTestLensStatus;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.Sleeper;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 
+/** Existing low-level page and JavaScript wait helper. */
 public class PageWaits {
+    private static final Duration LEGACY_DEFAULT_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration DEFAULT_POLL_INTERVAL = Duration.ofMillis(100);
+    private static final Duration DEFAULT_NETWORK_IDLE = Duration.ofMillis(500);
+    private static final Duration DEFAULT_DOM_IDLE = Duration.ofMillis(300);
 
     private final WebDriver driver;
     private final JavascriptExecutor js;
-    private final OverlayConfig config;
     private final Duration defaultTimeout;
+    private final Duration pollInterval;
+    private final OverlayLogger logger;
+    private final Clock clock;
+    private final Sleeper sleeper;
 
     public PageWaits(WebDriver driver, OverlayConfig config) {
-        if (!(driver instanceof JavascriptExecutor)) {
-            throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
-        }
-        this.driver = driver;
-        this.js = (JavascriptExecutor) driver;
-        this.config = config;
-        this.defaultTimeout = Duration.ofSeconds(10);
+        this(driver, config, LEGACY_DEFAULT_TIMEOUT);
     }
 
     public PageWaits(WebDriver driver, OverlayConfig config, Duration defaultTimeout) {
-        if (!(driver instanceof JavascriptExecutor)) {
+        this(driver, config, defaultTimeout, DEFAULT_POLL_INTERVAL, OverlayLogger.noop(),
+                new MonotonicClock(), Sleeper.SYSTEM_SLEEPER);
+    }
+
+    protected PageWaits(WebDriver driver,
+                        OverlayConfig config,
+                        Duration defaultTimeout,
+                        Duration pollInterval,
+                        OverlayLogger logger) {
+        this(driver, config, defaultTimeout, pollInterval, logger, new MonotonicClock(), Sleeper.SYSTEM_SLEEPER);
+    }
+
+    PageWaits(WebDriver driver,
+              OverlayConfig config,
+              Duration defaultTimeout,
+              Duration pollInterval,
+              OverlayLogger logger,
+              Clock clock,
+              Sleeper sleeper) {
+        if (!(driver instanceof JavascriptExecutor executor)) {
             throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
         }
-        this.driver = driver;
-        this.js = (JavascriptExecutor) driver;
-        this.config = config;
-        this.defaultTimeout = defaultTimeout != null ? defaultTimeout : Duration.ofSeconds(10);
-    }
-
-    // === Helpers do logowania czasu ===
-
-    private void rememberLastWaitMessage(String message) {
-        try {
-            js.executeScript(rememberLastWaitMessageScript(), message);
-        } catch (Exception ignored) {
-            // brak okna / błąd JS – trudno, po prostu bez HUD info
+        if (config == null) {
+            throw new IllegalArgumentException("config must not be null");
         }
+        this.driver = driver;
+        this.js = executor;
+        this.defaultTimeout = nonNegative(defaultTimeout == null ? LEGACY_DEFAULT_TIMEOUT : defaultTimeout, "defaultTimeout");
+        this.pollInterval = positive(pollInterval, "pollInterval");
+        this.logger = logger == null ? OverlayLogger.noop() : logger;
+        this.clock = clock == null ? new MonotonicClock() : clock;
+        this.sleeper = sleeper == null ? Sleeper.SYSTEM_SLEEPER : sleeper;
     }
 
-    static String rememberLastWaitMessageScript() {
-        return UiTestLensRuntimeNames.ensureNamespaceScript() +
-                "var waitState = window.__uiTestLens.state.wait;" +
-                "waitState.lastMessage = arguments[0];" +
-                "window.__seleniumLastWaitMessage = waitState.lastMessage;";
-    }
-
-    private long nowMs() {
-        return System.nanoTime() / 1_000_000L;
-    }
-
-    // === klasyczne waity ===
-
-    /**
-     * Czeka aż document.readyState == 'complete' + zapisuje info dla HUD-a.
-     */
     public void waitForDocumentReady() {
         waitForDocumentReady(defaultTimeout);
     }
 
     public void waitForDocumentReady(Duration timeout) {
-        Duration effectiveTimeout = timeout != null ? timeout : defaultTimeout;
-
-        long start = nowMs();
-        WebDriverWait wait = new WebDriverWait(driver, effectiveTimeout);
-        wait.until((ExpectedCondition<Boolean>) d -> {
-            Object result = js.executeScript("return document.readyState");
-            return "complete".equals(result);
+        Duration effectiveTimeout = timeoutOrDefault(timeout);
+        execute("DOCUMENT_READY", "DOCUMENT_READY_STATE", effectiveTimeout, null, context -> {
+            poll(context, "document.readyState to become complete", () -> {
+                context.attempts++;
+                return "complete".equals(js.executeScript("return document.readyState"));
+            });
+            return null;
         });
-        long elapsed = nowMs() - start;
-
-        rememberLastWaitMessage(String.format(
-                "[WAIT] document.readyState == 'complete' in %d ms (timeout %d ms)",
-                elapsed,
-                effectiveTimeout.toMillis()
-        ));
     }
 
-    /**
-     * Czeka aż document.readyState będzie 'interactive' lub 'complete'.
-     */
     public void waitForInteractiveOrComplete() {
         waitForInteractiveOrComplete(defaultTimeout);
     }
 
     public void waitForInteractiveOrComplete(Duration timeout) {
-        Duration effectiveTimeout = timeout != null ? timeout : defaultTimeout;
-
-        long start = nowMs();
-        WebDriverWait wait = new WebDriverWait(driver, effectiveTimeout);
-        wait.until((ExpectedCondition<Boolean>) d -> {
-            Object result = js.executeScript("return document.readyState");
-            if (result == null) {
-                return false;
-            }
-            String state = result.toString();
-            return "interactive".equals(state) || "complete".equals(state);
+        Duration effectiveTimeout = timeoutOrDefault(timeout);
+        execute("DOCUMENT_INTERACTIVE", "DOCUMENT_READY_STATE", effectiveTimeout, null, context -> {
+            poll(context, "document.readyState to become interactive or complete", () -> {
+                context.attempts++;
+                Object value = js.executeScript("return document.readyState");
+                return "interactive".equals(value) || "complete".equals(value);
+            });
+            return null;
         });
-        long elapsed = nowMs() - start;
-
-        rememberLastWaitMessage(String.format(
-                "[WAIT] document.readyState in {interactive, complete} in %d ms (timeout %d ms)",
-                elapsed,
-                effectiveTimeout.toMillis()
-        ));
     }
 
-    /**
-     * Prosta wersja "network idle":
-     * - trackuje aktywne XHR/fetch w oknie,
-     * - czeka, aż przez określony czas nie pojawi się żaden aktywny request.
-     */
     public void waitForNetworkIdle(Duration idleDuration, Duration timeout) {
-        if (idleDuration == null) {
-            idleDuration = Duration.ofMillis(500);
-        }
-        if (timeout == null) {
-            timeout = defaultTimeout;
-        }
-
-        injectNetworkTrackerIfNeeded();
-
-        long idleMillis = idleDuration.toMillis();
-        long timeoutMillis = timeout.toMillis();
-
-        long start = nowMs();
-        long lastActive = nowMs();
-        boolean idleAchieved = false;
-
-        while (true) {
-            Long active = null;
-            try {
-                active = ((Number) js.executeScript(networkActiveRequestsScript())).longValue();
-            } catch (Exception ignored) {
-            }
-
-            long now = nowMs();
-
-            if (active != null && active == 0L) {
-                if (now - lastActive >= idleMillis) {
-                    idleAchieved = true;
-                    break;
+        Duration effectiveIdle = nonNegative(idleDuration == null ? DEFAULT_NETWORK_IDLE : idleDuration, "idleDuration");
+        Duration effectiveTimeout = timeoutOrDefault(timeout);
+        execute("NETWORK_IDLE", "JS_XHR_FETCH_TRACKER", effectiveTimeout, effectiveIdle, context -> {
+            js.executeScript(networkTrackerScript());
+            final Instant[] idleSince = {null};
+            poll(context, "observed XHR/fetch activity to remain idle", () -> {
+                context.attempts++;
+                Object value = js.executeScript(networkActiveRequestsScript());
+                if (!(value instanceof Number number)) {
+                    throw new WebDriverException("XHR/fetch tracker returned a non-numeric active request count");
                 }
-            } else {
-                lastActive = now;
-            }
-
-            if (now - start > timeoutMillis) {
-                break;
-            }
-
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
-        }
-
-        long elapsed = nowMs() - start;
-        if (idleAchieved) {
-            rememberLastWaitMessage(String.format(
-                    "[WAIT] network idle (%d ms idle window) in %d ms (timeout %d ms)",
-                    idleMillis,
-                    elapsed,
-                    timeoutMillis
-            ));
-        } else {
-            rememberLastWaitMessage(String.format(
-                    "[WAIT] network NOT idle within timeout %d ms (idle window %d ms, elapsed %d ms)",
-                    timeoutMillis,
-                    idleMillis,
-                    elapsed
-            ));
-        }
+                long active = number.longValue();
+                Instant now = clock.instant();
+                if (active != 0L) {
+                    idleSince[0] = null;
+                    return false;
+                }
+                if (idleSince[0] == null) idleSince[0] = now;
+                return !Duration.between(idleSince[0], now).minus(effectiveIdle).isNegative();
+            });
+            return null;
+        });
     }
 
     public void waitForNetworkIdle() {
-        waitForNetworkIdle(Duration.ofMillis(500), defaultTimeout);
+        waitForNetworkIdle(DEFAULT_NETWORK_IDLE, defaultTimeout);
     }
 
-    /**
-     * Wstrzykuje prosty tracker XHR/fetch do strony (jeśli jeszcze nie istnieje).
-     */
-    private void injectNetworkTrackerIfNeeded() {
-        js.executeScript(networkTrackerScript());
-    }
-
-    static String networkActiveRequestsScript() {
-        return UiTestLensRuntimeNames.ensureNamespaceScript() +
-                "var networkState = window.__uiTestLens.state.network;" +
-                "if (typeof networkState.activeRequests !== 'number') {" +
-                "  networkState.activeRequests = window.__seleniumActiveRequests || 0;" +
-                "}" +
-                "window.__seleniumActiveRequests = networkState.activeRequests;" +
-                "return networkState.activeRequests || 0;";
-    }
-
-    static String networkTrackerScript() {
-        return UiTestLensRuntimeNames.ensureNamespaceScript() +
-                "var networkState = window.__uiTestLens.state.network;" +
-                "function syncLegacyActiveRequests() {" +
-                "  window.__seleniumActiveRequests = networkState.activeRequests || 0;" +
-                "}" +
-                "if (networkState.trackerInstalled || window.__seleniumNetworkTrackerInstalled) {" +
-                "  networkState.trackerInstalled = true;" +
-                "  window.__seleniumNetworkTrackerInstalled = true;" +
-                "  networkState.activeRequests = networkState.activeRequests || window.__seleniumActiveRequests || 0;" +
-                "  syncLegacyActiveRequests();" +
-                "  return;" +
-                "}" +
-                "networkState.trackerInstalled = true;" +
-                "window.__seleniumNetworkTrackerInstalled = true;" +
-                "networkState.activeRequests = 0;" +
-                "syncLegacyActiveRequests();" +
-
-                // hook na XHR
-                "(function() {" +
-                "  var origOpen = XMLHttpRequest.prototype.open;" +
-                "  var origSend = XMLHttpRequest.prototype.send;" +
-                "  XMLHttpRequest.prototype.open = function() {" +
-                "    origOpen.apply(this, arguments);" +
-                "  };" +
-                "  XMLHttpRequest.prototype.send = function() {" +
-                "    networkState.activeRequests++;" +
-                "    syncLegacyActiveRequests();" +
-                "    this.addEventListener('loadend', function() {" +
-                "      networkState.activeRequests--;" +
-                "      syncLegacyActiveRequests();" +
-                "    });" +
-                "    origSend.apply(this, arguments);" +
-                "  };" +
-                "})();" +
-
-                // hook na fetch
-                "(function() {" +
-                "  if (!window.fetch) { return; }" +
-                "  var origFetch = window.fetch;" +
-                "  window.fetch = function() {" +
-                "    networkState.activeRequests++;" +
-                "    syncLegacyActiveRequests();" +
-                "    return origFetch.apply(this, arguments)" +
-                "      .finally(function() {" +
-                "        networkState.activeRequests--;" +
-                "        syncLegacyActiveRequests();" +
-                "      });" +
-                "  };" +
-                "})();";
-    }
-
-    // === REACT / SPA WAITY ===
-
-    /**
-     * 1) Czekaj aż "root" Reacta będzie zamontowany:
-     *    - element wskazany locatorem istnieje,
-     *    - ma co najmniej 1 dziecko (pierwszy render / hydracja zakończona).
-     */
     public WebElement waitForReactRootMounted(By rootLocator) {
         return waitForReactRootMounted(rootLocator, defaultTimeout);
     }
 
     public WebElement waitForReactRootMounted(By rootLocator, Duration timeout) {
-        Duration effectiveTimeout = timeout != null ? timeout : defaultTimeout;
-        long start = nowMs();
-
-        WebDriverWait wait = new WebDriverWait(driver, effectiveTimeout);
-        WebElement root = wait.until(d -> {
-            WebElement r = d.findElement(rootLocator);
-            if (r == null) {
-                return null;
-            }
-            Object hasChildren = js.executeScript(
-                    "return (arguments[0] && arguments[0].children && arguments[0].children.length > 0);",
-                    r
-            );
-            return Boolean.TRUE.equals(hasChildren) ? r : null;
-        });
-
-        long elapsed = nowMs() - start;
-        rememberLastWaitMessage(String.format(
-                "[WAIT] React root '%s' mounted (has children) in %d ms (timeout %d ms)",
-                rootLocator,
-                elapsed,
-                effectiveTimeout.toMillis()
-        ));
-        return root;
+        Duration effectiveTimeout = timeoutOrDefault(timeout);
+        return execute("REACT_ROOT_MOUNTED", "DOCUMENT_READY_STATE", effectiveTimeout, null,
+                context -> awaitReactRoot(context, rootLocator));
     }
 
-    /**
-     * 2) Czekaj aż DOM pod danym rootem będzie "stabilny" (MutationObserver).
-     */
-    public void waitForSpaDomStableUnder(By rootLocator,
-                                         Duration idleDuration,
-                                         Duration timeout) {
-        if (idleDuration == null) {
-            idleDuration = Duration.ofMillis(300);
-        }
-        if (timeout == null) {
-            timeout = defaultTimeout;
-        }
-
-        long start = nowMs();
-        long idleMs = idleDuration.toMillis();
-
-        WebDriverWait wait = new WebDriverWait(driver, timeout);
-        wait.until(d -> {
-            WebElement root;
-            try {
-                root = d.findElement(rootLocator);
-            } catch (NoSuchElementException e) {
-                return false;
-            }
-            if (root == null) return false;
-
-            Long lastMut = (Long) js.executeScript(domStableMutationScript(), root);
-
-            long now = System.currentTimeMillis();
-            if (lastMut == null || lastMut <= 0L) {
-                return false;
-            }
-            long diff = now - lastMut;
-            return diff >= idleMs;
+    public void waitForSpaDomStableUnder(By rootLocator, Duration idleDuration, Duration timeout) {
+        Duration effectiveIdle = nonNegative(idleDuration == null ? DEFAULT_DOM_IDLE : idleDuration, "idleDuration");
+        Duration effectiveTimeout = timeoutOrDefault(timeout);
+        execute("SPA_DOM_STABLE", "DOCUMENT_READY_STATE", effectiveTimeout, effectiveIdle, context -> {
+            awaitDomStable(context, rootLocator, effectiveIdle);
+            return null;
         });
-
-        long elapsed = nowMs() - start;
-        rememberLastWaitMessage(String.format(
-                "[WAIT] SPA DOM stable under '%s' (no mutations for %d ms) in %d ms (timeout %d ms)",
-                rootLocator,
-                idleMs,
-                elapsed,
-                timeout.toMillis()
-        ));
     }
 
     public void waitForSpaDomStableUnder(By rootLocator) {
-        waitForSpaDomStableUnder(rootLocator, Duration.ofMillis(300), defaultTimeout);
+        waitForSpaDomStableUnder(rootLocator, DEFAULT_DOM_IDLE, defaultTimeout);
     }
 
-    static String domStableMutationScript() {
-        return UiTestLensRuntimeNames.ensureNamespaceScript() +
-                "var domState = window.__uiTestLens.state.dom;" +
-                "var root = arguments[0];" +
-                "if (!root) return -1;" +
-                "if (!root.__seleniumDomStableInit) {" +
-                "  root.__seleniumDomStableInit = true;" +
-                "  root.__seleniumLastMutation = Date.now();" +
-                "  var obs = new MutationObserver(function(mutations) {" +
-                "    root.__seleniumLastMutation = Date.now();" +
-                "  });" +
-                "  obs.observe(root, {" +
-                "    childList: true," +
-                "    subtree: true," +
-                "    attributes: true," +
-                "    characterData: true" +
-                "  });" +
-                "}" +
-                "return root.__seleniumLastMutation || Date.now();";
-    }
-
-    /**
-     * 3) Czekaj aż "komponent" będzie widoczny (root + stable + visibility).
-     */
-    public WebElement waitForReactComponentVisible(By rootLocator,
-                                                   By componentLocator) {
+    public WebElement waitForReactComponentVisible(By rootLocator, By componentLocator) {
         return waitForReactComponentVisible(rootLocator, componentLocator, defaultTimeout);
     }
 
-    public WebElement waitForReactComponentVisible(By rootLocator,
-                                                   By componentLocator,
-                                                   Duration timeout) {
-        Duration effectiveTimeout = timeout != null ? timeout : defaultTimeout;
-        long start = nowMs();
-
-        // 1) root mounted
-        waitForReactRootMounted(rootLocator, effectiveTimeout);
-
-        // 2) DOM stable pod rootem
-        waitForSpaDomStableUnder(rootLocator, Duration.ofMillis(300), effectiveTimeout);
-
-        // 3) komponent widoczny
-        WebDriverWait wait = new WebDriverWait(driver, effectiveTimeout);
-        WebElement component = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(componentLocator)
-        );
-
-        long elapsed = nowMs() - start;
-        rememberLastWaitMessage(String.format(
-                "[WAIT] React component '%s' visible under '%s' in %d ms (timeout %d ms)",
-                componentLocator,
-                rootLocator,
-                elapsed,
-                effectiveTimeout.toMillis()
-        ));
-
-        return component;
+    public WebElement waitForReactComponentVisible(By rootLocator, By componentLocator, Duration timeout) {
+        Duration effectiveTimeout = timeoutOrDefault(timeout);
+        return execute("REACT_COMPONENT_VISIBLE", "DOCUMENT_READY_STATE", effectiveTimeout, null, context -> {
+            awaitReactRoot(context, rootLocator);
+            awaitDomStable(context, rootLocator, DEFAULT_DOM_IDLE);
+            return poll(context, "React component to become visible", () -> {
+                context.attempts++;
+                try {
+                    WebElement component = driver.findElement(componentLocator);
+                    return component != null && component.isDisplayed() ? component : null;
+                } catch (NoSuchElementException ignored) {
+                    return null;
+                }
+            });
+        });
     }
 
-    /**
-     * 4) Combo: readyState + network idle + React root + stable DOM.
-     */
     public void waitForReactAndNetworkIdle(By rootLocator) {
         waitForReactAndNetworkIdle(rootLocator, defaultTimeout);
     }
 
     public void waitForReactAndNetworkIdle(By rootLocator, Duration timeout) {
-        Duration effectiveTimeout = timeout != null ? timeout : defaultTimeout;
-        long start = nowMs();
+        Duration effectiveTimeout = timeoutOrDefault(timeout);
+        execute("REACT_AND_NETWORK_IDLE", "JS_XHR_FETCH_TRACKER", effectiveTimeout, DEFAULT_NETWORK_IDLE, context -> {
+            poll(context, "document.readyState to become complete", () -> {
+                context.attempts++;
+                return "complete".equals(js.executeScript("return document.readyState"));
+            });
+            js.executeScript(networkTrackerScript());
+            final Instant[] idleSince = {null};
+            poll(context, "observed XHR/fetch activity to remain idle", () -> {
+                context.attempts++;
+                Object value = js.executeScript(networkActiveRequestsScript());
+                if (!(value instanceof Number number)) {
+                    throw new WebDriverException("XHR/fetch tracker returned a non-numeric active request count");
+                }
+                Instant now = clock.instant();
+                if (number.longValue() != 0L) {
+                    idleSince[0] = null;
+                    return false;
+                }
+                if (idleSince[0] == null) idleSince[0] = now;
+                return !Duration.between(idleSince[0], now).minus(DEFAULT_NETWORK_IDLE).isNegative();
+            });
+            awaitReactRoot(context, rootLocator);
+            awaitDomStable(context, rootLocator, DEFAULT_DOM_IDLE);
+            return null;
+        });
+    }
 
-        // 1) klasyczny page ready (z własnym logiem)
-        waitForDocumentReady(effectiveTimeout);
+    private WebElement awaitReactRoot(WaitContext context, By rootLocator) {
+        return poll(context, "React root to mount", () -> {
+            context.attempts++;
+            try {
+                WebElement root = driver.findElement(rootLocator);
+                Object hasChildren = js.executeScript(
+                        "return (arguments[0] && arguments[0].children && arguments[0].children.length > 0);", root);
+                return Boolean.TRUE.equals(hasChildren) ? root : null;
+            } catch (NoSuchElementException ignored) {
+                return null;
+            }
+        });
+    }
 
-        // 2) network idle (z własnym logiem)
-        waitForNetworkIdle(Duration.ofMillis(500), effectiveTimeout);
+    private void awaitDomStable(WaitContext context, By rootLocator, Duration idleDuration) {
+        poll(context, "SPA DOM to remain stable", () -> {
+            context.attempts++;
+            try {
+                WebElement root = driver.findElement(rootLocator);
+                Object age = js.executeScript(domStableMutationScript(), root);
+                return age instanceof Number number && number.longValue() >= idleDuration.toMillis();
+            } catch (NoSuchElementException ignored) {
+                return false;
+            }
+        });
+    }
 
-        // 3) React root mounted (z własnym logiem)
-        waitForReactRootMounted(rootLocator, effectiveTimeout);
+    private <T> T poll(WaitContext context, String condition, Supplier<T> observation) {
+        while (true) {
+            T value = observation.get();
+            if (value instanceof Boolean bool ? bool : value != null) return value;
+            Instant now = clock.instant();
+            if (!now.isBefore(context.deadline)) {
+                throw new TimeoutException("Timed out waiting for " + condition);
+            }
+            Duration remaining = Duration.between(now, context.deadline);
+            Duration sleepFor = remaining.compareTo(pollInterval) < 0 ? remaining : pollInterval;
+            try {
+                sleeper.sleep(sleepFor);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                throw new WebDriverException("Interrupted while polling page wait", interrupted);
+            }
+        }
+    }
 
-        // 4) DOM stable pod rootem (z własnym logiem)
-        waitForSpaDomStableUnder(rootLocator, Duration.ofMillis(300), effectiveTimeout);
+    private <T> T execute(String waitKind, String source, Duration timeout, Duration idleDuration,
+                          WaitOperation<T> operation) {
+        Instant started = clock.instant();
+        WaitContext context = new WaitContext(started.plus(timeout));
+        emit(waitKind, source, timeout, idleDuration, Duration.ZERO, context.attempts,
+                UiTestLensStatus.STARTED, null, null);
+        showIndicator(waitKind);
+        try {
+            T result = operation.run(context);
+            Duration elapsed = elapsedSince(started);
+            rememberLastWaitMessage("[WAIT] " + waitKind + " passed in " + elapsed.toMillis() + " ms");
+            emit(waitKind, source, timeout, idleDuration, elapsed, context.attempts,
+                    UiTestLensStatus.PASSED, null, null);
+            return result;
+        } catch (TimeoutException timeoutFailure) {
+            Duration elapsed = elapsedSince(started);
+            rememberLastWaitMessage("[WAIT] " + waitKind + " timed out after " + elapsed.toMillis() + " ms");
+            emit(waitKind, source, timeout, idleDuration, elapsed, context.attempts,
+                    UiTestLensStatus.FAILED, "TIMEOUT", timeoutFailure);
+            throw timeoutFailure;
+        } catch (RuntimeException terminalFailure) {
+            Duration elapsed = elapsedSince(started);
+            rememberLastWaitMessage("[WAIT] " + waitKind + " failed after " + elapsed.toMillis() + " ms");
+            emit(waitKind, source, timeout, idleDuration, elapsed, context.attempts,
+                    UiTestLensStatus.FAILED, "TERMINAL_ERROR", terminalFailure);
+            throw terminalFailure;
+        } finally {
+            hideIndicator();
+        }
+    }
 
-        long elapsed = nowMs() - start;
-        rememberLastWaitMessage(String.format(
-                "[WAIT] React+network idle under '%s' (ready+network+root+stable DOM) in %d ms (timeout %d ms)",
-                rootLocator,
-                elapsed,
-                effectiveTimeout.toMillis()
-        ));
+    private void emit(String waitKind, String source, Duration timeout, Duration idleDuration,
+                      Duration elapsed, long attempts, UiTestLensStatus status, String reason, Throwable throwable) {
+        Map<String, String> metadata = new LinkedHashMap<>();
+        metadata.put("waitKind", waitKind);
+        metadata.put("source", source);
+        metadata.put("timeoutMs", String.valueOf(timeout.toMillis()));
+        metadata.put("pollIntervalMs", String.valueOf(pollInterval.toMillis()));
+        metadata.put("elapsedMs", String.valueOf(elapsed.toMillis()));
+        metadata.put("attempts", String.valueOf(attempts));
+        if (idleDuration != null) metadata.put("idleDurationMs", String.valueOf(idleDuration.toMillis()));
+        if (reason != null) metadata.put("reason", reason);
+        try {
+            logger.emit(UiTestLensLogEntry.builder()
+                    .level(status == UiTestLensStatus.FAILED ? UiTestLensLogLevel.ERROR : UiTestLensLogLevel.INFO)
+                    .eventType(UiTestLensEventType.WAIT)
+                    .status(status)
+                    .message(status == UiTestLensStatus.STARTED
+                            ? "Page wait started: " + waitKind
+                            : "Page wait " + status.name().toLowerCase() + ": " + waitKind)
+                    .action("page.wait")
+                    .metadata(metadata)
+                    .throwable(throwable)
+                    .build());
+        } catch (RuntimeException ignored) {
+            // Diagnostics are decorative and must not change the wait outcome.
+        }
+    }
+
+    private void showIndicator(String waitKind) {
+        try {
+            js.executeScript(WaitHudJs.INIT
+                    + "if (waitHud && waitHud.showIndicator) { waitHud.showIndicator(arguments[0]); }", waitKind);
+        } catch (RuntimeException ignored) {
+            // Decorative HUD only.
+        }
+    }
+
+    private void hideIndicator() {
+        try {
+            js.executeScript(WaitHudJs.bridgeScript()
+                    + "if (waitHud && waitHud.hideIndicator) { waitHud.hideIndicator(); }");
+        } catch (RuntimeException ignored) {
+            // Decorative HUD only.
+        }
+    }
+
+    private void rememberLastWaitMessage(String message) {
+        try {
+            js.executeScript(rememberLastWaitMessageScript(), message);
+        } catch (RuntimeException ignored) {
+            // Decorative HUD only.
+        }
+    }
+
+    static String rememberLastWaitMessageScript() {
+        return UiTestLensRuntimeNames.ensureNamespaceScript()
+                + "var waitState = window.__uiTestLens.state.wait;"
+                + "waitState.lastMessage = arguments[0];"
+                + "window.__seleniumLastWaitMessage = waitState.lastMessage;";
+    }
+
+    static String networkActiveRequestsScript() {
+        return UiTestLensRuntimeNames.ensureNamespaceScript()
+                + "var networkState = window.__uiTestLens.state.network;"
+                + "if (typeof networkState.activeRequests !== 'number') {"
+                + "  networkState.activeRequests = Number(window.__seleniumActiveRequests) || 0;"
+                + "}"
+                + "networkState.activeRequests = Math.max(0, networkState.activeRequests);"
+                + "window.__seleniumActiveRequests = networkState.activeRequests;"
+                + "return networkState.activeRequests;";
+    }
+
+    static String networkTrackerScript() {
+        return UiTestLensRuntimeNames.ensureNamespaceScript()
+                + "var networkState = window.__uiTestLens.state.network;"
+                + "function syncLegacyActiveRequests() {"
+                + "  networkState.activeRequests = Math.max(0, Number(networkState.activeRequests) || 0);"
+                + "  window.__seleniumActiveRequests = networkState.activeRequests;"
+                + "}"
+                + "function beginRequest() { networkState.activeRequests++; syncLegacyActiveRequests(); }"
+                + "function finishRequest() { networkState.activeRequests = Math.max(0, networkState.activeRequests - 1); syncLegacyActiveRequests(); }"
+                + "if (networkState.trackerInstalled || window.__seleniumNetworkTrackerInstalled) {"
+                + "  networkState.trackerInstalled = true; window.__seleniumNetworkTrackerInstalled = true;"
+                + "  syncLegacyActiveRequests(); return;"
+                + "}"
+                + "networkState.trackerInstalled = true; window.__seleniumNetworkTrackerInstalled = true;"
+                + "networkState.activeRequests = 0; syncLegacyActiveRequests();"
+                + "(function() {"
+                + "  var origOpen = XMLHttpRequest.prototype.open; var origSend = XMLHttpRequest.prototype.send;"
+                + "  XMLHttpRequest.prototype.open = function() { return origOpen.apply(this, arguments); };"
+                + "  XMLHttpRequest.prototype.send = function() {"
+                + "    var finished = false; function finishOnce() { if (!finished) { finished = true; finishRequest(); } }"
+                + "    this.addEventListener('loadend', finishOnce, {once:true}); beginRequest();"
+                + "    try { return origSend.apply(this, arguments); } catch (failure) { finishOnce(); throw failure; }"
+                + "  };"
+                + "})();"
+                + "(function() {"
+                + "  if (!window.fetch) return; var origFetch = window.fetch;"
+                + "  window.fetch = function() {"
+                + "    beginRequest(); var promise;"
+                + "    try { promise = origFetch.apply(this, arguments); } catch (failure) { finishRequest(); throw failure; }"
+                + "    return Promise.resolve(promise).then("
+                + "      function(value) { finishRequest(); return value; },"
+                + "      function(failure) { finishRequest(); throw failure; });"
+                + "  };"
+                + "})();";
+    }
+
+    static String domStableMutationScript() {
+        return UiTestLensRuntimeNames.ensureNamespaceScript()
+                + "var root = arguments[0]; if (!root) return -1;"
+                + "if (!root.__seleniumDomStableInit) {"
+                + "  root.__seleniumDomStableInit = true; root.__seleniumLastMutation = Date.now();"
+                + "  var obs = new MutationObserver(function() { root.__seleniumLastMutation = Date.now(); });"
+                + "  obs.observe(root, {childList:true,subtree:true,attributes:true,characterData:true});"
+                + "}"
+                + "return Math.max(0, Date.now() - root.__seleniumLastMutation);";
+    }
+
+    private Duration timeoutOrDefault(Duration timeout) {
+        return nonNegative(timeout == null ? defaultTimeout : timeout, "timeout");
+    }
+
+    private Duration elapsedSince(Instant started) {
+        Duration elapsed = Duration.between(started, clock.instant());
+        return elapsed.isNegative() ? Duration.ZERO : elapsed;
+    }
+
+    private static Duration nonNegative(Duration duration, String name) {
+        if (duration == null || duration.isNegative()) throw new IllegalArgumentException(name + " must not be negative");
+        return duration;
+    }
+
+    private static Duration positive(Duration duration, String name) {
+        if (duration == null || duration.isZero() || duration.isNegative()) {
+            throw new IllegalArgumentException(name + " must be positive");
+        }
+        return duration;
+    }
+
+    private static final class WaitContext {
+        private final Instant deadline;
+        private long attempts;
+
+        private WaitContext(Instant deadline) {
+            this.deadline = deadline;
+        }
+    }
+
+    @FunctionalInterface
+    private interface WaitOperation<T> {
+        T run(WaitContext context);
+    }
+
+    private static final class MonotonicClock extends Clock {
+        private final Instant origin = Instant.now();
+        private final long startNanos = System.nanoTime();
+
+        @Override public ZoneId getZone() { return ZoneOffset.UTC; }
+        @Override public Clock withZone(ZoneId zone) { return this; }
+        @Override public Instant instant() { return origin.plusNanos(System.nanoTime() - startNanos); }
     }
 }
-

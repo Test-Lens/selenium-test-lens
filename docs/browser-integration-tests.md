@@ -52,6 +52,7 @@ The browser gate verifies:
 - semantic checkbox/radio and ARIA control actions verify direct and label activation, idempotence, mixed/disabled/unsupported behavior, asynchronous rerender confirmation, and foreign-overlay failure in both overlay modes;
 - semantic accessibility locators verify browser-computed names from native labels, `aria-labelledby` (including multiple references), descendant image alt text, label/placeholder separation, alt-only matching, lazy dynamic lookup, and collection order;
 - hidden single/multiple file inputs, focus, and centered scrolling verify one physical operation, safe upload diagnostics, and a live driver after every action.
+- page-wait facade contracts cover `PageLoadStrategy.NONE` readiness, delayed observed fetch completion plus a full idle window, timeout for a still-active fetch, and tracker reinjection after navigation.
 
 ## CI
 

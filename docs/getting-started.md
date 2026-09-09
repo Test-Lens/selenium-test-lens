@@ -129,6 +129,15 @@ lens.expectPage().toHaveTitle("Checkout");
 
 They observe the current window selected by your Selenium flow. URL matching is raw and case-sensitive; title matching follows `UiAssertionOptions` text settings. Reported URL previews omit credentials, query strings, and fragments.
 
+For readiness rather than an assertion value, the development facade also delegates to the existing page waits:
+
+```java
+lens.waitForPageReady();
+lens.waitForNetworkIdle(Duration.ofMillis(500), Duration.ofSeconds(5));
+```
+
+The defaults come from `TestLensOptions.locatorOptions()`. The network wait is an XHR/fetch tracker heuristic, not complete browser network-idle detection; see [Element and page waiting](elements/waiting.md#page-and-javascript-waits).
+
 Lens finalization writes the session diagnostics. Use `finishSkipped(reason)` for an aborted test or unmet assumption; unlike `finishFailed(...)`, it does not request a failure screenshot. Keep your existing `WebDriver` cleanup as-is.
 
 For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The runner adapters are the recommended JUnit 5 and TestNG paths for the `0.2.0-SNAPSHOT` development line.

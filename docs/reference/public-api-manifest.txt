@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
 # Types: 219
-# Public callable methods/constructors: 1734
+# Public callable methods/constructors: 1740
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -948,6 +948,12 @@ TYPE io.github.testlens.TestLens
   public io.github.testlens.selenium.assertions.UiExpect expect(org.openqa.selenium.By, java.lang.String)
   public io.github.testlens.selenium.assertions.UiPageExpect expectPage()
   public io.github.testlens.selenium.assertions.UiPageExpect expectPage(io.github.testlens.selenium.assertions.UiAssertionOptions)
+  public void waitForPageReady()
+  public void waitForPageReady(java.time.Duration)
+  public void waitForInteractiveOrComplete()
+  public void waitForInteractiveOrComplete(java.time.Duration)
+  public void waitForNetworkIdle()
+  public void waitForNetworkIdle(java.time.Duration, java.time.Duration)
   public io.github.testlens.selenium.locator.UiLocator getByTestId(java.lang.String)
   public io.github.testlens.selenium.locator.UiLocator getByText(java.lang.String)
   public io.github.testlens.selenium.locator.UiLocator getByText(java.lang.String, java.lang.String)

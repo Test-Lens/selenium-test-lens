@@ -164,7 +164,8 @@ public final class JsOverlayDebug {
         this.smartInputActions = new SmartInputActions(driver, config, rootManager, typingActions, this.logger);
         this.hudPanel = new HudPanel(scriptExecutor, rootManager, config);
         this.hudLogSink.attach(this.hudPanel, driver);
-        this.pageWaits = new PageWaits(driver, config);
+        this.pageWaits = new ConfiguredPageWaits(driver, config, this.locatorOptions.timeout(),
+                this.locatorOptions.pollInterval(), this.logger);
         this.popupDetector = new PopupDetector(driver, config, rootManager, highlightActions);
         this.scrollActions = new ScrollActions(driver, config, rootManager, this.logger);
         this.assertActions = new AssertActions(driver, rootManager, config, hudPanel, this.logger);
@@ -1033,26 +1034,16 @@ public final class JsOverlayDebug {
                             "if (!step) { return; }" +
                             "var msg = (window.__uiTestLens.state.wait && window.__uiTestLens.state.wait.lastMessage) || window.__seleniumLastWaitMessage || '';" +
                             "window.__seleniumLastWaitMessage = msg;" +
-                            "if (!msg) {" +
-                            "  step.innerHTML = '<b>Step:</b> -';" +
-                            "} else {" +
-                            "  step.innerHTML = '<b>Step:</b> ' + msg;" +
-                            "}"
+                            "step.textContent = '';" +
+                            "var label = document.createElement('b');" +
+                            "label.textContent = 'Step:';" +
+                            "step.appendChild(label);" +
+                            "step.appendChild(document.createTextNode(' ' + (msg || '-')));"
             );
         } catch (Exception ignored) {
             // HUD ma być “best effort”
         }
 
-        // 2) Guards – niezależnie od HUD
-        try {
-            guards.checkpoint("showLastWaitInHud");
-        } catch (AssertionError ae) {
-            // guard ma prawo przerwać test
-            throw ae;
-        } catch (Exception ignored) {
-            // jeśli guards ma jakieś wyjątki runtime/selenium, nie wysadzaj z tego miejsca
-            // (checkpoint i tak ma failFast => AssertionError, reszta to noise)
-        }
     }
 
     // ======================================================================

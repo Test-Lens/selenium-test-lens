@@ -29,6 +29,7 @@ Selenium Test Lens attaches observability, retryable element operations, diagnos
 | Reads | [`UiLocator`](elements/information.md) | Text, value, attribute, DOM property, visibility, enabled state, count, and resolved elements. |
 | Collections | `resolveAll`, `count`, `first`, `last`, `nth`, scoped `locator`, filters, count waits | Pipeline stages remain lazy and order-sensitive; count polling is not recovery retry. |
 | Retry/wait | [`UiLocatorOptions`](reference/configuration.md#uilocatoroptions) | Retries configured transient element failures; explicit visibility/clickability/text waits use timeout and polling settings. |
+| Page readiness waits | [`TestLens` page waits](elements/waiting.md#page-and-javascript-waits) | Polls document ready state or the explicitly limited in-page XHR/fetch tracker with one total deadline; polling is not recovery retry. |
 | Flaky outcomes | [`RetrySummary`](observability/flakiness.md) | Aggregates physical failures that caused another operation attempt; polling and runner-level retries remain distinct. |
 | Assertions | [`UiExpect` and `UiPageExpect`](elements/assertions.md) | Polling element/collection state plus active-window URL and title assertions with typed results. |
 

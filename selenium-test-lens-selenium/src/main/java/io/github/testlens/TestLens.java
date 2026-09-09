@@ -21,6 +21,7 @@ import org.openqa.selenium.NoSuchWindowException;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -69,6 +70,14 @@ public final class TestLens {
     public UiExpect expect(By by, String label) { return locator(by, label).expect(); }
     public UiPageExpect expectPage() { return delegate.expectPage(); }
     public UiPageExpect expectPage(UiAssertionOptions options) { return delegate.expectPage(options); }
+    public void waitForPageReady() { delegate.waitForPageReady(); }
+    public void waitForPageReady(Duration timeout) { delegate.waitForPageReady(timeout); }
+    public void waitForInteractiveOrComplete() { delegate.waitForInteractiveOrComplete(); }
+    public void waitForInteractiveOrComplete(Duration timeout) { delegate.waitForInteractiveOrComplete(timeout); }
+    public void waitForNetworkIdle() { delegate.waitForNetworkIdle(); }
+    public void waitForNetworkIdle(Duration idleDuration, Duration timeout) {
+        delegate.waitForNetworkIdle(idleDuration, timeout);
+    }
     public UiLocator getByTestId(String testId) { return delegate.getByTestId(testId); }
     public UiLocator getByText(String text) { return delegate.getByText(text); }
     public UiLocator getByText(String text, String label) { return delegate.getByText(text, label); }

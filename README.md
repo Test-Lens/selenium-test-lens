@@ -221,6 +221,17 @@ lens.expectPage().toHaveTitle("Checkout");
 
 URL checks compare the raw WebDriver URL exactly or by case-sensitive substring; they do not canonicalize hosts, slashes, encoding, query parameters, or fragments. Title checks use the configured text normalization. Both poll without becoming recovery retries, and URL diagnostics remove userinfo, query, and fragment data.
 
+> **Coming in 0.2.0 — not available in the current Maven Central release (0.1.0).**
+> The main `TestLens` page-wait facade is part of the current development line. The lower-level `PageWaits` and `JsOverlayDebug` methods already existed in 0.1.0.
+
+```java
+lens.waitForPageReady();
+lens.waitForInteractiveOrComplete(Duration.ofSeconds(3));
+lens.waitForNetworkIdle(Duration.ofMillis(500), Duration.ofSeconds(5));
+```
+
+Default overloads use `TestLensOptions.locatorOptions()` for timeout and polling. Document readiness observes `document.readyState`; network idle is deliberately narrower and observes only XHR/fetch started after its in-page tracker was installed. Timeout throws Selenium `TimeoutException`, and polling is not a recovery retry. See [Element and page waiting](docs/elements/waiting.md#page-and-javascript-waits).
+
 The main Test Lens facade does not own browser lifecycle or displace JUnit, TestNG, Allure, or another reporter. The optional JUnit 5 and TestNG adapters deliberately own drivers created by their factories. Existing raw Selenium remains valid for operations the Lens facade does not wrap. React-specific support is available as a separate, optional module.
 
 Every final `FAILED` session receives a best-effort [failure bundle](docs/observability/failure-bundles.md): diagnostic and clean screenshots, context, trace-derived diagnostics, runtime/configuration allowlists, current network summary, manifest, final reports, and ZIP. Raw page source and browser console are disabled by default because they can contain secrets; enable them explicitly with `FailureBundleOptions.complete()`.
