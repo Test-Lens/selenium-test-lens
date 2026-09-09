@@ -2791,6 +2791,7 @@ this real-browser matrix. See <a href="../consumer-compatibility/">Consumer comp
 <li>semantic checkbox/radio and ARIA control actions verify direct and label activation, idempotence, mixed/disabled/unsupported behavior, asynchronous rerender confirmation, and foreign-overlay failure in both overlay modes;</li>
 <li>semantic accessibility locators verify browser-computed names from native labels, <code>aria-labelledby</code> (including multiple references), descendant image alt text, label/placeholder separation, alt-only matching, lazy dynamic lookup, and collection order;</li>
 <li>hidden single/multiple file inputs, focus, and centered scrolling verify one physical operation, safe upload diagnostics, and a live driver after every action.</li>
+<li>page-wait facade contracts cover <code>PageLoadStrategy.NONE</code> readiness, delayed observed fetch completion plus a full idle window, timeout for a still-active fetch, and tracker reinjection after navigation.</li>
 </ul>
 <h2 id="ci">CI<a class="headerlink" href="#ci" title="Permanent link">&para;</a></h2>
 <p>The required <code>browser-integration</code> job runs a matrix of Chrome and Firefox on <code>ubuntu-latest</code> with:</p>

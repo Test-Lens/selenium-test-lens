@@ -3020,6 +3020,11 @@
 <td>Retries configured transient element failures; explicit visibility/clickability/text waits use timeout and polling settings.</td>
 </tr>
 <tr>
+<td>Page readiness waits</td>
+<td><a href="../elements/waiting/#page-and-javascript-waits"><code>TestLens</code> page waits</a></td>
+<td>Polls document ready state or the explicitly limited in-page XHR/fetch tracker with one total deadline; polling is not recovery retry.</td>
+</tr>
+<tr>
 <td>Flaky outcomes</td>
 <td><a href="../observability/flakiness/"><code>RetrySummary</code></a></td>
 <td>Aggregates physical failures that caused another operation attempt; polling and runner-level retries remain distinct.</td>

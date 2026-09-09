@@ -1028,6 +1028,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#page-and-javascript-waits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page and JavaScript waits
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2782,6 +2793,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#page-and-javascript-waits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page and JavaScript waits
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2850,6 +2872,23 @@ Suggested alt text: Test Lens HUD showing an active wait retry for an unavailabl
 <p>Assertions have their own <a href="../../reference/configuration/#uiassertionoptions"><code>UiAssertionOptions</code></a> and retry loop; see <a href="../assertions/">Assertions</a>.</p>
 <p>State assertions such as <code>toHaveCount</code>, <code>toHaveAttribute</code>, <code>toBeChecked</code>, and <code>toBeAttached</code> use that assertion loop and take exactly one current observation per attempt. Their <code>ASSERTION_RETRY</code> events remain polling diagnostics and do not contribute to recovery-retry flakiness.</p>
 <p>Page assertions created by <code>expectPage()</code> follow the same distinction: each attempt performs one <code>getCurrentUrl()</code> or <code>getTitle()</code> on the active window. A mismatch is assertion polling, not recovery retry; the assertion never wraps a second <code>WebDriverWait</code> or changes the active window.</p>
+<h2 id="page-and-javascript-waits">Page and JavaScript waits<a class="headerlink" href="#page-and-javascript-waits" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">Coming in 0.2.0</p>
+<p>The <code>TestLens</code> page-wait facade is part of the current development line and is not available in Maven Central <code>0.1.0</code>. The lower-level <code>PageWaits</code> and corresponding <code>JsOverlayDebug</code> methods existed in 0.1.0.</p>
+</div>
+<!-- API SIGNATURES: io.github.testlens.TestLens -->
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForPageReady</span><span class="p">()</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForPageReady</span><span class="p">(</span><span class="n">Duration</span><span class="w"> </span><span class="n">timeout</span><span class="p">)</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForInteractiveOrComplete</span><span class="p">()</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForInteractiveOrComplete</span><span class="p">(</span><span class="n">Duration</span><span class="w"> </span><span class="n">timeout</span><span class="p">)</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForNetworkIdle</span><span class="p">()</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForNetworkIdle</span><span class="p">(</span><span class="n">Duration</span><span class="w"> </span><span class="n">idleDuration</span><span class="p">,</span><span class="w"> </span><span class="n">Duration</span><span class="w"> </span><span class="n">timeout</span><span class="p">)</span>
+</span></code></pre></div>
+<p>The no-argument facade methods use <code>TestLensOptions.locatorOptions().timeout()</code> and <code>pollInterval()</code>. An explicit timeout takes precedence. Timeout and idle duration must not be negative, and the configured polling interval must be positive. Every operation owns one monotonic total deadline; a timeout always throws Selenium <code>TimeoutException</code>. Terminal WebDriver or JavaScript failures stop immediately with the original failure preserved.</p>
+<p><code>waitForPageReady</code> polls one <code>return document.readyState</code> observation at a time and accepts only <code>complete</code>. <code>waitForInteractiveOrComplete</code> accepts only <code>interactive</code> or <code>complete</code>. Neither method promises that an SPA has rendered its data. With Selenium's usual <code>PageLoadStrategy.NORMAL</code>, <code>get()</code> normally already waits for classic document loading; explicit readiness waits are mainly useful with <code>EAGER</code>, <code>NONE</code>, asynchronous navigation, or when re-observing the active document.</p>
+<p><code>waitForNetworkIdle</code> installs an idempotent in-page tracker and requires zero observed active XHR/fetch operations for the complete idle window. The tracker balances successful, rejected, aborted, and synchronously failed calls, and is installed again in a new document after navigation. It sees only XHR/fetch started after installation. It does not guarantee visibility into earlier requests, images, CSS, scripts, WebSocket, EventSource, beacon, or full browser traffic. Use <a href="../../advanced/network/">WebDriver BiDi network diagnostics</a> when passive browser-level evidence is required.</p>
+<p>The existing React/SPA combinations retain their public API but now share one deadline across document, network, root, component, and DOM-stability stages. Wait polling emits one <code>WAIT/STARTED</code> and one terminal <code>WAIT/PASSED</code> or <code>WAIT/FAILED</code>; it does not emit recovery retries, affect <code>RetrySummary</code>, or mark the session flaky. HUD state is removed in <code>finally</code>, and diagnostic DOM text is inserted with text nodes rather than unescaped HTML.</p>
 
 
 
