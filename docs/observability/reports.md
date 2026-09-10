@@ -61,6 +61,8 @@ Exports equivalent trace data as JSON with `TraceJsonExportOptions`. Default sui
 
 Creates a report directory/ZIP for one or many sessions. `TraceBundleExportOptions` controls stack traces, artifact metadata, missing artifacts, copying artifacts, bundle name, output directory, and HTML theme. Default suite targets include `target/ui-test-lens-report/index.html` and `ui-test-lens-report.zip`.
 
+When screenshot artifact metadata is included, reports preserve the completed mode, dimensions, and tile count. The report exporter does not recapture pixels; full-page stitching occurs only in the Selenium evidence producer.
+
 ```java
 List<UiTestLensSession> sessions = List.of(firstSession, secondSession);
 Path html = new TraceHtmlExporter().exportSuiteToDefault(sessions);

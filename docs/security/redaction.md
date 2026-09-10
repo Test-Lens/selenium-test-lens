@@ -36,7 +36,7 @@ Throwable redaction keeps content and identity separate. Logger sinks receive a 
 
 Redaction recognizes known structured secret formats and caller-provided literals; it is not a general personal-data detector.
 
-- Screenshot and video pixels are not modified and may show data rendered by the application.
+- Viewport and stitched full-page screenshot pixels, as well as video pixels, are not modified and may show data rendered anywhere in the captured document. Apply access and retention controls to both modes.
 - Page source and console redaction are best effort because arbitrary unknown secrets cannot be inferred.
 - Structural parsing applies only to complete valid JSON documents; mixed HTML, console prose, and partial JSON use the tolerant text boundary. Recognized fields and configured literals remain protected, but this is not a general parser for arbitrary embedded application formats.
 - Authentication/storage-state artifacts remain deliberately outside this transformation so they stay usable for session restoration, and are not automatically added to failure bundles.

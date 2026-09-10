@@ -403,9 +403,10 @@ public final class JsOverlayDebug {
 
     public ScreenshotCaptureResult captureScreenshot(String name, ScreenshotCaptureOptions options) {
         ScreenshotCaptureOptions effectiveOptions = options == null ? ScreenshotCaptureOptions.defaults() : options;
+        long started = System.nanoTime();
         emitScreenshotCaptureStarted(name, effectiveOptions);
         ScreenshotCaptureResult result = new ScreenshotCapture(driver).capture(name, effectiveOptions, session);
-        emitScreenshotCaptureFinished(result);
+        emitScreenshotCaptureFinished(result, Duration.ofNanos(Math.max(0, System.nanoTime() - started)));
         return result;
     }
 
@@ -568,10 +569,11 @@ public final class JsOverlayDebug {
                 .action("screenshot.capture")
                 .metadata("name", safeString(name))
                 .metadata("outputDirectory", options == null ? "" : options.outputDirectory().toString())
+                .metadata("requestedMode", options == null ? "" : options.captureMode().name())
                 .build());
     }
 
-    private void emitScreenshotCaptureFinished(ScreenshotCaptureResult result) {
+    private void emitScreenshotCaptureFinished(ScreenshotCaptureResult result, Duration elapsed) {
         if (result == null) {
             return;
         }
@@ -584,6 +586,15 @@ public final class JsOverlayDebug {
                 .action("screenshot.capture")
                 .metadata("name", result.name())
                 .metadata("path", result.path() == null ? "" : result.path().toString())
+                .metadata("requestedMode", result.requestedMode().name())
+                .metadata("capturedMode", result.capturedMode() == null ? "" : result.capturedMode().name())
+                .metadata("captureStatus", result.status().name())
+                .metadata("width", String.valueOf(result.width()))
+                .metadata("height", String.valueOf(result.height()))
+                .metadata("tileCount", String.valueOf(result.tileCount()))
+                .metadata("durationMs", String.valueOf(elapsed.toMillis()))
+                .metadata("limitReason", result.message().contains("maxPixelCount") || result.message().contains("maxTileCount")
+                        ? result.message() : "")
                 .throwable(result.exception())
                 .build());
     }

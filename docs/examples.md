@@ -67,6 +67,17 @@ lens.captureScreenshot("After save");
 lens.finishPassed();
 ```
 
+Full-page capture is an explicit development-line option on the same pipeline:
+
+```java
+ScreenshotCaptureOptions fullPage = ScreenshotCaptureOptions.builder()
+        .captureMode(ScreenshotCaptureMode.FULL_PAGE)
+        .build();
+lens.captureScreenshot("checkout-page", fullPage);
+```
+
+It captures the initial top-level document dimensions at the current responsive viewport without CDP. It does not expand frames or nested scroll containers; see [Screenshots and evidence](observability/screenshots-evidence.md).
+
 With the default `TestLensOptions`, finalization writes `report.html` and `trace.json` under a session-specific directory beneath `target/ui-test-lens`. `captureScreenshot(...)` captures through Selenium and attaches the result to the active session.
 
 Use `finishFailed(Throwable)` when the test fails and `finishSkipped(String)` when the runner reports an aborted, assumed, or skipped test. The [framework integration guide](framework-integration.md) shows runner lifecycle patterns.

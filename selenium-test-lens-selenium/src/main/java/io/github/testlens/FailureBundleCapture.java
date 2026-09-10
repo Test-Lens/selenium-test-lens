@@ -7,6 +7,9 @@ import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
 import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.evidence.FailureBundleOptions;
+import io.github.testlens.selenium.evidence.ScreenshotCapture;
+import io.github.testlens.selenium.evidence.ScreenshotCaptureOptions;
+import io.github.testlens.selenium.evidence.ScreenshotCaptureResult;
 import io.github.testlens.selenium.network.NetworkDiagnostics;
 import io.github.testlens.selenium.network.NetworkEvent;
 import io.github.testlens.selenium.network.NetworkEventType;
@@ -14,8 +17,6 @@ import io.github.testlens.selenium.network.NetworkSummary;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.HasCapabilities;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.UnsupportedCommandException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.logging.LogEntry;
@@ -153,24 +154,58 @@ final class FailureBundleCapture {
     }
 
     private Path captureScreenshot(String componentName, Path destination, boolean attach) {
-        if (!(driver instanceof TakesScreenshot screenshotDriver)) {
-            component(componentName, "UNSUPPORTED", null, null,
-                    "WebDriver does not implement TakesScreenshot");
+        String label = componentName.equals("diagnosticScreenshot") ? "diagnostic" : "clean";
+        ScreenshotCaptureOptions screenshotOptions = ScreenshotCaptureOptions.builder()
+                .outputDirectory(destination.getParent())
+                .fileNamePrefix("failure")
+                .includeTimestamp(false)
+                .overwriteExisting(true)
+                .attachToSession(false)
+                .captureMode(options.screenshotCaptureMode())
+                .build();
+        long captureStartedNanos = System.nanoTime();
+        ScreenshotCaptureResult result = new ScreenshotCapture(driver).capture(label, screenshotOptions, null);
+        long durationMillis = java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(
+                Math.max(0L, System.nanoTime() - captureStartedNanos));
+        Map<String, String> details = new LinkedHashMap<>();
+        details.put("requestedMode", result.requestedMode().name());
+        details.put("capturedMode", result.capturedMode() == null ? "" : result.capturedMode().name());
+        details.put("width", String.valueOf(result.width()));
+        details.put("height", String.valueOf(result.height()));
+        details.put("tileCount", String.valueOf(result.tileCount()));
+        details.put("durationMs", String.valueOf(durationMillis));
+        if (!result.isCaptured()
+                && (result.message().contains("maxPixelCount") || result.message().contains("maxTileCount"))) {
+            details.put("limitReason", result.message());
+        }
+        if (!result.isCaptured()) {
+            if (result.exception() != null) failures.add(result.exception());
+            component(componentName, result.status().name(), null, "image/png", result.message(), details);
             return null;
         }
-        try {
-            Files.createDirectories(destination.getParent());
-            Path source = screenshotDriver.getScreenshotAs(OutputType.FILE).toPath();
-            atomicCopy(source, destination);
-            if (attach) session.attachArtifact(TraceArtifact.screenshot(
-                    componentName.equals("diagnosticScreenshot") ? "Failure diagnostic" : "Failure clean",
-                    destination).withMetadata("capturedAt", Instant.now().toString()));
-            component(componentName, "CAPTURED", relative(destination), "image/png", "");
-            return destination;
-        } catch (IOException | RuntimeException captureFailure) {
-            failed(componentName, "Screenshot capture failed", captureFailure);
-            return null;
+        Path capturedPath = result.path();
+        if (!capturedPath.toAbsolutePath().normalize().equals(destination.toAbsolutePath().normalize())) {
+            try {
+                atomicMove(capturedPath, destination);
+                capturedPath = destination;
+            } catch (IOException renameFailure) {
+                failures.add(renameFailure);
+                component(componentName, "FAILED", null, "image/png",
+                        "Screenshot publication failed: " + messageFor(renameFailure), details);
+                return null;
+            }
         }
+        if (attach) session.attachArtifact(TraceArtifact.screenshot(
+                componentName.equals("diagnosticScreenshot") ? "Failure diagnostic" : "Failure clean",
+                capturedPath)
+                .withMetadata("capturedAt", result.capturedAt().toString())
+                .withMetadata("captureMode", result.capturedMode().name())
+                .withMetadata("width", String.valueOf(result.width()))
+                .withMetadata("height", String.valueOf(result.height()))
+                .withMetadata("tileCount", String.valueOf(result.tileCount()))
+                .withMetadata("durationMs", String.valueOf(durationMillis)));
+        component(componentName, "CAPTURED", relative(capturedPath), "image/png", "", details);
+        return capturedPath;
     }
 
     private void captureFailure(Throwable failure, boolean policyFailure) {
@@ -256,6 +291,7 @@ final class FailureBundleCapture {
         data.put("failureBundleEnabled", options.enabled());
         data.put("diagnosticScreenshot", options.diagnosticScreenshot());
         data.put("cleanScreenshot", options.cleanScreenshot());
+        data.put("screenshotCaptureMode", options.screenshotCaptureMode().name());
         data.put("pageSource", options.pageSource());
         data.put("browserConsole", options.browserConsole());
         data.put("cleanupHudOnFinish", lensOptions.cleanupHudOnFinish());
@@ -457,11 +493,16 @@ final class FailureBundleCapture {
     }
 
     private void component(String name, String status, String path, String mediaType, String message) {
+        component(name, status, path, mediaType, message, Map.of());
+    }
+
+    private void component(String name, String status, String path, String mediaType, String message,
+                           Map<String, String> details) {
         long size = -1;
         if (path != null) {
             try { size = Files.size(sessionDirectory.resolve(path)); } catch (IOException ignored) { size = -1; }
         }
-        Component component = new Component(status, path, size, mediaType, safe(message));
+        Component component = new Component(status, path, size, mediaType, safe(message), details);
         components.put(name, component);
         session.addEvent(TraceEvent.builder(TraceEventType.FAILURE_BUNDLE,
                         "FAILED".equals(status) ? TraceStatus.WARNING : TraceStatus.INFO,
@@ -473,6 +514,7 @@ final class FailureBundleCapture {
                 .attribute("sizeBytes", size < 0 ? "" : String.valueOf(size))
                 .attribute("mediaType", safe(mediaType))
                 .attribute("archive", "failure-bundle.zip")
+                .attributes(details)
                 .build());
     }
 
@@ -643,17 +685,6 @@ final class FailureBundleCapture {
         }
     }
 
-    private static void atomicCopy(Path source, Path destination) throws IOException {
-        Files.createDirectories(destination.getParent());
-        Path temporary = Files.createTempFile(destination.getParent(), destination.getFileName().toString(), ".tmp");
-        try {
-            Files.copy(source, temporary, StandardCopyOption.REPLACE_EXISTING);
-            atomicMove(temporary, destination);
-        } finally {
-            Files.deleteIfExists(temporary);
-        }
-    }
-
     private static void atomicMove(Path source, Path destination) throws IOException {
         try {
             Files.move(source, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
@@ -671,8 +702,15 @@ final class FailureBundleCapture {
     private static String messageFor(Throwable failure) { return failure.getMessage() == null || failure.getMessage().isBlank() ? failure.getClass().getSimpleName() : failure.getMessage(); }
     private static String stackTrace(Throwable failure) { StringWriter out = new StringWriter(); failure.printStackTrace(new PrintWriter(out)); return out.toString(); }
 
-    private record Component(String status, String path, long size, String mediaType, String message) {
-        Component withMessage(String value) { return new Component(status, path, size, mediaType, value); }
+    private record Component(String status, String path, long size, String mediaType, String message,
+                             Map<String, String> details) {
+        Component {
+            details = details == null ? Map.of() : Map.copyOf(details);
+        }
+        Component(String status, String path, long size, String mediaType, String message) {
+            this(status, path, size, mediaType, message, Map.of());
+        }
+        Component withMessage(String value) { return new Component(status, path, size, mediaType, value, details); }
         Map<String, Object> asMap() {
             Map<String, Object> data = orderedMap();
             data.put("status", status);
@@ -680,6 +718,7 @@ final class FailureBundleCapture {
             if (size >= 0) data.put("sizeBytes", size);
             if (mediaType != null) data.put("mediaType", mediaType);
             if (message != null && !message.isBlank()) data.put("message", message);
+            data.putAll(details);
             return data;
         }
     }

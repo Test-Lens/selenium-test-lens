@@ -131,6 +131,11 @@ The builder exposes **all** of: `background`, `foreground`, `mutedForeground`, `
 | `includeTimestamp(boolean)` | true | Unique timestamp suffix. |
 | `overwriteExisting(boolean)` | false | Whether an existing path may be replaced. |
 | `attachToSession(boolean)` | true | Adds trace evidence when a session exists. |
+| `captureMode(ScreenshotCaptureMode)` | `VIEWPORT` | Selects compatible viewport capture or opt-in portable `FULL_PAGE` stitching. |
+| `maxPixelCount(long)` | 40,000,000 | Rejects a full-page image before allocating beyond this pixel count. |
+| `maxTileCount(int)` | 200 | Rejects a full-page grid requiring too many screenshots. |
+
+`FailureBundleOptions.screenshotCaptureMode(...)` selects the same mode for diagnostic and clean failure screenshots; its default is also `VIEWPORT`.
 
 ## VideoEvidenceOptions
 

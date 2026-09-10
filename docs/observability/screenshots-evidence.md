@@ -1,6 +1,9 @@
 # Screenshots and evidence
 
-Screenshots capture the browser's visible state as PNG evidence. Use an explicit screenshot at a meaningful checkpoint, or let failed-session finalization attempt one automatically. Explicit capture is opt-in; the failure screenshot is enabled by default through [`TestLensOptions.screenshotOnFailure`](../reference/configuration.md#testlensoptions).
+Screenshots capture browser pixels as PNG evidence. `VIEWPORT` is the compatible default. The opt-in `FULL_PAGE` mode captures a bounded snapshot of the current top-level document by scrolling and stitching standard Selenium screenshots. Use an explicit screenshot at a meaningful checkpoint, or let failed-session finalization attempt one automatically.
+
+!!! info "Coming in 0.2.0"
+    Full-page screenshots are part of the current development line and are not available in Maven Central `0.1.0`.
 
 ## Automatic failure screenshot
 
@@ -33,6 +36,24 @@ if (!screenshot.isCaptured()) {
 ```
 
 Explicit capture is not automatic. It uses [`ScreenshotCaptureOptions.defaults()`](../reference/configuration.md#screenshotcaptureoptions) unless options are supplied.
+
+### Portable full-page capture
+
+```java
+ScreenshotCaptureOptions fullPage = ScreenshotCaptureOptions.builder()
+        .captureMode(ScreenshotCaptureMode.FULL_PAGE)
+        .build();
+
+ScreenshotCaptureResult result = lens.captureScreenshot("checkout-page", fullPage);
+```
+
+The implementation takes one initial CSS-pixel snapshot of document dimensions, viewport dimensions, and scroll position. It keeps the current window size and responsive layout, scrolls horizontally and vertically, derives independent image scales from the returned PNG dimensions, removes clamped overlap, and publishes the final PNG only after stitching succeeds. It uses `TakesScreenshot`, `JavascriptExecutor`, `BufferedImage`, and `ImageIO`; it does not use CDP, change the browser window size, or ask JavaScript for screenshot pixels.
+
+Full-page capture is bounded by `maxPixelCount` (40 million by default) and `maxTileCount` (200 by default). A limit, changing document/viewport geometry, changing tile scale, invalid PNG, or restoration failure produces an explicit non-captured result and no partial final file. The initial dimensions are authoritative: lazy loading or scroll handlers can change the page and cause capture to fail rather than extend indefinitely.
+
+The current scroll position and root/body inline scroll behavior and snap styles are restored in `finally`. Visible `fixed` and `sticky` elements, including the Test Lens HUD host, are captured in the first tile in which they appear and then hidden with `visibility` for later tiles; their original inline value and priority are restored. This avoids repeating a header or HUD while preserving layout. Scanning covers the open document tree, not closed shadow roots.
+
+`FULL_PAGE` is supported only in the current top-level browsing context. It never changes windows or frames. When invoked inside a frame it returns `SKIPPED` and preserves that context; switch to default content explicitly if a top-level image is wanted. Rendered iframe and shadow-DOM pixels visible in the top-level page are captured, but iframe documents and nested scroll containers are not expanded. Scroll events can run application code during capture.
 
 ### TestLens.captureScreenshot overloads
 
@@ -73,9 +94,14 @@ String message()
 Throwable exception()
 Instant capturedAt()
 boolean isCaptured()
+ScreenshotCaptureMode requestedMode()
+ScreenshotCaptureMode capturedMode()
+int width()
+int height()
+int tileCount()
 ```
 
-`status()` is `CAPTURED`, `FAILED`, or `SKIPPED`, and `isCaptured()` is true only for `CAPTURED`. `name()` and `message()` are never null; null constructor inputs are normalized to empty strings by the result factories. `capturedAt()` is never null. `path()` is null for skipped results and can be null when failure happens before a destination is determined. `artifact()` is non-null only when capture succeeded and attachment to a non-null session was requested; a successfully written screenshot can therefore have a null artifact. `exception()` is normally non-null only for failures caused by an exception, but can be null for a capability failure such as a driver that does not implement `TakesScreenshot`.
+`status()` is `CAPTURED`, `FAILED`, or `SKIPPED`, and `isCaptured()` is true only for `CAPTURED`. The result distinguishes requested and completed modes and reports final PNG dimensions and tile count; a viewport capture uses one tile. `capturedMode()` is null and dimensions are zero when no image was completed. `name()`, `message()`, and `capturedAt()` are never null. `path()` is null for skipped results and can be null when failure happens before a destination is determined. `artifact()` is non-null only when capture succeeded and attachment to a non-null session was requested.
 
 ## VideoEvidence
 
@@ -109,4 +135,4 @@ VideoEvidenceResult attachUrl(String name, String url, VideoEvidenceOptions opti
 
 ## Security
 
-Screenshots and video can expose credentials, personal data, tokens, and internal URLs. Evidence metadata may also contain sensitive strings. Keep `target/ui-test-lens*`, CI report archives, and auth/network output out of source control and apply retention/access controls.
+Screenshots and video can expose credentials, personal data, tokens, and internal URLs. Central text redaction does not modify pixels. Keep `target/ui-test-lens*`, CI report archives, and auth/network output out of source control and apply retention/access controls.

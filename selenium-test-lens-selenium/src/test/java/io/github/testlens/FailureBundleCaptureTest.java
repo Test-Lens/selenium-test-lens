@@ -6,6 +6,7 @@ import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.evidence.FailureBundleOptions;
+import io.github.testlens.selenium.evidence.ScreenshotCaptureMode;
 import io.github.testlens.selenium.network.NetworkDiagnosticsOptions;
 import io.github.testlens.selenium.network.NetworkEvent;
 import io.github.testlens.selenium.network.NetworkResponse;
@@ -24,6 +25,8 @@ import org.openqa.selenium.logging.Logs;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
 import java.lang.reflect.Proxy;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -68,8 +71,8 @@ class FailureBundleCaptureTest {
             assertTrue(entries.contains("manifest.json"));
             assertTrue(entries.contains("trace.json"));
             assertTrue(entries.contains("report.html"));
-            assertTrue(entries.contains("failure-diagnostic.png"));
-            assertTrue(entries.contains("failure-clean.png"));
+            assertTrue(entries.contains("failure-diagnostic.png"), entries.toString());
+            assertTrue(entries.contains("failure-clean.png"), entries.toString());
             assertTrue(entries.stream().noneMatch(name -> name.startsWith("/") || name.contains("..")
                     || name.equals("failure-bundle.zip")));
             assertEquals(entries.stream().sorted().toList(), entries);
@@ -265,6 +268,27 @@ class FailureBundleCaptureTest {
         assertFalse(content.contains("o'BUNDLE"), source);
     }
 
+    @Test
+    void fullPageFailureScreenshotsUseSharedPipelineAndFinalizationDoesNotRepeatStitching() throws Exception {
+        DriverFixture fixture = driver("<html><body>page</body></html>", List.of());
+        TestLens lens = TestLens.attach(fixture.driver, options(FailureBundleOptions.builder()
+                .screenshotCaptureMode(ScreenshotCaptureMode.FULL_PAGE).build()));
+        lens.startSession("full-page-bundle");
+
+        TestLensFinalizationResult first = lens.finishFailed(new AssertionError("failure"));
+        TestLensFinalizationResult second = lens.finishPassed();
+
+        assertSame(first, second);
+        String manifest = Files.readString(first.failureBundleManifest().orElseThrow());
+        assertEquals(4, fixture.screenshots.get(), manifest);
+        assertEquals(6, ImageIO.read(first.failureScreenshot().toFile()).getHeight());
+        Path clean = first.failureBundleDirectory().orElseThrow().resolve("failure-clean.png");
+        assertEquals(6, ImageIO.read(clean.toFile()).getHeight());
+        assertTrue(manifest.contains("FULL_PAGE"));
+        assertTrue(manifest.contains("tileCount"));
+        assertTrue(manifest.contains("durationMs"));
+    }
+
     private TestLensOptions options(FailureBundleOptions bundle) {
         return TestLensOptions.builder().outputRoot(temp).failureBundleOptions(bundle).build();
     }
@@ -272,8 +296,9 @@ class FailureBundleCaptureTest {
     private DriverFixture driver(String pageSource, List<LogEntry> logs) {
         try {
             Path screenshot = temp.resolve("source-" + System.nanoTime() + ".png");
-            Files.write(screenshot, new byte[]{1, 2, 3, 4});
+            ImageIO.write(new BufferedImage(4, 3, BufferedImage.TYPE_INT_ARGB), "png", screenshot.toFile());
             AtomicInteger screenshotCalls = new AtomicInteger();
+            AtomicInteger scrollY = new AtomicInteger();
             List<String> order = new ArrayList<>();
             DesiredCapabilities capabilities = new DesiredCapabilities();
             capabilities.setBrowserName("chrome");
@@ -294,14 +319,29 @@ class FailureBundleCaptureTest {
                     new Class<?>[]{WebDriver.class, JavascriptExecutor.class, TakesScreenshot.class, HasCapabilities.class},
                     (proxy, method, args) -> switch (method.getName()) {
                         case "getScreenshotAs" -> {
-                            screenshotCalls.incrementAndGet(); order.add("screenshot"); yield screenshot.toFile();
+                            screenshotCalls.incrementAndGet(); order.add("screenshot");
+                            @SuppressWarnings("unchecked") OutputType<Object> output = (OutputType<Object>) args[0];
+                            yield output.convertFromPngBytes(Files.readAllBytes(screenshot));
                         }
                         case "executeScript" -> {
                             String script = String.valueOf(args[0]);
+                            if (script.contains("window[key] =")) yield Map.of(
+                                    "documentWidth", 4, "documentHeight", 6,
+                                    "viewportWidth", 4, "viewportHeight", 3,
+                                    "scrollX", 0, "scrollY", scrollY.get(), "topLevel", true);
+                            if (script.contains("querySelectorAll('*')")) yield null;
+                            if (script.contains("state.hidden.length")) { scrollY.set(0); yield true; }
                             if (script.contains("style.visibility='hidden'")) { order.add("hide"); yield Map.of("present", true, "visibility", ""); }
                             if (script.contains("t&&t.present")) { order.add("restore"); yield null; }
                             if (script.contains("window.innerWidth")) yield Map.of("width", 1000, "height", 700);
                             yield null;
+                        }
+                        case "executeAsyncScript" -> {
+                            Object[] scriptArguments = (Object[]) args[1];
+                            scrollY.set(Math.min(((Number) scriptArguments[1]).intValue(), 3));
+                            yield Map.of("documentWidth", 4, "documentHeight", 6,
+                                    "viewportWidth", 4, "viewportHeight", 3,
+                                    "scrollX", 0, "scrollY", scrollY.get(), "topLevel", true);
                         }
                         case "getCurrentUrl" -> "http://127.0.0.1/test";
                         case "getTitle" -> "Bundle test";

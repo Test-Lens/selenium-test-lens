@@ -22,6 +22,7 @@ public final class FailureBundleOptions {
     private final boolean runtimeMetadata;
     private final boolean configurationSnapshot;
     private final boolean zipArchive;
+    private final ScreenshotCaptureMode screenshotCaptureMode;
     private final long maxTextArtifactBytes;
     private final int maxConsoleEntries;
 
@@ -37,6 +38,7 @@ public final class FailureBundleOptions {
         runtimeMetadata = builder.runtimeMetadata;
         configurationSnapshot = builder.configurationSnapshot;
         zipArchive = builder.zipArchive;
+        screenshotCaptureMode = builder.screenshotCaptureMode;
         maxTextArtifactBytes = builder.maxTextArtifactBytes;
         maxConsoleEntries = builder.maxConsoleEntries;
     }
@@ -60,6 +62,8 @@ public final class FailureBundleOptions {
     public boolean runtimeMetadata() { return runtimeMetadata; }
     public boolean configurationSnapshot() { return configurationSnapshot; }
     public boolean zipArchive() { return zipArchive; }
+    /** Returns the mode used for both diagnostic and clean failure screenshots. */
+    public ScreenshotCaptureMode screenshotCaptureMode() { return screenshotCaptureMode; }
     public long maxTextArtifactBytes() { return maxTextArtifactBytes; }
     public int maxConsoleEntries() { return maxConsoleEntries; }
 
@@ -75,6 +79,7 @@ public final class FailureBundleOptions {
         private boolean runtimeMetadata = true;
         private boolean configurationSnapshot = true;
         private boolean zipArchive = true;
+        private ScreenshotCaptureMode screenshotCaptureMode = ScreenshotCaptureMode.VIEWPORT;
         private long maxTextArtifactBytes = DEFAULT_MAX_TEXT_ARTIFACT_BYTES;
         private int maxConsoleEntries = DEFAULT_MAX_CONSOLE_ENTRIES;
 
@@ -90,6 +95,17 @@ public final class FailureBundleOptions {
         public Builder runtimeMetadata(boolean value) { runtimeMetadata = value; return this; }
         public Builder configurationSnapshot(boolean value) { configurationSnapshot = value; return this; }
         public Builder zipArchive(boolean value) { zipArchive = value; return this; }
+        /**
+         * Selects the mode used for diagnostic and clean failure screenshots.
+         *
+         * @param value non-null screenshot mode
+         * @return this builder
+         */
+        public Builder screenshotCaptureMode(ScreenshotCaptureMode value) {
+            if (value == null) throw new IllegalArgumentException("screenshotCaptureMode must not be null");
+            screenshotCaptureMode = value;
+            return this;
+        }
         public Builder maxTextArtifactBytes(long value) {
             if (value < 1) throw new IllegalArgumentException("maxTextArtifactBytes must be positive");
             maxTextArtifactBytes = value;

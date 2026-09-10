@@ -11,6 +11,7 @@ class FailureBundleOptionsTest {
         assertTrue(options.enabled());
         assertTrue(options.diagnosticScreenshot());
         assertTrue(options.cleanScreenshot());
+        assertEquals(ScreenshotCaptureMode.VIEWPORT, options.screenshotCaptureMode());
         assertTrue(options.context());
         assertTrue(options.diagnostics());
         assertTrue(options.networkSummary());
@@ -21,6 +22,16 @@ class FailureBundleOptionsTest {
         assertFalse(options.browserConsole());
         assertEquals(5L * 1024L * 1024L, options.maxTextArtifactBytes());
         assertEquals(1_000, options.maxConsoleEntries());
+    }
+
+    @Test
+    void fullPageScreenshotModeIsExplicit() {
+        FailureBundleOptions options = FailureBundleOptions.builder()
+                .screenshotCaptureMode(ScreenshotCaptureMode.FULL_PAGE)
+                .build();
+        assertEquals(ScreenshotCaptureMode.FULL_PAGE, options.screenshotCaptureMode());
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> FailureBundleOptions.builder().screenshotCaptureMode(null));
     }
 
     @Test

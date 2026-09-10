@@ -22,6 +22,8 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 
 import java.io.File;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -216,7 +218,7 @@ class JsOverlayDebugTraceSessionTest {
     @Test
     void captureScreenshotWritesFileAndAttachesToSession() throws Exception {
         Path source = tempDir.resolve("source.png");
-        Files.writeString(source, "png");
+        writePng(source);
         JsOverlayDebug overlay = new JsOverlayDebug(fakeScreenshotDriver(source));
         UiTestLensSession session = overlay.startSession("Checkout flow");
 
@@ -225,7 +227,7 @@ class JsOverlayDebugTraceSessionTest {
                 .includeTimestamp(false)
                 .build());
 
-        assertEquals(ScreenshotCaptureStatus.CAPTURED, result.status());
+        assertEquals(ScreenshotCaptureStatus.CAPTURED, result.status(), result.message());
         assertTrue(Files.exists(result.path()));
         assertEquals(1, session.artifacts().size());
     }
@@ -233,7 +235,7 @@ class JsOverlayDebugTraceSessionTest {
     @Test
     void failedStepCanCaptureScreenshotWhenEnabled() throws Exception {
         Path source = tempDir.resolve("source.png");
-        Files.writeString(source, "png");
+        writePng(source);
         JsOverlayDebug overlay = new JsOverlayDebug(fakeScreenshotDriver(source));
         UiTestLensSession session = overlay.startSession("Checkout flow");
         UiStepOptions options = UiStepOptions.builder()
@@ -315,6 +317,10 @@ class JsOverlayDebugTraceSessionTest {
                     return null;
                 }
         );
+    }
+
+    private static void writePng(Path path) throws Exception {
+        ImageIO.write(new BufferedImage(4, 3, BufferedImage.TYPE_INT_ARGB), "png", path.toFile());
     }
 
     private static long countEvents(UiTestLensSession session, TraceEventType type) {

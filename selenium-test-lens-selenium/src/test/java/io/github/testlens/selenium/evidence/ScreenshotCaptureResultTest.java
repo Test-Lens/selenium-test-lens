@@ -23,6 +23,9 @@ class ScreenshotCaptureResultTest {
         assertTrue(result.isCaptured());
         assertSame(artifact, result.artifact());
         assertNotNull(result.capturedAt());
+        assertEquals(ScreenshotCaptureMode.VIEWPORT, result.requestedMode());
+        assertEquals(ScreenshotCaptureMode.VIEWPORT, result.capturedMode());
+        assertEquals(1, result.tileCount());
     }
 
     @Test
@@ -34,6 +37,8 @@ class ScreenshotCaptureResultTest {
         assertEquals(ScreenshotCaptureStatus.FAILED, result.status());
         assertFalse(result.isCaptured());
         assertSame(cause, result.exception());
+        assertEquals(ScreenshotCaptureMode.VIEWPORT, result.requestedMode());
+        assertEquals(null, result.capturedMode());
     }
 }
 

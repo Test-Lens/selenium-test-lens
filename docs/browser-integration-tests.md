@@ -9,6 +9,8 @@ this real-browser matrix. See [Consumer compatibility](consumer-compatibility.md
 
 The Chrome/Firefox contract suite additionally checks scoped semantic descendants, visible-text/DOM-attribute/has filters, exact per-button activation in the presence of global and sibling decoys, containment of user XPath beginning with `//`, and dynamic count waits across rerenders. These scenarios complement unit tests of query ordering, stale snapshots, and terminal errors.
 
+Portable screenshot coverage uses a local, CSP-restricted document that is both taller and wider than the viewport. Both browser gates verify viewport compatibility, two-dimensional stitching, image scale, seam coverage, content markers, fixed/sticky/HUD handling, scroll restoration, iframe rejection without a context switch, bounded-limit failure, full-page failure-bundle images, and continued driver ownership.
+
 The gate also exercises polling collection/state assertions against dynamic local pages: composed counts, changing DOM attributes and class tokens, computed CSS, native and ARIA selected/checked state, attachment, detachment, and same-locator replacement. Both HUD modes are covered, and click/change counters prove that assertions remain read-only.
 
 Active-window page contracts cover delayed `history.pushState`, delayed `document.title`, and URL/title checks after an explicit popup switch. Matching sees query and fragment data, while trace and generated reports are checked to ensure those sensitive URL components are not disclosed.

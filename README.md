@@ -101,6 +101,19 @@ action / wait / assertion
 
 For a final `FAILED` outcome, the bundle can collect diagnostic and clean screenshots, trace, report, context, runtime/configuration allowlists, and a network summary. Collectors are best-effort, and finalization never closes the WebDriver. Optional page source and browser console have separate security limits. Video is an attachment supplied by the caller, not an automatic recording. Screenshots and video are not pixel-redacted. See [trace](docs/observability/trace.md), [reports](docs/observability/reports.md), and [failure bundles](docs/observability/failure-bundles.md).
 
+!!! info "Coming in 0.2.0"
+    Portable full-page screenshots are part of the current development line and are not available in Maven Central `0.1.0`.
+
+```java
+ScreenshotCaptureOptions fullPage = ScreenshotCaptureOptions.builder()
+        .captureMode(ScreenshotCaptureMode.FULL_PAGE)
+        .build();
+
+lens.captureScreenshot("checkout-page", fullPage);
+```
+
+`VIEWPORT` remains the default. `FULL_PAGE` scrolls and stitches the current responsive layout with standard WebDriver APIs; it does not use CDP or resize the window. See [screenshots and evidence](docs/observability/screenshots-evidence.md).
+
 ### Safe diagnostics through central redaction
 
 !!! info "Coming in 0.2.0"

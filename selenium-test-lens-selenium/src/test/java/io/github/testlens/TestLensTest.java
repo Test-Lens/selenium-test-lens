@@ -20,6 +20,8 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
 import java.lang.reflect.Proxy;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -509,7 +511,7 @@ class TestLensTest {
     private WebDriver screenshotDriver(AtomicInteger screenshotCalls) {
         Path source = temp.resolve("browser-screenshot.png");
         try {
-            Files.write(source, new byte[]{1, 2, 3});
+            ImageIO.write(new BufferedImage(4, 3, BufferedImage.TYPE_INT_ARGB), "png", source.toFile());
         } catch (java.io.IOException failure) {
             throw new RuntimeException(failure);
         }
@@ -533,7 +535,7 @@ class TestLensTest {
     private WebDriver screenshotLifecycleDriver(AtomicInteger screenshotCalls, AtomicInteger quitCalls) {
         Path source = temp.resolve("lifecycle-screenshot.png");
         try {
-            Files.write(source, new byte[]{4, 5, 6});
+            ImageIO.write(new BufferedImage(4, 3, BufferedImage.TYPE_INT_ARGB), "png", source.toFile());
         } catch (java.io.IOException failure) {
             throw new RuntimeException(failure);
         }

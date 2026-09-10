@@ -143,7 +143,7 @@ Some features expose dedicated configuration types close to the API that uses th
 | `UiAssertionOptions` | Assertion timeouts, polling, missing-element fail-fast, and text comparison; state/attribute/CSS comparisons keep their fixed typed semantics, while page URLs use only timeout/polling and page titles also use text settings |
 | `BusinessAssertionOptions` | Failure collection and fail-fast behavior in business assertion groups |
 | `UiStepOptions` | Step failure behavior, HUD logging, and failure screenshots |
-| `ScreenshotCaptureOptions` | Screenshot destination, naming, and session attachment |
+| `ScreenshotCaptureOptions` | Screenshot destination, naming, session attachment, viewport/full-page mode, and full-page pixel/tile limits |
 | `VideoEvidenceOptions` | Existing video file or URL metadata and session attachment |
 | `AuthStateOptions` | Authentication-state capture scope and metadata |
 | `AuthRestoreOptions` | Authentication-state navigation, clearing, validation, and restore behavior |

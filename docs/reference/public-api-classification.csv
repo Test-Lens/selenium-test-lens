@@ -136,6 +136,7 @@
 "selenium-test-lens-selenium","io.github.testlens.selenium.business.BusinessAssertionStatus","ADVANCED_API",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.evidence.ScreenshotCapture","ADVANCED_API",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.evidence.ScreenshotCaptureException","ADVANCED_API",""
+"selenium-test-lens-selenium","io.github.testlens.selenium.evidence.ScreenshotCaptureMode","USER_API","docs/observability/screenshots-evidence.md"
 "selenium-test-lens-selenium","io.github.testlens.selenium.evidence.ScreenshotCaptureOptions$Builder","ADVANCED_API",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.evidence.ScreenshotCaptureOptions","ADVANCED_API",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.evidence.FailureBundleOptions$Builder","USER_API","docs/observability/failure-bundles.md"

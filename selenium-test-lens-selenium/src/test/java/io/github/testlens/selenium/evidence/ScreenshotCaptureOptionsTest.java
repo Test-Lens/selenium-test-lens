@@ -19,6 +19,9 @@ class ScreenshotCaptureOptionsTest {
         assertTrue(options.includeTimestamp());
         assertFalse(options.overwriteExisting());
         assertTrue(options.attachToSession());
+        assertEquals(ScreenshotCaptureMode.VIEWPORT, options.captureMode());
+        assertEquals(ScreenshotCaptureOptions.DEFAULT_MAX_PIXEL_COUNT, options.maxPixelCount());
+        assertEquals(ScreenshotCaptureOptions.DEFAULT_MAX_TILE_COUNT, options.maxTileCount());
     }
 
     @Test
@@ -29,6 +32,9 @@ class ScreenshotCaptureOptionsTest {
                 .includeTimestamp(false)
                 .overwriteExisting(true)
                 .attachToSession(false)
+                .captureMode(ScreenshotCaptureMode.FULL_PAGE)
+                .maxPixelCount(1234)
+                .maxTileCount(7)
                 .build();
 
         assertEquals(Path.of("target/custom"), options.outputDirectory());
@@ -36,6 +42,19 @@ class ScreenshotCaptureOptionsTest {
         assertFalse(options.includeTimestamp());
         assertTrue(options.overwriteExisting());
         assertFalse(options.attachToSession());
+        assertEquals(ScreenshotCaptureMode.FULL_PAGE, options.captureMode());
+        assertEquals(1234, options.maxPixelCount());
+        assertEquals(7, options.maxTileCount());
+    }
+
+    @Test
+    void invalidFullPageOptionsAreRejected() {
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> ScreenshotCaptureOptions.builder().captureMode(null));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> ScreenshotCaptureOptions.builder().maxPixelCount(0));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> ScreenshotCaptureOptions.builder().maxTileCount(0));
     }
 }
 

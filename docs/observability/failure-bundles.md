@@ -15,6 +15,16 @@ The bundle reports the observed lifecycle state; `STOPPED`, `UNSUPPORTED`, or `F
 
 The diagnostic screenshot is taken with the current HUD/highlight. For the clean screenshot only the `selenium-overlay-host` is temporarily hidden and restored in `finally`; application DOM, frame, window, and failed actions are not touched. Normal `cleanupHudOnFinish` runs later.
 
+Both images use `VIEWPORT` by default. Full-page failure evidence is an explicit development-line option:
+
+```java
+FailureBundleOptions bundle = FailureBundleOptions.builder()
+        .screenshotCaptureMode(ScreenshotCaptureMode.FULL_PAGE)
+        .build();
+```
+
+The same mode applies to diagnostic and clean images, whose names remain `failure-diagnostic.png` and `failure-clean.png`. The manifest records requested/completed mode, image dimensions, tile count, and a safe failure reason. A stitching failure remains a collector failure: it cannot replace the original test failure or cause finalization to repeat. See [Screenshots and evidence](screenshots-evidence.md#portable-full-page-capture).
+
 ## Safe defaults and complete capture
 
 Raw page source and browser console are disabled by default because they can contain credentials, personal data, tokens, or application secrets. When enabled, complete JSON is redacted structurally—including sensitive values containing apostrophes or escaped quotes—while mixed or malformed content uses the fail-closed tolerant text fallback. Recognized structured secrets and configured literal values receive best-effort central redaction before writing. Enable them deliberately:

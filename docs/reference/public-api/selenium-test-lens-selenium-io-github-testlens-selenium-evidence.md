@@ -27,6 +27,7 @@ public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder network
 public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder runtimeMetadata(boolean)
 public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder configurationSnapshot(boolean)
 public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder zipArchive(boolean)
+public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder screenshotCaptureMode(io.github.testlens.selenium.evidence.ScreenshotCaptureMode)
 public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder maxTextArtifactBytes(long)
 public io.github.testlens.selenium.evidence.FailureBundleOptions$Builder maxConsoleEntries(int)
 public io.github.testlens.selenium.evidence.FailureBundleOptions build()
@@ -57,6 +58,7 @@ public boolean networkSummary()
 public boolean runtimeMetadata()
 public boolean configurationSnapshot()
 public boolean zipArchive()
+public io.github.testlens.selenium.evidence.ScreenshotCaptureMode screenshotCaptureMode()
 public long maxTextArtifactBytes()
 public int maxConsoleEntries()
 ```
@@ -85,6 +87,21 @@ public io.github.testlens.selenium.evidence.ScreenshotCaptureResult capture(java
 public io.github.testlens.selenium.evidence.ScreenshotCaptureException(java.lang.String, java.lang.Throwable)
 ```
 
+## `io.github.testlens.selenium.evidence.ScreenshotCaptureMode` {#io-github-testlens-selenium-evidence-screenshotcapturemode}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens.selenium.evidence`
+- Classification: `USER_API`
+- Type kind: `enum`
+- Functional documentation: [docs/observability/screenshots-evidence.md](../../observability/screenshots-evidence.md)
+
+```java
+public static final io.github.testlens.selenium.evidence.ScreenshotCaptureMode VIEWPORT
+public static final io.github.testlens.selenium.evidence.ScreenshotCaptureMode FULL_PAGE
+public static io.github.testlens.selenium.evidence.ScreenshotCaptureMode[] values()
+public static io.github.testlens.selenium.evidence.ScreenshotCaptureMode valueOf(java.lang.String)
+```
+
 ## `io.github.testlens.selenium.evidence.ScreenshotCaptureOptions$Builder` {#io-github-testlens-selenium-evidence-screenshotcaptureoptions-builder}
 
 - Artifact/module: `selenium-test-lens-selenium`
@@ -98,6 +115,9 @@ public io.github.testlens.selenium.evidence.ScreenshotCaptureOptions$Builder fil
 public io.github.testlens.selenium.evidence.ScreenshotCaptureOptions$Builder includeTimestamp(boolean)
 public io.github.testlens.selenium.evidence.ScreenshotCaptureOptions$Builder overwriteExisting(boolean)
 public io.github.testlens.selenium.evidence.ScreenshotCaptureOptions$Builder attachToSession(boolean)
+public io.github.testlens.selenium.evidence.ScreenshotCaptureOptions$Builder captureMode(io.github.testlens.selenium.evidence.ScreenshotCaptureMode)
+public io.github.testlens.selenium.evidence.ScreenshotCaptureOptions$Builder maxPixelCount(long)
+public io.github.testlens.selenium.evidence.ScreenshotCaptureOptions$Builder maxTileCount(int)
 public io.github.testlens.selenium.evidence.ScreenshotCaptureOptions build()
 ```
 
@@ -109,6 +129,8 @@ public io.github.testlens.selenium.evidence.ScreenshotCaptureOptions build()
 - Type kind: `class`
 
 ```java
+public static final long DEFAULT_MAX_PIXEL_COUNT
+public static final int DEFAULT_MAX_TILE_COUNT
 public static io.github.testlens.selenium.evidence.ScreenshotCaptureOptions defaults()
 public static io.github.testlens.selenium.evidence.ScreenshotCaptureOptions$Builder builder()
 public java.nio.file.Path outputDirectory()
@@ -116,6 +138,9 @@ public java.lang.String fileNamePrefix()
 public boolean includeTimestamp()
 public boolean overwriteExisting()
 public boolean attachToSession()
+public io.github.testlens.selenium.evidence.ScreenshotCaptureMode captureMode()
+public long maxPixelCount()
+public int maxTileCount()
 ```
 
 ## `io.github.testlens.selenium.evidence.ScreenshotCaptureResult` {#io-github-testlens-selenium-evidence-screenshotcaptureresult}
@@ -137,6 +162,11 @@ public java.lang.String message()
 public java.lang.Throwable exception()
 public java.time.Instant capturedAt()
 public boolean isCaptured()
+public io.github.testlens.selenium.evidence.ScreenshotCaptureMode requestedMode()
+public io.github.testlens.selenium.evidence.ScreenshotCaptureMode capturedMode()
+public int width()
+public int height()
+public int tileCount()
 ```
 
 ## `io.github.testlens.selenium.evidence.ScreenshotCaptureStatus` {#io-github-testlens-selenium-evidence-screenshotcapturestatus}

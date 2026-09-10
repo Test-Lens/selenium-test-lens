@@ -18,6 +18,9 @@ import io.github.testlens.selenium.assertions.UiAssertionOptions;
 import io.github.testlens.selenium.assertions.UiAssertionResult;
 import io.github.testlens.selenium.assertions.UiAssertionStatus;
 import io.github.testlens.selenium.evidence.FailureBundleOptions;
+import io.github.testlens.selenium.evidence.ScreenshotCaptureMode;
+import io.github.testlens.selenium.evidence.ScreenshotCaptureOptions;
+import io.github.testlens.selenium.evidence.ScreenshotCaptureResult;
 import io.github.testlens.selenium.locator.UiLocatorException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -41,6 +44,8 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.IOException;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -783,6 +788,94 @@ class RealBrowserContractsIT {
         }
     }
 
+    @Test
+    void portableFullPageScreenshotsPreserveLayoutContextAndFailureEvidence() throws Exception {
+        open("/full-page");
+        Path output = Path.of("target", "ui-test-lens", browserName(), "full-page-" + UUID.randomUUID());
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+                .overlayConfig(OverlayConfig.builder().enabled(true).decorationDurationMs(60_000).build())
+                .cleanupHudOnFinish(false)
+                .failureBundleOptions(FailureBundleOptions.builder()
+                        .screenshotCaptureMode(ScreenshotCaptureMode.FULL_PAGE).build())
+                .outputRoot(output)
+                .build());
+        lens.startSession("portable-full-page-" + UUID.randomUUID());
+        overlay(true).hudLog("info", "Full-page evidence", "browser-it");
+        assertTrue(await(hudPresent()));
+        ((JavascriptExecutor) driver).executeScript("""
+                const host = document.getElementById('selenium-overlay-host');
+                host.style.setProperty('border', '8px solid rgb(255, 0, 255)', 'important');
+                """);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Number> geometry = (Map<String, Number>) ((JavascriptExecutor) driver).executeScript("""
+                return {documentWidth: document.documentElement.scrollWidth,
+                  documentHeight: document.documentElement.scrollHeight,
+                  viewportWidth: innerWidth, viewportHeight: innerHeight};
+                """);
+        long initialX = 137;
+        long initialY = 311;
+        ((JavascriptExecutor) driver).executeScript("window.scrollTo(arguments[0], arguments[1])", initialX, initialY);
+
+        ScreenshotCaptureResult viewport = lens.captureScreenshot("viewport-contract",
+                ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false).build());
+        assertTrue(viewport.isCaptured(), viewport.message());
+        assertEquals(ScreenshotCaptureMode.VIEWPORT, viewport.capturedMode());
+        assertEquals(1, viewport.tileCount());
+        assertTrue(viewport.height() < geometry.get("documentHeight").longValue());
+
+        ScreenshotCaptureOptions fullPage = ScreenshotCaptureOptions.builder()
+                .outputDirectory(output)
+                .includeTimestamp(false)
+                .captureMode(ScreenshotCaptureMode.FULL_PAGE)
+                .build();
+        ScreenshotCaptureResult captured = lens.captureScreenshot("full-page-contract", fullPage);
+        assertTrue(captured.isCaptured(), captured.message());
+        assertEquals(ScreenshotCaptureMode.FULL_PAGE, captured.capturedMode());
+        assertTrue(captured.tileCount() > 2);
+        double scaleX = viewport.width() / geometry.get("viewportWidth").doubleValue();
+        double scaleY = viewport.height() / geometry.get("viewportHeight").doubleValue();
+        assertEquals(Math.round(geometry.get("documentWidth").doubleValue() * scaleX), captured.width());
+        assertEquals(Math.round(geometry.get("documentHeight").doubleValue() * scaleY), captured.height());
+        BufferedImage image = ImageIO.read(captured.path().toFile());
+        assertTrue(containsRgb(image, 220, 40, 40), "top marker must be present");
+        assertTrue(containsRgb(image, 40, 180, 70), "middle marker must be present");
+        assertTrue(containsRgb(image, 35, 80, 220), "bottom marker must be present");
+        assertTrue(containsRgb(image, 255, 165, 0), "right-side marker must be present");
+        assertTrue(containsRgb(image, 0, 220, 220), "sticky marker must remain present");
+        assertTrue(countRgb(image, 255, 0, 255) > 0, "HUD must appear in diagnostic capture");
+        assertNoTransparentRow(image);
+        assertEquals(initialX, number("return Math.round(window.scrollX)"));
+        assertEquals(initialY, number("return Math.round(window.scrollY)"));
+
+        String window = driver.getWindowHandle();
+        driver.switchTo().frame(driver.findElement(By.id("full-page-frame")));
+        ScreenshotCaptureResult framed = lens.captureScreenshot("frame-full-page", fullPage);
+        assertEquals(io.github.testlens.selenium.evidence.ScreenshotCaptureStatus.SKIPPED, framed.status());
+        assertEquals(window, driver.getWindowHandle());
+        assertTrue(driver.findElement(By.id("frame-value")).isDisplayed(), "capture must preserve frame context");
+        driver.switchTo().defaultContent();
+
+        ScreenshotCaptureResult limited = lens.captureScreenshot("limited-full-page",
+                ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false)
+                        .captureMode(ScreenshotCaptureMode.FULL_PAGE).maxPixelCount(1).build());
+        assertEquals(io.github.testlens.selenium.evidence.ScreenshotCaptureStatus.FAILED, limited.status());
+        assertFalse(Files.exists(output.resolve("screenshot_limited-full-page.png")));
+
+        TestLensFinalizationResult result = lens.finishFailed(new AssertionError("controlled failure"));
+        BufferedImage diagnostic = ImageIO.read(result.failureScreenshot().toFile());
+        BufferedImage clean = ImageIO.read(result.failureBundleDirectory().orElseThrow()
+                .resolve("failure-clean.png").toFile());
+        assertTrue(diagnostic.getHeight() > viewport.height());
+        assertEquals(diagnostic.getWidth(), clean.getWidth());
+        assertEquals(diagnostic.getHeight(), clean.getHeight());
+        assertTrue(countRgb(diagnostic, 255, 0, 255) > 0);
+        assertEquals(0, countRgb(clean, 255, 0, 255));
+        assertTrue(Files.readString(result.failureBundleManifest().orElseThrow()).contains("FULL_PAGE"));
+        assertTrue(hudPresent().apply(driver), "clean capture must restore the HUD");
+        assertFalse(driver.getTitle().isBlank(), "capture and finalization must leave the driver active");
+    }
+
     private static Stream<Arguments> finalizationCases() {
         return Stream.of(
                 Arguments.of(TraceStatus.PASSED, true),
@@ -1054,6 +1147,16 @@ class RealBrowserContractsIT {
             case "/page-waits", "/page-waits-next" -> html(exchange, page("Page waits", """
                     <p id='wait-state'>Ready for observed requests</p>
                     """), false);
+            case "/full-page" -> html(exchange, page("Full-page screenshot", """
+                    <div id='full-page-document'>
+                      <header id='full-page-fixed'>Fixed header</header>
+                      <section id='full-page-top'><span class='marker'>Top</span></section>
+                      <section id='full-page-middle'><aside id='full-page-sticky'>Sticky</aside><span class='marker'>Middle</span></section>
+                      <section id='full-page-bottom'><span class='marker'>Bottom</span></section>
+                      <div id='full-page-right'>Right</div>
+                      <iframe id='full-page-frame' src='/frame'></iframe>
+                    </div>
+                    """), true);
             case "/wait-delayed" -> {
                 java.util.concurrent.CompletableFuture.runAsync(
                         () -> { }, java.util.concurrent.CompletableFuture.delayedExecutor(250,
@@ -1254,5 +1357,40 @@ class RealBrowserContractsIT {
             #covered-wrap { position: relative; width: 80px; height: 40px; }
             #foreign-cover { display: none; position: absolute; inset: 0; z-index: 20; background: rgba(200,0,0,.5); }
             #spacer { height: 1800px; }
+            #full-page-document { position: relative; width: 1800px; }
+            #full-page-document section { height: 720px; }
+            #full-page-top { background: rgb(220, 40, 40); }
+            #full-page-middle { background: rgb(40, 180, 70); }
+            #full-page-bottom { background: rgb(35, 80, 220); }
+            #full-page-fixed { position: fixed; left: 10px; top: 10px; width: 220px; height: 44px;
+              z-index: 8; background: rgb(230, 230, 0); }
+            #full-page-sticky { position: sticky; top: 80px; width: 180px; height: 48px; background: rgb(0, 220, 220); }
+            #full-page-right { position: absolute; left: 1680px; top: 980px; width: 100px; height: 100px;
+              background: rgb(255, 165, 0); }
             """;
+
+    private static boolean containsRgb(BufferedImage image, int red, int green, int blue) {
+        return countRgb(image, red, green, blue) > 0;
+    }
+
+    private static long countRgb(BufferedImage image, int red, int green, int blue) {
+        long count = 0;
+        int expected = (red << 16) | (green << 8) | blue;
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
+                if ((image.getRGB(x, y) & 0x00ffffff) == expected) count++;
+            }
+        }
+        return count;
+    }
+
+    private static void assertNoTransparentRow(BufferedImage image) {
+        for (int y = 0; y < image.getHeight(); y++) {
+            boolean opaque = false;
+            for (int x = 0; x < image.getWidth(); x++) {
+                if (((image.getRGB(x, y) >>> 24) & 0xff) != 0) { opaque = true; break; }
+            }
+            assertTrue(opaque, "stitched PNG contains an empty row at y=" + y);
+        }
+    }
 }

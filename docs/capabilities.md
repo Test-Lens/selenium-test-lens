@@ -35,6 +35,8 @@ Recovery retry means a physical operation failed and Lens scheduled another atte
 
 For a final failed session, the development line can assemble screenshots, trace, report, context, runtime/configuration allowlists, network summary, manifest, and ZIP. Collection is best-effort and finalization never closes the driver. Video is attached, not recorded. See [trace](observability/trace.md), [reports](observability/reports.md), and [failure bundles](observability/failure-bundles.md).
 
+Screenshot capture remains viewport-based by default. The development line adds bounded, opt-in full-page scroll-and-stitch capture through the same evidence pipeline, including diagnostic and clean failure images. It preserves the current viewport layout and uses no CDP. See [screenshots and evidence](observability/screenshots-evidence.md#portable-full-page-capture).
+
 ### 5. Central protection for diagnostic text
 
 !!! info "Coming in 0.2.0"

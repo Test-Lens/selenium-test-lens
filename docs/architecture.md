@@ -143,6 +143,8 @@ Report generation lives in core. Collected sessions can be exported as HTML, JSO
 
 Core stores artifact metadata such as paths and URLs. Selenium integration creates browser-dependent evidence, including screenshots, and attaches it to the session. Exporters consume that session model; the producing feature writes the underlying file. Video support attaches existing files or URLs and does not record video.
 
+Screenshot evidence has one Selenium pipeline with two modes. `VIEWPORT` delegates once to `TakesScreenshot`; `FULL_PAGE` snapshots top-level geometry, scrolls the unchanged viewport, stitches bounded PNG tiles, restores browser state, and publishes atomically. Explicit screenshots, step evidence, and failure-bundle diagnostic/clean images share path validation, result metadata, trace attachment, and failure behavior. CDP is not part of this path.
+
 ## React boundary
 
 React support is isolated in `selenium-test-lens-react`, which depends on the main runtime, core, overlay, and Selenium. The main runtime does not depend on React. Normal DOM interactions continue to use `selenium-test-lens`.

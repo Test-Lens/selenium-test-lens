@@ -9,6 +9,8 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
 import java.io.File;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -26,7 +28,7 @@ class ScreenshotCaptureTest {
     @Test
     void captureCreatesDestinationFileAndAttachesArtifact() throws Exception {
         Path source = tempDir.resolve("source.png");
-        Files.writeString(source, "png");
+        writePng(source, 3, 2);
         UiTestLensSession session = UiTestLensSession.start("Checkout");
         ScreenshotCaptureOptions options = ScreenshotCaptureOptions.builder()
                 .outputDirectory(tempDir.resolve("screens"))
@@ -34,11 +36,16 @@ class ScreenshotCaptureTest {
                 .includeTimestamp(false)
                 .build();
 
-        ScreenshotCaptureResult result = new ScreenshotCapture(new FakeScreenshotDriver(source)).capture("After save", options, session);
+        FakeScreenshotDriver driver = new FakeScreenshotDriver(source);
+        ScreenshotCaptureResult result = new ScreenshotCapture(driver).capture("After save", options, session);
 
         assertEquals(ScreenshotCaptureStatus.CAPTURED, result.status());
         assertTrue(Files.exists(result.path()));
-        assertEquals("png", Files.readString(result.path()));
+        assertEquals(3, ImageIO.read(result.path().toFile()).getWidth());
+        assertEquals(2, ImageIO.read(result.path().toFile()).getHeight());
+        assertEquals(ScreenshotCaptureMode.VIEWPORT, result.capturedMode());
+        assertEquals(1, result.tileCount());
+        assertEquals(1, driver.screenshotCalls);
         assertNotNull(result.artifact());
         assertEquals(TraceArtifactType.SCREENSHOT, session.artifacts().get(0).type());
     }
@@ -56,7 +63,7 @@ class ScreenshotCaptureTest {
     @Test
     void captureWithoutSessionStillWritesFile() throws Exception {
         Path source = tempDir.resolve("source.png");
-        Files.writeString(source, "png");
+        writePng(source, 2, 2);
         ScreenshotCaptureOptions options = ScreenshotCaptureOptions.builder()
                 .outputDirectory(tempDir.resolve("screens"))
                 .includeTimestamp(false)
@@ -70,8 +77,14 @@ class ScreenshotCaptureTest {
         assertTrue(result.message().contains("no UiTestLensSession"));
     }
 
+    private static void writePng(Path path, int width, int height) throws Exception {
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        ImageIO.write(image, "png", path.toFile());
+    }
+
     private static final class FakeScreenshotDriver extends UnsupportedDriver implements TakesScreenshot {
         private final Path source;
+        private int screenshotCalls;
 
         private FakeScreenshotDriver(Path source) {
             this.source = source;
@@ -79,6 +92,7 @@ class ScreenshotCaptureTest {
 
         @Override
         public <X> X getScreenshotAs(OutputType<X> target) {
+            screenshotCalls++;
             return target.convertFromPngBytes(readBytes(source));
         }
 
