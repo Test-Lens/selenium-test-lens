@@ -471,25 +471,23 @@ class RealBrowserContractsIT {
     }
 
     @Test
-    void xhrFetchTrackerWaitsForCompletionAndIsReinstalledAfterNavigation() {
+    void xhrFetchTrackerWaitsForCompletionAndIsReinstalledAfterNavigation() throws Exception {
         open("/page-waits");
         TestLens lens = configuredLens(true, true);
         lens.startSession("network-idle-wait-" + UUID.randomUUID());
 
         lens.waitForNetworkIdle(Duration.ZERO, Duration.ofSeconds(1));
-        ((JavascriptExecutor) driver).executeScript(
-                "void fetch(arguments[0]); return null;", baseUrl + "/wait-delayed");
-        long firstStarted = System.nanoTime();
-        lens.waitForNetworkIdle(Duration.ofMillis(100), Duration.ofSeconds(3));
-        long firstElapsed = Duration.ofNanos(System.nanoTime() - firstStarted).toMillis();
-        assertTrue(firstElapsed >= 250, "wait returned before the observed fetch and idle window completed");
+        assertControlledFetchCompletesAfterRelease(lens);
 
         driver.navigate().to(baseUrl + "/page-waits-next");
+        assertFalse(Boolean.TRUE.equals(((JavascriptExecutor) driver).executeScript("""
+                const network = window.__uiTestLens
+                    && window.__uiTestLens.state
+                    && window.__uiTestLens.state.network;
+                return Boolean(network && network.trackerInstalled);
+                """)), "a new document must not inherit the previous document's tracker");
         lens.waitForNetworkIdle(Duration.ZERO, Duration.ofSeconds(1));
-        ((JavascriptExecutor) driver).executeScript(
-                "void fetch(arguments[0]); return null;", baseUrl + "/wait-delayed");
-        lens.waitForNetworkIdle(Duration.ofMillis(100), Duration.ofSeconds(3));
-        assertEquals(0L, number("return window.__seleniumActiveRequests || 0"));
+        assertControlledFetchCompletesAfterRelease(lens);
         lens.finishPassed();
     }
 
@@ -979,6 +977,69 @@ class RealBrowserContractsIT {
         return ((Number) ((JavascriptExecutor) driver).executeScript(script)).longValue();
     }
 
+    private void assertControlledFetchCompletesAfterRelease(TestLens lens) throws Exception {
+        String gateId = UUID.randomUUID().toString();
+        ControlledRequest gate = new ControlledRequest();
+        assertNull(CONTROLLED_REQUESTS.putIfAbsent(gateId, gate));
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> launchState = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                    const controller = new AbortController();
+                    window.__testLensControlledFetch = controller;
+                    void fetch(arguments[0], {signal: controller.signal});
+
+                    const network = window.__uiTestLens
+                        && window.__uiTestLens.state
+                        && window.__uiTestLens.state.network;
+                    return {
+                        trackerInstalled: Boolean(network && network.trackerInstalled),
+                        activeRequests: Number(network && network.activeRequests)
+                    };
+                    """, baseUrl + "/wait-controlled/" + gateId);
+            assertEquals(Boolean.TRUE, launchState.get("trackerInstalled"),
+                    "XHR/fetch tracker was not installed when the controlled fetch was launched");
+            assertEquals(1L, ((Number) launchState.get("activeRequests")).longValue(),
+                    "tracker must observe exactly the one controlled fetch before the wait starts");
+            assertEquals(1L, gate.completed.getCount(),
+                    "the controlled response must not be complete before its release");
+
+            gate.release.countDown();
+            lens.waitForNetworkIdle(Duration.ofMillis(100), Duration.ofSeconds(3));
+
+            assertTrue(gate.arrived.await(WAIT.toMillis(), TimeUnit.MILLISECONDS),
+                    "controlled fetch did not reach the local HTTP handler");
+            assertTrue(gate.completed.await(WAIT.toMillis(), TimeUnit.MILLISECONDS),
+                    "network-idle wait returned before the controlled HTTP response completed");
+            assertEquals(0L, number("return window.__uiTestLens.state.network.activeRequests;"));
+        } finally {
+            try {
+                ((JavascriptExecutor) driver).executeScript("""
+                        if (window.__testLensControlledFetch) {
+                            window.__testLensControlledFetch.abort();
+                            window.__testLensControlledFetch = null;
+                        }
+                        return null;
+                        """);
+            } finally {
+                gate.release.countDown();
+                try {
+                    new WebDriverWait(driver, WAIT).until(ignored -> number("""
+                            return window.__uiTestLens.state.network.activeRequests;
+                            """) == 0L);
+                } finally {
+                    try {
+                        if (gate.arrived.getCount() == 0L) {
+                            assertTrue(gate.completed.await(WAIT.toMillis(), TimeUnit.MILLISECONDS),
+                                    "controlled HTTP handler did not finish after fetch cleanup");
+                        }
+                    } finally {
+                        CONTROLLED_REQUESTS.remove(gateId, gate);
+                    }
+                }
+            }
+        }
+    }
+
     private java.util.function.Function<WebDriver, Boolean> hudPresent() {
         return scriptBoolean("""
                 const host = document.getElementById('selenium-overlay-host');
@@ -1157,12 +1218,6 @@ class RealBrowserContractsIT {
                       <iframe id='full-page-frame' src='/frame'></iframe>
                     </div>
                     """), true);
-            case "/wait-delayed" -> {
-                java.util.concurrent.CompletableFuture.runAsync(
-                        () -> { }, java.util.concurrent.CompletableFuture.delayedExecutor(250,
-                                java.util.concurrent.TimeUnit.MILLISECONDS)).join();
-                response(exchange, "text/plain; charset=utf-8", "done", false);
-            }
             case "/app.js" -> response(exchange, "application/javascript; charset=utf-8", APP_JS, false);
             case "/app.css" -> response(exchange, "text/css; charset=utf-8", APP_CSS, false);
             default -> response(exchange, "text/plain; charset=utf-8", "not found", false, 404);
