@@ -33,14 +33,10 @@ public final class ReportProxyOptions {
     /** Creates a proxy options builder. */
     public static Builder builder() { return new Builder(); }
 
-    /** Returns the proxy selection mode. */
-    public ReportProxyMode mode() { return mode; }
-    /** Returns the normalized explicit proxy host, or {@code null} when not configured. */
-    public String host() { return host; }
-    /** Returns the explicit proxy port, or {@code 0} when not configured. */
-    public int port() { return port; }
-    /** Returns immutable literal no-proxy rules in insertion order. */
-    public List<String> noProxy() { return noProxy; }
+    ReportProxyMode mode() { return mode; }
+    String host() { return host; }
+    int port() { return port; }
+    List<String> noProxy() { return noProxy; }
 
     @Override public String toString() {
         return "ReportProxyOptions[mode=" + mode + ", configured=" + (host != null) + ", noProxyRules="

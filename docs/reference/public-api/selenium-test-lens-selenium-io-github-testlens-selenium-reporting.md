@@ -66,10 +66,6 @@ public io.github.testlens.selenium.reporting.ReportProxyOptions build()
 public static io.github.testlens.selenium.reporting.ReportProxyOptions system()
 public static io.github.testlens.selenium.reporting.ReportProxyOptions direct()
 public static io.github.testlens.selenium.reporting.ReportProxyOptions$Builder builder()
-public io.github.testlens.selenium.reporting.ReportProxyMode mode()
-public java.lang.String host()
-public int port()
-public java.util.List<java.lang.String> noProxy()
 public java.lang.String toString()
 ```
 
@@ -151,7 +147,6 @@ public long maxPayloadBytes()
 public int maxAttempts()
 public java.time.Duration maxRetryAfter()
 public int maxResponsePreviewBytes()
-public io.github.testlens.selenium.reporting.ReportProxyOptions proxy()
 public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
 public java.lang.String toString()
 ```

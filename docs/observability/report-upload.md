@@ -66,7 +66,7 @@ X-Test-Lens-SHA256: <lowercase SHA-256 of request body>
 Content-Length: <bytes>
 ```
 
-The body is streamed from disk with JDK `HttpClient.BodyPublishers.ofFile`; it is not buffered as a byte array. Any `2xx` response is success. A receiver may return an opaque identifier in `X-Test-Lens-Report-Id`. Test Lens reads no other response metadata and limits/redacts its response preview.
+The body is streamed from disk with JDK `HttpClient.BodyPublishers.ofFile`; it is not buffered as a byte array. Any `2xx` response is success. A receiver may return an opaque identifier in `X-Test-Lens-Report-Id`. Test Lens reads no other response metadata and limits/redacts its response preview. The bounded preview is consumed as part of the HTTP request completion, so `requestTimeout` also applies when a receiver sends response headers and then stalls its body.
 
 Failure classification is stable at the client boundary: `401/403` are authentication failures, `413` is too large, `429` is rate limiting, other `4xx` are rejected requests, `5xx` are server failures, request timeout is timeout, and I/O/TLS failures are transport failures. Redirects are never followed, including `307/308`; deploy the final endpoint URI directly.
 

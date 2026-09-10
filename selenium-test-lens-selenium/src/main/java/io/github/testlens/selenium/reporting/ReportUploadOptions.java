@@ -52,7 +52,7 @@ public final class ReportUploadOptions {
     public URI endpoint() { return endpoint; }
     /** Returns the HTTP connection timeout. */
     public Duration connectTimeout() { return connectTimeout; }
-    /** Returns the timeout applied to each request attempt. */
+    /** Returns the timeout applied to each request attempt, including bounded response-preview consumption. */
     public Duration requestTimeout() { return requestTimeout; }
     /** Returns the maximum accepted ZIP size in bytes. */
     public long maxPayloadBytes() { return maxPayloadBytes; }
@@ -62,8 +62,7 @@ public final class ReportUploadOptions {
     public Duration maxRetryAfter() { return maxRetryAfter; }
     /** Returns the maximum number of response bytes decoded for diagnostics. */
     public int maxResponsePreviewBytes() { return maxResponsePreviewBytes; }
-    /** Returns uploader-only proxy selection. */
-    public ReportProxyOptions proxy() { return proxy; }
+    ReportProxyOptions proxy() { return proxy; }
     /** Returns the policy protecting response and failure diagnostics. */
     public RedactionPolicy redactionPolicy() { return redactionPolicy; }
 
@@ -128,7 +127,7 @@ public final class ReportUploadOptions {
 
         /** Sets the positive connect timeout. */
         public Builder connectTimeout(Duration value) { connectTimeout = positive(value, "connectTimeout"); return this; }
-        /** Sets the positive timeout for each request attempt. */
+        /** Sets the positive timeout for each request attempt, including bounded response-preview consumption. */
         public Builder requestTimeout(Duration value) { requestTimeout = positive(value, "requestTimeout"); return this; }
         /** Sets the positive ZIP payload limit in bytes. */
         public Builder maxPayloadBytes(long value) {

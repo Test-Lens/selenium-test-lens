@@ -4,6 +4,7 @@ import io.github.testlens.TestLensFinalizationResult;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.export.TraceJsonWriter;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -15,6 +16,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -32,6 +34,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Flow;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.LockSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -110,6 +118,14 @@ public final class ReportUploader {
     private ReportUploadResult send(HttpClient client, PreparedArtifact artifact, TraceStatus finalStatus,
                                     long size, String sha256, String endpoint, long started) {
         String idempotencyKey = "test-lens-" + artifact.kind().name().toLowerCase(Locale.ROOT) + "-" + sha256;
+        HttpRequest.BodyPublisher payload;
+        try {
+            payload = HttpRequest.BodyPublishers.ofFile(artifact.path());
+        } catch (IOException missingArtifact) {
+            return result(ReportUploadStatus.FAILED, artifact.kind(), endpoint, null, 0, started, size, sha256,
+                    null, "", ReportUploadFailureCategory.INVALID_ARTIFACT, missingArtifact,
+                    "The completed report artifact is no longer readable");
+        }
         Throwable lastFailure = null;
         for (int attempt = 1; attempt <= options.maxAttempts(); attempt++) {
             try {
@@ -125,13 +141,22 @@ public final class ReportUploader {
                     request.header("Authorization", "Bearer " + options.bearerTokenValue());
                 }
                 options.headerValues().forEach(request::header);
-                HttpResponse<InputStream> response = client.send(
-                        request.POST(HttpRequest.BodyPublishers.ofFile(artifact.path())).build(),
-                        HttpResponse.BodyHandlers.ofInputStream());
-                String preview;
-                try (InputStream body = response.body()) {
-                    preview = preview(body, options.maxResponsePreviewBytes());
+                CompletableFuture<HttpResponse<byte[]>> pending = client.sendAsync(
+                        request.POST(payload).build(),
+                        responseBodyHandler(options.maxResponsePreviewBytes()));
+                HttpResponse<byte[]> response;
+                try {
+                    response = pending.get(options.requestTimeout().toNanos(), TimeUnit.NANOSECONDS);
+                } catch (TimeoutException timeout) {
+                    pending.cancel(true);
+                    if (attempt < options.maxAttempts()) continue;
+                    HttpTimeoutException requestTimeout = new HttpTimeoutException("request timed out");
+                    requestTimeout.initCause(timeout);
+                    return result(ReportUploadStatus.FAILED, artifact.kind(), endpoint, null, attempt, started, size,
+                            sha256, null, "", ReportUploadFailureCategory.TIMEOUT, requestTimeout,
+                            "Upload timed out");
                 }
+                String preview = preview(response.body(), options.maxResponsePreviewBytes());
                 int status = response.statusCode();
                 String serverId = response.headers().firstValue("X-Test-Lens-Report-Id")
                         .map(value -> bounded(options.redactDiagnostic(value), 512)).orElse(null);
@@ -152,7 +177,8 @@ public final class ReportUploader {
                 return result(ReportUploadStatus.FAILED, artifact.kind(), endpoint, null, attempt, started, size,
                         sha256, null, "", ReportUploadFailureCategory.TRANSPORT, interrupted,
                         "Upload was interrupted");
-            } catch (IOException transport) {
+            } catch (ExecutionException failedRequest) {
+                Throwable transport = failedRequest.getCause() == null ? failedRequest : failedRequest.getCause();
                 lastFailure = transport;
                 if (attempt < options.maxAttempts()) continue;
                 ReportUploadFailureCategory category = transport instanceof HttpTimeoutException
@@ -315,9 +341,12 @@ public final class ReportUploader {
         return ReportUploadFailureCategory.INVALID_RESPONSE;
     }
 
-    private String preview(InputStream body, int limit) throws IOException {
+    private static HttpResponse.BodyHandler<byte[]> responseBodyHandler(int previewLimit) {
+        return ignored -> new LimitedBodySubscriber(previewLimit);
+    }
+
+    private String preview(byte[] bytes, int limit) {
         if (limit == 0) return "";
-        byte[] bytes = body.readNBytes(limit + 1);
         boolean truncated = bytes.length > limit;
         int length = Math.min(bytes.length, limit);
         String text = new String(bytes, 0, length, StandardCharsets.UTF_8);
@@ -381,6 +410,51 @@ public final class ReportUploader {
 
     private record PreparedArtifact(Path path, ReportArtifactKind kind, boolean temporary) { }
     private record SourceEntry(String name, Path path, long size, String sha256) { }
+
+    private static final class LimitedBodySubscriber implements HttpResponse.BodySubscriber<byte[]> {
+        private final int maximumBytes;
+        private final ByteArrayOutputStream bytes;
+        private final CompletableFuture<byte[]> body = new CompletableFuture<>();
+        private Flow.Subscription subscription;
+
+        private LimitedBodySubscriber(int previewLimit) {
+            maximumBytes = Math.addExact(previewLimit, 1);
+            bytes = new ByteArrayOutputStream(Math.min(maximumBytes, 8192));
+        }
+
+        @Override public CompletionStage<byte[]> getBody() { return body; }
+
+        @Override public void onSubscribe(Flow.Subscription value) {
+            if (subscription != null) {
+                value.cancel();
+                return;
+            }
+            subscription = value;
+            value.request(1);
+        }
+
+        @Override public void onNext(List<ByteBuffer> buffers) {
+            if (body.isDone()) return;
+            for (ByteBuffer buffer : buffers) {
+                while (buffer.hasRemaining() && bytes.size() < maximumBytes) {
+                    int count = Math.min(buffer.remaining(), Math.min(8192, maximumBytes - bytes.size()));
+                    byte[] chunk = new byte[count];
+                    buffer.get(chunk);
+                    bytes.writeBytes(chunk);
+                }
+                if (bytes.size() == maximumBytes) {
+                    subscription.cancel();
+                    body.complete(bytes.toByteArray());
+                    return;
+                }
+            }
+            subscription.request(1);
+        }
+
+        @Override public void onError(Throwable failure) { body.completeExceptionally(failure); }
+
+        @Override public void onComplete() { body.complete(bytes.toByteArray()); }
+    }
 
     private static final class FixedProxySelector extends ProxySelector {
         private final InetSocketAddress proxy;

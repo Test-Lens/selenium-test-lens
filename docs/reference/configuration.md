@@ -147,7 +147,7 @@ Report upload is configured independently of `TestLensOptions` because configura
 | `bearerToken(String)` | none | Optional credential; blank removes it and values never appear in `toString()`. |
 | `header(String, String)` | none | Adds a validated custom header; managed transport headers cannot be replaced. |
 | `connectTimeout(Duration)` | 10 s | Positive JDK HTTP connect timeout. |
-| `requestTimeout(Duration)` | 30 s | Positive per-attempt request timeout. |
+| `requestTimeout(Duration)` | 30 s | Positive per-attempt timeout covering the response headers and bounded response-preview consumption. |
 | `maxPayloadBytes(long)` | 100 MiB | Positive preflight file-size limit. |
 | `maxAttempts(int)` | 1 | Total attempts; retries only transport I/O, 408, 429, 502, 503, and 504. |
 | `maxRetryAfter(Duration)` | 30 s | Non-negative cap for integer-seconds `Retry-After`. |

@@ -124,7 +124,7 @@ jobs:
       - name: Set up geckodriver
         if: matrix.browser == 'firefox'
         id: setup-geckodriver
-        uses: browser-actions/setup-geckodriver@latest
+        uses: browser-actions/setup-geckodriver@bf8266f624ca122cedb6d0381a031f18f6c431cd # master, pinned 2026-09-10
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 

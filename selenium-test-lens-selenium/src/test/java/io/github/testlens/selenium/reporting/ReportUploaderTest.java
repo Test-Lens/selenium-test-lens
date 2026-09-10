@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.ProxySelector;
@@ -25,6 +26,7 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HexFormat;
@@ -34,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -156,6 +159,24 @@ class ReportUploaderTest {
     }
 
     @Test
+    void credentialsHeadersAndProxyDetailsHaveNoPublicAccessors() {
+        Set<String> optionMethods = Arrays.stream(ReportUploadOptions.class.getMethods())
+                .map(java.lang.reflect.Method::getName)
+                .collect(java.util.stream.Collectors.toSet());
+        assertFalse(optionMethods.contains("bearerToken"));
+        assertFalse(optionMethods.contains("headers"));
+        assertFalse(optionMethods.contains("proxy"));
+
+        Set<String> proxyMethods = Arrays.stream(ReportProxyOptions.class.getMethods())
+                .map(java.lang.reflect.Method::getName)
+                .collect(java.util.stream.Collectors.toSet());
+        assertFalse(proxyMethods.contains("mode"));
+        assertFalse(proxyMethods.contains("host"));
+        assertFalse(proxyMethods.contains("port"));
+        assertFalse(proxyMethods.contains("noProxy"));
+    }
+
+    @Test
     void classifiesHttpFailures() throws Exception {
         Map<Integer, ReportUploadFailureCategory> expected = new LinkedHashMap<>();
         expected.put(401, ReportUploadFailureCategory.AUTHENTICATION);
@@ -233,6 +254,46 @@ class ReportUploaderTest {
         assertSame(result.exception(), failure.getCause());
         assertTrue(Files.exists(finalized.jsonReport()));
         assertTrue(Files.exists(finalized.htmlReport()));
+    }
+
+    @Test
+    void requestTimeoutAlsoBoundsAResponseBodyThatStallsAfterHeaders() throws Exception {
+        CountDownLatch bodyStarted = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        HttpServer http = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        http.createContext("/stalled-body", exchange -> {
+            exchange.sendResponseHeaders(200, 0);
+            try (OutputStream body = exchange.getResponseBody()) {
+                body.write('x');
+                body.flush();
+                bodyStarted.countDown();
+                release.await(2, TimeUnit.SECONDS);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+            } finally {
+                exchange.close();
+            }
+        });
+        http.start();
+        servers.add(http);
+        ReportUploadOptions options = options(
+                URI.create("http://127.0.0.1:" + http.getAddress().getPort() + "/stalled-body"), 1)
+                .requestTimeout(Duration.ofMillis(100))
+                .build();
+        var executor = Executors.newSingleThreadExecutor();
+        Future<ReportUploadResult> upload = executor.submit(
+                () -> new ReportUploader(options).upload(finalized(TraceStatus.PASSED, false)));
+        try {
+            assertTrue(bodyStarted.await(1, TimeUnit.SECONDS));
+            ReportUploadResult result = upload.get(1, TimeUnit.SECONDS);
+            assertEquals(ReportUploadFailureCategory.TIMEOUT, result.failureCategory());
+            assertInstanceOf(HttpTimeoutException.class, result.exception());
+            assertInstanceOf(java.util.concurrent.TimeoutException.class, result.exception().getCause());
+        } finally {
+            release.countDown();
+            upload.cancel(true);
+            executor.shutdownNow();
+        }
     }
 
     @Test
