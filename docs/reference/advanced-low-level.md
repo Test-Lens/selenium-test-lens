@@ -18,7 +18,7 @@ These types are public in the current artifacts but are not the recommended cons
 - JSON/report implementation helpers shared across core packages: `TraceJsonWriter` and `TraceReportSupport`.
 - `ApiOverlayPanel`, whose implementation is still shared by overlay and Selenium artifacts.
 
-`BrowserScriptExecutor` is intentionally supported as a `LOW_LEVEL_API` SPI for framework-neutral execution of overlay scripts. Local reporters, locator result/resolver types, unused overlay plans, `ScriptExecutor`, `OverlayBrowserScriptExecutors`, `ApiCallActions`, `UiStepContext`, and `TraceHtmlEscaper` are no longer binary-public. See the [boundary review](public-api-boundary-review.md) for the complete decision table and deferred work.
+`BrowserScriptExecutor` is intentionally supported as a `LOW_LEVEL_API` SPI for framework-neutral execution of overlay scripts. Local reporters, locator result/resolver types, unused overlay plans, `ScriptExecutor`, `OverlayBrowserScriptExecutors`, `ApiCallActions`, `UiStepContext`, and `TraceHtmlEscaper` are no longer binary-public. The supported replacement paths for code affected by this cleanup are documented in the [0.1.0 to 0.2.0 migration guide](../migration.md).
 
 No stability promise beyond the published Java surface is implied here. These APIs accept raw scripts/selectors/browser objects, can mutate page decoration, and may bypass high-level retry, trace, HUD, evidence, or redaction conventions. Prefer raw Selenium itself when the desired operation is fundamentally a Selenium/CDP/BiDi concern.
 

@@ -19,9 +19,9 @@ versions: verify the symbol against the corresponding release tag before adding 
 
 After preparing a real release, remove its `Coming in X.Y.Z` markers in the release-preparation commit. After tagging, advance the root POM and `extra.version.current` to the next snapshot together. New unreleased features must receive a marker; normal dependency examples continue to use the latest Maven Central release. Never update an already published stable version from `main`.
 
-## One-time 0.1.0 migration
+## Historical 0.1.0 bootstrap
 
-After this commit is pushed:
+The initial migration used the following one-time procedure:
 
 1. Confirm repository Pages source is **GitHub Actions**.
 2. Run the Documentation workflow with `bootstrap-0.1.0` from the Actions UI.
@@ -30,21 +30,10 @@ After this commit is pushed:
 5. Verify the version selector in both stable and development pages.
 6. Confirm the root opens stable 0.1.0.
 
-The workflow declares `contents: write` only on its publication job. If organization policy disables write-capable `GITHUB_TOKEN`s despite job permissions, enable repository **Read and write permissions** for Actions; do not replace the token with a personal secret.
+The bootstrap is complete. Its workflow operation deliberately refuses to overwrite an existing 0.1.0 version. The workflow declares `contents: write` only on its publication job. If organization policy disables write-capable `GITHUB_TOKEN`s despite job permissions, enable repository **Read and write permissions** for Actions; do not replace the token with a personal secret.
 
 ## Verification and recovery
 
 Run `./scripts/validate-versioned-docs.ps1` locally in PowerShell 7. It creates a disposable Git repository, bootstraps stable and dev documentation, hashes 0.1.0 across a dev redeploy, rejects a duplicate stable deployment, simulates the next stable release, and removes the temporary repository. `mike list --branch gh-pages` in a read-only clone shows deployed metadata.
 
 To recover a Pages deployment without changing documentation, choose `redeploy-pages`; it uploads the existing complete `gh-pages` branch. If a `mike` push conflicts, let the serialized workflow fail, inspect the remote branch, and rerun the same operation. Never force-push or rebuild old versions from `main`.
-
-## One-time repair of the 0.1.0 bootstrap
-
-The initial 0.1.0 bootstrap published an intentionally minimal snapshot that did not cover the release's full verified API. A temporary `repair-0.1.0-docs` dispatch operation exists solely to replace that incomplete historical documentation from `docs-versions/0.1.0`.
-
-1. Review the historical source against tag `v0.1.0` and run the strict stable build, boundary check, and versioned-site simulation.
-2. Run the Documentation workflow with operation `repair-0.1.0-docs`.
-3. Enter the exact confirmation `repair-immutable-0.1.0-docs`.
-4. Verify `/0.1.0/`, `/latest/`, the root redirect, and the version switcher. Confirm that `/dev/` is unchanged.
-
-The operation accepts no version, requires an already-published 0.1.0 whose `latest` alias still points to it, hashes the `dev` tree before and after the update, and fails if that tree changes. It refreshes only 0.1.0 and its `latest` copy while preserving the root default and all other versions. It cannot repair a future release. Remove this dispatch option in a separate commit after the correction has succeeded; normal immutable-version protection remains in force.
