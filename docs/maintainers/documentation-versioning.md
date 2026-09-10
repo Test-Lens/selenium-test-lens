@@ -37,3 +37,14 @@ The workflow declares `contents: write` only on its publication job. If organiza
 Run `./scripts/validate-versioned-docs.ps1` locally in PowerShell 7. It creates a disposable Git repository, bootstraps stable and dev documentation, hashes 0.1.0 across a dev redeploy, rejects a duplicate stable deployment, simulates the next stable release, and removes the temporary repository. `mike list --branch gh-pages` in a read-only clone shows deployed metadata.
 
 To recover a Pages deployment without changing documentation, choose `redeploy-pages`; it uploads the existing complete `gh-pages` branch. If a `mike` push conflicts, let the serialized workflow fail, inspect the remote branch, and rerun the same operation. Never force-push or rebuild old versions from `main`.
+
+## One-time repair of the 0.1.0 bootstrap
+
+The initial 0.1.0 bootstrap published an intentionally minimal snapshot that did not cover the release's full verified API. A temporary `repair-0.1.0-docs` dispatch operation exists solely to replace that incomplete historical documentation from `docs-versions/0.1.0`.
+
+1. Review the historical source against tag `v0.1.0` and run the strict stable build, boundary check, and versioned-site simulation.
+2. Run the Documentation workflow with operation `repair-0.1.0-docs`.
+3. Enter the exact confirmation `repair-immutable-0.1.0-docs`.
+4. Verify `/0.1.0/`, `/latest/`, the root redirect, and the version switcher. Confirm that `/dev/` is unchanged.
+
+The operation accepts no version, requires an already-published 0.1.0 whose `latest` alias still points to it, hashes the `dev` tree before and after the update, and fails if that tree changes. It refreshes only 0.1.0 and its `latest` copy while preserving the root default and all other versions. It cannot repair a future release. Remove this dispatch option in a separate commit after the correction has succeeded; normal immutable-version protection remains in force.

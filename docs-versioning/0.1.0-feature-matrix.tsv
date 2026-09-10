@@ -1,0 +1,17 @@
+# Feature<TAB>public production symbol in v0.1.0<TAB>test/example path in v0.1.0<TAB>stable documentation page
+Facade and lifecycle	TestLens attach(	selenium-test-lens-selenium/src/test/java/io/github/testlens/TestLensTest.java	getting-started.md
+Original role locator	UiLocator getByRole(	selenium-test-lens-examples/src/test/java/io/github/testlens/examples/PlaywrightStyleLocatorsExampleTest.java	locators.md
+Element actions	UiLocator click(	selenium-test-lens-selenium/src/test/java/io/github/testlens/selenium/locator/UiLocatorTest.java	element-actions.md
+Element assertions	UiAssertionResult toBeVisible(	selenium-test-lens-selenium/src/test/java/io/github/testlens/selenium/assertions/UiExpectTest.java	assertions-and-waits.md
+Document waits	void waitForDocumentReady(	selenium-test-lens-selenium/src/test/java/io/github/testlens/core/PageWaitsTest.java	assertions-and-waits.md
+HUD configuration	OverlayConfig build(	selenium-test-lens-overlay/src/test/java/io/github/testlens/OverlayConfigTest.java	hud-and-overlay.md
+Viewport screenshot	ScreenshotCaptureResult captureScreenshot(	selenium-test-lens-selenium/src/test/java/io/github/testlens/JsOverlayDebugTraceSessionTest.java	screenshots-and-video.md
+Video attachment	VideoEvidenceResult attachVideoFile(	selenium-test-lens-selenium/src/test/java/io/github/testlens/JsOverlayDebugTraceSessionTest.java	screenshots-and-video.md
+Trace JSON export	String exportJson(	selenium-test-lens-core/src/test/java/io/github/testlens/core/trace/TraceJsonExporterTest.java	trace-and-reports.md
+Trace HTML export	String exportHtml(	selenium-test-lens-core/src/test/java/io/github/testlens/core/trace/export/TraceHtmlExporterTest.java	trace-and-reports.md
+Manual network events	NetworkEvent addManualEvent(	selenium-test-lens-selenium/src/test/java/io/github/testlens/selenium/network/NetworkDiagnosticsTest.java	manual-network-diagnostics.md
+Network response wait	NetworkWaitResult waitForResponse(	selenium-test-lens-selenium/src/test/java/io/github/testlens/selenium/network/NetworkDiagnosticsTest.java	manual-network-diagnostics.md
+Authentication state	AuthState captureState(	selenium-test-lens-examples/src/test/java/io/github/testlens/examples/AuthSessionStateExampleTest.java	auth-state.md
+React executor	ReactSafeExecutor reactSafe(	selenium-test-lens-react/src/test/java/io/github/testlens/react/ReactSupportTest.java	react-integration.md
+Facade configuration	TestLensOptions build(	selenium-test-lens-selenium/src/test/java/io/github/testlens/TestLensTest.java	configuration.md
+Browser contexts	TestLens switchToFrame(	selenium-test-lens-selenium/src/test/java/io/github/testlens/TestLensBrowserContextTest.java	examples.md

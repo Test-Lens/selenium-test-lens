@@ -12,9 +12,9 @@ on:
         required: true
         type: choice
         default: validate-only
-        options: [validate-only, publish-dev, bootstrap-0.1.0, redeploy-pages]
+        options: [validate-only, publish-dev, bootstrap-0.1.0, repair-0.1.0-docs, redeploy-pages]
       confirmation:
-        description: Type publish-immutable-0.1.0 only for bootstrap
+        description: Exact confirmation required for bootstrap or the one-time 0.1.0 documentation repair
         required: false
         type: string
 
@@ -51,6 +51,7 @@ jobs:
           ./scripts/check-doc-links.ps1
           ./scripts/check-doc-signatures.ps1
           ./scripts/check-doc-version-boundary.ps1
+          ./scripts/validate-stable-doc-examples.ps1
           ./scripts/validate-versioned-docs.ps1
       - name: Validate workflow YAML
         run: python -c "import pathlib,yaml; [yaml.safe_load(p.read_text(encoding='utf-8')) for p in pathlib.Path('.github/workflows').glob('*.yml')]"
@@ -100,6 +101,16 @@ jobs:
           git rev-parse --verify refs/tags/v0.1.0
           ./scripts/check-doc-version-boundary.ps1 -ReleaseTag v0.1.0
           ./scripts/publish-versioned-docs.ps1 -Operation bootstrap-0.1.0 -Confirmation '${{ github.event.inputs.confirmation }}'
+      - name: Repair incomplete historical 0.1.0 documentation once
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'repair-0.1.0-docs'
+        shell: pwsh
+        run: |
+          if ('${{ github.event.inputs.confirmation }}' -ne 'repair-immutable-0.1.0-docs') {
+            throw 'Type repair-immutable-0.1.0-docs to authorize the one-time historical documentation repair.'
+          }
+          ./scripts/check-doc-version-boundary.ps1 -ReleaseTag v0.1.0
+          mkdocs build --strict --config-file mkdocs-0.1.0.yml --site-dir "${{ runner.temp }}/stable-repair-site"
+          ./scripts/publish-versioned-docs.ps1 -Operation repair-0.1.0-docs -Confirmation '${{ github.event.inputs.confirmation }}'
       - name: Publish immutable tagged release
         if: startsWith(github.ref, 'refs/tags/v')
         shell: pwsh

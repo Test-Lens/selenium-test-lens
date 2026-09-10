@@ -78,6 +78,33 @@ try {
         & tar -xf (Join-Path $work "pages-two.tar") -C $stage2
         if ((TreeHash (Join-Path $stage2 "0.1.0")) -ne $stableHash) { throw "Redeploying dev changed immutable 0.1.0." }
 
+        $repairVersionRejected = $false
+        try {
+            & ./scripts/publish-versioned-docs.ps1 -Operation repair-0.1.0-docs -Version 9.9.9 -Confirmation repair-immutable-0.1.0-docs -NoPush
+        } catch { $repairVersionRejected = $true }
+        if (-not $repairVersionRejected) { throw "The fixed 0.1.0 repair accepted an arbitrary version." }
+
+        $devHashBeforeRepair = TreeHash (Join-Path $stage2 "dev")
+        & git branch -D gh-pages
+        if ($LASTEXITCODE -ne 0) { throw "Could not remove the local publication branch for the fresh-checkout repair simulation." }
+        Add-Content docs-versions/0.1.0/index.md "`n<!-- validation-only historical repair -->"
+        & git add docs-versions/0.1.0/index.md
+        & git commit -q -m stable-repair-source
+        & ./scripts/publish-versioned-docs.ps1 -Operation repair-0.1.0-docs -Confirmation repair-immutable-0.1.0-docs
+        $stageRepair = Join-Path $work "site-repair"
+        New-Item -ItemType Directory -Path $stageRepair | Out-Null
+        & git archive gh-pages -o (Join-Path $work "pages-repair.tar")
+        & tar -xf (Join-Path $work "pages-repair.tar") -C $stageRepair
+        if ((TreeHash (Join-Path $stageRepair "dev")) -ne $devHashBeforeRepair) {
+            throw "Repairing 0.1.0 changed the published dev tree."
+        }
+        if ((TreeHash (Join-Path $stageRepair "0.1.0")) -eq $stableHash) {
+            throw "The controlled repair did not update the 0.1.0 tree."
+        }
+        if (-not ([IO.File]::ReadAllText((Join-Path $stageRepair "latest/index.html"))).Contains("validation-only historical repair")) {
+            throw "The latest alias was not refreshed from repaired 0.1.0 documentation."
+        }
+
         $duplicateFailed = $false
         try { & ./scripts/publish-versioned-docs.ps1 -Operation bootstrap-0.1.0 -Confirmation publish-immutable-0.1.0 -NoPush } catch { $duplicateFailed = $true }
         if (-not $duplicateFailed) { throw "Duplicate 0.1.0 publication was not rejected." }
@@ -132,7 +159,7 @@ try {
         if (-not $rootRedirect.Contains('url=latest/')) { throw "Root default does not redirect to latest." }
         $latestHome = [IO.File]::ReadAllText((Join-Path $stage2 "latest/index.html"))
         if (-not $latestHome.Contains("Selenium Test Lens 0.1.0")) { throw "latest does not serve stable 0.1.0." }
-        Write-Host "Versioned docs simulation OK: stable immutable, duplicate rejected, future latest advanced."
+        Write-Host "Versioned docs simulation OK: stable repair preserved dev, ordinary duplicate rejected, future latest advanced."
         $ok = $true
     } finally { Pop-Location }
 } finally {

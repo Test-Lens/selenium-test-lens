@@ -25,9 +25,22 @@ plugins:
       canonical_version: latest
 
 nav:
-  - Stable 0.1.0: index.md
+  - Overview: index.md
   - Installation: installation.md
   - Getting started: getting-started.md
+  - Session lifecycle: session-lifecycle.md
+  - Locators: locators.md
+  - Element actions: element-actions.md
+  - Assertions and waits: assertions-and-waits.md
+  - HUD and overlay: hud-and-overlay.md
+  - Screenshots and video evidence: screenshots-and-video.md
+  - Trace and reports: trace-and-reports.md
+  - Manual network diagnostics: manual-network-diagnostics.md
+  - Authentication state: auth-state.md
+  - React integration: react-integration.md
+  - Configuration: configuration.md
+  - Examples: examples.md
+  - Known limitations: known-limitations.md
   - Published API: published-api.md
 
 markdown_extensions:

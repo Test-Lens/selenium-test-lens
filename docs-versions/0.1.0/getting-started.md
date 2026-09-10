@@ -1,5 +1,7 @@
 # Getting started
 
+**Selenium Test Lens 0.1.0 — stable**
+
 Attach Test Lens to a driver created and owned by the consuming test framework:
 
 ```java
@@ -19,4 +21,6 @@ try {
 }
 ```
 
-This example is taken from the API present in tag `v0.1.0`. Expanded browser-computed semantic locators, page assertions, form actions, central redaction, automatic failure bundles, and passive BiDi capture are documented only in the development version.
+`TestLens` does not create or close the driver. Call one terminal method after the test body and close the driver in the framework-owned cleanup. In 0.1.0, treat finalization as a one-shot operation; the stronger idempotent finalization contract belongs to the development line.
+
+Continue with [session lifecycle](session-lifecycle.md), [locators](locators.md), and [trace and reports](trace-and-reports.md).
