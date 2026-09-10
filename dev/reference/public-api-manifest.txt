@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
 # Types: 231
-# Public callable methods/constructors: 1818
+# Public callable methods/constructors: 1813
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -2146,10 +2146,6 @@ TYPE io.github.testlens.selenium.reporting.ReportProxyOptions
   public static io.github.testlens.selenium.reporting.ReportProxyOptions system()
   public static io.github.testlens.selenium.reporting.ReportProxyOptions direct()
   public static io.github.testlens.selenium.reporting.ReportProxyOptions$Builder builder()
-  public io.github.testlens.selenium.reporting.ReportProxyMode mode()
-  public java.lang.String host()
-  public int port()
-  public java.util.List<java.lang.String> noProxy()
   public java.lang.String toString()
 TYPE io.github.testlens.selenium.reporting.ReportUploadException
   public io.github.testlens.selenium.reporting.ReportUploadResult result()
@@ -2191,7 +2187,6 @@ TYPE io.github.testlens.selenium.reporting.ReportUploadOptions
   public int maxAttempts()
   public java.time.Duration maxRetryAfter()
   public int maxResponsePreviewBytes()
-  public io.github.testlens.selenium.reporting.ReportProxyOptions proxy()
   public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
   public java.lang.String toString()
 TYPE io.github.testlens.selenium.reporting.ReportUploadResult
