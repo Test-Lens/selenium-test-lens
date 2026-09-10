@@ -2511,6 +2511,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#published-javadocs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Published Javadocs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#version-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2698,6 +2709,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#published-javadocs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Published Javadocs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#version-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2757,6 +2779,12 @@
 
 <h1 id="publishing-versioned-documentation">Publishing versioned documentation<a class="headerlink" href="#publishing-versioned-documentation" title="Permanent link">&para;</a></h1>
 <p>Documentation is built by GitHub Actions and stored on the durable <code>gh-pages</code> branch through <code>mike</code>. GitHub Pages remains configured for <strong>GitHub Actions</strong>: after <code>mike</code> updates one version, the workflow uploads the complete branch as one Pages artifact. Do not use <code>mkdocs gh-deploy</code>, force-push, delete all versions, clear <code>gh-pages</code>, or switch Pages to branch deployment.</p>
+<h2 id="published-javadocs">Published Javadocs<a class="headerlink" href="#published-javadocs" title="Permanent link">&para;</a></h2>
+<p>Published API Javadocs are written in English. They document observable contracts rather than repeating
+method names. A public behavior change must update both its Javadoc and a contract test in the same change.
+Run <code>./scripts/check-public-javadoc-language.ps1</code> locally; CI checks the published modules for Polish
+Javadoc text, including a maintained set of Polish terms written without diacritics. Do not guess <code>@since</code>
+versions: verify the symbol against the corresponding release tag before adding or changing that tag.</p>
 <h2 id="version-lifecycle">Version lifecycle<a class="headerlink" href="#version-lifecycle" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>/dev/</code> is rebuilt from <code>main</code>; its display name is read from the root snapshot POM. It never moves <code>latest</code>.</li>
