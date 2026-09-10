@@ -4,10 +4,13 @@ import io.github.testlens.core.logging.UiTestLensEventType;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.logging.UiTestLensLogLevel;
 import io.github.testlens.core.logging.UiTestLensStatus;
+import io.github.testlens.core.logging.UiTestLensLogger;
 import io.github.testlens.core.logging.TargetDescriptor;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class TraceLogSinkTest {
@@ -88,6 +91,34 @@ class TraceLogSinkTest {
         assertEquals("ASSERTION_FAILED", event.attributes().get("uiEventType"));
         assertNotNull(event.failure());
         assertEquals("java.lang.IllegalStateException", event.failure().exceptionType());
+    }
+
+    @Test
+    void preservesOriginalExceptionTypeThroughRedactingLogger() {
+        String secret = "trace-type-canary";
+        UiTestLensSession session = UiTestLensSession.start("redaction");
+        UiTestLensLogger logger = UiTestLensLogger.builder()
+                .redactionPolicy(RedactionPolicy.builder().secret(secret).build())
+                .sink(new TraceLogSink(session))
+                .build();
+        IllegalStateException original = new IllegalStateException("password=" + secret);
+
+        logger.emit(UiTestLensLogEntry.builder()
+                .eventType(UiTestLensEventType.ASSERTION_FAILED)
+                .status(UiTestLensStatus.FAILED)
+                .throwable(original)
+                .build());
+
+        TraceFailure failure = session.events().get(session.events().size() - 1).failure();
+        assertNotNull(failure);
+        assertEquals(IllegalStateException.class.getName(), failure.exceptionType());
+        assertEquals("password=[REDACTED]", failure.message());
+        String json = new TraceJsonExporter().export(session);
+        String html = new io.github.testlens.core.trace.export.TraceHtmlExporter().export(session);
+        assertFalse(json.contains("DiagnosticThrowable"));
+        assertFalse(html.contains("DiagnosticThrowable"));
+        assertFalse(json.contains(secret));
+        assertFalse(html.contains(secret));
     }
 
     @Test

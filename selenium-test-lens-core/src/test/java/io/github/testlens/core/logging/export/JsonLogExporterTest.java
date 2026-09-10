@@ -6,6 +6,9 @@ import io.github.testlens.core.logging.UiTestLensEventType;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.logging.UiTestLensLogLevel;
 import io.github.testlens.core.logging.UiTestLensStatus;
+import io.github.testlens.core.logging.InMemoryLogSink;
+import io.github.testlens.core.logging.UiTestLensLogger;
+import io.github.testlens.core.redaction.RedactionPolicy;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -62,6 +65,23 @@ class JsonLogExporterTest {
 
         assertTrue(json.contains("\n  {"));
         assertTrue(json.contains("\n    \"level\""));
+    }
+
+    @Test
+    void exportsOriginalTypeFromRedactedLoggerEntryWithoutMetadataOutput() {
+        String secret = "json-type-canary";
+        InMemoryLogSink sink = new InMemoryLogSink();
+        UiTestLensLogger.builder().redactionPolicy(RedactionPolicy.builder().secret(secret).build())
+                .sink(sink).build().error("failed", new IllegalStateException(secret));
+
+        String json = new JsonLogExporter(new LogExportOptions(false, true, false, 500))
+                .export(sink.entries());
+
+        assertTrue(json.contains("\"type\":\"java.lang.IllegalStateException\""));
+        assertFalse(json.contains("DiagnosticThrowable"));
+        assertFalse(json.contains(secret));
+        assertTrue(json.contains("[REDACTED]"));
+        assertTrue(json.contains("\"metadata\":{}"));
     }
 
     private static UiTestLensLogEntry sampleEntry(String message) {

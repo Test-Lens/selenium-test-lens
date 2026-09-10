@@ -3,6 +3,9 @@ package io.github.testlens.core.trace.export;
 import io.github.testlens.core.trace.TraceArtifact;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.trace.TraceLogSink;
+import io.github.testlens.core.logging.UiTestLensLogger;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -83,6 +86,30 @@ class TraceReportBundleExporterTest {
             assertTrue(html.contains("src=\"artifacts/Checkout-flow/save.png\""));
             assertFalse(html.contains(screenshot.toString()));
             assertFalse(html.contains(screenshot.toAbsolutePath().toString()));
+        }
+    }
+
+    @Test
+    void bundleUsesOriginalExceptionTypeAndRedactedThrowableContent() throws Exception {
+        String secret = "bundle-type-canary";
+        UiTestLensSession session = UiTestLensSession.start("redacted type");
+        UiTestLensLogger.builder()
+                .redactionPolicy(RedactionPolicy.builder().secret(secret).build())
+                .sink(new TraceLogSink(session))
+                .build()
+                .error("failed", new IllegalStateException(secret));
+        Path output = tempDir.resolve("redacted-type.zip");
+
+        new TraceReportBundleExporter().exportSuiteTo(List.of(session), output);
+
+        try (ZipFile zip = new ZipFile(output.toFile())) {
+            String json = new String(zip.getInputStream(zip.getEntry("report.json")).readAllBytes());
+            String html = new String(zip.getInputStream(zip.getEntry("index.html")).readAllBytes());
+            String diagnostic = json + html;
+            assertTrue(diagnostic.contains(IllegalStateException.class.getName()));
+            assertTrue(diagnostic.contains("[REDACTED]"));
+            assertFalse(diagnostic.contains(secret));
+            assertFalse(diagnostic.contains("UiTestLensLogger$DiagnosticThrowable"));
         }
     }
 

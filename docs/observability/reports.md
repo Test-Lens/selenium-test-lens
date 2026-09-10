@@ -88,3 +88,5 @@ Never assume an automatic output exists solely because finalization returned. Ch
 ## Security
 
 HTML/JSON/ZIP diagnostic text is written from already-redacted logger/session data, and failure-bundle collectors apply the same effective policy at their write boundary. Complete JSON documents use structural, escape-aware redaction; malformed fragments use a fail-closed tolerant fallback. This protects recognized structured secrets and configured literals, including with new sinks/exporters. It is not arbitrary personal-data detection: screenshots/video are unchanged and optional DOM/console processing is best effort. Review artifacts before publishing them and see [Sensitive-data redaction](../security/redaction.md).
+
+Failure records preserve the original exception class in their structural `exceptionType` field. This does not expose the original throwable to a report or sink: the persisted message, cause, suppressed failures, and stack representation come from the redacted diagnostic copy. Internal wrapper class names are implementation details and are not reported as the source failure type.

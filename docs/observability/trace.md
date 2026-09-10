@@ -55,7 +55,7 @@ A directly managed session is mutable and is not a cross-thread coordination pri
 - `TraceStep`, `TraceTimeline`: step/event views.
 - enums: `TraceEventType`, `TraceStatus`, `TraceArtifactType`.
 
-Direct `UiTestLensSession.addEvent(...)` and artifact attachment store a redacted immutable copy, covering names, messages, attributes, failure text, and artifact diagnostic fields even when no logger is involved. Logger-originated trace events have already crossed the same policy before sink fan-out. Original runtime exceptions still control the test; trace failure data is a safe diagnostic copy. Avoid arbitrary personal data because central redaction recognizes structured/configured secrets rather than every sensitive value.
+Direct `UiTestLensSession.addEvent(...)` and artifact attachment store a redacted immutable copy, covering names, messages, attributes, failure text, and artifact diagnostic fields even when no logger is involved. Logger-originated trace events have already crossed the same policy before sink fan-out. Original runtime exceptions still control the test; trace failure data is a safe diagnostic copy. Its `exceptionType` is structural provenance captured from the original throwable before wrapping, while message, cause, suppressed, and stack text remain redacted. Avoid arbitrary personal data because central redaction recognizes structured/configured secrets rather than every sensitive value.
 
 ## TraceJsonExporter
 

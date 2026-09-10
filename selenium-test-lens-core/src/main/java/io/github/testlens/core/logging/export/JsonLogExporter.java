@@ -58,7 +58,7 @@ public final class JsonLogExporter implements UiTestLensLogExporter {
         appendField(out, "action", limit(entry.action()), false, pretty, depth + 1);
         appendTargetField(out, entry.target(), false, pretty, depth + 1);
         appendMetadataField(out, "metadata", options.includeMetadata() ? entry.metadata() : Map.of(), false, pretty, depth + 1);
-        appendThrowableField(out, entry.throwable(), false, pretty, depth + 1);
+        appendThrowableField(out, entry.throwable(), exceptionType(entry), false, pretty, depth + 1);
         newline(out, pretty);
         indent(out, pretty, depth);
         out.append('}');
@@ -141,7 +141,8 @@ public final class JsonLogExporter implements UiTestLensLogExporter {
         out.append('}');
     }
 
-    private void appendThrowableField(StringBuilder out, Throwable throwable, boolean first, boolean pretty, int depth) {
+    private void appendThrowableField(StringBuilder out, Throwable throwable, String exceptionType,
+                                      boolean first, boolean pretty, int depth) {
         if (!first) {
             out.append(',');
             newline(out, pretty);
@@ -155,11 +156,19 @@ public final class JsonLogExporter implements UiTestLensLogExporter {
         }
         out.append('{');
         newline(out, pretty);
-        appendField(out, "type", throwable.getClass().getName(), true, pretty, depth + 1);
+        appendField(out, "type", exceptionType, true, pretty, depth + 1);
         appendField(out, "message", limit(throwable.getMessage()), false, pretty, depth + 1);
         newline(out, pretty);
         indent(out, pretty, depth);
         out.append('}');
+    }
+
+    private static String exceptionType(UiTestLensLogEntry entry) {
+        if (entry.throwable() == null) return "";
+        String provenance = entry.metadata().get("exceptionType");
+        return provenance == null || provenance.isBlank()
+                ? entry.throwable().getClass().getName()
+                : provenance;
     }
 
     private void appendStringOrNull(StringBuilder out, String value) {

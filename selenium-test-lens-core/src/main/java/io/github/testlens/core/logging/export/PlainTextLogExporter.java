@@ -51,12 +51,19 @@ public final class PlainTextLogExporter implements UiTestLensLogExporter {
             }
             if (options.includeThrowable() && entry.throwable() != null) {
                 out.append(" throwable=")
-                        .append(entry.throwable().getClass().getName())
+                        .append(exceptionType(entry))
                         .append(":")
                         .append(limit(entry.throwable().getMessage()));
             }
         }
         return out.toString();
+    }
+
+    private static String exceptionType(UiTestLensLogEntry entry) {
+        String provenance = entry.metadata().get("exceptionType");
+        return provenance == null || provenance.isBlank()
+                ? entry.throwable().getClass().getName()
+                : provenance;
     }
 
     private void appendIfPresent(StringBuilder out, String key, String value) {

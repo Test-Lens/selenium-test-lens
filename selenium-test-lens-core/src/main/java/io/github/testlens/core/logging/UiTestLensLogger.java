@@ -13,6 +13,7 @@ import java.util.Map;
  * <p>Sink failures are isolated so diagnostics do not break browser automation flows.
  */
 public final class UiTestLensLogger {
+    private static final String EXCEPTION_TYPE_METADATA = "exceptionType";
     private static final UiTestLensLogger NOOP = new UiTestLensLogger(List.of(), RedactionPolicy.defaults());
 
     private final List<UiTestLensLogSink> sinks;
@@ -107,11 +108,16 @@ public final class UiTestLensLogger {
     private UiTestLensLogEntry safeEntry(UiTestLensLogEntry entry) {
         TargetDescriptor target = entry.target();
         Map<String, String> targetMetadata = redactMap(target == null ? Map.of() : target.metadata());
+        Map<String, String> metadata = new LinkedHashMap<>(redactMap(entry.metadata()));
+        metadata.remove(EXCEPTION_TYPE_METADATA);
+        if (entry.throwable() != null) {
+            metadata.put(EXCEPTION_TYPE_METADATA, entry.throwable().getClass().getName());
+        }
         TargetDescriptor safeTarget = target == null ? TargetDescriptor.none() : new TargetDescriptor(
                 redact(target.selector()), redact(target.label()), redact(target.tagName()), redact(target.text()), targetMetadata);
         return new UiTestLensLogEntry(entry.timestamp(), entry.level(), entry.eventType(), entry.status(),
                 redact(entry.message()), redact(entry.step()), redact(entry.action()), safeTarget,
-                redactMap(entry.metadata()), redactThrowable(entry.throwable(), 0));
+                metadata, redactThrowable(entry.throwable(), 0));
     }
 
     private Map<String, String> redactMap(Map<String, String> values) {

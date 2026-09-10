@@ -99,7 +99,12 @@ public final class HtmlLogExporter implements UiTestLensLogExporter {
             }
         }
         if (entry.throwable() != null) {
-            builder.failure(TraceFailure.from(entry.throwable(), true));
+            TraceFailure failure = TraceFailure.from(entry.throwable(), true);
+            String provenance = entry.metadata().get("exceptionType");
+            if (provenance != null && !provenance.isBlank()) {
+                failure = new TraceFailure(failure.message(), provenance, failure.stackTrace(), failure.details());
+            }
+            builder.failure(failure);
         }
         return builder.build();
     }

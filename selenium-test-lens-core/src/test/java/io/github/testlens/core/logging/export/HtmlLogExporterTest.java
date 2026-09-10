@@ -7,6 +7,9 @@ import io.github.testlens.core.logging.UiTestLensEventType;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.logging.UiTestLensLogLevel;
 import io.github.testlens.core.logging.UiTestLensStatus;
+import io.github.testlens.core.logging.InMemoryLogSink;
+import io.github.testlens.core.logging.UiTestLensLogger;
+import io.github.testlens.core.redaction.RedactionPolicy;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -94,6 +97,22 @@ class HtmlLogExporterTest {
         assertTrue(html.contains("Failure summary"));
         assertTrue(html.contains("Toast missing"));
         assertTrue(html.contains("Expected toast"));
+    }
+
+    @Test
+    void exportsOriginalTypeFromRedactedLoggerEntryWithoutMetadataOutput() {
+        String secret = "html-type-canary";
+        InMemoryLogSink sink = new InMemoryLogSink();
+        UiTestLensLogger.builder().redactionPolicy(RedactionPolicy.builder().secret(secret).build())
+                .sink(sink).build().error("failed", new IllegalStateException(secret));
+
+        String html = new HtmlLogExporter(new LogExportOptions(false, true, false, 500))
+                .export(sink.entries());
+
+        assertTrue(html.contains("java.lang.IllegalStateException"));
+        assertFalse(html.contains("DiagnosticThrowable"));
+        assertFalse(html.contains(secret));
+        assertTrue(html.contains("[REDACTED]"));
     }
 
     @Test

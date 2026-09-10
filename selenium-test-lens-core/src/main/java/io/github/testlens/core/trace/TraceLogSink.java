@@ -47,7 +47,7 @@ public final class TraceLogSink implements UiTestLensLogSink {
         }
         if (entry.throwable() != null) {
             TraceFailure failure = TraceFailure.from(entry.throwable(), false);
-            if (recoveryRetry && !entry.metadata().getOrDefault("exceptionType", "").isBlank()) {
+            if (!entry.metadata().getOrDefault("exceptionType", "").isBlank()) {
                 failure = new TraceFailure(failure.message(), entry.metadata().get("exceptionType"),
                         failure.stackTrace(), failure.details());
             }

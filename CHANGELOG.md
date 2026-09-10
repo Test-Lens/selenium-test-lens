@@ -4,6 +4,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+- Fixed central throwable redaction so trace, log exporters, retry summaries, network diagnostics, and failure reports retain the original exception class as structured `exceptionType` provenance while external sinks continue to receive only the redacted diagnostic copy.
 - Fixed suite report aggregation so unfinished `STARTED` sessions can no longer be presented as a passed suite. JSON now records `summary.started`, HTML identifies incomplete sessions, and HTML/JSON/ZIP export remains a non-mutating diagnostic snapshot.
 - Fixed session and facade finalization to be first-writer-wins and exactly-once per session. Repeated or concurrent finalizers now share one completed result (or the same retry-policy violation), preserve the first terminal outcome, and never repeat screenshots, network shutdown, exports, HUD cleanup, or failure-bundle creation.
 - Fixed page/JavaScript waits so the main `TestLens` facade exposes document readiness and observed XHR/fetch idle waits using the configured locator timeout and polling interval. Network-idle timeout now throws, terminal JavaScript failures are preserved, React/SPA combinations share one deadline, and wait diagnostics emit one start plus one terminal event without creating recovery retries.

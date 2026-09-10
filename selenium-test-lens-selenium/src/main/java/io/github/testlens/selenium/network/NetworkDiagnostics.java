@@ -304,7 +304,9 @@ public final class NetworkDiagnostics {
         NetworkRequest safeRequest = result.matchedRequest() == null ? null : redactRequest(result.matchedRequest());
         NetworkWaitResult safeResult = result.redacted(redactionPolicy, safeEvent, safeRequest,
                 effective.diagnosticSummary(redactionPolicy));
-        emitWaitResult(safeResult);
+        // The logger creates the redacted diagnostic copy. Keep the original Throwable here so
+        // its structural type provenance is captured before any public network wrapper is made.
+        emitWaitResult(result);
         return safeResult;
     }
 

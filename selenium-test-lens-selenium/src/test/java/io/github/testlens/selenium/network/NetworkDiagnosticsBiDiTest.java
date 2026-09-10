@@ -315,6 +315,33 @@ class NetworkDiagnosticsBiDiTest {
     }
 
     @Test
+    void failedCaptureReportsOriginalExceptionTypeThroughRedactingTraceLogger() {
+        String secret = "network-start-type-canary";
+        UiTestLensSession session = UiTestLensSession.start("network type");
+        UiTestLensLogger logger = UiTestLensLogger.builder()
+                .redactionPolicy(RedactionPolicy.builder().secret(secret).build())
+                .sink(new TraceLogSink(session))
+                .build();
+        FakeFactory factory = new FakeFactory();
+        factory.failure = new IllegalStateException("subscribe failed " + secret);
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), OverlayLogger.from(logger), factory)
+                .start(options(NetworkCaptureMode.BIDI));
+
+        NetworkWaitResult result = diagnostics.waitForResponse("/api", 200);
+
+        assertEquals(NetworkWaitStatus.FAILED, result.status());
+        assertNotSame(factory.failure, result.exception());
+        var failedEvent = session.events().stream()
+                .filter(event -> event.failure() != null)
+                .reduce((first, second) -> second)
+                .orElseThrow();
+        assertEquals(IllegalStateException.class.getName(), failedEvent.failure().exceptionType());
+        assertFalse(failedEvent.failure().message().contains(secret));
+        assertFalse(new io.github.testlens.core.trace.TraceJsonExporter().export(session)
+                .contains("NetworkDiagnosticThrowable"));
+    }
+
+    @Test
     void assertionRejectsEveryGenerationThatNeverBecameActive() {
         List<UiTestLensLogEntry> entries = new ArrayList<>();
         OverlayLogger logger = OverlayLogger.from(UiTestLensLogger.builder().sink(entries::add).build());
