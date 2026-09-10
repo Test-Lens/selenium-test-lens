@@ -145,7 +145,9 @@ public final class TraceJsonExporter {
         out.put("status", TraceReportSupport.sessionStatus(session).name());
         put(out, "startedAt", metadata.startedAt());
         put(out, "endedAt", metadata.finishedAt());
-        out.put("durationMs", TraceReportSupport.sessionDuration(session).toMillis());
+        if (metadata.finishedAt() != null) {
+            out.put("durationMs", TraceReportSupport.sessionDuration(session).toMillis());
+        }
         put(out, "environment", metadata.environment());
         if (!metadata.labels().isEmpty()) {
             out.put("labels", sortedMap(metadata.labels()));
@@ -188,7 +190,9 @@ public final class TraceJsonExporter {
         out.put("failures", TraceReportSupport.failureCount(session));
         out.put("totalArtifacts", session.artifacts().size());
         out.put("screenshots", TraceReportSupport.screenshotCount(session));
-        out.put("durationMs", TraceReportSupport.sessionDuration(session).toMillis());
+        if (session.metadata().finishedAt() != null) {
+            out.put("durationMs", TraceReportSupport.sessionDuration(session).toMillis());
+        }
         return out;
     }
 
@@ -197,6 +201,7 @@ public final class TraceJsonExporter {
         out.put("totalSessions", sessions.size());
         out.put("passed", sessions.stream().filter(session -> TraceReportSupport.sessionStatus(session) == TraceStatus.PASSED).count());
         out.put("failed", sessions.stream().filter(session -> TraceReportSupport.isFailedOrErrorStatus(TraceReportSupport.sessionStatus(session))).count());
+        out.put("started", sessions.stream().filter(session -> session.metadata().status() == TraceStatus.STARTED).count());
         out.put("warnings", sessions.stream().filter(TraceReportSupport::hasWarning).count());
         out.put("totalEvents", TraceReportSupport.eventCount(sessions));
         out.put("totalArtifacts", TraceReportSupport.artifactCount(sessions));

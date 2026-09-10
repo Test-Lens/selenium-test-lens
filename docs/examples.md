@@ -115,6 +115,8 @@ new TraceReportBundleExporter().exportSuiteToDefault(sessions);
 
 The suite JSON defaults to `target/ui-test-lens-report/report.json` and uses schema version `1.0`. The ZIP defaults to `target/ui-test-lens-report/ui-test-lens-report.zip`; it contains `index.html`, `report.json`, `manifest.json`, and existing local artifacts when artifact copying is enabled. Missing artifacts are recorded in the manifest instead of failing the export.
 
+Suite export may also be used as a live diagnostic snapshot. A session that has not yet been finalized remains `STARTED`; JSON reports it through `summary.started`, and HTML marks the report incomplete rather than passed. Exporting does not finalize or otherwise mutate the session.
+
 Publish the report directory or ZIP bundle as a CI artifact using your CI system.
 
 ### Log-only report

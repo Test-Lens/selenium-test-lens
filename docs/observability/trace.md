@@ -61,4 +61,6 @@ Direct `UiTestLensSession.addEvent(...)` and artifact attachment store a redacte
 
 Exports one session or suite to a string/default/custom path. `TraceJsonExportOptions` controls stack traces, artifact metadata, missing artifacts, and an optional artifact base directory. Stack traces and artifact paths can disclose local infrastructure.
 
+In suite snapshots, `STARTED` means that the source session had not been finalized when it was observed. The suite summary reports these sessions separately as `started`; they do not contribute to `passed` or `failed`. Export is read-only and leaves metadata, events, artifacts, and the ability to perform the later first terminal finalization unchanged.
+
 See [Reports](reports.md) for defaults and bundle behavior.

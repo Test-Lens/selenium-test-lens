@@ -215,6 +215,7 @@ public final class TraceHtmlExporter {
     private void appendSuiteSummary(StringBuilder out, List<UiTestLensSession> sessions) {
         long passed = sessions.stream().filter(session -> suiteSessionStatus(session) == TraceStatus.PASSED).count();
         long failed = sessions.stream().filter(session -> isFailedOrErrorStatus(suiteSessionStatus(session))).count();
+        long started = sessions.stream().filter(session -> session.metadata().status() == TraceStatus.STARTED).count();
         long warning = sessions.stream().filter(this::hasWarning).count();
         long artifacts = TraceReportSupport.artifactCount(sessions);
         long screenshots = TraceReportSupport.screenshotCount(sessions);
@@ -223,12 +224,22 @@ public final class TraceHtmlExporter {
         card(out, "Total tests", String.valueOf(sessions.size()));
         card(out, "Passed", String.valueOf(passed));
         card(out, "Failed", String.valueOf(failed));
+        card(out, "Started / incomplete", String.valueOf(started));
         card(out, "Warnings", String.valueOf(warning));
         card(out, "Total events", String.valueOf(events));
         card(out, "Artifacts", String.valueOf(artifacts));
         card(out, "Screenshots", String.valueOf(screenshots));
         card(out, "Total duration", duration(totalSessionDuration(sessions)));
-        out.append("</div></section>");
+        out.append("</div>");
+        if (started > 0) {
+            out.append("<p class=\"flaky-warning\">This suite contains ")
+                    .append(started)
+                    .append(started == 1
+                            ? " session that has not been finalized. "
+                            : " sessions that have not been finalized. ")
+                    .append("The report is incomplete and must not be treated as passed.</p>");
+        }
+        out.append("</section>");
     }
 
     private void appendSuiteFailures(StringBuilder out, List<UiTestLensSession> sessions, TraceHtmlExportOptions options) {

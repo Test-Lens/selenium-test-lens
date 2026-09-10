@@ -302,6 +302,39 @@ class TraceHtmlExporterTest {
     }
 
     @Test
+    void suiteReportMarksOneOrManyUnfinishedSessionsWithoutTreatingThemAsPassed() {
+        UiTestLensSession first = UiTestLensSession.start("unfinished <one>");
+        UiTestLensSession second = UiTestLensSession.start("unfinished two");
+
+        String singular = new TraceHtmlExporter().exportSuite(List.of(first));
+        String plural = new TraceHtmlExporter().exportSuite(List.of(first, second));
+
+        assertTrue(singular.contains("Overall status"));
+        assertTrue(singular.contains(">STARTED<"));
+        assertTrue(singular.contains("<span>Started / incomplete</span><strong>1</strong>"));
+        assertTrue(singular.contains("This suite contains 1 session that has not been finalized."));
+        assertTrue(singular.contains("The report is incomplete and must not be treated as passed."));
+        assertTrue(singular.contains("unfinished &lt;one&gt;"));
+        assertFalse(singular.contains("unfinished <one>"));
+        assertTrue(plural.contains("<span>Started / incomplete</span><strong>2</strong>"));
+        assertTrue(plural.contains("This suite contains 2 sessions that have not been finalized."));
+        assertEquals(TraceStatus.STARTED, first.metadata().status());
+        assertEquals(TraceStatus.STARTED, second.metadata().status());
+    }
+
+    @Test
+    void warningPrecedesIncompleteStatusButIncompleteBannerRemainsVisible() {
+        UiTestLensSession session = UiTestLensSession.start("unfinished warning");
+        session.addEvent(TraceEvent.builder(TraceEventType.ACTION_STARTED, TraceStatus.WARNING, "warning").build());
+
+        String html = new TraceHtmlExporter().exportSuite(List.of(session));
+
+        assertTrue(html.contains(">WARN<"));
+        assertTrue(html.contains("<span>Started / incomplete</span><strong>1</strong>"));
+        assertTrue(html.contains("The report is incomplete and must not be treated as passed."));
+    }
+
+    @Test
     void suiteReportArtifactLinksAreRelative() throws Exception {
         Path screenshot = tempDir.resolve("screens").resolve("suite.png");
         Files.createDirectories(screenshot.getParent());

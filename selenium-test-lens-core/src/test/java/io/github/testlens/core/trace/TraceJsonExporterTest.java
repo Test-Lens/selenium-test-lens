@@ -10,6 +10,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TraceJsonExporterTest {
@@ -89,6 +90,32 @@ class TraceJsonExporterTest {
         assertTrue(json.contains("\"passed\":1"));
         assertTrue(json.contains("\"failed\":1"));
         assertTrue(json.contains("\"warnings\":1"));
+    }
+
+    @Test
+    void unfinishedSuiteIsReportedAsStartedWithoutMutatingTheSession() {
+        UiTestLensSession unfinished = UiTestLensSession.start("unfinished");
+        List<TraceEvent> eventsBefore = unfinished.events();
+        List<TraceArtifact> artifactsBefore = unfinished.artifacts();
+
+        String json = new TraceJsonExporter().exportSuite(List.of(unfinished));
+
+        assertTrue(json.contains("\"status\":\"STARTED\""));
+        assertTrue(json.contains("\"summary\":{\"totalSessions\":1,\"passed\":0,\"failed\":0,\"started\":1"));
+        assertFalse(json.contains("\"endedAt\""));
+        int sessionStart = json.indexOf("\"sessions\":[");
+        int sessionSummary = json.indexOf("\"summary\":", sessionStart);
+        assertFalse(json.substring(sessionStart, sessionSummary).contains("\"durationMs\""));
+        assertEquals(TraceStatus.STARTED, unfinished.metadata().status());
+        assertNull(unfinished.metadata().finishedAt());
+        assertEquals(eventsBefore, unfinished.events());
+        assertEquals(artifactsBefore, unfinished.artifacts());
+
+        unfinished.finishPassed();
+        String finishedJson = new TraceJsonExporter().exportSuite(List.of(unfinished));
+        assertTrue(finishedJson.contains("\"status\":\"PASSED\""));
+        assertTrue(finishedJson.contains("\"started\":0"));
+        assertTrue(finishedJson.contains("\"endedAt\""));
     }
 
     @Test

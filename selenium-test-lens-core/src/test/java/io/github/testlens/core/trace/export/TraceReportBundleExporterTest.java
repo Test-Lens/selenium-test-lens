@@ -1,6 +1,7 @@
 package io.github.testlens.core.trace.export;
 
 import io.github.testlens.core.trace.TraceArtifact;
+import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -12,6 +13,8 @@ import java.util.zip.ZipFile;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -37,6 +40,28 @@ class TraceReportBundleExporterTest {
             assertNotNull(zip.getEntry("manifest.json"));
             assertNotNull(zip.getEntry("artifacts/Checkout-flow/save.png"));
         }
+    }
+
+    @Test
+    void bundlePreservesIncompleteStatusWithoutFinalizingSourceSession() throws Exception {
+        UiTestLensSession unfinished = UiTestLensSession.start("unfinished bundle");
+        int eventCount = unfinished.events().size();
+        Path output = tempDir.resolve("unfinished.zip");
+
+        new TraceReportBundleExporter().exportSuiteTo(List.of(unfinished), output);
+
+        try (ZipFile zip = new ZipFile(output.toFile())) {
+            String json = new String(zip.getInputStream(zip.getEntry("report.json")).readAllBytes());
+            String html = new String(zip.getInputStream(zip.getEntry("index.html")).readAllBytes());
+            assertTrue(json.contains("\"status\":\"STARTED\""));
+            assertTrue(json.contains("\"started\":1"));
+            assertTrue(html.contains(">STARTED<"));
+            assertTrue(html.contains("The report is incomplete and must not be treated as passed."));
+        }
+        assertEquals(TraceStatus.STARTED, unfinished.metadata().status());
+        assertNull(unfinished.metadata().finishedAt());
+        assertEquals(eventCount, unfinished.events().size());
+        assertTrue(unfinished.events().stream().noneMatch(event -> event.type() == io.github.testlens.core.trace.TraceEventType.SESSION_FINISHED));
     }
 
     @Test

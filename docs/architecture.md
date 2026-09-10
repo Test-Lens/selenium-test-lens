@@ -135,7 +135,7 @@ The overlay module contains resources for the HUD, highlighting and decorations,
 
 ## Reporting boundary
 
-Report generation lives in core. Collected sessions can be exported as HTML, JSON, or portable bundles without Selenium or a live browser. See [Examples](examples.md) and [Reports](observability/reports.md) for usage.
+Report generation lives in core. Collected sessions can be exported as HTML, JSON, or portable bundles without Selenium or a live browser. All formats use the same status aggregation in `TraceReportSupport`: failure/error, warning, incomplete `STARTED`, empty `INFO`, all-skipped `SKIPPED`, then completed `PASSED`. Exporters only snapshot sessions; they never finalize or mutate them. See [Examples](examples.md) and [Reports](observability/reports.md) for usage.
 
 ## Evidence boundary
 

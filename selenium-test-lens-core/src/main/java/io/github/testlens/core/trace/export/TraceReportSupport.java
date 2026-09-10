@@ -34,13 +34,19 @@ public final class TraceReportSupport {
         if (safeSessions.stream().anyMatch(TraceReportSupport::hasWarning)) {
             return TraceStatus.WARNING;
         }
+        if (safeSessions.stream().anyMatch(session -> sessionStatus(session) == TraceStatus.STARTED)) {
+            return TraceStatus.STARTED;
+        }
         if (safeSessions.isEmpty()) {
             return TraceStatus.INFO;
         }
         if (safeSessions.stream().allMatch(session -> sessionStatus(session) == TraceStatus.SKIPPED)) {
             return TraceStatus.SKIPPED;
         }
-        return TraceStatus.PASSED;
+        if (safeSessions.stream().anyMatch(session -> sessionStatus(session) == TraceStatus.PASSED)) {
+            return TraceStatus.PASSED;
+        }
+        return TraceStatus.INFO;
     }
 
     public static TraceStatus sessionStatus(UiTestLensSession session) {

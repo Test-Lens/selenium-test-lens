@@ -44,6 +44,10 @@ TraceHtmlExporter()
 
 Export overloads cover a single session and suites, returning HTML strings or writing explicit/default paths. Pass `TraceHtmlExportOptions` to the corresponding option-bearing `export(...)`, `exportTo(...)`, `exportToDefault(...)`, `exportSuite(...)`, `exportSuiteTo(...)`, or `exportSuiteToDefault(...)` overload. Options control title, embedded JSON, artifacts, stack traces, attributes, grouping/summary sections, previews, compact mode, theme, and maximum message length.
 
+Suite status uses one shared aggregation rule for HTML, JSON, and portable bundles: failed/error state first, then warnings, then an unfinished `STARTED` session, followed by empty `INFO`, all-skipped `SKIPPED`, and finally `PASSED` for completed passed/skipped suites containing at least one pass. A `STARTED` suite is an incomplete diagnostic snapshot and is never presented as passed. HTML shows a `Started / incomplete` count and warning; JSON exposes the additive `summary.started` count. An unfinished session has no `endedAt` or completed `durationMs` in its suite entry.
+
+Exporting is observational. It does not finish a session, add `SESSION_FINISHED`, set `finishedAt`, invent a failure, or wait for completion. The same session can be finalized later, after which a new export reflects its terminal outcome.
+
 `TraceHtmlReportSection` names the renderer's logical `HEADER`, `SUMMARY`, `TIMELINE`, `STEPS`, `FAILURES`, `ARTIFACTS`, and `RAW_JSON` sections. It is useful when an integration needs to identify report sections; section presence in normal exports is controlled by `TraceHtmlExportOptions` rather than by passing this enum to the exporter constructor.
 
 <!-- SCREENSHOT TODO: assets/screenshots/html-report-overview.png
