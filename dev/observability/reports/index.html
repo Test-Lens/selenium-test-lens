@@ -2913,6 +2913,7 @@ Suggested alt text: Expanded failed report event showing diagnostic context and 
 <p>Never assume an automatic output exists solely because finalization returned. Check nullable paths and <code>diagnosticFailures()</code>. Bundle/export methods can throw I/O-related runtime failures; callers decide whether report failure should fail a test/build.</p>
 <h2 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h2>
 <p>HTML/JSON/ZIP diagnostic text is written from already-redacted logger/session data, and failure-bundle collectors apply the same effective policy at their write boundary. Complete JSON documents use structural, escape-aware redaction; malformed fragments use a fail-closed tolerant fallback. This protects recognized structured secrets and configured literals, including with new sinks/exporters. It is not arbitrary personal-data detection: screenshots/video are unchanged and optional DOM/console processing is best effort. Review artifacts before publishing them and see <a href="../../security/redaction/">Sensitive-data redaction</a>.</p>
+<p>Failure records preserve the original exception class in their structural <code>exceptionType</code> field. This does not expose the original throwable to a report or sink: the persisted message, cause, suppressed failures, and stack representation come from the redacted diagnostic copy. Internal wrapper class names are implementation details and are not reported as the source failure type.</p>
 
 
 
