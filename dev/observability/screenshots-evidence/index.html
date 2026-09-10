@@ -2886,13 +2886,6 @@
 </span></code></pre></div>
 <p>The first uses defaults. Capture requires a driver implementing Selenium <code>TakesScreenshot</code>. It creates a PNG path and, by default, attaches a trace artifact when a session is active. Configure output directory, prefix, timestamps, overwrite behavior, and session attachment through <a href="../../reference/configuration/#screenshotcaptureoptions"><code>ScreenshotCaptureOptions</code></a>.</p>
 <p>The current <code>TestLens.captureScreenshot(...)</code> path represents unsupported-driver, I/O, and runtime capture failures in <code>ScreenshotCaptureResult</code>; it does not throw <code>ScreenshotCaptureException</code> for those failures. <code>ScreenshotCaptureException</code> remains a public exception type but is not thrown by the current <code>ScreenshotCapture.capture(...)</code> implementation.</p>
-<!-- SCREENSHOT TODO: assets/screenshots/failure-screenshot.png
-Show an actual screenshot captured by finishFailed() for a deterministic failing test.
-The application failure state and relevant target should be visible; remove secrets and personal data.
-Feature documented: automatic failure screenshot evidence.
-Suggested alt text: Application failure state captured automatically by Test Lens.
--->
-
 <h2 id="screenshotcapture">ScreenshotCapture<a class="headerlink" href="#screenshotcapture" title="Permanent link">&para;</a></h2>
 <p>Advanced direct service:</p>
 <!-- API SIGNATURES: io.github.testlens.selenium.evidence.ScreenshotCapture -->

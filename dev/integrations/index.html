@@ -2646,8 +2646,8 @@
 
 <h1 id="integrations">Integrations<a class="headerlink" href="#integrations" title="Permanent link">&para;</a></h1>
 <p>The main Lens facade is runner-agnostic and attaches to an already-created driver. See <a href="../framework-integration/">existing WebDriver integration</a> for TestNG, Page Objects, Allure coexistence, and manual lifecycle patterns.</p>
-<p>JUnit Jupiter users can choose the published <a href="junit5/">JUnit 5 lifecycle extension</a>, which owns a new driver and Lens session for every invocation and injects both as parameters.</p>
-<p>TestNG users can choose the published <a href="testng/">TestNG lifecycle listener</a>, which attaches state to the physical <code>ITestResult</code> and exposes it through <code>TestLensTestNgContext</code>.</p>
+<p>JUnit Jupiter users building the <code>0.2.0-SNAPSHOT</code> source can choose the <a href="junit5/">JUnit 5 lifecycle extension</a>, which owns a new driver and Lens session for every invocation and injects both as parameters. The adapter is not available in Maven Central <code>0.1.0</code>.</p>
+<p>TestNG users building the <code>0.2.0-SNAPSHOT</code> source can choose the <a href="testng/">TestNG lifecycle listener</a>, which attaches state to the physical <code>ITestResult</code> and exposes it through <code>TestLensTestNgContext</code>. The adapter is not available in Maven Central <code>0.1.0</code>.</p>
 <p>The <a href="react/">Optional React API</a> remains isolated in its own published module.</p>
 
 

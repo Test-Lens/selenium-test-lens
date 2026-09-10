@@ -2756,42 +2756,22 @@
 
 
 <h1 id="advanced-visual-helpers">Advanced visual helpers<a class="headerlink" href="#advanced-visual-helpers" title="Permanent link">&para;</a></h1>
-<p>These <code>TestLens</code> facade methods are public but specialized.</p>
+<p>These <code>TestLens</code> facade methods are public but specialized. They complement the main interaction/trace workflow; they are not required for ordinary locator actions.</p>
 <h2 id="scrolltoelementwitharrowwebelement">scrollToElementWithArrow(WebElement)<a class="headerlink" href="#scrolltoelementwitharrowwebelement" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">scrollToElementWithArrow</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">)</span>
 </span></code></pre></div>
 <p>Scrolls to the supplied Selenium element and displays an arrow-style visual cue. It uses injected JavaScript/overlay resources and can fail when script execution or DOM decoration is unavailable.</p>
-<!-- SCREENSHOT TODO: assets/screenshots/scroll-arrow.png
-Show scrollToElementWithArrow() after the viewport reaches the target.
-The arrow and target must both be visible, with enough page context to understand the scroll.
-Feature documented: guided scrolling visualization.
-Suggested alt text: Test Lens scroll arrow pointing at the target element after scrolling.
--->
-
 <h2 id="smartuploadfilewebelement-string">smartUploadFile(WebElement, String)<a class="headerlink" href="#smartuploadfilewebelement-string" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">smartUploadFile</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">absolutePath</span><span class="p">)</span>
 </span></code></pre></div>
 <p>Uses the existing element and an absolute local path to drive file upload with visual feedback. The path must exist in the WebDriver execution environment (especially important for remote drivers). Do not log or expose sensitive local filenames unnecessarily.</p>
-<!-- SCREENSHOT TODO: assets/screenshots/file-upload-feedback.png
-Only add this image if smartUploadFile() produces distinct useful visual feedback.
-Show a synthetic filename and successful upload state; never expose a real local path.
-Feature documented: visually guided file upload.
-Suggested alt text: Test Lens file upload feedback using a synthetic filename.
--->
-
 <h2 id="apicallwithmodal">apiCallWithModal(...)<a class="headerlink" href="#apicallwithmodal" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="nf">apiCallWithModal</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">title</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">payloadPreview</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">timeoutMs</span><span class="p">,</span><span class="w"> </span><span class="n">Callable</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">call</span><span class="p">,</span><span class="w"> </span><span class="n">Function</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">responsePreview</span><span class="p">)</span>
 </span></code></pre></div>
-<p>Displays a modal around a caller-supplied synchronous Java API operation, invokes <code>call</code>, and renders the mapped response preview. It is not browser network interception. The callable's exception propagates; preview functions can also fail. Never pass tokens, unredacted payloads, or sensitive URLs to display/report fields.</p>
-<!-- SCREENSHOT TODO: assets/screenshots/api-call-modal.png
-Show apiCallWithModal() during a real callable using a synthetic URL, payload, and response preview.
-The modal title, method, progress/result state, and timeout context should be readable.
-Feature documented: visual diagnostics around caller-supplied API work.
-Suggested alt text: Test Lens API call modal showing a synthetic request and response state.
--->
+<p>Displays a modal around a caller-supplied synchronous Java API operation, invokes <code>call</code>, and renders the mapped response preview. It visualizes values supplied by the caller; it does not discover, capture, or intercept browser traffic. The callable's exception propagates; preview functions can also fail. Central redaction protects the diagnostic copy in the <code>0.2.0</code> development line, but callers should still avoid collecting unnecessary secrets. Use <a href="../network/">network diagnostics</a> for passive browser traffic evidence.</p>
 
 
 

@@ -2864,6 +2864,7 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">startSession</span><span class="p">(</span><span class="s">"Checkout"</span><span class="p">);</span>
 </span></code></pre></div>
 <p>The HUD is especially useful when debugging a headed test, demonstrating a flow, or investigating a wait/retry. It does not replace the persistent trace or test-runner output.</p>
+<p>The panel observes and presents Lens operations; it does not alter Selenium's success criteria. HUD injection or cleanup failure is decorative and cannot turn an otherwise successful or failed WebDriver operation into the opposite outcome.</p>
 <p>Raw network rows can be reduced independently with <a href="../../advanced/network/#hud-only-filtering"><code>NetworkHudFilter</code></a>. Its default hides duplicate request rows and shows responses and failures. This affects only the HUD: capture, waits, counters, trace, JSON, reports, external sinks, and failure evidence remain complete.</p>
 <h3 id="enable-and-configure-the-hud">Enable and configure the HUD<a class="headerlink" href="#enable-and-configure-the-hud" title="Permanent link">&para;</a></h3>
 <p>Configure the HUD through <a href="../../reference/configuration/#overlayconfig"><code>OverlayConfig</code></a> and pass it to the public <a href="../../reference/test-lens/#creation-and-lifecycle"><code>TestLens.attach(WebDriver, OverlayConfig)</code></a> overload:</p>
@@ -2889,27 +2890,14 @@
 </span></code></pre></div>
 <p>See <a href="../../getting-started/">Getting Started</a>, the complete <a href="../../reference/configuration/#overlayconfig"><code>OverlayConfig</code> table</a>, <a href="../../reference/configuration/#hudtheme"><code>HudTheme</code></a>, and the <code>hudPosition(...)</code> row in <a href="../../reference/configuration/#overlayconfig"><code>OverlayConfig</code></a>.</p>
 <p><code>TestLens.startSession(...)</code> attempts the initial HUD injection. Events retry injection lazily when a browser document was not available earlier, such as around navigation. When <a href="../../reference/configuration/#testlensoptions"><code>TestLensOptions.cleanupHudOnFinish</code></a> is enabled, finalization removes HUD/debug artifacts on a best-effort basis. Injection and cleanup failures do not change the WebDriver operation's intended result.</p>
-<!-- SCREENSHOT TODO: assets/screenshots/hud-full-panel.png
-Show the complete HUD during a running session with a session name, current step, and several log rows.
-Use a real library build and keep text readable at documentation width.
-Feature documented: HUD layout and runtime information hierarchy.
-Suggested alt text: Full Test Lens HUD with session, current step, and structured event rows.
--->
-
 <h2 id="highlights">Highlights<a class="headerlink" href="#highlights" title="Permanent link">&para;</a></h2>
 <p>A highlight is a temporary border/label drawn around an element so you can see which DOM target Test Lens selected. It is useful when a selector matches an unexpected element or a click is intercepted by page UI.</p>
-<p>The standard overlay-aware <a href="../../elements/actions/#click"><code>click()</code></a> highlights its resolved target automatically when <a href="../../reference/configuration/#overlayconfig"><code>OverlayConfig.enabled()</code></a> is true:</p>
+<p>The standard overlay-aware <a href="../../elements/actions/#click-contract-native-activation-visible-recovery"><code>click()</code></a> highlights its resolved target automatically when <a href="../../reference/configuration/#overlayconfig"><code>OverlayConfig.enabled()</code></a> is true:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByRole</span><span class="p">(</span><span class="s">"button"</span><span class="p">,</span><span class="w"> </span><span class="s">"Save"</span><span class="p">).</span><span class="na">click</span><span class="p">();</span>
 </span></code></pre></div>
 <p><code>fill()</code>, <code>clear()</code>, <code>press()</code>, <code>hover()</code>, <code>doubleClick()</code>, and <code>rightClick()</code> do not currently apply the same click decoration. <code>UiLocatorOptions.highlightBeforeAction()</code> is a retained public option but is not consulted by the current <code>UiLocator</code> implementation; it does not enable or disable highlights.</p>
+<p>The highlight uses a pointer-transparent overlay. It does not click, receive the click, change the target's state, or make the element actionable. The subsequent activation contract remains native <code>WebElement.click()</code> with only explicit overlay recovery and configured locator retries.</p>
 <p>Use <a href="../../reference/configuration/#overlayconfig"><code>OverlayConfig.highlightColor(...)</code></a> and <a href="../../reference/configuration/#overlayconfig"><code>decorationDurationMs(...)</code></a> to control the color and lifetime. For deliberate non-click decoration of a resolved element or related DOM node, use the <a href="../../advanced/js-overlay-debug/#hud-and-explicit-visual-helpers">advanced explicit highlight helpers</a>.</p>
-<!-- SCREENSHOT TODO: assets/screenshots/target-highlight.png
-Show a real target decoration with its label and enough application context to identify the element.
-Do not duplicate the click screenshot: use the explicit highlight helper or another non-click context.
-Feature documented: standalone visual element highlighting.
-Suggested alt text: Page element outlined and labelled by the Test Lens highlight helper.
--->
-
 <h2 id="wait-feedback">Wait feedback<a class="headerlink" href="#wait-feedback" title="Permanent link">&para;</a></h2>
 <p>Wait feedback shows that a condition is still being polled and reports its progress through the HUD/log/trace pipeline. It appears during explicit <a href="../../elements/waiting/">element waits</a> and relevant retry loops, helping distinguish an active wait from a stalled test.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"results"</span><span class="p">).</span><span class="na">waitUntilVisible</span><span class="p">();</span>

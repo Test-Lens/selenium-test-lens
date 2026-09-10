@@ -2645,8 +2645,16 @@
 
 
 <h1 id="flakiness-and-retry-outcomes">Flakiness and retry outcomes<a class="headerlink" href="#flakiness-and-retry-outcomes" title="Permanent link">&para;</a></h1>
+<div class="admonition info">
+<p class="admonition-title">Coming in 0.2.0</p>
+<p><code>RetrySummary</code> and <code>RetryOutcomePolicy</code> are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
+</div>
+<blockquote>
+<p>A passed test can still tell you it was flaky.</p>
+</blockquote>
 <p>A <strong>physical attempt</strong> starts when an operation begins using the current DOM observation. A <strong>recovery retry</strong> is counted only when that attempt fails with a retryable exception and Lens decides to start another attempt. The first attempt is not a retry, and the final failed attempt is not counted when no next attempt follows.</p>
 <p>Polling is different: <code>WebDriverWait</code>, resolver polls, alert/network waits, waiting for an element, and an assertion whose condition is not satisfied may evaluate repeatedly without marking the session flaky. Runner-level retries are also separate sessions. A <strong>flaky candidate</strong> is one session containing at least one recovery retry.</p>
+<p>This distinction prevents a normal wait for an expected state from inflating recovery evidence. A runner retry means the test framework started another invocation; it is neither an operation retry nor an assertion poll and should be reported at the runner level.</p>
 <p><code>UiTestLensSession.retrySummary()</code>, <code>TestLens.retrySummary()</code>, and <code>TestLensFinalizationResult.retrySummary()</code> expose immutable, key-sorted totals by action, locator, and effective exception type. <code>timeLost</code> sums only failed physical attempts that caused another attempt; it excludes successful/terminal attempts and poll intervals.</p>
 <p>Recovery events currently come from Selenium locator actions/reads, intercepted-click recovery, and React-safe operations executed through <code>ReactSupport</code> with an attached Lens session. A React presence wait that has not yet obtained an element is still polling and is not counted.</p>
 <!-- API SIGNATURES: io.github.testlens.core.trace.RetrySummary -->

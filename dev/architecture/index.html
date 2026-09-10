@@ -3029,13 +3029,13 @@
 </tr>
 <tr>
 <td><code>selenium-test-lens-junit5</code></td>
-<td>Published optional JUnit 5 lifecycle and parameter injection</td>
-<td>Depends on the main runtime and JUnit Jupiter API; Selenium remains optional</td>
+<td>Development-line JUnit 5 lifecycle and parameter injection</td>
+<td>Depends on the main runtime and JUnit Jupiter API; Selenium remains optional; planned for 0.2.0</td>
 </tr>
 <tr>
 <td><code>selenium-test-lens-testng</code></td>
-<td>Published optional TestNG invocation lifecycle</td>
-<td>Depends on the main runtime and TestNG; Selenium remains optional</td>
+<td>Development-line TestNG invocation lifecycle</td>
+<td>Depends on the main runtime and TestNG; Selenium remains optional; planned for 0.2.0</td>
 </tr>
 <tr>
 <td><code>selenium-test-lens-react</code></td>
@@ -3095,6 +3095,7 @@ remains authoritative for real Chrome and Firefox behavior.</p>
 <p>Network HUD filtering is a presentation boundary after capture: every raw entry is retained and emitted to the shared logger with a deterministic <code>hudVisible</code> decision. The trace and external sinks ignore that flag; only the HUD sink suppresses the three raw network event types, before alert deferral. Selenium 4.39.0 does not expose reliable fetch/XHR/beacon classification in its typed request model, so this layer uses explicit URL rules rather than resource heuristics.</p>
 <p>The network layer has a second, independent confidentiality boundary. A private raw per-session buffer drives URL/method/status matching, redirect correlation, waits, and counters. Before data crosses into public events, summaries, assertion/wait results, logger sinks, exporters, or failure evidence, the layer creates an immutable snapshot with the logger's effective <code>RedactionPolicy</code>; throwable cause and suppressed diagnostics are copied and redacted as well. Capture restart never mutates an earlier snapshot, and disabling only network header masking cannot bypass this central boundary.</p>
 <h2 id="runtime-flow">Runtime flow<a class="headerlink" href="#runtime-flow" title="Permanent link">&para;</a></h2>
+<p>The architecture follows the product's observable path rather than treating wrappers as isolated conveniences: native interaction produces diagnostics, trace retains them, finalization fixes the outcome, and exporters or failure bundles turn the same model into investigation evidence.</p>
 <p><code>TestLens</code> first attaches to the existing <code>WebDriver</code>. A diagnostic session starts when <code>startSession(...)</code> is called. During that session, Lens operations can invoke browser behavior and emit diagnostic events. The active <code>UiTestLensSession</code> records them; HUD updates are best-effort.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>TestLens operation
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>      |
@@ -3138,7 +3139,7 @@ remains authoritative for real Chrome and Firefox behavior.</p>
 <h2 id="react-boundary">React boundary<a class="headerlink" href="#react-boundary" title="Permanent link">&para;</a></h2>
 <p>React support is isolated in <code>selenium-test-lens-react</code>, which depends on the main runtime, core, overlay, and Selenium. The main runtime does not depend on React. Normal DOM interactions continue to use <code>selenium-test-lens</code>.</p>
 <h2 id="junit-5-boundary">JUnit 5 boundary<a class="headerlink" href="#junit-5-boundary" title="Permanent link">&para;</a></h2>
-<p>JUnit lifecycle integration is isolated in the published <code>selenium-test-lens-junit5</code> artifact. <code>TestLensExtension</code> owns drivers returned by the consumer's factory and stores invocation state in <code>ExtensionContext.Store</code>, keyed by JUnit's unique invocation ID. This keeps parameterized, repeated, nested, and parallel invocations independent without a singleton or <code>ThreadLocal</code>. The main runtime remains runner-agnostic.</p>
+<p>JUnit lifecycle integration is isolated in the development-line <code>selenium-test-lens-junit5</code> artifact planned for 0.2.0. <code>TestLensExtension</code> owns drivers returned by the consumer's factory and stores invocation state in <code>ExtensionContext.Store</code>, keyed by JUnit's unique invocation ID. This keeps parameterized, repeated, nested, and parallel invocations independent without a singleton or <code>ThreadLocal</code>. The main runtime remains runner-agnostic.</p>
 <h2 id="testng-boundary">TestNG boundary<a class="headerlink" href="#testng-boundary" title="Permanent link">&para;</a></h2>
 <p>TestNG lifecycle integration is isolated in <code>selenium-test-lens-testng</code>. <code>TestLensTestNgListener</code> starts only around a physical test-method invocation and stores state on that invocation's <code>ITestResult</code>. <code>TestLensTestNgContext</code> reads TestNG's official current result, so parallel methods, DataProviders, retries, and reused class instances do not share mutable driver state. Registration is explicit; the artifact contains no global listener service entry.</p>
 <h2 id="dependency-rules">Dependency rules<a class="headerlink" href="#dependency-rules" title="Permanent link">&para;</a></h2>

@@ -2844,9 +2844,10 @@
 
 
 <h1 id="network-diagnostics">Network diagnostics<a class="headerlink" href="#network-diagnostics" title="Permanent link">&para;</a></h1>
+<p>Manual network events, waits, and assertions are available in <code>0.1.0</code>.</p>
 <div class="admonition info">
 <p class="admonition-title">Coming in 0.2.0</p>
-<p>Passive WebDriver BiDi capture, network waits/assertions, summaries, and HUD filtering are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
+<p>Passive WebDriver BiDi capture, capture generations, immutable safe snapshots, hardened lifecycle handling, and HUD-only filtering are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
 </div>
 <p>Package: <code>io.github.testlens.selenium.network</code><br>
 Module: <code>selenium-test-lens-selenium</code><br>
@@ -2866,6 +2867,7 @@ API level: <strong>Advanced</strong></p>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">String</span><span class="w"> </span><span class="nf">exportJson</span><span class="p">()</span>
 </span></code></pre></div>
 <p><code>MANUAL</code> remains the default and accepts caller-supplied events. <code>BIDI</code> passively subscribes through Selenium 4.39's beta <code>org.openqa.selenium.bidi.module.Network</code>; the browser session must have BiDi enabled when it is created. <code>AUTO</code> attempts the same subscription and reports <code>UNSUPPORTED</code> when it cannot establish it. Neither mode falls back to <code>MANUAL</code> or performance logs. <code>PERFORMANCE_LOGS</code> remains unsupported and <code>OFF</code> remains stopped.</p>
+<p>BiDi capture observes traffic. It does not intercept, modify, block, mock, or replay requests, and it is not a CDP fallback.</p>
 <p><code>captureMode()</code> is the requested mode. <code>activeCaptureMode()</code> is present only while a source is active: <code>MANUAL</code> for manual capture and <code>BIDI</code> for both successful <code>BIDI</code> and <code>AUTO</code>. A successful start registers one listener each for before-request, response-completed, and fetch-error; <code>stop()</code> removes the module subscriptions without closing the driver. <code>stop()</code> also invalidates an initialization that is still registering its source: a late success or failure cannot reactivate capture or overwrite <code>STOPPED</code>, and any source returned afterward is closed without holding the lifecycle lock. Repeated starts replace the prior generation, and late callbacks are discarded. Event snapshots are immutable and safe while BiDi callback threads are active.</p>
 <h2 id="hud-only-filtering">HUD-only filtering<a class="headerlink" href="#hud-only-filtering" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.selenium.network.NetworkHudFilter -->

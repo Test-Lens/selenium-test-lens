@@ -946,27 +946,16 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#click" class="md-nav__link">
+  <a href="#click-contract-native-activation-visible-recovery" class="md-nav__link">
     <span class="md-ellipsis">
       
-        click()
+        Click contract: native activation, visible recovery
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="click()">
+    <nav class="md-nav" aria-label="Click contract: native activation, visible recovery">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#behavior" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Behavior
-      
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#returns" class="md-nav__link">
@@ -2855,27 +2844,16 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#click" class="md-nav__link">
+  <a href="#click-contract-native-activation-visible-recovery" class="md-nav__link">
     <span class="md-ellipsis">
       
-        click()
+        Click contract: native activation, visible recovery
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="click()">
+    <nav class="md-nav" aria-label="Click contract: native activation, visible recovery">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#behavior" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Behavior
-      
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#returns" class="md-nav__link">
@@ -3062,39 +3040,36 @@
 
 
 <h1 id="element-actions">Element actions<a class="headerlink" href="#element-actions" title="Permanent link">&para;</a></h1>
+<p>Element actions use native Selenium operations and feed the same HUD, log, and trace pipeline as waits and assertions. The basic click, fill, clear, key, hover, and click-variant actions are available in <code>0.1.0</code>.</p>
 <div class="admonition info">
 <p class="admonition-title">Coming in 0.2.0</p>
-<p>The form-control actions described on this page are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
+<p>Form-control actions (<code>check</code>, <code>uncheck</code>, <code>upload</code>, <code>focus</code>, and <code>scrollIntoView</code>) and composed locator execution are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
 </div>
-<p>All action methods resolve the current element, emit structured operation events, and return the same <code>UiLocator</code> for chaining. Actions may be invoked on composed locators: scoping and filtering are evaluated lazily immediately before the action, without exposing a raw <code>WebElement</code> or concatenating global CSS/XPath selectors. Resolution/action retry is governed by <a href="../../reference/configuration/#uilocatoroptions"><code>UiLocatorOptions</code></a>. A physical action/read failure that schedules another attempt emits a dedicated <code>RETRY</code> trace event; a terminal failure does not add an extra retry. Diagnostics do not add WebDriver calls or change their order. A final failure is wrapped as <code>UiLocatorException</code>; <code>action()</code>, <code>locatorDescription()</code>, and <code>actionabilitySummary()</code> add context and the underlying WebDriver failure remains the cause.</p>
-<h2 id="click">click()<a class="headerlink" href="#click" title="Permanent link">&para;</a></h2>
+<p>Actions resolve the current element and return the same <code>UiLocator</code> for chaining. Resolution/action retry is governed by <a href="../../reference/configuration/#uilocatoroptions"><code>UiLocatorOptions</code></a>. A physical action/read failure that schedules another attempt emits a dedicated recovery <code>RETRY</code>; a terminal failure does not. Condition polling is separate and does not create recovery-retry evidence. A final failure is wrapped as <code>UiLocatorException</code>, with the underlying WebDriver failure retained as its cause.</p>
+<h2 id="click-contract-native-activation-visible-recovery">Click contract: native activation, visible recovery<a class="headerlink" href="#click-contract-native-activation-visible-recovery" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">click</span><span class="p">()</span>
 </span></code></pre></div>
-<h3 id="behavior">Behavior<a class="headerlink" href="#behavior" title="Permanent link">&para;</a></h3>
+<p><code>UiLocator.click()</code> is the recommended public click API. There is no separate <code>smartClick()</code> that normal users need to select.</p>
+<p>Each activation attempt uses native <code>WebElement.click()</code>. An intercepted click may be followed by another native click after explicit overlay recovery, and the locator retry policy may start a fresh action attempt.</p>
+<p>The complete contract is:</p>
 <ul>
-<li>resolves the element and runs best-effort actionability diagnostics;</li>
-<li>uses the overlay-aware smart-click path, including configured blocker policy;</li>
-<li>retries configured stale/intercepted/not-interactable failures;</li>
-<li>emits start, retry, pass, or failure trace/log/HUD feedback;</li>
-<li>decorates the target when overlays are enabled; <code>SmartClickActions</code> performs the decorated Selenium click.</li>
+<li>the locator resolves the target and runs best-effort actionability diagnostics;</li>
+<li>an enabled overlay may highlight the target, but the decoration is pointer-transparent and never activates it;</li>
+<li>physical activation is <code>WebElement.click()</code>;</li>
+<li>a configured overlay policy may identify and explicitly handle a blocker after <code>ElementClickInterceptedException</code>, then make another native click attempt;</li>
+<li>configured stale, intercepted, or not-interactable failures may cause the outer locator retry policy to begin another complete action attempt;</li>
+<li>start, retry, pass, and failure information is emitted to the HUD/log/trace pipeline.</li>
 </ul>
+<p>The implementation deliberately does <strong>not</strong> fall back to JavaScript click, Selenium <code>Actions</code> click, clicking an ancestor, or mutating page state to simulate activation. Actionability is diagnostic and best-effort; it cannot guarantee that the browser will accept the next click.</p>
 <h3 id="returns">Returns<a class="headerlink" href="#returns" title="Permanent link">&para;</a></h3>
 <p>The same locator.</p>
 <h3 id="failure-behavior">Failure behavior<a class="headerlink" href="#failure-behavior" title="Permanent link">&para;</a></h3>
 <p>Throws <code>UiLocatorException</code> after the retry budget or on a non-retryable WebDriver failure. Overlay policy can also fail the click when a required blocker cannot be handled.</p>
 <h3 id="trace-hud-highlight-and-evidence">Trace, HUD, highlight, and evidence<a class="headerlink" href="#trace-hud-highlight-and-evidence" title="Permanent link">&para;</a></h3>
-<p>The locator and smart-click layers emit structured start/pass/retry/failure events; an attached session records them and the HUD can display them. When overlays are enabled, the smart-click path decorates the target using its diagnostic label. <code>click()</code> does not capture a screenshot by itself.</p>
+<p>The locator and overlay-aware click layers emit structured start/pass/retry/failure events; an attached session records them and the HUD can display them. When overlays are enabled, the target is decorated using its diagnostic label. <code>click()</code> does not capture a screenshot by itself.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByRole</span><span class="p">(</span><span class="s">"button"</span><span class="p">,</span><span class="w"> </span><span class="s">"Save"</span><span class="p">).</span><span class="na">waitUntilClickable</span><span class="p">().</span><span class="na">click</span><span class="p">();</span>
 </span></code></pre></div>
-<!-- SCREENSHOT TODO: assets/screenshots/element-click-highlight.png
-Show a real Test Lens click operation before the decoration disappears.
-The clicked element must be highlighted and the HUD must show the click action and label.
-Avoid unrelated browser UI and sensitive application data.
-Feature documented: click target decoration and runtime feedback.
-Suggested alt text: Save button highlighted while the Test Lens HUD reports a click.
--->
-
 <p>Related: <a href="#doubleclick"><code>doubleClick()</code></a>, <a href="#rightclick"><code>rightClick()</code></a>, <a href="../waiting/">waiting</a>.</p>
 <h2 id="fillstring-value">fill(String value)<a class="headerlink" href="#fillstring-value" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
@@ -3112,13 +3087,6 @@ Suggested alt text: Save button highlighted while the Test Lens HUD reports a cl
 </ul>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"email"</span><span class="p">).</span><span class="na">fill</span><span class="p">(</span><span class="s">"person@example.test"</span><span class="p">);</span>
 </span></code></pre></div>
-<!-- SCREENSHOT TODO: assets/screenshots/element-fill-feedback.png
-Show fill() operating on a non-sensitive example field while the HUD reports the fill action.
-The field must contain synthetic text; do not imply a highlight because fill() does not add one.
-Feature documented: fill action feedback and value-safe diagnostics.
-Suggested alt text: Synthetic form field after fill while the HUD reports the fill action.
--->
-
 <p>Related: <a href="#clear"><code>clear()</code></a>, <a href="#presscharsequence-keys"><code>press(...)</code></a>, <a href="../assertions/#value">value assertions</a>.</p>
 <h2 id="checked-controls">Checked controls<a class="headerlink" href="#checked-controls" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->

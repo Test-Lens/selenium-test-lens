@@ -2808,6 +2808,11 @@
 
 
 <h1 id="element-collections">Element collections<a class="headerlink" href="#element-collections" title="Permanent link">&para;</a></h1>
+<p>The original collection reads and positional views (<code>resolveAll</code>, <code>count</code>, <code>nth</code>, <code>first</code>, and <code>last</code>) are available in <code>0.1.0</code>.</p>
+<div class="admonition info">
+<p class="admonition-title">Coming in 0.2.0</p>
+<p>Immutable filtering/scoping stages and collection-count waits are part of the development line and are not available in Maven Central <code>0.1.0</code>.</p>
+</div>
 <h2 id="resolveall">resolveAll()<a class="headerlink" href="#resolveall" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">List</span><span class="o">&lt;</span><span class="n">WebElement</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">resolveAll</span><span class="p">()</span>
@@ -2836,6 +2841,7 @@
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">rows</span><span class="p">.</span><span class="na">last</span><span class="p">().</span><span class="na">click</span><span class="p">();</span>
 </span></code></pre></div>
 <p>Selection is a pipeline stage, so order matters: <code>rows.filterByTextContaining("Open").first()</code> filters before selection, while <code>rows.first().filterByTextContaining("Open")</code> can produce zero or one match after selecting the first row.</p>
+<p>Scoped <code>locator(...)</code> returns descendants, while <code>filterHas(...)</code> returns the original parents whose own subtree contains a match. Neither operation permits a semantic locator, custom <code>By</code>, or absolute-looking XPath to escape the parent scope. See <a href="../locators/#scoped-and-filtered-locators">Locators</a>.</p>
 <h2 id="count-waits">Count waits<a class="headerlink" href="#count-waits" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
 <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">waitUntilCount</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">expected</span><span class="p">)</span>

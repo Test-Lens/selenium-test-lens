@@ -2874,14 +2874,11 @@
 
 
 <h1 id="locators">Locators<a class="headerlink" href="#locators" title="Permanent link">&para;</a></h1>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Semantic and composite locator APIs are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <p>Package: <code>io.github.testlens.selenium.locator</code><br>
 Module: <code>selenium-test-lens-selenium</code><br>
 API level: <strong>Recommended</strong></p>
 <p>Create locators from an attached <a href="../../reference/test-lens/"><code>TestLens</code></a>. Labels appear in trace, logs, HUD, and errors; they do not change matching.</p>
+<p>Stable <code>0.1.0</code> includes <code>locator(...)</code> plus the original test-id, text, and role-oriented entry points. The development line expands those factories and makes their semantics and scoping stricter; the markers below identify that boundary locally.</p>
 <p>The effective <code>TestLensOptions.locatorOptions()</code> belongs to the facade instance and is used uniformly by <code>locator(...)</code> and every public <code>getBy*</code> factory. Every derived locator (<code>nth</code>/<code>first</code>/<code>last</code>, filters, <code>locator(...)</code>, and <code>filterHas(...)</code>) retains its source locator's options. A lower-level <code>JsOverlayDebug</code> created directly uses the normal defaults unless an existing explicit-options <code>locator(...)</code> overload is selected.</p>
 <h2 id="locatorby-by">locator(By by)<a class="headerlink" href="#locatorby-by" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
@@ -2910,6 +2907,10 @@ API level: <strong>Recommended</strong></p>
 </span></code></pre></div>
 <p>The first two match normalized exact text; the third matches a normalized substring. Text helpers use XPath over rendered DOM text and can be broader/slower than a stable ID or CSS locator. Null input is rejected by selector construction.</p>
 <h2 id="getbyrole-overloads">getByRole overloads<a class="headerlink" href="#getbyrole-overloads" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">Coming in 0.2.0</p>
+<p>Browser-computed role/accessibility-name matching is part of the current development line. The earlier <code>getByRole</code> entry point existed in <code>0.1.0</code>, but did not provide this strengthened contract.</p>
+</div>
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
 <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByRole</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">role</span><span class="p">)</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByRole</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">role</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">accessibleName</span><span class="p">)</span>
@@ -2919,6 +2920,10 @@ API level: <strong>Recommended</strong></p>
 </span></code></pre></div>
 <p>Supported implicit candidate roles remain <code>button</code>, <code>link</code>, <code>textbox</code>, <code>checkbox</code>, and <code>radio</code>. The locator is lazy, preserves DOM order, and supports <code>count()</code>, <code>nth()</code>, <code>first()</code>, and <code>last()</code>.</p>
 <h2 id="label-placeholder-and-alt-text">Label, placeholder, and alt text<a class="headerlink" href="#label-placeholder-and-alt-text" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">Coming in 0.2.0</p>
+<p>The <code>getByLabel</code>, <code>getByPlaceholder</code>, and <code>getByAltText</code> facade factories are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
+</div>
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByLabel</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByPlaceholder</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">placeholder</span><span class="p">)</span>
@@ -2933,6 +2938,10 @@ API level: <strong>Recommended</strong></p>
 </span></code></pre></div>
 <p>Semantic comparison trims and collapses Unicode whitespace (including NBSP) to one space, then compares exactly and case-sensitively. Results depend on the browser/WebDriver accessibility implementation; unsupported typed accessibility commands fail without a hidden DOM or JavaScript fallback.</p>
 <h2 id="scoped-and-filtered-locators">Scoped and filtered locators<a class="headerlink" href="#scoped-and-filtered-locators" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">Coming in 0.2.0</p>
+<p>Locator composition, filtering, and descendant scoping are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
+</div>
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
 <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">locator</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">descendant</span><span class="p">)</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">locator</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">descendant</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
