@@ -1451,6 +1451,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../observability/report-upload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Report upload
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../observability/flakiness/" class="md-nav__link">
         
   
@@ -2760,6 +2788,7 @@
 <li><code>OverlayHandlingResult</code>: policy outcome and executed action details.</li>
 </ul>
 <p>Nullable/empty semantics differ by result; consult the relevant functional page and the <a href="../public-api-catalog/">exact accessor/factory signatures</a>. Exceptions stored in results may contain driver/session/environment details.</p>
+<p><code>ReportUploadResult</code> is the immutable outcome of an explicit post-finalization HTTP transfer. It distinguishes uploaded, failed, and skipped operations; records artifact kind, safe endpoint, response status, attempts, elapsed time, payload size/checksum, bounded redacted response data, and failure category; and preserves a transport exception when one exists. <code>requireSuccess()</code> converts a non-success result into <code>ReportUploadException</code> without changing the finalized session. See <a href="../../observability/report-upload/">Report upload</a>.</p>
 <p>Locator resolution plumbing is implementation-private. Normal locator failures use the supported <code>UiLocatorException</code>; no separate low-level locator result is returned by the recommended API.</p>
 
 

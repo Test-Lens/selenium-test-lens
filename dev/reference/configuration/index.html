@@ -1451,6 +1451,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../observability/report-upload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Report upload
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../observability/flakiness/" class="md-nav__link">
         
   
@@ -2414,6 +2442,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#reportuploadoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ReportUploadOptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#videoevidenceoptions" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2911,6 +2950,17 @@
     <span class="md-ellipsis">
       
         ScreenshotCaptureOptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reportuploadoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ReportUploadOptions
       
     </span>
   </a>
@@ -3461,6 +3511,75 @@
 </tbody>
 </table>
 <p><code>FailureBundleOptions.screenshotCaptureMode(...)</code> selects the same mode for diagnostic and clean failure screenshots; its default is also <code>VIEWPORT</code>.</p>
+<h2 id="reportuploadoptions">ReportUploadOptions<a class="headerlink" href="#reportuploadoptions" title="Permanent link">&para;</a></h2>
+<p>Report upload is configured independently of <code>TestLensOptions</code> because configuration alone must never trigger network I/O. <code>ReportUploadOptions.builder()</code> requires an absolute HTTP(S) endpoint without userinfo or fragment. Query is accepted but omitted from diagnostics.</p>
+<table>
+<thead>
+<tr>
+<th>Builder method</th>
+<th>Default</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>endpoint(URI)</code></td>
+<td>required</td>
+<td>Explicit receiver; only HTTP/HTTPS with a host.</td>
+</tr>
+<tr>
+<td><code>bearerToken(String)</code></td>
+<td>none</td>
+<td>Optional credential; blank removes it and values never appear in <code>toString()</code>.</td>
+</tr>
+<tr>
+<td><code>header(String, String)</code></td>
+<td>none</td>
+<td>Adds a validated custom header; managed transport headers cannot be replaced.</td>
+</tr>
+<tr>
+<td><code>connectTimeout(Duration)</code></td>
+<td>10 s</td>
+<td>Positive JDK HTTP connect timeout.</td>
+</tr>
+<tr>
+<td><code>requestTimeout(Duration)</code></td>
+<td>30 s</td>
+<td>Positive per-attempt request timeout.</td>
+</tr>
+<tr>
+<td><code>maxPayloadBytes(long)</code></td>
+<td>100 MiB</td>
+<td>Positive preflight file-size limit.</td>
+</tr>
+<tr>
+<td><code>maxAttempts(int)</code></td>
+<td>1</td>
+<td>Total attempts; retries only transport I/O, 408, 429, 502, 503, and 504.</td>
+</tr>
+<tr>
+<td><code>maxRetryAfter(Duration)</code></td>
+<td>30 s</td>
+<td>Non-negative cap for integer-seconds <code>Retry-After</code>.</td>
+</tr>
+<tr>
+<td><code>maxResponsePreviewBytes(int)</code></td>
+<td>16 KiB</td>
+<td>Non-negative bounded response preview.</td>
+</tr>
+<tr>
+<td><code>proxy(ReportProxyOptions)</code></td>
+<td><code>SYSTEM</code></td>
+<td>Direct, JVM/system selector, or explicit HTTP proxy plus literal bypass rules.</td>
+</tr>
+<tr>
+<td><code>redactionPolicy(RedactionPolicy)</code></td>
+<td>defaults</td>
+<td>Protects endpoint-independent messages, server ID, and response preview.</td>
+</tr>
+</tbody>
+</table>
+<p><code>ReportProxyOptions</code> accepts exact-host, domain-suffix, optional-port, localhost, IPv4, IPv6, and <code>*</code> no-proxy rules. It does not interpret regex or CIDR. See <a href="../../observability/report-upload/">Report upload</a> for protocol and security details.</p>
 <h2 id="videoevidenceoptions">VideoEvidenceOptions<a class="headerlink" href="#videoevidenceoptions" title="Permanent link">&para;</a></h2>
 <p><code>source(VideoEvidenceSource)=CUSTOM</code>, <code>mediaType(String)="video/mp4"</code>, <code>validateLocalFileExists(boolean)=false</code>, <code>attachToSession(boolean)=true</code>, and <code>metadata(key,value)</code>/<code>metadata(Map)</code>. Validation applies to local paths; it does not fetch/validate remote URLs. Blank media type falls back to <code>video/mp4</code>; null/blank metadata keys and null values are ignored. Metadata may be persisted and must not contain secrets.</p>
 <h2 id="authentication-options">Authentication options<a class="headerlink" href="#authentication-options" title="Permanent link">&para;</a></h2>

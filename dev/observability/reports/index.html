@@ -16,7 +16,7 @@
         <link rel="prev" href="../trace/">
       
       
-        <link rel="next" href="../flakiness/">
+        <link rel="next" href="../report-upload/">
       
       
         
@@ -1586,6 +1586,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../report-upload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Report upload
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../flakiness/" class="md-nav__link">
         
   
@@ -2872,6 +2900,7 @@
 <p>All three facade finalizers—<code>finishPassed()</code>, <code>finishFailed(Throwable)</code>, and <code>finishSkipped(String)</code>—attempt per-session <code>trace.json</code> and <code>report.html</code>. One caller owns the complete pipeline; concurrent callers wait and receive the same fully built result, while later calls reuse it without rewriting either report or recreating evidence. The reports retain the first <code>PASSED</code>, <code>FAILED</code>, or <code>SKIPPED</code> outcome, and a skip reason is stored on the single <code>SESSION_FINISHED</code> event. Each export is best effort: its <code>Path</code> can be null and the error appears in <code>TestLensFinalizationResult.diagnosticFailures()</code> without changing the session status.</p>
 <p>The session JSON always contains a top-level <code>flakiness</code> object with <code>flakyCandidate</code>, <code>totalRetries</code>, <code>timeLostMs</code>, <code>policy</code>, <code>policyTriggered</code>, <code>byAction</code>, <code>byLocator</code>, and <code>byException</code>. HTML renders the same data neutrally for zero retries, as information for <code>REPORT_ONLY</code>, as a warning for <code>WARN</code>, and as a failure for a triggered fail policy. The destination is derived from the session output configuration. See <a href="../flakiness/">Flakiness and retry outcomes</a>, <a href="../../reference/test-lens/#creation-and-lifecycle">session lifecycle and finalization</a>, and <a href="../../reference/configuration/#testlensoptions"><code>TestLensOptions</code></a>.</p>
 <p>For final <code>FAILED</code>, HTML also contains a <code>Failure bundle</code> section linking the predictable ZIP and listing every component status, size, path, or collection error. The ZIP is assembled after final trace/report exports, so it contains their final versions without recursively containing itself. See <a href="../failure-bundles/">Failure bundles</a>.</p>
+<p>Completed reports stay local unless application or teardown code explicitly invokes <code>ReportUploader</code>. The development-line uploader streams exactly one completed ZIP after finalization, without appending trace events or requiring a live WebDriver. See <a href="../report-upload/">Report upload</a> for the HTTP, idempotency, retry, proxy, and receiver contract.</p>
 <div class="admonition info">
 <p class="admonition-title">Coming in 0.2.0</p>
 <p>The automatic failure-bundle section and hardened exactly-once facade finalization are part of the development line and are not available in Maven Central <code>0.1.0</code>. Session HTML/JSON reports are available in <code>0.1.0</code>.</p>
@@ -2959,13 +2988,13 @@
         
         
           
-          <a href="../flakiness/" class="md-footer__link md-footer__link--next" aria-label="Next: Flakiness and retry outcomes">
+          <a href="../report-upload/" class="md-footer__link md-footer__link--next" aria-label="Next: Report upload">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Flakiness and retry outcomes
+                Report upload
               </div>
             </div>
             <div class="md-footer__button md-icon">

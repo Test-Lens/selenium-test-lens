@@ -1451,6 +1451,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../observability/report-upload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Report upload
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../observability/flakiness/" class="md-nav__link">
         
   
@@ -3134,6 +3162,7 @@ remains authoritative for real Chrome and Firefox behavior.</p>
 <p>The overlay module contains resources for the HUD, highlighting and decorations, assertion and wait indicators, and API/debug overlays. The Selenium runtime injects and updates them through the driver. Consumers configure this layer through <code>OverlayConfig</code>.</p>
 <h2 id="reporting-boundary">Reporting boundary<a class="headerlink" href="#reporting-boundary" title="Permanent link">&para;</a></h2>
 <p>Report generation lives in core. Collected sessions can be exported as HTML, JSON, or portable bundles without Selenium or a live browser. All formats use the same status aggregation in <code>TraceReportSupport</code>: failure/error, warning, incomplete <code>STARTED</code>, empty <code>INFO</code>, all-skipped <code>SKIPPED</code>, then completed <code>PASSED</code>. Exporters only snapshot sessions; they never finalize or mutate them. See <a href="../examples/">Examples</a> and <a href="../observability/reports/">Reports</a> for usage.</p>
+<p>Report upload is a separate, explicit post-finalization boundary in the Selenium artifact. It consumes <code>TestLensFinalizationResult</code>, selects one completed ZIP, and uses the JDK HTTP client without accessing WebDriver or adding session events. The immutable uploader has no background executor or global transport state; retries reuse the same file checksum and idempotency key. Local finalization remains authoritative when transport fails. See <a href="../observability/report-upload/">Report upload</a>.</p>
 <h2 id="evidence-boundary">Evidence boundary<a class="headerlink" href="#evidence-boundary" title="Permanent link">&para;</a></h2>
 <p>Core stores artifact metadata such as paths and URLs. Selenium integration creates browser-dependent evidence, including screenshots, and attaches it to the session. Exporters consume that session model; the producing feature writes the underlying file. Video support attaches existing files or URLs and does not record video.</p>
 <p>Screenshot evidence has one Selenium pipeline with two modes. <code>VIEWPORT</code> delegates once to <code>TakesScreenshot</code>; <code>FULL_PAGE</code> snapshots top-level geometry, scrolls the unchanged viewport, stitches bounded PNG tiles, restores browser state, and publishes atomically. Explicit screenshots, step evidence, and failure-bundle diagnostic/clean images share path validation, result metadata, trace attachment, and failure behavior. CDP is not part of this path.</p>

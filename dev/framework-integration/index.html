@@ -1580,6 +1580,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../observability/report-upload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Report upload
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../observability/flakiness/" class="md-nav__link">
         
   
@@ -2879,6 +2907,7 @@
 </span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="p">}</span>
 </span></code></pre></div>
 <p>Keep driver shutdown in your existing framework cleanup. If your project has specific handling for WebDriver cleanup failures, keep that policy when adding Test Lens.</p>
+<p>Report upload is never implicit in this lifecycle. A manual integration may synchronously upload the returned <code>TestLensFinalizationResult</code> after <code>finish...()</code> and before its existing <code>driver.quit()</code>. The JUnit 5 and TestNG adapters do not upload automatically; applications that need remote publication must invoke the uploader explicitly or add their own ordered runner callback. See <a href="../observability/report-upload/">Report upload</a>.</p>
 <p>Locator composition is runner-neutral. A locator can be created in setup or page-object code and later scoped, filtered, or count-waited in JUnit 5, TestNG, or a custom runner; it retains the owning driver's current frame/window and the parent locator's options and diagnostics.</p>
 <p>For a final <code>FAILED</code> status, finalization also completes the best-effort failure bundle before it returns. This preserves the live browser for screenshots, context and optional DOM/console capture. The JUnit 5 extension and TestNG listener therefore keep the same ordering: finish Lens and all bundle/report work first, then call <code>driver.quit()</code> exactly once. If application code already finalized that invocation's Lens, the adapter safely observes the same result or policy violation; it does not run the facade pipeline again. Lens finalizers themselves never call <code>quit()</code>.</p>
 <p>Pass one immutable <code>RedactionPolicy</code> through <code>TestLensOptions</code> when attaching the driver. The same policy protects logger sinks, trace, network/API diagnostics, reports, and failure-bundle text before runner-owned cleanup; it never replaces the throwable used by JUnit or TestNG. See <a href="../security/redaction/">Sensitive-data redaction</a>.</p>

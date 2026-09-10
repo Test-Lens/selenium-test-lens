@@ -1451,6 +1451,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../observability/report-upload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Report upload
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../observability/flakiness/" class="md-nav__link">
         
   
@@ -2823,7 +2851,7 @@
 
 <h1 id="exhaustive-public-api-catalog">Exhaustive public API catalog<a class="headerlink" href="#exhaustive-public-api-catalog" title="Permanent link">&para;</a></h1>
 <p>This generated catalog is the optional binary-surface reference for every published public type, constructor, method, and field. Start with <a href="../../capabilities/">Capabilities</a> and the functional navigation for behavior, workflows, and examples. Internal-style types appear only because Java consumers can currently access them.</p>
-<p>Inventory: <strong>220 public types</strong> and <strong>1755 public callable methods/constructors</strong> (including public nested types and compiler-generated record/enum members).</p>
+<p>Inventory: <strong>231 public types</strong> and <strong>1818 public callable methods/constructors</strong> (including public nested types and compiler-generated record/enum members).</p>
 <p>Classifications: USER_API is the normal consumer path; ADVANCED_API is supported specialized functionality; LOW_LEVEL_API exposes lower abstractions; INTERNAL_STYLE_PUBLIC is binary-public implementation surface and is not recommended for application code.</p>
 <p>Signature details are split by published artifact and Java package to keep individual pages usable. These generated pages are excluded from site search.</p>
 <h2 id="selenium-test-lens-core">selenium-test-lens-core<a class="headerlink" href="#selenium-test-lens-core" title="Permanent link">&para;</a></h2>
@@ -4230,6 +4258,83 @@
 <td>INTERNAL_STYLE_PUBLIC</td>
 <td>class</td>
 <td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-overlay/#io-github-testlens-selenium-overlay-overlaypolicyexecutor">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.reporting.ReportArtifactKind</td>
+<td>io.github.testlens.selenium.reporting</td>
+<td>USER_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-reporting/#io-github-testlens-selenium-reporting-reportartifactkind">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.reporting.ReportProxyMode</td>
+<td>io.github.testlens.selenium.reporting</td>
+<td>USER_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-reporting/#io-github-testlens-selenium-reporting-reportproxymode">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.reporting.ReportProxyOptions$Builder</td>
+<td>io.github.testlens.selenium.reporting</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-reporting/#io-github-testlens-selenium-reporting-reportproxyoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.reporting.ReportProxyOptions</td>
+<td>io.github.testlens.selenium.reporting</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-reporting/#io-github-testlens-selenium-reporting-reportproxyoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.reporting.ReportUploadException</td>
+<td>io.github.testlens.selenium.reporting</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-reporting/#io-github-testlens-selenium-reporting-reportuploadexception">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.reporting.ReportUploadFailureCategory</td>
+<td>io.github.testlens.selenium.reporting</td>
+<td>USER_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-reporting/#io-github-testlens-selenium-reporting-reportuploadfailurecategory">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.reporting.ReportUploadOptions$Builder</td>
+<td>io.github.testlens.selenium.reporting</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-reporting/#io-github-testlens-selenium-reporting-reportuploadoptions-builder">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.reporting.ReportUploadOptions</td>
+<td>io.github.testlens.selenium.reporting</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-reporting/#io-github-testlens-selenium-reporting-reportuploadoptions">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.reporting.ReportUploadResult</td>
+<td>io.github.testlens.selenium.reporting</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-reporting/#io-github-testlens-selenium-reporting-reportuploadresult">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.reporting.ReportUploadStatus</td>
+<td>io.github.testlens.selenium.reporting</td>
+<td>USER_API</td>
+<td>enum</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-reporting/#io-github-testlens-selenium-reporting-reportuploadstatus">signatures</a></td>
+</tr>
+<tr>
+<td>io.github.testlens.selenium.reporting.ReportUploader</td>
+<td>io.github.testlens.selenium.reporting</td>
+<td>USER_API</td>
+<td>class</td>
+<td><a href="../public-api/selenium-test-lens-selenium-io-github-testlens-selenium-reporting/#io-github-testlens-selenium-reporting-reportuploader">signatures</a></td>
 </tr>
 <tr>
 <td>io.github.testlens.selenium.steps.UiStepError</td>

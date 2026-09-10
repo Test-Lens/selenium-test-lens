@@ -1451,6 +1451,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../observability/report-upload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Report upload
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../observability/flakiness/" class="md-nav__link">
         
   
@@ -2876,6 +2904,7 @@ not present in Maven Central 0.1.0.</p>
 </span></code></pre></div>
 <h2 id="outcome-and-ownership-contract">Outcome and ownership contract<a class="headerlink" href="#outcome-and-ownership-contract" title="Permanent link">&para;</a></h2>
 <p>The listener maps <code>SUCCESS</code> to <code>finishPassed()</code>, <code>FAILURE</code> and <code>SUCCESS_PERCENTAGE_FAILURE</code> to <code>finishFailed(originalThrowable)</code>, and <code>SKIP</code>/<code>SkipException</code> to <code>finishSkipped(reason)</code>. It finalizes reports before calling <code>driver.quit()</code> and then removes the <code>ITestResult</code> state. If the test already finalized its Lens, the first terminal outcome and the exactly-once report pipeline are reused; the callback does not create a second terminal event or bundle. Do not call <code>quit()</code> again from <code>@AfterMethod</code>.</p>
+<p>The listener never uploads reports. A test may explicitly finalize and synchronously upload before it returns; the listener then observes the existing terminal result and still owns its one driver cleanup. A suite-wide transport policy belongs in a project-owned listener ordered around the explicit <a href="../../observability/report-upload/">report uploader</a>, with credentials supplied from controlled configuration rather than test metadata.</p>
 <p>If cleanup fails after an already failed or skipped test, the cleanup error is suppressed on the original throwable. Cleanup failure after a passed test changes the TestNG result to failure. A setup failure remains primary; a driver already created before attach/session failure is still closed once.</p>
 <p>For <code>FAILURE</code> and <code>SUCCESS_PERCENTAGE_FAILURE</code>, the listener completes the failure bundle before its single <code>driver.quit()</code>. A partial bundle does not change TestNG status or replace the original throwable. Policy-induced failure follows the same ordering and is not finalized twice.</p>
 <p>Disabled tests, configuration methods, dependency-skipped methods, and tests blocked by a failed <code>@BeforeMethod</code> do not create a driver or empty session. Calling <code>TestLensTestNgContext.current()</code> outside a managed test method throws <code>IllegalStateException</code>.</p>

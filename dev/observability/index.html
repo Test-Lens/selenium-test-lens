@@ -1525,6 +1525,34 @@
   
   
     <li class="md-nav__item">
+      <a href="report-upload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Report upload
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="flakiness/" class="md-nav__link">
         
   
@@ -2735,6 +2763,7 @@
 
 <h1 id="observability">Observability<a class="headerlink" href="#observability" title="Permanent link">&para;</a></h1>
 <p>Observability is a primary Test Lens surface, not a side effect of element helpers.</p>
+<p>After a session is finalized locally, the development-line <a href="report-upload/">report uploader</a> can explicitly stream one completed ZIP to an HTTP receiver. Transport is separate from evidence capture: it is synchronous, never automatic, and never owns WebDriver.</p>
 <p>The persistent path is <code>operation → trace → finalization → report</code>; a final failed outcome can extend it with an automatic evidence bundle. The in-browser HUD is the live view of this pipeline, not its durable source of truth.</p>
 <div class="admonition info">
 <p class="admonition-title">Coming in 0.2.0</p>
