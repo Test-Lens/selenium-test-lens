@@ -52,7 +52,7 @@ Keep driver shutdown in your existing framework cleanup. If your project has spe
 
 Locator composition is runner-neutral. A locator can be created in setup or page-object code and later scoped, filtered, or count-waited in JUnit 5, TestNG, or a custom runner; it retains the owning driver's current frame/window and the parent locator's options and diagnostics.
 
-For a final `FAILED` status, finalization also completes the best-effort failure bundle before it returns. This preserves the live browser for screenshots, context and optional DOM/console capture. The JUnit 5 extension and TestNG listener therefore keep the same ordering: finish Lens and all bundle/report work first, then call `driver.quit()` exactly once.
+For a final `FAILED` status, finalization also completes the best-effort failure bundle before it returns. This preserves the live browser for screenshots, context and optional DOM/console capture. The JUnit 5 extension and TestNG listener therefore keep the same ordering: finish Lens and all bundle/report work first, then call `driver.quit()` exactly once. If application code already finalized that invocation's Lens, the adapter safely observes the same result or policy violation; it does not run the facade pipeline again. Lens finalizers themselves never call `quit()`.
 
 Pass one immutable `RedactionPolicy` through `TestLensOptions` when attaching the driver. The same policy protects logger sinks, trace, network/API diagnostics, reports, and failure-bundle text before runner-owned cleanup; it never replaces the throwable used by JUnit or TestNG. See [Sensitive-data redaction](security/redaction.md).
 

@@ -136,9 +136,11 @@ public final class TestLensTestNgListener implements IInvokedMethodListener {
     }
 
     private static void addSuppressed(Throwable primary, Throwable secondary) {
-        if (primary != secondary) {
-            primary.addSuppressed(secondary);
+        if (primary == secondary) return;
+        for (Throwable existing : primary.getSuppressed()) {
+            if (existing == secondary) return;
         }
+        primary.addSuppressed(secondary);
     }
 
     private static void rethrow(Throwable failure) {

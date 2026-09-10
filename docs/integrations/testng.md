@@ -97,7 +97,7 @@ public void afterInvocation(IInvokedMethod method, ITestResult result)
 
 ## Outcome and ownership contract
 
-The listener maps `SUCCESS` to `finishPassed()`, `FAILURE` and `SUCCESS_PERCENTAGE_FAILURE` to `finishFailed(originalThrowable)`, and `SKIP`/`SkipException` to `finishSkipped(reason)`. It finalizes reports before calling `driver.quit()` and then removes the `ITestResult` state. Do not call `quit()` again from `@AfterMethod`.
+The listener maps `SUCCESS` to `finishPassed()`, `FAILURE` and `SUCCESS_PERCENTAGE_FAILURE` to `finishFailed(originalThrowable)`, and `SKIP`/`SkipException` to `finishSkipped(reason)`. It finalizes reports before calling `driver.quit()` and then removes the `ITestResult` state. If the test already finalized its Lens, the first terminal outcome and the exactly-once report pipeline are reused; the callback does not create a second terminal event or bundle. Do not call `quit()` again from `@AfterMethod`.
 
 If cleanup fails after an already failed or skipped test, the cleanup error is suppressed on the original throwable. Cleanup failure after a passed test changes the TestNG result to failure. A setup failure remains primary; a driver already created before attach/session failure is still closed once.
 

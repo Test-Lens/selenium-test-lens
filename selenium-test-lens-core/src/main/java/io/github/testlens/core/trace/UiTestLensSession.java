@@ -130,6 +130,7 @@ public final class UiTestLensSession {
     }
 
     public synchronized void finishPassed() {
+        if (isFinished()) return;
         RetrySummary beforeDecision = retrySummary();
         retryPolicyTriggered = triggersPolicy(beforeDecision.totalRetries());
         RetrySummary decided = retrySummary();
@@ -145,11 +146,13 @@ public final class UiTestLensSession {
     }
 
     public synchronized void finishFailed(Throwable throwable) {
+        if (isFinished()) return;
         recordRetryDecision(retrySummary());
         finish(TraceStatus.FAILED, throwable, "");
     }
 
     public synchronized void finishSkipped(String reason) {
+        if (isFinished()) return;
         recordRetryDecision(retrySummary());
         finish(TraceStatus.SKIPPED, null, reason);
     }
@@ -216,6 +219,10 @@ public final class UiTestLensSession {
             event.failure(TraceFailure.from(throwable, false)).message(throwable.getMessage());
         }
         addEvent(event.build());
+    }
+
+    private boolean isFinished() {
+        return metadata.status() != TraceStatus.STARTED;
     }
 
     private boolean triggersPolicy(long totalRetries) {

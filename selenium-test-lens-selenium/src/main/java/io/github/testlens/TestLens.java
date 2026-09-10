@@ -26,17 +26,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.LinkedHashSet;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 /** Public, runner-agnostic entry point for attaching Test Lens to an existing WebDriver. */
 public final class TestLens {
     private final JsOverlayDebug delegate;
     private final TestLensOptions options;
+    private final Object finalizationLock = new Object();
+    private final Map<UiTestLensSession, FacadeFinalization> finalizations = new IdentityHashMap<>();
+    private final FinalizationObserver finalizationObserver;
 
     private TestLens(WebDriver driver, TestLensOptions options) {
+        this(driver, options, ignored -> { });
+    }
+
+    TestLens(WebDriver driver, TestLensOptions options, FinalizationObserver finalizationObserver) {
         this.options = options == null ? TestLensOptions.defaults() : options;
+        this.finalizationObserver = finalizationObserver == null ? ignored -> { } : finalizationObserver;
         this.delegate = new JsOverlayDebug(driver, this.options.overlayConfig(), this.options.redactionPolicy(),
                 this.options.locatorOptions());
     }
@@ -172,22 +183,62 @@ public final class TestLens {
     private TestLensFinalizationResult finish(FinalizationOutcome outcome,
                                               Throwable originalFailure,
                                               String skipReason) {
-        List<Throwable> diagnostics = new ArrayList<>();
         UiTestLensSession session = delegate.session().orElse(null);
         if (session == null) {
+            List<Throwable> diagnostics = new ArrayList<>();
             diagnostics.add(new IllegalStateException("No Test Lens session was started"));
             return new TestLensFinalizationResult(null, null, null, null, null, safeDiagnostics(diagnostics));
         }
 
+        FinalizationRequest request = requestFor(session, outcome, originalFailure, skipReason);
+        FacadeFinalization finalization;
+        boolean owner;
+        synchronized (finalizationLock) {
+            finalization = finalizations.computeIfAbsent(session, ignored -> new FacadeFinalization(request));
+            owner = finalization.claim();
+        }
+        if (owner) {
+            try {
+                finalization.complete(runFinalization(session, finalization.request()));
+            } catch (Throwable failure) {
+                finalization.complete(new FinalizationCompletion(null, failure));
+            }
+        }
+        return finalization.await();
+    }
+
+    private FinalizationRequest requestFor(UiTestLensSession session, FinalizationOutcome requested,
+                                           Throwable originalFailure, String skipReason) {
+        TraceStatus current = session.metadata().status();
+        if (current == TraceStatus.STARTED) {
+            return new FinalizationRequest(requested, originalFailure, skipReason, true);
+        }
+        FinalizationOutcome effective = switch (current) {
+            case PASSED -> FinalizationOutcome.PASSED;
+            case FAILED -> FinalizationOutcome.FAILED;
+            case SKIPPED -> FinalizationOutcome.SKIPPED;
+            default -> requested;
+        };
+        return new FinalizationRequest(effective, null, null, false);
+    }
+
+    private FinalizationCompletion runFinalization(UiTestLensSession session, FinalizationRequest request) {
+        List<Throwable> diagnostics = new ArrayList<>();
+        FinalizationOutcome outcome = request.outcome();
+        Throwable originalFailure = request.originalFailure();
+        String skipReason = request.skipReason();
+
         Path directory = sessionOutputDirectory(session);
         RetryPolicyViolationException policyViolation = null;
-        RetryPolicyViolationException predictedPolicyViolation = policyViolationFor(outcome, session);
+        RetryPolicyViolationException predictedPolicyViolation = request.finishSession()
+                ? policyViolationFor(outcome, session) : null;
         boolean failedOutcome = outcome == FinalizationOutcome.FAILED || predictedPolicyViolation != null;
         FailureBundleCapture bundle = failedOutcome && options.failureBundleOptions().enabled()
                 ? new FailureBundleCapture(driver(), delegate, session, options, directory) : null;
         Path screenshotPath = null;
 
         if (failedOutcome) {
+            observe(FinalizationStage.FAILURE_EVIDENCE);
             Throwable effectiveFailure = outcome == FinalizationOutcome.FAILED
                     ? originalFailure : predictedPolicyViolation;
             if (bundle != null) {
@@ -200,31 +251,45 @@ public final class TestLens {
         }
 
         try {
+            observe(FinalizationStage.NETWORK_STOP);
             delegate.stopNetworkDiagnostics();
         } catch (RuntimeException failure) {
             diagnostics.add(failure);
         }
 
-        try {
-            switch (outcome) {
-                case PASSED -> session.finishPassed();
-                case FAILED -> session.finishFailed(originalFailure);
-                case SKIPPED -> session.finishSkipped(skipReason);
+        if (request.finishSession()) {
+            try {
+                observe(FinalizationStage.SESSION_FINISH);
+                switch (outcome) {
+                    case PASSED -> session.finishPassed();
+                    case FAILED -> session.finishFailed(originalFailure);
+                    case SKIPPED -> session.finishSkipped(skipReason);
+                }
+            } catch (RetryPolicyViolationException failure) {
+                policyViolation = failure;
+            } catch (RuntimeException failure) {
+                diagnostics.add(failure);
             }
-        } catch (RetryPolicyViolationException failure) {
-            policyViolation = failure;
-        } catch (RuntimeException failure) {
-            diagnostics.add(failure);
         }
 
         Path json = directory.resolve("trace.json");
         Path html = directory.resolve("report.html");
-        try { session.exportJson(json); } catch (RuntimeException failure) { diagnostics.add(failure); json = null; }
-        try { session.exportHtml(html); } catch (RuntimeException failure) { diagnostics.add(failure); html = null; }
+        try {
+            observe(FinalizationStage.JSON_EXPORT);
+            session.exportJson(json);
+        } catch (RuntimeException failure) { diagnostics.add(failure); json = null; }
+        try {
+            observe(FinalizationStage.HTML_EXPORT);
+            session.exportHtml(html);
+        } catch (RuntimeException failure) { diagnostics.add(failure); html = null; }
         if (options.cleanupHudOnFinish()) {
-            try { delegate.clearDebugArtifacts(); } catch (RuntimeException failure) { diagnostics.add(failure); }
+            try {
+                observe(FinalizationStage.HUD_CLEANUP);
+                delegate.clearDebugArtifacts();
+            } catch (RuntimeException failure) { diagnostics.add(failure); }
         }
         if (bundle != null) {
+            observe(FinalizationStage.BUNDLE_COMPLETE);
             bundle.complete(json, html);
             diagnostics.addAll(bundle.failures());
         }
@@ -236,9 +301,13 @@ public final class TestLens {
             safeDiagnostics.forEach(failure -> {
                 if (failure != finalPolicyViolation) finalPolicyViolation.addSuppressed(failure);
             });
-            throw finalPolicyViolation;
+            return new FinalizationCompletion(result, finalPolicyViolation);
         }
-        return result;
+        return new FinalizationCompletion(result, null);
+    }
+
+    private void observe(FinalizationStage stage) {
+        finalizationObserver.before(stage);
     }
 
     private RetryPolicyViolationException policyViolationFor(FinalizationOutcome outcome, UiTestLensSession session) {
@@ -289,6 +358,59 @@ public final class TestLens {
         PASSED,
         FAILED,
         SKIPPED
+    }
+
+    enum FinalizationStage {
+        FAILURE_EVIDENCE,
+        NETWORK_STOP,
+        SESSION_FINISH,
+        JSON_EXPORT,
+        HTML_EXPORT,
+        HUD_CLEANUP,
+        BUNDLE_COMPLETE
+    }
+
+    @FunctionalInterface
+    interface FinalizationObserver {
+        void before(FinalizationStage stage);
+    }
+
+    private record FinalizationRequest(FinalizationOutcome outcome, Throwable originalFailure,
+                                       String skipReason, boolean finishSession) { }
+
+    private record FinalizationCompletion(TestLensFinalizationResult result, Throwable terminalFailure) { }
+
+    private static final class FacadeFinalization {
+        private final FinalizationRequest request;
+        private final CompletableFuture<FinalizationCompletion> completion = new CompletableFuture<>();
+        private boolean claimed;
+
+        private FacadeFinalization(FinalizationRequest request) {
+            this.request = request;
+        }
+
+        private boolean claim() {
+            if (claimed) return false;
+            claimed = true;
+            return true;
+        }
+
+        private FinalizationRequest request() {
+            return request;
+        }
+
+        private void complete(FinalizationCompletion value) {
+            completion.complete(value);
+        }
+
+        private TestLensFinalizationResult await() {
+            FinalizationCompletion value = completion.join();
+            Throwable failure = value.terminalFailure();
+            if (failure instanceof RuntimeException runtimeException) throw runtimeException;
+            if (failure instanceof Error error) throw error;
+            if (failure != null) throw new RuntimeException(failure);
+            return value.result();
+        }
     }
 
     private static final class DiagnosticFailure extends RuntimeException {

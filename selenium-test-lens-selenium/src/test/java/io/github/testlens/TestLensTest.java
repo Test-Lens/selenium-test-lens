@@ -11,6 +11,7 @@ import io.github.testlens.selenium.network.NetworkCaptureMode;
 import io.github.testlens.selenium.network.NetworkDiagnostics;
 import io.github.testlens.selenium.network.NetworkDiagnosticsOptions;
 import io.github.testlens.selenium.network.NetworkDiagnosticsStatus;
+import io.github.testlens.selenium.evidence.FailureBundleOptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.openqa.selenium.JavascriptExecutor;
@@ -22,6 +23,13 @@ import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.time.Duration;
 
@@ -300,6 +308,125 @@ class TestLensTest {
         assertDiagnosticFailureKeepsStatus(notDirectory, TraceStatus.SKIPPED);
     }
 
+    @Test
+    void repeatedFacadeFinalizersReturnOneResultAndRunEverySideEffectOnce() {
+        AtomicInteger screenshotCalls = new AtomicInteger();
+        AtomicInteger quitCalls = new AtomicInteger();
+        Map<TestLens.FinalizationStage, AtomicInteger> stages = stageCounters();
+        WebDriver driver = screenshotLifecycleDriver(screenshotCalls, quitCalls);
+        TestLens lens = new TestLens(driver, TestLensOptions.builder().outputRoot(temp).build(),
+                stage -> stages.get(stage).incrementAndGet());
+        UiTestLensSession session = lens.startSession("exactly once");
+        lens.network().start(NetworkDiagnosticsOptions.builder()
+                .captureMode(NetworkCaptureMode.MANUAL).build());
+
+        TestLensFinalizationResult first = lens.finishFailed(new AssertionError("original"));
+        TestLensFinalizationResult second = lens.finishPassed();
+        TestLensFinalizationResult third = lens.finishSkipped("late");
+
+        assertSame(first, second);
+        assertSame(first, third);
+        assertEquals(TraceStatus.FAILED, session.metadata().status());
+        assertEquals(1, finishedEvents(session).size());
+        assertEquals(2, screenshotCalls.get(), "diagnostic and clean screenshots must be captured once each");
+        assertTrue(Files.exists(first.jsonReport()));
+        assertTrue(Files.exists(first.htmlReport()));
+        assertTrue(first.failureBundleManifest().isPresent());
+        assertTrue(first.failureBundleArchive().isPresent());
+        assertFalse(lens.network().isStarted());
+        assertEquals(0, quitCalls.get());
+        stages.forEach((stage, calls) -> assertEquals(1, calls.get(), stage.name()));
+    }
+
+    @Test
+    void concurrentFacadeFinalizersShareOneFullyBuiltResultAcrossOneHundredIterations() throws Exception {
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            for (int iteration = 0; iteration < 100; iteration++) {
+                CountDownLatch ownerEntered = new CountDownLatch(1);
+                CountDownLatch releaseOwner = new CountDownLatch(1);
+                AtomicInteger pipelineCalls = new AtomicInteger();
+                TestLens lens = new TestLens(driver(false), TestLensOptions.builder()
+                        .outputRoot(temp.resolve("concurrent-" + iteration))
+                        .failureBundleOptions(FailureBundleOptions.builder().enabled(false).build())
+                        .cleanupHudOnFinish(false)
+                        .build(), stage -> {
+                    pipelineCalls.incrementAndGet();
+                    if (stage == TestLens.FinalizationStage.NETWORK_STOP) {
+                        ownerEntered.countDown();
+                        await(releaseOwner);
+                    }
+                });
+                UiTestLensSession session = lens.startSession("iteration " + iteration);
+
+                Future<TestLensFinalizationResult> owner = executor.submit(lens::finishPassed);
+                assertTrue(ownerEntered.await(5, TimeUnit.SECONDS));
+                Future<TestLensFinalizationResult> contender = executor.submit(
+                        () -> lens.finishFailed(new AssertionError("late failure")));
+                releaseOwner.countDown();
+
+                TestLensFinalizationResult first = owner.get(5, TimeUnit.SECONDS);
+                TestLensFinalizationResult second = contender.get(5, TimeUnit.SECONDS);
+                assertSame(first, second, "iteration " + iteration);
+                assertEquals(TraceStatus.PASSED, session.metadata().status());
+                assertEquals(1, finishedEvents(session).size());
+                assertEquals(4, pipelineCalls.get(), "network, session, JSON and HTML stages");
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void retryPolicyViolationIsReplayedByIdentityWithoutRepeatingPipeline() {
+        AtomicInteger screenshotCalls = new AtomicInteger();
+        Map<TestLens.FinalizationStage, AtomicInteger> stages = stageCounters();
+        TestLens lens = new TestLens(screenshotDriver(screenshotCalls), TestLensOptions.builder()
+                .outputRoot(temp)
+                .retryOutcomePolicy(RetryOutcomePolicy.FAIL_ON_ANY_RETRY)
+                .build(), stage -> stages.get(stage).incrementAndGet());
+        UiTestLensSession session = lens.startSession("policy replay");
+        session.addEvent(retryEvent());
+
+        RetryPolicyViolationException first = assertThrows(RetryPolicyViolationException.class, lens::finishPassed);
+        RetryPolicyViolationException second = assertThrows(RetryPolicyViolationException.class,
+                () -> lens.finishFailed(new AssertionError("late")));
+        RetryPolicyViolationException third = assertThrows(RetryPolicyViolationException.class,
+                () -> lens.finishSkipped("late"));
+
+        assertSame(first, second);
+        assertSame(first, third);
+        assertEquals(TraceStatus.FAILED, session.metadata().status());
+        assertEquals(1, finishedEvents(session).size());
+        assertEquals(2, screenshotCalls.get());
+        stages.forEach((stage, calls) -> assertEquals(1, calls.get(), stage.name()));
+    }
+
+    @Test
+    void facadeRespectsDirectlyFinishedSessionAndUsesFreshStateForNextSession() {
+        AtomicInteger exportStages = new AtomicInteger();
+        TestLens lens = new TestLens(driver(false), TestLensOptions.builder()
+                .outputRoot(temp).screenshotOnFailure(false).build(), stage -> {
+            if (stage == TestLens.FinalizationStage.JSON_EXPORT
+                    || stage == TestLens.FinalizationStage.HTML_EXPORT) exportStages.incrementAndGet();
+        });
+        UiTestLensSession firstSession = lens.startSession("directly finished");
+        firstSession.finishSkipped("manual reason");
+
+        TestLensFinalizationResult first = lens.finishPassed();
+        TestLensFinalizationResult repeated = lens.finishFailed(new AssertionError("late"));
+        UiTestLensSession secondSession = lens.startSession("fresh session");
+        TestLensFinalizationResult second = lens.finishPassed();
+
+        assertSame(first, repeated);
+        assertEquals(TraceStatus.SKIPPED, firstSession.metadata().status());
+        assertEquals("manual reason", finishedEvents(firstSession).get(0).message());
+        assertEquals(1, finishedEvents(firstSession).size());
+        assertEquals(TraceStatus.PASSED, secondSession.metadata().status());
+        assertNotSame(first, second);
+        assertEquals(4, exportStages.get(), "each distinct session exports JSON and HTML once");
+    }
+
     private static void assertDiagnosticFailureKeepsStatus(Path outputRoot, TraceStatus expected) {
         TestLens lens = TestLens.attach(driver(true), TestLensOptions.builder()
                 .outputRoot(outputRoot)
@@ -322,6 +449,23 @@ class TestLensTest {
         return session.events().stream()
                 .filter(event -> event.type() == TraceEventType.SESSION_FINISHED)
                 .toList();
+    }
+
+    private static Map<TestLens.FinalizationStage, AtomicInteger> stageCounters() {
+        Map<TestLens.FinalizationStage, AtomicInteger> counters = new EnumMap<>(TestLens.FinalizationStage.class);
+        for (TestLens.FinalizationStage stage : TestLens.FinalizationStage.values()) {
+            counters.put(stage, new AtomicInteger());
+        }
+        return counters;
+    }
+
+    private static void await(CountDownLatch latch) {
+        try {
+            if (!latch.await(5, TimeUnit.SECONDS)) throw new AssertionError("timed out waiting for test latch");
+        } catch (InterruptedException failure) {
+            Thread.currentThread().interrupt();
+            throw new AssertionError(failure);
+        }
     }
 
     private static TraceEvent retryEvent() {
@@ -379,6 +523,33 @@ class TestLensTest {
                     }
                     if (method.getName().startsWith("execute")) return null;
                     if (method.getName().equals("toString")) return "screenshot-driver";
+                    Class<?> type = method.getReturnType();
+                    if (type == boolean.class) return false;
+                    if (type.isPrimitive()) return 0;
+                    return null;
+                });
+    }
+
+    private WebDriver screenshotLifecycleDriver(AtomicInteger screenshotCalls, AtomicInteger quitCalls) {
+        Path source = temp.resolve("lifecycle-screenshot.png");
+        try {
+            Files.write(source, new byte[]{4, 5, 6});
+        } catch (java.io.IOException failure) {
+            throw new RuntimeException(failure);
+        }
+        return (WebDriver) Proxy.newProxyInstance(TestLensTest.class.getClassLoader(),
+                new Class<?>[]{WebDriver.class, JavascriptExecutor.class, TakesScreenshot.class},
+                (proxy, method, args) -> {
+                    if (method.getName().equals("getScreenshotAs")) {
+                        screenshotCalls.incrementAndGet();
+                        return source.toFile();
+                    }
+                    if (method.getName().equals("quit")) {
+                        quitCalls.incrementAndGet();
+                        return null;
+                    }
+                    if (method.getName().startsWith("execute")) return null;
+                    if (method.getName().equals("toString")) return "screenshot-lifecycle-driver";
                     Class<?> type = method.getReturnType();
                     if (type == boolean.class) return false;
                     if (type.isPrimitive()) return 0;

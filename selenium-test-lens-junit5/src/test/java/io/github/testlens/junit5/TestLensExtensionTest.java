@@ -73,6 +73,34 @@ class TestLensExtensionTest {
     }
 
     @Test
+    void adapterCleanupAfterManualFinalizationDoesNotRepeatTheSessionPipeline() {
+        execute(ManuallyFinalizedFixture.class).testEvents()
+                .assertStatistics(stats -> stats.started(1).succeeded(1));
+
+        Observation observation = Harness.onlyObservation();
+        assertEquals(TraceStatus.PASSED, observation.session.metadata().status());
+        assertEquals(1, observation.session.events().stream()
+                .filter(event -> event.type() == TraceEventType.SESSION_FINISHED).count());
+        assertReportsExist(observation.session);
+        assertEquals(1, observation.driver.quitCalls.get());
+    }
+
+    @Test
+    void manuallyTriggeredPolicyViolationIsNotFinalizedOrSuppressedTwice() {
+        EngineExecutionResults results = execute(ManuallyFinalizedPolicyFixture.class);
+        results.testEvents().assertStatistics(stats -> stats.started(1).failed(1));
+
+        Throwable failure = results.testEvents().failed().list().get(0)
+                .getRequiredPayload(TestExecutionResult.class).getThrowable().orElseThrow();
+        assertTrue(failure instanceof RetryPolicyViolationException);
+        assertEquals(0, failure.getSuppressed().length);
+        Observation observation = Harness.onlyObservation();
+        assertEquals(1, observation.session.events().stream()
+                .filter(event -> event.type() == TraceEventType.SESSION_FINISHED).count());
+        assertEquals(1, observation.driver.quitCalls.get());
+    }
+
+    @Test
     void failedInvocationPreservesOriginalFailureAndQuitsOnce() {
         Harness.testFailure = new AssertionError("original test failure");
         execute(FailedFixture.class).testEvents()
@@ -276,6 +304,17 @@ class TestLensExtensionTest {
         }
     }
 
+    static final class ManuallyFinalizedFixture {
+        @RegisterExtension
+        static final TestLensExtension LENS = Harness.extension();
+
+        @Test
+        void passes(WebDriver driver, TestLens lens) {
+            Harness.observe("manual", driver, lens);
+            lens.finishPassed();
+        }
+    }
+
     static final class FailedFixture {
         @RegisterExtension
         static final TestLensExtension LENS = Harness.extension();
@@ -423,6 +462,24 @@ class TestLensExtensionTest {
             Harness.observe("policy", driver, lens);
             lens.session().orElseThrow().addEvent(TraceEvent.builder(TraceEventType.RETRY, TraceStatus.WARNING, "retry")
                     .duration(Duration.ofMillis(1)).build());
+        }
+    }
+
+    static final class ManuallyFinalizedPolicyFixture {
+        @RegisterExtension
+        static final TestLensExtension LENS = TestLensExtension.builder(Harness::newDriver)
+                .lensOptions(TestLensOptions.builder().outputRoot(Harness.outputRoot)
+                        .screenshotOnFailure(false)
+                        .retryOutcomePolicy(RetryOutcomePolicy.FAIL_ON_ANY_RETRY).build())
+                .build();
+
+        @Test
+        void policyFailure(WebDriver driver, TestLens lens) {
+            Harness.observe("manual-policy", driver, lens);
+            lens.session().orElseThrow().addEvent(TraceEvent.builder(
+                    TraceEventType.RETRY, TraceStatus.WARNING, "retry")
+                    .duration(Duration.ofMillis(1)).build());
+            lens.finishPassed();
         }
     }
 

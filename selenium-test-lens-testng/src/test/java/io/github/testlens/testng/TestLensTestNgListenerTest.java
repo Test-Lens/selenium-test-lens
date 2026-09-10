@@ -66,6 +66,32 @@ class TestLensTestNgListenerTest {
     }
 
     @Test
+    void listenerCleanupAfterManualFinalizationDoesNotRepeatPipeline() {
+        run(ManuallyFinalizedFixture.class);
+
+        Observation observation = Harness.onlyObservation();
+        assertEquals(TraceStatus.PASSED, observation.session.metadata().status());
+        assertEquals(1, observation.session.events().stream()
+                .filter(event -> event.type() == TraceEventType.SESSION_FINISHED).count());
+        assertReportsExist(observation);
+        assertEquals(1, observation.driver.quitCalls.get());
+        assertEquals(1, Harness.passed().size());
+    }
+
+    @Test
+    void manuallyTriggeredPolicyViolationIsNotFinalizedOrSuppressedTwice() {
+        run(ManuallyFinalizedPolicyFixture.class);
+
+        ITestResult result = Harness.failed().get(0);
+        assertTrue(result.getThrowable() instanceof RetryPolicyViolationException);
+        assertEquals(0, result.getThrowable().getSuppressed().length);
+        Observation observation = Harness.onlyObservation();
+        assertEquals(1, observation.session.events().stream()
+                .filter(event -> event.type() == TraceEventType.SESSION_FINISHED).count());
+        assertEquals(1, observation.driver.quitCalls.get());
+    }
+
+    @Test
     void failurePreservesTheSameThrowableAndNullFailureStillFinalizesFailed() {
         Harness.testFailure = new AssertionError("original failure");
         run(FailedFixture.class);
@@ -286,6 +312,15 @@ class TestLensTestNgListenerTest {
 
     @Listeners(TestLensTestNgListener.class)
     @TestLensTestNg(factory = HarnessFactory.class)
+    public static class ManuallyFinalizedFixture {
+        @org.testng.annotations.Test public void passes() {
+            Harness.observe("manual");
+            TestLensTestNgContext.current().lens().finishPassed();
+        }
+    }
+
+    @Listeners(TestLensTestNgListener.class)
+    @TestLensTestNg(factory = HarnessFactory.class)
     public static class FailedFixture {
         @org.testng.annotations.Test public void fails() { Harness.observe("failure"); throw Harness.testFailure; }
     }
@@ -405,6 +440,18 @@ class TestLensTestNgListenerTest {
             TestLensTestNgContext.current().session().addEvent(
                     TraceEvent.builder(TraceEventType.RETRY, TraceStatus.WARNING, "retry")
                             .duration(Duration.ofMillis(1)).build());
+        }
+    }
+
+    @Listeners(TestLensTestNgListener.class)
+    @TestLensTestNg(factory = PolicyFactory.class)
+    public static class ManuallyFinalizedPolicyFixture {
+        @org.testng.annotations.Test public void policyFailure() {
+            Harness.observe("manual-policy");
+            TestLensTestNgContext context = TestLensTestNgContext.current();
+            context.session().addEvent(TraceEvent.builder(TraceEventType.RETRY, TraceStatus.WARNING, "retry")
+                    .duration(Duration.ofMillis(1)).build());
+            context.lens().finishPassed();
         }
     }
 

@@ -4,6 +4,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+- Fixed session and facade finalization to be first-writer-wins and exactly-once per session. Repeated or concurrent finalizers now share one completed result (or the same retry-policy violation), preserve the first terminal outcome, and never repeat screenshots, network shutdown, exports, HUD cleanup, or failure-bundle creation.
 - Fixed page/JavaScript waits so the main `TestLens` facade exposes document readiness and observed XHR/fetch idle waits using the configured locator timeout and polling interval. Network-idle timeout now throws, terminal JavaScript failures are preserved, React/SPA combinations share one deadline, and wait diagnostics emit one start plus one terminal event without creating recovery retries.
 - Versioned published documentation with `mike`: immutable stable 0.1.0, an explicitly unreleased `/dev/`, a stable `latest` alias, and serialized full-branch GitHub Pages deployment.
 - Fixed a capture lifecycle race where `stop()` during an in-progress BiDi initialization could be undone by the late completion of that initialization. Stopping now invalidates the generation before returning; stale sources are closed once and cannot publish state or events.

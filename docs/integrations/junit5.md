@@ -82,7 +82,7 @@ class OrderTest {
 
 The `driverFactory` is called exactly once for each invocation. `WebDriver` and `TestLens` parameters refer to that same invocation and the Lens is attached to that exact driver. Other parameter types are left to JUnit or other registered resolvers.
 
-Do not call `driver.quit()` in `@AfterEach`: the extension owns the returned driver. It finalizes Lens and its JSON/HTML reports first, then calls `quit()` exactly once. `TestLens` itself still never closes the driver.
+Do not call `driver.quit()` in `@AfterEach`: the extension owns the returned driver. It finalizes Lens and its JSON/HTML reports first, then calls `quit()` exactly once. `TestLens` itself still never closes the driver. A test may have already called a Lens finalizer; the extension then reuses that session's first terminal result without duplicating reports, evidence, or terminal events, and still performs its one owned driver cleanup.
 
 ## Configure Lens and names
 
