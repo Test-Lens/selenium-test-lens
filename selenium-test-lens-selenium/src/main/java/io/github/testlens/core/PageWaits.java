@@ -23,7 +23,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/** Existing low-level page and JavaScript wait helper. */
+/**
+ * Provides condition polling for document, JavaScript-observed XHR/fetch, and SPA/React state.
+ * A timeout is the total operation budget, including every stage of a composite wait. Condition polling is
+ * distinct from recovery retry and does not make a session flaky.
+ */
 public class PageWaits {
     private static final Duration LEGACY_DEFAULT_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration DEFAULT_POLL_INTERVAL = Duration.ofMillis(100);
@@ -77,10 +81,15 @@ public class PageWaits {
         this.sleeper = sleeper == null ? Sleeper.SYSTEM_SLEEPER : sleeper;
     }
 
+    /** Waits until one {@code document.readyState} observation per poll returns {@code complete}. */
     public void waitForDocumentReady() {
         waitForDocumentReady(defaultTimeout);
     }
 
+    /**
+     * Waits until {@code document.readyState} is {@code complete} within the supplied total timeout.
+     * Terminal WebDriver or JavaScript failures are propagated rather than converted to timeouts.
+     */
     public void waitForDocumentReady(Duration timeout) {
         Duration effectiveTimeout = timeoutOrDefault(timeout);
         execute("DOCUMENT_READY", "DOCUMENT_READY_STATE", effectiveTimeout, null, context -> {
@@ -92,10 +101,12 @@ public class PageWaits {
         });
     }
 
+    /** Waits until {@code document.readyState} is {@code interactive} or {@code complete}. */
     public void waitForInteractiveOrComplete() {
         waitForInteractiveOrComplete(defaultTimeout);
     }
 
+    /** Waits for an interactive or complete document within the supplied total timeout. */
     public void waitForInteractiveOrComplete(Duration timeout) {
         Duration effectiveTimeout = timeoutOrDefault(timeout);
         execute("DOCUMENT_INTERACTIVE", "DOCUMENT_READY_STATE", effectiveTimeout, null, context -> {
@@ -108,6 +119,12 @@ public class PageWaits {
         });
     }
 
+    /**
+     * Waits until the injected tracker observes zero active XHR/fetch requests for the entire idle duration.
+     * The tracker observes only XHR and fetch operations started after its installation in the current document;
+     * it does not cover earlier requests, images, style sheets, scripts, WebSockets, EventSource, or beacons, and
+     * therefore is not a complete browser-network-idle signal.
+     */
     public void waitForNetworkIdle(Duration idleDuration, Duration timeout) {
         Duration effectiveIdle = nonNegative(idleDuration == null ? DEFAULT_NETWORK_IDLE : idleDuration, "idleDuration");
         Duration effectiveTimeout = timeoutOrDefault(timeout);
@@ -133,6 +150,7 @@ public class PageWaits {
         });
     }
 
+    /** Waits for the default XHR/fetch idle window using the configured default timeout. */
     public void waitForNetworkIdle() {
         waitForNetworkIdle(DEFAULT_NETWORK_IDLE, defaultTimeout);
     }
@@ -164,6 +182,9 @@ public class PageWaits {
         return waitForReactComponentVisible(rootLocator, componentLocator, defaultTimeout);
     }
 
+    /**
+     * Waits for the React root, DOM stability, and component visibility under one shared timeout deadline.
+     */
     public WebElement waitForReactComponentVisible(By rootLocator, By componentLocator, Duration timeout) {
         Duration effectiveTimeout = timeoutOrDefault(timeout);
         return execute("REACT_COMPONENT_VISIBLE", "DOCUMENT_READY_STATE", effectiveTimeout, null, context -> {
@@ -185,6 +206,10 @@ public class PageWaits {
         waitForReactAndNetworkIdle(rootLocator, defaultTimeout);
     }
 
+    /**
+     * Waits for document readiness, observed XHR/fetch idle, a mounted React root, and DOM stability under
+     * one shared timeout deadline.
+     */
     public void waitForReactAndNetworkIdle(By rootLocator, Duration timeout) {
         Duration effectiveTimeout = timeoutOrDefault(timeout);
         execute("REACT_AND_NETWORK_IDLE", "JS_XHR_FETCH_TRACKER", effectiveTimeout, DEFAULT_NETWORK_IDLE, context -> {

@@ -929,7 +929,7 @@ public final class JsOverlayDebug {
     //  WAIT INDICATOR (klepsydra)
     // ======================================================================
 
-    /** Pokazuje prosty indykator "czekam" w overlay (klepsydra). */
+    /** Shows a decorative wait indicator in the overlay. */
     public void showWaitIndicator(String label) {
         try {
             ensureWaitHudInjected();
@@ -951,7 +951,7 @@ public final class JsOverlayDebug {
                 .build());
     }
 
-    /** Chowa indykator "czekam". */
+    /** Hides the decorative wait indicator. */
     public void hideWaitIndicator() {
         try {
             ensureWaitHudInjected();
@@ -1021,7 +1021,7 @@ public final class JsOverlayDebug {
         showLastWaitInHud();
     }
 
-    /** Wpisuje ostatni komunikat z PageWaits do HUD. */
+    /** Copies the last {@link PageWaits} diagnostic message to the HUD. */
     public void showLastWaitInHud() {
         // 1) HUD – best effort (nie może wysadzić testu)
         try {
@@ -1302,14 +1302,14 @@ public final class JsOverlayDebug {
         //  ELEMENT-BASED ASSERTIONS (WebElement)
         // =================================================================
 
-        /** BACKWARD-COMPAT: stara nazwa, alias do equals(element, ...) */
+        /** Preserves the legacy name as an alias for {@link #equals(WebElement, String, String)}. */
         public boolean textEquals(WebElement element,
                                   String expected,
                                   String contextLabel) {
             return equals(element, expected, contextLabel);
         }
 
-        /** Tekst elementu (getText) == expected. */
+        /** Compares the modified element text with the modified expected text. */
         public boolean equals(WebElement element,
                               String expected,
                               java.util.function.Function<String, String> modifier,
@@ -1389,11 +1389,7 @@ public final class JsOverlayDebug {
             return r.isSuccess();
         }
 
-        /**
-         * Element-based CONTAINS:
-         * - pobiera element.getText()
-         * - AssertActions.assertTextContains(...) robi HUD log + RAMKA + BADGE (stackowane)
-         */
+        /** Checks the element text and records the result in the HUD and grouped assertion summary. */
         public boolean contains(WebElement element,
                                 String expectedSubstring,
                                 String contextLabel) {
@@ -1406,7 +1402,7 @@ public final class JsOverlayDebug {
         //  GENERIC / VALUE-BASED ASSERTIONS (bez WebElement, bez locatora)
         // =================================================================
 
-        /** Generic equals (bez elementu). */
+        /** Compares values without an associated element. */
         public boolean equals(Object actual,
                               Object expected,
                               String contextLabel) {

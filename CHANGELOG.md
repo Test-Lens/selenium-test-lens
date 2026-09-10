@@ -4,6 +4,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+- Standardized published API Javadocs in English, clarified interaction, polling, lifecycle, network, evidence, and redaction contracts, and added a CI validator for Polish Javadoc text (including common words written without diacritics).
 - Reorganized README and development documentation around Test Lens's observable interaction, scoped-query, recovery, trace/evidence, and diagnostic-redaction capabilities; clarified native click/recovery behavior and corrected local 0.1.0 versus 0.2.0 feature boundaries.
 - Fixed central throwable redaction so trace, log exporters, retry summaries, network diagnostics, and failure reports retain the original exception class as structured `exceptionType` provenance while external sinks continue to receive only the redacted diagnostic copy.
 - Fixed suite report aggregation so unfinished `STARTED` sessions can no longer be presented as a passed suite. JSON now records `summary.started`, HTML identifies incomplete sessions, and HTML/JSON/ZIP export remains a non-mutating diagnostic snapshot.

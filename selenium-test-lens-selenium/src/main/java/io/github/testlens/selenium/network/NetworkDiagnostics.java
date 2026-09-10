@@ -27,7 +27,12 @@ import java.util.Optional;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-/** Passive MANUAL or WebDriver BiDi network diagnostics for one WebDriver session. */
+/**
+ * Provides passive manual or WebDriver BiDi network diagnostics for one WebDriver session.
+ * Requested and active capture modes are distinct: unsupported or failed starts never constitute a valid capture
+ * snapshot. The component observes metadata exposed by WebDriver BiDi; it does not intercept, mock, or capture
+ * request or response bodies, and it does not fall back to CDP or performance logs.
+ */
 public final class NetworkDiagnostics {
     private final WebDriver driver;
     private final OverlayLogger logger;
@@ -67,7 +72,11 @@ public final class NetworkDiagnostics {
         this.captureFactory = Objects.requireNonNull(captureFactory, "captureFactory");
     }
 
-    /** Starts the requested capture mode without falling back to another source. */
+    /**
+     * Starts a new capture generation in the requested mode without falling back to another source.
+     * A concurrent {@link #stop()} invalidates an initialization in progress; late callbacks and late completion
+     * from that generation cannot reactivate capture.
+     */
     public NetworkDiagnostics start(NetworkDiagnosticsOptions requestedOptions) {
         stop();
         NetworkDiagnosticsOptions effective = requestedOptions == null
@@ -166,7 +175,10 @@ public final class NetworkDiagnostics {
                 UiTestLensLogLevel.WARN, "Cancelled network capture cleanup failed", null, failure);
     }
 
-    /** Stops active capture, preserves collected events, and never closes the WebDriver. */
+    /**
+     * Stops or invalidates the current capture generation, preserves collected events, and never closes the
+     * WebDriver. A successfully activated generation remains a valid diagnostic snapshot after it is stopped.
+     */
     public NetworkDiagnostics stop() {
         NetworkCaptureSource source;
         lock.lock();
@@ -226,7 +238,7 @@ public final class NetworkDiagnostics {
         try { return options.captureMode(); } finally { lock.unlock(); }
     }
 
-    /** Returns the actual active source, which can differ from requested {@code AUTO}. */
+    /** Returns the actual active capture mode, which can differ from requested {@code AUTO}. */
     public Optional<NetworkCaptureMode> activeCaptureMode() {
         lock.lock();
         try { return started ? Optional.ofNullable(activeMode) : Optional.empty(); } finally { lock.unlock(); }
@@ -256,6 +268,11 @@ public final class NetworkDiagnostics {
         return redactEvent(recorded == null ? event : recorded);
     }
 
+    /**
+     * Asserts that a valid active or previously activated capture generation contains no failed requests.
+     * Never-started, {@code OFF}, unsupported, initializing, and failed-start states fail the assertion rather
+     * than treating an absence of data as success.
+     */
     public NetworkDiagnosticsResult assertNoFailedRequests() {
         Instant startedAt = Instant.now();
         AssertionCaptureSnapshot snapshot = assertionCaptureSnapshot();

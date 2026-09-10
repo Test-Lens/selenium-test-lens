@@ -77,6 +77,12 @@ jobs:
         shell: pwsh
         run: ./scripts/check-doc-signatures.ps1
 
+      - name: Check published Javadoc language
+        shell: pwsh
+        run: |
+          ./scripts/check-public-javadoc-language.ps1
+          ./scripts/test-public-javadoc-language.ps1
+
       - name: Build release artifacts
         run: mvn -U -Prelease-artifacts -DskipTests package
 

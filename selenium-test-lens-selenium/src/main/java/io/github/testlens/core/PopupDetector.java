@@ -28,9 +28,7 @@ public PopupDetector(WebDriver driver,
     this.highlightActions = highlightActions;
 }
 
-/**
- * Szuka potencjalnego popupa na wierzchu i zwraca go jako WebElement (jeśli jest).
- */
+/** Returns the highest-scoring visible popup candidate, if one is detected. */
 public Optional<WebElement> findTopMostPopup() {
     Object result = js.executeScript(detectPopupScript());
     if (result instanceof WebElement) {
@@ -201,10 +199,10 @@ public Optional<WebElement> findTopMostPopup() {
 
 
 /**
- * Wykrywa potencjalny popup i jeśli jest, podświetla go overlayem.
+ * Detects a popup candidate and applies visual decoration when the overlay is enabled.
  *
- * @param label etykieta, np. \"POPUP\" albo \"MODAL\"
- * @return true, jeśli popup został wykryty, false jeśli nie.
+ * @param label the visual label, such as {@code POPUP} or {@code MODAL}
+ * @return {@code true} if a popup candidate was detected; otherwise {@code false}
  */
 public boolean highlightPopupIfPresent(String label) {
     Optional<WebElement> popupOpt = findTopMostPopup();
@@ -219,11 +217,10 @@ public boolean highlightPopupIfPresent(String label) {
     return false;
 }
     /**
-     * Próbuje zamknąć popup/overlay:
-     * 1) najpierw po globalOverlayCloseButtonSelector (jeśli ustawiony),
-     * 2) potem heurystycznie – overlay na środku ekranu + przycisk close/accept.
+     * Attempts to close a popup using the configured global selector first and viewport-center
+     * overlay heuristics second.
      *
-     * @return true jeśli coś zostało realnie kliknięte, false jeśli nic nie znaleziono.
+     * @return {@code true} if a close control was clicked; otherwise {@code false}
      */
     public boolean closePopupIfPresent(String overlayLabel, String closeButtonLabel) {
         // 1) najpierw próba globalnego selektora (np. #acceptCookies)
@@ -271,16 +268,11 @@ public boolean highlightPopupIfPresent(String label) {
         }
     }
 
-    /**
-     * Wygodna wersja z domyślnymi labelkami.
-     */
+    /** Attempts to close a popup using the default visual labels. */
     public boolean closePopupIfPresent() {
         return closePopupIfPresent("POPUP", "CLOSE");
     }
-    /**
-     * Próbuje znaleźć globalny przycisk zamykający popup na podstawie
-     * config.getGlobalOverlayCloseButtonSelector().
-     */
+    /** Finds a visible global close control using the configured selector. */
     private WebElement findGlobalCloseButtonIfVisible() {
         String selector = config.getGlobalOverlayCloseButtonSelector();
         if (selector == null || selector.isBlank()) {
@@ -295,10 +287,7 @@ public boolean highlightPopupIfPresent(String label) {
         return null;
     }
 
-    /**
-     * Szuka overlaya na środku viewportu – podobnie jak przy klikach:
-     * bierzemy element spod środka ekranu i idziemy po parentach w górę.
-     */
+    /** Finds an overlay candidate among the ancestors of the element at the viewport center. */
     private WebElement findOverlayAtViewportCenter() {
         Object result = js.executeScript(overlayAtViewportCenterScript());
 
@@ -307,10 +296,7 @@ public boolean highlightPopupIfPresent(String label) {
         }
         return null;
     }
-    /**
-     * Szuka przycisku zamykającego/akceptującego w środku overlaya
-     * (close / accept / akceptuję / ok itp.).
-     */
+    /** Finds a visible close or accept control inside the supplied overlay. */
     private WebElement findCloseButtonInside(WebElement overlayRoot) {
         if (overlayRoot == null) {
             return null;

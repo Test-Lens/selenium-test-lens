@@ -2,6 +2,14 @@
 
 Documentation is built by GitHub Actions and stored on the durable `gh-pages` branch through `mike`. GitHub Pages remains configured for **GitHub Actions**: after `mike` updates one version, the workflow uploads the complete branch as one Pages artifact. Do not use `mkdocs gh-deploy`, force-push, delete all versions, clear `gh-pages`, or switch Pages to branch deployment.
 
+## Published Javadocs
+
+Published API Javadocs are written in English. They document observable contracts rather than repeating
+method names. A public behavior change must update both its Javadoc and a contract test in the same change.
+Run `./scripts/check-public-javadoc-language.ps1` locally; CI checks the published modules for Polish
+Javadoc text, including a maintained set of Polish terms written without diacritics. Do not guess `@since`
+versions: verify the symbol against the corresponding release tag before adding or changing that tag.
+
 ## Version lifecycle
 
 - `/dev/` is rebuilt from `main`; its display name is read from the root snapshot POM. It never moves `latest`.

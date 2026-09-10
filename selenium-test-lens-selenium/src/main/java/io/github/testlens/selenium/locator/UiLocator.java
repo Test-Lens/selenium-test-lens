@@ -38,6 +38,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 
+/**
+ * Represents a lazy locator query and the actions, observations, waits, and assertions performed against it.
+ * Derived locators preserve the configured locator options and resolve fresh elements for each operation.
+ */
 public final class UiLocator {
     private final WebDriver driver;
     private final JsOverlayDebug overlay;
@@ -67,6 +71,15 @@ public final class UiLocator {
         this.nanoTicker = nanoTicker == null ? System::nanoTime : nanoTicker;
     }
 
+    /**
+     * Activates the current element through the recommended Test Lens click path.
+     * Each activation attempt uses native {@link WebElement#click()}. Highlighting is visual decoration only.
+     * An intercepted click may be followed by another native click after explicit overlay recovery, and the
+     * locator recovery-retry policy may start a fresh action attempt. This method does not fall back to a
+     * JavaScript click, an Actions click, or an ancestor click; actionability reporting is best-effort diagnostics.
+     *
+     * @return this locator
+     */
     public UiLocator click() {
         return execute("click", element -> {
             ActionabilityReport report = safeActionability(element);
@@ -228,42 +241,58 @@ public final class UiLocator {
         return count;
     }
 
+    /** Returns a lazy query that selects the zero-based item at the specified pipeline stage. */
     public UiLocator nth(int index) {
         return derived(CompositeBy.index(by(), index), collectionLabel("[" + index + "]"));
     }
 
+    /** Returns a lazy query that selects the first item at the specified pipeline stage. */
     public UiLocator first() {
         return derived(CompositeBy.index(by(), 0), collectionLabel("[first]"));
     }
 
+    /** Returns a lazy query that selects the last item at the specified pipeline stage. */
     public UiLocator last() {
         return derived(CompositeBy.last(by()), collectionLabel("[last]"));
     }
 
+    /**
+     * Returns a lazy query for matching descendants of every current parent element.
+     * The returned elements cannot escape a parent's subtree, including when the supplied XPath begins with
+     * {@code //}. The parent itself is not a descendant.
+     */
     public UiLocator locator(By descendant) {
         return locator(descendant, description() + " >> " + safePreview(String.valueOf(descendant)));
     }
 
+    /** Returns the same scoped descendant query as {@link #locator(By)} with a diagnostic label. */
     public UiLocator locator(By descendant, String label) {
         Objects.requireNonNull(descendant, "descendant locator must not be null");
         return derived(CompositeBy.descendants(by(), descendant), label);
     }
 
+    /**
+     * Returns a scoped descendant query using another locator from the same WebDriver.
+     * This operation does not cross shadow-root, frame, or window boundaries automatically.
+     */
     public UiLocator locator(UiLocator descendant) {
         requireSameDriver(descendant);
         return locator(descendant.by(), description() + " >> " + descendant.description());
     }
 
+    /** Filters the current collection by exact visible text at this pipeline stage. */
     public UiLocator filterByText(String expectedText) {
         Objects.requireNonNull(expectedText, "expected text must not be null");
         return derived(CompositeBy.text(by(), expectedText, false), description() + " | text equals");
     }
 
+    /** Filters the current collection by a case-sensitive visible-text substring at this pipeline stage. */
     public UiLocator filterByTextContaining(String expectedText) {
         Objects.requireNonNull(expectedText, "expected text must not be null");
         return derived(CompositeBy.text(by(), expectedText, true), description() + " | text contains");
     }
 
+    /** Filters the current collection by an exact DOM attribute value at this pipeline stage. */
     public UiLocator filterByAttribute(String attributeName, String expectedValue) {
         if (attributeName == null || attributeName.isBlank()) {
             throw new IllegalArgumentException("attribute name must not be blank");
@@ -273,12 +302,17 @@ public final class UiLocator {
                 description() + " | attribute " + safePreview(attributeName));
     }
 
+    /**
+     * Keeps each current parent whose own subtree contains a matching descendant.
+     * Unlike {@link #locator(By)}, this method returns the parent rather than the matching descendant.
+     */
     public UiLocator filterHas(By descendant) {
         Objects.requireNonNull(descendant, "descendant locator must not be null");
         return derived(CompositeBy.has(by(), descendant),
                 description() + " | has(" + safePreview(String.valueOf(descendant)) + ")");
     }
 
+    /** Keeps each current parent whose own subtree matches the same-driver descendant locator. */
     public UiLocator filterHas(UiLocator descendant) {
         requireSameDriver(descendant);
         return derived(CompositeBy.has(by(), descendant.by()),

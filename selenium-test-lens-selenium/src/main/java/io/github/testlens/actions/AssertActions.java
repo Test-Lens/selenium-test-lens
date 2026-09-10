@@ -50,9 +50,9 @@ public class AssertActions {
     // ========== PUBLIC ASSERTIONS ==========
 
     /**
-     * Tekst elementu po modyfikacji == expected po modyfikacji.
-     * Uwaga: w wyniku i HUD pokaże wartości PO modyfikacji (expected/actual),
-     * a overlay badge jest rysowany na oryginalnym elemencie.
+     * Compares the element text with the expected text after applying the supplied modifier to both values.
+     * The result and HUD contain the modified values, while the visual badge remains attached to the
+     * original element.
      */
     public OverlayAssertionResult assertTextEqualsModified(WebElement element,
                                                            String expected,
@@ -82,8 +82,8 @@ public class AssertActions {
     }
 
     /**
-     * Tekst elementu po modyfikacji zawiera expectedSubstring po modyfikacji.
-     * Przydatne, jeśli UI ma dodatkowe formatowanie, a chcesz porównywać „po normalizacji”.
+     * Checks whether the modified element text contains the modified expected substring.
+     * This is useful when the supplied modifier removes presentation-specific formatting.
      */
     public OverlayAssertionResult assertTextContainsModified(WebElement element,
                                                              String expectedSubstring,
@@ -122,7 +122,7 @@ public class AssertActions {
         }
     }
 
-    /** Tekst elementu (getText) == expected. */
+    /** Compares {@link WebElement#getText()} with the expected text. */
     public OverlayAssertionResult assertTextEquals(WebElement element,
                                                    String expected,
                                                    String contextLabel) {
@@ -146,7 +146,7 @@ public class AssertActions {
         return result;
     }
 
-    /** Tekst elementu (getText) zawiera expectedSubstring. */
+    /** Checks whether {@link WebElement#getText()} contains the expected substring. */
     public OverlayAssertionResult assertTextContains(WebElement element,
                                                      String expectedSubstring,
                                                      String contextLabel) {
@@ -171,7 +171,7 @@ public class AssertActions {
         return result;
     }
 
-    /** Atrybut HTML, np. "value", "type", "id". */
+    /** Compares an element attribute, such as {@code value}, {@code type}, or {@code id}. */
     public OverlayAssertionResult assertAttributeEquals(WebElement element,
                                                         String attributeName,
                                                         String expected,
@@ -198,7 +198,7 @@ public class AssertActions {
         return result;
     }
 
-    /** Dowolny CSS, np. "font-weight", "display", "background-color". */
+    /** Compares a computed CSS value such as {@code font-weight}, {@code display}, or {@code background-color}. */
     public OverlayAssertionResult assertCssEquals(WebElement element,
                                                   String cssProperty,
                                                   String expected,
@@ -226,11 +226,8 @@ public class AssertActions {
     }
 
     /**
-     * Specjalny helper do kolorów:
-     * - pobiera getCssValue(cssProperty),
-     * - normalizuje rgb(...) / rgba(...) do #rrggbb,
-     * - normalizuje expected do lowercase, usuwając spacje,
-     * - porównuje po normalizacji.
+     * Compares a computed color after normalizing {@code rgb(...)} and {@code rgba(...)} values to
+     * {@code #rrggbb}, lowercasing the expected value, and removing spaces from both values.
      */
     public OverlayAssertionResult assertColorEquals(WebElement element,
                                                     String cssProperty,
@@ -261,7 +258,7 @@ public class AssertActions {
         return result;
     }
 
-    /** Czy element ma klasę CSS (contains w atrybucie "class"). */
+    /** Checks for an exact whitespace-delimited token in the element's {@code class} attribute. */
     public OverlayAssertionResult assertHasClass(WebElement element,
                                                  String className,
                                                  boolean expectedPresent,
@@ -293,7 +290,7 @@ public class AssertActions {
         return result;
     }
 
-    /** Widoczność (isDisplayed). */
+    /** Compares the expected visibility with {@link WebElement#isDisplayed()}. */
     public OverlayAssertionResult assertVisible(WebElement element,
                                                 boolean expectedVisible,
                                                 String contextLabel) {
@@ -341,7 +338,7 @@ public class AssertActions {
         return result;
     }
 
-    /** Selected (np. checkbox, radio). */
+    /** Compares the expected selected state with {@link WebElement#isSelected()}. */
     public OverlayAssertionResult assertSelected(WebElement element,
                                                  boolean expectedSelected,
                                                  String contextLabel) {
@@ -553,10 +550,8 @@ public class AssertActions {
     }
 
     /**
-     * Stackowalne badge'y:
-     * - jeden container per element (target.__seleniumAssertContainer),
-     * - kolejne badge'e wsuwane coraz wyżej (top: -18px, -36px, -54px ...),
-     * - jeśli JAKAKOLWIEK asercja na elemencie jest FAIL → ramka i tło badge'y czerwone.
+     * Adds a badge to the element's assertion container, stacking subsequent badges vertically.
+     * A failed assertion changes the shared container border and badge background to the failure color.
      */
     private void drawOverlayBadge(WebElement element, boolean ok, String label) {
         if (!config.isEnabled() || element == null) return;

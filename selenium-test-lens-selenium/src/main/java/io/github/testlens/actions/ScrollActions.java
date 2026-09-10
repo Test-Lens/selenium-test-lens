@@ -16,12 +16,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 /**
- * Akcje związane z przewijaniem:
- * - płynne przewijanie do elementu,
- * - strzałka (w górę / w dół) pokazana na środku krawędzi ekranu,
- * - po dojechaniu do elementu strzałka przeskakuje nad/obok elementu.
- * Metody są blokujące (executeAsyncScript) – kolejne kroki testu
- * są wykonywane dopiero po zakończeniu animacji.
+ * Performs blocking element scrolling with optional visual arrow decoration.
+ * Calls return after the asynchronous browser script reports that its animation has completed.
  */
 public class ScrollActions {
 
@@ -49,10 +45,7 @@ public class ScrollActions {
         this.logger = logger != null ? logger : OverlayLogger.noop();
     }
 
-    /**
-     * Płynnie przewija do elementu z domyślnym czasem i domyślnym wyrównaniem:
-     * CENTER elementu do CENTER viewportu.
-     */
+    /** Scrolls the element center to the viewport center using the configured decoration duration. */
     public void scrollToElementWithArrow(WebElement element) {
         scrollToElementWithArrow(
                 element,
@@ -62,10 +55,7 @@ public class ScrollActions {
         );
     }
 
-    /**
-     * Płynnie przewija do elementu z zadanym czasem (ms) i domyślnym wyrównaniem:
-     * CENTER elementu do CENTER viewportu.
-     */
+    /** Scrolls the element center to the viewport center using the supplied duration in milliseconds. */
     public void scrollToElementWithArrow(WebElement element, long durationMs) {
         scrollToElementWithArrow(
                 element,
@@ -76,11 +66,8 @@ public class ScrollActions {
     }
 
     /**
-     * Płynny scroll z pełną kontrolą:
-     * - którą "krawędź" elementu bierzemy (TOP/CENTER/BOTTOM),
-     * - do której części viewportu ją wyrównujemy (TOP/CENTER/BOTTOM),
-     * - plus strzałka w dół/górę podczas scrolla, przeskakująca nad element po dojechaniu.
-     * Metoda blokuje wykonanie do czasu końca animacji (executeAsyncScript + done()).
+     * Scrolls the selected element edge to the selected viewport edge and, when the overlay is enabled,
+     * decorates the movement with an arrow. The call blocks until the asynchronous browser script completes.
      */
     public void scrollToElementWithArrow(WebElement element,
                                          long durationMs,

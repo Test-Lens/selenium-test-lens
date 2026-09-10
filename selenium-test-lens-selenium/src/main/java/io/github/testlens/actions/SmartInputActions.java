@@ -15,10 +15,8 @@ import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 
 /**
- * "Sprytny" input:
- * - próbuje wpisać tekst (typeWithHint),
- * - jeśli coś zasłania input (popup/overlay), próbuje to zamknąć,
- * - ponawia wpisanie.
+ * Enters text with a visual hint and performs one explicit overlay-recovery attempt when an
+ * interaction-related WebDriver failure indicates that the input may be obstructed.
  */
 public class SmartInputActions {
 

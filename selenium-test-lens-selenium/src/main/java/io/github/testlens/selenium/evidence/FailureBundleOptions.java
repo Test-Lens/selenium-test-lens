@@ -1,6 +1,12 @@
 package io.github.testlens.selenium.evidence;
 
-/** Controls best-effort evidence collected when a Test Lens session finishes as failed. */
+/**
+ * Controls best-effort evidence collected when a Test Lens session finishes as failed.
+ * Defaults include diagnostic and clean screenshots, context, diagnostics, network summary, runtime and
+ * configuration metadata, a manifest, and a ZIP archive. Page source and browser console capture are disabled
+ * by default. Text artifacts use the configured redaction policy, but screenshot and video pixels are not
+ * redacted. Evidence collection and session finalization never take ownership of or quit the WebDriver.
+ */
 public final class FailureBundleOptions {
     public static final long DEFAULT_MAX_TEXT_ARTIFACT_BYTES = 5L * 1024L * 1024L;
     public static final int DEFAULT_MAX_CONSOLE_ENTRIES = 1_000;

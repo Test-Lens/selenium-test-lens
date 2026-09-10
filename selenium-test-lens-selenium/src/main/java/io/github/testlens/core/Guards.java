@@ -71,8 +71,8 @@ public class Guards {
     }
 
     /**
-     * Checkpoint: wykrywa typowe “padło 503 / crash SPA / bramka”.
-     * Domyślnie: enabled + failFast (rzuca AssertionError).
+     * Checks the current page snapshot for configured error-page markers.
+     * When fail-fast mode is enabled, a matching marker causes an {@link AssertionError}.
      */
     public GuardResult checkpoint(String label) {
         if (!enabled) return GuardResult.ok(label);
@@ -112,7 +112,7 @@ public class Guards {
         return r;
     }
 
-    /** Wersja stricte assertująca (czytelność w scenariuszach). */
+    /** Runs a checkpoint as an assertion-oriented scenario step. */
     public void assertOk(String label) {
         checkpoint(label); // checkpoint już rzuca AssertionError, jeśli failFast=true
     }

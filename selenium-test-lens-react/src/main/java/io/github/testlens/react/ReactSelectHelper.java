@@ -2,9 +2,7 @@ package io.github.testlens.react;
 
 import org.openqa.selenium.*;
 
-/**
- * Helper do obsługi komponentów React-Select przez JavaScript.
- */
+/** Provides JavaScript-based helpers for components that follow React Select DOM conventions. */
 public class ReactSelectHelper {
 
     private final WebDriver driver;
@@ -13,9 +11,7 @@ public class ReactSelectHelper {
         this.driver = driver;
     }
 
-    /**
-     * Wylicza baseId (react-select-XX) na podstawie grupy (kontenera) i comboboxa.
-     */
+    /** Resolves a React Select base identifier from the group container and combobox ARIA relationships. */
     public String resolveReactSelectBaseId(WebElement group, WebElement combo) {
         Object v = ((JavascriptExecutor) driver).executeScript(
                 "var g=arguments[0], c=arguments[1];" +
@@ -35,8 +31,9 @@ public class ReactSelectHelper {
     }
 
     /**
-     * Kliknięcie opcji react-select przez JS (bez WebElement) — minimalizuje StaleElement.
-     * Szuka elementów po id: baseId-option-*
+     * Finds a visible option whose identifier starts with {@code baseId-option-} and whose text contains
+     * the supplied value, then activates it with JavaScript. This low-level helper does not use the native
+     * click contract of {@code UiLocator.click()}.
      */
     public boolean jsClickReactSelectOptionContaining(String baseId, String needle) {
         Object r = ((JavascriptExecutor) driver).executeScript(

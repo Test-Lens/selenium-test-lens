@@ -81,11 +81,20 @@ public final class TestLens {
     public UiExpect expect(By by, String label) { return locator(by, label).expect(); }
     public UiPageExpect expectPage() { return delegate.expectPage(); }
     public UiPageExpect expectPage(UiAssertionOptions options) { return delegate.expectPage(options); }
+    /** Waits for {@code document.readyState == "complete"} using configured locator wait options. */
     public void waitForPageReady() { delegate.waitForPageReady(); }
+    /** Waits for {@code document.readyState == "complete"} within the supplied total timeout. */
     public void waitForPageReady(Duration timeout) { delegate.waitForPageReady(timeout); }
+    /** Waits for an interactive or complete document using configured locator wait options. */
     public void waitForInteractiveOrComplete() { delegate.waitForInteractiveOrComplete(); }
+    /** Waits for an interactive or complete document within the supplied total timeout. */
     public void waitForInteractiveOrComplete(Duration timeout) { delegate.waitForInteractiveOrComplete(timeout); }
+    /**
+     * Waits for the default idle window in the XHR/fetch tracker. This is not complete browser-network-idle
+     * detection; see {@link io.github.testlens.core.PageWaits#waitForNetworkIdle()}.
+     */
     public void waitForNetworkIdle() { delegate.waitForNetworkIdle(); }
+    /** Waits for the supplied XHR/fetch idle window within the supplied total timeout. */
     public void waitForNetworkIdle(Duration idleDuration, Duration timeout) {
         delegate.waitForNetworkIdle(idleDuration, timeout);
     }
@@ -168,14 +177,20 @@ public final class TestLens {
     /** Returns the network diagnostics owned by this Lens facade. */
     public NetworkDiagnostics network() { return delegate.network(); }
 
+    /**
+     * Runs the facade finalization pipeline once and requests a passed terminal outcome.
+     * The first finalizer wins, concurrent callers share the same result, and the WebDriver is never quit.
+     */
     public TestLensFinalizationResult finishPassed() {
         return finish(FinalizationOutcome.PASSED, null, null);
     }
 
+    /** Runs the facade finalization pipeline once and requests a failed terminal outcome. */
     public TestLensFinalizationResult finishFailed(Throwable originalFailure) {
         return finish(FinalizationOutcome.FAILED, originalFailure, null);
     }
 
+    /** Runs the facade finalization pipeline once and requests a skipped terminal outcome. */
     public TestLensFinalizationResult finishSkipped(String reason) {
         return finish(FinalizationOutcome.SKIPPED, null, reason);
     }

@@ -42,8 +42,8 @@ public class TypingActions {
 
 
     /**
-     * Wpisuje tekst do elementu (clear + sendKeys) oraz pokazuje obok
-     * mały dymek z informacją, jaki tekst został ustawiony.
+     * Clears the element and enters the supplied value with {@link WebElement#sendKeys(CharSequence...)}.
+     * When the overlay is enabled, a decorative hint displays the value being entered.
      */
     public void typeWithHint(WebElement element, String value) {
         if (element == null) {

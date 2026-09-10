@@ -13,7 +13,13 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Immutable policy for removing common credentials from Test Lens diagnostics. */
+/**
+ * Defines immutable, thread-safe redaction of common credentials and caller-configured secrets in diagnostics.
+ * Redaction is applied to diagnostic copies before logger fan-out; it does not mutate the original exception
+ * that controls test execution. Diagnostic exception messages, causes, suppressed failures, and stack traces are
+ * redacted while structured reports retain the original exception class name. Screenshots and video pixels are
+ * outside this text-redaction boundary.
+ */
 public final class RedactionPolicy {
     private static final String DEFAULT_REPLACEMENT = "[REDACTED]";
     private static final String FAILURE_REPLACEMENT = "[REDACTION_FAILED]";

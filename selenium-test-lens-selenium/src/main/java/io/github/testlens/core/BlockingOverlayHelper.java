@@ -26,9 +26,8 @@ public class BlockingOverlayHelper {
         this.highlightActions = highlightActions;
     }
     /**
-     * Próbuje globalnie zamknąć overlay/popup na podstawie
-     * globalOverlayCloseButtonSelector z configu.
-     * Nie patrzy na konkretny target – po prostu szuka tego przycisku.
+     * Attempts to close a global overlay using the configured global close-button selector.
+     * This operation is independent of a specific interaction target.
      */
     public boolean handleGlobalOverlayIfPresent(String overlayLabel, String closeButtonLabel) {
         String selector = config.getGlobalOverlayCloseButtonSelector();
@@ -66,12 +65,12 @@ public class BlockingOverlayHelper {
     }
 
     /**
-     * Próbuje zamknąć overlay zasłaniający target.
+     * Attempts to close an overlay that covers the interaction target.
      *
-     * @param target          element, na którym chcieliśmy działać (click / input)
-     * @param overlayLabel    label do narysowania na overlayu (np. "OVERLAY")
-     * @param closeButtonLabel label na przycisku zamykającym (np. "CLOSE")
-     * @return true jeśli coś realnie zamknęliśmy, false jeśli nie znaleźliśmy nic sensownego
+     * @param target the element intended for the click or input operation
+     * @param overlayLabel the optional visual label for the detected overlay
+     * @param closeButtonLabel the optional visual label for the close control
+     * @return {@code true} if a close control was found and clicked; otherwise {@code false}
      */
     public boolean handleBlockingOverlayFor(WebElement target,
                                             String overlayLabel,
@@ -216,13 +215,7 @@ public class BlockingOverlayHelper {
                 "return best;";
     }
 
-    /**
-     * JS:
-     * - bierze środek targetu,
-     * - odpala document.elementFromPoint(x,y),
-     * - idzie po parentach w górę i szuka kandydata na overlay:
-     *   fixed/absolute/sticky, większy element, z sensownym z-index.
-     */
+    /** Finds an overlay candidate above the center point of the target element. */
     private WebElement findBlockingOverlay(WebElement target) {
         Object result = js.executeScript(blockingOverlayForTargetScript(), target);
 
@@ -232,11 +225,7 @@ public class BlockingOverlayHelper {
         return null;
     }
 
-    /**
-     * Szuka przycisku zamknięcia/akceptacji w środku overlayu:
-     * - po selektorach id/class,
-     * - po tekście (PL/EN).
-     */
+    /** Finds a visible close or accept control inside the overlay using configured heuristics. */
     private WebElement findCloseButtonInside(WebElement overlay) {
         Object result = js.executeScript(closeButtonInsideScript(), overlay);
 

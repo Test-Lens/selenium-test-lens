@@ -17,6 +17,9 @@ import java.util.UUID;
  * In-memory trace/evidence session for a single UI automation flow.
  *
  * <p>The session collects timeline events and artifact references and can export JSON or HTML reports.
+ * {@link TraceStatus#STARTED} identifies an unfinished session, not a successful one. The first call to a
+ * terminal finish method wins; later finish calls are idempotent and do not alter status, finish time,
+ * failure information, skip reason, or the recorded retry-policy decision.
  */
 public final class UiTestLensSession {
     private final List<TraceEvent> events = new ArrayList<>();
@@ -129,6 +132,10 @@ public final class UiTestLensSession {
         return attachArtifact(TraceArtifact.url(name, type, url));
     }
 
+    /**
+     * Finalizes the session as passed unless its recovery-retry outcome policy requires failure.
+     * Only the first terminal finish call can change the session.
+     */
     public synchronized void finishPassed() {
         if (isFinished()) return;
         RetrySummary beforeDecision = retrySummary();
@@ -145,12 +152,17 @@ public final class UiTestLensSession {
         }
     }
 
+    /**
+     * Finalizes the session as failed and records the supplied failure when this is the first terminal call.
+     * A {@code null} failure still produces a failed session.
+     */
     public synchronized void finishFailed(Throwable throwable) {
         if (isFinished()) return;
         recordRetryDecision(retrySummary());
         finish(TraceStatus.FAILED, throwable, "");
     }
 
+    /** Finalizes the session as skipped with the supplied reason when this is the first terminal call. */
     public synchronized void finishSkipped(String reason) {
         if (isFinished()) return;
         recordRetryDecision(retrySummary());
