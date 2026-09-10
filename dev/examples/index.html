@@ -3126,6 +3126,7 @@
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">new</span><span class="w"> </span><span class="n">TraceReportBundleExporter</span><span class="p">().</span><span class="na">exportSuiteToDefault</span><span class="p">(</span><span class="n">sessions</span><span class="p">);</span>
 </span></code></pre></div>
 <p>The suite JSON defaults to <code>target/ui-test-lens-report/report.json</code> and uses schema version <code>1.0</code>. The ZIP defaults to <code>target/ui-test-lens-report/ui-test-lens-report.zip</code>; it contains <code>index.html</code>, <code>report.json</code>, <code>manifest.json</code>, and existing local artifacts when artifact copying is enabled. Missing artifacts are recorded in the manifest instead of failing the export.</p>
+<p>Suite export may also be used as a live diagnostic snapshot. A session that has not yet been finalized remains <code>STARTED</code>; JSON reports it through <code>summary.started</code>, and HTML marks the report incomplete rather than passed. Exporting does not finalize or otherwise mutate the session.</p>
 <p>Publish the report directory or ZIP bundle as a CI artifact using your CI system.</p>
 <h3 id="log-only-report">Log-only report<a class="headerlink" href="#log-only-report" title="Permanent link">&para;</a></h3>
 <p>Use the core logging API only when you need a report that is not attached to a Lens browser session:</p>
