@@ -3,7 +3,7 @@
 !!! info "Coming in 0.2.0"
     The `selenium-test-lens-testng` adapter is part of the current development line and is not available in Maven Central `0.1.0`.
 
-The optional `selenium-test-lens-testng` module owns one `WebDriver`, `TestLens`, and session for every physical TestNG test-method invocation. The coordinate below follows the unreleased `0.2.0-SNAPSHOT` source tree and therefore requires a local source build or a configured snapshot repository. It uses TestNG's invocation listener and `ITestResult` attributes; adding the dependency alone does not register a listener.
+The optional `selenium-test-lens-testng` module owns one `WebDriver`, `TestLens`, and session for every physical TestNG test-method invocation. The coordinate below follows the unreleased `0.2.0-SNAPSHOT` source tree and requires a local source build; the project does not advertise a public snapshot repository. It uses TestNG's invocation listener and `ITestResult` attributes; adding the dependency alone does not register a listener.
 
 `TestLensTestNgContext.current().lens().expectPage()` polls URL or title in the active window of that physical invocation. Assertion polling stays within the session and does not become a TestNG retry or a recovery retry; popup selection remains an explicit Selenium/Lens context operation.
 

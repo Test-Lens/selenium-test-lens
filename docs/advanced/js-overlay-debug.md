@@ -130,7 +130,7 @@ void smartClickResolved(WebElement containerOrLabel, String label)
 void smartUploadFile(WebElement containerOrLabel, String absoluteFilePath)
 ```
 
-Typing helpers operate on an already resolved element; their names distinguish plain clear/type, hint feedback, and an explicit pre-action highlight. The smart-click helper executes configured overlay handling before clicking. Target resolvers heuristically find a clickable element or associated file input; file-input resolution can return null. `smartClickResolved(...)` and `smartUploadFile(...)` return without throwing when no target is found, after HUD/log feedback where enabled. Selenium failures from the eventual click or `sendKeys` still propagate.
+Typing helpers operate on an already resolved element; their names distinguish plain clear/type, hint feedback, and an explicit pre-action highlight. The low-level smart-click helper executes configured overlay handling and is not a second recommended name for the [`UiLocator.click()` contract](../elements/actions.md#click-contract-native-activation-visible-recovery). Target resolvers heuristically find a clickable element or associated file input; file-input resolution can return null. `smartClickResolved(...)` and `smartUploadFile(...)` return without throwing when no target is found, after HUD/log feedback where enabled. Selenium failures from the eventual click or `sendKeys` still propagate.
 
 ## Page readiness and wait feedback
 

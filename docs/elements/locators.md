@@ -1,13 +1,12 @@
 # Locators
 
-!!! info "Coming in 0.2.0"
-    Semantic and composite locator APIs are part of the current development line and are not available in Maven Central `0.1.0`.
-
 Package: `io.github.testlens.selenium.locator`<br>
 Module: `selenium-test-lens-selenium`<br>
 API level: **Recommended**
 
 Create locators from an attached [`TestLens`](../reference/test-lens.md). Labels appear in trace, logs, HUD, and errors; they do not change matching.
+
+Stable `0.1.0` includes `locator(...)` plus the original test-id, text, and role-oriented entry points. The development line expands those factories and makes their semantics and scoping stricter; the markers below identify that boundary locally.
 
 The effective `TestLensOptions.locatorOptions()` belongs to the facade instance and is used uniformly by `locator(...)` and every public `getBy*` factory. Every derived locator (`nth`/`first`/`last`, filters, `locator(...)`, and `filterHas(...)`) retains its source locator's options. A lower-level `JsOverlayDebug` created directly uses the normal defaults unless an existing explicit-options `locator(...)` overload is selected.
 
@@ -57,6 +56,9 @@ The first two match normalized exact text; the third matches a normalized substr
 
 ## getByRole overloads
 
+!!! info "Coming in 0.2.0"
+    Browser-computed role/accessibility-name matching is part of the current development line. The earlier `getByRole` entry point existed in `0.1.0`, but did not provide this strengthened contract.
+
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
 ```java
 UiLocator getByRole(String role)
@@ -72,6 +74,9 @@ lens.getByRole("button", "Save").click();
 Supported implicit candidate roles remain `button`, `link`, `textbox`, `checkbox`, and `radio`. The locator is lazy, preserves DOM order, and supports `count()`, `nth()`, `first()`, and `last()`.
 
 ## Label, placeholder, and alt text
+
+!!! info "Coming in 0.2.0"
+    The `getByLabel`, `getByPlaceholder`, and `getByAltText` facade factories are part of the current development line and are not available in Maven Central `0.1.0`.
 
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
 ```java
@@ -94,6 +99,9 @@ lens.getByAltText("Company logo").waitUntilVisible();
 Semantic comparison trims and collapses Unicode whitespace (including NBSP) to one space, then compares exactly and case-sensitively. Results depend on the browser/WebDriver accessibility implementation; unsupported typed accessibility commands fail without a hidden DOM or JavaScript fallback.
 
 ## Scoped and filtered locators
+
+!!! info "Coming in 0.2.0"
+    Locator composition, filtering, and descendant scoping are part of the current development line and are not available in Maven Central `0.1.0`.
 
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
 ```java

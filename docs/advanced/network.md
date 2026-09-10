@@ -1,7 +1,9 @@
 # Network diagnostics
 
+Manual network events, waits, and assertions are available in `0.1.0`.
+
 !!! info "Coming in 0.2.0"
-    Passive WebDriver BiDi capture, network waits/assertions, summaries, and HUD filtering are part of the current development line and are not available in Maven Central `0.1.0`.
+    Passive WebDriver BiDi capture, capture generations, immutable safe snapshots, hardened lifecycle handling, and HUD-only filtering are part of the current development line and are not available in Maven Central `0.1.0`.
 
 Package: `io.github.testlens.selenium.network`<br>
 Module: `selenium-test-lens-selenium`<br>
@@ -25,6 +27,8 @@ String exportJson()
 ```
 
 `MANUAL` remains the default and accepts caller-supplied events. `BIDI` passively subscribes through Selenium 4.39's beta `org.openqa.selenium.bidi.module.Network`; the browser session must have BiDi enabled when it is created. `AUTO` attempts the same subscription and reports `UNSUPPORTED` when it cannot establish it. Neither mode falls back to `MANUAL` or performance logs. `PERFORMANCE_LOGS` remains unsupported and `OFF` remains stopped.
+
+BiDi capture observes traffic. It does not intercept, modify, block, mock, or replay requests, and it is not a CDP fallback.
 
 `captureMode()` is the requested mode. `activeCaptureMode()` is present only while a source is active: `MANUAL` for manual capture and `BIDI` for both successful `BIDI` and `AUTO`. A successful start registers one listener each for before-request, response-completed, and fetch-error; `stop()` removes the module subscriptions without closing the driver. `stop()` also invalidates an initialization that is still registering its source: a late success or failure cannot reactivate capture or overwrite `STOPPED`, and any source returned afterward is closed without holding the lifecycle lock. Repeated starts replace the prior generation, and late callbacks are discarded. Event snapshots are immutable and safe while BiDi callback threads are active.
 

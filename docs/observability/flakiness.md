@@ -1,8 +1,15 @@
 # Flakiness and retry outcomes
 
+!!! info "Coming in 0.2.0"
+    `RetrySummary` and `RetryOutcomePolicy` are part of the current development line and are not available in Maven Central `0.1.0`.
+
+> A passed test can still tell you it was flaky.
+
 A **physical attempt** starts when an operation begins using the current DOM observation. A **recovery retry** is counted only when that attempt fails with a retryable exception and Lens decides to start another attempt. The first attempt is not a retry, and the final failed attempt is not counted when no next attempt follows.
 
 Polling is different: `WebDriverWait`, resolver polls, alert/network waits, waiting for an element, and an assertion whose condition is not satisfied may evaluate repeatedly without marking the session flaky. Runner-level retries are also separate sessions. A **flaky candidate** is one session containing at least one recovery retry.
+
+This distinction prevents a normal wait for an expected state from inflating recovery evidence. A runner retry means the test framework started another invocation; it is neither an operation retry nor an assertion poll and should be reported at the runner level.
 
 `UiTestLensSession.retrySummary()`, `TestLens.retrySummary()`, and `TestLensFinalizationResult.retrySummary()` expose immutable, key-sorted totals by action, locator, and effective exception type. `timeLost` sums only failed physical attempts that caused another attempt; it excludes successful/terminal attempts and poll intervals.
 

@@ -4,14 +4,6 @@ Waiting occurs at two levels: operation retry and explicit condition waits. A re
 
 Collection-size waits are available directly on a composed locator: `waitUntilCount`, `waitUntilCountAtLeast`, and `waitUntilCountAtMost`. Each poll evaluates exactly one fresh query snapshot using `UiLocatorOptions.timeout()` and `pollInterval()`. This is ordinary polling, not recovery retry, so it does not affect `RetrySummary` or flaky-candidate policy. See [Element collections](collections.md#count-waits).
 
-<!-- SCREENSHOT TODO: assets/screenshots/wait-feedback-active.png
-Show an explicit UiLocator wait while its condition is still unsatisfied.
-The HUD must display the wait description/retry state and the application must show why it is waiting.
-Use a deterministic demo state and omit unrelated browser chrome.
-Feature documented: active wait and retry feedback.
-Suggested alt text: Test Lens HUD showing an active wait retry for an unavailable element.
--->
-
 ## waitUntilVisible()
 
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
@@ -58,7 +50,7 @@ Waits until `WebElement.getText().contains(expectedText)` using the configured p
 
 All four waits resolve against the current DOM on every poll, ignore missing/stale elements while polling, emit wait and retry events to the attached log/trace/HUD pipeline, and do not capture evidence automatically. They return the same locator. Timeout or a fatal condition error is wrapped in `UiLocatorException` with elapsed context.
 
-Related: [Assertions](assertions.md), [`UiLocatorOptions`](../reference/configuration.md#uilocatoroptions), [`click()`](actions.md#click).
+Related: [Assertions](assertions.md), [`UiLocatorOptions`](../reference/configuration.md#uilocatoroptions), [`click()`](actions.md#click-contract-native-activation-visible-recovery).
 
 ## Retryable failures
 
@@ -91,6 +83,6 @@ The no-argument facade methods use `TestLensOptions.locatorOptions().timeout()` 
 
 `waitForPageReady` polls one `return document.readyState` observation at a time and accepts only `complete`. `waitForInteractiveOrComplete` accepts only `interactive` or `complete`. Neither method promises that an SPA has rendered its data. With Selenium's usual `PageLoadStrategy.NORMAL`, `get()` normally already waits for classic document loading; explicit readiness waits are mainly useful with `EAGER`, `NONE`, asynchronous navigation, or when re-observing the active document.
 
-`waitForNetworkIdle` installs an idempotent in-page tracker and requires zero observed active XHR/fetch operations for the complete idle window. The tracker balances successful, rejected, aborted, and synchronously failed calls, and is installed again in a new document after navigation. It sees only XHR/fetch started after installation. It does not guarantee visibility into earlier requests, images, CSS, scripts, WebSocket, EventSource, beacon, or full browser traffic. Use [WebDriver BiDi network diagnostics](../advanced/network.md) when passive browser-level evidence is required.
+`waitForNetworkIdle` installs an idempotent in-page tracker and requires zero observed active XHR/fetch operations for the complete idle window. The tracker balances successful, rejected, aborted, and synchronously failed calls, and is installed again in a new document after navigation. It sees **only** XHR/fetch started after installation. It does not guarantee visibility into earlier requests, images, CSS, scripts, WebSocket, EventSource, beacon, or full browser traffic. This is a bounded SPA heuristic, not browser network idle. Use [WebDriver BiDi network diagnostics](../advanced/network.md) when passive browser-level evidence is required.
 
 The existing React/SPA combinations retain their public API but now share one deadline across document, network, root, component, and DOM-stability stages. Wait polling emits one `WAIT/STARTED` and one terminal `WAIT/PASSED` or `WAIT/FAILED`; it does not emit recovery retries, affect `RetrySummary`, or mark the session flaky. HUD state is removed in `finally`, and diagnostic DOM text is inserted with text nodes rather than unescaped HTML.

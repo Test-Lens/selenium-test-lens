@@ -2,6 +2,11 @@
 
 Observability is a primary Test Lens surface, not a side effect of element helpers.
 
+The persistent path is `operation → trace → finalization → report`; a final failed outcome can extend it with an automatic evidence bundle. The in-browser HUD is the live view of this pipeline, not its durable source of truth.
+
+!!! info "Coming in 0.2.0"
+    Automatic failure bundles and central redaction are development-line capabilities not available in Maven Central `0.1.0`. Trace, HTML/JSON reports, screenshots, and the HUD already exist in the stable release.
+
 For a final failed session, the normal trace/report are complemented by an automatic [failure bundle](failure-bundles.md) with a versioned manifest and deterministic ZIP. Bundle collectors are independent and best effort.
 
 Diagnostic text uses a shared, enabled-by-default [redaction policy](../security/redaction.md) before HUD/sink fan-out and at direct trace, network, API-overlay, and bundle write boundaries. Pixel evidence and replayable authentication state have deliberately different security boundaries.

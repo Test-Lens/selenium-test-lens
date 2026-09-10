@@ -4,35 +4,14 @@
 
 # Selenium Test Lens
 
+**An observability and failure-evidence layer for Selenium WebDriver.** Test Lens works with the driver your test framework already owns: it makes interactions visible, records structured diagnostics, exposes recovery retries, and preserves useful evidence when a test fails.
+
 | Version | Status | Availability | Documentation |
 |---|---|---|---|
 | `0.1.0` | Latest stable | Maven Central | [Stable documentation — 0.1.0](https://test-lens.github.io/selenium-test-lens/0.1.0/) |
 | `0.2.0-SNAPSHOT` | Development / coming soon | Not available from Maven Central | [Development documentation — 0.2.0-SNAPSHOT](https://test-lens.github.io/selenium-test-lens/dev/) |
 
-**[Stable documentation — 0.1.0](https://test-lens.github.io/selenium-test-lens/0.1.0/)** · **[Development documentation — 0.2.0-SNAPSHOT](https://test-lens.github.io/selenium-test-lens/dev/)**
-
-Selenium Test Lens adds observable, retryable interactions, an in-browser diagnostic HUD, trace reports, and evidence capture to the Selenium `WebDriver` your test framework already owns.
-
-Successful operations that required a recovery retry are exposed as a per-session `RetrySummary`. The default `REPORT_ONLY` policy preserves existing outcomes; `WARN`, `FAIL_AFTER_N`, and `FAIL_ON_ANY_RETRY` can make flaky candidates visible or reject an otherwise passed test after reports are written.
-
-- [Documentation](https://test-lens.github.io/selenium-test-lens/)
-- [Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0)
-- [Javadoc](https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/)
-- [Changelog](CHANGELOG.md)
-- [Issues](https://github.com/Test-Lens/selenium-test-lens/issues)
-
-## Requirements
-
-- Java 17 or newer
-- Maven 3.x or Gradle
-- A Selenium `WebDriver` created and managed by the consuming test project
-
-## Install
-
-The latest Maven Central release is `0.1.0`. The repository itself is on the
-unreleased `0.2.0-SNAPSHOT` development line; snapshot coordinates shown for
-the runner adapters require a local source build or a configured snapshot
-repository.
+Install the current stable release (Java 17 or newer):
 
 ```xml
 <dependency>
@@ -42,125 +21,16 @@ repository.
 </dependency>
 ```
 
-Gradle consumers use the same published Maven coordinates. Kotlin DSL:
-
-```kotlin
-dependencies {
-    testImplementation("io.github.test-lens:selenium-test-lens:0.1.0")
-}
-```
-
-Groovy DSL:
-
-```groovy
-dependencies {
-    testImplementation 'io.github.test-lens:selenium-test-lens:0.1.0'
-}
-```
-
-`selenium-test-lens-react` is available in 0.1.0. The JUnit 5 and TestNG adapter
-artifacts shown below are part of the source-only development line.
-
-> **Coming in 0.2.0 — not available in the current Maven Central release (0.1.0).**
-> The `selenium-test-lens-junit5` and `selenium-test-lens-testng` modules require
-> a local build of the current source until 0.2.0 is released.
-
-Java 17 is the minimum source, bytecode, and runtime level;
-Java 11 is not supported. Clean-room Maven and Gradle consumers are verified
-on JDK 17 and JDK 21. The new Gradle consumer smoke is browser-free; real
-browser behavior remains the responsibility of the separate Chrome/Firefox
-gate (the pre-existing Maven release smoke retains its browser check).
-
-Selenium is consumer-owned and must be declared separately at the version managed by your project:
-
-```xml
-<dependency>
-    <groupId>org.seleniumhq.selenium</groupId>
-    <artifactId>selenium-java</artifactId>
-    <version>${selenium.version}</version>
-</dependency>
-```
-
-When building the current source tree, JUnit 5 users can add the lifecycle extension instead of writing per-test setup and teardown:
-
-```xml
-<dependency>
-    <groupId>io.github.test-lens</groupId>
-    <artifactId>selenium-test-lens-junit5</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
-    <scope>test</scope>
-</dependency>
-```
+Keep Selenium as an explicit, consumer-owned dependency. The development line can be built from source, but is not published to a public snapshot repository.
 
 ```java
-@RegisterExtension
-final TestLensExtension testLens =
-        TestLensExtension.builder(ChromeDriver::new).build();
-
-@Test
-void savesOrder(WebDriver driver, TestLens lens) {
-    driver.get(applicationUrl);
-    lens.getByTestId("save").click();
-}
-```
-
-The extension owns one driver per JUnit invocation, maps passed, failed, and aborted outcomes to Lens, writes reports, and then calls `quit()`. Do not also quit that driver in `@AfterEach`. See the [JUnit 5 integration guide](docs/integrations/junit5.md).
-
-When building the current source tree, TestNG users can use the listener adapter:
-
-```xml
-<dependency>
-    <groupId>io.github.test-lens</groupId>
-    <artifactId>selenium-test-lens-testng</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
-    <scope>test</scope>
-</dependency>
-```
-
-```java
-@Listeners(TestLensTestNgListener.class)
-@TestLensTestNg(factory = ChromeFactory.class)
-class LoginTest {
-    @Test
-    void login() {
-        TestLensTestNgContext.current().lens().getByTestId("login").click();
-    }
-}
-```
-
-The listener owns a fresh driver for every physical invocation, including DataProvider and retry attempts, finalizes Lens, and then calls `quit()`. Both annotations are required. See the [TestNG integration guide](docs/integrations/testng.md).
-
-```java
-TestLensOptions options = TestLensOptions.builder()
-        .retryOutcomePolicy(RetryOutcomePolicy.FAIL_AFTER_N)
-        .allowedRetries(1)
-        .build();
-```
-
-`allowedRetries` is the permitted number of recovery retries; `FAIL_AFTER_N` fails only when the session total is greater than that limit. See [Flakiness and retry outcomes](docs/observability/flakiness.md).
-
-## First session
-
-> **Coming in 0.2.0 — not available in the current Maven Central release (0.1.0).**
-> The form actions, semantic/composite locators, page assertions, central redaction,
-> automatic failure bundles, and passive BiDi capture shown below belong to the
-> current development line.
-
-```java
-import io.github.testlens.TestLens;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-
 WebDriver driver = createExistingFrameworkDriver();
 TestLens lens = TestLens.attach(driver);
 try {
-    lens.startSession("login");
-    driver.get("https://example.test/login");
-
-    lens.locator(By.id("username"), "Username").fill("john");
-    lens.locator(By.id("remember"), "Remember me").check();
-    lens.locator(By.id("login"), "Login").click();
-    lens.locator(By.id("welcome"), "Welcome").expect().toBeVisible();
+    lens.startSession("save profile");
+    driver.get(applicationUrl);
+    lens.locator(By.id("save"), "Save profile").click();
+    lens.locator(By.id("status"), "Save status").expect().toBeVisible();
     lens.finishPassed();
 } catch (RuntimeException | Error failure) {
     lens.finishFailed(failure);
@@ -170,107 +40,106 @@ try {
 }
 ```
 
-Form controls stay behind `UiLocator`: idempotent `check()`/`uncheck()` support native and standard ARIA controls, `isChecked()` reads their current state, `upload(Path...)` handles hidden file inputs without logging local paths, and `focus()`/`scrollIntoView()` perform one explicit JavaScript operation without a click fallback. See [Element actions](docs/elements/actions.md).
+[Getting started](docs/getting-started.md) · [Why Test Lens](#why-test-lens) · [Reports](docs/observability/reports.md) · [Stable documentation](https://test-lens.github.io/selenium-test-lens/0.1.0/) · [Development documentation](https://test-lens.github.io/selenium-test-lens/dev/)
 
-Semantic factories remain lazy and delegate accessible-name computation to the browser/WebDriver:
+## Why Test Lens
+
+### Native interactions with visible recovery
+
+The recommended click path is the ordinary locator API:
 
 ```java
-lens.getByLabel("Accept terms").check();
-lens.getByLabel("Attachment").upload(Path.of("document.pdf"));
-lens.getByPlaceholder("Email address").fill("person@example.test");
-String name = lens.getByRole("button", "Save order").accessibleName();
+lens.getByRole("button", "Save").click();
 ```
 
-`getByLabel` requires a native or ARIA label source, placeholder is deliberately separate, and `getByAltText` matches only the `alt` attribute. No JavaScript accessible-name algorithm or text/`aria-label` fallback is used.
+The HUD and trace describe the attempt while an optional highlight marks the target. Highlighting is visual decoration only: it does not intercept pointer events or activate the element. Each activation attempt uses native `WebElement.click()`. An intercepted click may be followed by another native click after explicit overlay recovery, and the locator retry policy may start a fresh action attempt.
 
-`TestLensOptions.locatorOptions(...)` is the instance-wide locator policy: the same timeout, polling, recovery-retry, actionability, and highlighting settings apply to `locator(...)`, every `getBy*` factory, and every locator derived through collection filtering, positional selection, or scoped chaining. Two Lens instances remain independent even when they share a driver.
+There is no JavaScript-click, Selenium Actions-click, ancestor-click, or hidden state-mutation fallback. Actionability checks are best-effort diagnostics, not a guarantee that the browser will accept the click. See [element actions](docs/elements/actions.md) and [visual diagnostics](docs/observability/visual-diagnostics.md).
 
-Collection queries also compose lazily and remain scoped to their parents:
+### Semantic and scoped queries
+
+Stable `0.1.0` includes the original test-id, text, and role-oriented locator entry points. The development line extends that model with browser-computed accessibility semantics and an immutable query pipeline:
+
+!!! info "Coming in 0.2.0"
+    Browser-computed accessible role/name matching, the expanded semantic factories, and locator composition are part of the current development line and are not available in Maven Central `0.1.0`.
 
 ```java
-UiLocator cards = lens.locator(By.cssSelector(".product-card"))
-        .filterByTextContaining("Laptop")
+UiLocator availableCards = lens.locator(By.cssSelector(".product-card"))
         .filterByAttribute("data-status", "available")
-        .filterHas(lens.getByRole("button", "Kup"));
+        .filterHas(lens.getByRole("button", "Buy"));
 
-cards.waitUntilCountAtLeast(1)
-        .first()
-        .locator(lens.getByRole("button", "Kup"))
+availableCards.first()
+        .locator(lens.getByRole("button", "Buy"))
         .click();
 ```
 
-`locator(...)` searches only true descendants inside each current parent; `filterHas(...)` keeps a parent only when its own subtree matches. This containment also applies to semantic locators and user XPath such as `By.xpath("//button")`, so an absolute-looking XPath cannot escape to the document. Pipeline order is significant, and count polling is state observation rather than recovery retry or a flaky outcome.
+The browser/WebDriver computes role and accessible name; Lens does not approximate them from visible text alone. `locator(...)` searches only true descendants of the current parents, even for user XPath beginning with `//`, while `filterHas(...)` retains the parent. This avoids global selector concatenation without allowing a nested query to escape its container. See [semantic and scoped locators](docs/elements/locators.md) and [collections](docs/elements/collections.md).
 
-The same polling pipeline supports collection and state assertions without exposing a raw `WebElement`:
+### Measurable recovery instead of silent flaky passes
 
-```java
-cards.expect().toHaveCount(3);
-lens.getByTestId("save").expect().toHaveAttribute("aria-busy", "false");
-lens.getByRole("checkbox", "Terms").expect().toBeChecked();
-lens.getByRole("status").expect().toBeAttached();
+> A passed test can still tell you it was flaky.
+
+!!! info "Coming in 0.2.0"
+    `RetrySummary` and `RetryOutcomePolicy` are part of the current development line and are not available in Maven Central `0.1.0`.
+
+Recovery retry records failed action or resolution attempts that were followed by another attempt. It is distinct from condition polling in waits and assertions, and from retrying an entire test in JUnit or TestNG. `RetrySummary` makes recovery visible; `RetryOutcomePolicy` can report it, warn, or reject an otherwise passed test after evidence has been written. See [flakiness and retry outcomes](docs/observability/flakiness.md).
+
+### Trace, reports, and automatic failure evidence
+
+Trace and HTML/JSON reports have been available since `0.1.0`. They form one observable lifecycle:
+
+```text
+action / wait / assertion
+→ session trace
+→ finalization
+→ HTML and JSON report
+→ failure evidence bundle
 ```
 
-DOM attributes are compared without exporting their raw values, classes match one complete token, CSS uses the browser-computed value, and selected/checked and hidden/detached remain distinct states. Assertion polling emits assertion diagnostics but is not a recovery retry or flaky outcome.
+!!! info "Coming in 0.2.0"
+    Automatic failure bundles and hardened exactly-once finalization are part of the current development line and are not available in Maven Central `0.1.0`.
 
-The active browser window also has runner-neutral page assertions:
+For a final `FAILED` outcome, the bundle can collect diagnostic and clean screenshots, trace, report, context, runtime/configuration allowlists, and a network summary. Collectors are best-effort, and finalization never closes the WebDriver. Optional page source and browser console have separate security limits. Video is an attachment supplied by the caller, not an automatic recording. Screenshots and video are not pixel-redacted. See [trace](docs/observability/trace.md), [reports](docs/observability/reports.md), and [failure bundles](docs/observability/failure-bundles.md).
 
-```java
-lens.expectPage().toContainUrl("/checkout");
-lens.expectPage().toHaveTitle("Checkout");
+### Safe diagnostics through central redaction
+
+!!! info "Coming in 0.2.0"
+    Central sensitive-data redaction is part of the current development line and is not available in Maven Central `0.1.0`.
+
+One immutable policy protects diagnostic copies before fan-out to the HUD, trace, built-in and external log sinks, reports, network diagnostics, API previews, and text files in failure bundles. Reported exception types retain the original class while messages, causes, suppressed exceptions, and stack diagnostics are redacted; the original exception still controls the test outcome.
+
+Redaction is not pixel processing. Screenshots and video, replayable auth-state files, and unknown secret formats remain outside that guarantee; page-source and console handling is best-effort. `RedactionPolicy.disabled()` is an explicit opt-out that can expose secrets. See [sensitive-data redaction](docs/security/redaction.md).
+
+## Advanced capabilities
+
+- **WebDriver BiDi network diagnostics (0.2.0):** passive observation, correlation, waits, assertions, safe snapshots, and HUD filtering. It is not interception, mocking, or CDP. The manual event/wait/assertion path existed in `0.1.0`. [Network diagnostics](docs/advanced/network.md)
+- **Origin-isolated auth state:** capture and restore cookies and web storage for the same validated origin. It is not automatic cross-origin SSO storage handling. [Authentication state](docs/advanced/auth-state.md)
+- **Page and SPA waits:** document readiness plus an intentionally limited XHR/fetch-idle heuristic. It sees only XHR/fetch started after tracker installation—not images, CSS, scripts, WebSocket, EventSource, or beacon traffic. [Waiting](docs/elements/waiting.md)
+- **JUnit 5 and TestNG lifecycle adapters (0.2.0):** development-line artifacts that map runner outcomes and own drivers created by their factories. They are not in Maven Central `0.1.0`. [Framework integrations](docs/framework-integration.md)
+- **React helpers:** an optional module for React-oriented waits and operations. Its legacy `smartClick` helper is not the contract of `UiLocator.click()`. [React integration](docs/integrations/react.md)
+- **API overlay:** `apiCallWithModal()` visualizes caller-supplied request/response previews; it does not intercept network traffic. [API overlay and visual helpers](docs/advanced/visual-helpers.md)
+
+Test Lens also covers routine element operations—fill, clear, key presses, checkboxes, radio buttons, selects, uploads, frames, windows, and alerts. These make the API usable without claiming to replace Selenium; use raw WebDriver whenever lower-level control is the clearer choice. See the [capability map](docs/capabilities.md).
+
+## Installation alternatives
+
+Gradle Kotlin DSL:
+
+```kotlin
+dependencies {
+    testImplementation("io.github.test-lens:selenium-test-lens:0.1.0")
+}
 ```
 
-URL checks compare the raw WebDriver URL exactly or by case-sensitive substring; they do not canonicalize hosts, slashes, encoding, query parameters, or fragments. Title checks use the configured text normalization. Both poll without becoming recovery retries, and URL diagnostics remove userinfo, query, and fragment data.
+Gradle Groovy DSL:
 
-> **Coming in 0.2.0 — not available in the current Maven Central release (0.1.0).**
-> The main `TestLens` page-wait facade is part of the current development line. The lower-level `PageWaits` and `JsOverlayDebug` methods already existed in 0.1.0.
-
-```java
-lens.waitForPageReady();
-lens.waitForInteractiveOrComplete(Duration.ofSeconds(3));
-lens.waitForNetworkIdle(Duration.ofMillis(500), Duration.ofSeconds(5));
+```groovy
+dependencies {
+    testImplementation 'io.github.test-lens:selenium-test-lens:0.1.0'
+}
 ```
 
-Default overloads use `TestLensOptions.locatorOptions()` for timeout and polling. Document readiness observes `document.readyState`; network idle is deliberately narrower and observes only XHR/fetch started after its in-page tracker was installed. Timeout throws Selenium `TimeoutException`, and polling is not a recovery retry. See [Element and page waiting](docs/elements/waiting.md#page-and-javascript-waits).
-
-The main Test Lens facade does not own browser lifecycle or displace JUnit, TestNG, Allure, or another reporter. The optional JUnit 5 and TestNG adapters deliberately own drivers created by their factories. Existing raw Selenium remains valid for operations the Lens facade does not wrap. React-specific support is available as a separate, optional module.
-
-Every final `FAILED` session receives a best-effort [failure bundle](docs/observability/failure-bundles.md): diagnostic and clean screenshots, context, trace-derived diagnostics, runtime/configuration allowlists, current network summary, manifest, final reports, and ZIP. Raw page source and browser console are disabled by default because they can contain secrets; enable them explicitly with `FailureBundleOptions.complete()`.
-
-Diagnostics are protected by an enabled-by-default central redaction policy before they reach the HUD, trace, built-in or external sinks, network/API overlays, reports, and failure-bundle text files:
-
-```java
-RedactionPolicy redaction = RedactionPolicy.builder()
-        .sensitiveKey("tenant-session")
-        .secret(System.getenv("TEST_CLIENT_SECRET"))
-        .build();
-
-TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
-        .redactionPolicy(redaction)
-        .build());
-```
-
-Complete JSON diagnostics are redacted structurally: escaped quotes, backslashes, Unicode escapes, apostrophes, nested values, arrays, and primitive values cannot break sensitive-field recognition. Malformed JSON uses a fail-closed tolerant fallback. See [Sensitive-data redaction](docs/security/redaction.md) for supported formats and limits. Screenshots/video are not pixel-redacted, optional page source and console protection is best effort, and replayable authentication state intentionally remains outside this transformation. `RedactionPolicy.disabled()` is an explicit opt-out that can expose secrets.
-
-Passive network capture is available through Selenium 4.39 WebDriver BiDi. Create Chrome or Firefox options with `enableBiDi()`, then start `lens.network()` in `BIDI` or `AUTO`; neither mode falls back when BiDi is unavailable. `MANUAL` remains the default and performance logs remain unsupported. See [Network diagnostics](docs/advanced/network.md).
-
-`assertNoFailedRequests()` can pass only for a capture generation that actually became active. A never-started, `OFF`, unsupported, failed, or still-initializing capture throws instead of treating missing observations as zero failures. A valid snapshot remains assertable after an ordinary `stop()`.
-
-Raw network traffic shown in the HUD is presentation-filtered without removing evidence. The default hides duplicate request lines and shows responses and failures; use URL patterns for a focused view:
-
-```java
-NetworkDiagnosticsOptions.builder()
-        .captureMode(NetworkCaptureMode.BIDI)
-        .hudFilter(NetworkHudFilter.builder()
-                .includeUrlPattern("/api/.*")
-                .build())
-        .build();
-```
-
-`ignoreUrlPattern(...)` removes matching events from capture, waits, trace, JSON, and failure evidence. `hudFilter(...)` changes only the HUD; hidden entries remain available everywhere else. Selenium 4.39.0's typed BiDi model does not expose enough request classification to distinguish fetch, XHR, and beacon reliably, so Lens uses no resource-type heuristics and BiDi `resourceType` can remain unknown.
-
-Finalize every session with its real runner outcome: `finishPassed()`, `finishFailed(Throwable)`, or `finishSkipped(String)`. Skipped finalization records the reason and writes reports without taking a failure screenshot or closing the driver.
-
-See the [getting-started guide](https://test-lens.github.io/selenium-test-lens/getting-started/) and [framework integration guide](https://test-lens.github.io/selenium-test-lens/framework-integration/) for lifecycle patterns and the full usage documentation.
+Selenium is consumer-owned and must be declared at the version managed by your project. Java 11 is not supported. Clean-room Maven and Gradle consumers are verified on JDK 17 and 21.
 
 ## Build
 
@@ -278,16 +147,14 @@ See the [getting-started guide](https://test-lens.github.io/selenium-test-lens/g
 mvn clean verify
 ```
 
-The default build runs the fast unit suite. Real-browser integration tests are isolated in an unpublished consumer module and enabled explicitly:
+Real-browser integration tests are isolated in an unpublished consumer module:
 
 ```powershell
 mvn -Pbrowser-it -Dbrowser=chrome -Dheaded=false verify
 mvn -Pbrowser-it -Dbrowser=firefox -Dheaded=false verify
 ```
 
-Use `-Dheaded=true` for local visual debugging. The current CI browser gate covers local Chrome and Firefox drivers; Edge and `RemoteWebDriver` grids are not part of this matrix.
-
-See [Real-browser integration tests](docs/browser-integration-tests.md) for prerequisites, scenarios, and CI behavior.
+See [browser integration tests](docs/browser-integration-tests.md), the [changelog](CHANGELOG.md), [Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0), and [0.1.0 Javadoc](https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/).
 
 ## License
 

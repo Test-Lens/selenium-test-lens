@@ -15,6 +15,8 @@ lens.startSession("Checkout");
 
 The HUD is especially useful when debugging a headed test, demonstrating a flow, or investigating a wait/retry. It does not replace the persistent trace or test-runner output.
 
+The panel observes and presents Lens operations; it does not alter Selenium's success criteria. HUD injection or cleanup failure is decorative and cannot turn an otherwise successful or failed WebDriver operation into the opposite outcome.
+
 Raw network rows can be reduced independently with [`NetworkHudFilter`](../advanced/network.md#hud-only-filtering). Its default hides duplicate request rows and shows responses and failures. This affects only the HUD: capture, waits, counters, trace, JSON, reports, external sinks, and failure evidence remain complete.
 
 ### Enable and configure the HUD
@@ -53,18 +55,11 @@ See [Getting Started](../getting-started.md), the complete [`OverlayConfig` tabl
 
 `TestLens.startSession(...)` attempts the initial HUD injection. Events retry injection lazily when a browser document was not available earlier, such as around navigation. When [`TestLensOptions.cleanupHudOnFinish`](../reference/configuration.md#testlensoptions) is enabled, finalization removes HUD/debug artifacts on a best-effort basis. Injection and cleanup failures do not change the WebDriver operation's intended result.
 
-<!-- SCREENSHOT TODO: assets/screenshots/hud-full-panel.png
-Show the complete HUD during a running session with a session name, current step, and several log rows.
-Use a real library build and keep text readable at documentation width.
-Feature documented: HUD layout and runtime information hierarchy.
-Suggested alt text: Full Test Lens HUD with session, current step, and structured event rows.
--->
-
 ## Highlights
 
 A highlight is a temporary border/label drawn around an element so you can see which DOM target Test Lens selected. It is useful when a selector matches an unexpected element or a click is intercepted by page UI.
 
-The standard overlay-aware [`click()`](../elements/actions.md#click) highlights its resolved target automatically when [`OverlayConfig.enabled()`](../reference/configuration.md#overlayconfig) is true:
+The standard overlay-aware [`click()`](../elements/actions.md#click-contract-native-activation-visible-recovery) highlights its resolved target automatically when [`OverlayConfig.enabled()`](../reference/configuration.md#overlayconfig) is true:
 
 ```java
 lens.getByRole("button", "Save").click();
@@ -72,14 +67,9 @@ lens.getByRole("button", "Save").click();
 
 `fill()`, `clear()`, `press()`, `hover()`, `doubleClick()`, and `rightClick()` do not currently apply the same click decoration. `UiLocatorOptions.highlightBeforeAction()` is a retained public option but is not consulted by the current `UiLocator` implementation; it does not enable or disable highlights.
 
-Use [`OverlayConfig.highlightColor(...)`](../reference/configuration.md#overlayconfig) and [`decorationDurationMs(...)`](../reference/configuration.md#overlayconfig) to control the color and lifetime. For deliberate non-click decoration of a resolved element or related DOM node, use the [advanced explicit highlight helpers](../advanced/js-overlay-debug.md#hud-and-explicit-visual-helpers).
+The highlight uses a pointer-transparent overlay. It does not click, receive the click, change the target's state, or make the element actionable. The subsequent activation contract remains native `WebElement.click()` with only explicit overlay recovery and configured locator retries.
 
-<!-- SCREENSHOT TODO: assets/screenshots/target-highlight.png
-Show a real target decoration with its label and enough application context to identify the element.
-Do not duplicate the click screenshot: use the explicit highlight helper or another non-click context.
-Feature documented: standalone visual element highlighting.
-Suggested alt text: Page element outlined and labelled by the Test Lens highlight helper.
--->
+Use [`OverlayConfig.highlightColor(...)`](../reference/configuration.md#overlayconfig) and [`decorationDurationMs(...)`](../reference/configuration.md#overlayconfig) to control the color and lifetime. For deliberate non-click decoration of a resolved element or related DOM node, use the [advanced explicit highlight helpers](../advanced/js-overlay-debug.md#hud-and-explicit-visual-helpers).
 
 ## Wait feedback
 

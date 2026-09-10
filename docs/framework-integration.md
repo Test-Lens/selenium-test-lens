@@ -13,11 +13,7 @@ lens.startSession(testName);
 
 In a manual integration, your project remains responsible for creating and closing `WebDriver`. Test Lens attaches to that driver, records Lens operations, and writes session diagnostics when the test finishes. The optional JUnit 5 and TestNG integrations deliberately own drivers returned by their configured factories.
 
-Both Maven and Gradle consumers use the same published coordinates. With
-Gradle, select `selenium-test-lens-junit5` or `selenium-test-lens-testng` as a
-`testImplementation` dependency; do not combine both lifecycle adapters for
-one invocation. The Gradle clean-room smoke validates both adapters on JDK 17
-and 21 without constructing a browser; browser behavior is covered separately.
+Maven and Gradle use the same coordinate form. The main and React artifacts are published in stable `0.1.0`; `selenium-test-lens-junit5` and `selenium-test-lens-testng` are development-line `0.2.0` artifacts available only from a current source build until that release is published. With Gradle, use the chosen adapter as a `testImplementation` dependency and do not combine both lifecycle adapters for one invocation. The clean-room smoke validates both development adapters on JDK 17 and 21 without constructing a browser; browser behavior is covered separately.
 
 A typical integration has three lifecycle points:
 

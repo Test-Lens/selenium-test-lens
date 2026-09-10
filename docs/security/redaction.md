@@ -5,6 +5,8 @@
 
 Selenium Test Lens applies `RedactionPolicy.defaults()` before a structured log entry is fanned out to the HUD, the session trace, or any built-in or caller-provided `UiTestLensLogSink`. The same policy is applied at direct trace, network, API-overlay, report, and failure-bundle boundaries that do not pass through the logger.
 
+This is the safety boundary that makes richer observability practical: consumers receive redacted diagnostic copies, while matching and test control continue to use the original runtime values. It does not make every artifact intrinsically safe; review the explicit limits below before publishing evidence.
+
 Complete JSON documents are redacted structurally by a bounded, single-pass scanner. JSON apostrophes are ordinary string content, and escaped quotes, backslashes, control escapes, Unicode escapes, nested objects, arrays, duplicate keys, numbers, booleans, and null are parsed without treating them as delimiters. A sensitive key replaces its entire value—regardless of that value's JSON type—with one correctly escaped replacement string. Strings under non-sensitive keys still receive Bearer, Basic, JWT, structured-pair, and configured-literal redaction. Malformed or excessively nested JSON is never returned merely because structural parsing failed; it goes through the fail-closed plain-text and tolerant key/value fallback instead.
 
 ```java

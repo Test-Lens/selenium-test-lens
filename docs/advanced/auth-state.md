@@ -18,6 +18,8 @@ AuthRestoreResult restoreState(Path path, AuthRestoreOptions options)
 
 Capture reads selected cookies/local/session storage for an origin and returns `AuthState`. JSON export/parser types serialize it. Restore can navigate to the origin, clear existing cookies/storage, restore chosen components, validate origin, and reject expired state. Browser origin/security rules and WebDriver cookie rules still apply; restore results report counts/status/exception/elapsed time.
 
+Auth state is a controlled same-origin test setup mechanism, not automatic login federation. In particular, it does not copy application credentials into cross-origin SSO storage.
+
 With the default `validateOrigin(true)`, restore follows a mutation-before-validation-safe sequence:
 
 ```text

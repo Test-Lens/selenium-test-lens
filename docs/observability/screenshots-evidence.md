@@ -46,13 +46,6 @@ The first uses defaults. Capture requires a driver implementing Selenium `TakesS
 
 The current `TestLens.captureScreenshot(...)` path represents unsupported-driver, I/O, and runtime capture failures in `ScreenshotCaptureResult`; it does not throw `ScreenshotCaptureException` for those failures. `ScreenshotCaptureException` remains a public exception type but is not thrown by the current `ScreenshotCapture.capture(...)` implementation.
 
-<!-- SCREENSHOT TODO: assets/screenshots/failure-screenshot.png
-Show an actual screenshot captured by finishFailed() for a deterministic failing test.
-The application failure state and relevant target should be visible; remove secrets and personal data.
-Feature documented: automatic failure screenshot evidence.
-Suggested alt text: Application failure state captured automatically by Test Lens.
--->
-
 ## ScreenshotCapture
 
 Advanced direct service:

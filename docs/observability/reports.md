@@ -25,6 +25,9 @@ The session JSON always contains a top-level `flakiness` object with `flakyCandi
 
 For final `FAILED`, HTML also contains a `Failure bundle` section linking the predictable ZIP and listing every component status, size, path, or collection error. The ZIP is assembled after final trace/report exports, so it contains their final versions without recursively containing itself. See [Failure bundles](failure-bundles.md).
 
+!!! info "Coming in 0.2.0"
+    The automatic failure-bundle section and hardened exactly-once facade finalization are part of the development line and are not available in Maven Central `0.1.0`. Session HTML/JSON reports are available in `0.1.0`.
+
 An explicitly attached network JSON export is an object containing the requested and active capture modes, capture status, ignored/dropped counters, and request/response/fetch-error events with correlation attributes. Its public models and assertion diagnostics are immutable redacted snapshots; raw URLs and headers remain private to matching and correlation. A failed session's bundle contains a smaller `network-summary.json` snapshot taken before Lens stops its active capture; it does not start capture or include request/response bodies.
 
 Polling assertions add their start/retry/pass/timeout/failure events to the normal trace and HTML timeline. Count and state results include actual attempt and elapsed values, while attribute diagnostics expose only the attribute name, presence, and value lengths. Class diagnostics bound the expected token, and CSS previews redact `url(...)` contents. These assertion events do not create recovery `RETRY` entries or affect the Flakiness section.
@@ -49,20 +52,6 @@ Suite status uses one shared aggregation rule for HTML, JSON, and portable bundl
 Exporting is observational. It does not finish a session, add `SESSION_FINISHED`, set `finishedAt`, invent a failure, or wait for completion. The same session can be finalized later, after which a new export reflects its terminal outcome.
 
 `TraceHtmlReportSection` names the renderer's logical `HEADER`, `SUMMARY`, `TIMELINE`, `STEPS`, `FAILURES`, `ARTIFACTS`, and `RAW_JSON` sections. It is useful when an integration needs to identify report sections; section presence in normal exports is controlled by `TraceHtmlExportOptions` rather than by passing this enum to the exporter constructor.
-
-<!-- SCREENSHOT TODO: assets/screenshots/html-report-overview.png
-Show the generated HTML report overview with session status, summaries, and timeline visible.
-Use synthetic test names/data and a real exported report.
-Feature documented: report-level navigation and summary.
-Suggested alt text: Selenium Test Lens HTML report overview with status summaries and timeline.
--->
-
-<!-- SCREENSHOT TODO: assets/screenshots/html-report-failure-detail.png
-Show an expanded failed event/step with failure context and an evidence link or preview.
-Use a real exported report with sanitized stack paths and application data.
-Feature documented: failure investigation inside the HTML report.
-Suggested alt text: Expanded failed report event showing diagnostic context and linked evidence.
--->
 
 ### TraceJsonExporter
 

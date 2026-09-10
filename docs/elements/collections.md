@@ -1,5 +1,10 @@
 # Element collections
 
+The original collection reads and positional views (`resolveAll`, `count`, `nth`, `first`, and `last`) are available in `0.1.0`.
+
+!!! info "Coming in 0.2.0"
+    Immutable filtering/scoping stages and collection-count waits are part of the development line and are not available in Maven Central `0.1.0`.
+
 ## resolveAll()
 
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
@@ -46,6 +51,8 @@ rows.last().click();
 ```
 
 Selection is a pipeline stage, so order matters: `rows.filterByTextContaining("Open").first()` filters before selection, while `rows.first().filterByTextContaining("Open")` can produce zero or one match after selecting the first row.
+
+Scoped `locator(...)` returns descendants, while `filterHas(...)` returns the original parents whose own subtree contains a match. Neither operation permits a semantic locator, custom `By`, or absolute-looking XPath to escape the parent scope. See [Locators](locators.md#scoped-and-filtered-locators).
 
 ## Count waits
 

@@ -1,24 +1,33 @@
 # Element actions
 
+Element actions use native Selenium operations and feed the same HUD, log, and trace pipeline as waits and assertions. The basic click, fill, clear, key, hover, and click-variant actions are available in `0.1.0`.
+
 !!! info "Coming in 0.2.0"
-    The form-control actions described on this page are part of the current development line and are not available in Maven Central `0.1.0`.
+    Form-control actions (`check`, `uncheck`, `upload`, `focus`, and `scrollIntoView`) and composed locator execution are part of the current development line and are not available in Maven Central `0.1.0`.
 
-All action methods resolve the current element, emit structured operation events, and return the same `UiLocator` for chaining. Actions may be invoked on composed locators: scoping and filtering are evaluated lazily immediately before the action, without exposing a raw `WebElement` or concatenating global CSS/XPath selectors. Resolution/action retry is governed by [`UiLocatorOptions`](../reference/configuration.md#uilocatoroptions). A physical action/read failure that schedules another attempt emits a dedicated `RETRY` trace event; a terminal failure does not add an extra retry. Diagnostics do not add WebDriver calls or change their order. A final failure is wrapped as `UiLocatorException`; `action()`, `locatorDescription()`, and `actionabilitySummary()` add context and the underlying WebDriver failure remains the cause.
+Actions resolve the current element and return the same `UiLocator` for chaining. Resolution/action retry is governed by [`UiLocatorOptions`](../reference/configuration.md#uilocatoroptions). A physical action/read failure that schedules another attempt emits a dedicated recovery `RETRY`; a terminal failure does not. Condition polling is separate and does not create recovery-retry evidence. A final failure is wrapped as `UiLocatorException`, with the underlying WebDriver failure retained as its cause.
 
-## click()
+## Click contract: native activation, visible recovery
 
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
 ```java
 UiLocator click()
 ```
 
-### Behavior
+`UiLocator.click()` is the recommended public click API. There is no separate `smartClick()` that normal users need to select.
 
-- resolves the element and runs best-effort actionability diagnostics;
-- uses the overlay-aware smart-click path, including configured blocker policy;
-- retries configured stale/intercepted/not-interactable failures;
-- emits start, retry, pass, or failure trace/log/HUD feedback;
-- decorates the target when overlays are enabled; `SmartClickActions` performs the decorated Selenium click.
+Each activation attempt uses native `WebElement.click()`. An intercepted click may be followed by another native click after explicit overlay recovery, and the locator retry policy may start a fresh action attempt.
+
+The complete contract is:
+
+- the locator resolves the target and runs best-effort actionability diagnostics;
+- an enabled overlay may highlight the target, but the decoration is pointer-transparent and never activates it;
+- physical activation is `WebElement.click()`;
+- a configured overlay policy may identify and explicitly handle a blocker after `ElementClickInterceptedException`, then make another native click attempt;
+- configured stale, intercepted, or not-interactable failures may cause the outer locator retry policy to begin another complete action attempt;
+- start, retry, pass, and failure information is emitted to the HUD/log/trace pipeline.
+
+The implementation deliberately does **not** fall back to JavaScript click, Selenium `Actions` click, clicking an ancestor, or mutating page state to simulate activation. Actionability is diagnostic and best-effort; it cannot guarantee that the browser will accept the next click.
 
 ### Returns
 
@@ -30,19 +39,11 @@ Throws `UiLocatorException` after the retry budget or on a non-retryable WebDriv
 
 ### Trace, HUD, highlight, and evidence
 
-The locator and smart-click layers emit structured start/pass/retry/failure events; an attached session records them and the HUD can display them. When overlays are enabled, the smart-click path decorates the target using its diagnostic label. `click()` does not capture a screenshot by itself.
+The locator and overlay-aware click layers emit structured start/pass/retry/failure events; an attached session records them and the HUD can display them. When overlays are enabled, the target is decorated using its diagnostic label. `click()` does not capture a screenshot by itself.
 
 ```java
 lens.getByRole("button", "Save").waitUntilClickable().click();
 ```
-
-<!-- SCREENSHOT TODO: assets/screenshots/element-click-highlight.png
-Show a real Test Lens click operation before the decoration disappears.
-The clicked element must be highlighted and the HUD must show the click action and label.
-Avoid unrelated browser UI and sensitive application data.
-Feature documented: click target decoration and runtime feedback.
-Suggested alt text: Save button highlighted while the Test Lens HUD reports a click.
--->
 
 Related: [`doubleClick()`](#doubleclick), [`rightClick()`](#rightclick), [waiting](waiting.md).
 
@@ -66,13 +67,6 @@ Purpose: replace the current element value using Selenium keyboard input.
 ```java
 lens.getByTestId("email").fill("person@example.test");
 ```
-
-<!-- SCREENSHOT TODO: assets/screenshots/element-fill-feedback.png
-Show fill() operating on a non-sensitive example field while the HUD reports the fill action.
-The field must contain synthetic text; do not imply a highlight because fill() does not add one.
-Feature documented: fill action feedback and value-safe diagnostics.
-Suggested alt text: Synthetic form field after fill while the HUD reports the fill action.
--->
 
 Related: [`clear()`](#clear), [`press(...)`](#presscharsequence-keys), [value assertions](assertions.md#value).
 

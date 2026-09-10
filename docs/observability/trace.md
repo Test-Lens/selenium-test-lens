@@ -10,6 +10,8 @@ API level: **Advanced** for direct construction; facade recording is recommended
 
 A trace is the structured history of a Test Lens session: steps, browser actions, waits, assertions, failures, and attached evidence in execution order. Use it when a failed test needs more context than its exception alone provides, or when a CI integration needs machine-readable execution data.
 
+The trace is the spine of the observability workflow: operations append events, finalization fixes the terminal session outcome, HTML/JSON exporters present the timeline, and development-line failure bundles collect the resulting reports with other evidence. Trace and reports themselves are available in stable `0.1.0`.
+
 Trace recording is automatic after a normal session starts. You do not need to create a trace recorder or call a record method for each operation:
 
 ```java

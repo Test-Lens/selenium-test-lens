@@ -3,7 +3,7 @@
 !!! info "Coming in 0.2.0"
     The `selenium-test-lens-junit5` adapter is part of the current development line and is not available in Maven Central `0.1.0`.
 
-The `selenium-test-lens-junit5` module is the recommended JUnit Jupiter integration. The coordinate below follows the unreleased `0.2.0-SNAPSHOT` source tree and therefore requires a local source build or a configured snapshot repository. It creates one `WebDriver`, `TestLens`, and trace session for every test invocation, injects the driver and Lens into the test method, finalizes diagnostics, and only then closes the driver.
+The `selenium-test-lens-junit5` module is the recommended JUnit Jupiter integration for the development line. The coordinate below follows the unreleased `0.2.0-SNAPSHOT` source tree and requires a local source build; the project does not advertise a public snapshot repository. It creates one `WebDriver`, `TestLens`, and trace session for every test invocation, injects the driver and Lens into the test method, finalizes diagnostics, and only then closes the driver.
 
 Inside a test, `lens.expectPage()` polls URL or title on that invocation's active window. These checks use the normal Lens assertion events and results; they are neither JUnit retries nor recovery retries. Explicitly switch a popup before asserting its URL or title.
 

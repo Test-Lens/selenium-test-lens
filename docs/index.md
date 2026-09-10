@@ -8,35 +8,94 @@ hide:
 
 # Selenium Test Lens
 
+**An observability and failure-evidence layer for Selenium WebDriver.**
+
+Test Lens attaches to the driver your project already owns. It keeps Selenium's native behavior visible while recording structured diagnostics and preserving evidence that is useful after a failure.
+
+[Get started](getting-started.md){ .md-button .md-button--primary }
+[Why Test Lens](#why-test-lens){ .md-button }
+[Reports](observability/reports.md){ .md-button }
+[Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0){ .md-button }
+
 | Documentation | Status | Library availability |
 |---|---|---|
 | [0.1.0 stable](https://test-lens.github.io/selenium-test-lens/0.1.0/) | Latest published release | Maven Central |
 | [0.2.0-SNAPSHOT development](https://test-lens.github.io/selenium-test-lens/dev/) | Coming soon | Source build only |
 
-The root documentation URL and `latest` always select the latest immutable Maven Central release. This `/dev/` site follows `main`, carries a global development banner, and may describe unreleased APIs.
-
-**Better visibility and diagnostics for Selenium tests.**
-
-Selenium Test Lens adds retry-aware interactions, waits and failure diagnostics on top of the `WebDriver` you already use.
-
-[Get started](getting-started.md){ .md-button .md-button--primary }
-[GitHub](https://github.com/Test-Lens/selenium-test-lens){ .md-button }
-[Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0){ .md-button }
-[Javadoc](https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/){ .md-button }
-
 </div>
 
-<!-- SCREENSHOT TODO: assets/screenshots/home-hud-highlight.png
-Show a real Test Lens action in a representative application.
-The target must be highlighted and the HUD must show the same action and target label.
-Crop unrelated browser chrome and do not display personal or secret data.
-Feature documented: combined HUD and element-highlight workflow.
-Suggested alt text: Test Lens HUD showing a click action beside its highlighted target.
--->
+## The observable test path
 
-## Install the stable release
+```text
+Attach an existing WebDriver
+→ locate semantically and within scope
+→ interact while HUD and trace observe
+→ poll assertions and waits
+→ finalize once
+→ inspect a report or failure bundle
+```
 
-Selenium Test Lens requires Java 17 or newer. Add the main runtime artifact:
+Test Lens does not replace Selenium, your test runner, Page Objects, or an existing reporting stack. Adopt it where clearer interactions and better diagnostics are useful; keep using raw WebDriver when it provides the control you need.
+
+## Why Test Lens?
+
+### Native interactions with visible recovery
+
+```java
+lens.getByRole("button", "Save").click();
+```
+
+The ordinary `UiLocator.click()` is the recommended path. HUD and trace observe it, while highlighting remains pointer-transparent visual decoration. Each activation attempt uses native `WebElement.click()`. An intercepted click may be followed by another native click after explicit overlay recovery, and the locator retry policy may start a fresh action attempt. There is no JavaScript, Actions, ancestor-click, or hidden state-mutation fallback. [Read the exact interaction contract](elements/actions.md#click-contract-native-activation-visible-recovery).
+
+### Semantic and scoped queries
+
+Basic test-id, text, and role-oriented entry points exist in stable `0.1.0`.
+
+!!! info "Coming in 0.2.0"
+    Browser-computed accessibility matching, expanded semantic factories, and locator composition are part of the development line and are not available in Maven Central `0.1.0`.
+
+```java
+UiLocator cards = lens.locator(By.cssSelector(".product-card"))
+        .filterByAttribute("data-status", "available")
+        .filterHas(lens.getByRole("button", "Buy"));
+
+cards.first().locator(lens.getByRole("button", "Buy")).click();
+```
+
+The query stays lazy and ordered. A child query cannot escape its parent container—even when user XPath starts with `//`—and browser/WebDriver accessibility semantics are not approximated from visible text alone. [Use semantic and scoped locators](elements/locators.md).
+
+### Measurable recovery instead of silent flaky passes
+
+> A passed test can still tell you it was flaky.
+
+!!! info "Coming in 0.2.0"
+    `RetrySummary` and `RetryOutcomePolicy` are part of the development line and are not available in Maven Central `0.1.0`.
+
+Recovery retry is recorded separately from condition polling and runner retry. You can report recovered attempts, warn about them, or reject an otherwise passed outcome after evidence is written. [Understand recovery and flakiness](observability/flakiness.md).
+
+### Trace, reports, and automatic failure evidence
+
+Trace and HTML/JSON reports have existed since `0.1.0`; they connect actions, waits, assertions, and lifecycle outcomes. Automatic failure evidence builds on that foundation:
+
+```text
+operation → session trace → finalization → HTML/JSON report → failure bundle
+```
+
+!!! info "Coming in 0.2.0"
+    Automatic failure bundles and hardened exactly-once finalization are part of the development line and are not available in Maven Central `0.1.0`.
+
+A final failed session can collect screenshots, reports, context, runtime/configuration allowlists, and a network summary. Collection is best-effort, finalization does not close WebDriver, and video is caller-supplied evidence rather than an automatic recording. [Follow the trace](observability/trace.md), [inspect reports](observability/reports.md), or [configure failure bundles](observability/failure-bundles.md).
+
+### Safe diagnostics through central redaction
+
+!!! info "Coming in 0.2.0"
+    Central sensitive-data redaction is part of the development line and is not available in Maven Central `0.1.0`.
+
+One immutable policy protects diagnostic copies before they fan out to HUD, trace, log sinks, reports, network/API diagnostics, and failure-bundle text files. Original exception types remain structural diagnostics, while the original throwable continues to control the test result. Screenshots and video are not pixel-redacted, auth-state files remain replayable and outside this transformation, and `disabled()` is a deliberate opt-out. [Review the security boundary](security/redaction.md).
+
+## Quick start
+
+The stable release requires Java 17 or newer:
 
 ```xml
 <dependency>
@@ -46,24 +105,12 @@ Selenium Test Lens requires Java 17 or newer. Add the main runtime artifact:
 </dependency>
 ```
 
-!!! important "Selenium stays under your control"
-
-    Selenium Test Lens does not bring its own Selenium version. Keep `selenium-java` as an explicit dependency in your project and create and close `WebDriver` exactly as you do today.
-
-## Attach to an existing driver
-
 ```java
-import io.github.testlens.TestLens;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-
 WebDriver driver = createExistingFrameworkDriver();
 TestLens lens = TestLens.attach(driver);
 try {
     lens.startSession("login");
-    driver.get("https://example.test/login");
-
-    lens.locator(By.id("username"), "Username").fill("john");
+    driver.get(applicationUrl);
     lens.locator(By.id("login"), "Login").click();
     lens.locator(By.id("welcome"), "Welcome").expect().toBeVisible();
     lens.finishPassed();
@@ -75,64 +122,28 @@ try {
 }
 ```
 
-`finishPassed()`, `finishFailed(Throwable)`, and `finishSkipped(String)` finalize the Lens session with the matching passed, failed, or skipped status and write its reports and diagnostics. None of them closes the driver.
+[Continue with installation and lifecycle](getting-started.md). Selenium remains an explicit consumer dependency, and your application or runner remains responsible for closing the driver.
 
-## Why Test Lens?
+## Advanced capabilities
 
-Selenium Test Lens works alongside Selenium rather than replacing it. You can adopt it gradually and use raw `WebDriver` whenever you need lower-level control.
+| Capability | What it does—and does not do | Guide |
+|---|---|---|
+| WebDriver BiDi network diagnostics | Passively observes and correlates traffic; it is not interception, mocking, or CDP. Manual network events/waits/assertions existed in `0.1.0`; BiDi lifecycle and safe snapshots are `0.2.0`. | [Network](advanced/network.md) |
+| Auth state | Restores cookies and storage only after origin validation; it is not automatic cross-origin SSO storage handling. | [Auth state](advanced/auth-state.md) |
+| Page and SPA waits | Observes ready state and a limited XHR/fetch tracker; network idle does not cover every browser resource. | [Waiting](elements/waiting.md) |
+| React helpers | Adds optional React-oriented waits and helpers; its legacy `smartClick` is separate from `UiLocator.click()`. | [React](integrations/react.md) |
+| API overlay | Displays caller-supplied previews; it does not capture network traffic. | [Visual helpers](advanced/visual-helpers.md) |
 
-<div class="grid cards" markdown>
+## Integrations
 
--   :material-eye-outline: **See what the test is doing**
+The main library works with any runner. The JUnit 5 and TestNG lifecycle adapters are development-line `0.2.0` artifacts built from source and are not available in Maven Central `0.1.0`. They create one driver/Lens pair per invocation, map runner outcomes, finalize evidence, and then close the driver. [Choose an integration model](framework-integration.md).
 
-    ---
+## Reference
 
-    Lens operations feed the in-browser HUD and session trace, so you can follow the test as it runs and investigate failures afterwards.
-
--   :material-timer-outline: **Less repetitive waiting code**
-
-    ---
-
-    Locator operations and assertions include retry-aware waits for common UI states.
-
--   :material-file-chart-outline: **Better failure diagnostics**
-
-    ---
-
-    Generate HTML and JSON traces and keep screenshots and other evidence with the test session.
-
--   :material-cursor-default-click-outline: **Use it alongside Selenium**
-
-    ---
-
-    Keep your existing `WebDriver`, Page Objects and test runner. Use Selenium directly for operations Lens does not wrap.
-
-</div>
-
-## How it fits
-
-```text
-Existing Selenium project
-        |
-        v
-Existing WebDriver
-        |
-        v
-TestLens.attach(driver)
-        |
-        +--> interactions, waits, assertions
-        +--> HUD and event trace
-        +--> reports and evidence
-```
-
-Test Lens does not replace your test runner or reporting stack. JUnit, TestNG, Allure and existing Page Objects can stay where they are. JUnit 5 and TestNG users may add the optional published [`selenium-test-lens-junit5`](integrations/junit5.md) or [`selenium-test-lens-testng`](integrations/testng.md) adapter for per-invocation driver/Lens creation and native lifecycle mapping.
-
-The React module is optional. For lower-level browser interactions that Lens doesn't wrap, use Selenium directly.
-
-## Continue
-
-- [Install and write your first test](getting-started.md)
-- [Integrate with an existing Selenium project](framework-integration.md)
-- [Explore capabilities](capabilities.md)
-- [Migrate incrementally from raw Selenium](migration.md)
-- [View the changelog](https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md)
+- [Capability map](capabilities.md)
+- [Element API](elements/locators.md)
+- [Configuration](configuration.md)
+- [Observability](observability/index.md)
+- [Public API catalog](reference/public-api-catalog.md)
+- [Migration from raw Selenium](migration.md)
+- [Browser integration contracts](browser-integration-tests.md)

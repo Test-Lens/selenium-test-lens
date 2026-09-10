@@ -1,9 +1,8 @@
 # Element assertions
 
-!!! info "Coming in 0.2.0"
-    Page, collection, attribute, CSS, attachment, selected, and checked assertions are part of the current development line and are not available in Maven Central `0.1.0`.
-
 `UiExpect` is obtained from `TestLens.expect(...)` or `UiLocator.expect()`. Each assertion polls until it passes or times out, reports attempts and elapsed time, and returns `UiAssertionResult` on success. Failure throws `UiAssertionError` carrying the result.
+
+Visibility, enabled, text, and value assertions are available in `0.1.0`. Collection, DOM-state, and page assertions are development-line additions marked at their first use below.
 
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
 ```java
@@ -18,20 +17,6 @@ UiExpect expect(UiAssertionOptions options)
 ```
 
 The two `TestLens.expect` overloads create a locator from `By`; the label overload supplies the diagnostic name. `UiLocator.expect()` uses default assertion options, while `expect(options)` uses the supplied comparison/retry settings. Assertion polling re-reads the current element rather than caching a `WebElement`. Reporter events feed the session trace/log/HUD; assertions do not take screenshots automatically.
-
-<!-- SCREENSHOT TODO: assets/screenshots/assertion-passed.png
-Show a successful real UiExpect assertion with the target state visible.
-The HUD must show the assertion name, target label, and passed status.
-Feature documented: successful assertion feedback.
-Suggested alt text: Test Lens HUD reporting a successful visible-element assertion.
--->
-
-<!-- SCREENSHOT TODO: assets/screenshots/assertion-failed.png
-Show a failed or timed-out real UiExpect assertion using synthetic expected/actual text.
-The HUD must show failure status and enough context to understand the mismatch without secrets. Assertion expected/actual previews pass through the effective central `RedactionPolicy`; typed length-only and URL sanitization rules remain stricter and diagnostic rendering never performs another observation.
-Feature documented: failed assertion diagnostics.
-Suggested alt text: Test Lens HUD reporting a timed-out text assertion with expected and actual context.
--->
 
 ## Visibility and enabled state
 
@@ -77,6 +62,9 @@ Both value assertions require a present element and follow the same missing/stal
 
 ## Collections and attachment
 
+!!! info "Coming in 0.2.0"
+    Collection-count and attachment assertions are part of the current development line and are not available in Maven Central `0.1.0`.
+
 <!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiExpect -->
 ```java
 UiAssertionResult toHaveCount(int expected)
@@ -98,6 +86,9 @@ lens.getByRole("status").expect().toBeAttached();
 
 ## DOM attributes, classes, and CSS
 
+!!! info "Coming in 0.2.0"
+    DOM-attribute, class-token, and computed-CSS assertions are part of the current development line and are not available in Maven Central `0.1.0`.
+
 <!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiExpect -->
 ```java
 UiAssertionResult toHaveAttribute(String attributeName, String expectedValue)
@@ -116,6 +107,9 @@ lens.getByTestId("panel").expect().toHaveCss("display", "block");
 ```
 
 ## Selected and checked state
+
+!!! info "Coming in 0.2.0"
+    Selected and checked-state assertions are part of the current development line and are not available in Maven Central `0.1.0`.
 
 <!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiExpect -->
 ```java
@@ -176,6 +170,9 @@ UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger, Ui
 The probe types themselves are classified `INTERNAL_STYLE_PUBLIC`; do not use them as the normal assertion API.
 
 ## Page URL and title assertions
+
+!!! info "Coming in 0.2.0"
+    Page URL/title assertions are part of the current development line and are not available in Maven Central `0.1.0`.
 
 `TestLens.expectPage()` and `JsOverlayDebug.expectPage()` create a page assertion bound to the driver's active window. An overload accepts `UiAssertionOptions`; only timeout and poll interval affect URL assertions, while title assertions also honor whitespace normalization, trimming, case sensitivity, and the preview limit.
 
