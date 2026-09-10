@@ -2582,6 +2582,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#one-time-repair-of-the-010-bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One-time repair of the 0.1.0 bootstrap
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2780,6 +2791,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#one-time-repair-of-the-010-bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One-time repair of the 0.1.0 bootstrap
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2835,6 +2857,15 @@ versions: verify the symbol against the corresponding release tag before adding 
 <h2 id="verification-and-recovery">Verification and recovery<a class="headerlink" href="#verification-and-recovery" title="Permanent link">&para;</a></h2>
 <p>Run <code>./scripts/validate-versioned-docs.ps1</code> locally in PowerShell 7. It creates a disposable Git repository, bootstraps stable and dev documentation, hashes 0.1.0 across a dev redeploy, rejects a duplicate stable deployment, simulates the next stable release, and removes the temporary repository. <code>mike list --branch gh-pages</code> in a read-only clone shows deployed metadata.</p>
 <p>To recover a Pages deployment without changing documentation, choose <code>redeploy-pages</code>; it uploads the existing complete <code>gh-pages</code> branch. If a <code>mike</code> push conflicts, let the serialized workflow fail, inspect the remote branch, and rerun the same operation. Never force-push or rebuild old versions from <code>main</code>.</p>
+<h2 id="one-time-repair-of-the-010-bootstrap">One-time repair of the 0.1.0 bootstrap<a class="headerlink" href="#one-time-repair-of-the-010-bootstrap" title="Permanent link">&para;</a></h2>
+<p>The initial 0.1.0 bootstrap published an intentionally minimal snapshot that did not cover the release's full verified API. A temporary <code>repair-0.1.0-docs</code> dispatch operation exists solely to replace that incomplete historical documentation from <code>docs-versions/0.1.0</code>.</p>
+<ol>
+<li>Review the historical source against tag <code>v0.1.0</code> and run the strict stable build, boundary check, and versioned-site simulation.</li>
+<li>Run the Documentation workflow with operation <code>repair-0.1.0-docs</code>.</li>
+<li>Enter the exact confirmation <code>repair-immutable-0.1.0-docs</code>.</li>
+<li>Verify <code>/0.1.0/</code>, <code>/latest/</code>, the root redirect, and the version switcher. Confirm that <code>/dev/</code> is unchanged.</li>
+</ol>
+<p>The operation accepts no version, requires an already-published 0.1.0 whose <code>latest</code> alias still points to it, hashes the <code>dev</code> tree before and after the update, and fails if that tree changes. It refreshes only 0.1.0 and its <code>latest</code> copy while preserving the root default and all other versions. It cannot repair a future release. Remove this dispatch option in a separate commit after the correction has succeeded; normal immutable-version protection remains in force.</p>
 
 
 
