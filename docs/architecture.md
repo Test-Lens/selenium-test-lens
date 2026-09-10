@@ -139,6 +139,8 @@ The overlay module contains resources for the HUD, highlighting and decorations,
 
 Report generation lives in core. Collected sessions can be exported as HTML, JSON, or portable bundles without Selenium or a live browser. All formats use the same status aggregation in `TraceReportSupport`: failure/error, warning, incomplete `STARTED`, empty `INFO`, all-skipped `SKIPPED`, then completed `PASSED`. Exporters only snapshot sessions; they never finalize or mutate them. See [Examples](examples.md) and [Reports](observability/reports.md) for usage.
 
+Report upload is a separate, explicit post-finalization boundary in the Selenium artifact. It consumes `TestLensFinalizationResult`, selects one completed ZIP, and uses the JDK HTTP client without accessing WebDriver or adding session events. The immutable uploader has no background executor or global transport state; retries reuse the same file checksum and idempotency key. Local finalization remains authoritative when transport fails. See [Report upload](observability/report-upload.md).
+
 ## Evidence boundary
 
 Core stores artifact metadata such as paths and URLs. Selenium integration creates browser-dependent evidence, including screenshots, and attaches it to the session. Exporters consume that session model; the producing feature writes the underlying file. Video support attaches existing files or URLs and does not record video.

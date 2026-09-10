@@ -84,6 +84,8 @@ The `driverFactory` is called exactly once for each invocation. `WebDriver` and 
 
 Do not call `driver.quit()` in `@AfterEach`: the extension owns the returned driver. It finalizes Lens and its JSON/HTML reports first, then calls `quit()` exactly once. `TestLens` itself still never closes the driver. A test may have already called a Lens finalizer; the extension then reuses that session's first terminal result without duplicating reports, evidence, or terminal events, and still performs its one owned driver cleanup.
 
+The extension does not upload reports. If a test deliberately finalizes and uploads before returning, the extension safely reuses that terminal result and performs its normal single driver cleanup. For centralized upload of every outcome, add an ordered project-owned extension around the explicit [report uploader](../observability/report-upload.md); do not place credentials in test names or Lens metadata.
+
 ## Configure Lens and names
 
 ```java

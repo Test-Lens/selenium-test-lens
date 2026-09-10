@@ -114,6 +114,11 @@ lens.captureScreenshot("checkout-page", fullPage);
 
 `VIEWPORT` remains the default. `FULL_PAGE` scrolls and stitches the current responsive layout with standard WebDriver APIs; it does not use CDP or resize the window. See [screenshots and evidence](docs/observability/screenshots-evidence.md).
 
+!!! info "Coming in 0.2.0"
+    Explicit report upload is part of the current development line and is not available in Maven Central `0.1.0`.
+
+After local finalization succeeds, `ReportUploader` can stream the completed failure bundle, or a temporary ZIP containing `trace.json` and `report.html`, to an authenticated HTTP endpoint. Upload is an explicit `finish -> upload -> quit` step; it never runs automatically, repeats finalization, or owns the driver. The JDK client supports direct, system-proxy, and explicit-proxy modes with literal no-proxy rules. See the [receiver contract and upload guide](docs/observability/report-upload.md).
+
 ### Safe diagnostics through central redaction
 
 !!! info "Coming in 0.2.0"

@@ -78,6 +78,7 @@ nav:
       - Screenshots & evidence: observability/screenshots-evidence.md
       - Trace: observability/trace.md
       - HTML, JSON & ZIP reports: observability/reports.md
+      - Report upload: observability/report-upload.md
       - Flakiness and retry outcomes: observability/flakiness.md
       - Failure bundles: observability/failure-bundles.md
       - Logging: observability/logging.md

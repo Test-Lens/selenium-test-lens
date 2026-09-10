@@ -99,6 +99,8 @@ public void afterInvocation(IInvokedMethod method, ITestResult result)
 
 The listener maps `SUCCESS` to `finishPassed()`, `FAILURE` and `SUCCESS_PERCENTAGE_FAILURE` to `finishFailed(originalThrowable)`, and `SKIP`/`SkipException` to `finishSkipped(reason)`. It finalizes reports before calling `driver.quit()` and then removes the `ITestResult` state. If the test already finalized its Lens, the first terminal outcome and the exactly-once report pipeline are reused; the callback does not create a second terminal event or bundle. Do not call `quit()` again from `@AfterMethod`.
 
+The listener never uploads reports. A test may explicitly finalize and synchronously upload before it returns; the listener then observes the existing terminal result and still owns its one driver cleanup. A suite-wide transport policy belongs in a project-owned listener ordered around the explicit [report uploader](../observability/report-upload.md), with credentials supplied from controlled configuration rather than test metadata.
+
 If cleanup fails after an already failed or skipped test, the cleanup error is suppressed on the original throwable. Cleanup failure after a passed test changes the TestNG result to failure. A setup failure remains primary; a driver already created before attach/session failure is still closed once.
 
 For `FAILURE` and `SUCCESS_PERCENTAGE_FAILURE`, the listener completes the failure bundle before its single `driver.quit()`. A partial bundle does not change TestNG status or replace the original throwable. Policy-induced failure follows the same ordering and is not finalized twice.

@@ -137,6 +137,26 @@ The builder exposes **all** of: `background`, `foreground`, `mutedForeground`, `
 
 `FailureBundleOptions.screenshotCaptureMode(...)` selects the same mode for diagnostic and clean failure screenshots; its default is also `VIEWPORT`.
 
+## ReportUploadOptions
+
+Report upload is configured independently of `TestLensOptions` because configuration alone must never trigger network I/O. `ReportUploadOptions.builder()` requires an absolute HTTP(S) endpoint without userinfo or fragment. Query is accepted but omitted from diagnostics.
+
+| Builder method | Default | Effect |
+| --- | --- | --- |
+| `endpoint(URI)` | required | Explicit receiver; only HTTP/HTTPS with a host. |
+| `bearerToken(String)` | none | Optional credential; blank removes it and values never appear in `toString()`. |
+| `header(String, String)` | none | Adds a validated custom header; managed transport headers cannot be replaced. |
+| `connectTimeout(Duration)` | 10 s | Positive JDK HTTP connect timeout. |
+| `requestTimeout(Duration)` | 30 s | Positive per-attempt request timeout. |
+| `maxPayloadBytes(long)` | 100 MiB | Positive preflight file-size limit. |
+| `maxAttempts(int)` | 1 | Total attempts; retries only transport I/O, 408, 429, 502, 503, and 504. |
+| `maxRetryAfter(Duration)` | 30 s | Non-negative cap for integer-seconds `Retry-After`. |
+| `maxResponsePreviewBytes(int)` | 16 KiB | Non-negative bounded response preview. |
+| `proxy(ReportProxyOptions)` | `SYSTEM` | Direct, JVM/system selector, or explicit HTTP proxy plus literal bypass rules. |
+| `redactionPolicy(RedactionPolicy)` | defaults | Protects endpoint-independent messages, server ID, and response preview. |
+
+`ReportProxyOptions` accepts exact-host, domain-suffix, optional-port, localhost, IPv4, IPv6, and `*` no-proxy rules. It does not interpret regex or CIDR. See [Report upload](../observability/report-upload.md) for protocol and security details.
+
 ## VideoEvidenceOptions
 
 `source(VideoEvidenceSource)=CUSTOM`, `mediaType(String)="video/mp4"`, `validateLocalFileExists(boolean)=false`, `attachToSession(boolean)=true`, and `metadata(key,value)`/`metadata(Map)`. Validation applies to local paths; it does not fetch/validate remote URLs. Blank media type falls back to `video/mp4`; null/blank metadata keys and null values are ignored. Metadata may be persisted and must not contain secrets.

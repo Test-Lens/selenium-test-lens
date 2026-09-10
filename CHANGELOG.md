@@ -4,6 +4,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+- Added explicit, synchronous upload of completed report ZIPs through the JDK HTTP client, with deterministic idempotency keys, bounded retries and response diagnostics, direct/system/explicit proxy selection, literal no-proxy rules, and no changes to session finalization or WebDriver ownership.
 - Added portable, opt-in full-page screenshots that preserve the current responsive viewport and stitch standard Selenium PNG tiles without CDP. Capture now reports mode, dimensions, and tile count, enforces pixel/tile limits, restores scroll and temporary styles, and can supply both diagnostic and clean failure-bundle images.
 - Standardized published API Javadocs in English, clarified interaction, polling, lifecycle, network, evidence, and redaction contracts, and added a CI validator for Polish Javadoc text (including common words written without diacritics).
 - Reorganized README and development documentation around Test Lens's observable interaction, scoped-query, recovery, trace/evidence, and diagnostic-redaction capabilities; clarified native click/recovery behavior and corrected local 0.1.0 versus 0.2.0 feature boundaries.

@@ -25,6 +25,8 @@ The session JSON always contains a top-level `flakiness` object with `flakyCandi
 
 For final `FAILED`, HTML also contains a `Failure bundle` section linking the predictable ZIP and listing every component status, size, path, or collection error. The ZIP is assembled after final trace/report exports, so it contains their final versions without recursively containing itself. See [Failure bundles](failure-bundles.md).
 
+Completed reports stay local unless application or teardown code explicitly invokes `ReportUploader`. The development-line uploader streams exactly one completed ZIP after finalization, without appending trace events or requiring a live WebDriver. See [Report upload](report-upload.md) for the HTTP, idempotency, retry, proxy, and receiver contract.
+
 !!! info "Coming in 0.2.0"
     The automatic failure-bundle section and hardened exactly-once facade finalization are part of the development line and are not available in Maven Central `0.1.0`. Session HTML/JSON reports are available in `0.1.0`.
 

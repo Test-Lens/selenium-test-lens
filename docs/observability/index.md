@@ -2,6 +2,8 @@
 
 Observability is a primary Test Lens surface, not a side effect of element helpers.
 
+After a session is finalized locally, the development-line [report uploader](report-upload.md) can explicitly stream one completed ZIP to an HTTP receiver. Transport is separate from evidence capture: it is synchronous, never automatic, and never owns WebDriver.
+
 The persistent path is `operation → trace → finalization → report`; a final failed outcome can extend it with an automatic evidence bundle. The in-browser HUD is the live view of this pipeline, not its durable source of truth.
 
 !!! info "Coming in 0.2.0"

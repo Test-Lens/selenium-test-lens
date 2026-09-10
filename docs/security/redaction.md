@@ -30,6 +30,8 @@ Network matching and redirect correlation continue to use a private raw capture 
 
 Failure-bundle text components—including optional page source and browser console—receive the same best-effort redaction. The bundle configuration snapshot records only whether redaction is enabled, its replacement, and counts of added keys and literal secrets. It never records their values.
 
+Explicit report upload does not add credentials or transport settings to the trace, report, bundle, or session-report manifest. Bearer tokens and custom header values are omitted from public `toString()` output and are always treated as exact transport secrets if an endpoint echoes them. Endpoint diagnostics omit query, userinfo, and fragment; bounded server-response previews also use the uploader's effective `RedactionPolicy`. This transport boundary cannot remove secrets already rendered into screenshot or video pixels.
+
 Throwable redaction keeps content and identity separate. Logger sinks receive a newly built diagnostic throwable graph whose message, causes, suppressed failures, and textual stack representation are safe; they never receive the original throwable object. Before that copy is built, the logger records the original class name as structural provenance. Consequently `exceptionType` in trace, JSON, HTML, and plain-text diagnostics remains the real application exception type even though the runtime class of the safe copy is an internal wrapper. The original throwable remains owned by the execution path and runner and is neither mutated nor replaced there.
 
 ## Protection boundary

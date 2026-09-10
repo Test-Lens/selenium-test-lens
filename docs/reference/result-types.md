@@ -31,4 +31,6 @@ Optional<Path> failureBundleArchive()
 
 Nullable/empty semantics differ by result; consult the relevant functional page and the [exact accessor/factory signatures](public-api-catalog.md). Exceptions stored in results may contain driver/session/environment details.
 
+`ReportUploadResult` is the immutable outcome of an explicit post-finalization HTTP transfer. It distinguishes uploaded, failed, and skipped operations; records artifact kind, safe endpoint, response status, attempts, elapsed time, payload size/checksum, bounded redacted response data, and failure category; and preserves a transport exception when one exists. `requireSuccess()` converts a non-success result into `ReportUploadException` without changing the finalized session. See [Report upload](../observability/report-upload.md).
+
 Locator resolution plumbing is implementation-private. Normal locator failures use the supported `UiLocatorException`; no separate low-level locator result is returned by the recommended API.

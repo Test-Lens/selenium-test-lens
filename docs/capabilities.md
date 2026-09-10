@@ -54,6 +54,7 @@ One policy creates safe diagnostic copies before fan-out to HUD, trace, sinks, r
 | React module | DOM-convention helpers for rerender windows and React Select; no React component-tree access or universal design-system guarantee. | [React](integrations/react.md) |
 | API overlay | Displays caller-supplied API previews; it does not capture browser traffic. | [Visual helpers](advanced/visual-helpers.md) |
 | JUnit 5 / TestNG adapters | Development-line `0.2.0` artifacts for per-invocation lifecycle ownership; not available in Maven Central `0.1.0`. | [Framework integration](framework-integration.md) |
+| Explicit report upload | Streams one completed report ZIP after finalization; it is not automatic and does not use or close WebDriver. | [Report upload](observability/report-upload.md) |
 
 ## Find a routine task
 
