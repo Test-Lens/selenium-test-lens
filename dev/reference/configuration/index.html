@@ -3443,8 +3443,24 @@
 <td>true</td>
 <td>Adds trace evidence when a session exists.</td>
 </tr>
+<tr>
+<td><code>captureMode(ScreenshotCaptureMode)</code></td>
+<td><code>VIEWPORT</code></td>
+<td>Selects compatible viewport capture or opt-in portable <code>FULL_PAGE</code> stitching.</td>
+</tr>
+<tr>
+<td><code>maxPixelCount(long)</code></td>
+<td>40,000,000</td>
+<td>Rejects a full-page image before allocating beyond this pixel count.</td>
+</tr>
+<tr>
+<td><code>maxTileCount(int)</code></td>
+<td>200</td>
+<td>Rejects a full-page grid requiring too many screenshots.</td>
+</tr>
 </tbody>
 </table>
+<p><code>FailureBundleOptions.screenshotCaptureMode(...)</code> selects the same mode for diagnostic and clean failure screenshots; its default is also <code>VIEWPORT</code>.</p>
 <h2 id="videoevidenceoptions">VideoEvidenceOptions<a class="headerlink" href="#videoevidenceoptions" title="Permanent link">&para;</a></h2>
 <p><code>source(VideoEvidenceSource)=CUSTOM</code>, <code>mediaType(String)="video/mp4"</code>, <code>validateLocalFileExists(boolean)=false</code>, <code>attachToSession(boolean)=true</code>, and <code>metadata(key,value)</code>/<code>metadata(Map)</code>. Validation applies to local paths; it does not fetch/validate remote URLs. Blank media type falls back to <code>video/mp4</code>; null/blank metadata keys and null values are ignored. Metadata may be persisted and must not contain secrets.</p>
 <h2 id="authentication-options">Authentication options<a class="headerlink" href="#authentication-options" title="Permanent link">&para;</a></h2>
