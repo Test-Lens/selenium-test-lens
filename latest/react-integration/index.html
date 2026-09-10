@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/getting-started/">
+        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/react-integration/">
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="../auth-state/">
       
       
-        <link rel="next" href="../session-lifecycle/">
+        <link rel="next" href="../configuration/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Getting started - Selenium Test Lens 0.1.0</title>
+        <title>React integration - Selenium Test Lens 0.1.0</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#getting-started" class="md-skip">
+        <a href="#react-integration" class="md-skip">
           Skip to content
         </a>
       
@@ -154,7 +154,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Getting started
+              React integration
             
           </span>
         </div>
@@ -327,19 +327,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   
@@ -355,7 +346,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -607,10 +597,19 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../react-integration/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -626,6 +625,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -773,26 +773,25 @@
 
 
 
-<h1 id="getting-started">Getting started</h1>
+<h1 id="react-integration">React integration</h1>
 <p><strong>Selenium Test Lens 0.1.0 — stable</strong></p>
-<p>Attach Test Lens to a driver created and owned by the consuming test framework:</p>
-<div class="highlight"><pre><span></span><code><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">);</span>
-<span class="n">lens</span><span class="p">.</span><span class="na">startSession</span><span class="p">(</span><span class="s">"login"</span><span class="p">);</span>
-<span class="k">try</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">driver</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">"https://example.test/login"</span><span class="p">);</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"username"</span><span class="p">),</span><span class="w"> </span><span class="s">"Username"</span><span class="p">).</span><span class="na">fill</span><span class="p">(</span><span class="s">"john"</span><span class="p">);</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"login"</span><span class="p">),</span><span class="w"> </span><span class="s">"Login"</span><span class="p">).</span><span class="na">click</span><span class="p">();</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"welcome"</span><span class="p">),</span><span class="w"> </span><span class="s">"Welcome"</span><span class="p">).</span><span class="na">expect</span><span class="p">().</span><span class="na">toBeVisible</span><span class="p">();</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">finishPassed</span><span class="p">();</span>
-<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">RuntimeException</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Error</span><span class="w"> </span><span class="n">failure</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">finishFailed</span><span class="p">(</span><span class="n">failure</span><span class="p">);</span>
-<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="n">failure</span><span class="p">;</span>
-<span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">driver</span><span class="p">.</span><span class="na">quit</span><span class="p">();</span>
-<span class="p">}</span>
+<p>Add the optional artifact:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&lt;dependency&gt;</span>
+<span class="w">    </span><span class="nt">&lt;groupId&gt;</span>io.github.test-lens<span class="nt">&lt;/groupId&gt;</span>
+<span class="w">    </span><span class="nt">&lt;artifactId&gt;</span>selenium-test-lens-react<span class="nt">&lt;/artifactId&gt;</span>
+<span class="w">    </span><span class="nt">&lt;version&gt;</span>0.1.0<span class="nt">&lt;/version&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
 </code></pre></div>
-<p><code>TestLens</code> does not create or close the driver. Call one terminal method after the test body and close the driver in the framework-owned cleanup. In 0.1.0, treat finalization as a one-shot operation; the stronger idempotent finalization contract belongs to the development line.</p>
-<p>Continue with <a href="../session-lifecycle/">session lifecycle</a>, <a href="../locators/">locators</a>, and <a href="../trace-and-reports/">trace and reports</a>.</p>
+<p>Create the low-level overlay facade, then obtain React helpers:</p>
+<div class="highlight"><pre><span></span><code><span class="n">JsOverlayDebug</span><span class="w"> </span><span class="n">overlay</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">JsOverlayDebug</span><span class="p">(</span><span class="n">driver</span><span class="p">);</span>
+<span class="n">ReactSafeExecutor</span><span class="w"> </span><span class="n">react</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ReactSupport</span><span class="p">.</span><span class="na">reactSafe</span><span class="p">(</span><span class="n">overlay</span><span class="p">);</span>
+
+<span class="n">react</span><span class="p">.</span><span class="na">click</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">cssSelector</span><span class="p">(</span><span class="s">"[data-testid='save']"</span><span class="p">),</span><span class="w"> </span><span class="s">"Save"</span><span class="p">);</span>
+<span class="n">react</span><span class="p">.</span><span class="na">clearAndType</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">cssSelector</span><span class="p">(</span><span class="s">"input[name='email']"</span><span class="p">),</span>
+<span class="w">    </span><span class="s">"person@example.test"</span><span class="p">,</span><span class="w"> </span><span class="s">"Email"</span><span class="p">);</span>
+</code></pre></div>
+<p><code>ReactSupport.actionability(...)</code> adds checks for signals such as <code>aria-busy</code>, selected loading attributes, progress/spinner/skeleton selectors, dialogs, and custom blockers. <code>ReactSelectHelper</code> supports the DOM conventions of selected React-style controls.</p>
+<p>These are Selenium/DOM heuristics, not React DevTools integration. They do not inspect component state, hooks, the virtual DOM, or framework internals. <code>ReactSupport.smartClick(...)</code> is a historical low-level React helper; it is not the same contract as the current development-line <code>UiLocator.click()</code>.</p>
 
 
 
@@ -828,7 +827,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation">
+          <a href="../auth-state/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Authentication state">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -838,20 +837,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Installation
+                Authentication state
               </div>
             </div>
           </a>
         
         
           
-          <a href="../session-lifecycle/" class="md-footer__link md-footer__link--next" aria-label="Next: Session lifecycle">
+          <a href="../configuration/" class="md-footer__link md-footer__link--next" aria-label="Next: Configuration">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Session lifecycle
+                Configuration
               </div>
             </div>
             <div class="md-footer__button md-icon">

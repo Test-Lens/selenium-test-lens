@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/getting-started/">
+        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/known-limitations/">
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="../examples/">
       
       
-        <link rel="next" href="../session-lifecycle/">
+        <link rel="next" href="../published-api/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Getting started - Selenium Test Lens 0.1.0</title>
+        <title>Known limitations - Selenium Test Lens 0.1.0</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#getting-started" class="md-skip">
+        <a href="#known-limitations" class="md-skip">
           Skip to content
         </a>
       
@@ -154,7 +154,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Getting started
+              Known limitations
             
           </span>
         </div>
@@ -327,19 +327,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   
@@ -355,7 +346,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -688,10 +678,19 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../known-limitations/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -707,6 +706,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -773,26 +773,22 @@
 
 
 
-<h1 id="getting-started">Getting started</h1>
+<h1 id="known-limitations">Known limitations</h1>
 <p><strong>Selenium Test Lens 0.1.0 — stable</strong></p>
-<p>Attach Test Lens to a driver created and owned by the consuming test framework:</p>
-<div class="highlight"><pre><span></span><code><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">);</span>
-<span class="n">lens</span><span class="p">.</span><span class="na">startSession</span><span class="p">(</span><span class="s">"login"</span><span class="p">);</span>
-<span class="k">try</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">driver</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">"https://example.test/login"</span><span class="p">);</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"username"</span><span class="p">),</span><span class="w"> </span><span class="s">"Username"</span><span class="p">).</span><span class="na">fill</span><span class="p">(</span><span class="s">"john"</span><span class="p">);</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"login"</span><span class="p">),</span><span class="w"> </span><span class="s">"Login"</span><span class="p">).</span><span class="na">click</span><span class="p">();</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"welcome"</span><span class="p">),</span><span class="w"> </span><span class="s">"Welcome"</span><span class="p">).</span><span class="na">expect</span><span class="p">().</span><span class="na">toBeVisible</span><span class="p">();</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">finishPassed</span><span class="p">();</span>
-<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">RuntimeException</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Error</span><span class="w"> </span><span class="n">failure</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">finishFailed</span><span class="p">(</span><span class="n">failure</span><span class="p">);</span>
-<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="n">failure</span><span class="p">;</span>
-<span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">driver</span><span class="p">.</span><span class="na">quit</span><span class="p">();</span>
-<span class="p">}</span>
-</code></pre></div>
-<p><code>TestLens</code> does not create or close the driver. Call one terminal method after the test body and close the driver in the framework-owned cleanup. In 0.1.0, treat finalization as a one-shot operation; the stronger idempotent finalization contract belongs to the development line.</p>
-<p>Continue with <a href="../session-lifecycle/">session lifecycle</a>, <a href="../locators/">locators</a>, and <a href="../trace-and-reports/">trace and reports</a>.</p>
+<p>This page records the historical boundary of the published release.</p>
+<ul>
+<li>Semantic helpers are CSS/XPath factories. Role/name matching is not the browser's complete accessibility computation.</li>
+<li>There is no compositional or parent-scoped locator pipeline, collection filtering, shadow-root traversal, page assertion facade, or count wait.</li>
+<li>Action and assertion polling can emit retry-shaped trace events, but 0.1.0 has no aggregated retry summary or retry outcome policy.</li>
+<li><code>waitForNetworkIdle</code> observes only XHR/fetch started after tracker injection, and its timeout was diagnostic rather than a guaranteed thrown failure.</li>
+<li>Network diagnostics require manual events for usable capture. BiDi and performance-log modes are unsupported.</li>
+<li>Auth-state APIs existed, but later origin-isolation and atomic storage guards were not part of 0.1.0. Restore only on the exact application origin; do not use it for cross-origin SSO storage.</li>
+<li>Session/facade finalization was not idempotent. Invoke one terminal path once.</li>
+<li>Screenshots are viewport-only. Screenshots and attached video are not pixel-redacted.</li>
+<li>There is no central diagnostic-redaction policy, automatic failure bundle, report uploader, JUnit 5 artifact, TestNG artifact, or browser-integration artifact.</li>
+<li>HUD injection is best-effort and can be constrained by CSP, frames, shadow DOM, or page lifecycle changes.</li>
+</ul>
+<p>See the <a href="https://test-lens.github.io/selenium-test-lens/dev/">development documentation</a> for unreleased work, but do not use its examples with 0.1.0 unless the symbol is also present in the <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/">0.1.0 Javadoc</a>.</p>
 
 
 
@@ -828,7 +824,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation">
+          <a href="../examples/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Examples">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -838,20 +834,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Installation
+                Examples
               </div>
             </div>
           </a>
         
         
           
-          <a href="../session-lifecycle/" class="md-footer__link md-footer__link--next" aria-label="Next: Session lifecycle">
+          <a href="../published-api/" class="md-footer__link md-footer__link--next" aria-label="Next: Published API">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Session lifecycle
+                Published API
               </div>
             </div>
             <div class="md-footer__button md-icon">

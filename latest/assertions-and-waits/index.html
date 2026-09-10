@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/getting-started/">
+        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/assertions-and-waits/">
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="../element-actions/">
       
       
-        <link rel="next" href="../session-lifecycle/">
+        <link rel="next" href="../hud-and-overlay/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Getting started - Selenium Test Lens 0.1.0</title>
+        <title>Assertions and waits - Selenium Test Lens 0.1.0</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#getting-started" class="md-skip">
+        <a href="#assertions-and-waits" class="md-skip">
           Skip to content
         </a>
       
@@ -154,7 +154,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Getting started
+              Assertions and waits
             
           </span>
         </div>
@@ -327,19 +327,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   
@@ -355,7 +346,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -445,10 +435,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../assertions-and-waits/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assertions and waits
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -464,6 +481,48 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#element-waits-and-assertions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element waits and assertions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#page-and-spa-waits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page and SPA waits
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -758,6 +817,36 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#element-waits-and-assertions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element waits and assertions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#page-and-spa-waits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page and SPA waits
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -773,26 +862,30 @@
 
 
 
-<h1 id="getting-started">Getting started</h1>
+<h1 id="assertions-and-waits">Assertions and waits</h1>
 <p><strong>Selenium Test Lens 0.1.0 — stable</strong></p>
-<p>Attach Test Lens to a driver created and owned by the consuming test framework:</p>
-<div class="highlight"><pre><span></span><code><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">);</span>
-<span class="n">lens</span><span class="p">.</span><span class="na">startSession</span><span class="p">(</span><span class="s">"login"</span><span class="p">);</span>
-<span class="k">try</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">driver</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">"https://example.test/login"</span><span class="p">);</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"username"</span><span class="p">),</span><span class="w"> </span><span class="s">"Username"</span><span class="p">).</span><span class="na">fill</span><span class="p">(</span><span class="s">"john"</span><span class="p">);</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"login"</span><span class="p">),</span><span class="w"> </span><span class="s">"Login"</span><span class="p">).</span><span class="na">click</span><span class="p">();</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"welcome"</span><span class="p">),</span><span class="w"> </span><span class="s">"Welcome"</span><span class="p">).</span><span class="na">expect</span><span class="p">().</span><span class="na">toBeVisible</span><span class="p">();</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">finishPassed</span><span class="p">();</span>
-<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">RuntimeException</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Error</span><span class="w"> </span><span class="n">failure</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">finishFailed</span><span class="p">(</span><span class="n">failure</span><span class="p">);</span>
-<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="n">failure</span><span class="p">;</span>
-<span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">driver</span><span class="p">.</span><span class="na">quit</span><span class="p">();</span>
-<span class="p">}</span>
+<h2 id="element-waits-and-assertions">Element waits and assertions</h2>
+<div class="highlight"><pre><span></span><code><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"toast"</span><span class="p">)</span>
+<span class="w">    </span><span class="p">.</span><span class="na">waitUntilVisible</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="na">expect</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="na">toContainText</span><span class="p">(</span><span class="s">"Saved"</span><span class="p">);</span>
 </code></pre></div>
-<p><code>TestLens</code> does not create or close the driver. Call one terminal method after the test body and close the driver in the framework-owned cleanup. In 0.1.0, treat finalization as a one-shot operation; the stronger idempotent finalization contract belongs to the development line.</p>
-<p>Continue with <a href="../session-lifecycle/">session lifecycle</a>, <a href="../locators/">locators</a>, and <a href="../trace-and-reports/">trace and reports</a>.</p>
+<p><code>UiLocator</code> provides <code>waitUntilVisible()</code>, <code>waitUntilHidden()</code>, <code>waitUntilClickable()</code>, and <code>waitUntilText(...)</code>. <code>UiExpect</code> provides visibility, enabled/disabled, text, and value assertions. Assertions poll according to <code>UiAssertionOptions</code> and throw <code>UiAssertionError</code> when they fail or time out.</p>
+<div class="highlight"><pre><span></span><code><span class="n">UiAssertionOptions</span><span class="w"> </span><span class="n">assertionOptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">UiAssertionOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="na">timeout</span><span class="p">(</span><span class="n">Duration</span><span class="p">.</span><span class="na">ofSeconds</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">    </span><span class="p">.</span><span class="na">pollInterval</span><span class="p">(</span><span class="n">Duration</span><span class="p">.</span><span class="na">ofMillis</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span>
+<span class="w">    </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+
+<span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"status"</span><span class="p">).</span><span class="na">expect</span><span class="p">(</span><span class="n">assertionOptions</span><span class="p">).</span><span class="na">toHaveText</span><span class="p">(</span><span class="s">"Ready"</span><span class="p">);</span>
+</code></pre></div>
+<h2 id="page-and-spa-waits">Page and SPA waits</h2>
+<p>In 0.1.0 these methods live on <code>JsOverlayDebug</code>, not on <code>TestLens</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">JsOverlayDebug</span><span class="w"> </span><span class="n">overlay</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">JsOverlayDebug</span><span class="p">(</span><span class="n">driver</span><span class="p">);</span>
+<span class="n">overlay</span><span class="p">.</span><span class="na">waitForPageReady</span><span class="p">(</span><span class="n">Duration</span><span class="p">.</span><span class="na">ofSeconds</span><span class="p">(</span><span class="mi">5</span><span class="p">));</span>
+<span class="n">overlay</span><span class="p">.</span><span class="na">waitForInteractiveOrComplete</span><span class="p">(</span><span class="n">Duration</span><span class="p">.</span><span class="na">ofSeconds</span><span class="p">(</span><span class="mi">5</span><span class="p">));</span>
+</code></pre></div>
+<p><code>waitForPageReady</code> polls <code>document.readyState</code> for <code>complete</code>; <code>waitForInteractiveOrComplete</code> accepts either state. React-root and MutationObserver-based SPA helpers are also available on <code>JsOverlayDebug</code>.</p>
+<p><code>waitForNetworkIdle(...)</code> is a page-injected XHR/fetch heuristic, not full browser network observation. It sees only requests started after tracker installation and does not cover images, CSS, scripts, WebSocket, EventSource, or browser-level traffic. In 0.1.0 a network-idle timeout was recorded in the wait diagnostic but was not guaranteed to throw; do not use its normal return as a hard assertion. Use an explicit application condition or network event assertion when failure must stop the test.</p>
 
 
 
@@ -828,7 +921,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation">
+          <a href="../element-actions/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Element actions">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -838,20 +931,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Installation
+                Element actions
               </div>
             </div>
           </a>
         
         
           
-          <a href="../session-lifecycle/" class="md-footer__link md-footer__link--next" aria-label="Next: Session lifecycle">
+          <a href="../hud-and-overlay/" class="md-footer__link md-footer__link--next" aria-label="Next: HUD and overlay">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Session lifecycle
+                HUD and overlay
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -16,7 +16,7 @@
         <link rel="prev" href="../installation/">
       
       
-        <link rel="next" href="../published-api/">
+        <link rel="next" href="../session-lifecycle/">
       
       
         
@@ -283,7 +283,7 @@
   <span class="md-ellipsis">
     
   
-    Stable 0.1.0
+    Overview
   
 
     
@@ -367,6 +367,357 @@
   
   
     <li class="md-nav__item">
+      <a href="../session-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Session lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../locators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Locators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../element-actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Element actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../assertions-and-waits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assertions and waits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hud-and-overlay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HUD and overlay
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../screenshots-and-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Screenshots and video evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trace-and-reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Trace and reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../manual-network-diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manual network diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../auth-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication state
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../react-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    React integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../known-limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Known limitations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../published-api/" class="md-nav__link">
         
   
@@ -423,6 +774,7 @@
 
 
 <h1 id="getting-started">Getting started</h1>
+<p><strong>Selenium Test Lens 0.1.0 — stable</strong></p>
 <p>Attach Test Lens to a driver created and owned by the consuming test framework:</p>
 <div class="highlight"><pre><span></span><code><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">);</span>
 <span class="n">lens</span><span class="p">.</span><span class="na">startSession</span><span class="p">(</span><span class="s">"login"</span><span class="p">);</span>
@@ -439,7 +791,8 @@
 <span class="w">    </span><span class="n">driver</span><span class="p">.</span><span class="na">quit</span><span class="p">();</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>This example is taken from the API present in tag <code>v0.1.0</code>. Expanded browser-computed semantic locators, page assertions, form actions, central redaction, automatic failure bundles, and passive BiDi capture are documented only in the development version.</p>
+<p><code>TestLens</code> does not create or close the driver. Call one terminal method after the test body and close the driver in the framework-owned cleanup. In 0.1.0, treat finalization as a one-shot operation; the stronger idempotent finalization contract belongs to the development line.</p>
+<p>Continue with <a href="../session-lifecycle/">session lifecycle</a>, <a href="../locators/">locators</a>, and <a href="../trace-and-reports/">trace and reports</a>.</p>
 
 
 
@@ -492,13 +845,13 @@
         
         
           
-          <a href="../published-api/" class="md-footer__link md-footer__link--next" aria-label="Next: Published API">
+          <a href="../session-lifecycle/" class="md-footer__link md-footer__link--next" aria-label="Next: Session lifecycle">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Published API
+                Session lifecycle
               </div>
             </div>
             <div class="md-footer__button md-icon">

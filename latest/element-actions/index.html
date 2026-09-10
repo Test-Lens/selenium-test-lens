@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/getting-started/">
+        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/element-actions/">
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="../locators/">
       
       
-        <link rel="next" href="../session-lifecycle/">
+        <link rel="next" href="../assertions-and-waits/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Getting started - Selenium Test Lens 0.1.0</title>
+        <title>Element actions - Selenium Test Lens 0.1.0</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#getting-started" class="md-skip">
+        <a href="#element-actions" class="md-skip">
           Skip to content
         </a>
       
@@ -154,7 +154,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Getting started
+              Element actions
             
           </span>
         </div>
@@ -327,19 +327,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   
@@ -355,7 +346,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -418,10 +408,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../element-actions/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Element actions
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -437,6 +454,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#click-contract-in-010" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Click contract in 0.1.0
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -758,6 +806,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#click-contract-in-010" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Click contract in 0.1.0
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -773,26 +840,19 @@
 
 
 
-<h1 id="getting-started">Getting started</h1>
+<h1 id="element-actions">Element actions</h1>
 <p><strong>Selenium Test Lens 0.1.0 — stable</strong></p>
-<p>Attach Test Lens to a driver created and owned by the consuming test framework:</p>
-<div class="highlight"><pre><span></span><code><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">);</span>
-<span class="n">lens</span><span class="p">.</span><span class="na">startSession</span><span class="p">(</span><span class="s">"login"</span><span class="p">);</span>
-<span class="k">try</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">driver</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">"https://example.test/login"</span><span class="p">);</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"username"</span><span class="p">),</span><span class="w"> </span><span class="s">"Username"</span><span class="p">).</span><span class="na">fill</span><span class="p">(</span><span class="s">"john"</span><span class="p">);</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"login"</span><span class="p">),</span><span class="w"> </span><span class="s">"Login"</span><span class="p">).</span><span class="na">click</span><span class="p">();</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"welcome"</span><span class="p">),</span><span class="w"> </span><span class="s">"Welcome"</span><span class="p">).</span><span class="na">expect</span><span class="p">().</span><span class="na">toBeVisible</span><span class="p">();</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">finishPassed</span><span class="p">();</span>
-<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">RuntimeException</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">Error</span><span class="w"> </span><span class="n">failure</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">lens</span><span class="p">.</span><span class="na">finishFailed</span><span class="p">(</span><span class="n">failure</span><span class="p">);</span>
-<span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="n">failure</span><span class="p">;</span>
-<span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">driver</span><span class="p">.</span><span class="na">quit</span><span class="p">();</span>
-<span class="p">}</span>
+<p><code>UiLocator</code> combines resolution, trace/HUD reporting, actionability diagnostics, and selected retries.</p>
+<div class="highlight"><pre><span></span><code><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"email"</span><span class="p">).</span><span class="na">fill</span><span class="p">(</span><span class="s">"person@example.test"</span><span class="p">);</span>
+<span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"search"</span><span class="p">).</span><span class="na">pressEnter</span><span class="p">();</span>
+<span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"country"</span><span class="p">)).</span><span class="na">selectByVisibleText</span><span class="p">(</span><span class="s">"Poland"</span><span class="p">);</span>
+<span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"save"</span><span class="p">).</span><span class="na">click</span><span class="p">();</span>
 </code></pre></div>
-<p><code>TestLens</code> does not create or close the driver. Call one terminal method after the test body and close the driver in the framework-owned cleanup. In 0.1.0, treat finalization as a one-shot operation; the stronger idempotent finalization contract belongs to the development line.</p>
-<p>Continue with <a href="../session-lifecycle/">session lifecycle</a>, <a href="../locators/">locators</a>, and <a href="../trace-and-reports/">trace and reports</a>.</p>
+<p>Available 0.1.0 actions include <code>click</code>, <code>fill</code>, <code>clear</code>, <code>press</code>, HTML <code>select</code> operations, <code>hover</code>, <code>doubleClick</code>, and <code>rightClick</code>. Reads include text, visibility, enabled state, attributes, DOM properties, value, and selected option values.</p>
+<h2 id="click-contract-in-010">Click contract in 0.1.0</h2>
+<p><code>UiLocator.click()</code> performs best-effort actionability diagnostics and delegates to the 0.1.0 overlay-aware click helper. That helper can highlight, invoke native Selenium element clicking, and apply the configured overlay policy when an intercepted click is detected. Locator recovery can then retry selected intercepted, stale, or not-interactable failures.</p>
+<p>Do not infer the stricter interaction guarantees documented for later development versions. In particular, actionability is diagnostic, retries may repeat an action attempt, and 0.1.0 includes separate low-level helpers whose behavior is not identical to the current facade contract.</p>
+<p>Highlighting is visual decoration. Disable it through <code>UiLocatorOptions.highlightBeforeAction(false)</code> when needed.</p>
 
 
 
@@ -828,7 +888,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation">
+          <a href="../locators/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Locators">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -838,20 +898,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Installation
+                Locators
               </div>
             </div>
           </a>
         
         
           
-          <a href="../session-lifecycle/" class="md-footer__link md-footer__link--next" aria-label="Next: Session lifecycle">
+          <a href="../assertions-and-waits/" class="md-footer__link md-footer__link--next" aria-label="Next: Assertions and waits">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Session lifecycle
+                Assertions and waits
               </div>
             </div>
             <div class="md-footer__button md-icon">

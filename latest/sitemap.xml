@@ -2,18 +2,70 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://test-lens.github.io/selenium-test-lens/latest/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/assertions-and-waits/</loc>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/auth-state/</loc>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/configuration/</loc>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/element-actions/</loc>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/examples/</loc>
+         <lastmod>2026-09-10</lastmod>
     </url>
     <url>
          <loc>https://test-lens.github.io/selenium-test-lens/latest/getting-started/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/hud-and-overlay/</loc>
+         <lastmod>2026-09-10</lastmod>
     </url>
     <url>
          <loc>https://test-lens.github.io/selenium-test-lens/latest/installation/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/known-limitations/</loc>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/locators/</loc>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/manual-network-diagnostics/</loc>
+         <lastmod>2026-09-10</lastmod>
     </url>
     <url>
          <loc>https://test-lens.github.io/selenium-test-lens/latest/published-api/</loc>
-         <lastmod>2026-09-08</lastmod>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/react-integration/</loc>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/screenshots-and-video/</loc>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/session-lifecycle/</loc>
+         <lastmod>2026-09-10</lastmod>
+    </url>
+    <url>
+         <loc>https://test-lens.github.io/selenium-test-lens/latest/trace-and-reports/</loc>
+         <lastmod>2026-09-10</lastmod>
     </url>
 </urlset>
