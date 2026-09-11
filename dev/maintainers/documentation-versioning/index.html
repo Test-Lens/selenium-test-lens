@@ -140,7 +140,8 @@
   </script>
   
     
-      Documentation source for <strong>0.2.0</strong>.
+      Development documentation for <strong>0.3.0-SNAPSHOT</strong>.
+      These features are not yet available in the latest Maven Central release.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -2574,6 +2575,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#one-time-020-homepage-correction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One-time 0.2.0 homepage correction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#verification-and-recovery" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2772,6 +2784,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#one-time-020-homepage-correction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One-time 0.2.0 homepage correction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#verification-and-recovery" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2834,6 +2857,18 @@ versions: verify the symbol against the corresponding release tag before adding 
 <li>Confirm the root opens stable 0.1.0.</li>
 </ol>
 <p>The bootstrap is complete. Its workflow operation deliberately refuses to overwrite an existing 0.1.0 version. The workflow declares <code>contents: write</code> only on its publication job. If organization policy disables write-capable <code>GITHUB_TOKEN</code>s despite job permissions, enable repository <strong>Read and write permissions</strong> for Actions; do not replace the token with a personal secret.</p>
+<h2 id="one-time-020-homepage-correction">One-time 0.2.0 homepage correction<a class="headerlink" href="#one-time-020-homepage-correction" title="Permanent link">&para;</a></h2>
+<p>The public API and contracts of <code>0.2.0</code> are unchanged, but its original homepage underrepresented the released observability, synchronization, and evidence capabilities. The temporary <code>repair-0.2.0-homepage</code> workflow operation rebuilds the tagged <code>v0.2.0</code> documentation with only the audited <code>docs/index.md</code> from <code>main</code> substituted before the build.</p>
+<p>Run it only once, after reviewing the homepage and a green Documentation validation workflow:</p>
+<ol>
+<li>Select <code>repair-0.2.0-homepage</code> in <code>workflow_dispatch</code>.</li>
+<li>Enter the exact confirmation <code>repair-stable-0.2.0-homepage</code>.</li>
+<li>Verify <code>/0.2.0/</code>, <code>/latest/</code>, and the root URL after deployment.</li>
+<li>Verify that <code>/dev/</code> and <code>/0.1.0/</code> are unchanged.</li>
+<li>Remove the temporary operation in a follow-up commit after the correction succeeds.</li>
+</ol>
+<p>The operation checks that production Java sources and the public API manifest still match <code>v0.2.0</code>, creates a detached worktree from that tag, overlays only the homepage, and runs a strict stable build. The development homepage keeps its edit link to <code>main</code>; only the overlaid stable copy hides that link because <code>v0.2.0</code> contains the earlier homepage source. The disposable worktree is force-removed in <code>finally</code> from its generated system-temporary path, so the intentional dirty overlay is also cleaned after build or publication failure.</p>
+<p>Before any push, the publication script verifies that the Git object IDs for <code>/dev/</code>, <code>/0.1.0/</code>, and the root redirect have not changed, that <code>latest</code> is an exact copy of the repaired <code>0.2.0</code>, and that <code>mike</code> metadata still assigns the alias to <code>0.2.0</code>. A full MkDocs rebuild may change only <code>index.html</code> plus homepage-derived global output: <code>search/search_index.json</code>, <code>sitemap.xml</code>, and <code>sitemap.xml.gz</code>, under both <code>/0.2.0/</code> and its copied <code>/latest/</code> alias. Any change to another stable HTML page, theme asset, download, version metadata, or unrelated generated file stops the operation before push. It never enables general stable-version replacement and cannot target another version.</p>
 <h2 id="verification-and-recovery">Verification and recovery<a class="headerlink" href="#verification-and-recovery" title="Permanent link">&para;</a></h2>
 <p>Run <code>./scripts/validate-versioned-docs.ps1</code> locally in PowerShell 7. It creates a disposable Git repository, bootstraps stable and dev documentation, hashes 0.1.0 across a dev redeploy, rejects a duplicate stable deployment, simulates the next stable release, and removes the temporary repository. <code>mike list --branch gh-pages</code> in a read-only clone shows deployed metadata.</p>
 <p>To recover a Pages deployment without changing documentation, choose <code>redeploy-pages</code>; it uploads the existing complete <code>gh-pages</code> branch. If a <code>mike</code> push conflicts, let the serialized workflow fail, inspect the remote branch, and rerun the same operation. Never force-push or rebuild old versions from <code>main</code>.</p>
@@ -2934,7 +2969,7 @@ versions: verify the symbol against the corresponding release tag before adding 
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.3.0-SNAPSHOT", "default": "latest", "is_dev": true, "is_snapshot": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

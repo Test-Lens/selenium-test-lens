@@ -140,7 +140,8 @@
   </script>
   
     
-      Documentation source for <strong>0.2.0</strong>.
+      Development documentation for <strong>0.3.0-SNAPSHOT</strong>.
+      These features are not yet available in the latest Maven Central release.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -2791,9 +2792,9 @@ the minimum source, bytecode, and runtime level; Java 11 is not supported. CI
 verifies consumers on JDK 17 and JDK 21 while keeping production bytecode
 targeted to Java 17.</p>
 <h2 id="clean-room-release-boundary">Clean-room release boundary<a class="headerlink" href="#clean-room-release-boundary" title="Permanent link">&para;</a></h2>
-<p>The source reactor is currently <code>0.2.0</code>. Compatibility validation
-copies tracked source to a temporary directory, verifies all nine reactor
-POMs at the release <code>0.2.0</code> version, builds release artifacts, and stages
+<p>The source reactor is currently <code>0.3.0-SNAPSHOT</code>. Compatibility validation
+copies tracked source to a temporary directory, transforms all nine reactor
+POMs to the corresponding release <code>0.3.0</code> version, builds release artifacts, and stages
 the seven publishable Maven coordinates in an isolated local repository. It
 never edits the source POMs.</p>
 <p>The Maven and Gradle smoke consumers both resolve Test Lens from that staging
@@ -2813,7 +2814,7 @@ Chrome contract; the Gradle consumer itself is deliberately browser-free.</p>
 <p>Run clean-room preparation and the Gradle consumer in PowerShell 7:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">./</span><span class="n">scripts</span><span class="p">/</span><span class="n">validate-gradle-consumer</span><span class="p">.</span><span class="n">ps1</span>
 </span></code></pre></div>
-<p>The script reads release <code>0.2.0</code> from the root POM, creates fresh
+<p>The script derives release <code>0.3.0</code> from the root <code>0.3.0-SNAPSHOT</code> POM, creates fresh
 Maven and Gradle repositories below the operating system's temporary
 directory, runs the checked-in Wrapper, validates the graph and class files,
 and removes its work directory in <code>finally</code>. Use
@@ -2821,7 +2822,7 @@ and removes its work directory in <code>finally</code>. Use
 <p>To run the checked-in consumer against an already prepared isolated
 repository:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">./</span><span class="n">consumer-tests</span><span class="p">/</span><span class="n">gradle</span><span class="p">/</span><span class="n">gradlew</span> <span class="n">test</span> <span class="n">verifyResolvedGraph</span> <span class="p">`</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  <span class="s2">"-PtestLensVersion=0.2.0"</span> <span class="p">`</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  <span class="s2">"-PtestLensVersion=0.3.0"</span> <span class="p">`</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  <span class="s2">"-PtestLensRepository=/absolute/path/to/isolated-repository"</span> <span class="p">`</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  <span class="p">-</span><span class="n">-no-daemon</span> <span class="p">-</span><span class="n">-stacktrace</span>
 </span></code></pre></div>
@@ -2939,7 +2940,7 @@ published as optional <code>0.2.0</code> coordinates.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.3.0-SNAPSHOT", "default": "latest", "is_dev": true, "is_snapshot": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
