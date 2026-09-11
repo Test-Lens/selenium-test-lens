@@ -7,9 +7,9 @@ targeted to Java 17.
 
 ## Clean-room release boundary
 
-The source reactor is currently `0.2.0`. Compatibility validation
-copies tracked source to a temporary directory, verifies all nine reactor
-POMs at the release `0.2.0` version, builds release artifacts, and stages
+The source reactor is currently `0.3.0-SNAPSHOT`. Compatibility validation
+copies tracked source to a temporary directory, transforms all nine reactor
+POMs to the corresponding release `0.3.0` version, builds release artifacts, and stages
 the seven publishable Maven coordinates in an isolated local repository. It
 never edits the source POMs.
 
@@ -36,7 +36,7 @@ Run clean-room preparation and the Gradle consumer in PowerShell 7:
 ./scripts/validate-gradle-consumer.ps1
 ```
 
-The script reads release `0.2.0` from the root POM, creates fresh
+The script derives release `0.3.0` from the root `0.3.0-SNAPSHOT` POM, creates fresh
 Maven and Gradle repositories below the operating system's temporary
 directory, runs the checked-in Wrapper, validates the graph and class files,
 and removes its work directory in `finally`. Use
@@ -47,7 +47,7 @@ repository:
 
 ```powershell
 ./consumer-tests/gradle/gradlew test verifyResolvedGraph `
-  "-PtestLensVersion=0.2.0" `
+  "-PtestLensVersion=0.3.0" `
   "-PtestLensRepository=/absolute/path/to/isolated-repository" `
   --no-daemon --stacktrace
 ```

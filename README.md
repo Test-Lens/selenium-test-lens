@@ -9,6 +9,7 @@
 | Version | Status | Availability | Documentation |
 |---|---|---|---|
 | `0.2.0` | Latest stable | Maven Central | [Stable documentation — 0.2.0](https://test-lens.github.io/selenium-test-lens/0.2.0/) |
+| `0.3.0-SNAPSHOT` | Development | Source build only; not available from Maven Central | [Development documentation](https://test-lens.github.io/selenium-test-lens/dev/) |
 | `0.1.0` | Previous release | Maven Central | [Historical documentation — 0.1.0](https://test-lens.github.io/selenium-test-lens/0.1.0/) |
 
 Install the current stable release (Java 17 or newer):
