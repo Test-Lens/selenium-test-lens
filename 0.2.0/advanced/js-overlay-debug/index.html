@@ -1,0 +1,3221 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+      
+      
+      
+        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/advanced/js-overlay-debug/">
+      
+      
+        <link rel="prev" href="../visual-helpers/">
+      
+      
+        <link rel="next" href="../../integrations/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>JsOverlayDebug advanced facade - Selenium Test Lens</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-T0B0XE6MS1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-T0B0XE6MS1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-T0B0XE6MS1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#jsoverlaydebug-advanced-facade" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+  <style>.tl-version-switcher{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-bottom:.25rem}.tl-version-switcher select{max-width:15rem}</style>
+  <nav class="tl-version-switcher" aria-label="Documentation version"
+       data-current-version="0.2.0">
+    <strong>Version:</strong>
+    <select aria-label="Choose documentation version" data-tl-version-select>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
+    </select>
+    <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
+  </nav>
+  <script>
+    (() => {
+      const nav = document.currentScript.previousElementSibling;
+      const select = nav.querySelector("[data-tl-version-select]");
+      const base = "https://test-lens.github.io/selenium-test-lens/";
+      const selectCurrent = () => {
+        const current = nav.dataset.currentVersion;
+        for (const option of select.options) option.selected = option.textContent === current;
+      };
+      select.addEventListener("change", () => { window.location.assign(select.value); });
+      selectCurrent();
+      fetch(base + "versions.json", { credentials: "same-origin" })
+        .then(response => response.ok ? response.json() : Promise.reject())
+        .then(versions => {
+          select.replaceChildren(...versions.map(item => {
+            const option = document.createElement("option");
+            option.value = base + item.version + "/";
+            option.textContent = item.title || item.version;
+            option.dataset.version = item.version;
+            option.selected = item.version === nav.dataset.currentVersion;
+            return option;
+          }));
+        })
+        .catch(() => selectCurrent());
+    })();
+  </script>
+  
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Selenium Test Lens" class="md-header__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Selenium Test Lens
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              JsOverlayDebug advanced facade
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Test-Lens/selenium-test-lens" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Test-Lens/selenium-test-lens
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Using Test Lens
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../observability/" class="md-tabs__link">
+          
+  
+  
+  Observability
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../security/redaction/" class="md-tabs__link">
+          
+  
+  
+  Security
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Advanced Features
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../integrations/" class="md-tabs__link">
+          
+  
+  
+  Integrations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../migration/" class="md-tabs__link">
+          
+  
+  
+  Migration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Selenium Test Lens" class="md-nav__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Selenium Test Lens
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Test-Lens/selenium-test-lens" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Test-Lens/selenium-test-lens
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation & first test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../framework-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Existing WebDriver integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Test Lens
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Using Test Lens
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elements
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Elements
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elements overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/locators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Locators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/waiting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Waiting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/assertions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/information/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Element information
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/select-controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Select controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser Context
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Browser Context
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser context overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/windows-tabs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Windows & tabs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/alerts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerts, confirms & prompts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Observability
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/visual-diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual runtime diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/screenshots-evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Screenshots & evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/trace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Trace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTML, JSON & ZIP reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/report-upload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Report upload
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/flakiness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flakiness and retry outcomes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/failure-bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Failure bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Security
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensitive-data redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced features overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../steps-business-assertions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steps & business assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../auth-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication state
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Network diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overlay-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overlay policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../visual-helpers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual helpers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JsOverlayDebug advanced facade
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JsOverlayDebug advanced facade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#locators-assertions-and-actionability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Locators, assertions, and actionability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sessions-steps-trace-and-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sessions, steps, trace, and evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#business-authentication-and-network-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Business, authentication, and network services
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hud-and-explicit-visual-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HUD and explicit visual helpers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typing-and-click-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typing and click helpers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#page-readiness-and-wait-feedback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page readiness and wait feedback
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#popup-helpers-and-overlay-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Popup helpers and overlay policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#direct-overlay-assertions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Direct overlay assertions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scroll-and-api-overlay-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scroll and API overlay helpers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accessors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accessors
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/junit5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JUnit 5
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/testng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestNG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/react/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Optional React API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Migration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From raw Selenium
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/test-lens/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestLens
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration builders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/result-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result & data types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/core-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/advanced-low-level/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced / low-level API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/public-api-catalog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Binary API catalog (optional)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../consumer-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Consumer compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/documentation-versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing versioned docs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-integration-tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Real-browser integration tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maven Central
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Javadoc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#locators-assertions-and-actionability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Locators, assertions, and actionability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sessions-steps-trace-and-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sessions, steps, trace, and evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#business-authentication-and-network-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Business, authentication, and network services
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hud-and-explicit-visual-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HUD and explicit visual helpers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typing-and-click-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typing and click helpers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#page-readiness-and-wait-feedback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page readiness and wait feedback
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#popup-helpers-and-overlay-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Popup helpers and overlay policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#direct-overlay-assertions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Direct overlay assertions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scroll-and-api-overlay-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scroll and API overlay helpers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accessors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accessors
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/v0.2.0/docs/advanced/js-overlay-debug.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="jsoverlaydebug-advanced-facade"><code>JsOverlayDebug</code> advanced facade<a class="headerlink" href="#jsoverlaydebug-advanced-facade" title="Permanent link">&para;</a></h1>
+<p>Package: <code>io.github.testlens</code><br>
+Module: <code>selenium-test-lens-selenium</code><br>
+API level: <strong>Advanced</strong></p>
+<p><code>JsOverlayDebug</code> is the older, broad Selenium/overlay facade underneath parts of the recommended <code>TestLens</code> API. Use <code>TestLens</code>, <code>UiLocator</code>, and <code>UiExpect</code> for ordinary tests. Use this facade only when a documented advanced family below is required. It wraps an existing driver and never owns or closes it.</p>
+<p>The one- and two-argument constructors are the consumer constructors:</p>
+<!-- API SIGNATURES: io.github.testlens.JsOverlayDebug -->
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">JsOverlayDebug</span><span class="p">(</span><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="p">)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">JsOverlayDebug</span><span class="p">(</span><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="p">,</span><span class="w"> </span><span class="n">OverlayConfig</span><span class="w"> </span><span class="n">config</span><span class="p">)</span>
+</span></code></pre></div>
+<p>These are the only public constructors. The pre-1.0 component-injection constructors accepting <code>ApiOverlayPanel</code>, <code>ApiCallActions</code>, <code>Guards</code>, or logger bridges were removed in 0.2.0. Migrate custom construction to one of the two forms above; no supported advanced operation was removed.</p>
+<h2 id="locators-assertions-and-actionability">Locators, assertions, and actionability<a class="headerlink" href="#locators-assertions-and-actionability" title="Permanent link">&para;</a></h2>
+<p>The following methods create the same lazy locator/assertion abstractions documented under <a href="../../elements/">Elements</a>:</p>
+<!-- API SIGNATURES: io.github.testlens.JsOverlayDebug -->
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">ActionabilityReport</span><span class="w"> </span><span class="nf">checkActionability</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">locator</span><span class="p">,</span><span class="w"> </span><span class="n">ActionabilityOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">ActionabilityReport</span><span class="w"> </span><span class="nf">checkActionability</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">ActionabilityOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">locator</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">by</span><span class="p">)</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">locator</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">by</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">locator</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">by</span><span class="p">,</span><span class="w"> </span><span class="n">UiLocatorOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">locator</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">by</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="n">UiLocatorOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByTestId</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">testId</span><span class="p">)</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByTestId</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">testId</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByPlaceholder</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">placeholder</span><span class="p">)</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByPlaceholder</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">placeholder</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByText</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">text</span><span class="p">)</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByText</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">text</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByTextContaining</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">text</span><span class="p">)</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByTextContaining</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">text</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByLabel</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">labelText</span><span class="p">)</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByLabel</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">labelText</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByRole</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">role</span><span class="p">)</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByRole</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">role</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">accessibleName</span><span class="p">)</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByAltText</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">altText</span><span class="p">)</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">getByAltText</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">altText</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="n">UiExpect</span><span class="w"> </span><span class="nf">expect</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">by</span><span class="p">)</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="n">UiExpect</span><span class="w"> </span><span class="nf">expect</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">by</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="n">UiExpect</span><span class="w"> </span><span class="nf">expect</span><span class="p">(</span><span class="n">UiLocator</span><span class="w"> </span><span class="n">locator</span><span class="p">)</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="n">UiExpect</span><span class="w"> </span><span class="nf">expect</span><span class="p">(</span><span class="n">UiLocator</span><span class="w"> </span><span class="n">locator</span><span class="p">,</span><span class="w"> </span><span class="n">UiAssertionOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span></code></pre></div>
+<p>All locator factories remain lazy. Named role and label factories narrow candidates with DOM selectors, then use the browser-computed role/accessibility name through typed WebDriver APIs. Alt-text matching reads only <code>alt</code>. See <a href="../../elements/locators/">Locators</a>. Actionability overloads inspect either a locator or an already resolved element and return a report rather than performing an action.</p>
+<p>The returned actionability model records individual <code>ActionabilityCheck</code>/<code>ActionabilityResult</code> values. <code>ActionabilityCheckType</code> identifies attachment, visibility, enabled state, stable bounds, scrolling, click-point receipt, coverage, and overlay-policy checks. <code>ActionabilityStatus</code> distinguishes ready, not-ready, failed, and skipped reports; <code>ActionabilityFailureReason</code> supplies the concrete diagnostic reason such as detached, covered, stale, timed out, or JavaScript failure. These values diagnose readiness and do not themselves click the element.</p>
+<h2 id="sessions-steps-trace-and-evidence">Sessions, steps, trace, and evidence<a class="headerlink" href="#sessions-steps-trace-and-evidence" title="Permanent link">&para;</a></h2>
+<!-- API SIGNATURES: io.github.testlens.JsOverlayDebug -->
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">attachSession</span><span class="p">(</span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="n">session</span><span class="p">)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">Optional</span><span class="o">&lt;</span><span class="n">UiTestLensSession</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">session</span><span class="p">()</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">UiTestLensSession</span><span class="w"> </span><span class="nf">startSession</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">UiStepResult</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">Runnable</span><span class="w"> </span><span class="n">body</span><span class="p">)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">UiStepResult</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">UiStepOptions</span><span class="w"> </span><span class="n">options</span><span class="p">,</span><span class="w"> </span><span class="n">Runnable</span><span class="w"> </span><span class="n">body</span><span class="p">)</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">TraceArtifact</span><span class="w"> </span><span class="nf">attachScreenshot</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="w"> </span><span class="n">path</span><span class="p">)</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">TraceArtifact</span><span class="w"> </span><span class="nf">attachVideo</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="w"> </span><span class="n">path</span><span class="p">)</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">TraceArtifact</span><span class="w"> </span><span class="nf">attachArtifact</span><span class="p">(</span><span class="n">TraceArtifact</span><span class="w"> </span><span class="n">artifact</span><span class="p">)</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="n">String</span><span class="w"> </span><span class="nf">exportTraceHtml</span><span class="p">()</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">String</span><span class="w"> </span><span class="nf">exportTraceHtml</span><span class="p">(</span><span class="n">TraceHtmlExportOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="n">Path</span><span class="w"> </span><span class="nf">exportTraceHtml</span><span class="p">(</span><span class="n">Path</span><span class="w"> </span><span class="n">outputPath</span><span class="p">)</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="n">Path</span><span class="w"> </span><span class="nf">exportTraceHtml</span><span class="p">(</span><span class="n">Path</span><span class="w"> </span><span class="n">outputPath</span><span class="p">,</span><span class="w"> </span><span class="n">TraceHtmlExportOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="n">ScreenshotCaptureResult</span><span class="w"> </span><span class="nf">captureScreenshot</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">)</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="n">ScreenshotCaptureResult</span><span class="w"> </span><span class="nf">captureScreenshot</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">ScreenshotCaptureOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="n">VideoEvidenceResult</span><span class="w"> </span><span class="nf">attachVideoFile</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="w"> </span><span class="n">path</span><span class="p">)</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="n">VideoEvidenceResult</span><span class="w"> </span><span class="nf">attachVideoFile</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="w"> </span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="n">VideoEvidenceOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="n">VideoEvidenceResult</span><span class="w"> </span><span class="nf">attachVideoUrl</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">url</span><span class="p">)</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="n">VideoEvidenceResult</span><span class="w"> </span><span class="nf">attachVideoUrl</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="n">VideoEvidenceOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Methods that attach an existing artifact or export trace HTML require an attached session and throw <code>IllegalStateException</code> when none exists. <code>captureScreenshot(...)</code> can still write a PNG without a session; its result explains whether a trace artifact was attached. Video methods attach references only and do not record video. Step behavior and failure screenshot options are described under <a href="../steps-business-assertions/">Steps</a>; result and nullable evidence semantics are under <a href="../../observability/screenshots-evidence/">Screenshots and evidence</a>.</p>
+<h2 id="business-authentication-and-network-services">Business, authentication, and network services<a class="headerlink" href="#business-authentication-and-network-services" title="Permanent link">&para;</a></h2>
+<!-- API SIGNATURES: io.github.testlens.JsOverlayDebug -->
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">BusinessAssertions</span><span class="w"> </span><span class="nf">business</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">subject</span><span class="p">)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">BusinessAssertions</span><span class="w"> </span><span class="nf">business</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">subject</span><span class="p">,</span><span class="w"> </span><span class="n">BusinessAssertionOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">AuthStateManager</span><span class="w"> </span><span class="nf">auth</span><span class="p">()</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">AuthState</span><span class="w"> </span><span class="nf">captureAuthState</span><span class="p">(</span><span class="n">AuthStateOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">AuthRestoreResult</span><span class="w"> </span><span class="nf">restoreAuthState</span><span class="p">(</span><span class="n">AuthState</span><span class="w"> </span><span class="n">state</span><span class="p">,</span><span class="w"> </span><span class="n">AuthRestoreOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">AuthRestoreResult</span><span class="w"> </span><span class="nf">restoreAuthState</span><span class="p">(</span><span class="n">Path</span><span class="w"> </span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="n">AuthRestoreOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">NetworkDiagnostics</span><span class="w"> </span><span class="nf">network</span><span class="p">()</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">NetworkDiagnosticsResult</span><span class="w"> </span><span class="nf">attachNetworkLog</span><span class="p">(</span><span class="n">Path</span><span class="w"> </span><span class="n">outputPath</span><span class="p">)</span>
+</span></code></pre></div>
+<p>These are convenience delegates to the advanced services documented under <a href="../auth-state/">Authentication state</a>, <a href="../network/">Network diagnostics</a>, and <a href="../steps-business-assertions/">Business assertions</a>. <code>network()</code> lazily creates and reuses one diagnostics service. <code>attachNetworkLog(...)</code> requires an attached session. Auth state, network data, and output paths can contain secrets.</p>
+<h2 id="hud-and-explicit-visual-helpers">HUD and explicit visual helpers<a class="headerlink" href="#hud-and-explicit-visual-helpers" title="Permanent link">&para;</a></h2>
+<!-- API SIGNATURES: io.github.testlens.JsOverlayDebug -->
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">initHud</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">testName</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">pipelineId</span><span class="p">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kt">void</span><span class="w"> </span><span class="nf">setStep</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">stepDescription</span><span class="p">)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kt">void</span><span class="w"> </span><span class="nf">hudLog</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">level</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">message</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">timestamp</span><span class="p">)</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="kt">void</span><span class="w"> </span><span class="nf">highlightClick</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">WebElement</span><span class="w"> </span><span class="nf">highlightElement</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="kt">void</span><span class="w"> </span><span class="nf">highlightParent</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="kt">void</span><span class="w"> </span><span class="nf">highlightAncestor</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">levelsUp</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="kt">void</span><span class="w"> </span><span class="nf">highlightClosest</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">cssSelector</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="kt">void</span><span class="w"> </span><span class="nf">highlightThenClick</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="kt">void</span><span class="w"> </span><span class="nf">clearDebugArtifacts</span><span class="p">()</span>
+</span></code></pre></div>
+<p>The <code>highlightClick(...)</code>, <code>highlightElement(...)</code>, <code>highlightParent(...)</code>, <code>highlightAncestor(...)</code>, and <code>highlightClosest(...)</code> methods only inject temporary DOM decoration; they never click or otherwise act on the application. <code>highlightElement(...)</code> returns the supplied element for chaining, while the parent/ancestor/closest variants change which DOM node is decorated. Use <code>highlightThenClick(...)</code> for decoration followed by exactly one Selenium <code>click()</code>, or <code>smartClickWithOverlayHandler(...)</code> when overlay handling and click retries are required. With the visual overlay disabled, decoration is skipped but <code>highlightThenClick(...)</code> still clicks once. HUD and cleanup operations are best-effort browser decoration and do not change test conditions.</p>
+<h2 id="typing-and-click-helpers">Typing and click helpers<a class="headerlink" href="#typing-and-click-helpers" title="Permanent link">&para;</a></h2>
+<!-- API SIGNATURES: io.github.testlens.JsOverlayDebug -->
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">typeWithHint</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">value</span><span class="p">)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kt">void</span><span class="w"> </span><span class="nf">clearAndType</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">value</span><span class="p">)</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kt">void</span><span class="w"> </span><span class="nf">smartTypeWithHint</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">value</span><span class="p">)</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="kt">void</span><span class="w"> </span><span class="nf">smartTypeWithHintHighlighted</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">value</span><span class="p">)</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="kt">void</span><span class="w"> </span><span class="nf">smartTypeWithHintHighlighted</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="kt">void</span><span class="w"> </span><span class="nf">smartClickWithOverlayHandler</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">WebElement</span><span class="w"> </span><span class="nf">resolveClickTarget</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">)</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">WebElement</span><span class="w"> </span><span class="nf">resolveFileInputTarget</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">)</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">String</span><span class="w"> </span><span class="nf">resolveClickTargetCssSelector</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">)</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="n">String</span><span class="w"> </span><span class="nf">resolveFileInputCssSelector</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">)</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="kt">void</span><span class="w"> </span><span class="nf">smartClickResolved</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">containerOrLabel</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="kt">void</span><span class="w"> </span><span class="nf">smartUploadFile</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">containerOrLabel</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">absoluteFilePath</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Typing helpers operate on an already resolved element; their names distinguish plain clear/type, hint feedback, and an explicit pre-action highlight. The low-level smart-click helper executes configured overlay handling and is not a second recommended name for the <a href="../../elements/actions/#click-contract-native-activation-visible-recovery"><code>UiLocator.click()</code> contract</a>. Target resolvers heuristically find a clickable element or associated file input; file-input resolution can return null. <code>smartClickResolved(...)</code> and <code>smartUploadFile(...)</code> return without throwing when no target is found, after HUD/log feedback where enabled. Selenium failures from the eventual click or <code>sendKeys</code> still propagate.</p>
+<h2 id="page-readiness-and-wait-feedback">Page readiness and wait feedback<a class="headerlink" href="#page-readiness-and-wait-feedback" title="Permanent link">&para;</a></h2>
+<!-- API SIGNATURES: io.github.testlens.JsOverlayDebug -->
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForPageReady</span><span class="p">()</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForPageReady</span><span class="p">(</span><span class="n">Duration</span><span class="w"> </span><span class="n">timeout</span><span class="p">)</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForNetworkIdle</span><span class="p">()</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForNetworkIdle</span><span class="p">(</span><span class="n">Duration</span><span class="w"> </span><span class="n">idleDuration</span><span class="p">,</span><span class="w"> </span><span class="n">Duration</span><span class="w"> </span><span class="n">timeout</span><span class="p">)</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForInteractiveOrComplete</span><span class="p">()</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForInteractiveOrComplete</span><span class="p">(</span><span class="n">Duration</span><span class="w"> </span><span class="n">timeout</span><span class="p">)</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForReactRootMounted</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">rootLocator</span><span class="p">)</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForReactRootMounted</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">rootLocator</span><span class="p">,</span><span class="w"> </span><span class="n">Duration</span><span class="w"> </span><span class="n">timeout</span><span class="p">)</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForSpaDomStableUnder</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">rootLocator</span><span class="p">)</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForSpaDomStableUnder</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">rootLocator</span><span class="p">,</span><span class="w"> </span><span class="n">Duration</span><span class="w"> </span><span class="n">timeout</span><span class="p">,</span><span class="w"> </span><span class="n">Duration</span><span class="w"> </span><span class="n">stableFor</span><span class="p">)</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="n">WebElement</span><span class="w"> </span><span class="nf">waitForReactComponentVisible</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">rootLocator</span><span class="p">,</span><span class="w"> </span><span class="n">By</span><span class="w"> </span><span class="n">componentLocator</span><span class="p">)</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="n">WebElement</span><span class="w"> </span><span class="nf">waitForReactComponentVisible</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">rootLocator</span><span class="p">,</span><span class="w"> </span><span class="n">By</span><span class="w"> </span><span class="n">componentLocator</span><span class="p">,</span><span class="w"> </span><span class="n">Duration</span><span class="w"> </span><span class="n">timeout</span><span class="p">)</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForReactAndNetworkIdle</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">rootLocator</span><span class="p">)</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitForReactAndNetworkIdle</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">rootLocator</span><span class="p">,</span><span class="w"> </span><span class="n">Duration</span><span class="w"> </span><span class="n">timeout</span><span class="p">)</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="kt">void</span><span class="w"> </span><span class="nf">ensureWaitHudInjected</span><span class="p">()</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitHudStart</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="kt">void</span><span class="w"> </span><span class="nf">waitHudStop</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">prefix</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">elapsedMs</span><span class="p">)</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="kt">void</span><span class="w"> </span><span class="nf">forceHideWaitHud</span><span class="p">()</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="kt">void</span><span class="w"> </span><span class="nf">showWaitIndicator</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="kt">void</span><span class="w"> </span><span class="nf">hideWaitIndicator</span><span class="p">()</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="kt">void</span><span class="w"> </span><span class="nf">showLastWaitInHud</span><span class="p">()</span>
+</span></code></pre></div>
+<p>Page-ready methods wait for browser document state; network-idle and SPA-stability methods use the facade's injected JavaScript observations and configured polling. They are heuristics, not CDP/BiDi network guarantees. React-named methods inspect rendered DOM and can be used without the optional React artifact, but the optional module provides the more focused supported React abstractions. Wait-HUD methods only control visual feedback; most catch injection errors so an overlay failure does not fail the test.</p>
+<h2 id="popup-helpers-and-overlay-policy">Popup helpers and overlay policy<a class="headerlink" href="#popup-helpers-and-overlay-policy" title="Permanent link">&para;</a></h2>
+<!-- API SIGNATURES: io.github.testlens.JsOverlayDebug -->
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">setOverlayPolicy</span><span class="p">(</span><span class="n">OverlayPolicy</span><span class="w"> </span><span class="n">overlayPolicy</span><span class="p">)</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">Optional</span><span class="o">&lt;</span><span class="n">WebElement</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">detectPopup</span><span class="p">()</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">highlightPopupIfPresent</span><span class="p">()</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">highlightPopupIfPresent</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">closePopupIfPresent</span><span class="p">()</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">closePopupIfPresent</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">overlayLabel</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">closeButtonLabel</span><span class="p">)</span>
+</span></code></pre></div>
+<p>A null policy becomes <code>OverlayPolicy.none()</code>. Popup detection uses the facade's predefined heuristics; highlight/close methods return false when no popup is detected or handled. Application-specific blocker workflows should use the explicit <a href="../overlay-policies/">overlay policy</a>, whose actions are limited to click, Escape, wait-until-gone, and fail.</p>
+<h2 id="direct-overlay-assertions">Direct overlay assertions<a class="headerlink" href="#direct-overlay-assertions" title="Permanent link">&para;</a></h2>
+<!-- API SIGNATURES: io.github.testlens.JsOverlayDebug -->
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">assertTextEquals</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">expected</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">contextLabel</span><span class="p">)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">assertTextContains</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">substring</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">contextLabel</span><span class="p">)</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">assertAttributeEquals</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">attribute</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">expected</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">contextLabel</span><span class="p">)</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">assertCssEquals</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">property</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">expected</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">contextLabel</span><span class="p">)</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">assertColorEquals</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">property</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">expectedColor</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">contextLabel</span><span class="p">)</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">assertHasClass</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">className</span><span class="p">,</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">expectedPresent</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">contextLabel</span><span class="p">)</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">assertVisible</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">expectedVisible</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">contextLabel</span><span class="p">)</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">assertEnabled</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">expectedEnabled</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">contextLabel</span><span class="p">)</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">assertSelected</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">expectedSelected</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">contextLabel</span><span class="p">)</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="n">JsOverlayDebug</span><span class="p">.</span><span class="na">AssertionSummary</span><span class="w"> </span><span class="nf">assertGroup</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">groupName</span><span class="p">,</span><span class="w"> </span><span class="n">Consumer</span><span class="o">&lt;</span><span class="n">JsOverlayDebug</span><span class="p">.</span><span class="na">SoftAssertions</span><span class="o">&gt;</span><span class="w"> </span><span class="n">consumer</span><span class="p">,</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">failTestOnErrors</span><span class="p">)</span>
+</span></code></pre></div>
+<p>These legacy assertions act on an already resolved <code>WebElement</code>, render assertion feedback, and return success as a boolean. <code>assertGroup(...)</code> collects element and value assertions through <code>SoftAssertions</code>; when <code>failTestOnErrors</code> is true, it throws one <code>AssertionError</code> after the consumer completes. <code>AssertionSummary</code> exposes the collected result objects, failures, group name, message/JSON formatting, and <code>formatForException()</code>. Prefer retryable <a href="../../elements/assertions/"><code>UiExpect</code></a> for normal element assertions.</p>
+<h2 id="scroll-and-api-overlay-helpers">Scroll and API overlay helpers<a class="headerlink" href="#scroll-and-api-overlay-helpers" title="Permanent link">&para;</a></h2>
+<!-- API SIGNATURES: io.github.testlens.JsOverlayDebug -->
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kt">void</span><span class="w"> </span><span class="nf">scrollToElementWithArrow</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">)</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kt">void</span><span class="w"> </span><span class="nf">scrollToElementWithArrow</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">durationMs</span><span class="p">)</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="kt">void</span><span class="w"> </span><span class="nf">scrollToElementWithArrow</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="n">ScrollElementEdge</span><span class="w"> </span><span class="n">elementEdge</span><span class="p">,</span><span class="w"> </span><span class="n">ScrollViewportEdge</span><span class="w"> </span><span class="n">viewportEdge</span><span class="p">)</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="kt">void</span><span class="w"> </span><span class="nf">scrollToElementWithArrow</span><span class="p">(</span><span class="n">WebElement</span><span class="w"> </span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">durationMs</span><span class="p">,</span><span class="w"> </span><span class="n">ScrollElementEdge</span><span class="w"> </span><span class="n">elementEdge</span><span class="p">,</span><span class="w"> </span><span class="n">ScrollViewportEdge</span><span class="w"> </span><span class="n">viewportEdge</span><span class="p">)</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="kt">void</span><span class="w"> </span><span class="nf">showApiCall</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">title</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">payloadPreview</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">timeoutMs</span><span class="p">)</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="kt">void</span><span class="w"> </span><span class="nf">showApiResponse</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">requestId</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">durationMs</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">headersPreview</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">bodyPreview</span><span class="p">)</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="kt">void</span><span class="w"> </span><span class="nf">hideApiModal</span><span class="p">()</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="nf">apiCallWithModal</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">title</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">payloadPreview</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">timeoutMs</span><span class="p">,</span><span class="w"> </span><span class="n">Callable</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">call</span><span class="p">,</span><span class="w"> </span><span class="n">Function</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">responsePreview</span><span class="p">)</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="n">String</span><span class="w"> </span><span class="nf">apiShowRequest</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">title</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">payloadPreview</span><span class="p">)</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="kt">void</span><span class="w"> </span><span class="nf">apiSetPending</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">requestId</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">timeoutMs</span><span class="p">)</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="kt">void</span><span class="w"> </span><span class="nf">apiSetResponse</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">requestId</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">durationMs</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">headersPreview</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">bodyPreview</span><span class="p">)</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="kt">boolean</span><span class="w"> </span><span class="nf">apiHighlightJsonPath</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">path</span><span class="p">)</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="kt">int</span><span class="w"> </span><span class="nf">apiHighlightKeyAnimated</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">delayMs</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">maxHits</span><span class="p">)</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="kt">void</span><span class="w"> </span><span class="nf">highlightPathAnimated</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">stepDelayMs</span><span class="p">)</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="kt">void</span><span class="w"> </span><span class="nf">apiHighlightJsonPathsAnimated</span><span class="p">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">paths</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">delayMs</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Scroll helpers use injected JavaScript and an arrow decoration; the edge overloads control alignment. API overlay methods visualize a caller-supplied request/response preview. They do not perform interception or HTTP traffic capture. <code>apiCallWithModal(...)</code> invokes the supplied synchronous callable and maps its result for display. Title, URL, payload, response, headers, JSON paths, and error-stack strings are centrally redacted before JavaScript receives them, so secrets are not left in the browser-side overlay DOM. Complete JSON request/response previews are parsed structurally, so apostrophes and escaped quotes within a sensitive value cannot bypass field redaction; malformed previews use the tolerant fallback. The lower-level <code>api*</code> methods expose modal state directly and generally treat JavaScript failures as no result/false/zero; <code>highlightPathAnimated(...)</code> is an exception and can propagate script execution failure. This protection recognizes configured/structured secrets but is not permission to display arbitrary personal data.</p>
+<h2 id="accessors">Accessors<a class="headerlink" href="#accessors" title="Permanent link">&para;</a></h2>
+<!-- API SIGNATURES: io.github.testlens.JsOverlayDebug -->
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">WebDriver</span><span class="w"> </span><span class="nf">getDriver</span><span class="p">()</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">OverlayConfig</span><span class="w"> </span><span class="nf">getConfig</span><span class="p">()</span>
+</span></code></pre></div>
+<p>These return the existing driver and effective overlay configuration. They do not transfer lifecycle ownership.</p>
+<p>For every constructor, nested soft-assertion member, and exact generic signature, use the optional <a href="../../reference/public-api-catalog/">binary API catalog</a>. The long component-injection constructors and direct HUD/API-modal primitives are retained legacy surface even though the class as a whole remains supported advanced API.</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../visual-helpers/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Visual helpers">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Visual helpers
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../integrations/" class="md-footer__link md-footer__link--next" aria-label="Next: Integrations overview">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Integrations overview
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": false, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
