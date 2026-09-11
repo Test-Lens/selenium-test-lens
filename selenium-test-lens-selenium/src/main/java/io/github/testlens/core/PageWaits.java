@@ -416,7 +416,7 @@ public class PageWaits {
                 + "  if (!window.fetch) return; var origFetch = window.fetch;"
                 + "  window.fetch = function() {"
                 + "    beginRequest(); var promise;"
-                + "    try { promise = origFetch.apply(this, arguments); } catch (failure) { finishRequest(); throw failure; }"
+                + "    try { promise = origFetch.apply(window, arguments); } catch (failure) { finishRequest(); throw failure; }"
                 + "    return Promise.resolve(promise).then("
                 + "      function(value) { finishRequest(); return value; },"
                 + "      function(failure) { finishRequest(); throw failure; });"

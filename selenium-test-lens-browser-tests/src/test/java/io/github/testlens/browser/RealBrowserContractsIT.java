@@ -476,8 +476,22 @@ class RealBrowserContractsIT {
         TestLens lens = configuredLens(true, true);
         lens.startSession("network-idle-wait-" + UUID.randomUUID());
 
+        ((JavascriptExecutor) driver).executeScript("""
+                const delegate = window.fetch;
+                window.__testLensApplicationFetchCalls = 0;
+                window.__testLensApplicationFetchReceiverWasWindow = null;
+                window.fetch = function() {
+                    window.__testLensApplicationFetchCalls++;
+                    window.__testLensApplicationFetchReceiverWasWindow = this === window;
+                    return delegate.apply(window, arguments);
+                };
+                """);
         lens.waitForNetworkIdle(Duration.ZERO, Duration.ofSeconds(1));
         assertControlledFetchCompletesAfterRelease(lens);
+        assertEquals(1L, number("return window.__testLensApplicationFetchCalls;"));
+        assertEquals(Boolean.TRUE, ((JavascriptExecutor) driver).executeScript("""
+                return window.__testLensApplicationFetchReceiverWasWindow;
+                """));
 
         driver.navigate().to(baseUrl + "/page-waits-next");
         assertFalse(Boolean.TRUE.equals(((JavascriptExecutor) driver).executeScript("""
@@ -488,6 +502,50 @@ class RealBrowserContractsIT {
                 """)), "a new document must not inherit the previous document's tracker");
         lens.waitForNetworkIdle(Duration.ZERO, Duration.ofSeconds(1));
         assertControlledFetchCompletesAfterRelease(lens);
+        lens.finishPassed();
+    }
+
+    @Test
+    void xhrFetchTrackerPropagatesFetchAbortAndBalancesCounter() throws Exception {
+        open("/page-waits");
+        TestLens lens = configuredLens(false, true);
+        lens.startSession("network-idle-fetch-abort-" + UUID.randomUUID());
+        lens.waitForNetworkIdle(Duration.ZERO, Duration.ofSeconds(1));
+
+        String gateId = UUID.randomUUID().toString();
+        ControlledRequest gate = new ControlledRequest();
+        assertNull(CONTROLLED_REQUESTS.putIfAbsent(gateId, gate));
+        try {
+            assertControlledFetchArmed(gateId);
+            driver.findElement(By.id("controlled-fetch-trigger")).click();
+            assertTrue(gate.arrived.await(WAIT.toMillis(), TimeUnit.MILLISECONDS),
+                    () -> "controlled fetch did not reach the local HTTP handler; browser state="
+                            + controlledFetchDiagnostic());
+            assertControlledFetchActive();
+
+            ((JavascriptExecutor) driver).executeScript("""
+                    window.__testLensControlledFetch.abort();
+                    return null;
+                    """);
+            new WebDriverWait(driver, WAIT).until(ignored -> {
+                Map<String, Object> state = controlledFetchState();
+                return "rejected".equals(state.get("fetchStatus"))
+                        && ((Number) state.get("activeRequests")).longValue() == 0L;
+            });
+
+            Map<String, Object> rejectedState = controlledFetchState();
+            assertEquals("rejected", rejectedState.get("fetchStatus"));
+            assertEquals("AbortError", rejectedState.get("rejectionName"));
+            assertEquals(0L, ((Number) rejectedState.get("activeRequests")).longValue());
+            lens.waitForNetworkIdle(Duration.ZERO, Duration.ofSeconds(1));
+        } finally {
+            gate.release.countDown();
+            if (gate.arrived.getCount() == 0L) {
+                assertTrue(gate.completed.await(WAIT.toMillis(), TimeUnit.MILLISECONDS),
+                        "controlled HTTP handler did not finish after fetch abort");
+            }
+            CONTROLLED_REQUESTS.remove(gateId, gate);
+        }
         lens.finishPassed();
     }
 
@@ -982,57 +1040,14 @@ class RealBrowserContractsIT {
         ControlledRequest gate = new ControlledRequest();
         assertNull(CONTROLLED_REQUESTS.putIfAbsent(gateId, gate));
         try {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> armedState = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
-                    const trigger = document.getElementById('controlled-fetch-trigger');
-                    const controlledUrl = arguments[0];
-                    window.__testLensControlledFetchState = {status: 'armed', rejectionName: null};
-                    trigger.onclick = () => {
-                        const controller = new AbortController();
-                        const state = {status: 'pending', rejectionName: null};
-                        window.__testLensControlledFetch = controller;
-                        window.__testLensControlledFetchState = state;
-                        void fetch(controlledUrl, {signal: controller.signal}).then(
-                            () => { state.status = 'fulfilled'; },
-                            failure => {
-                                state.status = 'rejected';
-                                state.rejectionName = String(failure && failure.name || 'Error');
-                            });
-                    };
-                    const network = window.__uiTestLens
-                        && window.__uiTestLens.state
-                        && window.__uiTestLens.state.network;
-                    return {
-                        trackerInstalled: Boolean(network && network.trackerInstalled),
-                        activeRequests: Number(network && network.activeRequests),
-                        fetchStatus: window.__testLensControlledFetchState.status
-                    };
-                    """, baseUrl + "/wait-controlled/" + gateId);
-            assertEquals(Boolean.TRUE, armedState.get("trackerInstalled"),
-                    "XHR/fetch tracker was not installed when the controlled trigger was armed");
-            assertEquals(0L, ((Number) armedState.get("activeRequests")).longValue(),
-                    "arming the controlled trigger must not start a request");
-            assertEquals("armed", armedState.get("fetchStatus"));
+            assertControlledFetchArmed(gateId);
 
             driver.findElement(By.id("controlled-fetch-trigger")).click();
             boolean arrived = gate.arrived.await(WAIT.toMillis(), TimeUnit.MILLISECONDS);
             assertTrue(arrived, () -> "controlled fetch did not reach the local HTTP handler; browser state="
                     + controlledFetchDiagnostic());
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> activeState = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
-                    const network = window.__uiTestLens.state.network;
-                    const fetchState = window.__testLensControlledFetchState;
-                    return {
-                        trackerInstalled: Boolean(network && network.trackerInstalled),
-                        activeRequests: Number(network && network.activeRequests),
-                        fetchStatus: fetchState && fetchState.status
-                    };
-                    """);
-            assertEquals(Boolean.TRUE, activeState.get("trackerInstalled"));
-            assertEquals(1L, ((Number) activeState.get("activeRequests")).longValue(),
-                    "tracker must observe the controlled fetch while its response is blocked");
-            assertEquals("pending", activeState.get("fetchStatus"));
+            assertControlledFetchActive();
             assertEquals(1L, gate.completed.getCount(),
                     "the controlled response must not be complete before its release");
 
@@ -1074,6 +1089,66 @@ class RealBrowserContractsIT {
         }
     }
 
+    private void assertControlledFetchArmed(String gateId) {
+        @SuppressWarnings("unchecked")
+        Map<String, Object> armedState = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const trigger = document.getElementById('controlled-fetch-trigger');
+                const controlledUrl = arguments[0];
+                window.__testLensControlledFetchState = {
+                    status: 'armed', rejectionName: null, rejectionMessage: null
+                };
+                trigger.onclick = () => {
+                    const controller = new AbortController();
+                    const state = {status: 'pending', rejectionName: null, rejectionMessage: null};
+                    window.__testLensControlledFetch = controller;
+                    window.__testLensControlledFetchState = state;
+                    void fetch(controlledUrl, {signal: controller.signal}).then(
+                        () => { state.status = 'fulfilled'; },
+                        failure => {
+                            state.status = 'rejected';
+                            state.rejectionName = String(failure && failure.name || 'Error');
+                            state.rejectionMessage = String(failure && failure.message || '');
+                        });
+                };
+                const network = window.__uiTestLens
+                    && window.__uiTestLens.state
+                    && window.__uiTestLens.state.network;
+                return {
+                    trackerInstalled: Boolean(network && network.trackerInstalled),
+                    activeRequests: Number(network && network.activeRequests),
+                    fetchStatus: window.__testLensControlledFetchState.status
+                };
+                """, baseUrl + "/wait-controlled/" + gateId);
+        assertEquals(Boolean.TRUE, armedState.get("trackerInstalled"),
+                "XHR/fetch tracker was not installed when the controlled trigger was armed");
+        assertEquals(0L, ((Number) armedState.get("activeRequests")).longValue(),
+                "arming the controlled trigger must not start a request");
+        assertEquals("armed", armedState.get("fetchStatus"));
+    }
+
+    private void assertControlledFetchActive() {
+        Map<String, Object> activeState = controlledFetchState();
+        assertEquals(Boolean.TRUE, activeState.get("trackerInstalled"));
+        assertEquals(1L, ((Number) activeState.get("activeRequests")).longValue(),
+                "tracker must observe the controlled fetch while its response is blocked");
+        assertEquals("pending", activeState.get("fetchStatus"));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> controlledFetchState() {
+        return (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const network = window.__uiTestLens.state.network;
+                const fetchState = window.__testLensControlledFetchState || {};
+                return {
+                    trackerInstalled: Boolean(network && network.trackerInstalled),
+                    activeRequests: Number(network && network.activeRequests),
+                    fetchStatus: fetchState.status,
+                    rejectionName: fetchState.rejectionName,
+                    rejectionMessage: fetchState.rejectionMessage
+                };
+                """);
+    }
+
     private String controlledFetchDiagnostic() {
         Object diagnostic = ((JavascriptExecutor) driver).executeScript("""
                 const state = window.__testLensControlledFetchState || {};
@@ -1082,6 +1157,7 @@ class RealBrowserContractsIT {
                     && window.__uiTestLens.state.network;
                 return 'status=' + String(state.status || 'missing')
                     + ', rejection=' + String(state.rejectionName || 'none')
+                    + ', message=' + String(state.rejectionMessage || 'none')
                     + ', activeRequests=' + String(network && network.activeRequests);
                 """);
         return String.valueOf(diagnostic);

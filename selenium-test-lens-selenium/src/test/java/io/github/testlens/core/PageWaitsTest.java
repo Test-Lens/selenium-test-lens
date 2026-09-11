@@ -136,6 +136,7 @@ class PageWaitsTest {
         assertTrue(script.contains("catch (failure) { finishOnce(); throw failure; }"));
         assertTrue(script.contains("catch (failure) { finishRequest(); throw failure; }"));
         assertTrue(script.contains("function(failure) { finishRequest(); throw failure; }"));
+        assertTrue(script.contains("origFetch.apply(window, arguments)"));
         assertTrue(script.contains("Math.max(0"));
     }
 
