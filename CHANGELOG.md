@@ -4,6 +4,8 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-11
+
 - Added explicit, synchronous upload of completed report ZIPs through the JDK HTTP client, with deterministic idempotency keys, bounded retries and response diagnostics, direct/system/explicit proxy selection, literal no-proxy rules, and no changes to session finalization or WebDriver ownership. Response preview consumption remains inside the request-timeout boundary, so a receiver cannot keep an upload blocked after sending only response headers.
 - Added portable, opt-in full-page screenshots that preserve the current responsive viewport and stitch standard Selenium PNG tiles without CDP. Capture now reports mode, dimensions, and tile count, enforces pixel/tile limits, restores scroll and temporary styles, and can supply both diagnostic and clean failure-bundle images.
 - Standardized published API Javadocs in English, clarified interaction, polling, lifecycle, network, evidence, and redaction contracts, and added a CI validator for Polish Javadoc text (including common words written without diacritics).
@@ -12,6 +14,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 - Fixed suite report aggregation so unfinished `STARTED` sessions can no longer be presented as a passed suite. JSON now records `summary.started`, HTML identifies incomplete sessions, and HTML/JSON/ZIP export remains a non-mutating diagnostic snapshot.
 - Fixed session and facade finalization to be first-writer-wins and exactly-once per session. Repeated or concurrent finalizers now share one completed result (or the same retry-policy violation), preserve the first terminal outcome, and never repeat screenshots, network shutdown, exports, HUD cleanup, or failure-bundle creation.
 - Fixed page/JavaScript waits so the main `TestLens` facade exposes document readiness and observed XHR/fetch idle waits using the configured locator timeout and polling interval. Network-idle timeout now throws, terminal JavaScript failures are preserved, React/SPA combinations share one deadline, and wait diagnostics emit one start plus one terminal event without creating recovery retries.
+- Fixed Firefox compatibility in the XHR/fetch network-idle tracker by preserving the native `Window` receiver when delegating to `window.fetch`, preventing Gecko from raising `TypeError` before HTTP dispatch. The resulting contract is covered by the required Chrome and Firefox browser gates.
 - Versioned published documentation with `mike`: immutable stable 0.1.0, an explicitly unreleased `/dev/`, a stable `latest` alias, and serialized full-branch GitHub Pages deployment.
 - Fixed a capture lifecycle race where `stop()` during an in-progress BiDi initialization could be undone by the late completion of that initialization. Stopping now invalidates the generation before returning; stale sources are closed once and cannot publish state or events.
 - Fixed semantic `getBy*` factories ignoring the `UiLocatorOptions` configured on their owning `TestLens`. Ordinary, semantic, and subsequently chained locators now share the same instance-scoped options; explicit locator options still take precedence.
@@ -27,8 +30,6 @@ All notable changes to Selenium Test Lens will be documented in this file.
 - Added polling `UiExpect` assertions for collection count, DOM attributes, class tokens, computed CSS, selected/checked state, and DOM attachment. Every poll observes one fresh locator snapshot; assertion polling remains separate from recovery retry and does not mark a session flaky.
 - Added lazy locator composition: scoped descendant lookup, visible-text/DOM-attribute/descendant filters, order-preserving collection stages, and count waits. Count polling observes fresh snapshots without being classified as recovery retry or flakiness.
 - Added lazy semantic accessibility locators on the main `TestLens` facade for labels, placeholders, and alt text, plus browser-computed `UiLocator.accessibleName()`. Named role matching now uses WebDriver `getAccessibleName()` and `getAriaRole()` without falling back to element text or a partial in-library accessible-name algorithm.
-
-The next planned release line is 0.2.0. Changes below are under development and have not been released.
 
 - Added semantic `UiLocator` form and element actions: idempotent `check()`/`uncheck()` and `isChecked()` for native and ARIA controls, single-operation safe file upload, and explicit focus/scroll operations. Styled native controls activate only through their standard associated label; asynchronous state confirmation never repeats a click, and upload diagnostics do not expose local paths or file names.
 
@@ -46,10 +47,10 @@ The next planned release line is 0.2.0. Changes below are under development and 
 - Made facade finalization outcome explicit: `finishFailed(null)` now remains `FAILED`, and only failed finalization can request an automatic failure screenshot.
 - Fixed `UiAssertionOptions.failFastOnMissingElement(true)` for the normal `UiLocator.expect(options)` path: genuinely missing required elements now fail on the first observation, while the default remains retryable. Missing elements still satisfy `toBeHidden`, and stale elements remain a distinct retryable state.
 - Kept `MANUAL` as the default network mode. `BIDI` and `AUTO` now use an explicitly enabled WebDriver BiDi session without fallback; `PERFORMANCE_LOGS` remains `UNSUPPORTED`.
-- Removed the previously deprecated, no-op `NetworkDiagnosticsOptions.attachToSession` accessor and builder method for 0.2.0 development. Network diagnostics are attached only through explicit `NetworkDiagnostics.attachToSession(...)` calls; failure-bundle finalization still snapshots the active network summary automatically.
+- Removed the previously deprecated, no-op `NetworkDiagnosticsOptions.attachToSession` accessor and builder method in 0.2.0. Network diagnostics are attached only through explicit `NetworkDiagnostics.attachToSession(...)` calls; failure-bundle finalization still snapshots the active network summary automatically.
 
 ### Removed
-- Removed the three implementation-injection constructors of `JsOverlayDebug`; migrate to `JsOverlayDebug(WebDriver)` or `JsOverlayDebug(WebDriver, OverlayConfig)`. Removed the implementation-only `ApiCallActions` type and hid local assertion, business, locator, step, plan, script, and exporter plumbing. This intentional pre-1.0 break is planned for the 0.2.x line.
+- Removed the three implementation-injection constructors of `JsOverlayDebug`; migrate to `JsOverlayDebug(WebDriver)` or `JsOverlayDebug(WebDriver, OverlayConfig)`. Removed the implementation-only `ApiCallActions` type and hid local assertion, business, locator, step, plan, script, and exporter plumbing. This intentional pre-1.0 break is part of 0.2.0.
 
 ## [0.1.0]
 
@@ -82,4 +83,8 @@ The next planned release line is 0.2.0. Changes below are under development and 
 - Public APIs may still change between 0.x releases.
 - Central Publisher Portal publication remains a manual, reviewed operation.
 - Legacy browser runtime aliases are still maintained for compatibility.
+
+[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.1.0
 

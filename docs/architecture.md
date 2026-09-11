@@ -15,8 +15,8 @@ Selenium Test Lens is split into small Maven modules so Selenium code, browser o
 | `selenium-test-lens-core` | Trace, logging, central redaction, evidence metadata, and report exporters | Has no Selenium dependency |
 | `selenium-test-lens-overlay` | Browser overlay resources, HUD support, and visual configuration | Depends on core; has no Selenium dependency |
 | `selenium-test-lens` | Public `TestLens` runtime for Selenium tests | Depends on core and overlay; Selenium is optional and supplied by the consumer |
-| `selenium-test-lens-junit5` | Development-line JUnit 5 lifecycle and parameter injection | Depends on the main runtime and JUnit Jupiter API; Selenium remains optional; planned for 0.2.0 |
-| `selenium-test-lens-testng` | Development-line TestNG invocation lifecycle | Depends on the main runtime and TestNG; Selenium remains optional; planned for 0.2.0 |
+| `selenium-test-lens-junit5` | Optional JUnit 5 lifecycle and parameter injection | Depends on the main runtime and JUnit Jupiter API; Selenium remains optional |
+| `selenium-test-lens-testng` | Optional TestNG invocation lifecycle | Depends on the main runtime and TestNG; Selenium remains optional |
 | `selenium-test-lens-react` | Optional React- and SPA-specific Selenium helpers | Depends directly on the main runtime, core, overlay, and Selenium |
 | `selenium-test-lens-examples` | Compile-checked and documentation examples | Depends on the main runtime and React module; built with the reactor but excluded from Maven Central publication |
 | `selenium-test-lens-browser-tests` | Consumer-level Chrome and Firefox integration tests against deterministic local pages | Added to the reactor only by `browser-it`; depends on the built main artifact and is never published |
@@ -63,7 +63,7 @@ Chrome and Firefox headless runs are required in CI. A headed Chrome run under X
 
 The separate consumer-compatibility matrix runs on JDK 17 and JDK 21. For
 each JVM it transforms the nine-project source reactor from
-`0.2.0-SNAPSHOT` to an unpublished `0.2.0` copy, stages exactly seven
+the root release version, stages exactly seven
 publishable coordinates, and executes Maven and Gradle consumers. Gradle
 cannot use reactor outputs, project dependencies, composite builds,
 `mavenLocal()`, snapshots, or Maven Central for the Test Lens group. Its
@@ -153,7 +153,7 @@ React support is isolated in `selenium-test-lens-react`, which depends on the ma
 
 ## JUnit 5 boundary
 
-JUnit lifecycle integration is isolated in the development-line `selenium-test-lens-junit5` artifact planned for 0.2.0. `TestLensExtension` owns drivers returned by the consumer's factory and stores invocation state in `ExtensionContext.Store`, keyed by JUnit's unique invocation ID. This keeps parameterized, repeated, nested, and parallel invocations independent without a singleton or `ThreadLocal`. The main runtime remains runner-agnostic.
+JUnit lifecycle integration is isolated in the optional `selenium-test-lens-junit5` artifact introduced in 0.2.0. `TestLensExtension` owns drivers returned by the consumer's factory and stores invocation state in `ExtensionContext.Store`, keyed by JUnit's unique invocation ID. This keeps parameterized, repeated, nested, and parallel invocations independent without a singleton or `ThreadLocal`. The main runtime remains runner-agnostic.
 
 ## TestNG boundary
 

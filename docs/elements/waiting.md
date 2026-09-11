@@ -66,8 +66,7 @@ Page assertions created by `expectPage()` follow the same distinction: each atte
 
 ## Page and JavaScript waits
 
-!!! info "Coming in 0.2.0"
-    The `TestLens` page-wait facade is part of the current development line and is not available in Maven Central `0.1.0`. The lower-level `PageWaits` and corresponding `JsOverlayDebug` methods existed in 0.1.0.
+The `TestLens` page-wait facade was added in 0.2.0. The lower-level `PageWaits` and corresponding `JsOverlayDebug` methods already existed in 0.1.0.
 
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
 ```java

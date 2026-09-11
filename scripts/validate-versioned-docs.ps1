@@ -6,10 +6,16 @@ $pom = [xml][IO.File]::ReadAllText((Join-Path $root "pom.xml"))
 $ns = [Xml.XmlNamespaceManager]::new($pom.NameTable)
 $ns.AddNamespace("m", "http://maven.apache.org/POM/4.0.0")
 $developmentVersion = $pom.SelectSingleNode("/m:project/m:version", $ns).InnerText.Trim()
-if (-not $developmentVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)) {
-    throw "Versioned documentation simulation requires a snapshot source version."
+if ($developmentVersion -notmatch '^\d+\.\d+\.\d+(-SNAPSHOT)?$') {
+    throw "Versioned documentation simulation requires a semantic release or snapshot source version."
 }
-$futureReleaseVersion = $developmentVersion.Substring(0, $developmentVersion.Length - "-SNAPSHOT".Length)
+$sourceIsSnapshot = $developmentVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)
+$futureReleaseVersion = if ($sourceIsSnapshot) {
+    $developmentVersion.Substring(0, $developmentVersion.Length - "-SNAPSHOT".Length)
+} else {
+    $developmentVersion
+}
+$developmentTitle = if ($sourceIsSnapshot) { "$developmentVersion / coming soon" } else { $developmentVersion }
 $work = Join-Path ([IO.Path]::GetTempPath()) ("test-lens-versioned-docs-" + [guid]::NewGuid())
 $ok = $false
 function TreeHash([string]$Path) {
@@ -48,7 +54,7 @@ try {
         & ./scripts/publish-versioned-docs.ps1 -Operation dev -Version $developmentVersion -Branch gh-pages-no-push -NoPush
         $noPushMetadata = (& git show gh-pages-no-push`:versions.json) -join "`n" | ConvertFrom-Json
         $noPushDev = $noPushMetadata | Where-Object version -eq "dev"
-        if ($null -eq $noPushDev -or $noPushDev.title -ne "$developmentVersion / coming soon") {
+        if ($null -eq $noPushDev -or $noPushDev.title -ne $developmentTitle) {
             throw "No-push dev deployment did not preserve the exact title argument."
         }
 
@@ -102,7 +108,7 @@ try {
             if (-not (Get-ChildItem $assets -Filter *.css -File -Recurse)) { throw "No CSS assets published for $versionDirectory." }
             if (-not (Get-ChildItem $assets -Filter *.js -File -Recurse)) { throw "No JavaScript assets published for $versionDirectory." }
         }
-        $banner = "Development documentation for"
+        $banner = if ($sourceIsSnapshot) { "Development documentation for" } else { "Documentation source for" }
         foreach ($html in Get-ChildItem (Join-Path $stage2 "dev") -Filter *.html -File -Recurse) {
             $text = [IO.File]::ReadAllText($html.FullName)
             if (-not $text.Contains($banner)) { throw "Development banner missing: $($html.FullName)" }
@@ -119,7 +125,7 @@ try {
         $versions = Get-Content (Join-Path $stage2 "versions.json") -Raw | ConvertFrom-Json
         if (-not (($versions.version -contains "0.1.0") -and ($versions.version -contains "dev"))) { throw "mike metadata lacks stable/dev versions." }
         $devVersion = $versions | Where-Object version -eq "dev"
-        if ($null -eq $devVersion -or $devVersion.title -ne "$developmentVersion / coming soon") {
+        if ($null -eq $devVersion -or $devVersion.title -ne $developmentTitle) {
             throw "Pushed dev metadata did not preserve the exact title argument."
         }
         $future = Get-Content (Join-Path $stage3 "versions.json") -Raw | ConvertFrom-Json

@@ -1,6 +1,6 @@
 # Public API boundary review
 
-This is the first controlled pre-1.0 API-boundary cleanup, planned for the 0.2.x line. The recommended `TestLens` API, the supported `JsOverlayDebug` facade, lifecycle, locators, assertions, retry, evidence, network, runner adapters, React API, and their public models remain supported. Only implementation-shaped types and construction seams were hidden.
+This is the first controlled pre-1.0 API-boundary cleanup, delivered in 0.2.0. The recommended `TestLens` API, the supported `JsOverlayDebug` facade, lifecycle, locators, assertions, retry, evidence, network, runner adapters, React API, and their public models remain supported. Only implementation-shaped types and construction seams were hidden.
 
 ## Result
 

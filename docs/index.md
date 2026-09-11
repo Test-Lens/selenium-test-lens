@@ -15,12 +15,12 @@ Test Lens attaches to the driver your project already owns. It keeps Selenium's 
 [Get started](getting-started.md){ .md-button .md-button--primary }
 [Why Test Lens](#why-test-lens){ .md-button }
 [Reports](observability/reports.md){ .md-button }
-[Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0){ .md-button }
+[Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0){ .md-button }
 
 | Documentation | Status | Library availability |
 |---|---|---|
-| [0.1.0 stable](https://test-lens.github.io/selenium-test-lens/0.1.0/) | Latest published release | Maven Central |
-| [0.2.0-SNAPSHOT development](https://test-lens.github.io/selenium-test-lens/dev/) | Coming soon | Source build only |
+| [0.2.0 stable](https://test-lens.github.io/selenium-test-lens/0.2.0/) | Latest published release | Maven Central |
+| [0.1.0 historical](https://test-lens.github.io/selenium-test-lens/0.1.0/) | Previous release | Maven Central |
 
 </div>
 
@@ -49,10 +49,7 @@ The ordinary `UiLocator.click()` is the recommended path. HUD and trace observe 
 
 ### Semantic and scoped queries
 
-Basic test-id, text, and role-oriented entry points exist in stable `0.1.0`.
-
-!!! info "Coming in 0.2.0"
-    Browser-computed accessibility matching, expanded semantic factories, and locator composition are part of the development line and are not available in Maven Central `0.1.0`.
+Release `0.2.0` adds browser-computed accessibility matching, expanded semantic factories, and locator composition to the test-id, text, and role-oriented entry points introduced in `0.1.0`.
 
 ```java
 UiLocator cards = lens.locator(By.cssSelector(".product-card"))
@@ -68,9 +65,6 @@ The query stays lazy and ordered. A child query cannot escape its parent contain
 
 > A passed test can still tell you it was flaky.
 
-!!! info "Coming in 0.2.0"
-    `RetrySummary` and `RetryOutcomePolicy` are part of the development line and are not available in Maven Central `0.1.0`.
-
 Recovery retry is recorded separately from condition polling and runner retry. You can report recovered attempts, warn about them, or reject an otherwise passed outcome after evidence is written. [Understand recovery and flakiness](observability/flakiness.md).
 
 ### Trace, reports, and automatic failure evidence
@@ -81,15 +75,9 @@ Trace and HTML/JSON reports have existed since `0.1.0`; they connect actions, wa
 operation → session trace → finalization → HTML/JSON report → failure bundle
 ```
 
-!!! info "Coming in 0.2.0"
-    Automatic failure bundles and hardened exactly-once finalization are part of the development line and are not available in Maven Central `0.1.0`.
-
 A final failed session can collect screenshots, reports, context, runtime/configuration allowlists, and a network summary. Collection is best-effort, finalization does not close WebDriver, and video is caller-supplied evidence rather than an automatic recording. [Follow the trace](observability/trace.md), [inspect reports](observability/reports.md), or [configure failure bundles](observability/failure-bundles.md).
 
 ### Safe diagnostics through central redaction
-
-!!! info "Coming in 0.2.0"
-    Central sensitive-data redaction is part of the development line and is not available in Maven Central `0.1.0`.
 
 One immutable policy protects diagnostic copies before they fan out to HUD, trace, log sinks, reports, network/API diagnostics, and failure-bundle text files. Original exception types remain structural diagnostics, while the original throwable continues to control the test result. Screenshots and video are not pixel-redacted, auth-state files remain replayable and outside this transformation, and `disabled()` is a deliberate opt-out. [Review the security boundary](security/redaction.md).
 
@@ -101,7 +89,7 @@ The stable release requires Java 17 or newer:
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -136,7 +124,7 @@ try {
 
 ## Integrations
 
-The main library works with any runner. The JUnit 5 and TestNG lifecycle adapters are development-line `0.2.0` artifacts built from source and are not available in Maven Central `0.1.0`. They create one driver/Lens pair per invocation, map runner outcomes, finalize evidence, and then close the driver. [Choose an integration model](framework-integration.md).
+The main library works with any runner. The optional JUnit 5 and TestNG lifecycle adapters create one driver/Lens pair per invocation, map runner outcomes, finalize evidence, and then close the driver. [Choose an integration model](framework-integration.md).
 
 ## Reference
 

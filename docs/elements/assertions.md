@@ -2,7 +2,7 @@
 
 `UiExpect` is obtained from `TestLens.expect(...)` or `UiLocator.expect()`. Each assertion polls until it passes or times out, reports attempts and elapsed time, and returns `UiAssertionResult` on success. Failure throws `UiAssertionError` carrying the result.
 
-Visibility, enabled, text, and value assertions are available in `0.1.0`. Collection, DOM-state, and page assertions are development-line additions marked at their first use below.
+Visibility, enabled, text, and value assertions are available in `0.1.0`. Collection, DOM-state, and page assertions were added in `0.2.0`.
 
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
 ```java
@@ -62,9 +62,6 @@ Both value assertions require a present element and follow the same missing/stal
 
 ## Collections and attachment
 
-!!! info "Coming in 0.2.0"
-    Collection-count and attachment assertions are part of the current development line and are not available in Maven Central `0.1.0`.
-
 <!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiExpect -->
 ```java
 UiAssertionResult toHaveCount(int expected)
@@ -86,9 +83,6 @@ lens.getByRole("status").expect().toBeAttached();
 
 ## DOM attributes, classes, and CSS
 
-!!! info "Coming in 0.2.0"
-    DOM-attribute, class-token, and computed-CSS assertions are part of the current development line and are not available in Maven Central `0.1.0`.
-
 <!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiExpect -->
 ```java
 UiAssertionResult toHaveAttribute(String attributeName, String expectedValue)
@@ -107,9 +101,6 @@ lens.getByTestId("panel").expect().toHaveCss("display", "block");
 ```
 
 ## Selected and checked state
-
-!!! info "Coming in 0.2.0"
-    Selected and checked-state assertions are part of the current development line and are not available in Maven Central `0.1.0`.
 
 <!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiExpect -->
 ```java
@@ -170,9 +161,6 @@ UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger, Ui
 The probe types themselves are classified `INTERNAL_STYLE_PUBLIC`; do not use them as the normal assertion API.
 
 ## Page URL and title assertions
-
-!!! info "Coming in 0.2.0"
-    Page URL/title assertions are part of the current development line and are not available in Maven Central `0.1.0`.
 
 `TestLens.expectPage()` and `JsOverlayDebug.expectPage()` create a page assertion bound to the driver's active window. An overload accepts `UiAssertionOptions`; only timeout and poll interval affect URL assertions, while title assertions also honor whitespace normalization, trimming, case sensitivity, and the preview limit.
 

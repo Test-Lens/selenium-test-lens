@@ -1,8 +1,5 @@
 # Failure bundles
 
-!!! info "Coming in 0.2.0"
-    Automatic failure bundles are part of the current development line and are not available in Maven Central `0.1.0`.
-
 Every final `FAILED` facade session creates a best-effort, versioned failure bundle by default. This includes `finishFailed(...)`, `finishFailed(null)`, and a passed test rejected by `FAIL_ON_ANY_RETRY` or `FAIL_AFTER_N`. `PASSED`, `SKIPPED`, `REPORT_ONLY`, and `WARN` outcomes do not create one. Finalization never closes the driver.
 
 The bundle is the final step of the observable evidence path—operation events feed trace, finalization writes HTML/JSON, and a failed outcome assembles those reports with available browser diagnostics. It is not a replacement for trace, and it does not turn collector availability into a test-result decision.
@@ -15,7 +12,7 @@ The bundle reports the observed lifecycle state; `STOPPED`, `UNSUPPORTED`, or `F
 
 The diagnostic screenshot is taken with the current HUD/highlight. For the clean screenshot only the `selenium-overlay-host` is temporarily hidden and restored in `finally`; application DOM, frame, window, and failed actions are not touched. Normal `cleanupHudOnFinish` runs later.
 
-Both images use `VIEWPORT` by default. Full-page failure evidence is an explicit development-line option:
+Both images use `VIEWPORT` by default. Full-page failure evidence is an explicit option:
 
 ```java
 FailureBundleOptions bundle = FailureBundleOptions.builder()

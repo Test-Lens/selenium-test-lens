@@ -112,8 +112,8 @@ nav:
       - Publishing versioned docs: maintainers/documentation-versioning.md
       - Real-browser integration tests: browser-integration-tests.md
       - Changelog: https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md
-      - Maven Central: https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0
-      - Javadoc: https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/
+      - Maven Central: https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0
+      - Javadoc: https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/
 markdown_extensions:
   - admonition
   - attr_list
@@ -145,9 +145,10 @@ extra:
   version:
     provider: mike
     default: latest
-    current: 0.2.0-SNAPSHOT
+    current: 0.2.0
     is_dev: true
-    stable_url: https://test-lens.github.io/selenium-test-lens/0.1.0/
+    is_snapshot: false
+    stable_url: https://test-lens.github.io/selenium-test-lens/latest/
   analytics:
     provider: google
     property: G-T0B0XE6MS1

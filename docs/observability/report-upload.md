@@ -1,8 +1,5 @@
 # Report upload
 
-!!! info "Coming in 0.2.0"
-    Explicit report upload is part of the current development line and is not available in Maven Central `0.1.0`.
-
 `ReportUploader` sends an already finalized Test Lens report to an HTTP endpoint. Upload is synchronous and explicit: configuring an endpoint or finalizing a session never opens a connection by itself.
 
 ```java
@@ -37,7 +34,7 @@ The session-report manifest has schema version `1`:
 ```json
 {
   "schemaVersion": "1",
-  "testLensVersion": "0.2.0-SNAPSHOT",
+  "testLensVersion": "0.2.0",
   "status": "PASSED",
   "artifactKind": "SESSION_REPORT",
   "createdAt": "2026-01-01T00:00:00Z",

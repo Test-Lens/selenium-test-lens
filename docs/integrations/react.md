@@ -10,16 +10,16 @@ Add the version matching the main artifact:
 <dependency>
   <groupId>io.github.test-lens</groupId>
   <artifactId>selenium-test-lens-react</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
 The module depends on core, overlay, and Selenium Test Lens. Use it only for React/SPA re-render windows, React Select conventions, or DOM readiness conventions not covered by standard `UiLocator`.
 
 Gradle Kotlin DSL uses
-`implementation("io.github.test-lens:selenium-test-lens-react:0.1.0")`;
+`implementation("io.github.test-lens:selenium-test-lens-react:0.2.0")`;
 Groovy DSL uses
-`implementation 'io.github.test-lens:selenium-test-lens-react:0.1.0'`.
+`implementation 'io.github.test-lens:selenium-test-lens-react:0.2.0'`.
 
 ## ReactSupport factories and helpers
 

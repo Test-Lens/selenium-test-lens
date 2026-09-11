@@ -12,7 +12,7 @@ versions: verify the symbol against the corresponding release tag before adding 
 
 ## Version lifecycle
 
-- `/dev/` is rebuilt from `main`; its display name is read from the root snapshot POM. It never moves `latest`.
+- `/dev/` is rebuilt from `main`; its display name is read from the root POM. A release-preparation commit may temporarily make it mirror the release version until the post-release snapshot bump. It never moves `latest`.
 - A `vMAJOR.MINOR.PATCH` tag is accepted only when every reactor POM has that exact non-snapshot version. The immutable version must not already exist. The workflow publishes from the tagged commit, assigns `latest`, and sets the root default to `latest`.
 - `/0.1.0/` uses the archived sources in `docs-versions/0.1.0`, because tag `v0.1.0` predates the complete MkDocs site. Its edit link is disabled.
 - The root URL and `/latest/` resolve to the latest stable release, never to `dev`.

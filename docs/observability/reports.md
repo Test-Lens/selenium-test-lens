@@ -25,10 +25,9 @@ The session JSON always contains a top-level `flakiness` object with `flakyCandi
 
 For final `FAILED`, HTML also contains a `Failure bundle` section linking the predictable ZIP and listing every component status, size, path, or collection error. The ZIP is assembled after final trace/report exports, so it contains their final versions without recursively containing itself. See [Failure bundles](failure-bundles.md).
 
-Completed reports stay local unless application or teardown code explicitly invokes `ReportUploader`. The development-line uploader streams exactly one completed ZIP after finalization, without appending trace events or requiring a live WebDriver. See [Report upload](report-upload.md) for the HTTP, idempotency, retry, proxy, and receiver contract.
+Completed reports stay local unless application or teardown code explicitly invokes `ReportUploader`. The uploader streams exactly one completed ZIP after finalization, without appending trace events or requiring a live WebDriver. See [Report upload](report-upload.md) for the HTTP, idempotency, retry, proxy, and receiver contract.
 
-!!! info "Coming in 0.2.0"
-    The automatic failure-bundle section and hardened exactly-once facade finalization are part of the development line and are not available in Maven Central `0.1.0`. Session HTML/JSON reports are available in `0.1.0`.
+The automatic failure-bundle section and hardened exactly-once facade finalization were added in 0.2.0. Session HTML/JSON reports were already available in 0.1.0.
 
 An explicitly attached network JSON export is an object containing the requested and active capture modes, capture status, ignored/dropped counters, and request/response/fetch-error events with correlation attributes. Its public models and assertion diagnostics are immutable redacted snapshots; raw URLs and headers remain private to matching and correlation. A failed session's bundle contains a smaller `network-summary.json` snapshot taken before Lens stops its active capture; it does not start capture or include request/response bodies.
 

@@ -1,8 +1,5 @@
 # Flakiness and retry outcomes
 
-!!! info "Coming in 0.2.0"
-    `RetrySummary` and `RetryOutcomePolicy` are part of the current development line and are not available in Maven Central `0.1.0`.
-
 > A passed test can still tell you it was flaky.
 
 A **physical attempt** starts when an operation begins using the current DOM observation. A **recovery retry** is counted only when that attempt fails with a retryable exception and Lens decides to start another attempt. The first attempt is not a retry, and the final failed attempt is not counted when no next attempt follows.

@@ -45,14 +45,19 @@ function New-TestLensCleanRoomRelease {
     )
     $repository = [IO.Path]::GetFullPath($RepositoryRoot)
     $sourceVersion = Get-TestLensSourceVersion -RepositoryRoot $repository
-    if (-not $sourceVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)) {
-        throw "Clean-room source version must be a -SNAPSHOT version, found '$sourceVersion'"
-    }
+    $sourceIsSnapshot = $sourceVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)
     if ([string]::IsNullOrWhiteSpace($ReleaseVersion)) {
-        $ReleaseVersion = $sourceVersion.Substring(0, $sourceVersion.Length - "-SNAPSHOT".Length)
+        $ReleaseVersion = if ($sourceIsSnapshot) {
+            $sourceVersion.Substring(0, $sourceVersion.Length - "-SNAPSHOT".Length)
+        } else {
+            $sourceVersion
+        }
     }
     if ([string]::IsNullOrWhiteSpace($ReleaseVersion) -or $ReleaseVersion.EndsWith("-SNAPSHOT")) {
         throw "Release version must be non-blank and must not be a snapshot"
+    }
+    if (-not $sourceIsSnapshot -and $ReleaseVersion -ne $sourceVersion) {
+        throw "Release source version '$sourceVersion' cannot be transformed to '$ReleaseVersion'"
     }
     if ([string]::IsNullOrWhiteSpace($WorkDirectory)) {
         $WorkDirectory = Join-Path ([IO.Path]::GetTempPath()) ("selenium-test-lens-clean-room-" + [guid]::NewGuid())
@@ -95,11 +100,15 @@ function New-TestLensCleanRoomRelease {
         if (-not $content.Contains($sourceVersion)) {
             throw "Reactor POM does not reference source version '$sourceVersion': $($pom.FullName)"
         }
-        [IO.File]::WriteAllText($pom.FullName, $content.Replace($sourceVersion, $ReleaseVersion))
+        if ($sourceVersion -ne $ReleaseVersion) {
+            [IO.File]::WriteAllText($pom.FullName, $content.Replace($sourceVersion, $ReleaseVersion))
+        }
     }
-    $stale = @($poms | Where-Object { [IO.File]::ReadAllText($_.FullName).Contains($sourceVersion) })
-    if ($stale.Count -gt 0) { throw "Source snapshot remains in transformed POMs: $($stale.FullName -join ', ')" }
-    Write-Host "Clean-room version transform: $sourceVersion -> $ReleaseVersion ($($poms.Count) reactor POMs)"
+    if ($sourceVersion -ne $ReleaseVersion) {
+        $stale = @($poms | Where-Object { [IO.File]::ReadAllText($_.FullName).Contains($sourceVersion) })
+        if ($stale.Count -gt 0) { throw "Source snapshot remains in transformed POMs: $($stale.FullName -join ', ')" }
+    }
+    Write-Host "Clean-room release version: $sourceVersion -> $ReleaseVersion ($($poms.Count) reactor POMs)"
 
     $mavenName = if ($env:OS -eq "Windows_NT") { "mvn.cmd" } else { "mvn" }
     $maven = (Get-Command $mavenName -ErrorAction Stop).Source

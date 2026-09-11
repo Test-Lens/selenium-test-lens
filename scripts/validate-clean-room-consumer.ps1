@@ -9,14 +9,19 @@ $mavenCommandName = if ($env:OS -eq "Windows_NT") { "mvn.cmd" } else { "mvn" }
 $mavenCommand = (Get-Command $mavenCommandName -ErrorAction Stop).Source
 Import-Module (Join-Path $PSScriptRoot "CleanRoomRelease.psm1") -Force
 $SourceVersion = Get-TestLensSourceVersion -RepositoryRoot $repo
-if (-not $SourceVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)) {
-    throw "Source version must end with -SNAPSHOT, found '$SourceVersion'."
-}
+$sourceIsSnapshot = $SourceVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)
 if ([string]::IsNullOrWhiteSpace($ReleaseVersion)) {
-    $ReleaseVersion = $SourceVersion.Substring(0, $SourceVersion.Length - "-SNAPSHOT".Length)
+    $ReleaseVersion = if ($sourceIsSnapshot) {
+        $SourceVersion.Substring(0, $SourceVersion.Length - "-SNAPSHOT".Length)
+    } else {
+        $SourceVersion
+    }
 }
 if ($ReleaseVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)) {
     throw "Release version must not be a snapshot: '$ReleaseVersion'."
+}
+if (-not $sourceIsSnapshot -and $ReleaseVersion -ne $SourceVersion) {
+    throw "Release source version '$SourceVersion' cannot be validated as '$ReleaseVersion'."
 }
 if ([string]::IsNullOrWhiteSpace($TestLensRepository)) {
     $prepared = New-TestLensCleanRoomRelease -RepositoryRoot $repo -ReleaseVersion $ReleaseVersion

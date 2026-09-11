@@ -35,14 +35,19 @@ try {
     [string[]]$listArguments = @("list", "--branch", $Branch)
     $listed = (Invoke-Mike -Arguments $listArguments -FailureMessage "Unable to read mike metadata from branch '$Branch'") -join "`n"
     if ($Operation -eq "dev") {
-        if ([string]::IsNullOrWhiteSpace($Version) -or -not $Version.EndsWith("-SNAPSHOT")) {
-            throw "dev publication requires the -SNAPSHOT version read from the root POM."
+        if ([string]::IsNullOrWhiteSpace($Version) -or $Version -notmatch '^\d+\.\d+\.\d+(-SNAPSHOT)?$') {
+            throw "dev publication requires the semantic release or snapshot version read from the root POM."
+        }
+        $title = if ($Version.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)) {
+            "$Version / coming soon"
+        } else {
+            $Version
         }
         [string[]]$deployArguments = @(
             "deploy", "dev",
             "--branch", $Branch,
             "--update-aliases",
-            "--title=$Version / coming soon"
+            "--title=$title"
         )
         if (-not $NoPush) { $deployArguments += "--push" }
         Invoke-Mike -Arguments $deployArguments -FailureMessage "mike failed to update dev; gh-pages was not force-pushed"

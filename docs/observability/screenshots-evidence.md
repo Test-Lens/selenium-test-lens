@@ -2,9 +2,6 @@
 
 Screenshots capture browser pixels as PNG evidence. `VIEWPORT` is the compatible default. The opt-in `FULL_PAGE` mode captures a bounded snapshot of the current top-level document by scrolling and stitching standard Selenium screenshots. Use an explicit screenshot at a meaningful checkpoint, or let failed-session finalization attempt one automatically.
 
-!!! info "Coming in 0.2.0"
-    Full-page screenshots are part of the current development line and are not available in Maven Central `0.1.0`.
-
 ## Automatic failure screenshot
 
 Start and finalize a normal Test Lens session. When the test fails, pass the original failure to [`finishFailed(...)`](../reference/test-lens.md#creation-and-lifecycle):

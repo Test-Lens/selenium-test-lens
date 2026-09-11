@@ -67,7 +67,7 @@ lens.captureScreenshot("After save");
 lens.finishPassed();
 ```
 
-Full-page capture is an explicit development-line option on the same pipeline:
+Full-page capture is an explicit option on the same pipeline:
 
 ```java
 ScreenshotCaptureOptions fullPage = ScreenshotCaptureOptions.builder()

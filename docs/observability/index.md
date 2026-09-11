@@ -2,12 +2,11 @@
 
 Observability is a primary Test Lens surface, not a side effect of element helpers.
 
-After a session is finalized locally, the development-line [report uploader](report-upload.md) can explicitly stream one completed ZIP to an HTTP receiver. Transport is separate from evidence capture: it is synchronous, never automatic, and never owns WebDriver.
+After a session is finalized locally, the [report uploader](report-upload.md) can explicitly stream one completed ZIP to an HTTP receiver. Transport is separate from evidence capture: it is synchronous, never automatic, and never owns WebDriver.
 
 The persistent path is `operation → trace → finalization → report`; a final failed outcome can extend it with an automatic evidence bundle. The in-browser HUD is the live view of this pipeline, not its durable source of truth.
 
-!!! info "Coming in 0.2.0"
-    Automatic failure bundles and central redaction are development-line capabilities not available in Maven Central `0.1.0`. Trace, HTML/JSON reports, screenshots, and the HUD already exist in the stable release.
+Automatic failure bundles and central redaction were added in 0.2.0. Trace, HTML/JSON reports, screenshots, and the HUD originated in 0.1.0.
 
 For a final failed session, the normal trace/report are complemented by an automatic [failure bundle](failure-bundles.md) with a versioned manifest and deterministic ZIP. Bundle collectors are independent and best effort.
 

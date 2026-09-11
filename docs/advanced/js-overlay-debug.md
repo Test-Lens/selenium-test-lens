@@ -14,7 +14,7 @@ JsOverlayDebug(WebDriver driver)
 JsOverlayDebug(WebDriver driver, OverlayConfig config)
 ```
 
-These are the only public constructors. The pre-1.0 component-injection constructors accepting `ApiOverlayPanel`, `ApiCallActions`, `Guards`, or logger bridges were removed for the planned 0.2.x line. Migrate custom construction to one of the two forms above; no supported advanced operation was removed.
+These are the only public constructors. The pre-1.0 component-injection constructors accepting `ApiOverlayPanel`, `ApiCallActions`, `Guards`, or logger bridges were removed in 0.2.0. Migrate custom construction to one of the two forms above; no supported advanced operation was removed.
 
 ## Locators, assertions, and actionability
 

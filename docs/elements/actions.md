@@ -2,9 +2,6 @@
 
 Element actions use native Selenium operations and feed the same HUD, log, and trace pipeline as waits and assertions. The basic click, fill, clear, key, hover, and click-variant actions are available in `0.1.0`.
 
-!!! info "Coming in 0.2.0"
-    Form-control actions (`check`, `uncheck`, `upload`, `focus`, and `scrollIntoView`) and composed locator execution are part of the current development line and are not available in Maven Central `0.1.0`.
-
 Actions resolve the current element and return the same `UiLocator` for chaining. Resolution/action retry is governed by [`UiLocatorOptions`](../reference/configuration.md#uilocatoroptions). A physical action/read failure that schedules another attempt emits a dedicated recovery `RETRY`; a terminal failure does not. Condition polling is separate and does not create recovery-retry evidence. A final failure is wrapped as `UiLocatorException`, with the underlying WebDriver failure retained as its cause.
 
 ## Click contract: native activation, visible recovery

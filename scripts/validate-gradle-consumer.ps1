@@ -8,14 +8,19 @@ $ErrorActionPreference = "Stop"
 $repo = Split-Path -Parent $PSScriptRoot
 Import-Module (Join-Path $PSScriptRoot "CleanRoomRelease.psm1") -Force
 $sourceVersion = Get-TestLensSourceVersion -RepositoryRoot $repo
-if (-not $sourceVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)) {
-    throw "Gradle clean-room source version must be a -SNAPSHOT version, found '$sourceVersion'"
-}
+$sourceIsSnapshot = $sourceVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)
 if ([string]::IsNullOrWhiteSpace($ReleaseVersion)) {
-    $ReleaseVersion = $sourceVersion.Substring(0, $sourceVersion.Length - "-SNAPSHOT".Length)
+    $ReleaseVersion = if ($sourceIsSnapshot) {
+        $sourceVersion.Substring(0, $sourceVersion.Length - "-SNAPSHOT".Length)
+    } else {
+        $sourceVersion
+    }
 }
 if ($ReleaseVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)) {
     throw "Gradle consumer requires a non-snapshot release version"
+}
+if (-not $sourceIsSnapshot -and $ReleaseVersion -ne $sourceVersion) {
+    throw "Release source version '$sourceVersion' cannot be validated as '$ReleaseVersion'"
 }
 
 $ownedWork = $false

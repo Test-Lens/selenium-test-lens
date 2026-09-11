@@ -7,4 +7,5 @@ extra:
     default: latest
     current: !ENV [DOCS_RELEASE_VERSION, release]
     is_dev: false
+    is_snapshot: false
     stable_url: https://test-lens.github.io/selenium-test-lens/latest/

@@ -13,7 +13,7 @@ lens.startSession(testName);
 
 In a manual integration, your project remains responsible for creating and closing `WebDriver`. Test Lens attaches to that driver, records Lens operations, and writes session diagnostics when the test finishes. The optional JUnit 5 and TestNG integrations deliberately own drivers returned by their configured factories.
 
-Maven and Gradle use the same coordinate form. The main and React artifacts are published in stable `0.1.0`; `selenium-test-lens-junit5` and `selenium-test-lens-testng` are development-line `0.2.0` artifacts available only from a current source build until that release is published. With Gradle, use the chosen adapter as a `testImplementation` dependency and do not combine both lifecycle adapters for one invocation. The clean-room smoke validates both development adapters on JDK 17 and 21 without constructing a browser; browser behavior is covered separately.
+Maven and Gradle use the same coordinate form. The main, React, JUnit 5, and TestNG artifacts are published in `0.2.0`. With Gradle, use the chosen adapter as a `testImplementation` dependency and do not combine both lifecycle adapters for one invocation. The clean-room smoke validates both adapters on JDK 17 and 21 without constructing a browser; browser behavior is covered separately.
 
 A typical integration has three lifecycle points:
 
@@ -59,9 +59,6 @@ You can introduce Lens gradually. Existing Page Objects and direct Selenium call
 Page Objects can keep form interaction behind `UiLocator`: `check()`, `uncheck()`, `isChecked()`, `upload(Path...)`, `focus()`, and `scrollIntoView()` avoid exposing a raw `WebElement`. The lifecycle ownership rules below are unchanged by these actions.
 
 ## JUnit 5
-
-!!! info "Coming in 0.2.0"
-    The dedicated JUnit 5 and TestNG adapters are part of the current development line and are not available in Maven Central `0.1.0`.
 
 When building the current source, use `selenium-test-lens-junit5` instead of copying lifecycle callbacks into each project:
 
@@ -134,7 +131,7 @@ React support is separate from the main runtime. Add it only when your tests nee
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-react</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 

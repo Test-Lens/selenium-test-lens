@@ -7,9 +7,9 @@ targeted to Java 17.
 
 ## Clean-room release boundary
 
-The source reactor is currently `0.2.0-SNAPSHOT`. Compatibility validation
-copies tracked source to a temporary directory, rewrites all nine reactor
-POMs to the unreleased `0.2.0` version, builds release artifacts, and stages
+The source reactor is currently `0.2.0`. Compatibility validation
+copies tracked source to a temporary directory, verifies all nine reactor
+POMs at the release `0.2.0` version, builds release artifacts, and stages
 the seven publishable Maven coordinates in an isolated local repository. It
 never edits the source POMs.
 
@@ -36,7 +36,7 @@ Run clean-room preparation and the Gradle consumer in PowerShell 7:
 ./scripts/validate-gradle-consumer.ps1
 ```
 
-The script derives release `0.2.0` from the root snapshot, creates fresh
+The script reads release `0.2.0` from the root POM, creates fresh
 Maven and Gradle repositories below the operating system's temporary
 directory, runs the checked-in Wrapper, validates the graph and class files,
 and removes its work directory in `finally`. Use
@@ -58,22 +58,21 @@ published Test Lens JARs.
 
 ## Published-user coordinates
 
-The latest version actually available from Maven Central remains `0.1.0`:
+The latest version available from Maven Central is `0.2.0`:
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.test-lens:selenium-test-lens:0.1.0")
-    testImplementation("io.github.test-lens:selenium-test-lens-react:0.1.0")
+    testImplementation("io.github.test-lens:selenium-test-lens:0.2.0")
+    testImplementation("io.github.test-lens:selenium-test-lens-react:0.2.0")
 }
 ```
 
 ```groovy
 dependencies {
-    testImplementation 'io.github.test-lens:selenium-test-lens:0.1.0'
-    testImplementation 'io.github.test-lens:selenium-test-lens-react:0.1.0'
+    testImplementation 'io.github.test-lens:selenium-test-lens:0.2.0'
+    testImplementation 'io.github.test-lens:selenium-test-lens-react:0.2.0'
 }
 ```
 
-Dedicated runner adapters exist only in the current source line and are tested
-by the release-transformed clean-room gate; they are not Maven Central 0.1.0
-coordinates. These examples do not imply that `0.2.0` has been published.
+Dedicated runner adapters are also tested by the isolated clean-room gate and
+published as optional `0.2.0` coordinates.

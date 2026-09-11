@@ -8,8 +8,8 @@ $pom = [xml][IO.File]::ReadAllText((Join-Path $root "pom.xml"))
 $ns = [Xml.XmlNamespaceManager]::new($pom.NameTable)
 $ns.AddNamespace("m", "http://maven.apache.org/POM/4.0.0")
 $version = $pom.SelectSingleNode("/m:project/m:version", $ns).InnerText.Trim()
-if (-not $version.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)) {
-    throw "Documentation development source must use a -SNAPSHOT Maven version; found '$version'."
+if ($version -notmatch '^\d+\.\d+\.\d+(-SNAPSHOT)?$') {
+    throw "Documentation source must use a semantic release or snapshot Maven version; found '$version'."
 }
 $mkdocs = [IO.File]::ReadAllText((Join-Path $root "mkdocs.yml"))
 if ($mkdocs -notmatch "(?m)^\s+current:\s+$([regex]::Escape($version))\s*$") {
@@ -55,8 +55,8 @@ $stableText = (Get-ChildItem (Join-Path $root "docs-versions/0.1.0") -File -Recu
 foreach ($forbidden in $stableEntries) {
     if ($stableText -match [regex]::Escape($forbidden)) { throw "Stable snapshot contains development-only symbol/module: $forbidden" }
 }
-if ($stableText -match '0\.2\.0-SNAPSHOT</version>|:0\.2\.0-SNAPSHOT') {
-    throw "Stable snapshot contains an installable 0.2.0-SNAPSHOT dependency."
+if ($stableText -match '0\.2\.0(?:-SNAPSHOT)?</version>|:0\.2\.0(?:-SNAPSHOT)?') {
+    throw "Stable snapshot contains an installable 0.2.0 dependency."
 }
 
 $matrix = Join-Path $root "docs-versioning/0.1.0-feature-matrix.tsv"
@@ -80,4 +80,4 @@ foreach ($required in @("group: documentation-pages", "cancel-in-progress: false
 foreach ($forbidden in @("pull_request_target", "continue-on-error", "mike delete", "--force", "mkdocs gh-deploy")) {
     if ($workflow.Contains($forbidden)) { throw "Unsafe documentation workflow construct: $forbidden" }
 }
-Write-Host "Documentation boundary OK: $version development source and audited $ReleaseTag feature matrix verified."
+Write-Host "Documentation boundary OK: $version source and audited $ReleaseTag feature matrix verified."

@@ -10,7 +10,7 @@ This guide shows the shortest path from the Maven dependency to a working Lens s
 - Maven 3.x or Gradle
 - A Selenium `WebDriver` created by your test project
 
-The latest published Selenium Test Lens release is `0.1.0`, verified with Selenium 4.39.0. The source tree is currently the unreleased `0.2.0-SNAPSHOT` development line.
+The latest published Selenium Test Lens release is `0.2.0`, verified with Selenium 4.39.0.
 
 ## Installation
 
@@ -20,7 +20,7 @@ Add the main Selenium Test Lens runtime to your Maven project:
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -30,7 +30,7 @@ The same stable release is available to Gradle consumers.
 
     ```kotlin
     dependencies {
-        testImplementation("io.github.test-lens:selenium-test-lens:0.1.0")
+        testImplementation("io.github.test-lens:selenium-test-lens:0.2.0")
     }
     ```
 
@@ -38,7 +38,7 @@ The same stable release is available to Gradle consumers.
 
     ```groovy
     dependencies {
-        testImplementation 'io.github.test-lens:selenium-test-lens:0.1.0'
+        testImplementation 'io.github.test-lens:selenium-test-lens:0.2.0'
     }
     ```
 
@@ -56,13 +56,13 @@ Keep Selenium as an explicit dependency and use the version already managed by y
 </dependency>
 ```
 
-For a source build of the current development line, add the optional JUnit 5 integration as a test dependency. The `0.2.0-SNAPSHOT` coordinate below is not the stable Maven Central release. It brings the lifecycle extension, while your project still selects the Selenium version:
+Add the optional JUnit 5 integration as a test dependency. It brings the lifecycle extension, while your project still selects the Selenium version:
 
 ```xml
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-junit5</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.2.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -129,7 +129,7 @@ lens.expectPage().toHaveTitle("Checkout");
 
 They observe the current window selected by your Selenium flow. URL matching is raw and case-sensitive; title matching follows `UiAssertionOptions` text settings. Reported URL previews omit credentials, query strings, and fragments.
 
-For readiness rather than an assertion value, the development facade also delegates to the existing page waits:
+For readiness rather than an assertion value, the main facade also delegates to the page waits:
 
 ```java
 lens.waitForPageReady();
@@ -140,7 +140,7 @@ The defaults come from `TestLensOptions.locatorOptions()`. The network wait is a
 
 Lens finalization writes the session diagnostics. Use `finishSkipped(reason)` for an aborted test or unmet assumption; unlike `finishFailed(...)`, it does not request a failure screenshot. Keep your existing `WebDriver` cleanup as-is.
 
-For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The runner adapters are the recommended JUnit 5 and TestNG paths for the `0.2.0-SNAPSHOT` development line.
+For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The runner adapters are the recommended JUnit 5 and TestNG paths in 0.2.0.
 
 ## Run your test
 
