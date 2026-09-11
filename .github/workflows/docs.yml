@@ -12,9 +12,9 @@ on:
         required: true
         type: choice
         default: validate-only
-        options: [validate-only, publish-dev, bootstrap-0.1.0, redeploy-pages]
+        options: [validate-only, publish-dev, bootstrap-0.1.0, repair-0.2.0-homepage, redeploy-pages]
       confirmation:
-        description: Type publish-immutable-0.1.0 only for bootstrap
+        description: Exact confirmation required for bootstrap or the one-time 0.2.0 homepage repair
         required: false
         type: string
 
@@ -101,6 +101,11 @@ jobs:
           git rev-parse --verify refs/tags/v0.1.0
           ./scripts/check-doc-version-boundary.ps1 -ReleaseTag v0.1.0
           ./scripts/publish-versioned-docs.ps1 -Operation bootstrap-0.1.0 -Confirmation '${{ github.event.inputs.confirmation }}'
+      - name: Repair stable 0.2.0 homepage
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'repair-0.2.0-homepage'
+        shell: pwsh
+        run: |
+          ./scripts/repair-0.2.0-homepage.ps1 -Confirmation '${{ github.event.inputs.confirmation }}'
       - name: Publish immutable tagged release
         if: startsWith(github.ref, 'refs/tags/v')
         shell: pwsh

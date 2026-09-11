@@ -32,6 +32,22 @@ The initial migration used the following one-time procedure:
 
 The bootstrap is complete. Its workflow operation deliberately refuses to overwrite an existing 0.1.0 version. The workflow declares `contents: write` only on its publication job. If organization policy disables write-capable `GITHUB_TOKEN`s despite job permissions, enable repository **Read and write permissions** for Actions; do not replace the token with a personal secret.
 
+## One-time 0.2.0 homepage correction
+
+The public API and contracts of `0.2.0` are unchanged, but its original homepage underrepresented the released observability, synchronization, and evidence capabilities. The temporary `repair-0.2.0-homepage` workflow operation rebuilds the tagged `v0.2.0` documentation with only the audited `docs/index.md` from `main` substituted before the build.
+
+Run it only once, after reviewing the homepage and a green Documentation validation workflow:
+
+1. Select `repair-0.2.0-homepage` in `workflow_dispatch`.
+2. Enter the exact confirmation `repair-stable-0.2.0-homepage`.
+3. Verify `/0.2.0/`, `/latest/`, and the root URL after deployment.
+4. Verify that `/dev/` and `/0.1.0/` are unchanged.
+5. Remove the temporary operation in a follow-up commit after the correction succeeds.
+
+The operation checks that production Java sources and the public API manifest still match `v0.2.0`, creates a detached worktree from that tag, overlays only the homepage, and runs a strict stable build. The development homepage keeps its edit link to `main`; only the overlaid stable copy hides that link because `v0.2.0` contains the earlier homepage source. The disposable worktree is force-removed in `finally` from its generated system-temporary path, so the intentional dirty overlay is also cleaned after build or publication failure.
+
+Before any push, the publication script verifies that the Git object IDs for `/dev/`, `/0.1.0/`, and the root redirect have not changed, that `latest` is an exact copy of the repaired `0.2.0`, and that `mike` metadata still assigns the alias to `0.2.0`. A full MkDocs rebuild may change only `index.html` plus homepage-derived global output: `search/search_index.json`, `sitemap.xml`, and `sitemap.xml.gz`, under both `/0.2.0/` and its copied `/latest/` alias. Any change to another stable HTML page, theme asset, download, version metadata, or unrelated generated file stops the operation before push. It never enables general stable-version replacement and cannot target another version.
+
 ## Verification and recovery
 
 Run `./scripts/validate-versioned-docs.ps1` locally in PowerShell 7. It creates a disposable Git repository, bootstraps stable and dev documentation, hashes 0.1.0 across a dev redeploy, rejects a duplicate stable deployment, simulates the next stable release, and removes the temporary repository. `mike list --branch gh-pages` in a read-only clone shows deployed metadata.
