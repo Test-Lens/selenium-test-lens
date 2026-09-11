@@ -107,6 +107,7 @@
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
       <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
     </select>
     <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
@@ -138,9 +139,10 @@
     })();
   </script>
   
-    Development documentation for <strong>0.2.0-SNAPSHOT</strong>.
-    These features are not yet available in the latest Maven Central release (0.1.0).
-    <a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">Read the stable 0.1.0 documentation.</a>
+    
+      Documentation source for <strong>0.2.0</strong>.
+    
+    <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
 
           </div>
@@ -2632,7 +2634,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
         
   
   
@@ -2660,7 +2662,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
         
   
   
@@ -2762,17 +2764,13 @@
 
 
 <h1 id="failure-bundles">Failure bundles<a class="headerlink" href="#failure-bundles" title="Permanent link">&para;</a></h1>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Automatic failure bundles are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <p>Every final <code>FAILED</code> facade session creates a best-effort, versioned failure bundle by default. This includes <code>finishFailed(...)</code>, <code>finishFailed(null)</code>, and a passed test rejected by <code>FAIL_ON_ANY_RETRY</code> or <code>FAIL_AFTER_N</code>. <code>PASSED</code>, <code>SKIPPED</code>, <code>REPORT_ONLY</code>, and <code>WARN</code> outcomes do not create one. Finalization never closes the driver.</p>
 <p>The bundle is the final step of the observable evidence path—operation events feed trace, finalization writes HTML/JSON, and a failed outcome assembles those reports with available browser diagnostics. It is not a replacement for trace, and it does not turn collector availability into a test-result decision.</p>
 <p>The session directory retains <code>trace.json</code>, <code>report.html</code>, and <code>failure-diagnostic.png</code>. <code>failure-bundle/</code> contains <code>manifest.json</code>, failure, context, trace-derived diagnostics, runtime, allowlisted configuration, the current network summary, and <code>failure-clean.png</code>. The network snapshot reports requested and active modes, status, requests/responses/failures, ignored events, and dropped events; it is derived from the same redacted immutable summary boundary used by network assertions and never starts capture during failure handling. Active Lens-owned capture is stopped only after this snapshot and before <code>SESSION_FINISHED</code>. <code>failure-bundle.zip</code> contains the manifest, every successfully captured component, the final reports, and the diagnostic screenshot.</p>
 <p>The bundle reports the observed lifecycle state; <code>STOPPED</code>, <code>UNSUPPORTED</code>, or <code>FAILED</code> is not rewritten as “zero network failures.” Bundle collection itself does not validate or start capture, while an explicit <code>assertNoFailedRequests()</code> rejects a generation that never became active.</p>
 <p><code>NetworkHudFilter</code> does not alter this snapshot or any captured network evidence. A raw entry hidden from the on-page HUD remains in network events, summaries, trace, reports, network JSON, and the failure bundle. Only capture-level <code>ignoreUrlPattern(...)</code> removes it.</p>
 <p>The diagnostic screenshot is taken with the current HUD/highlight. For the clean screenshot only the <code>selenium-overlay-host</code> is temporarily hidden and restored in <code>finally</code>; application DOM, frame, window, and failed actions are not touched. Normal <code>cleanupHudOnFinish</code> runs later.</p>
-<p>Both images use <code>VIEWPORT</code> by default. Full-page failure evidence is an explicit development-line option:</p>
+<p>Both images use <code>VIEWPORT</code> by default. Full-page failure evidence is an explicit option:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">FailureBundleOptions</span><span class="w"> </span><span class="n">bundle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FailureBundleOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">        </span><span class="p">.</span><span class="na">screenshotCaptureMode</span><span class="p">(</span><span class="n">ScreenshotCaptureMode</span><span class="p">.</span><span class="na">FULL_PAGE</span><span class="p">)</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
@@ -2896,7 +2894,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0-SNAPSHOT", "default": "latest", "is_dev": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/0.1.0/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

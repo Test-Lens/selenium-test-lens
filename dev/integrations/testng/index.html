@@ -107,6 +107,7 @@
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
       <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
     </select>
     <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
@@ -138,9 +139,10 @@
     })();
   </script>
   
-    Development documentation for <strong>0.2.0-SNAPSHOT</strong>.
-    These features are not yet available in the latest Maven Central release (0.1.0).
-    <a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">Read the stable 0.1.0 documentation.</a>
+    
+      Documentation source for <strong>0.2.0</strong>.
+    
+    <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
 
           </div>
@@ -2665,7 +2667,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
         
   
   
@@ -2693,7 +2695,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
         
   
   
@@ -2828,27 +2830,22 @@
 
 
 <h1 id="testng-integration">TestNG integration<a class="headerlink" href="#testng-integration" title="Permanent link">&para;</a></h1>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>The <code>selenium-test-lens-testng</code> adapter is part of the current development line and is not available in Maven Central <code>0.1.0</code>.</p>
-</div>
-<p>The optional <code>selenium-test-lens-testng</code> module owns one <code>WebDriver</code>, <code>TestLens</code>, and session for every physical TestNG test-method invocation. The coordinate below follows the unreleased <code>0.2.0-SNAPSHOT</code> source tree and requires a local source build; the project does not advertise a public snapshot repository. It uses TestNG's invocation listener and <code>ITestResult</code> attributes; adding the dependency alone does not register a listener.</p>
+<p>The optional <code>selenium-test-lens-testng</code> module owns one <code>WebDriver</code>, <code>TestLens</code>, and session for every physical TestNG test-method invocation. It uses TestNG's invocation listener and <code>ITestResult</code> attributes; adding the dependency alone does not register a listener.</p>
 <p><code>TestLensTestNgContext.current().lens().expectPage()</code> polls URL or title in the active window of that physical invocation. Assertion polling stays within the session and does not become a TestNG retry or a recovery retry; popup selection remains an explicit Selenium/Lens context operation.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;dependency&gt;</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nt">&lt;groupId&gt;</span>io.github.test-lens<span class="nt">&lt;/groupId&gt;</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&lt;artifactId&gt;</span>selenium-test-lens-testng<span class="nt">&lt;/artifactId&gt;</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.2.0-SNAPSHOT<span class="nt">&lt;/version&gt;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.2.0<span class="nt">&lt;/version&gt;</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">&lt;scope&gt;</span>test<span class="nt">&lt;/scope&gt;</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">&lt;/dependency&gt;</span>
 </span></code></pre></div>
 <p>Declare Selenium separately at the version selected by the test project. TestNG is a dependency of this adapter only; core, overlay, the main runtime, React, and the JUnit 5 adapter do not depend on it.</p>
 <p>Gradle Kotlin DSL uses
-<code>testImplementation("io.github.test-lens:selenium-test-lens-testng:0.2.0-SNAPSHOT")</code>;
+<code>testImplementation("io.github.test-lens:selenium-test-lens-testng:0.2.0")</code>;
 Groovy DSL uses
-<code>testImplementation 'io.github.test-lens:selenium-test-lens-testng:0.2.0-SNAPSHOT'</code>.
-These coordinates require a local build of the current source; the adapter is
-not present in Maven Central 0.1.0.</p>
+<code>testImplementation 'io.github.test-lens:selenium-test-lens-testng:0.2.0'</code>.
+These coordinates are published with the 0.2.0 release.</p>
 <h2 id="factory-and-listener">Factory and listener<a class="headerlink" href="#factory-and-listener" title="Permanent link">&para;</a></h2>
 <p>Factories need an accessible public no-argument constructor. A new factory is constructed for every physical invocation.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">ChromeFactory</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">TestLensTestNgFactory</span><span class="w"> </span><span class="p">{</span>
@@ -3012,7 +3009,7 @@ not present in Maven Central 0.1.0.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0-SNAPSHOT", "default": "latest", "is_dev": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/0.1.0/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

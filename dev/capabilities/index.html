@@ -107,6 +107,7 @@
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
       <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
     </select>
     <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
@@ -138,9 +139,10 @@
     })();
   </script>
   
-    Development documentation for <strong>0.2.0-SNAPSHOT</strong>.
-    These features are not yet available in the latest Maven Central release (0.1.0).
-    <a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">Read the stable 0.1.0 documentation.</a>
+    
+      Documentation source for <strong>0.2.0</strong>.
+    
+    <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
 
           </div>
@@ -2721,7 +2723,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
         
   
   
@@ -2749,7 +2751,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
         
   
   
@@ -2941,30 +2943,14 @@
 <p>The HUD and session trace make that behavior observable. See <a href="../elements/actions/#click-contract-native-activation-visible-recovery">element actions</a> and <a href="../observability/visual-diagnostics/">visual diagnostics</a>.</p>
 <h3 id="2-semantic-and-scoped-queries">2. Semantic and scoped queries<a class="headerlink" href="#2-semantic-and-scoped-queries" title="Permanent link">&para;</a></h3>
 <p>Stable <code>0.1.0</code> supplies Selenium locators plus the original test-id, text, and role-oriented helpers.</p>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Browser-computed accessibility matching, expanded semantic factories, and immutable locator composition are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <p>The development pipeline can filter a collection, select by position, search true descendants, or retain parents containing a match. Order is significant and scoping cannot escape to a sibling or document-global match, including for an XPath beginning with <code>//</code>. See <a href="../elements/locators/">locators</a> and <a href="../elements/collections/">collections</a>.</p>
 <h3 id="3-measurable-recovery">3. Measurable recovery<a class="headerlink" href="#3-measurable-recovery" title="Permanent link">&para;</a></h3>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p><code>RetrySummary</code> and <code>RetryOutcomePolicy</code> are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <p>Recovery retry means a physical operation failed and Lens scheduled another attempt. Condition polling and runner retry are separate. The summary shows recovered failures, while outcome policy can report, warn, or reject an otherwise passed session after evidence is written. See <a href="../observability/flakiness/">flakiness and retry outcomes</a>.</p>
 <h3 id="4-trace-reports-and-failure-evidence">4. Trace, reports, and failure evidence<a class="headerlink" href="#4-trace-reports-and-failure-evidence" title="Permanent link">&para;</a></h3>
 <p><code>UiTestLensSession</code>, trace, and HTML/JSON reporting are available in <code>0.1.0</code>. They preserve operations, status, failures, and attachments as a coherent timeline.</p>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Automatic failure bundles and hardened exactly-once finalization are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
-<p>For a final failed session, the development line can assemble screenshots, trace, report, context, runtime/configuration allowlists, network summary, manifest, and ZIP. Collection is best-effort and finalization never closes the driver. Video is attached, not recorded. See <a href="../observability/trace/">trace</a>, <a href="../observability/reports/">reports</a>, and <a href="../observability/failure-bundles/">failure bundles</a>.</p>
-<p>Screenshot capture remains viewport-based by default. The development line adds bounded, opt-in full-page scroll-and-stitch capture through the same evidence pipeline, including diagnostic and clean failure images. It preserves the current viewport layout and uses no CDP. See <a href="../observability/screenshots-evidence/#portable-full-page-capture">screenshots and evidence</a>.</p>
+<p>For a final failed session, Test Lens can assemble screenshots, trace, report, context, runtime/configuration allowlists, network summary, manifest, and ZIP. Collection is best-effort and finalization never closes the driver. Video is attached, not recorded. See <a href="../observability/trace/">trace</a>, <a href="../observability/reports/">reports</a>, and <a href="../observability/failure-bundles/">failure bundles</a>.</p>
+<p>Screenshot capture remains viewport-based by default. Release 0.2.0 adds bounded, opt-in full-page scroll-and-stitch capture through the same evidence pipeline, including diagnostic and clean failure images. It preserves the current viewport layout and uses no CDP. See <a href="../observability/screenshots-evidence/#portable-full-page-capture">screenshots and evidence</a>.</p>
 <h3 id="5-central-protection-for-diagnostic-text">5. Central protection for diagnostic text<a class="headerlink" href="#5-central-protection-for-diagnostic-text" title="Permanent link">&para;</a></h3>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Enabled-by-default central redaction is not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <p>One policy creates safe diagnostic copies before fan-out to HUD, trace, sinks, reports, network/API diagnostics, and failure-bundle text files. It preserves the structural exception type while leaving the original throwable untouched in the execution path. Screenshots/video are not pixel-redacted, optional page source/console are best-effort, auth-state files remain outside the transformation, and <code>disabled()</code> is an explicit opt-out. See <a href="../security/redaction/">redaction</a>.</p>
 <h2 id="advanced-capabilities">Advanced capabilities<a class="headerlink" href="#advanced-capabilities" title="Permanent link">&para;</a></h2>
 <table>
@@ -3003,7 +2989,7 @@
 </tr>
 <tr>
 <td>JUnit 5 / TestNG adapters</td>
-<td>Development-line <code>0.2.0</code> artifacts for per-invocation lifecycle ownership; not available in Maven Central <code>0.1.0</code>.</td>
+<td>Optional <code>0.2.0</code> artifacts for per-invocation lifecycle ownership.</td>
 <td><a href="../framework-integration/">Framework integration</a></td>
 </tr>
 <tr>
@@ -3161,7 +3147,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0-SNAPSHOT", "default": "latest", "is_dev": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/0.1.0/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>

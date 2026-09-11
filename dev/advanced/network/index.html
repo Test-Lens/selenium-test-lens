@@ -107,6 +107,7 @@
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
       <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
     </select>
     <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
@@ -138,9 +139,10 @@
     })();
   </script>
   
-    Development documentation for <strong>0.2.0-SNAPSHOT</strong>.
-    These features are not yet available in the latest Maven Central release (0.1.0).
-    <a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">Read the stable 0.1.0 documentation.</a>
+    
+      Documentation source for <strong>0.2.0</strong>.
+    
+    <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
 
           </div>
@@ -2687,7 +2689,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
         
   
   
@@ -2715,7 +2717,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
         
   
   
@@ -2873,10 +2875,6 @@
 
 <h1 id="network-diagnostics">Network diagnostics<a class="headerlink" href="#network-diagnostics" title="Permanent link">&para;</a></h1>
 <p>Manual network events, waits, and assertions are available in <code>0.1.0</code>.</p>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Passive WebDriver BiDi capture, capture generations, immutable safe snapshots, hardened lifecycle handling, and HUD-only filtering are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <p>Package: <code>io.github.testlens.selenium.network</code><br>
 Module: <code>selenium-test-lens-selenium</code><br>
 API level: <strong>Advanced</strong></p>
@@ -2971,7 +2969,7 @@ API level: <strong>Advanced</strong></p>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">NetworkDiagnosticsResult</span><span class="w"> </span><span class="nf">attachToSession</span><span class="p">(</span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="n">session</span><span class="p">)</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">NetworkDiagnosticsResult</span><span class="w"> </span><span class="nf">attachToSession</span><span class="p">(</span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="n">session</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="w"> </span><span class="n">outputPath</span><span class="p">)</span>
 </span></code></pre></div>
-<p>Exports/attaches network JSON evidence. Attachment occurs only when one of these methods is called explicitly. The former no-op <code>NetworkDiagnosticsOptions.attachToSession(boolean)</code> option was removed in the 0.2.0 development line. Paths and export failures appear in the result. Finalizing a failed Test Lens session still snapshots the current network summary into its failure bundle without invoking these attachment methods.</p>
+<p>Exports/attaches network JSON evidence. Attachment occurs only when one of these methods is called explicitly. The former no-op <code>NetworkDiagnosticsOptions.attachToSession(boolean)</code> option was removed in 0.2.0. Paths and export failures appear in the result. Finalizing a failed Test Lens session still snapshots the current network summary into its failure bundle without invoking these attachment methods.</p>
 <h2 id="supporting-results-and-statuses">Supporting results and statuses<a class="headerlink" href="#supporting-results-and-statuses" title="Permanent link">&para;</a></h2>
 <p><code>NetworkEvent</code> classifies captured activity with <code>NetworkEventType</code> (<code>REQUEST</code>, <code>RESPONSE</code>, <code>FAILED</code>, <code>INFO</code>, or <code>WARNING</code>). BiDi request IDs are preserved. Redirect correlation uses request ID plus redirect count, and response/fetch-error events are retained even if capture began after their request event. HTTP 4xx/5xx remain responses; <code>failedStatusThreshold</code> controls failed-response counts. The JSON object records requested/active modes, status, ignored/dropped counts, events, timestamps, and correlation attributes.</p>
 <p><code>NetworkDiagnosticsStatus</code> reports started, stopped, attached, assertion-passed, assertion-failed, unsupported, or failed service outcomes. <code>NetworkWaitStatus</code> reports matched, timed-out, failed, or skipped waits, while <code>NetworkWaitFailureReason</code> distinguishes no matching response/request, a matching failed response, capture not started, unsupported capture mode, and unknown failures. <code>NetworkDiagnosticsException</code> is the service exception type; result-returning operations should still be checked before assuming that output was attached.</p>
@@ -3079,7 +3077,7 @@ API level: <strong>Advanced</strong></p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0-SNAPSHOT", "default": "latest", "is_dev": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/0.1.0/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

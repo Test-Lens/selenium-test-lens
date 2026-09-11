@@ -107,6 +107,7 @@
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
       <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
     </select>
     <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
@@ -138,9 +139,10 @@
     })();
   </script>
   
-    Development documentation for <strong>0.2.0-SNAPSHOT</strong>.
-    These features are not yet available in the latest Maven Central release (0.1.0).
-    <a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">Read the stable 0.1.0 documentation.</a>
+    
+      Documentation source for <strong>0.2.0</strong>.
+    
+    <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
 
           </div>
@@ -2764,7 +2766,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
         
   
   
@@ -2792,7 +2794,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
         
   
   
@@ -3057,13 +3059,13 @@
 </tr>
 <tr>
 <td><code>selenium-test-lens-junit5</code></td>
-<td>Development-line JUnit 5 lifecycle and parameter injection</td>
-<td>Depends on the main runtime and JUnit Jupiter API; Selenium remains optional; planned for 0.2.0</td>
+<td>Optional JUnit 5 lifecycle and parameter injection</td>
+<td>Depends on the main runtime and JUnit Jupiter API; Selenium remains optional</td>
 </tr>
 <tr>
 <td><code>selenium-test-lens-testng</code></td>
-<td>Development-line TestNG invocation lifecycle</td>
-<td>Depends on the main runtime and TestNG; Selenium remains optional; planned for 0.2.0</td>
+<td>Optional TestNG invocation lifecycle</td>
+<td>Depends on the main runtime and TestNG; Selenium remains optional</td>
 </tr>
 <tr>
 <td><code>selenium-test-lens-react</code></td>
@@ -3109,7 +3111,7 @@ an isolated release staging repository.</p>
 <p>Chrome and Firefox headless runs are required in CI. A headed Chrome run under Xvfb is available as a non-blocking manual smoke test. Edge and remote-grid execution are not currently in the browser matrix.</p>
 <p>The separate consumer-compatibility matrix runs on JDK 17 and JDK 21. For
 each JVM it transforms the nine-project source reactor from
-<code>0.2.0-SNAPSHOT</code> to an unpublished <code>0.2.0</code> copy, stages exactly seven
+the root release version, stages exactly seven
 publishable coordinates, and executes Maven and Gradle consumers. Gradle
 cannot use reactor outputs, project dependencies, composite builds,
 <code>mavenLocal()</code>, snapshots, or Maven Central for the Test Lens group. Its
@@ -3169,7 +3171,7 @@ remains authoritative for real Chrome and Firefox behavior.</p>
 <h2 id="react-boundary">React boundary<a class="headerlink" href="#react-boundary" title="Permanent link">&para;</a></h2>
 <p>React support is isolated in <code>selenium-test-lens-react</code>, which depends on the main runtime, core, overlay, and Selenium. The main runtime does not depend on React. Normal DOM interactions continue to use <code>selenium-test-lens</code>.</p>
 <h2 id="junit-5-boundary">JUnit 5 boundary<a class="headerlink" href="#junit-5-boundary" title="Permanent link">&para;</a></h2>
-<p>JUnit lifecycle integration is isolated in the development-line <code>selenium-test-lens-junit5</code> artifact planned for 0.2.0. <code>TestLensExtension</code> owns drivers returned by the consumer's factory and stores invocation state in <code>ExtensionContext.Store</code>, keyed by JUnit's unique invocation ID. This keeps parameterized, repeated, nested, and parallel invocations independent without a singleton or <code>ThreadLocal</code>. The main runtime remains runner-agnostic.</p>
+<p>JUnit lifecycle integration is isolated in the optional <code>selenium-test-lens-junit5</code> artifact introduced in 0.2.0. <code>TestLensExtension</code> owns drivers returned by the consumer's factory and stores invocation state in <code>ExtensionContext.Store</code>, keyed by JUnit's unique invocation ID. This keeps parameterized, repeated, nested, and parallel invocations independent without a singleton or <code>ThreadLocal</code>. The main runtime remains runner-agnostic.</p>
 <h2 id="testng-boundary">TestNG boundary<a class="headerlink" href="#testng-boundary" title="Permanent link">&para;</a></h2>
 <p>TestNG lifecycle integration is isolated in <code>selenium-test-lens-testng</code>. <code>TestLensTestNgListener</code> starts only around a physical test-method invocation and stores state on that invocation's <code>ITestResult</code>. <code>TestLensTestNgContext</code> reads TestNG's official current result, so parallel methods, DataProviders, retries, and reused class instances do not share mutable driver state. Registration is explicit; the artifact contains no global listener service entry.</p>
 <h2 id="dependency-rules">Dependency rules<a class="headerlink" href="#dependency-rules" title="Permanent link">&para;</a></h2>
@@ -3286,7 +3288,7 @@ remains authoritative for real Chrome and Firefox behavior.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0-SNAPSHOT", "default": "latest", "is_dev": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/0.1.0/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>

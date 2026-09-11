@@ -105,6 +105,7 @@
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
       <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
     </select>
     <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
@@ -136,9 +137,10 @@
     })();
   </script>
   
-    Development documentation for <strong>0.2.0-SNAPSHOT</strong>.
-    These features are not yet available in the latest Maven Central release (0.1.0).
-    <a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">Read the stable 0.1.0 documentation.</a>
+    
+      Documentation source for <strong>0.2.0</strong>.
+    
+    <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
 
           </div>
@@ -2732,7 +2734,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
         
   
   
@@ -2760,7 +2762,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
         
   
   
@@ -2977,7 +2979,7 @@
 <p><a class="md-button md-button--primary" href="getting-started/">Get started</a>
 <a class="md-button" href="#why-test-lens">Why Test Lens</a>
 <a class="md-button" href="observability/reports/">Reports</a>
-<a class="md-button" href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0">Maven Central</a></p>
+<a class="md-button" href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0">Maven Central</a></p>
 <table>
 <thead>
 <tr>
@@ -2988,14 +2990,14 @@
 </thead>
 <tbody>
 <tr>
-<td><a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0 stable</a></td>
+<td><a href="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0 stable</a></td>
 <td>Latest published release</td>
 <td>Maven Central</td>
 </tr>
 <tr>
-<td><a href="https://test-lens.github.io/selenium-test-lens/dev/">0.2.0-SNAPSHOT development</a></td>
-<td>Coming soon</td>
-<td>Source build only</td>
+<td><a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0 historical</a></td>
+<td>Previous release</td>
+<td>Maven Central</td>
 </tr>
 </tbody>
 </table>
@@ -3015,11 +3017,7 @@
 </span></code></pre></div>
 <p>The ordinary <code>UiLocator.click()</code> is the recommended path. HUD and trace observe it, while highlighting remains pointer-transparent visual decoration. Each activation attempt uses native <code>WebElement.click()</code>. An intercepted click may be followed by another native click after explicit overlay recovery, and the locator retry policy may start a fresh action attempt. There is no JavaScript, Actions, ancestor-click, or hidden state-mutation fallback. <a href="elements/actions/#click-contract-native-activation-visible-recovery">Read the exact interaction contract</a>.</p>
 <h3 id="semantic-and-scoped-queries">Semantic and scoped queries<a class="headerlink" href="#semantic-and-scoped-queries" title="Permanent link">&para;</a></h3>
-<p>Basic test-id, text, and role-oriented entry points exist in stable <code>0.1.0</code>.</p>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Browser-computed accessibility matching, expanded semantic factories, and locator composition are part of the development line and are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
+<p>Release <code>0.2.0</code> adds browser-computed accessibility matching, expanded semantic factories, and locator composition to the test-id, text, and role-oriented entry points introduced in <code>0.1.0</code>.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">UiLocator</span><span class="w"> </span><span class="n">cards</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">cssSelector</span><span class="p">(</span><span class="s">".product-card"</span><span class="p">))</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">        </span><span class="p">.</span><span class="na">filterByAttribute</span><span class="p">(</span><span class="s">"data-status"</span><span class="p">,</span><span class="w"> </span><span class="s">"available"</span><span class="p">)</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">        </span><span class="p">.</span><span class="na">filterHas</span><span class="p">(</span><span class="n">lens</span><span class="p">.</span><span class="na">getByRole</span><span class="p">(</span><span class="s">"button"</span><span class="p">,</span><span class="w"> </span><span class="s">"Buy"</span><span class="p">));</span>
@@ -3031,32 +3029,20 @@
 <blockquote>
 <p>A passed test can still tell you it was flaky.</p>
 </blockquote>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p><code>RetrySummary</code> and <code>RetryOutcomePolicy</code> are part of the development line and are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <p>Recovery retry is recorded separately from condition polling and runner retry. You can report recovered attempts, warn about them, or reject an otherwise passed outcome after evidence is written. <a href="observability/flakiness/">Understand recovery and flakiness</a>.</p>
 <h3 id="trace-reports-and-automatic-failure-evidence">Trace, reports, and automatic failure evidence<a class="headerlink" href="#trace-reports-and-automatic-failure-evidence" title="Permanent link">&para;</a></h3>
 <p>Trace and HTML/JSON reports have existed since <code>0.1.0</code>; they connect actions, waits, assertions, and lifecycle outcomes. Automatic failure evidence builds on that foundation:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>operation → session trace → finalization → HTML/JSON report → failure bundle
 </span></code></pre></div>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Automatic failure bundles and hardened exactly-once finalization are part of the development line and are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <p>A final failed session can collect screenshots, reports, context, runtime/configuration allowlists, and a network summary. Collection is best-effort, finalization does not close WebDriver, and video is caller-supplied evidence rather than an automatic recording. <a href="observability/trace/">Follow the trace</a>, <a href="observability/reports/">inspect reports</a>, or <a href="observability/failure-bundles/">configure failure bundles</a>.</p>
 <h3 id="safe-diagnostics-through-central-redaction">Safe diagnostics through central redaction<a class="headerlink" href="#safe-diagnostics-through-central-redaction" title="Permanent link">&para;</a></h3>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Central sensitive-data redaction is part of the development line and is not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <p>One immutable policy protects diagnostic copies before they fan out to HUD, trace, log sinks, reports, network/API diagnostics, and failure-bundle text files. Original exception types remain structural diagnostics, while the original throwable continues to control the test result. Screenshots and video are not pixel-redacted, auth-state files remain replayable and outside this transformation, and <code>disabled()</code> is a deliberate opt-out. <a href="security/redaction/">Review the security boundary</a>.</p>
 <h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
 <p>The stable release requires Java 17 or newer:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">&lt;dependency&gt;</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="nt">&lt;groupId&gt;</span>io.github.test-lens<span class="nt">&lt;/groupId&gt;</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">&lt;artifactId&gt;</span>selenium-test-lens<span class="nt">&lt;/artifactId&gt;</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.1.0<span class="nt">&lt;/version&gt;</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.2.0<span class="nt">&lt;/version&gt;</span>
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nt">&lt;/dependency&gt;</span>
 </span></code></pre></div>
 <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">createExistingFrameworkDriver</span><span class="p">();</span>
@@ -3113,7 +3099,7 @@
 </tbody>
 </table>
 <h2 id="integrations">Integrations<a class="headerlink" href="#integrations" title="Permanent link">&para;</a></h2>
-<p>The main library works with any runner. The JUnit 5 and TestNG lifecycle adapters are development-line <code>0.2.0</code> artifacts built from source and are not available in Maven Central <code>0.1.0</code>. They create one driver/Lens pair per invocation, map runner outcomes, finalize evidence, and then close the driver. <a href="framework-integration/">Choose an integration model</a>.</p>
+<p>The main library works with any runner. The optional JUnit 5 and TestNG lifecycle adapters create one driver/Lens pair per invocation, map runner outcomes, finalize evidence, and then close the driver. <a href="framework-integration/">Choose an integration model</a>.</p>
 <h2 id="reference">Reference<a class="headerlink" href="#reference" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="capabilities/">Capability map</a></li>
@@ -3212,7 +3198,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0-SNAPSHOT", "default": "latest", "is_dev": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/0.1.0/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="assets/javascripts/bundle.d7400e89.min.js"></script>

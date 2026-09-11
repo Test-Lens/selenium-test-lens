@@ -107,6 +107,7 @@
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
       <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
     </select>
     <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
@@ -138,9 +139,10 @@
     })();
   </script>
   
-    Development documentation for <strong>0.2.0-SNAPSHOT</strong>.
-    These features are not yet available in the latest Maven Central release (0.1.0).
-    <a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">Read the stable 0.1.0 documentation.</a>
+    
+      Documentation source for <strong>0.2.0</strong>.
+    
+    <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
 
           </div>
@@ -2632,7 +2634,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
         
   
   
@@ -2660,7 +2662,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
         
   
   
@@ -2763,12 +2765,9 @@
 
 <h1 id="observability">Observability<a class="headerlink" href="#observability" title="Permanent link">&para;</a></h1>
 <p>Observability is a primary Test Lens surface, not a side effect of element helpers.</p>
-<p>After a session is finalized locally, the development-line <a href="report-upload/">report uploader</a> can explicitly stream one completed ZIP to an HTTP receiver. Transport is separate from evidence capture: it is synchronous, never automatic, and never owns WebDriver.</p>
+<p>After a session is finalized locally, the <a href="report-upload/">report uploader</a> can explicitly stream one completed ZIP to an HTTP receiver. Transport is separate from evidence capture: it is synchronous, never automatic, and never owns WebDriver.</p>
 <p>The persistent path is <code>operation → trace → finalization → report</code>; a final failed outcome can extend it with an automatic evidence bundle. The in-browser HUD is the live view of this pipeline, not its durable source of truth.</p>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Automatic failure bundles and central redaction are development-line capabilities not available in Maven Central <code>0.1.0</code>. Trace, HTML/JSON reports, screenshots, and the HUD already exist in the stable release.</p>
-</div>
+<p>Automatic failure bundles and central redaction were added in 0.2.0. Trace, HTML/JSON reports, screenshots, and the HUD originated in 0.1.0.</p>
 <p>For a final failed session, the normal trace/report are complemented by an automatic <a href="failure-bundles/">failure bundle</a> with a versioned manifest and deterministic ZIP. Bundle collectors are independent and best effort.</p>
 <p>Diagnostic text uses a shared, enabled-by-default <a href="../security/redaction/">redaction policy</a> before HUD/sink fan-out and at direct trace, network, API-overlay, and bundle write boundaries. Pixel evidence and replayable authentication state have deliberately different security boundaries.</p>
 <h2 id="runtime-visual-diagnostics">Runtime visual diagnostics<a class="headerlink" href="#runtime-visual-diagnostics" title="Permanent link">&para;</a></h2>
@@ -2879,7 +2878,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0-SNAPSHOT", "default": "latest", "is_dev": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/0.1.0/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>

@@ -107,6 +107,7 @@
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
       <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
     </select>
     <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
@@ -138,9 +139,10 @@
     })();
   </script>
   
-    Development documentation for <strong>0.2.0-SNAPSHOT</strong>.
-    These features are not yet available in the latest Maven Central release (0.1.0).
-    <a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">Read the stable 0.1.0 documentation.</a>
+    
+      Documentation source for <strong>0.2.0</strong>.
+    
+    <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
 
           </div>
@@ -2728,7 +2730,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
         
   
   
@@ -2756,7 +2758,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
         
   
   
@@ -2947,7 +2949,7 @@
 
 <h1 id="element-assertions">Element assertions<a class="headerlink" href="#element-assertions" title="Permanent link">&para;</a></h1>
 <p><code>UiExpect</code> is obtained from <code>TestLens.expect(...)</code> or <code>UiLocator.expect()</code>. Each assertion polls until it passes or times out, reports attempts and elapsed time, and returns <code>UiAssertionResult</code> on success. Failure throws <code>UiAssertionError</code> carrying the result.</p>
-<p>Visibility, enabled, text, and value assertions are available in <code>0.1.0</code>. Collection, DOM-state, and page assertions are development-line additions marked at their first use below.</p>
+<p>Visibility, enabled, text, and value assertions are available in <code>0.1.0</code>. Collection, DOM-state, and page assertions were added in <code>0.2.0</code>.</p>
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">UiExpect</span><span class="w"> </span><span class="nf">expect</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">by</span><span class="p">)</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">UiExpect</span><span class="w"> </span><span class="nf">expect</span><span class="p">(</span><span class="n">By</span><span class="w"> </span><span class="n">by</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">label</span><span class="p">)</span>
@@ -2983,10 +2985,6 @@
 <p>Reads the element's <code>value</code> attribute and applies the same normalization rules. Value previews are redacted/limited by the implementation, but screenshots or application DOM may still expose sensitive input.</p>
 <p>Both value assertions require a present element and follow the same missing/stale retry policy.</p>
 <h2 id="collections-and-attachment">Collections and attachment<a class="headerlink" href="#collections-and-attachment" title="Permanent link">&para;</a></h2>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Collection-count and attachment assertions are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiExpect -->
 <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">UiAssertionResult</span><span class="w"> </span><span class="nf">toHaveCount</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">expected</span><span class="p">)</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">UiAssertionResult</span><span class="w"> </span><span class="nf">toBeAttached</span><span class="p">()</span>
@@ -3001,10 +2999,6 @@
 </span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByRole</span><span class="p">(</span><span class="s">"status"</span><span class="p">).</span><span class="na">expect</span><span class="p">().</span><span class="na">toBeAttached</span><span class="p">();</span>
 </span></code></pre></div>
 <h2 id="dom-attributes-classes-and-css">DOM attributes, classes, and CSS<a class="headerlink" href="#dom-attributes-classes-and-css" title="Permanent link">&para;</a></h2>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>DOM-attribute, class-token, and computed-CSS assertions are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiExpect -->
 <div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">UiAssertionResult</span><span class="w"> </span><span class="nf">toHaveAttribute</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">attributeName</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">expectedValue</span><span class="p">)</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">UiAssertionResult</span><span class="w"> </span><span class="nf">toHaveClass</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">className</span><span class="p">)</span>
@@ -3017,10 +3011,6 @@
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"panel"</span><span class="p">).</span><span class="na">expect</span><span class="p">().</span><span class="na">toHaveCss</span><span class="p">(</span><span class="s">"display"</span><span class="p">,</span><span class="w"> </span><span class="s">"block"</span><span class="p">);</span>
 </span></code></pre></div>
 <h2 id="selected-and-checked-state">Selected and checked state<a class="headerlink" href="#selected-and-checked-state" title="Permanent link">&para;</a></h2>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Selected and checked-state assertions are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiExpect -->
 <div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">UiAssertionResult</span><span class="w"> </span><span class="nf">toBeSelected</span><span class="p">()</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">UiAssertionResult</span><span class="w"> </span><span class="nf">toBeChecked</span><span class="p">()</span>
@@ -3060,10 +3050,6 @@
 </span></code></pre></div>
 <p>The probe types themselves are classified <code>INTERNAL_STYLE_PUBLIC</code>; do not use them as the normal assertion API.</p>
 <h2 id="page-url-and-title-assertions">Page URL and title assertions<a class="headerlink" href="#page-url-and-title-assertions" title="Permanent link">&para;</a></h2>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>Page URL/title assertions are part of the current development line and are not available in Maven Central <code>0.1.0</code>.</p>
-</div>
 <p><code>TestLens.expectPage()</code> and <code>JsOverlayDebug.expectPage()</code> create a page assertion bound to the driver's active window. An overload accepts <code>UiAssertionOptions</code>; only timeout and poll interval affect URL assertions, while title assertions also honor whitespace normalization, trimming, case sensitivity, and the preview limit.</p>
 <!-- API SIGNATURES: io.github.testlens.selenium.assertions.UiPageExpect -->
 <div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">UiPageExpect</span><span class="p">(</span><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="p">,</span><span class="w"> </span><span class="n">UiAssertionOptions</span><span class="w"> </span><span class="n">options</span><span class="p">,</span><span class="w"> </span><span class="n">OverlayLogger</span><span class="w"> </span><span class="n">logger</span><span class="p">)</span>
@@ -3176,7 +3162,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0-SNAPSHOT", "default": "latest", "is_dev": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/0.1.0/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

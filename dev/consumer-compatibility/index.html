@@ -107,6 +107,7 @@
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
       <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
     </select>
     <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
@@ -138,9 +139,10 @@
     })();
   </script>
   
-    Development documentation for <strong>0.2.0-SNAPSHOT</strong>.
-    These features are not yet available in the latest Maven Central release (0.1.0).
-    <a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">Read the stable 0.1.0 documentation.</a>
+    
+      Documentation source for <strong>0.2.0</strong>.
+    
+    <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
 
           </div>
@@ -2643,7 +2645,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
         
   
   
@@ -2671,7 +2673,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
         
   
   
@@ -2789,9 +2791,9 @@ the minimum source, bytecode, and runtime level; Java 11 is not supported. CI
 verifies consumers on JDK 17 and JDK 21 while keeping production bytecode
 targeted to Java 17.</p>
 <h2 id="clean-room-release-boundary">Clean-room release boundary<a class="headerlink" href="#clean-room-release-boundary" title="Permanent link">&para;</a></h2>
-<p>The source reactor is currently <code>0.2.0-SNAPSHOT</code>. Compatibility validation
-copies tracked source to a temporary directory, rewrites all nine reactor
-POMs to the unreleased <code>0.2.0</code> version, builds release artifacts, and stages
+<p>The source reactor is currently <code>0.2.0</code>. Compatibility validation
+copies tracked source to a temporary directory, verifies all nine reactor
+POMs at the release <code>0.2.0</code> version, builds release artifacts, and stages
 the seven publishable Maven coordinates in an isolated local repository. It
 never edits the source POMs.</p>
 <p>The Maven and Gradle smoke consumers both resolve Test Lens from that staging
@@ -2811,7 +2813,7 @@ Chrome contract; the Gradle consumer itself is deliberately browser-free.</p>
 <p>Run clean-room preparation and the Gradle consumer in PowerShell 7:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">./</span><span class="n">scripts</span><span class="p">/</span><span class="n">validate-gradle-consumer</span><span class="p">.</span><span class="n">ps1</span>
 </span></code></pre></div>
-<p>The script derives release <code>0.2.0</code> from the root snapshot, creates fresh
+<p>The script reads release <code>0.2.0</code> from the root POM, creates fresh
 Maven and Gradle repositories below the operating system's temporary
 directory, runs the checked-in Wrapper, validates the graph and class files,
 and removes its work directory in <code>finally</code>. Use
@@ -2827,20 +2829,19 @@ repository:</p>
 validated in CI. Its fixture, cache, reports and wrapper files are outside all
 published Test Lens JARs.</p>
 <h2 id="published-user-coordinates">Published-user coordinates<a class="headerlink" href="#published-user-coordinates" title="Permanent link">&para;</a></h2>
-<p>The latest version actually available from Maven Central remains <code>0.1.0</code>:</p>
+<p>The latest version available from Maven Central is <code>0.2.0</code>:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">dependencies</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"io.github.test-lens:selenium-test-lens:0.1.0"</span><span class="p">)</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"io.github.test-lens:selenium-test-lens-react:0.1.0"</span><span class="p">)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"io.github.test-lens:selenium-test-lens:0.2.0"</span><span class="p">)</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"io.github.test-lens:selenium-test-lens-react:0.2.0"</span><span class="p">)</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">}</span>
 </span></code></pre></div>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="n">testImplementation</span><span class="w"> </span><span class="s1">'io.github.test-lens:selenium-test-lens:0.1.0'</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="n">testImplementation</span><span class="w"> </span><span class="s1">'io.github.test-lens:selenium-test-lens-react:0.1.0'</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="n">testImplementation</span><span class="w"> </span><span class="s1">'io.github.test-lens:selenium-test-lens:0.2.0'</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="n">testImplementation</span><span class="w"> </span><span class="s1">'io.github.test-lens:selenium-test-lens-react:0.2.0'</span>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="o">}</span>
 </span></code></pre></div>
-<p>Dedicated runner adapters exist only in the current source line and are tested
-by the release-transformed clean-room gate; they are not Maven Central 0.1.0
-coordinates. These examples do not imply that <code>0.2.0</code> has been published.</p>
+<p>Dedicated runner adapters are also tested by the isolated clean-room gate and
+published as optional <code>0.2.0</code> coordinates.</p>
 
 
 
@@ -2938,7 +2939,7 @@ coordinates. These examples do not imply that <code>0.2.0</code> has been publis
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0-SNAPSHOT", "default": "latest", "is_dev": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/0.1.0/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>

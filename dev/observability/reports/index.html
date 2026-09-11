@@ -107,6 +107,7 @@
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
       <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
     </select>
     <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
@@ -138,9 +139,10 @@
     })();
   </script>
   
-    Development documentation for <strong>0.2.0-SNAPSHOT</strong>.
-    These features are not yet available in the latest Maven Central release (0.1.0).
-    <a href="https://test-lens.github.io/selenium-test-lens/0.1.0/">Read the stable 0.1.0 documentation.</a>
+    
+      Documentation source for <strong>0.2.0</strong>.
+    
+    <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
 
           </div>
@@ -2693,7 +2695,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
         
   
   
@@ -2721,7 +2723,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
         
   
   
@@ -2900,11 +2902,8 @@
 <p>All three facade finalizers—<code>finishPassed()</code>, <code>finishFailed(Throwable)</code>, and <code>finishSkipped(String)</code>—attempt per-session <code>trace.json</code> and <code>report.html</code>. One caller owns the complete pipeline; concurrent callers wait and receive the same fully built result, while later calls reuse it without rewriting either report or recreating evidence. The reports retain the first <code>PASSED</code>, <code>FAILED</code>, or <code>SKIPPED</code> outcome, and a skip reason is stored on the single <code>SESSION_FINISHED</code> event. Each export is best effort: its <code>Path</code> can be null and the error appears in <code>TestLensFinalizationResult.diagnosticFailures()</code> without changing the session status.</p>
 <p>The session JSON always contains a top-level <code>flakiness</code> object with <code>flakyCandidate</code>, <code>totalRetries</code>, <code>timeLostMs</code>, <code>policy</code>, <code>policyTriggered</code>, <code>byAction</code>, <code>byLocator</code>, and <code>byException</code>. HTML renders the same data neutrally for zero retries, as information for <code>REPORT_ONLY</code>, as a warning for <code>WARN</code>, and as a failure for a triggered fail policy. The destination is derived from the session output configuration. See <a href="../flakiness/">Flakiness and retry outcomes</a>, <a href="../../reference/test-lens/#creation-and-lifecycle">session lifecycle and finalization</a>, and <a href="../../reference/configuration/#testlensoptions"><code>TestLensOptions</code></a>.</p>
 <p>For final <code>FAILED</code>, HTML also contains a <code>Failure bundle</code> section linking the predictable ZIP and listing every component status, size, path, or collection error. The ZIP is assembled after final trace/report exports, so it contains their final versions without recursively containing itself. See <a href="../failure-bundles/">Failure bundles</a>.</p>
-<p>Completed reports stay local unless application or teardown code explicitly invokes <code>ReportUploader</code>. The development-line uploader streams exactly one completed ZIP after finalization, without appending trace events or requiring a live WebDriver. See <a href="../report-upload/">Report upload</a> for the HTTP, idempotency, retry, proxy, and receiver contract.</p>
-<div class="admonition info">
-<p class="admonition-title">Coming in 0.2.0</p>
-<p>The automatic failure-bundle section and hardened exactly-once facade finalization are part of the development line and are not available in Maven Central <code>0.1.0</code>. Session HTML/JSON reports are available in <code>0.1.0</code>.</p>
-</div>
+<p>Completed reports stay local unless application or teardown code explicitly invokes <code>ReportUploader</code>. The uploader streams exactly one completed ZIP after finalization, without appending trace events or requiring a live WebDriver. See <a href="../report-upload/">Report upload</a> for the HTTP, idempotency, retry, proxy, and receiver contract.</p>
+<p>The automatic failure-bundle section and hardened exactly-once facade finalization were added in 0.2.0. Session HTML/JSON reports were already available in 0.1.0.</p>
 <p>An explicitly attached network JSON export is an object containing the requested and active capture modes, capture status, ignored/dropped counters, and request/response/fetch-error events with correlation attributes. Its public models and assertion diagnostics are immutable redacted snapshots; raw URLs and headers remain private to matching and correlation. A failed session's bundle contains a smaller <code>network-summary.json</code> snapshot taken before Lens stops its active capture; it does not start capture or include request/response bodies.</p>
 <p>Polling assertions add their start/retry/pass/timeout/failure events to the normal trace and HTML timeline. Count and state results include actual attempt and elapsed values, while attribute diagnostics expose only the attribute name, presence, and value lengths. Class diagnostics bound the expected token, and CSS previews redact <code>url(...)</code> contents. These assertion events do not create recovery <code>RETRY</code> entries or affect the Flakiness section.</p>
 <h2 id="advanced-exporters">Advanced exporters<a class="headerlink" href="#advanced-exporters" title="Permanent link">&para;</a></h2>
@@ -3031,7 +3030,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0-SNAPSHOT", "default": "latest", "is_dev": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/0.1.0/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.2.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
