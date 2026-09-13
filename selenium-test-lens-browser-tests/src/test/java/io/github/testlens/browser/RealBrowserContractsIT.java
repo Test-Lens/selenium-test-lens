@@ -773,14 +773,17 @@ class RealBrowserContractsIT {
         Map<String, Object> wideMetrics = hudHeaderMetrics(620);
         assertAutoHeaderMatchesAvailableWidth(wideMetrics);
         driver.manage().window().setSize(new org.openqa.selenium.Dimension(390, 844));
-        assertTrue(await(scriptBoolean("return window.innerWidth < 1000")));
+        Map<String, Object> narrowResize = awaitHudResize(390, 844, 620, wideMetrics, true);
         Map<String, Object> narrowMetrics = hudHeaderMetrics(620);
+        narrowMetrics.put("resizeSettle", narrowResize);
         assertAutoHeaderMatchesAvailableWidth(narrowMetrics);
         assertTrue(((Number) narrowMetrics.get("availableHeaderWidth")).doubleValue()
                 < ((Number) wideMetrics.get("availableHeaderWidth")).doubleValue(), narrowMetrics.toString());
         driver.manage().window().setSize(new org.openqa.selenium.Dimension(1024, 768));
-        assertTrue(await(scriptBoolean("return window.innerWidth >= 1000")));
-        assertAutoHeaderMatchesAvailableWidth(hudHeaderMetrics(620));
+        Map<String, Object> wideResize = awaitHudResize(1024, 768, 620, narrowMetrics, false);
+        Map<String, Object> restoredMetrics = hudHeaderMetrics(620);
+        restoredMetrics.put("resizeSettle", wideResize);
+        assertAutoHeaderMatchesAvailableWidth(restoredMetrics);
         lens.finishPassed();
     }
 
@@ -835,6 +838,7 @@ class RealBrowserContractsIT {
                 const stepValue=step.querySelector('.stl-hud-meta-value');
                 const pipe=root.querySelector('#selenium-hud-pipeline');
                 const headerStyle=getComputedStyle(header);
+                const panelRect=panel.getBoundingClientRect();
                 const naturalWidth=item=>{
                   const clone=item.cloneNode(true);
                   clone.removeAttribute('id');
@@ -854,7 +858,14 @@ class RealBrowserContractsIT {
                 };
                 return {rows:test.offsetTop===step.offsetTop?1:2,
                   configuredWidth:arguments[0],
-                  panelWidth:panel.getBoundingClientRect().width,
+                  innerWidth:window.innerWidth,
+                  innerHeight:window.innerHeight,
+                  panelWidth:panelRect.width,
+                  panelLeft:panelRect.left,
+                  panelRight:panelRect.right,
+                  panelTop:panelRect.top,
+                  panelBottom:panelRect.bottom,
+                  anchor:(panel.style.top!=='auto'?'TOP':'BOTTOM')+'_'+(panel.style.left!=='auto'?'LEFT':'RIGHT'),
                   headerWidth:header.getBoundingClientRect().width,
                   availableHeaderWidth:header.clientWidth,
                   testWidth:test.getBoundingClientRect().width,
@@ -874,6 +885,69 @@ class RealBrowserContractsIT {
                   pipeOutside:!pipe||pipe.parentNode!==header,
                   layout:header.dataset.layout};
                 """, configuredWidth);
+    }
+
+    private Map<String, Object> awaitHudResize(int requestedWidth, int requestedHeight, int configuredWidth,
+                                               Map<String, Object> previousMetrics, boolean shrinking) {
+        long startedAt = System.nanoTime();
+        List<Map<String, Object>> polls = new java.util.ArrayList<>();
+        try {
+            Map<String, Object> settled = new WebDriverWait(driver, WAIT).until(webDriver -> {
+                Map<String, Object> metrics = new java.util.LinkedHashMap<>(hudResizeMetrics(configuredWidth));
+                metrics.put("poll", polls.size() + 1);
+                metrics.put("elapsedMs", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt));
+                polls.add(metrics);
+                return hudResizeSettled(metrics, previousMetrics, shrinking) ? metrics : null;
+            });
+            settled.put("polls", polls.toString());
+            return settled;
+        } catch (TimeoutException timeout) {
+            throw new AssertionError("HUD resize did not settle: requestedWindow=" + requestedWidth + "x"
+                    + requestedHeight + ", configuredHudWidth=" + configuredWidth
+                    + ", previousPanelWidth=" + previousMetrics.get("panelWidth")
+                    + ", previousInnerWidth=" + previousMetrics.get("innerWidth")
+                    + ", polls=" + polls, timeout);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> hudResizeMetrics(int configuredWidth) {
+        return (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const panel=root.querySelector('#selenium-hud-panel');
+                const header=root.querySelector('.stl-hud-context-header');
+                const rect=panel.getBoundingClientRect();
+                return {configuredWidth:arguments[0],innerWidth:window.innerWidth,innerHeight:window.innerHeight,
+                  panelWidth:rect.width,panelLeft:rect.left,panelRight:rect.right,
+                  panelTop:rect.top,panelBottom:rect.bottom,
+                  availableHeaderWidth:header.clientWidth,
+                  anchor:(panel.style.top!=='auto'?'TOP':'BOTTOM')+'_'+(panel.style.left!=='auto'?'LEFT':'RIGHT'),
+                  fontFamily:getComputedStyle(header).fontFamily};
+                """, configuredWidth);
+    }
+
+    private boolean hudResizeSettled(Map<String, Object> metrics, Map<String, Object> previousMetrics,
+                                     boolean shrinking) {
+        double innerWidth = metric(metrics, "innerWidth");
+        double innerHeight = metric(metrics, "innerHeight");
+        double panelWidth = metric(metrics, "panelWidth");
+        boolean viewportChanged = shrinking
+                ? innerWidth < metric(previousMetrics, "innerWidth")
+                : innerWidth > metric(previousMetrics, "innerWidth");
+        boolean panelWidthChanged = shrinking
+                ? panelWidth < metric(previousMetrics, "panelWidth")
+                : panelWidth > metric(previousMetrics, "panelWidth");
+        double tolerance = 1.0;
+        double safeMargin = 10.0;
+        boolean withinSafeMargins = metric(metrics, "panelLeft") >= safeMargin - tolerance
+                && metric(metrics, "panelRight") <= innerWidth - safeMargin + tolerance
+                && metric(metrics, "panelTop") >= safeMargin - tolerance
+                && metric(metrics, "panelBottom") <= innerHeight - safeMargin + tolerance;
+        return viewportChanged && panelWidthChanged && withinSafeMargins;
+    }
+
+    private double metric(Map<String, Object> metrics, String name) {
+        return ((Number) metrics.get(name)).doubleValue();
     }
 
     private void assertAutoHeaderMatchesAvailableWidth(Map<String, Object> metrics) {
