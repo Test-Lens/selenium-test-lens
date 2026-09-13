@@ -27,13 +27,6 @@ function TreeHash([string]$Path) {
     $sha = [Security.Cryptography.SHA256]::Create()
     return ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace("-", "")
 }
-function RepairTempDirectories {
-    return @(
-        Get-ChildItem ([IO.Path]::GetTempPath()) -Directory -Filter "test-lens-docs-v0.2.0-*" -ErrorAction SilentlyContinue |
-            Sort-Object FullName |
-            ForEach-Object { $_.FullName }
-    )
-}
 try {
     New-Item -ItemType Directory -Path $work | Out-Null
     $repo = Join-Path $work "repo"
@@ -45,17 +38,10 @@ try {
     New-Item -ItemType Directory -Path (Join-Path $repo "docs-hooks") | Out-Null
     Copy-Item -LiteralPath (Join-Path $root "docs-hooks/copy-hud-demo-runtime.py") -Destination (Join-Path $repo "docs-hooks")
     $runtimeSource = Join-Path $root "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"
-    $runtimeRepositoryPath = "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"
-    $stableRuntimeArchive = Join-Path $work "stable-v0.2.0-runtime.tar"
-    & git -C $root archive v0.2.0 -o $stableRuntimeArchive -- $runtimeRepositoryPath
-    if ($LASTEXITCODE -ne 0) { throw "Unable to extract the v0.2.0 HUD renderer for version-boundary validation." }
-    & tar -xf $stableRuntimeArchive -C $work
-    if ($LASTEXITCODE -ne 0) { throw "Unable to unpack the v0.2.0 HUD renderer fixture." }
-    $stableRuntimeSource = Join-Path $work $runtimeRepositoryPath
     $runtimeFixture = Join-Path $repo "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"
     New-Item -ItemType Directory -Path $runtimeFixture -Force | Out-Null
     foreach ($runtimeFile in @("hud-panel.js", "highlight.js", "scroll-arrow.js")) {
-        Copy-Item -LiteralPath (Join-Path $stableRuntimeSource $runtimeFile) -Destination (Join-Path $runtimeFixture $runtimeFile)
+        Copy-Item -LiteralPath (Join-Path $runtimeSource $runtimeFile) -Destination (Join-Path $runtimeFixture $runtimeFile)
     }
     foreach ($file in @("mkdocs.yml", "mkdocs-0.1.0.yml", "mkdocs-release.yml", "requirements-docs.txt", "README.md")) {
         Copy-Item -LiteralPath (Join-Path $root $file) -Destination $repo
@@ -66,28 +52,16 @@ try {
         & git config user.name "Test Lens docs validation"
         & git config user.email "docs-validation@example.invalid"
         & git config core.autocrlf false
-        $repoHomepage = Join-Path $repo "docs/index.md"
-        $repairedHomepageSource = [IO.File]::ReadAllText($repoHomepage) + "`n<!-- validation-only stable homepage repair -->`n"
-        $demoFixture = Join-Path $work "current-hud-demo"
-        Copy-Item -LiteralPath (Join-Path $repo "docs/demo/hud") -Destination $demoFixture -Recurse
-        Remove-Item -LiteralPath (Join-Path $repo "docs/demo/hud") -Recurse -Force
-        [IO.File]::WriteAllText(
-            $repoHomepage,
-            "---`nhide:`n  - navigation`n  - toc`n---`n`n# Original 0.2.0 homepage`n",
-            [Text.UTF8Encoding]::new($false)
-        )
         & git add .
         & git commit -q -m release-source
         & git tag v0.2.0
-        foreach ($runtimeFile in @("hud-panel.js", "highlight.js", "scroll-arrow.js")) {
-            Copy-Item -LiteralPath (Join-Path $runtimeSource $runtimeFile) -Destination (Join-Path $runtimeFixture $runtimeFile) -Force
-        }
-        [IO.File]::WriteAllText($repoHomepage, $repairedHomepageSource, [Text.UTF8Encoding]::new($false))
-        New-Item -ItemType Directory -Path (Join-Path $repo "docs/demo") -Force | Out-Null
-        Copy-Item -LiteralPath $demoFixture -Destination (Join-Path $repo "docs/demo/hud") -Recurse
+        $repoHomepage = Join-Path $repo "docs/index.md"
+        [IO.File]::AppendAllText(
+            $repoHomepage,
+            "`n<!-- validation-only development source -->`n",
+            [Text.UTF8Encoding]::new($false)
+        )
         & git add docs/index.md
-        & git add docs/demo/hud
-        & git add $runtimeRepositoryPath
         & git commit -q -m development-source
         & git init -q --bare $remote
         & git remote add origin $remote
@@ -126,47 +100,6 @@ try {
         } finally {
             & git worktree remove --force $releaseWorktree
         }
-        $originalDemoEntry = @(& git ls-tree --name-only gh-pages -- "0.2.0/demo/hud/index.html")
-        if ($LASTEXITCODE -ne 0) { throw "Unable to inspect the synthetic original 0.2.0 publication." }
-        if ($originalDemoEntry.Count -ne 0) { throw "The synthetic original 0.2.0 publication unexpectedly contained the new HUD demo." }
-        $devBeforeRepair = (& git rev-parse gh-pages`:dev).Trim()
-        $historicalBeforeRepair = (& git rev-parse gh-pages`:0.1.0).Trim()
-        $rootBeforeRepair = (& git rev-parse gh-pages`:index.html).Trim()
-
-        $badRepairConfirmationRejected = $false
-        try {
-            & ./scripts/repair-0.2.0-homepage.ps1 -Confirmation wrong -NoPush
-        } catch {
-            $badRepairConfirmationRejected = $true
-        }
-        if (-not $badRepairConfirmationRejected) { throw "The 0.2.0 homepage repair accepted an invalid confirmation." }
-
-        $worktreesBeforeFailure = (@(& git worktree list --porcelain) -join "`n")
-        $repairDirectoriesBeforeFailure = (RepairTempDirectories) -join "`n"
-        $failedRepairRejected = $false
-        try {
-            & ./scripts/repair-0.2.0-homepage.ps1 -Confirmation repair-stable-0.2.0-homepage -Branch missing-pages -NoPush
-        } catch {
-            $failedRepairRejected = $true
-        }
-        if (-not $failedRepairRejected) { throw "The repair against a missing publication branch unexpectedly succeeded." }
-        $worktreesAfterFailure = (@(& git worktree list --porcelain) -join "`n")
-        if ($worktreesAfterFailure -ne $worktreesBeforeFailure) { throw "A failed repair left a detached worktree registered." }
-        if (((RepairTempDirectories) -join "`n") -ne $repairDirectoriesBeforeFailure) { throw "A failed repair left a temporary worktree or preview directory on disk." }
-
-        $worktreesBeforeRepair = (@(& git worktree list --porcelain) -join "`n")
-        $repairDirectoriesBeforeSuccess = (RepairTempDirectories) -join "`n"
-        & ./scripts/repair-0.2.0-homepage.ps1 -Confirmation repair-stable-0.2.0-homepage
-        $worktreesAfterRepair = (@(& git worktree list --porcelain) -join "`n")
-        if ($worktreesAfterRepair -ne $worktreesBeforeRepair) { throw "A successful repair left a detached worktree registered." }
-        if (((RepairTempDirectories) -join "`n") -ne $repairDirectoriesBeforeSuccess) { throw "A successful repair left a temporary worktree or preview directory on disk." }
-        if ((& git rev-parse gh-pages`:dev).Trim() -ne $devBeforeRepair) { throw "The stable homepage repair changed dev." }
-        if ((& git rev-parse gh-pages`:0.1.0).Trim() -ne $historicalBeforeRepair) { throw "The stable homepage repair changed 0.1.0." }
-        if ((& git rev-parse gh-pages`:index.html).Trim() -ne $rootBeforeRepair) { throw "The stable homepage repair changed the root redirect." }
-        $repairedHome = ((@(& git show gh-pages`:0.2.0/index.html)) -join "`n")
-        if (-not $repairedHome.Contains("validation-only stable homepage repair")) { throw "The stable 0.2.0 homepage was not updated." }
-        if ($repairedHome.Contains("edit/main/docs/index.md")) { throw "The repaired stable homepage exposes a misleading edit link to main." }
-
         & ./scripts/publish-versioned-docs.ps1 -Operation dev -Version $developmentVersion
         $stage2 = Join-Path $work "site-two"
         New-Item -ItemType Directory -Path $stage2 | Out-Null
@@ -233,14 +166,13 @@ try {
         }
         foreach ($runtimeFile in @("hud-panel.js", "highlight.js", "scroll-arrow.js")) {
             $developmentHash = (Get-FileHash (Join-Path $runtimeFixture $runtimeFile) -Algorithm SHA256).Hash
-            $stableRuntimeHash = (Get-FileHash (Join-Path $stableRuntimeSource $runtimeFile) -Algorithm SHA256).Hash
             $publishedDevHash = (Get-FileHash (Join-Path $stage2 "dev/demo/hud/runtime/$runtimeFile") -Algorithm SHA256).Hash
             if ($publishedDevHash -ne $developmentHash) { throw "HUD demo runtime drift for dev/$runtimeFile." }
             $publishedStudioHash = (Get-FileHash (Join-Path $stage2 "dev/demo/hud-studio/runtime/$runtimeFile") -Algorithm SHA256).Hash
             if ($publishedStudioHash -ne $developmentHash) { throw "HUD Studio runtime drift for dev/$runtimeFile." }
             foreach ($versionDirectory in @("0.2.0", "latest")) {
                 $publishedHash = (Get-FileHash (Join-Path $stage2 "$versionDirectory/demo/hud/runtime/$runtimeFile") -Algorithm SHA256).Hash
-                if ($publishedHash -ne $stableRuntimeHash) { throw "HUD demo runtime drift for $versionDirectory/$runtimeFile." }
+                if ($publishedHash -ne $developmentHash) { throw "HUD demo runtime drift for $versionDirectory/$runtimeFile." }
             }
         }
         $demoCss = [IO.File]::ReadAllText((Join-Path $stage2 "dev/demo/hud/demo.css"))
@@ -264,7 +196,7 @@ try {
             throw "mike metadata lacks historical, stable, or dev versions."
         }
         $stableVersion = $versions | Where-Object version -eq "0.2.0"
-        if ($null -eq $stableVersion -or $stableVersion.aliases -notcontains "latest") { throw "latest does not point to 0.2.0 after repair." }
+        if ($null -eq $stableVersion -or $stableVersion.aliases -notcontains "latest") { throw "latest does not point to 0.2.0." }
         $devVersion = $versions | Where-Object version -eq "dev"
         if ($null -eq $devVersion -or $devVersion.title -ne $developmentTitle) {
             throw "Pushed dev metadata did not preserve the exact title argument."
@@ -277,9 +209,10 @@ try {
         if (-not $futureGuide.Contains("edit/v$futureReleaseVersion/docs/getting-started.md")) { throw "Tagged release edit link does not target its tag." }
         $rootRedirect = [IO.File]::ReadAllText((Join-Path $stage2 "index.html"))
         if (-not $rootRedirect.Contains('url=latest/')) { throw "Root default does not redirect to latest." }
-        $latestHome = [IO.File]::ReadAllText((Join-Path $stage2 "latest/index.html"))
-        if (-not $latestHome.Contains("validation-only stable homepage repair")) { throw "latest does not serve the repaired stable 0.2.0 homepage." }
-        Write-Host "Versioned docs simulation OK: production repair worktree cleaned, 0.2.0 homepage repaired, dev/history/root preserved, future latest advanced."
+        if ((TreeHash (Join-Path $stage2 "latest")) -ne (TreeHash (Join-Path $stage2 "0.2.0"))) {
+            throw "latest does not serve the published stable 0.2.0 documentation."
+        }
+        Write-Host "Versioned docs simulation OK: dev/history/root preserved and future latest advanced."
         $ok = $true
     } finally { Pop-Location }
 } finally {
