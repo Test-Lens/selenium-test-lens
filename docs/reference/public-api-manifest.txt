@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 246
-# Public callable methods/constructors: 1950
+# Types: 251
+# Public callable methods/constructors: 1984
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -1134,6 +1134,7 @@ TYPE io.github.testlens.TestLensFinalizationResult
   public io.github.testlens.core.trace.RetrySummary retrySummary()
   public java.util.Optional<java.nio.file.Path> failureBundleDirectory()
   public java.util.Optional<java.nio.file.Path> failureBundleManifest()
+  public java.util.Optional<java.nio.file.Path> cleanFailureScreenshot()
   public java.util.Optional<java.nio.file.Path> failureBundleArchive()
   public final java.lang.String toString()
   public final int hashCode()
@@ -2472,6 +2473,52 @@ TYPE io.github.testlens.testng.TestLensTestNgListener
   public io.github.testlens.testng.TestLensTestNgListener()
   public void beforeInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
   public void afterInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
+MODULE selenium-test-lens-allure
+TYPE io.github.testlens.allure.AllureAttachResult
+  public io.github.testlens.allure.AllureAttachResult(io.github.testlens.allure.AllureAttachStatus, int, int, java.util.List<java.lang.String>, java.util.List<java.lang.String>)
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public io.github.testlens.allure.AllureAttachStatus status()
+  public int attachedCount()
+  public int skippedCount()
+  public java.util.List<java.lang.String> missingArtifacts()
+  public java.util.List<java.lang.String> failures()
+TYPE io.github.testlens.allure.AllureAttachStatus
+  public static final io.github.testlens.allure.AllureAttachStatus ATTACHED
+  public static final io.github.testlens.allure.AllureAttachStatus PARTIALLY_ATTACHED
+  public static final io.github.testlens.allure.AllureAttachStatus SKIPPED_NO_ACTIVE_CONTEXT
+  public static final io.github.testlens.allure.AllureAttachStatus SKIPPED_ALREADY_ATTACHED
+  public static final io.github.testlens.allure.AllureAttachStatus SKIPPED_BY_POLICY
+  public static final io.github.testlens.allure.AllureAttachStatus SKIPPED_NO_AVAILABLE_ARTIFACTS
+  public static final io.github.testlens.allure.AllureAttachStatus FAILED
+  public static io.github.testlens.allure.AllureAttachStatus[] values()
+  public static io.github.testlens.allure.AllureAttachStatus valueOf(java.lang.String)
+TYPE io.github.testlens.allure.AllureTestLens
+  public static io.github.testlens.allure.AllureAttachResult attach(io.github.testlens.TestLensFinalizationResult)
+  public static io.github.testlens.allure.AllureAttachResult attach(io.github.testlens.TestLensFinalizationResult, io.github.testlens.allure.AllureTestLensOptions)
+TYPE io.github.testlens.allure.AllureTestLensOptions$Builder
+  public io.github.testlens.allure.AllureTestLensOptions$Builder()
+  public io.github.testlens.allure.AllureTestLensOptions$Builder attachDiagnosticScreenshot(boolean)
+  public io.github.testlens.allure.AllureTestLensOptions$Builder attachCleanScreenshot(boolean)
+  public io.github.testlens.allure.AllureTestLensOptions$Builder attachHtmlReport(boolean)
+  public io.github.testlens.allure.AllureTestLensOptions$Builder attachTrace(boolean)
+  public io.github.testlens.allure.AllureTestLensOptions$Builder attachFailureBundle(boolean)
+  public io.github.testlens.allure.AllureTestLensOptions$Builder attachNonFailedSessions(boolean)
+  public io.github.testlens.allure.AllureTestLensOptions build()
+TYPE io.github.testlens.allure.AllureTestLensOptions
+  public io.github.testlens.allure.AllureTestLensOptions(boolean, boolean, boolean, boolean, boolean, boolean)
+  public static io.github.testlens.allure.AllureTestLensOptions defaults()
+  public static io.github.testlens.allure.AllureTestLensOptions$Builder builder()
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public boolean diagnosticScreenshot()
+  public boolean cleanScreenshot()
+  public boolean htmlReport()
+  public boolean trace()
+  public boolean failureBundle()
+  public boolean nonFailedSessions()
 MODULE selenium-test-lens-react
 TYPE io.github.testlens.react.ReactOverlaySupport
   public abstract io.github.testlens.OverlayConfig getConfig()

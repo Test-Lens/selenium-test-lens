@@ -42,6 +42,7 @@ One text policy creates safe diagnostic copies before fan-out to HUD, trace, sin
 | React & SPA resilience | DOM-convention helpers for rerender recovery, busy/loading readiness, actionability, and React Select; no React component-tree access or universal design-system guarantee. | [React/SPA helpers](features/react-spa.md) |
 | API overlay | Displays caller-supplied API previews; it does not capture browser traffic. | [Visual helpers](advanced/visual-helpers.md) |
 | JUnit 5 / TestNG adapters | Optional `0.2.0` artifacts for per-invocation lifecycle ownership. | [Framework integration](framework-integration.md) |
+| Allure attachments | Optional `0.3.0` module streams finalized screenshots, report, trace, and ZIP into the active Allure executable. | [Allure integration](integrations/allure.md) |
 | Explicit report upload | Streams one completed report ZIP after finalization; it is not automatic and does not use or close WebDriver. | [Report upload](observability/report-upload.md) |
 
 ## Find a routine task

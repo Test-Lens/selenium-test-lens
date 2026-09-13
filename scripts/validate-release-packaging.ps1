@@ -20,6 +20,7 @@ $components = @(
     @{ Artifact = "selenium-test-lens"; Directory = (Join-Path $repo "selenium-test-lens-selenium"); Packaging = "jar" },
     @{ Artifact = "selenium-test-lens-junit5"; Directory = (Join-Path $repo "selenium-test-lens-junit5"); Packaging = "jar" },
     @{ Artifact = "selenium-test-lens-testng"; Directory = (Join-Path $repo "selenium-test-lens-testng"); Packaging = "jar" },
+    @{ Artifact = "selenium-test-lens-allure"; Directory = (Join-Path $repo "selenium-test-lens-allure"); Packaging = "jar" },
     @{ Artifact = "selenium-test-lens-react"; Directory = (Join-Path $repo "selenium-test-lens-react"); Packaging = "jar" }
 )
 

@@ -36,6 +36,16 @@ public record TestLensFinalizationResult(
     public Optional<Path> failureBundleManifest() {
         return existing(outputDirectory == null ? null : outputDirectory.resolve("failure-bundle").resolve("manifest.json"));
     }
+    /**
+     * Returns the clean, visually redacted failure screenshot when the failure bundle produced it.
+     * "Clean" excludes Test Lens diagnostic decorations; it does not bypass visual redaction.
+     *
+     * @return the existing clean screenshot path, or an empty optional
+     * @since 0.3.0
+     */
+    public Optional<Path> cleanFailureScreenshot() {
+        return existing(outputDirectory == null ? null : outputDirectory.resolve("failure-bundle").resolve("failure-clean.png"));
+    }
     public Optional<Path> failureBundleArchive() {
         return existing(outputDirectory == null ? null : outputDirectory.resolve("failure-bundle.zip"));
     }

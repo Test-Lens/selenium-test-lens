@@ -165,6 +165,12 @@ HUD injection, updates, and cleanup are best effort and cannot change the result
 
     [Reports](observability/reports.md) · [Failure bundles](observability/failure-bundles.md) · [Report upload](observability/report-upload.md)
 
+-   **[INTEGRATION] Allure**
+
+    Keep Allure as the report UI and attach Test Lens diagnostic and clean screenshots, HTML, trace, and failure evidence through Allure's native lifecycle.
+
+    [Allure integration](integrations/allure.md)
+
 </div>
 
 ## Reuse authentication state without replaying every login

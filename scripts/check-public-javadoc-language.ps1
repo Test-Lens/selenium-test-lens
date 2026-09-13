@@ -11,7 +11,8 @@ $publishedModules = @(
     "selenium-test-lens-selenium",
     "selenium-test-lens-react",
     "selenium-test-lens-junit5",
-    "selenium-test-lens-testng"
+    "selenium-test-lens-testng",
+    "selenium-test-lens-allure"
 )
 
 $polishCharacters = @(0x0105, 0x0107, 0x0119, 0x0142, 0x0144, 0x00f3, 0x015b, 0x017a, 0x017c,

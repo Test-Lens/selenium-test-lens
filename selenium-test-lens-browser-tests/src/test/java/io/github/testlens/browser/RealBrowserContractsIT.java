@@ -32,6 +32,12 @@ import io.github.testlens.selenium.evidence.VisualMaskMode;
 import io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy;
 import io.github.testlens.selenium.evidence.VisualRedactionOptions;
 import io.github.testlens.selenium.locator.UiLocatorException;
+import io.github.testlens.allure.AllureAttachStatus;
+import io.github.testlens.allure.AllureTestLens;
+import io.qameta.allure.Allure;
+import io.qameta.allure.AllureLifecycle;
+import io.qameta.allure.FileSystemResultsWriter;
+import io.qameta.allure.model.TestResult;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -1491,6 +1497,25 @@ class RealBrowserContractsIT {
         assertTrue(driver.getPageSource().contains("THIS_MUST_NOT_APPEAR_7F3A"),
                 "visual redaction intentionally does not redact page source in memory");
 
+        Path allureResults = output.resolve("allure-results");
+        AllureLifecycle allure = new AllureLifecycle(new FileSystemResultsWriter(allureResults));
+        Allure.setLifecycle(allure);
+        String allureUuid = UUID.randomUUID().toString();
+        allure.scheduleTestCase(allureUuid, new TestResult().setUuid(allureUuid).setName("visual redaction attachment"));
+        allure.startTestCase(allureUuid);
+        assertEquals(AllureAttachStatus.ATTACHED, AllureTestLens.attach(failure).status());
+        allure.stopTestCase(allureUuid);
+        allure.writeTestCase(allureUuid);
+        byte[] diagnosticBytes = Files.readAllBytes(failure.failureScreenshot());
+        byte[] cleanBytes = Files.readAllBytes(failure.cleanFailureScreenshot().orElseThrow());
+        try (Stream<Path> attachments = Files.list(allureResults)) {
+            List<byte[]> pngs = attachments.filter(path -> path.toString().endsWith("-attachment.png"))
+                    .map(path -> { try { return Files.readAllBytes(path); } catch (IOException e) { throw new RuntimeException(e); } })
+                    .toList();
+            assertEquals(2, pngs.size());
+            assertTrue(pngs.stream().anyMatch(bytes -> java.util.Arrays.equals(bytes, diagnosticBytes)));
+            assertTrue(pngs.stream().anyMatch(bytes -> java.util.Arrays.equals(bytes, cleanBytes)));
+        }
     }
 
     @Test
