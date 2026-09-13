@@ -6,7 +6,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ### Added
 
-- Added immutable `HudOptions` with Minimal, Compact, Standard, and Debug presets, semantic HUD row filtering, responsive atomic AUTO/INLINE/STACKED header layouts, validated semantic colors and opacity, anchored offsets, bounded sizing, global and section-specific local font presets, configurable native/subtle/standard event-log scrollbars, and bounded PNG branding. The shared browser-side renderer consumes the same effective configuration throughout the runtime.
+- Added immutable `HudOptions` with Minimal, Compact, Standard, and Debug presets, semantic HUD row filtering, responsive atomic AUTO/INLINE/STACKED header layouts, validated semantic colors and opacity, anchored offsets, bounded sizing, global and section-specific local font presets, configurable native/subtle/standard event-log scrollbars, and bounded PNG branding. The shared runtime renderer now powers both the runtime and WYSIWYG HUD Studio.
 
 ### Changed
 

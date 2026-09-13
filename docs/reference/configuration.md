@@ -96,7 +96,7 @@ The global `fontPreset(...)` is the baseline for every section. `typography(HudT
 
 `scrollbarStyle(...)` selects `SUBTLE`, `STANDARD`, or `NATIVE` for the event log. `SUBTLE` is the default except that `DEBUG` selects `STANDARD`. The custom styles accept a bounded 4–14 px Chromium width plus validated `#RRGGBB` track, thumb, and hover colors. Firefox applies the same colors but maps the styles to the engine's supported `thin` or native width rather than an exact pixel width. `NATIVE` leaves scrollbar rendering to the browser and operating system.
 
-`customLogo(Path)` accepts only a regular, non-symlink PNG no larger than 1 MiB. PNG dimensions are bounded to 4096 by 4096 and 16,777,216 pixels; the image is embedded as a data URL, while SVG, remote URLs, arbitrary HTML, and scripts are unsupported.
+See [HUD Studio](../observability/hud-studio.md) for preset defaults, examples, and the PNG branding security boundary.
 
 ## HudTheme
 

@@ -108,7 +108,7 @@ OverlayConfig overlayConfig = OverlayConfig.builder()
 
 New code can configure content, position, responsive `AUTO`/`INLINE`/`STACKED` header layout, bounded dimensions, a validated color palette, opacity, branding, typed global or section-specific local font stacks, and the event-log scrollbar through immutable `HudOptions`. The default `COMPACT` preset omits pipeline and timestamps, keeps test and current-step context small, gives the categorized event log most of the panel, and uses the subtle scrollbar style. `AUTO` keeps atomic TEST/STEP items together and moves STEP to row two only when needed. `NATIVE` restores browser/operating-system scrollbar rendering.
 
-Presentation filters never remove events from trace, reports, retry summaries, or network capture.
+[Open HUD Studio](hud-studio.md) for a live preview and a minimal Java configuration generator. Presentation filters never remove events from trace, reports, retry summaries, or network capture.
 
 ## Low-level HUD API
 

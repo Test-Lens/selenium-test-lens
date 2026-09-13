@@ -13,7 +13,7 @@ Generated binary-surface details. For behavior and examples, return to the [func
 - Package: `io.github.testlens.hud`
 - Classification: `USER_API`
 - Type kind: `enum`
-- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+- Functional documentation: [docs/observability/hud-studio.md](../../observability/hud-studio.md)
 
 ```java
 public static final io.github.testlens.hud.HudBranding TEST_LENS
@@ -30,7 +30,7 @@ public static io.github.testlens.hud.HudBranding valueOf(java.lang.String)
 - Package: `io.github.testlens.hud`
 - Classification: `USER_API`
 - Type kind: `enum`
-- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+- Functional documentation: [docs/observability/hud-studio.md](../../observability/hud-studio.md)
 
 ```java
 public static final io.github.testlens.hud.HudFontPreset SYSTEM
@@ -46,7 +46,7 @@ public static io.github.testlens.hud.HudFontPreset valueOf(java.lang.String)
 - Package: `io.github.testlens.hud`
 - Classification: `USER_API`
 - Type kind: `enum`
-- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+- Functional documentation: [docs/observability/hud-studio.md](../../observability/hud-studio.md)
 
 ```java
 public static final io.github.testlens.hud.HudHeaderLayout AUTO
@@ -62,7 +62,7 @@ public static io.github.testlens.hud.HudHeaderLayout valueOf(java.lang.String)
 - Package: `io.github.testlens.hud`
 - Classification: `USER_API`
 - Type kind: `enum`
-- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+- Functional documentation: [docs/observability/hud-studio.md](../../observability/hud-studio.md)
 
 ```java
 public static final io.github.testlens.hud.HudLogoPlacement LEFT_RAIL
@@ -78,7 +78,7 @@ public static io.github.testlens.hud.HudLogoPlacement valueOf(java.lang.String)
 - Package: `io.github.testlens.hud`
 - Classification: `USER_API`
 - Type kind: `class`
-- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+- Functional documentation: [docs/observability/hud-studio.md](../../observability/hud-studio.md)
 
 ```java
 public io.github.testlens.hud.HudOptions$Builder preset(io.github.testlens.hud.HudPreset)
@@ -128,7 +128,7 @@ public io.github.testlens.hud.HudOptions build()
 - Package: `io.github.testlens.hud`
 - Classification: `USER_API`
 - Type kind: `class`
-- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+- Functional documentation: [docs/observability/hud-studio.md](../../observability/hud-studio.md)
 
 ```java
 public static io.github.testlens.hud.HudOptions defaults()
@@ -211,7 +211,7 @@ public static io.github.testlens.hud.HudPosition valueOf(java.lang.String)
 - Package: `io.github.testlens.hud`
 - Classification: `USER_API`
 - Type kind: `enum`
-- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+- Functional documentation: [docs/observability/hud-studio.md](../../observability/hud-studio.md)
 
 ```java
 public static final io.github.testlens.hud.HudPreset MINIMAL
@@ -228,7 +228,7 @@ public static io.github.testlens.hud.HudPreset valueOf(java.lang.String)
 - Package: `io.github.testlens.hud`
 - Classification: `USER_API`
 - Type kind: `enum`
-- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+- Functional documentation: [docs/observability/hud-studio.md](../../observability/hud-studio.md)
 
 ```java
 public static final io.github.testlens.hud.HudScrollbarStyle NATIVE
@@ -336,7 +336,7 @@ public static io.github.testlens.hud.HudThemePreset valueOf(java.lang.String)
 - Package: `io.github.testlens.hud`
 - Classification: `USER_API`
 - Type kind: `class`
-- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+- Functional documentation: [docs/observability/hud-studio.md](../../observability/hud-studio.md)
 
 ```java
 public io.github.testlens.hud.HudTypography$Builder header(io.github.testlens.hud.HudFontPreset)
@@ -352,7 +352,7 @@ public io.github.testlens.hud.HudTypography build()
 - Package: `io.github.testlens.hud`
 - Classification: `USER_API`
 - Type kind: `class`
-- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+- Functional documentation: [docs/observability/hud-studio.md](../../observability/hud-studio.md)
 
 ```java
 public static io.github.testlens.hud.HudTypography inheritAll()

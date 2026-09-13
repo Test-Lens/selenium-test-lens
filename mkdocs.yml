@@ -77,6 +77,7 @@ nav:
   - Observability:
       - Observability overview: observability/index.md
       - Visual runtime diagnostics: observability/visual-diagnostics.md
+      - HUD Studio: observability/hud-studio.md
       - Screenshots & evidence: observability/screenshots-evidence.md
       - Trace: observability/trace.md
       - HTML, JSON & ZIP reports: observability/reports.md

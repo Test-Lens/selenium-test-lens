@@ -200,6 +200,12 @@ try {
                 $requiredVersionedOutputs += "$versionDirectory/demo/hud/$demoFile"
             }
         }
+        foreach ($studioFile in @(
+            "index.html", "studio.css", "studio.js", "preview.html", "preview.css", "preview.js",
+            "runtime/hud-panel.js", "runtime/highlight.js", "runtime/scroll-arrow.js"
+        )) {
+            $requiredVersionedOutputs += "dev/demo/hud-studio/$studioFile"
+        }
         foreach ($required in $requiredVersionedOutputs) {
             if (-not (Test-Path (Join-Path $stage2 $required))) { throw "Missing versioned output: $required" }
         }
@@ -230,6 +236,8 @@ try {
             $stableRuntimeHash = (Get-FileHash (Join-Path $stableRuntimeSource $runtimeFile) -Algorithm SHA256).Hash
             $publishedDevHash = (Get-FileHash (Join-Path $stage2 "dev/demo/hud/runtime/$runtimeFile") -Algorithm SHA256).Hash
             if ($publishedDevHash -ne $developmentHash) { throw "HUD demo runtime drift for dev/$runtimeFile." }
+            $publishedStudioHash = (Get-FileHash (Join-Path $stage2 "dev/demo/hud-studio/runtime/$runtimeFile") -Algorithm SHA256).Hash
+            if ($publishedStudioHash -ne $developmentHash) { throw "HUD Studio runtime drift for dev/$runtimeFile." }
             foreach ($versionDirectory in @("0.2.0", "latest")) {
                 $publishedHash = (Get-FileHash (Join-Path $stage2 "$versionDirectory/demo/hud/runtime/$runtimeFile") -Algorithm SHA256).Hash
                 if ($publishedHash -ne $stableRuntimeHash) { throw "HUD demo runtime drift for $versionDirectory/$runtimeFile." }
