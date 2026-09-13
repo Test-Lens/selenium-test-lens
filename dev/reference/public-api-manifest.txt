@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 231
-# Public callable methods/constructors: 1813
+# Types: 241
+# Public callable methods/constructors: 1921
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -599,6 +599,7 @@ TYPE io.github.testlens.OverlayConfig$Builder
   public io.github.testlens.OverlayConfig$Builder hudOffset(int, int)
   public io.github.testlens.OverlayConfig$Builder hudMaxWidthPx(int)
   public io.github.testlens.OverlayConfig$Builder hudTheme(io.github.testlens.hud.HudTheme)
+  public io.github.testlens.OverlayConfig$Builder hudOptions(io.github.testlens.hud.HudOptions)
   public io.github.testlens.OverlayConfig$Builder hudTheme(io.github.testlens.hud.HudThemePreset)
   public io.github.testlens.OverlayConfig$Builder highlightColor(java.lang.String)
   public io.github.testlens.OverlayConfig build()
@@ -615,6 +616,8 @@ TYPE io.github.testlens.OverlayConfig
   public io.github.testlens.hud.HudTheme getHudTheme()
   public io.github.testlens.hud.HudThemePreset getHudThemePreset()
   public java.lang.String getHighlightColor()
+  public io.github.testlens.hud.HudOptions getHudOptions()
+  public boolean isHudOptionsAuthoritative()
 TYPE io.github.testlens.api.ApiOverlayJs
   public static final java.lang.String INIT_MODAL
   public static void inject(io.github.testlens.core.browser.BrowserScriptExecutor)
@@ -692,6 +695,113 @@ TYPE io.github.testlens.core.WaitHudJs
   public static final java.lang.String INIT
   public static void inject(io.github.testlens.core.browser.BrowserScriptExecutor)
   public static java.lang.String bridgeScript()
+TYPE io.github.testlens.hud.HudBranding
+  public static final io.github.testlens.hud.HudBranding TEST_LENS
+  public static final io.github.testlens.hud.HudBranding CUSTOM
+  public static final io.github.testlens.hud.HudBranding BOTH
+  public static final io.github.testlens.hud.HudBranding NONE
+  public static io.github.testlens.hud.HudBranding[] values()
+  public static io.github.testlens.hud.HudBranding valueOf(java.lang.String)
+TYPE io.github.testlens.hud.HudFontPreset
+  public static final io.github.testlens.hud.HudFontPreset SYSTEM
+  public static final io.github.testlens.hud.HudFontPreset MONOSPACE
+  public static final io.github.testlens.hud.HudFontPreset UI_SANS
+  public static io.github.testlens.hud.HudFontPreset[] values()
+  public static io.github.testlens.hud.HudFontPreset valueOf(java.lang.String)
+TYPE io.github.testlens.hud.HudHeaderLayout
+  public static final io.github.testlens.hud.HudHeaderLayout AUTO
+  public static final io.github.testlens.hud.HudHeaderLayout INLINE
+  public static final io.github.testlens.hud.HudHeaderLayout STACKED
+  public static io.github.testlens.hud.HudHeaderLayout[] values()
+  public static io.github.testlens.hud.HudHeaderLayout valueOf(java.lang.String)
+TYPE io.github.testlens.hud.HudLogoPlacement
+  public static final io.github.testlens.hud.HudLogoPlacement LEFT_RAIL
+  public static final io.github.testlens.hud.HudLogoPlacement HEADER_LEFT
+  public static final io.github.testlens.hud.HudLogoPlacement HEADER_RIGHT
+  public static io.github.testlens.hud.HudLogoPlacement[] values()
+  public static io.github.testlens.hud.HudLogoPlacement valueOf(java.lang.String)
+TYPE io.github.testlens.hud.HudOptions$Builder
+  public io.github.testlens.hud.HudOptions$Builder preset(io.github.testlens.hud.HudPreset)
+  public io.github.testlens.hud.HudOptions$Builder position(io.github.testlens.hud.HudPosition)
+  public io.github.testlens.hud.HudOptions$Builder headerLayout(io.github.testlens.hud.HudHeaderLayout)
+  public io.github.testlens.hud.HudOptions$Builder offsetXPx(int)
+  public io.github.testlens.hud.HudOptions$Builder offsetYPx(int)
+  public io.github.testlens.hud.HudOptions$Builder widthPx(int)
+  public io.github.testlens.hud.HudOptions$Builder maxHeightPx(int)
+  public io.github.testlens.hud.HudOptions$Builder maxLogHeightPx(int)
+  public io.github.testlens.hud.HudOptions$Builder railWidthPx(int)
+  public io.github.testlens.hud.HudOptions$Builder fontPreset(io.github.testlens.hud.HudFontPreset)
+  public io.github.testlens.hud.HudOptions$Builder typography(io.github.testlens.hud.HudTypography)
+  public io.github.testlens.hud.HudOptions$Builder scrollbarStyle(io.github.testlens.hud.HudScrollbarStyle)
+  public io.github.testlens.hud.HudOptions$Builder scrollbarWidthPx(int)
+  public io.github.testlens.hud.HudOptions$Builder scrollbarTrackColor(java.lang.String)
+  public io.github.testlens.hud.HudOptions$Builder scrollbarThumbColor(java.lang.String)
+  public io.github.testlens.hud.HudOptions$Builder scrollbarThumbHoverColor(java.lang.String)
+  public io.github.testlens.hud.HudOptions$Builder baseFontSizePx(int)
+  public io.github.testlens.hud.HudOptions$Builder headerFontSizePx(int)
+  public io.github.testlens.hud.HudOptions$Builder showTestName(boolean)
+  public io.github.testlens.hud.HudOptions$Builder showCurrentStep(boolean)
+  public io.github.testlens.hud.HudOptions$Builder showPipeline(boolean)
+  public io.github.testlens.hud.HudOptions$Builder showTimestamps(boolean)
+  public io.github.testlens.hud.HudOptions$Builder showEventLog(boolean)
+  public io.github.testlens.hud.HudOptions$Builder showNetwork(boolean)
+  public io.github.testlens.hud.HudOptions$Builder showRetries(boolean)
+  public io.github.testlens.hud.HudOptions$Builder showWaits(boolean)
+  public io.github.testlens.hud.HudOptions$Builder showAssertions(boolean)
+  public io.github.testlens.hud.HudOptions$Builder branding(io.github.testlens.hud.HudBranding)
+  public io.github.testlens.hud.HudOptions$Builder logoPlacement(io.github.testlens.hud.HudLogoPlacement)
+  public io.github.testlens.hud.HudOptions$Builder background(java.lang.String)
+  public io.github.testlens.hud.HudOptions$Builder backgroundOpacity(double)
+  public io.github.testlens.hud.HudOptions$Builder accentColor(java.lang.String)
+  public io.github.testlens.hud.HudOptions$Builder primaryTextColor(java.lang.String)
+  public io.github.testlens.hud.HudOptions$Builder mutedTextColor(java.lang.String)
+  public io.github.testlens.hud.HudOptions$Builder successColor(java.lang.String)
+  public io.github.testlens.hud.HudOptions$Builder warningColor(java.lang.String)
+  public io.github.testlens.hud.HudOptions$Builder failureColor(java.lang.String)
+  public io.github.testlens.hud.HudOptions$Builder customLogo(java.nio.file.Path)
+  public io.github.testlens.hud.HudOptions build()
+TYPE io.github.testlens.hud.HudOptions
+  public static io.github.testlens.hud.HudOptions defaults()
+  public static io.github.testlens.hud.HudOptions$Builder builder()
+  public io.github.testlens.hud.HudOptions$Builder toBuilder()
+  public io.github.testlens.hud.HudPreset preset()
+  public io.github.testlens.hud.HudPosition position()
+  public io.github.testlens.hud.HudHeaderLayout headerLayout()
+  public int offsetXPx()
+  public int offsetYPx()
+  public int widthPx()
+  public int maxHeightPx()
+  public int maxLogHeightPx()
+  public int railWidthPx()
+  public io.github.testlens.hud.HudFontPreset fontPreset()
+  public io.github.testlens.hud.HudTypography typography()
+  public io.github.testlens.hud.HudScrollbarStyle scrollbarStyle()
+  public int scrollbarWidthPx()
+  public java.lang.String scrollbarTrackColor()
+  public java.lang.String scrollbarThumbColor()
+  public java.lang.String scrollbarThumbHoverColor()
+  public int baseFontSizePx()
+  public int headerFontSizePx()
+  public boolean showTestName()
+  public boolean showCurrentStep()
+  public boolean showPipeline()
+  public boolean showTimestamps()
+  public boolean showEventLog()
+  public boolean showNetwork()
+  public boolean showRetries()
+  public boolean showWaits()
+  public boolean showAssertions()
+  public io.github.testlens.hud.HudBranding branding()
+  public io.github.testlens.hud.HudLogoPlacement logoPlacement()
+  public java.lang.String background()
+  public double backgroundOpacity()
+  public java.lang.String accentColor()
+  public java.lang.String primaryTextColor()
+  public java.lang.String mutedTextColor()
+  public java.lang.String successColor()
+  public java.lang.String warningColor()
+  public java.lang.String failureColor()
+  public boolean hasCustomLogo()
 TYPE io.github.testlens.hud.HudPanel
   public io.github.testlens.hud.HudPanel(io.github.testlens.core.browser.BrowserScriptExecutor, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig)
   public void init(java.lang.String, java.lang.String)
@@ -704,6 +814,19 @@ TYPE io.github.testlens.hud.HudPosition
   public static final io.github.testlens.hud.HudPosition BOTTOM_RIGHT
   public static io.github.testlens.hud.HudPosition[] values()
   public static io.github.testlens.hud.HudPosition valueOf(java.lang.String)
+TYPE io.github.testlens.hud.HudPreset
+  public static final io.github.testlens.hud.HudPreset MINIMAL
+  public static final io.github.testlens.hud.HudPreset COMPACT
+  public static final io.github.testlens.hud.HudPreset STANDARD
+  public static final io.github.testlens.hud.HudPreset DEBUG
+  public static io.github.testlens.hud.HudPreset[] values()
+  public static io.github.testlens.hud.HudPreset valueOf(java.lang.String)
+TYPE io.github.testlens.hud.HudScrollbarStyle
+  public static final io.github.testlens.hud.HudScrollbarStyle NATIVE
+  public static final io.github.testlens.hud.HudScrollbarStyle SUBTLE
+  public static final io.github.testlens.hud.HudScrollbarStyle STANDARD
+  public static io.github.testlens.hud.HudScrollbarStyle[] values()
+  public static io.github.testlens.hud.HudScrollbarStyle valueOf(java.lang.String)
 TYPE io.github.testlens.hud.HudTheme$Builder
   public io.github.testlens.hud.HudTheme$Builder()
   public io.github.testlens.hud.HudTheme$Builder background(java.lang.String)
@@ -766,6 +889,19 @@ TYPE io.github.testlens.hud.HudThemePreset
   public static final io.github.testlens.hud.HudThemePreset MINIMAL
   public static io.github.testlens.hud.HudThemePreset[] values()
   public static io.github.testlens.hud.HudThemePreset valueOf(java.lang.String)
+TYPE io.github.testlens.hud.HudTypography$Builder
+  public io.github.testlens.hud.HudTypography$Builder header(io.github.testlens.hud.HudFontPreset)
+  public io.github.testlens.hud.HudTypography$Builder currentStep(io.github.testlens.hud.HudFontPreset)
+  public io.github.testlens.hud.HudTypography$Builder eventLog(io.github.testlens.hud.HudFontPreset)
+  public io.github.testlens.hud.HudTypography$Builder metadata(io.github.testlens.hud.HudFontPreset)
+  public io.github.testlens.hud.HudTypography build()
+TYPE io.github.testlens.hud.HudTypography
+  public static io.github.testlens.hud.HudTypography inheritAll()
+  public static io.github.testlens.hud.HudTypography$Builder builder()
+  public java.util.Optional<io.github.testlens.hud.HudFontPreset> header()
+  public java.util.Optional<io.github.testlens.hud.HudFontPreset> currentStep()
+  public java.util.Optional<io.github.testlens.hud.HudFontPreset> eventLog()
+  public java.util.Optional<io.github.testlens.hud.HudFontPreset> metadata()
 MODULE selenium-test-lens-selenium
 TYPE io.github.testlens.JsOverlayDebug$AssertionSummary$AssertionTextFormat
   public static final io.github.testlens.JsOverlayDebug$AssertionSummary$AssertionTextFormat MESSAGE
@@ -1018,6 +1154,7 @@ TYPE io.github.testlens.TestLensOptions$Builder
   public io.github.testlens.TestLensOptions$Builder allowedRetries(int)
   public io.github.testlens.TestLensOptions$Builder failureBundleOptions(io.github.testlens.selenium.evidence.FailureBundleOptions)
   public io.github.testlens.TestLensOptions$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
+  public io.github.testlens.TestLensOptions$Builder hud(io.github.testlens.hud.HudOptions)
   public io.github.testlens.TestLensOptions build()
 TYPE io.github.testlens.TestLensOptions
   public static io.github.testlens.TestLensOptions defaults()
@@ -1031,6 +1168,7 @@ TYPE io.github.testlens.TestLensOptions
   public int allowedRetries()
   public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOptions()
   public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
+  public io.github.testlens.hud.HudOptions hud()
 TYPE io.github.testlens.actions.AssertActions$OverlayAssertionResult
   public io.github.testlens.actions.AssertActions$OverlayAssertionResult(boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, long)
   public boolean isSuccess()

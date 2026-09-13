@@ -1370,6 +1370,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../observability/hud-studio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HUD Studio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../observability/screenshots-evidence/" class="md-nav__link">
         
   
@@ -2401,6 +2429,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#hudoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HudOptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#hudtheme" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2916,6 +2955,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#hudoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HudOptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#hudtheme" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3069,6 +3119,12 @@
 <td><code>OverlayConfig</code></td>
 <td><code>OverlayConfig.builder().build()</code></td>
 <td>Visual runtime behavior; null is rejected when options are built/used.</td>
+</tr>
+<tr>
+<td><code>hud(value)</code></td>
+<td><code>HudOptions</code></td>
+<td><code>HudOptions.defaults()</code></td>
+<td>Product-level HUD content, layout, palette, opacity, and branding. Added in <code>0.3.0-SNAPSHOT</code>.</td>
 </tr>
 <tr>
 <td><code>locatorOptions(value)</code></td>
@@ -3364,8 +3420,8 @@
 <tr>
 <td><code>hudMaxWidthPx(value)</code></td>
 <td>int</td>
-<td>520</td>
-<td>Positive maximum width.</td>
+<td>420</td>
+<td>Positive maximum width; the product-level default comes from <code>HudPreset.COMPACT</code>.</td>
 </tr>
 <tr>
 <td><code>hudTheme(theme)</code></td>
@@ -3388,6 +3444,12 @@
 </tbody>
 </table>
 <p>Accessors use JavaBean <code>is...</code>/<code>get...</code> names shown in the <a href="../public-api-catalog/">catalog</a>.</p>
+<h2 id="hudoptions">HudOptions<a class="headerlink" href="#hudoptions" title="Permanent link">&para;</a></h2>
+<p><code>HudOptions.defaults()</code> selects <code>HudPreset.COMPACT</code>; the fuller timestamped preset is <code>STANDARD</code>. Presets provide base values and explicit builder overrides win independently of call order. The builder exposes the corner anchor and bounded offsets, <code>HudHeaderLayout</code>, panel width and maximum height, internal log maximum height, controlled font presets and sizes, semantic visibility switches, branding placement and rail width, the validated palette, background opacity, and <code>customLogo(Path)</code>. Offsets are 0–500 px, width 240–960 px, panel height 120–1000 px, log height 80–720 px, rail width 16–80 px, opacity 0–1, and colors are six-digit hexadecimal values. Runtime rendering clamps effective dimensions and offsets to the current viewport.</p>
+<p><code>HudHeaderLayout.AUTO</code> is the preset default. It places the atomic TEST and STEP label/value items on one row when their natural widths fit and moves the complete STEP item to row two otherwise. <code>INLINE</code> always uses one row with ellipsis as needed; <code>STACKED</code> always uses two. Values never wrap and retain their full tooltip. PIPE, when enabled, is rendered as a separate metadata row and does not participate in the TEST/STEP layout decision.</p>
+<p>The global <code>fontPreset(...)</code> is the baseline for every section. <code>typography(HudTypography)</code> can override the local font stack for the header, current step, event log, or metadata; omitted section values inherit the global preset. These typed presets use local font stacks only. Arbitrary CSS, remote fonts, and font URLs are not accepted.</p>
+<p><code>scrollbarStyle(...)</code> selects <code>SUBTLE</code>, <code>STANDARD</code>, or <code>NATIVE</code> for the event log. <code>SUBTLE</code> is the default except that <code>DEBUG</code> selects <code>STANDARD</code>. The custom styles accept a bounded 4–14 px Chromium width plus validated <code>#RRGGBB</code> track, thumb, and hover colors. Firefox applies the same colors but maps the styles to the engine's supported <code>thin</code> or native width rather than an exact pixel width. <code>NATIVE</code> leaves scrollbar rendering to the browser and operating system.</p>
+<p>See <a href="../../observability/hud-studio/">HUD Studio</a> for preset defaults, examples, and the PNG branding security boundary.</p>
 <h2 id="hudtheme">HudTheme<a class="headerlink" href="#hudtheme" title="Permanent link">&para;</a></h2>
 <p>Factories: <code>defaultTheme</code>, <code>dark</code>, <code>light</code>, <code>glass</code>, <code>compact</code>, <code>highContrast</code>, <code>blackAndColors</code>, <code>minimal</code>, <code>fromPreset</code>, and <code>builder</code>.</p>
 <!-- API SIGNATURES: io.github.testlens.hud.HudTheme -->

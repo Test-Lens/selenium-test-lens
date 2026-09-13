@@ -1582,6 +1582,34 @@
   
   
     <li class="md-nav__item">
+      <a href="observability/hud-studio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HUD Studio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="observability/screenshots-evidence/" class="md-nav__link">
         
   
@@ -3149,6 +3177,10 @@
 </script>
 
 <p><small>This is a deterministic simulation: the checkout UI and network rows are synthetic, while the HUD, labeled highlight, and scroll arrow use the renderer for this documentation version. No request is sent.</small></p>
+<!-- configurable-hud-dev:start -->
+<p>The development renderer defaults to the compact preset. Try <strong>Compact</strong>, <strong>Minimal</strong>, or <strong>Debug</strong> above, or <a href="observability/hud-studio/">customize the complete HUD in HUD Studio</a>.</p>
+<!-- configurable-hud-dev:end -->
+
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">startSession</span><span class="p">(</span><span class="s">"Checkout"</span><span class="p">);</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByRole</span><span class="p">(</span><span class="s">"button"</span><span class="p">,</span><span class="w"> </span><span class="s">"Place order"</span><span class="p">)</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span><span class="p">.</span><span class="na">waitUntilClickable</span><span class="p">()</span>

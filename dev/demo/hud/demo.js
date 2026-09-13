@@ -13,6 +13,8 @@
   var viewportVisible = window.parent === window;
   var active = false;
   var elapsed = 0;
+  var selectedPreset = 'COMPACT';
+  var configurableHud = typeof hud.preset === 'function';
 
   var email = document.getElementById('email');
   var continueButton = document.getElementById('continue');
@@ -60,6 +62,18 @@
     return 'ACTION';
   }
   function log(value, level) { hud.log(value, level || 'info', timestamp(), eventType(value)); }
+
+  function presetOptions() {
+    if (!configurableHud) return {};
+    var options = hud.preset(selectedPreset);
+    if (!options) throw new Error('HUD preset is unavailable: ' + selectedPreset);
+    return Object.assign(options, {
+      preset: selectedPreset,
+      position: 'BOTTOM_RIGHT',
+      width: Math.max(240, Math.min(options.width, window.innerWidth - 24)),
+      branding: 'TEST_LENS'
+    });
+  }
 
   function decorate(target, label, duration) {
     highlight.clear();
@@ -147,6 +161,7 @@
       offsetY: 12,
       maxWidth: Math.max(260, Math.min(370, window.innerWidth - 24)),
       themeName: 'DARK',
+      hudOptions: presetOptions()
     });
     setStep('Preparing checkout');
     document.body.dataset.demoState = 'running';
@@ -233,6 +248,19 @@
   replayButton.addEventListener('click', function () {
     if (active) startScenario();
   });
+  document.querySelectorAll('[data-hud-preset]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      selectedPreset = button.getAttribute('data-hud-preset');
+      document.querySelectorAll('[data-hud-preset]').forEach(function (candidate) {
+        candidate.setAttribute('aria-pressed', String(candidate === button));
+      });
+      if (active) startScenario();
+    });
+  });
+  if (!configurableHud) {
+    var presetControl = document.querySelector('.preset-control');
+    if (presetControl) presetControl.hidden = true;
+  }
   document.addEventListener('visibilitychange', updateActivity);
   window.addEventListener('message', function (event) {
     if (event.source !== window.parent || !event.data || event.data.type !== 'test-lens-demo-visibility') return;

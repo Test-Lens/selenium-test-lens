@@ -16,7 +16,7 @@
         <link rel="prev" href="../">
       
       
-        <link rel="next" href="../screenshots-evidence/">
+        <link rel="next" href="../hud-studio/">
       
       
         
@@ -1479,6 +1479,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#configurable-hud-030-snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configurable HUD (0.3.0-SNAPSHOT)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#low-level-hud-api" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1493,6 +1504,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hud-studio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HUD Studio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2851,6 +2890,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#configurable-hud-030-snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configurable HUD (0.3.0-SNAPSHOT)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#low-level-hud-api" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2947,6 +2997,9 @@
 </span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
 </span></code></pre></div>
 <p><code>HudPosition</code> chooses the anchored location, while a <code>HudThemePreset</code> selects a built-in palette and layout. Custom <code>HudTheme</code> values are also supported. Use the full <a href="../../reference/configuration/#overlayconfig"><code>OverlayConfig</code></a> and <a href="../../reference/configuration/#hudtheme"><code>HudTheme</code></a> configuration tables for presets, offsets, width, palette, spacing, and validation rules instead of relying on duplicated defaults here. Arbitrary custom theme strings become generated CSS and must be trusted test configuration.</p>
+<h2 id="configurable-hud-030-snapshot">Configurable HUD (<code>0.3.0-SNAPSHOT</code>)<a class="headerlink" href="#configurable-hud-030-snapshot" title="Permanent link">&para;</a></h2>
+<p>New code can configure content, position, responsive <code>AUTO</code>/<code>INLINE</code>/<code>STACKED</code> header layout, bounded dimensions, a validated color palette, opacity, branding, typed global or section-specific local font stacks, and the event-log scrollbar through immutable <code>HudOptions</code>. The default <code>COMPACT</code> preset omits pipeline and timestamps, keeps test and current-step context small, gives the categorized event log most of the panel, and uses the subtle scrollbar style. <code>AUTO</code> keeps atomic TEST/STEP items together and moves STEP to row two only when needed. <code>NATIVE</code> restores browser/operating-system scrollbar rendering.</p>
+<p><a href="../hud-studio/">Open HUD Studio</a> for a live preview and a minimal Java configuration generator. Presentation filters never remove events from trace, reports, retry summaries, or network capture.</p>
 <h2 id="low-level-hud-api">Low-level HUD API<a class="headerlink" href="#low-level-hud-api" title="Permanent link">&para;</a></h2>
 <p><code>HudPanel</code>, <code>ApiOverlayPanel</code>, JS resource wrappers, <code>OverlayRootManager</code>, and related <code>*Js</code> types are formally public but intended for custom integrations and internal-style use. See <a href="../../reference/advanced-low-level/">advanced/low-level API</a>.</p>
 
@@ -3003,13 +3056,13 @@
         
         
           
-          <a href="../screenshots-evidence/" class="md-footer__link md-footer__link--next" aria-label="Next: Screenshots &amp; evidence">
+          <a href="../hud-studio/" class="md-footer__link md-footer__link--next" aria-label="Next: HUD Studio">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Screenshots & evidence
+                HUD Studio
               </div>
             </div>
             <div class="md-footer__button md-icon">
