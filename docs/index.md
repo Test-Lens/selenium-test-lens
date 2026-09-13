@@ -98,6 +98,9 @@ The in-browser HUD makes the active Lens session visible in the page under test.
 
 <small>This is a deterministic simulation: the checkout UI and network rows are synthetic, while the HUD, labeled highlight, and scroll arrow use the renderer for this documentation version. No request is sent.</small>
 
+<!-- configurable-hud-dev:start -->
+The development renderer defaults to the compact preset. Try **Compact**, **Minimal**, or **Debug** above, or [customize the complete HUD in HUD Studio](observability/hud-studio.md).
+<!-- configurable-hud-dev:end -->
 
 ```java
 lens.startSession("Checkout");

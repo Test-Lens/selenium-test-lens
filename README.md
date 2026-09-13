@@ -45,6 +45,8 @@ try {
 
 ## Why Test Lens
 
+The `0.3.0-SNAPSHOT` development line adds immutable HUD presets and a browser-based [HUD Studio](https://test-lens.github.io/selenium-test-lens/dev/observability/hud-studio/) for dragging, resizing, and styling the same renderer used at runtime, then copying matching Java configuration. Stable dependency examples below remain on `0.2.0`.
+
 ### Native interactions with visible recovery
 
 The recommended click path is the ordinary locator API:

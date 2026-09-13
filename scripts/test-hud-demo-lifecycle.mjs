@@ -29,7 +29,11 @@ function harness({ reducedMotion }) {
   const calls = { hudInit: 0, logs: [], highlight: 0, scrollArrow: 0, scrollTo: 0 };
   const parent = { postMessage() {} };
   const elements = new Map();
-  const presetButtons = [];
+  const presetButtons = ['COMPACT', 'MINIMAL', 'DEBUG'].map(value => eventTarget({
+    attributes: { 'data-hud-preset': value, 'aria-pressed': value === 'COMPACT' ? 'true' : 'false' },
+    getAttribute(name) { return this.attributes[name]; },
+    setAttribute(name, value) { this.attributes[name] = String(value); }
+  }));
 
   function element(id) {
     const value = eventTarget({
@@ -85,6 +89,14 @@ function harness({ reducedMotion }) {
         setStep() {},
         log(message) { calls.logs.push(message); },
         clear() {},
+        preset(name) {
+          const values = {
+            MINIMAL: { width: 280, maxHeight: 180, maxLogHeight: 80, showTestName: false, showCurrentStep: true, showPipeline: false, showTimestamps: false, showEventLog: false, showNetwork: false, showRetries: false, showWaits: true, showAssertions: true, fontPreset: 'UI_SANS', baseFontSize: 9, headerFontSize: 10 },
+            COMPACT: { width: 420, maxHeight: 280, maxLogHeight: 180, showTestName: true, showCurrentStep: true, showPipeline: false, showTimestamps: false, showEventLog: true, showNetwork: true, showRetries: true, showWaits: true, showAssertions: true, fontPreset: 'UI_SANS', baseFontSize: 10, headerFontSize: 10 },
+            DEBUG: { width: 620, maxHeight: 520, maxLogHeight: 360, showTestName: true, showCurrentStep: true, showPipeline: true, showTimestamps: true, showEventLog: true, showNetwork: true, showRetries: true, showWaits: true, showAssertions: true, fontPreset: 'MONOSPACE', baseFontSize: 10, headerFontSize: 11 }
+          };
+          return Object.assign({}, values[name]);
+        }
       },
       highlight: {
         element() { calls.highlight += 1; },
@@ -156,18 +168,22 @@ function harness({ reducedMotion }) {
   assert.ok(demo.calls.highlight > 0, 'reduced motion must retain static target highlights');
   assert.equal(demo.timers.size, 0, 'reduced motion must not schedule automatic replay');
 
+  demo.presetButtons[1].dispatch('click');
+  assert.equal(demo.presetButtons[1].attributes['aria-pressed'], 'true', 'preset switch must update its pressed state');
+  assert.equal(demo.timers.size, 1, 'preset switch must replace rather than duplicate the active run');
+
   demo.document.hidden = true;
   demo.document.dispatch('visibilitychange');
   assert.equal(demo.document.body.dataset.demoState, 'paused');
   demo.document.hidden = false;
   demo.document.dispatch('visibilitychange');
-  assert.equal(demo.calls.hudInit, 5, 'returning to a visible tab must restart cleanly');
+  assert.equal(demo.calls.hudInit, 6, 'returning to a visible tab must restart cleanly');
 
   demo.setIntersection(false);
   assert.equal(demo.document.body.dataset.demoState, 'paused');
   assert.equal(demo.timers.size, 0);
   demo.setIntersection(true);
-  assert.equal(demo.calls.hudInit, 6, 're-entering the viewport must restart cleanly');
+  assert.equal(demo.calls.hudInit, 7, 're-entering the viewport must restart cleanly');
 }
 
 {

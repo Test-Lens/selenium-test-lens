@@ -135,7 +135,7 @@ Auth-state restoration places origin validation ahead of every mutation boundary
 
 The overlay module contains resources for the HUD, highlighting and decorations, assertion and wait indicators, and API/debug overlays. The Selenium runtime injects and updates them through the driver. Consumers configure this layer through `OverlayConfig`.
 
-In the `0.3.0-SNAPSHOT` line, immutable `HudOptions` is the product-level HUD contract. Runtime sinks apply the configured event-category visibility before `HudPanel` serializes visible rows into the canonical `hud-panel.js` runtime resource. The runtime and HUD Studio both execute that same resource; documentation supplies synthetic events but does not maintain a second HUD implementation. Content visibility is a presentation boundary and does not remove events from trace or other sinks.
+In the `0.3.0-SNAPSHOT` line, immutable `HudOptions` is the product-level HUD contract. Runtime sinks apply the configured event-category visibility before `HudPanel` serializes visible rows into the canonical `hud-panel.js` runtime resource. The runtime, homepage demonstration, and HUD Studio all execute that same resource; documentation supplies synthetic events but does not maintain a second HUD implementation. Content visibility is a presentation boundary and does not remove events from trace or other sinks.
 
 ## Reporting boundary
 

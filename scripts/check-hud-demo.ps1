@@ -65,7 +65,7 @@ if ($demoHtml -match '(?i)(?:src|href)\s*=\s*["''](?:https?:)?//') {
 $demoJsPath = Join-Path $demoSource "demo.js"
 $demoJs = [IO.File]::ReadAllText($demoJsPath)
 foreach ($contract in @(
-    "hud.init", "hud.setStep", "hud.log",
+    "hud.init", "hud.setStep", "hud.log", "hud.preset",
     "highlight.element", "scrollArrow.scrollToElementWithArrow",
     "prefers-reduced-motion", "document.hidden", "visibilitychange",
     "event.source !== window.parent", "pendingDelays", "cancelScheduledWork",
