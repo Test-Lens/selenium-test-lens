@@ -18,6 +18,12 @@ $futureReleaseVersion = if ($sourceIsSnapshot) {
 $developmentTitle = if ($sourceIsSnapshot) { "$developmentVersion / coming soon" } else { $developmentVersion }
 $work = Join-Path ([IO.Path]::GetTempPath()) ("test-lens-versioned-docs-" + [guid]::NewGuid())
 $ok = $false
+$compatibilityRedirects = [ordered]@{
+    "integrations/react/index.html" = [pscustomobject]@{
+        Target = "../../features/react-spa/"
+        HistoricalPageSource = "features/react-spa.md"
+    }
+}
 function TreeHash([string]$Path) {
     $items = Get-ChildItem $Path -File -Recurse | Sort-Object FullName | ForEach-Object {
         $rel = $_.FullName.Substring($Path.Length).Replace('\','/')
@@ -26,6 +32,60 @@ function TreeHash([string]$Path) {
     $bytes = [Text.Encoding]::UTF8.GetBytes(($items -join "`n"))
     $sha = [Security.Cryptography.SHA256]::Create()
     return ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace("-", "")
+}
+function Test-IsCompatibilityRedirectPage([string]$RelativePath) {
+    $normalizedRelativePath = $RelativePath.Replace('\','/')
+    return $compatibilityRedirects.Contains($normalizedRelativePath) -and
+        (Test-Path -LiteralPath (Join-Path $root "docs/$normalizedRelativePath") -PathType Leaf)
+}
+function Assert-CompatibilityRedirectPage(
+    [string]$SiteRoot,
+    [string]$VersionDirectory,
+    [string]$RelativePath,
+    [string]$ExpectedTarget
+) {
+    $normalizedRelativePath = $RelativePath.Replace('\','/')
+    if (-not (Test-IsCompatibilityRedirectPage $normalizedRelativePath)) {
+        throw "Unregistered compatibility redirect: $normalizedRelativePath"
+    }
+
+    $sourcePath = Join-Path $root "docs/$normalizedRelativePath"
+    $publishedPath = Join-Path $SiteRoot "$VersionDirectory/$normalizedRelativePath"
+    if (-not (Test-Path -LiteralPath $publishedPath -PathType Leaf)) {
+        throw "Compatibility redirect missing: $VersionDirectory/$normalizedRelativePath"
+    }
+    if ((Get-FileHash $publishedPath -Algorithm SHA256).Hash -ne (Get-FileHash $sourcePath -Algorithm SHA256).Hash) {
+        throw "Compatibility redirect was not copied unchanged: $VersionDirectory/$normalizedRelativePath"
+    }
+
+    $text = [IO.File]::ReadAllText($publishedPath)
+    $requiredFragments = @(
+        '<meta name="robots" content="noindex">',
+        "<meta http-equiv=`"refresh`" content=`"0; url=$ExpectedTarget`">",
+        "<link rel=`"canonical`" href=`"$ExpectedTarget`">",
+        "<a href=`"$ExpectedTarget`">"
+    )
+    foreach ($fragment in $requiredFragments) {
+        if (-not $text.Contains($fragment)) {
+            throw "Compatibility redirect contract missing '$fragment': $VersionDirectory/$normalizedRelativePath"
+        }
+    }
+    if ([regex]::Matches($text, '<link\s+rel="canonical"\s+href=').Count -ne 1) {
+        throw "Compatibility redirect must contain exactly one canonical link: $VersionDirectory/$normalizedRelativePath"
+    }
+    if ([regex]::Matches($text, '<meta\s+http-equiv="refresh"\s+content=').Count -ne 1) {
+        throw "Compatibility redirect must contain exactly one refresh directive: $VersionDirectory/$normalizedRelativePath"
+    }
+
+    $baseUri = [Uri]::new("https://docs.example.invalid/$VersionDirectory/$normalizedRelativePath")
+    $resolvedPath = [Uri]::new($baseUri, $ExpectedTarget).AbsolutePath
+    $expectedVersionLocalPath = "/$VersionDirectory/features/react-spa/"
+    if ($resolvedPath -ne $expectedVersionLocalPath) {
+        throw "Compatibility redirect escapes its documentation version: $resolvedPath (expected $expectedVersionLocalPath)"
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $SiteRoot "$VersionDirectory/features/react-spa/index.html") -PathType Leaf)) {
+        throw "Compatibility redirect target missing: $expectedVersionLocalPath"
+    }
 }
 try {
     New-Item -ItemType Directory -Path $work | Out-Null
@@ -52,16 +112,32 @@ try {
         & git config user.name "Test Lens docs validation"
         & git config user.email "docs-validation@example.invalid"
         & git config core.autocrlf false
+        $repoHomepage = Join-Path $repo "docs/index.md"
+        $developmentRedirectSources = @{}
+        foreach ($relativePath in $compatibilityRedirects.Keys) {
+            $redirectSource = Join-Path $repo "docs/$relativePath"
+            if (-not (Test-Path -LiteralPath $redirectSource -PathType Leaf)) { continue }
+            $developmentRedirectSources[$relativePath] = [IO.File]::ReadAllBytes($redirectSource)
+            $historicalPage = Join-Path $repo ("docs/" + $relativePath.Replace('/index.html', '.md'))
+            Copy-Item -LiteralPath (Join-Path $repo ("docs/" + $compatibilityRedirects[$relativePath].HistoricalPageSource)) -Destination $historicalPage
+            Remove-Item -LiteralPath $redirectSource
+        }
         & git add .
         & git commit -q -m release-source
         & git tag v0.2.0
-        $repoHomepage = Join-Path $repo "docs/index.md"
+        foreach ($relativePath in $developmentRedirectSources.Keys) {
+            $historicalPage = Join-Path $repo ("docs/" + $relativePath.Replace('/index.html', '.md'))
+            Remove-Item -LiteralPath $historicalPage
+            $redirectSource = Join-Path $repo "docs/$relativePath"
+            New-Item -ItemType Directory -Path (Split-Path -Parent $redirectSource) -Force | Out-Null
+            [IO.File]::WriteAllBytes($redirectSource, $developmentRedirectSources[$relativePath])
+        }
         [IO.File]::AppendAllText(
             $repoHomepage,
             "`n<!-- validation-only development source -->`n",
             [Text.UTF8Encoding]::new($false)
         )
-        & git add docs/index.md
+        & git add docs
         & git commit -q -m development-source
         & git init -q --bare $remote
         & git remote add origin $remote
@@ -148,8 +224,15 @@ try {
             if (-not (Get-ChildItem $assets -Filter *.js -File -Recurse)) { throw "No JavaScript assets published for $versionDirectory." }
         }
         $banner = if ($sourceIsSnapshot) { "Development documentation for" } else { "Documentation source for" }
-        foreach ($html in Get-ChildItem (Join-Path $stage2 "dev") -Filter *.html -File -Recurse) {
-            if ($html.FullName.Replace('\','/').Contains('/demo/')) { continue }
+        $activeCompatibilityRedirects = @($compatibilityRedirects.Keys | Where-Object { Test-IsCompatibilityRedirectPage $_ })
+        foreach ($relativePath in $activeCompatibilityRedirects) {
+            Assert-CompatibilityRedirectPage $stage2 "dev" $relativePath $compatibilityRedirects[$relativePath].Target
+        }
+        $devRoot = Join-Path $stage2 "dev"
+        foreach ($html in Get-ChildItem $devRoot -Filter *.html -File -Recurse) {
+            $relativePath = $html.FullName.Substring($devRoot.Length + 1).Replace('\','/')
+            if ($relativePath.StartsWith('demo/', [StringComparison]::Ordinal)) { continue }
+            if (Test-IsCompatibilityRedirectPage $relativePath) { continue }
             $text = [IO.File]::ReadAllText($html.FullName)
             if (-not $text.Contains($banner)) { throw "Development banner missing: $($html.FullName)" }
             if (-not $text.Contains('class="tl-version-switcher"')) { throw "Version switcher missing from dev: $($html.FullName)" }
@@ -205,6 +288,9 @@ try {
         $futureRelease = $future | Where-Object version -eq $futureReleaseVersion
         if ($null -eq $futureRelease -or $futureRelease.aliases -notcontains "latest") { throw "Future release did not move latest." }
         if (-not (Test-Path (Join-Path $stage3 "0.1.0/index.html"))) { throw "Future release removed 0.1.0." }
+        foreach ($relativePath in $activeCompatibilityRedirects) {
+            Assert-CompatibilityRedirectPage $stage3 $futureReleaseVersion $relativePath $compatibilityRedirects[$relativePath].Target
+        }
         $futureGuide = [IO.File]::ReadAllText((Join-Path $stage3 "$futureReleaseVersion/getting-started/index.html"))
         if (-not $futureGuide.Contains("edit/v$futureReleaseVersion/docs/getting-started.md")) { throw "Tagged release edit link does not target its tag." }
         $rootRedirect = [IO.File]::ReadAllText((Join-Path $stage2 "index.html"))
