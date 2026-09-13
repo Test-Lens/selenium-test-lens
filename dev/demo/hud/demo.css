@@ -1,0 +1,170 @@
+:root {
+  color: #172033;
+  background: #eef2f7;
+  font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+html { overflow-x: hidden; scroll-behavior: auto; }
+
+body {
+  margin: 0;
+  min-width: 280px;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 12% 3%, rgba(56, 189, 248, .13), transparent 28rem),
+    #eef2f7;
+}
+
+.demo-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .7rem 1rem;
+  color: #f8fafc;
+  background: rgba(15, 23, 42, .96);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .16);
+}
+
+.demo-toolbar div { display: flex; flex-direction: column; min-width: 0; }
+.demo-toolbar strong { font-size: .86rem; }
+.demo-toolbar span { color: #cbd5e1; font-size: .7rem; }
+
+button, input { font: inherit; }
+
+button {
+  border: 0;
+  border-radius: .45rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+#replay-demo {
+  flex: 0 0 auto;
+  padding: .45rem .7rem;
+  color: #e0f2fe;
+  background: #075985;
+}
+
+#replay-demo:hover { background: #0369a1; }
+#replay-demo:focus-visible, input:focus-visible, .primary:focus-visible { outline: 3px solid #facc15; outline-offset: 2px; }
+
+main {
+  width: min(720px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 6rem;
+}
+
+.checkout-card {
+  width: min(480px, 100%);
+  padding: 1.4rem;
+  border: 1px solid #dbe3ee;
+  border-radius: .8rem;
+  background: #fff;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, .08);
+}
+
+.intro-card { margin-right: auto; }
+.order-card { margin-left: auto; }
+
+.eyebrow {
+  margin: 0 0 .25rem;
+  color: #0369a1;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+h1, h2 { margin: 0; color: #0f172a; line-height: 1.15; }
+h1 { font-size: clamp(1.55rem, 4vw, 2.2rem); }
+h2 { font-size: clamp(1.3rem, 3vw, 1.75rem); }
+.lede { margin: .55rem 0 1.35rem; color: #526076; }
+
+label { display: block; margin-bottom: .35rem; font-size: .8rem; font-weight: 750; }
+
+input {
+  width: 100%;
+  padding: .72rem .8rem;
+  border: 1px solid #9aa8bc;
+  border-radius: .45rem;
+  color: #172033;
+  background: #fff;
+}
+
+.primary {
+  width: 100%;
+  margin-top: .85rem;
+  padding: .72rem 1rem;
+  color: #fff;
+  background: #0369a1;
+}
+
+.primary:hover { background: #075985; }
+
+.spacer-copy {
+  min-height: 560px;
+  padding: 12rem 0 4rem;
+  color: #526076;
+}
+
+.spacer-copy p:last-child { max-width: 38rem; }
+
+dl { margin: 1.2rem 0; }
+dl div { display: flex; justify-content: space-between; padding: .55rem 0; border-bottom: 1px solid #e5eaf1; }
+dt { color: #526076; }
+dd { margin: 0; font-weight: 750; }
+
+#confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  margin-top: 1rem;
+  padding: .8rem;
+  border: 1px solid #86efac;
+  border-radius: .5rem;
+  color: #166534;
+  background: #f0fdf4;
+}
+
+#confirmation[hidden] { display: none; }
+#confirmation span { font-size: .78rem; }
+.no-script { margin: 1rem; padding: .8rem; background: #fff7ed; }
+
+@media (max-width: 560px) {
+  .demo-toolbar { align-items: flex-start; padding: .6rem .7rem; }
+  .demo-toolbar strong { font-size: .8rem; }
+  .demo-toolbar span { display: none; }
+  .preset-control { order: 3; width: 100%; }
+  .preset-control span { display: inline; }
+  #replay-demo { padding: .4rem .55rem; font-size: .78rem; }
+  main { width: calc(100% - 1.2rem); padding-top: 1rem; }
+  .checkout-card { padding: 1rem; }
+  .spacer-copy { min-height: 500px; padding-top: 10rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

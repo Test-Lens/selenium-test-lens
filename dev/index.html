@@ -3097,6 +3097,58 @@
 <p>It does not replace Selenium, Page Objects, JUnit, TestNG, or an existing reporting stack. Raw WebDriver remains available whenever it is the clearer or more complete API.</p>
 <h2 id="live-hud-and-element-highlights">Live HUD and element highlights<a class="headerlink" href="#live-hud-and-element-highlights" title="Permanent link">&para;</a></h2>
 <p>The in-browser HUD makes the active Lens session visible in the page under test. It presents the current step and diagnostic rows emitted by element actions, waits, assertions, recovery retries, and network diagnostics. Rows carry their operation status and safe target or locator context; <a href="advanced/network/#hud-only-filtering"><code>NetworkHudFilter</code></a> can reduce raw request/response noise without removing captured evidence.</p>
+<style>
+.tl-hud-demo-frame { display: block; width: 100%; max-width: 100%; height: 650px; border: 1px solid var(--md-default-fg-color--lightest); border-radius: .6rem; background: #eef2f7; }
+@media (max-width: 720px) { .tl-hud-demo-frame { height: 690px; } }
+</style>
+
+<p><iframe
+  id="test-lens-hud-demo"
+  class="tl-hud-demo-frame"
+  src="demo/hud/"
+  title="Interactive Test Lens HUD, highlight, and scroll-cue demonstration"
+  loading="eager"
+  sandbox="allow-scripts"
+>
+  The interactive demo could not be loaded. <a href="demo/hud/">Open the standalone HUD demo.</a>
+</iframe>
+</p>
+<script>
+(function () {
+  var frame = document.getElementById('test-lens-hud-demo');
+  if (!frame) return;
+
+  var visible = false;
+  function notifyDemo() {
+    if (frame.contentWindow) {
+      frame.contentWindow.postMessage({ type: 'test-lens-demo-visibility', visible: visible }, '*');
+    }
+  }
+
+  window.addEventListener('message', function (event) {
+    if (event.source === frame.contentWindow && event.data && event.data.type === 'test-lens-demo-ready') {
+      notifyDemo();
+    }
+  });
+
+  if (!('IntersectionObserver' in window)) {
+    visible = true;
+    frame.addEventListener('load', notifyDemo);
+    notifyDemo();
+    return;
+  }
+
+  var observer = new IntersectionObserver(function (entries) {
+    var entry = entries[0];
+    visible = Boolean(entry && entry.isIntersecting && entry.intersectionRatio >= 0.05);
+    notifyDemo();
+  }, { threshold: [0, 0.05] });
+  observer.observe(frame);
+  frame.addEventListener('load', notifyDemo);
+}());
+</script>
+
+<p><small>This is a deterministic simulation: the checkout UI and network rows are synthetic, while the HUD, labeled highlight, and scroll arrow use the renderer for this documentation version. No request is sent.</small></p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">startSession</span><span class="p">(</span><span class="s">"Checkout"</span><span class="p">);</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByRole</span><span class="p">(</span><span class="s">"button"</span><span class="p">,</span><span class="w"> </span><span class="s">"Place order"</span><span class="p">)</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span><span class="p">.</span><span class="na">waitUntilClickable</span><span class="p">()</span>
