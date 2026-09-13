@@ -1,6 +1,7 @@
 package io.github.testlens;
 
 import io.github.testlens.hud.HudPosition;
+import io.github.testlens.hud.HudOptions;
 import io.github.testlens.hud.HudTheme;
 import io.github.testlens.hud.HudThemePreset;
 
@@ -20,6 +21,8 @@ public final class OverlayConfig {
     private final HudTheme hudTheme;
     private final HudThemePreset hudThemePreset;
     private final String highlightColor;
+    private final HudOptions hudOptions;
+    private final boolean hudOptionsAuthoritative;
 
     private OverlayConfig(Builder builder) {
         this.enabled = builder.enabled;
@@ -33,6 +36,8 @@ public final class OverlayConfig {
         this.hudTheme = builder.hudTheme;
         this.hudThemePreset = builder.hudThemePreset;
         this.highlightColor = builder.highlightColor;
+        this.hudOptions = builder.hudOptions;
+        this.hudOptionsAuthoritative = builder.hudOptionsAuthoritative;
     }
 
     public static Builder builder() {
@@ -83,6 +88,28 @@ public final class OverlayConfig {
         return highlightColor;
     }
 
+    /** Returns the product-level HUD configuration. */
+    public HudOptions getHudOptions() { return hudOptions; }
+
+    /**
+     * Returns whether {@link #getHudOptions()} is the authoritative visual HUD configuration.
+     * A legacy {@link HudTheme} remains authoritative until explicit product-level HUD options
+     * are supplied.
+     */
+    public boolean isHudOptionsAuthoritative() { return hudOptionsAuthoritative; }
+
+    OverlayConfig withHudOptions(HudOptions value) {
+        return builder()
+                .enabled(enabled)
+                .showHudPanel(showHudPanel)
+                .decorationDurationMs(decorationDurationMs)
+                .globalOverlayCloseButtonSelector(globalOverlayCloseButtonSelector)
+                .hudOffset(hudOffsetX, hudOffsetY)
+                .highlightColor(highlightColor)
+                .hudOptions(value)
+                .build();
+    }
+
     public static final class Builder {
 
         private boolean enabled = true;
@@ -92,10 +119,13 @@ public final class OverlayConfig {
         private HudPosition hudPosition = HudPosition.BOTTOM_RIGHT;
         private int hudOffsetX = 10;
         private int hudOffsetY = 10;
-        private int hudMaxWidthPx = 520;
+        private int hudMaxWidthPx = HudOptions.defaults().widthPx();
         private HudTheme hudTheme = HudTheme.defaultTheme();
         private HudThemePreset hudThemePreset = HudThemePreset.DEFAULT;
         private String highlightColor = "#ffeb3b";
+        private HudOptions hudOptions = HudOptions.defaults();
+        private boolean hudOptionsExplicit;
+        private boolean hudOptionsAuthoritative = true;
 
         public Builder enabled(boolean enabled) {
             this.enabled = enabled;
@@ -121,41 +151,81 @@ public final class OverlayConfig {
         }
 
         public Builder hudPosition(HudPosition position) {
+            if (hudOptionsExplicit) return this;
             if (position != null) {
                 this.hudPosition = position;
+                this.hudOptions = hudOptions.toBuilder().position(position).build();
             }
             return this;
         }
 
         public Builder hudOffset(int offsetX, int offsetY) {
+            if (hudOptionsExplicit) return this;
             if (offsetX >= 0) {
                 this.hudOffsetX = offsetX;
             }
             if (offsetY >= 0) {
                 this.hudOffsetY = offsetY;
             }
+            if (offsetX >= 0 && offsetX <= 500 && offsetY >= 0 && offsetY <= 500) {
+                this.hudOptions = hudOptions.toBuilder().offsetXPx(offsetX).offsetYPx(offsetY).build();
+            }
             return this;
         }
 
         public Builder hudMaxWidthPx(int hudMaxWidthPx) {
+            if (hudOptionsExplicit) return this;
             if (hudMaxWidthPx > 0) {
                 this.hudMaxWidthPx = hudMaxWidthPx;
+                if (hudMaxWidthPx >= 240 && hudMaxWidthPx <= 960) {
+                    this.hudOptions = hudOptions.toBuilder().widthPx(hudMaxWidthPx).build();
+                }
             }
             return this;
         }
 
         public Builder hudTheme(HudTheme hudTheme) {
+            if (hudOptionsExplicit) return this;
             if (hudTheme != null) {
                 this.hudTheme = hudTheme;
                 this.hudThemePreset = null;
+                this.hudOptionsAuthoritative = false;
+            }
+            return this;
+        }
+
+        /** Uses one cohesive, immutable HUD configuration. */
+        public Builder hudOptions(HudOptions value) {
+            if (value != null) {
+                this.hudOptions = value;
+                this.hudOptionsExplicit = true;
+                this.hudOptionsAuthoritative = true;
+                this.hudPosition = value.position();
+                this.hudOffsetX = value.offsetXPx();
+                this.hudOffsetY = value.offsetYPx();
+                this.hudMaxWidthPx = value.widthPx();
+                this.hudThemePreset = null;
+                this.hudTheme = HudTheme.builder()
+                        .background(value.background())
+                        .foreground(value.primaryTextColor())
+                        .mutedForeground(value.mutedTextColor())
+                        .accent(value.accentColor())
+                        .success(value.successColor())
+                        .warning(value.warningColor())
+                        .danger(value.failureColor())
+                        .opacity(1.0)
+                        .maxHeightPx(value.maxHeightPx())
+                        .build();
             }
             return this;
         }
 
         public Builder hudTheme(HudThemePreset preset) {
+            if (hudOptionsExplicit) return this;
             if (preset != null) {
                 this.hudThemePreset = preset;
                 this.hudTheme = HudTheme.fromPreset(preset);
+                this.hudOptionsAuthoritative = preset == HudThemePreset.DEFAULT;
             }
             return this;
         }

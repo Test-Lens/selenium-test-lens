@@ -345,6 +345,7 @@ public io.github.testlens.TestLensOptions$Builder retryOutcomePolicy(io.github.t
 public io.github.testlens.TestLensOptions$Builder allowedRetries(int)
 public io.github.testlens.TestLensOptions$Builder failureBundleOptions(io.github.testlens.selenium.evidence.FailureBundleOptions)
 public io.github.testlens.TestLensOptions$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
+public io.github.testlens.TestLensOptions$Builder hud(io.github.testlens.hud.HudOptions)
 public io.github.testlens.TestLensOptions build()
 ```
 
@@ -368,4 +369,5 @@ public io.github.testlens.core.trace.RetryOutcomePolicy retryOutcomePolicy()
 public int allowedRetries()
 public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOptions()
 public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
+public io.github.testlens.hud.HudOptions hud()
 ```

@@ -4,6 +4,14 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Added immutable `HudOptions` with Minimal, Compact, Standard, and Debug presets, semantic HUD row filtering, responsive atomic AUTO/INLINE/STACKED header layouts, validated semantic colors and opacity, anchored offsets, bounded sizing, global and section-specific local font presets, configurable native/subtle/standard event-log scrollbars, and bounded PNG branding. The shared browser-side renderer consumes the same effective configuration throughout the runtime.
+
+### Changed
+
+- The runtime HUD now defaults to the compact product preset: pipeline and timestamps are hidden, TEST/STEP context is compact, and the event log receives the available panel space. Existing trace and session metadata are unchanged.
+
 ## [0.2.0] - 2026-09-11
 
 - Added explicit, synchronous upload of completed report ZIPs through the JDK HTTP client, with deterministic idempotency keys, bounded retries and response diagnostics, direct/system/explicit proxy selection, literal no-proxy rules, and no changes to session finalization or WebDriver ownership. Response preview consumption remains inside the request-timeout boundary, so a receiver cannot keep an upload blocked after sending only response headers.

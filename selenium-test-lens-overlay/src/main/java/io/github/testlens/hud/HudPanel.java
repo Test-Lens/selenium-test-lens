@@ -5,10 +5,11 @@ import io.github.testlens.core.HudPanelJs;
 import io.github.testlens.core.OverlayRootManager;
 import io.github.testlens.core.browser.BrowserScriptExecutor;
 
+import java.util.Collections;
 import java.util.Objects;
 
 /**
- * Panel HUD in the browser overlay with test, pipeline, step and log information.
+ * Browser HUD panel configured by {@link HudOptions}. HUD rendering is best-effort.
  */
 public class HudPanel {
 
@@ -61,8 +62,8 @@ public class HudPanel {
         ensureHudPanelExists();
         scriptExecutor.execute(
                 HudPanelJs.bridgeScript() +
-                        "if (hud) { hud.log(arguments[1], arguments[0], arguments[2]); }",
-                level, message, timestamp);
+                        "if (hud) { hud.log(arguments[1], arguments[0], arguments[2], arguments[3]); }",
+                level, message, timestamp, "GENERAL");
         });
     }
 
@@ -85,7 +86,8 @@ public class HudPanel {
                         "offsetY: arguments[4]," +
                         "maxWidth: arguments[5]," +
                         "theme: arguments[6]," +
-                        "themeName: arguments[7]" +
+                        "themeName: arguments[7]," +
+                        "hudOptions: arguments[8]" +
                         "}); }",
                 lastTestName,
                 lastPipelineId,
@@ -94,7 +96,10 @@ public class HudPanel {
                 config.getHudOffsetY(),
                 config.getHudMaxWidthPx(),
                 config.getHudTheme().toMap(),
-                config.getHudThemePreset() == null ? "CUSTOM" : config.getHudThemePreset().name()
+                config.getHudThemePreset() == null ? "CUSTOM" : config.getHudThemePreset().name(),
+                config.isHudOptionsAuthoritative()
+                        ? config.getHudOptions().toRuntimeMap()
+                        : Collections.emptyMap()
         );
     }
 

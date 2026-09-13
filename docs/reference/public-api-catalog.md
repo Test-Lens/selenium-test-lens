@@ -7,7 +7,7 @@ search:
 
 This generated catalog is the optional binary-surface reference for every published public type, constructor, method, and field. Start with [Capabilities](../capabilities.md) and the functional navigation for behavior, workflows, and examples. Internal-style types appear only because Java consumers can currently access them.
 
-Inventory: **231 public types** and **1813 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
+Inventory: **241 public types** and **1921 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
 
 Classifications: USER_API is the normal consumer path; ADVANCED_API is supported specialized functionality; LOW_LEVEL_API exposes lower abstractions; INTERNAL_STYLE_PUBLIC is binary-public implementation surface and is not recommended for application code.
 
@@ -85,11 +85,21 @@ Signature details are split by published artifact and Java package to keep indiv
 | io.github.testlens.core.TypeHintJs | io.github.testlens.core | INTERNAL_STYLE_PUBLIC | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-core.md#io-github-testlens-core-typehintjs) |
 | io.github.testlens.core.UiTestLensRuntimeNames | io.github.testlens.core | INTERNAL_STYLE_PUBLIC | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-core.md#io-github-testlens-core-uitestlensruntimenames) |
 | io.github.testlens.core.WaitHudJs | io.github.testlens.core | INTERNAL_STYLE_PUBLIC | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-core.md#io-github-testlens-core-waithudjs) |
+| io.github.testlens.hud.HudBranding | io.github.testlens.hud | USER_API | enum | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudbranding) |
+| io.github.testlens.hud.HudFontPreset | io.github.testlens.hud | USER_API | enum | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudfontpreset) |
+| io.github.testlens.hud.HudHeaderLayout | io.github.testlens.hud | USER_API | enum | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudheaderlayout) |
+| io.github.testlens.hud.HudLogoPlacement | io.github.testlens.hud | USER_API | enum | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudlogoplacement) |
+| io.github.testlens.hud.HudOptions$Builder | io.github.testlens.hud | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudoptions-builder) |
+| io.github.testlens.hud.HudOptions | io.github.testlens.hud | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudoptions) |
 | io.github.testlens.hud.HudPanel | io.github.testlens.hud | LOW_LEVEL_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudpanel) |
 | io.github.testlens.hud.HudPosition | io.github.testlens.hud | USER_API | enum | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudposition) |
+| io.github.testlens.hud.HudPreset | io.github.testlens.hud | USER_API | enum | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudpreset) |
+| io.github.testlens.hud.HudScrollbarStyle | io.github.testlens.hud | USER_API | enum | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudscrollbarstyle) |
 | io.github.testlens.hud.HudTheme$Builder | io.github.testlens.hud | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudtheme-builder) |
 | io.github.testlens.hud.HudTheme | io.github.testlens.hud | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudtheme) |
 | io.github.testlens.hud.HudThemePreset | io.github.testlens.hud | USER_API | enum | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudthemepreset) |
+| io.github.testlens.hud.HudTypography$Builder | io.github.testlens.hud | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudtypography-builder) |
+| io.github.testlens.hud.HudTypography | io.github.testlens.hud | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudtypography) |
 
 ## selenium-test-lens-selenium
 

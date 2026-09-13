@@ -7,6 +7,13 @@ import io.github.testlens.OverlayConfig;
 import io.github.testlens.TestLens;
 import io.github.testlens.TestLensFinalizationResult;
 import io.github.testlens.TestLensOptions;
+import io.github.testlens.hud.HudOptions;
+import io.github.testlens.hud.HudFontPreset;
+import io.github.testlens.hud.HudHeaderLayout;
+import io.github.testlens.hud.HudPosition;
+import io.github.testlens.hud.HudPreset;
+import io.github.testlens.hud.HudScrollbarStyle;
+import io.github.testlens.hud.HudTypography;
 import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.RetryOutcomePolicy;
@@ -656,6 +663,229 @@ class RealBrowserContractsIT {
         lens.step("after navigation", () -> { });
 
         assertTrue(await(hudPresent()));
+    }
+
+    @Test
+    void configuredHudIsClampedInsideEveryViewportCorner() {
+        for (org.openqa.selenium.Dimension size : List.of(
+                new org.openqa.selenium.Dimension(1440, 900),
+                new org.openqa.selenium.Dimension(1024, 768),
+                new org.openqa.selenium.Dimension(768, 700),
+                new org.openqa.selenium.Dimension(390, 844))) {
+            driver = createDriver();
+            try {
+                driver.manage().window().setSize(size);
+                for (HudPosition position : HudPosition.values()) {
+                    open("/clicks");
+                    HudOptions hud = HudOptions.builder().position(position).widthPx(620)
+                            .maxHeightPx(500).maxLogHeightPx(180).offsetXPx(40).offsetYPx(40).build();
+                    TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(hud).build());
+                    lens.startSession("responsive-" + size.getWidth() + "-" + position);
+                    assertTrue(await(hudPresent()));
+                    @SuppressWarnings("unchecked")
+                    List<Number> bounds = (List<Number>) ((JavascriptExecutor) driver).executeScript("""
+                            const panel = document.getElementById('selenium-overlay-host').shadowRoot
+                                .querySelector('#selenium-hud-panel');
+                            const rect = panel.getBoundingClientRect();
+                            return [rect.left, rect.top, rect.right, rect.bottom, innerWidth, innerHeight];
+                            """);
+                    assertTrue(bounds.get(0).doubleValue() >= 9, position + " escaped the left edge at " + size);
+                    assertTrue(bounds.get(1).doubleValue() >= 9, position + " escaped the top edge at " + size);
+                    assertTrue(bounds.get(2).doubleValue() <= bounds.get(4).doubleValue() - 9,
+                            position + " escaped the right edge at " + size);
+                    assertTrue(bounds.get(3).doubleValue() <= bounds.get(5).doubleValue() - 9,
+                            position + " escaped the bottom edge at " + size);
+                    lens.finishPassed();
+                }
+            } finally {
+                driver.quit();
+                driver = null;
+            }
+        }
+    }
+
+    @Test
+    void hudAppliesSectionTypographyAndKeepsCompactBranding() {
+        open("/clicks");
+        HudOptions hud = HudOptions.builder()
+                .fontPreset(HudFontPreset.UI_SANS)
+                .typography(HudTypography.builder()
+                        .header(HudFontPreset.MONOSPACE)
+                        .eventLog(HudFontPreset.SYSTEM)
+                        .metadata(HudFontPreset.MONOSPACE)
+                        .build())
+                .build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(hud).build());
+        lens.startSession("section-typography");
+        lens.step("current step inherits global font", () -> { });
+        assertTrue(await(hudPresent()));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> layout = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const root = document.getElementById('selenium-overlay-host').shadowRoot;
+                const panel = root.querySelector('#selenium-hud-panel');
+                const rail = root.querySelector('.stl-hud-side-rail');
+                const main = root.querySelector('.stl-hud-main');
+                const testValue = root.querySelector('#selenium-hud-test .stl-hud-meta-value');
+                const stepValue = root.querySelector('#selenium-hud-step .stl-hud-meta-value');
+                const label = root.querySelector('#selenium-hud-test .stl-hud-meta-label');
+                const log = root.querySelector('#selenium-hud-logs > div');
+                return {
+                  railWidth: rail.getBoundingClientRect().width,
+                  contentInset: main.getBoundingClientRect().left - panel.getBoundingClientRect().left,
+                  panelWidth: panel.getBoundingClientRect().width,
+                  mainWidth: main.getBoundingClientRect().width,
+                  headerFont: getComputedStyle(testValue).fontFamily,
+                  stepFont: getComputedStyle(stepValue).fontFamily,
+                  metaFont: getComputedStyle(label).fontFamily,
+                  eventFont: getComputedStyle(log).fontFamily,
+                  overflow: panel.scrollWidth > panel.clientWidth
+                };
+                """);
+
+        assertTrue(layout.get("headerFont").toString().contains("ui-monospace"), layout.toString());
+        assertTrue(layout.get("stepFont").toString().contains("Inter"), layout.toString());
+        assertTrue(layout.get("metaFont").toString().contains("ui-monospace"), layout.toString());
+        assertTrue(layout.get("eventFont").toString().contains("system-ui"), layout.toString());
+        assertTrue(((Number) layout.get("railWidth")).doubleValue() <= 16.5, layout.toString());
+        assertTrue(((Number) layout.get("contentInset")).doubleValue() <= 21, layout.toString());
+        assertTrue(((Number) layout.get("mainWidth")).doubleValue()
+                >= ((Number) layout.get("panelWidth")).doubleValue() - 35, layout.toString());
+        assertEquals(Boolean.FALSE, layout.get("overflow"), layout.toString());
+    }
+
+    @Test
+    void hudHeaderLayoutKeepsAtomicItemsResponsiveAndTruncated() {
+        assertHudHeaderLayout(HudHeaderLayout.AUTO, 620, false, false, false);
+        assertHudHeaderLayout(HudHeaderLayout.AUTO, 520, false, false, false);
+        assertHudHeaderLayout(HudHeaderLayout.AUTO, 420, false, false, false);
+        assertHudHeaderLayout(HudHeaderLayout.AUTO, 320, true, false, false);
+        assertHudHeaderLayout(HudHeaderLayout.AUTO, 320, true, true, false);
+        assertHudHeaderLayout(HudHeaderLayout.INLINE, 320, false, true, false);
+        assertHudHeaderLayout(HudHeaderLayout.STACKED, 620, true, false, false);
+        assertHudHeaderLayout(HudHeaderLayout.AUTO, 620, false, false, true);
+
+        open("/clicks");
+        HudOptions responsive = HudOptions.builder().widthPx(620).headerLayout(HudHeaderLayout.AUTO).build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(responsive).build());
+        lens.startSession("Checkout creates an order for a returning customer with saved delivery details");
+        lens.step("Observe order request", () -> { });
+        assertEquals(1L, number(headerRowCountScript()));
+        driver.manage().window().setSize(new org.openqa.selenium.Dimension(390, 844));
+        assertTrue(await(scriptBoolean(headerRowCountScript() + " === 2")));
+        driver.manage().window().setSize(new org.openqa.selenium.Dimension(1024, 768));
+        assertTrue(await(scriptBoolean(headerRowCountScript() + " === 1")));
+        lens.finishPassed();
+    }
+
+    private void assertHudHeaderLayout(HudHeaderLayout layout, int width, boolean wrapped,
+                                       boolean longValues, boolean pipeline) {
+        open("/clicks");
+        HudOptions options = HudOptions.builder().preset(pipeline ? HudPreset.DEBUG : HudPreset.COMPACT)
+                .widthPx(width).headerLayout(layout)
+                .showPipeline(pipeline).build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(options).build());
+        String testName = longValues
+                ? "Checkout creates an order and preserves all customer delivery details without losing context"
+                : "Checkout creates an order for a returning customer";
+        String stepName = longValues
+                ? "Observe the outgoing order request and verify its completed diagnostic response"
+                : "Observe order request";
+        lens.startSession(testName);
+        lens.step(stepName, () -> { });
+        assertTrue(await(hudPresent()));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> metrics = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const header=root.querySelector('.stl-hud-context-header');
+                const test=root.querySelector('#selenium-hud-test');
+                const step=root.querySelector('#selenium-hud-step');
+                const testValue=test.querySelector('.stl-hud-meta-value');
+                const stepValue=step.querySelector('.stl-hud-meta-value');
+                const pipe=root.querySelector('#selenium-hud-pipeline');
+                return {rows:test.offsetTop===step.offsetTop?1:2,
+                  testEllipsis:testValue.scrollWidth>testValue.clientWidth,
+                  stepEllipsis:stepValue.scrollWidth>stepValue.clientWidth,
+                  testTitle:testValue.title,stepTitle:stepValue.title,
+                  pipeOutside:!pipe||pipe.parentNode!==header,
+                  layout:header.dataset.layout};
+                """);
+        assertEquals(wrapped ? 2 : 1, ((Number) metrics.get("rows")).intValue(), metrics.toString());
+        assertEquals(layout.name(), metrics.get("layout"), metrics.toString());
+        assertEquals(Boolean.TRUE, metrics.get("pipeOutside"), metrics.toString());
+        if (longValues) {
+            assertTrue(Boolean.TRUE.equals(metrics.get("testEllipsis"))
+                    || Boolean.TRUE.equals(metrics.get("stepEllipsis")), metrics.toString());
+            assertEquals(testName, metrics.get("testTitle"));
+            assertEquals(stepName, metrics.get("stepTitle"));
+        }
+        lens.finishPassed();
+    }
+
+    private String headerRowCountScript() {
+        return """
+                return (()=>{const r=document.getElementById('selenium-overlay-host').shadowRoot,
+                  t=r.querySelector('#selenium-hud-test'),s=r.querySelector('#selenium-hud-step');
+                  return t.offsetTop===s.offsetTop?1:2;})()
+                """;
+    }
+
+    @Test
+    void hudUsesConfiguredSubtleScrollbarAndCanRestoreNativeRendering() {
+        open("/clicks");
+        HudOptions custom = HudOptions.builder()
+                .maxLogHeightPx(80)
+                .scrollbarStyle(HudScrollbarStyle.SUBTLE)
+                .scrollbarWidthPx(7)
+                .scrollbarTrackColor("#020617")
+                .scrollbarThumbColor("#526174")
+                .scrollbarThumbHoverColor("#718096")
+                .build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(custom).build());
+        lens.startSession("scrollbar-custom");
+        for (int index = 0; index < 18; index++) {
+            int row = index;
+            lens.step("event row " + index, () -> assertTrue(row >= 0));
+        }
+        assertTrue(await(hudPresent()));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> customStyle = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const logs = document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('#selenium-hud-logs');
+                const computed = getComputedStyle(logs);
+                const webkit = getComputedStyle(logs, '::-webkit-scrollbar');
+                return {
+                  className: logs.className,
+                  widthVariable: logs.style.getPropertyValue('--ui-test-lens-scrollbar-width'),
+                  track: logs.style.getPropertyValue('--ui-test-lens-scrollbar-track'),
+                  thumb: logs.style.getPropertyValue('--ui-test-lens-scrollbar-thumb'),
+                  hover: logs.style.getPropertyValue('--ui-test-lens-scrollbar-thumb-hover'),
+                  renderedWidth: webkit.width,
+                  overflows: logs.scrollHeight > logs.clientHeight,
+                  scrollbarColor: computed.scrollbarColor
+                };
+                """);
+        assertTrue(customStyle.get("className").toString().contains("stl-hud-scrollbar-subtle"), customStyle.toString());
+        assertEquals("7px", customStyle.get("widthVariable"), customStyle.toString());
+        assertEquals("#020617", customStyle.get("track"), customStyle.toString());
+        assertEquals("#526174", customStyle.get("thumb"), customStyle.toString());
+        assertEquals("#718096", customStyle.get("hover"), customStyle.toString());
+        assertEquals("7px", customStyle.get("renderedWidth"), customStyle.toString());
+        assertEquals(Boolean.TRUE, customStyle.get("overflows"), customStyle.toString());
+        lens.finishPassed();
+
+        open("/second");
+        HudOptions nativeScrollbar = HudOptions.builder().scrollbarStyle(HudScrollbarStyle.NATIVE).build();
+        TestLens nativeLens = TestLens.attach(driver, TestLensOptions.builder().hud(nativeScrollbar).build());
+        nativeLens.startSession("scrollbar-native");
+        nativeLens.step("native scrollbar", () -> { });
+        assertTrue(await(hudPresent()));
+        String nativeClass = (String) ((JavascriptExecutor) driver).executeScript("""
+                return document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('#selenium-hud-logs').className;
+                """);
+        assertFalse(nativeClass.contains("stl-hud-custom-scrollbar"), nativeClass);
     }
 
     @ParameterizedTest(name = "finish {0}, cleanup={1}")

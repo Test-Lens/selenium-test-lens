@@ -104,6 +104,12 @@ OverlayConfig overlayConfig = OverlayConfig.builder()
 
 `HudPosition` chooses the anchored location, while a `HudThemePreset` selects a built-in palette and layout. Custom `HudTheme` values are also supported. Use the full [`OverlayConfig`](../reference/configuration.md#overlayconfig) and [`HudTheme`](../reference/configuration.md#hudtheme) configuration tables for presets, offsets, width, palette, spacing, and validation rules instead of relying on duplicated defaults here. Arbitrary custom theme strings become generated CSS and must be trusted test configuration.
 
+## Configurable HUD (`0.3.0-SNAPSHOT`)
+
+New code can configure content, position, responsive `AUTO`/`INLINE`/`STACKED` header layout, bounded dimensions, a validated color palette, opacity, branding, typed global or section-specific local font stacks, and the event-log scrollbar through immutable `HudOptions`. The default `COMPACT` preset omits pipeline and timestamps, keeps test and current-step context small, gives the categorized event log most of the panel, and uses the subtle scrollbar style. `AUTO` keeps atomic TEST/STEP items together and moves STEP to row two only when needed. `NATIVE` restores browser/operating-system scrollbar rendering.
+
+Presentation filters never remove events from trace, reports, retry summaries, or network capture.
+
 ## Low-level HUD API
 
 `HudPanel`, `ApiOverlayPanel`, JS resource wrappers, `OverlayRootManager`, and related `*Js` types are formally public but intended for custom integrations and internal-style use. See [advanced/low-level API](../reference/advanced-low-level.md).

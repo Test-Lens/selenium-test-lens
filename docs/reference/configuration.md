@@ -9,6 +9,7 @@ All option objects are immutable after `build()` unless their API explicitly exp
 | Builder method | Type | Default | Effect / validation |
 | --- | --- | --- | --- |
 | `overlayConfig(value)` | `OverlayConfig` | `OverlayConfig.builder().build()` | Visual runtime behavior; null is rejected when options are built/used. |
+| `hud(value)` | `HudOptions` | `HudOptions.defaults()` | Product-level HUD content, layout, palette, opacity, and branding. Added in `0.3.0-SNAPSHOT`. |
 | `locatorOptions(value)` | `UiLocatorOptions` | `UiLocatorOptions.defaults()` | Locator wait, retry, actionability, and the default timeout/poll interval for `TestLens` page waits. The nested retained `highlightBeforeAction` value is currently not consulted by `UiLocator`. |
 | `outputRoot(value)` | `Path` | `target/ui-test-lens` | Root for per-session artifacts; must be usable/non-null. Do not point at a tracked or public directory. |
 | `screenshotOnFailure(value)` | `boolean` | `true` | Enables best-effort automatic screenshot for a final `FAILED` result, including policy-induced failure; final passed/skipped results never request it. |
@@ -78,12 +79,24 @@ For `expectPage()`, timeout and poll interval govern both URL and title checks. 
 | `globalOverlayCloseButtonSelector(selector)` | String | null | Optional global blocker close selector; trusted CSS. |
 | `hudPosition(position)` | `HudPosition` | `BOTTOM_RIGHT` | HUD anchor; non-null. |
 | `hudOffset(x,y)` | int,int | 10,10 | CSS pixel offsets. |
-| `hudMaxWidthPx(value)` | int | 520 | Positive maximum width. |
+| `hudMaxWidthPx(value)` | int | 420 | Positive maximum width; the product-level default comes from `HudPreset.COMPACT`. |
 | `hudTheme(theme)` | `HudTheme` | default theme | Custom immutable theme; non-null. |
 | `hudTheme(preset)` | `HudThemePreset` | `DEFAULT` | Select preset and derived theme; non-null. |
 | `highlightColor(value)` | String | `#ffeb3b` | Non-blank trusted CSS color. |
 
 Accessors use JavaBean `is...`/`get...` names shown in the [catalog](public-api-catalog.md).
+
+## HudOptions
+
+`HudOptions.defaults()` selects `HudPreset.COMPACT`; the fuller timestamped preset is `STANDARD`. Presets provide base values and explicit builder overrides win independently of call order. The builder exposes the corner anchor and bounded offsets, `HudHeaderLayout`, panel width and maximum height, internal log maximum height, controlled font presets and sizes, semantic visibility switches, branding placement and rail width, the validated palette, background opacity, and `customLogo(Path)`. Offsets are 0–500 px, width 240–960 px, panel height 120–1000 px, log height 80–720 px, rail width 16–80 px, opacity 0–1, and colors are six-digit hexadecimal values. Runtime rendering clamps effective dimensions and offsets to the current viewport.
+
+`HudHeaderLayout.AUTO` is the preset default. It places the atomic TEST and STEP label/value items on one row when their natural widths fit and moves the complete STEP item to row two otherwise. `INLINE` always uses one row with ellipsis as needed; `STACKED` always uses two. Values never wrap and retain their full tooltip. PIPE, when enabled, is rendered as a separate metadata row and does not participate in the TEST/STEP layout decision.
+
+The global `fontPreset(...)` is the baseline for every section. `typography(HudTypography)` can override the local font stack for the header, current step, event log, or metadata; omitted section values inherit the global preset. These typed presets use local font stacks only. Arbitrary CSS, remote fonts, and font URLs are not accepted.
+
+`scrollbarStyle(...)` selects `SUBTLE`, `STANDARD`, or `NATIVE` for the event log. `SUBTLE` is the default except that `DEBUG` selects `STANDARD`. The custom styles accept a bounded 4–14 px Chromium width plus validated `#RRGGBB` track, thumb, and hover colors. Firefox applies the same colors but maps the styles to the engine's supported `thin` or native width rather than an exact pixel width. `NATIVE` leaves scrollbar rendering to the browser and operating system.
+
+`customLogo(Path)` accepts only a regular, non-symlink PNG no larger than 1 MiB. PNG dimensions are bounded to 4096 by 4096 and 16,777,216 pixels; the image is embedded as a data URL, while SVG, remote URLs, arbitrary HTML, and scripts are unsupported.
 
 ## HudTheme
 

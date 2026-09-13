@@ -5,6 +5,7 @@ import io.github.testlens.core.browser.BrowserScriptExecutor;
 import io.github.testlens.core.logging.UiTestLensEventType;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.hud.HudPanel;
+import io.github.testlens.hud.HudOptions;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 
@@ -20,7 +21,7 @@ class HudNetworkLogSinkTest {
     void skipsOnlyRawNetworkEntriesExplicitlyMarkedHidden() {
         RecordingHud hud = new RecordingHud();
         JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();
-        sink.attach(hud, null);
+        sink.attach(hud, null, io.github.testlens.hud.HudOptions.defaults());
 
         sink.accept(entry(UiTestLensEventType.NETWORK_REQUEST_RECORDED, "hidden", "false"));
         sink.accept(entry(UiTestLensEventType.NETWORK_RESPONSE_RECORDED, "visible", "true"));
@@ -41,12 +42,28 @@ class HudNetworkLogSinkTest {
                 });
         RecordingHud hud = new RecordingHud();
         JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();
-        sink.attach(hud, driver);
+        sink.attach(hud, driver, io.github.testlens.hud.HudOptions.defaults());
 
         sink.accept(entry(UiTestLensEventType.NETWORK_RESPONSE_RECORDED, "hidden", "false"));
 
         assertEquals(0, switchCalls.get());
         assertEquals(List.of(), hud.messages);
+    }
+
+    @Test
+    void productVisibilityFiltersAreAppliedBeforeTheInternalHudBridge() {
+        RecordingHud hud = new RecordingHud();
+        JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();
+        sink.attach(hud, null, HudOptions.builder().showNetwork(false).showRetries(false)
+                .showWaits(false).showAssertions(false).build());
+
+        sink.accept(entry(UiTestLensEventType.NETWORK_RESPONSE_RECORDED, "network", null));
+        sink.accept(entry(UiTestLensEventType.LOCATOR_RETRY, "retry", null));
+        sink.accept(entry(UiTestLensEventType.WAIT, "wait", null));
+        sink.accept(entry(UiTestLensEventType.ASSERTION_PASSED, "assertion", null));
+        sink.accept(entry(UiTestLensEventType.ACTION, "action", null));
+
+        assertEquals(List.of("action"), hud.messages);
     }
 
     private static UiTestLensLogEntry entry(UiTestLensEventType type, String message, String hudVisible) {

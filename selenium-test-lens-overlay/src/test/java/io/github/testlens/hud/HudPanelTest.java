@@ -94,6 +94,44 @@ class HudPanelTest {
         assertEquals("blur(18px) saturate(160%)", ((Map<?, ?>) hudInitArgs[6]).get("backdropFilter"));
         assertEquals(480, ((Map<?, ?>) hudInitArgs[6]).get("maxHeightPx"));
         assertEquals("GLASS", hudInitArgs[7]);
+        assertTrue(((Map<?, ?>) hudInitArgs[8]).isEmpty(), "legacy theme must not be shadowed by product defaults");
+    }
+
+    @Test
+    void explicitHudOptionsAreAuthoritativeAtRuntime() {
+        RecordingBrowserScriptExecutor executor = new RecordingBrowserScriptExecutor();
+        OverlayConfig config = OverlayConfig.builder().hudTheme(HudThemePreset.GLASS)
+                .hudOptions(HudOptions.builder().background("#010203").build()).build();
+        new HudPanel(executor, new OverlayRootManager(executor, config), config).init("Explicit", "local");
+
+        Object[] args = executor.args.stream().filter(value -> Arrays.asList(value).contains("Explicit"))
+                .findFirst().orElseThrow();
+        assertEquals("#010203", ((Map<?, ?>) args[8]).get("background"));
+    }
+
+    @Test
+    void customLegacyThemeIsNeverMistakenForProductHudOptions() {
+        RecordingBrowserScriptExecutor executor = new RecordingBrowserScriptExecutor();
+        HudOptions defaults = HudOptions.defaults();
+        HudTheme lookalike = HudTheme.builder()
+                .background(defaults.background())
+                .foreground(defaults.primaryTextColor())
+                .mutedForeground(defaults.mutedTextColor())
+                .accent(defaults.accentColor())
+                .success(defaults.successColor())
+                .warning(defaults.warningColor())
+                .danger(defaults.failureColor())
+                .maxHeightPx(defaults.maxHeightPx())
+                .fontSizePx(18)
+                .build();
+        OverlayConfig config = OverlayConfig.builder().hudTheme(lookalike).build();
+
+        new HudPanel(executor, new OverlayRootManager(executor, config), config).init("Legacy", "local");
+
+        Object[] args = executor.args.stream().filter(value -> Arrays.asList(value).contains("Legacy"))
+                .findFirst().orElseThrow();
+        assertTrue(((Map<?, ?>) args[8]).isEmpty());
+        assertEquals(18, ((Map<?, ?>) args[6]).get("fontSizePx"));
     }
 
     private static HudPanel hudPanel(RecordingBrowserScriptExecutor executor) {

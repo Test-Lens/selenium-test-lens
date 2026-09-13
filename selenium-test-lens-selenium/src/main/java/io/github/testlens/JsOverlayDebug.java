@@ -163,7 +163,7 @@ public final class JsOverlayDebug {
         this.smartClickActions = new SmartClickActions(driver, config, rootManager, highlightActions, this.logger);
         this.smartInputActions = new SmartInputActions(driver, config, rootManager, typingActions, this.logger);
         this.hudPanel = new HudPanel(scriptExecutor, rootManager, config);
-        this.hudLogSink.attach(this.hudPanel, driver);
+        this.hudLogSink.attach(this.hudPanel, driver, config.getHudOptions());
         this.pageWaits = new ConfiguredPageWaits(driver, config, this.locatorOptions.timeout(),
                 this.locatorOptions.pollInterval(), this.logger);
         this.popupDetector = new PopupDetector(driver, config, rootManager, highlightActions);
@@ -679,14 +679,20 @@ public final class JsOverlayDebug {
     static final class HudLogSink implements UiTestLensLogSink {
         private volatile HudPanel hud;
         private volatile WebDriver driver;
+        private volatile io.github.testlens.hud.HudOptions options;
         private final java.util.Queue<UiTestLensLogEntry> deferredDuringAlert = new java.util.concurrent.ConcurrentLinkedQueue<>();
 
-        void attach(HudPanel hud, WebDriver driver) { this.hud = hud; this.driver = driver; }
+        void attach(HudPanel hud, WebDriver driver, io.github.testlens.hud.HudOptions options) {
+            this.hud = hud;
+            this.driver = driver;
+            this.options = options;
+        }
 
         @Override
         public void accept(UiTestLensLogEntry entry) {
             HudPanel current = hud;
             if (current == null || entry == null || entry.eventType() == UiTestLensEventType.HUD) return;
+            if (!eventVisible(options, entry.eventType())) return;
             if (isRawNetworkEntry(entry.eventType())
                     && "false".equalsIgnoreCase(entry.metadata().get("hudVisible"))) return;
             WebDriver currentDriver = driver;
@@ -712,6 +718,17 @@ public final class JsOverlayDebug {
             return eventType == UiTestLensEventType.NETWORK_REQUEST_RECORDED
                     || eventType == UiTestLensEventType.NETWORK_RESPONSE_RECORDED
                     || eventType == UiTestLensEventType.NETWORK_FAILURE_RECORDED;
+        }
+
+        private static boolean eventVisible(io.github.testlens.hud.HudOptions options, UiTestLensEventType type) {
+            if (options == null) return true;
+            String name = type.name();
+            if (name.startsWith("NETWORK_") && !options.showNetwork()) return false;
+            if ((type == UiTestLensEventType.LOCATOR_RETRY || type == UiTestLensEventType.ASSERTION_RETRY)
+                    && !options.showRetries()) return false;
+            if ((type == UiTestLensEventType.WAIT || name.startsWith("NETWORK_WAIT_")) && !options.showWaits()) return false;
+            return !(name.startsWith("ASSERTION_") || name.startsWith("BUSINESS_ASSERTION_")
+                    || name.startsWith("NETWORK_ASSERTION_")) || options.showAssertions();
         }
 
         private static void append(HudPanel hud, UiTestLensLogEntry entry) {
