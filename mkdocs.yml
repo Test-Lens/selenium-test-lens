@@ -59,6 +59,7 @@ nav:
       - Configuration: configuration.md
   - Using Test Lens:
       - Capabilities: capabilities.md
+      - React & SPA resilience: features/react-spa.md
       - Elements:
           - Elements overview: elements/index.md
           - Locators: elements/locators.md
@@ -99,7 +100,6 @@ nav:
       - Integrations overview: integrations/index.md
       - JUnit 5: integrations/junit5.md
       - TestNG: integrations/testng.md
-      - Optional React API: integrations/react.md
   - Migration:
       - From raw Selenium: migration.md
   - Reference:

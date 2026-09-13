@@ -39,7 +39,7 @@ One policy creates safe diagnostic copies before fan-out to HUD, trace, sinks, r
 | WebDriver BiDi network diagnostics | Passive observation/correlation, not interception, mocking, CDP, or body capture. Manual events, waits, and assertions exist in `0.1.0`; BiDi lifecycle, safe snapshots, and HUD filtering are `0.2.0`. | [Network](advanced/network.md) |
 | Authentication state | Captures/restores cookies and storage for a validated origin; cross-origin SSO restore is not automatic. Treat exported state as a secret. | [Auth state](advanced/auth-state.md) |
 | Page and SPA waits | Ready-state waits plus an XHR/fetch tracker that sees only calls begun after installation. It is not full browser network idle. | [Waiting](elements/waiting.md) |
-| React module | DOM-convention helpers for rerender windows and React Select; no React component-tree access or universal design-system guarantee. | [React](integrations/react.md) |
+| React & SPA resilience | DOM-convention helpers for rerender recovery, busy/loading readiness, actionability, and React Select; no React component-tree access or universal design-system guarantee. | [React/SPA helpers](features/react-spa.md) |
 | API overlay | Displays caller-supplied API previews; it does not capture browser traffic. | [Visual helpers](advanced/visual-helpers.md) |
 | JUnit 5 / TestNG adapters | Optional `0.2.0` artifacts for per-invocation lifecycle ownership. | [Framework integration](framework-integration.md) |
 | Explicit report upload | Streams one completed report ZIP after finalization; it is not automatic and does not use or close WebDriver. | [Report upload](observability/report-upload.md) |

@@ -129,11 +129,11 @@ HUD injection, updates, and cleanup are best effort and cannot change the result
 
     [Authentication state](advanced/auth-state.md)
 
--   **React and SPA-aware helpers**
+-   **React & SPA resilience**
 
     Re-resolve elements across rerenders, inspect common busy/loading DOM conventions, wait for roots and DOM stability, and work with known React Select markup through the optional module.
 
-    [React integration](integrations/react.md)
+    [React/SPA resilience and its boundaries](features/react-spa.md)
 
 -   **Application-aware waits**
 
@@ -210,7 +210,7 @@ ReactSafeExecutor react = ReactSupport.reactSafe(overlay);
 react.clearAndType(By.cssSelector("[data-testid='search']"), "camera", "Search");
 ```
 
-These are DOM-convention helpers. They do not guarantee compatibility with every component library, do not cross frame/window/shadow-root boundaries automatically, and do not turn Test Lens into a React test runner. The legacy React `smartClick` has a separate contract; normal interaction should use `UiLocator.click()`. [Choose the React helpers deliberately](integrations/react.md).
+These are DOM-convention helpers. They do not inspect the React component tree, guarantee compatibility with every component library, or cross frame/window/shadow-root boundaries automatically. The legacy React `smartClick` has a separate contract; normal interaction should use `UiLocator.click()`. [Choose the React/SPA helpers deliberately](features/react-spa.md).
 
 ## Smarter waits and application readiness
 
@@ -442,7 +442,7 @@ The homepage highlights the connected workflow rather than treating every helper
 - [Failure evidence](observability/failure-bundles.md)
 - [WebDriver BiDi network diagnostics](advanced/network.md)
 - [Authentication state](advanced/auth-state.md)
-- [React integration](integrations/react.md)
+- [React & SPA resilience](features/react-spa.md)
 - [Browser context helpers](browser-context/index.md)
 - [Select controls](elements/select-controls.md)
 - [Advanced visual and API helpers](advanced/visual-helpers.md)

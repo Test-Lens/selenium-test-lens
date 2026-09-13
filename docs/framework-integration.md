@@ -123,9 +123,9 @@ Associate each `TestLens` instance with exactly one driver and test invocation. 
 - In TestNG, prefer the adapter's namespaced `ITestResult` state; manual integrations must provide equivalent per-invocation isolation.
 - Give retry attempts distinct session names if their reports are collected together.
 
-## Optional React extension
+## Optional React/SPA helpers module
 
-React support is separate from the main runtime. Add it only when your tests need the React-specific helpers:
+React/SPA resilience helpers are separate from the main runtime. Add the module only when tests need rerender recovery, DOM-convention readiness, or React Select helpers:
 
 ```xml
 <dependency>
@@ -135,7 +135,7 @@ React support is separate from the main runtime. Add it only when your tests nee
 </dependency>
 ```
 
-The main `selenium-test-lens` artifact has no React dependency. Standard DOM interactions can continue to use the `TestLens` facade; the React extension is optional.
+The main `selenium-test-lens` artifact has no React dependency. Standard DOM interactions can continue to use the `TestLens` facade; the React/SPA helpers module is optional. See its [capabilities and limitations](features/react-spa.md).
 
 ## Next steps
 

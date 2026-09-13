@@ -182,6 +182,6 @@ The HUD is only a diagnostic aid and does not change test execution or assertion
 - [Use locators, actions, waits, and assertions](elements/index.md)
 - [Configure Test Lens](configuration.md)
 - [Migrate incrementally from raw Selenium](migration.md)
-- [Add the optional React extension](framework-integration.md#optional-react-extension)
+- [Add the optional React/SPA helpers module](framework-integration.md#optional-reactspa-helpers-module)
 
 You can keep using existing Page Objects and call raw Selenium directly for operations Lens does not wrap.

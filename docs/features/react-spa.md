@@ -1,8 +1,10 @@
-# Optional React API
+# React & SPA resilience
 
 Module: `selenium-test-lens-react`<br>
 Package: `io.github.testlens.react.*`<br>
 API level: **Advanced / optional**
+
+The optional module helps Selenium tests handle common dynamic-UI failure modes: elements replaced during rerenders, stale references, transient busy/loading DOM conventions, and React Select markup. It works against rendered DOM and WebDriver; it does not integrate with or inspect the React component tree.
 
 Add the version matching the main artifact:
 
@@ -14,7 +16,7 @@ Add the version matching the main artifact:
 </dependency>
 ```
 
-The module depends on core, overlay, and Selenium Test Lens. Use it only for React/SPA re-render windows, React Select conventions, or DOM readiness conventions not covered by standard `UiLocator`.
+The module depends on core, overlay, and Selenium Test Lens. Use it only for React/SPA rerender windows, React Select conventions, or DOM readiness conventions not covered by standard `UiLocator`.
 
 Gradle Kotlin DSL uses
 `implementation("io.github.test-lens:selenium-test-lens-react:0.2.0")`;
@@ -34,7 +36,7 @@ void smartClick(JsOverlayDebug overlay, By locator, String label)
 
 `ReactSupport.checkActionability(...)` resolves and checks the supplied `By`. For an already resolved element, obtain the checker and use its separate overload:
 
-`ReactSupport.smartClick(...)` is a specialized, legacy React helper with its own implementation and retry conventions. It is not an alternative name for the recommended `UiLocator.click()` contract. For normal element interaction, use [`UiLocator.click()`](../elements/actions.md#click-contract-native-activation-visible-recovery); choose the React helper only when a verified application-specific React rerender convention requires it.
+`ReactSupport.smartClick(...)` is a specialized, legacy React helper with its own implementation and retry conventions. It is not an alternative name for the recommended `UiLocator.click()` contract. For normal element interaction, use [`UiLocator.click()`](../elements/actions.md#click-contract-native-activation-visible-recovery); choose the React helper only when a verified application-specific rerender convention requires it.
 
 <!-- API SIGNATURES: io.github.testlens.react.actionability.ReactActionabilityChecker -->
 ```java
@@ -46,7 +48,7 @@ Both `check(...)` methods belong to `ReactActionabilityChecker`, not `ReactSuppo
 
 Additional `findBySelectorContainingText`, `findFirst`, `findChildren`, `findChildByText`, and `findChildByTextThenFind` overloads perform concrete DOM searches described by their selectors/text and return Selenium elements/lists. They use rendered DOM and are not React component-tree queries; see their exact signatures in the [catalog](../reference/public-api-catalog.md).
 
-## ReactSafeExecutor
+## Rerender recovery with ReactSafeExecutor
 
 <!-- API SIGNATURES: io.github.testlens.react.ReactSafeExecutor -->
 ```java
@@ -63,16 +65,22 @@ boolean isSelected(By, String)
 ReactSelectHelper select()
 ```
 
-Each attempt re-finds a present element, optionally updates/highlights via the overlay, and retries stale, missing, or intercepted failures. Non-positive `maxRetries` falls back to 3; null delay/wait use 200 ms/15 s. Other operation failures propagate. This executor has its own retry settings, separate from `UiLocatorOptions`.
+Each attempt re-resolves a present element, optionally updates/highlights it through the overlay, and retries stale, missing, or intercepted failures. Non-positive `maxRetries` falls back to 3; null delay/wait use 200 ms/15 s. Other operation failures propagate. This executor has its own retry settings, separate from `UiLocatorOptions`.
 
-## ReactSelectHelper
+## React Select helpers
 
 `resolveReactSelectBaseId` derives a `react-select-*` base id from ARIA/live-region/placeholder conventions. `jsClickReactSelectOptionContaining` clicks the first visible matching option using JavaScript. `pickByLabel` types, resolves an option id, clicks by text substring, and confirms a hidden input. It is coupled to React Select DOM/id conventions and can break when markup differs. `textContent`, `xpathLiteral`, and `cssEscape` are utility methods.
 
-## React actionability
+## SPA-aware readiness and actionability
 
 `ReactActionabilityChecker` combines base Selenium actionability with optional checks for `aria-disabled`, `aria-busy`, `data-loading`, `data-pending`, progressbar, spinner, skeleton, focus lock, dialog/modal, and custom busy/blocking locators. `ReactActionabilityOptions` configures every check, timeout/polling, custom locators, and base options. Reports/results identify check type, status/failure reason, message, elapsed time, and details.
 
 Each `ReactReadinessResult` (constructed directly or through `ReactReadinessResult.Builder`) describes one readiness observation. `ReactReadinessCheckType` identifies the convention checked, including ARIA/data loading signals, progress/spinner/skeleton, focus lock, modal/dialog, staleness, and base actionability. `ReactReadinessFailureReason` records why that check was not ready, including a matching busy convention, stale node, base-actionability failure, JavaScript error, or unknown failure.
 
-These are heuristic DOM conventions, not React internals and not guarantees for every design system. Prefer standard [Elements](../elements/index.md) unless a verified application behavior needs these helpers.
+## Boundaries
+
+- The helpers infer readiness from rendered DOM conventions; they do not read React internals or the component tree.
+- Rerender recovery does not guarantee compatibility with every component library or design system.
+- Locators and helpers do not cross frame, window, or shadow-root boundaries automatically.
+- React Select support follows specific DOM/id conventions and can require adjustment when a component library changes its markup.
+- Prefer standard [Elements](../elements/index.md) unless a verified application behavior needs these helpers.

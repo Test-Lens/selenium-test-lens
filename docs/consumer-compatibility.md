@@ -21,7 +21,7 @@ project dependencies, composite substitution, dynamic versions, unresolved
 components, inconsistent Selenium versions, and artifacts whose files are
 outside staging.
 
-The Gradle test loads the main runtime, React integration, JUnit 5 extension,
+The Gradle test loads the main runtime, optional React/SPA helpers, JUnit 5 extension,
 TestNG listener and their transitive core/overlay artifacts. It exercises
 public logging, redaction and trace APIs without starting a `WebDriver`.
 Browser behavior remains covered by the independent Chrome/Firefox gate.
