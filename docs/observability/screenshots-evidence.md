@@ -1,6 +1,6 @@
 # Screenshots and evidence
 
-Screenshots capture browser pixels as PNG evidence. `VIEWPORT` is the compatible default. The opt-in `FULL_PAGE` mode captures a bounded snapshot of the current top-level document by scrolling and stitching standard Selenium screenshots. Use an explicit screenshot at a meaningful checkpoint, or let failed-session finalization attempt one automatically.
+Screenshots capture browser pixels as PNG evidence. `VIEWPORT` is the compatible default. The opt-in `FULL_PAGE` mode captures a bounded snapshot of the current top-level document by scrolling and stitching standard Selenium screenshots. Configured [visual redaction](../security/visual-redaction.md) is applied at the shared capture seam in both modes. Use an explicit screenshot at a meaningful checkpoint, or let failed-session finalization attempt one automatically.
 
 ## Automatic failure screenshot
 
@@ -19,7 +19,7 @@ try {
 }
 ```
 
-Failed finalization first attempts `failure-diagnostic.png` with the current HUD/highlight, then temporarily hides only Test Lens artifacts for `failure-bundle/failure-clean.png`. Both are controlled by `screenshotOnFailure`; independent flags live in `FailureBundleOptions`. Previous HUD visibility is restored in `finally` before normal cleanup. No failed action, click, locator resolve, frame switch, or navigation is repeated. Passed and skipped finalization never requests either screenshot. See [Failure bundles](failure-bundles.md).
+Failed finalization first attempts `failure-diagnostic.png` with the current HUD/highlight, then temporarily hides only Test Lens artifacts for `failure-bundle/failure-clean.png`. Sensitive masks are installed independently on both images: “clean” never means unredacted. Both are controlled by `screenshotOnFailure`; independent flags live in `FailureBundleOptions`. Previous HUD visibility is restored in `finally` before normal cleanup. No failed action, click, locator resolve, frame switch, or navigation is repeated. Passed and skipped finalization never requests either screenshot. See [Failure bundles](failure-bundles.md).
 
 ## Explicit screenshots
 
@@ -48,7 +48,7 @@ The implementation takes one initial CSS-pixel snapshot of document dimensions, 
 
 Full-page capture is bounded by `maxPixelCount` (40 million by default) and `maxTileCount` (200 by default). A limit, changing document/viewport geometry, changing tile scale, invalid PNG, or restoration failure produces an explicit non-captured result and no partial final file. The initial dimensions are authoritative: lazy loading or scroll handlers can change the page and cause capture to fail rather than extend indefinitely.
 
-The current scroll position and root/body inline scroll behavior and snap styles are restored in `finally`. Visible `fixed` and `sticky` elements, including the Test Lens HUD host, are captured in the first tile in which they appear and then hidden with `visibility` for later tiles; their original inline value and priority are restored. This avoids repeating a header or HUD while preserving layout. Scanning covers the open document tree, not closed shadow roots.
+The current scroll position and root/body inline scroll behavior and snap styles are restored in `finally`. Visual-mask locators and document rectangles are refreshed after every scroll and before every tile. Visible `fixed` and `sticky` elements, including the Test Lens HUD host, are captured in the first tile in which they appear and then hidden with `visibility` for later tiles; their original inline value and priority are restored. This avoids repeating a header or HUD while preserving layout. Scanning covers the open document tree, not closed shadow roots.
 
 `FULL_PAGE` is supported only in the current top-level browsing context. It never changes windows or frames. When invoked inside a frame it returns `SKIPPED` and preserves that context; switch to default content explicitly if a top-level image is wanted. Rendered iframe and shadow-DOM pixels visible in the top-level page are captured, but iframe documents and nested scroll containers are not expanded. Scroll events can run application code during capture.
 
@@ -71,6 +71,7 @@ Advanced direct service:
 <!-- API SIGNATURES: io.github.testlens.selenium.evidence.ScreenshotCapture -->
 ```java
 ScreenshotCapture(WebDriver driver)
+ScreenshotCapture(WebDriver driver, VisualRedactionOptions visualRedaction)
 ScreenshotCaptureResult capture(String name, ScreenshotCaptureOptions options)
 ScreenshotCaptureResult capture(String name, ScreenshotCaptureOptions options, UiTestLensSession session)
 ```
@@ -132,4 +133,4 @@ VideoEvidenceResult attachUrl(String name, String url, VideoEvidenceOptions opti
 
 ## Security
 
-Screenshots and video can expose credentials, personal data, tokens, and internal URLs. Central text redaction does not modify pixels. Keep `target/ui-test-lens*`, CI report archives, and auth/network output out of source control and apply retention/access controls.
+Screenshots and video can expose credentials, personal data, tokens, and internal URLs. Central text redaction does not modify pixels; configure [visual redaction](../security/visual-redaction.md) for screenshot pixels. Video remains outside this protection. Keep `target/ui-test-lens*`, CI report archives, and auth/network output out of source control and apply retention/access controls.

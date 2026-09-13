@@ -49,6 +49,7 @@ import io.github.testlens.selenium.evidence.VideoEvidence;
 import io.github.testlens.selenium.evidence.VideoEvidenceOptions;
 import io.github.testlens.selenium.evidence.VideoEvidenceResult;
 import io.github.testlens.selenium.evidence.VideoEvidenceStatus;
+import io.github.testlens.selenium.evidence.VisualRedactionOptions;
 import io.github.testlens.selenium.locator.UiLocator;
 import io.github.testlens.selenium.locator.UiLocatorSelectors;
 import io.github.testlens.selenium.locator.UiLocatorOptions;
@@ -97,6 +98,7 @@ public final class JsOverlayDebug {
     private final OverlayLogger logger;
     private final RedactionPolicy redactionPolicy;
     private final UiLocatorOptions locatorOptions;
+    private final VisualRedactionOptions visualRedaction;
     private final SessionTraceLogSink sessionTraceLogSink = new SessionTraceLogSink();
     private final HudLogSink hudLogSink = new HudLogSink();
     private OverlayPolicy overlayPolicy = OverlayPolicy.none();
@@ -118,19 +120,25 @@ public final class JsOverlayDebug {
     }
 
     JsOverlayDebug(WebDriver driver, OverlayConfig config, RedactionPolicy redactionPolicy) {
-        this(driver, config, redactionPolicy, UiLocatorOptions.defaults());
+        this(driver, config, redactionPolicy, UiLocatorOptions.defaults(), VisualRedactionOptions.defaults());
     }
 
     JsOverlayDebug(WebDriver driver, OverlayConfig config, RedactionPolicy redactionPolicy,
                    UiLocatorOptions locatorOptions) {
+        this(driver, config, redactionPolicy, locatorOptions, VisualRedactionOptions.defaults());
+    }
+
+    JsOverlayDebug(WebDriver driver, OverlayConfig config, RedactionPolicy redactionPolicy,
+                   UiLocatorOptions locatorOptions, VisualRedactionOptions visualRedaction) {
         this(driver, config, redactionPolicy, locatorOptions, createDefaultComponents(driver, config,
-                OverlayLogger.from(UiTestLensLogger.builder().redactionPolicy(redactionPolicy).build())));
+                OverlayLogger.from(UiTestLensLogger.builder().redactionPolicy(redactionPolicy).build())), visualRedaction);
     }
 
     private JsOverlayDebug(WebDriver driver, OverlayConfig config, RedactionPolicy redactionPolicy,
-                           UiLocatorOptions locatorOptions, DefaultComponents components) {
+                           UiLocatorOptions locatorOptions, DefaultComponents components,
+                           VisualRedactionOptions visualRedaction) {
         this(driver, config, redactionPolicy, locatorOptions,
-                components.apiPanel(), components.guards(), components.logger());
+                components.apiPanel(), components.guards(), components.logger(), visualRedaction);
     }
 
     private JsOverlayDebug(WebDriver driver,
@@ -139,11 +147,13 @@ public final class JsOverlayDebug {
                            UiLocatorOptions locatorOptions,
                            ApiOverlayPanel apiPanel,
                            Guards guards,
-                           OverlayLogger logger) {
+                           OverlayLogger logger,
+                           VisualRedactionOptions visualRedaction) {
         this.apiPanel = apiPanel;
         this.guards = guards;
         this.redactionPolicy = redactionPolicy == null ? RedactionPolicy.defaults() : redactionPolicy;
         this.locatorOptions = locatorOptions == null ? UiLocatorOptions.defaults() : locatorOptions;
+        this.visualRedaction = visualRedaction == null ? VisualRedactionOptions.defaults() : visualRedaction;
         OverlayLogger baseLogger = logger != null ? logger : OverlayLogger.noop();
         this.logger = baseLogger.withSink(sessionTraceLogSink).withSink(hudLogSink);
         if (driver == null) {
@@ -405,7 +415,7 @@ public final class JsOverlayDebug {
         ScreenshotCaptureOptions effectiveOptions = options == null ? ScreenshotCaptureOptions.defaults() : options;
         long started = System.nanoTime();
         emitScreenshotCaptureStarted(name, effectiveOptions);
-        ScreenshotCaptureResult result = new ScreenshotCapture(driver).capture(name, effectiveOptions, session);
+        ScreenshotCaptureResult result = new ScreenshotCapture(driver, visualRedaction).capture(name, effectiveOptions, session);
         emitScreenshotCaptureFinished(result, Duration.ofNanos(Math.max(0, System.nanoTime() - started)));
         return result;
     }

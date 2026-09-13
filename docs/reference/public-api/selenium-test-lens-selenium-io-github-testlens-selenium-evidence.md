@@ -72,6 +72,7 @@ public int maxConsoleEntries()
 
 ```java
 public io.github.testlens.selenium.evidence.ScreenshotCapture(org.openqa.selenium.WebDriver)
+public io.github.testlens.selenium.evidence.ScreenshotCapture(org.openqa.selenium.WebDriver, io.github.testlens.selenium.evidence.VisualRedactionOptions)
 public io.github.testlens.selenium.evidence.ScreenshotCaptureResult capture(java.lang.String, io.github.testlens.selenium.evidence.ScreenshotCaptureOptions)
 public io.github.testlens.selenium.evidence.ScreenshotCaptureResult capture(java.lang.String, io.github.testlens.selenium.evidence.ScreenshotCaptureOptions, io.github.testlens.core.trace.UiTestLensSession)
 ```
@@ -300,4 +301,91 @@ public static final io.github.testlens.selenium.evidence.VideoEvidenceStatus FAI
 public static final io.github.testlens.selenium.evidence.VideoEvidenceStatus SKIPPED
 public static io.github.testlens.selenium.evidence.VideoEvidenceStatus[] values()
 public static io.github.testlens.selenium.evidence.VideoEvidenceStatus valueOf(java.lang.String)
+```
+
+## `io.github.testlens.selenium.evidence.VisualMaskMode` {#io-github-testlens-selenium-evidence-visualmaskmode}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens.selenium.evidence`
+- Classification: `USER_API`
+- Type kind: `enum`
+- Functional documentation: [docs/security/visual-redaction.md](../../security/visual-redaction.md)
+
+```java
+public static final io.github.testlens.selenium.evidence.VisualMaskMode SOLID
+public static final io.github.testlens.selenium.evidence.VisualMaskMode BLUR
+public static io.github.testlens.selenium.evidence.VisualMaskMode[] values()
+public static io.github.testlens.selenium.evidence.VisualMaskMode valueOf(java.lang.String)
+```
+
+## `io.github.testlens.selenium.evidence.VisualMaskRule` {#io-github-testlens-selenium-evidence-visualmaskrule}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens.selenium.evidence`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/security/visual-redaction.md](../../security/visual-redaction.md)
+
+```java
+public io.github.testlens.selenium.evidence.VisualMaskRule(org.openqa.selenium.By, io.github.testlens.selenium.evidence.VisualMaskMode)
+public org.openqa.selenium.By locator()
+public io.github.testlens.selenium.evidence.VisualMaskMode mode()
+```
+
+## `io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy` {#io-github-testlens-selenium-evidence-visualredactionfailurepolicy}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens.selenium.evidence`
+- Classification: `USER_API`
+- Type kind: `enum`
+- Functional documentation: [docs/security/visual-redaction.md](../../security/visual-redaction.md)
+
+```java
+public static final io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy BEST_EFFORT
+public static final io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy STRICT
+public static io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy[] values()
+public static io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy valueOf(java.lang.String)
+```
+
+## `io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder` {#io-github-testlens-selenium-evidence-visualredactionoptions-builder}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens.selenium.evidence`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/security/visual-redaction.md](../../security/visual-redaction.md)
+
+```java
+public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder maskPasswordInputs(boolean)
+public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder mask(org.openqa.selenium.By, io.github.testlens.selenium.evidence.VisualMaskMode)
+public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder failurePolicy(io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy)
+public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder solidColor(java.lang.String)
+public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder blurRadiusPx(int)
+public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder paddingPx(int)
+public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder maskLabel(java.lang.String)
+public io.github.testlens.selenium.evidence.VisualRedactionOptions build()
+```
+
+## `io.github.testlens.selenium.evidence.VisualRedactionOptions` {#io-github-testlens-selenium-evidence-visualredactionoptions}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens.selenium.evidence`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/security/visual-redaction.md](../../security/visual-redaction.md)
+
+```java
+public static final java.lang.String DEFAULT_SOLID_COLOR
+public static final int DEFAULT_BLUR_RADIUS_PX
+public static io.github.testlens.selenium.evidence.VisualRedactionOptions defaults()
+public static io.github.testlens.selenium.evidence.VisualRedactionOptions disabled()
+public static io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder builder()
+public boolean maskPasswordInputs()
+public java.util.List<io.github.testlens.selenium.evidence.VisualMaskRule> rules()
+public io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy failurePolicy()
+public java.lang.String solidColor()
+public int blurRadiusPx()
+public int paddingPx()
+public java.lang.String maskLabel()
+public boolean hasMasks()
 ```

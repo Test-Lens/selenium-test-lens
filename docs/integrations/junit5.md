@@ -124,5 +124,5 @@ If a test starts `lens.network()`, all three Lens finalizers stop its active cap
 
 For final `FAILED`, the extension waits for the complete failure-bundle pipeline—including reports, HUD cleanup, manifest, and ZIP—before `driver.quit()`. Partial evidence never replaces the test throwable. Configure it through the same `lensOptions(...)`; raw page source and browser console remain opt-in.
 
-The extension propagates `TestLensOptions.redactionPolicy(...)` unchanged to every invocation. Redaction completes during Lens finalization before the extension's single `driver.quit()`; it neither replaces the execution throwable nor changes passed/failed/aborted mapping. Optional page source and console remain best-effort text protection, and screenshots are not pixel-redacted.
+The extension propagates `TestLensOptions.redactionPolicy(...)` and `visualRedaction(...)` unchanged to every invocation. Redaction completes during Lens finalization before the extension's single `driver.quit()`; it neither replaces the execution throwable nor changes passed/failed/aborted mapping. Optional page source and console remain best-effort text protection, while configured visual masks protect screenshot pixels.
 # JUnit 5 integration

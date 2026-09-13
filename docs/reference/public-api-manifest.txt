@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 241
-# Public callable methods/constructors: 1921
+# Types: 246
+# Public callable methods/constructors: 1950
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -1155,6 +1155,7 @@ TYPE io.github.testlens.TestLensOptions$Builder
   public io.github.testlens.TestLensOptions$Builder failureBundleOptions(io.github.testlens.selenium.evidence.FailureBundleOptions)
   public io.github.testlens.TestLensOptions$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
   public io.github.testlens.TestLensOptions$Builder hud(io.github.testlens.hud.HudOptions)
+  public io.github.testlens.TestLensOptions$Builder visualRedaction(io.github.testlens.selenium.evidence.VisualRedactionOptions)
   public io.github.testlens.TestLensOptions build()
 TYPE io.github.testlens.TestLensOptions
   public static io.github.testlens.TestLensOptions defaults()
@@ -1169,6 +1170,7 @@ TYPE io.github.testlens.TestLensOptions
   public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOptions()
   public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
   public io.github.testlens.hud.HudOptions hud()
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions visualRedaction()
 TYPE io.github.testlens.actions.AssertActions$OverlayAssertionResult
   public io.github.testlens.actions.AssertActions$OverlayAssertionResult(boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, long)
   public boolean isSuccess()
@@ -1762,6 +1764,7 @@ TYPE io.github.testlens.selenium.evidence.FailureBundleOptions
   public int maxConsoleEntries()
 TYPE io.github.testlens.selenium.evidence.ScreenshotCapture
   public io.github.testlens.selenium.evidence.ScreenshotCapture(org.openqa.selenium.WebDriver)
+  public io.github.testlens.selenium.evidence.ScreenshotCapture(org.openqa.selenium.WebDriver, io.github.testlens.selenium.evidence.VisualRedactionOptions)
   public io.github.testlens.selenium.evidence.ScreenshotCaptureResult capture(java.lang.String, io.github.testlens.selenium.evidence.ScreenshotCaptureOptions)
   public io.github.testlens.selenium.evidence.ScreenshotCaptureResult capture(java.lang.String, io.github.testlens.selenium.evidence.ScreenshotCaptureOptions, io.github.testlens.core.trace.UiTestLensSession)
 TYPE io.github.testlens.selenium.evidence.ScreenshotCaptureException
@@ -1872,6 +1875,43 @@ TYPE io.github.testlens.selenium.evidence.VideoEvidenceStatus
   public static final io.github.testlens.selenium.evidence.VideoEvidenceStatus SKIPPED
   public static io.github.testlens.selenium.evidence.VideoEvidenceStatus[] values()
   public static io.github.testlens.selenium.evidence.VideoEvidenceStatus valueOf(java.lang.String)
+TYPE io.github.testlens.selenium.evidence.VisualMaskMode
+  public static final io.github.testlens.selenium.evidence.VisualMaskMode SOLID
+  public static final io.github.testlens.selenium.evidence.VisualMaskMode BLUR
+  public static io.github.testlens.selenium.evidence.VisualMaskMode[] values()
+  public static io.github.testlens.selenium.evidence.VisualMaskMode valueOf(java.lang.String)
+TYPE io.github.testlens.selenium.evidence.VisualMaskRule
+  public io.github.testlens.selenium.evidence.VisualMaskRule(org.openqa.selenium.By, io.github.testlens.selenium.evidence.VisualMaskMode)
+  public org.openqa.selenium.By locator()
+  public io.github.testlens.selenium.evidence.VisualMaskMode mode()
+TYPE io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy
+  public static final io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy BEST_EFFORT
+  public static final io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy STRICT
+  public static io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy[] values()
+  public static io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy valueOf(java.lang.String)
+TYPE io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder maskPasswordInputs(boolean)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder mask(org.openqa.selenium.By, io.github.testlens.selenium.evidence.VisualMaskMode)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder failurePolicy(io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder solidColor(java.lang.String)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder blurRadiusPx(int)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder paddingPx(int)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder maskLabel(java.lang.String)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions build()
+TYPE io.github.testlens.selenium.evidence.VisualRedactionOptions
+  public static final java.lang.String DEFAULT_SOLID_COLOR
+  public static final int DEFAULT_BLUR_RADIUS_PX
+  public static io.github.testlens.selenium.evidence.VisualRedactionOptions defaults()
+  public static io.github.testlens.selenium.evidence.VisualRedactionOptions disabled()
+  public static io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder builder()
+  public boolean maskPasswordInputs()
+  public java.util.List<io.github.testlens.selenium.evidence.VisualMaskRule> rules()
+  public io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy failurePolicy()
+  public java.lang.String solidColor()
+  public int blurRadiusPx()
+  public int paddingPx()
+  public java.lang.String maskLabel()
+  public boolean hasMasks()
 TYPE io.github.testlens.selenium.locator.UiLocator
   public io.github.testlens.selenium.locator.UiLocator(org.openqa.selenium.WebDriver, org.openqa.selenium.By, java.lang.String, io.github.testlens.JsOverlayDebug, io.github.testlens.selenium.locator.UiLocatorOptions, io.github.testlens.core.OverlayLogger)
   public io.github.testlens.selenium.locator.UiLocator click()

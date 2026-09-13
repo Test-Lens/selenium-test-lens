@@ -93,7 +93,7 @@ action / wait / assertion
 → failure evidence bundle
 ```
 
-For a final `FAILED` outcome, the bundle can collect diagnostic and clean screenshots, trace, report, context, runtime/configuration allowlists, and a network summary. Collectors are best-effort, and finalization never closes the WebDriver. Optional page source and browser console have separate security limits. Video is an attachment supplied by the caller, not an automatic recording. Screenshots and video are not pixel-redacted. See [trace](docs/observability/trace.md), [reports](docs/observability/reports.md), and [failure bundles](docs/observability/failure-bundles.md).
+For a final `FAILED` outcome, the bundle can collect diagnostic and clean screenshots, trace, report, context, runtime/configuration allowlists, and a network summary. Collectors are best-effort, and finalization never closes the WebDriver. Optional page source and browser console have separate security limits. Screenshot pixels can be protected with browser-side [visual redaction](docs/security/visual-redaction.md); video is a caller-supplied attachment and is not modified. See [trace](docs/observability/trace.md), [reports](docs/observability/reports.md), and [failure bundles](docs/observability/failure-bundles.md).
 
 ```java
 ScreenshotCaptureOptions fullPage = ScreenshotCaptureOptions.builder()
@@ -111,7 +111,7 @@ After local finalization succeeds, `ReportUploader` can stream the completed fai
 
 One immutable policy protects diagnostic copies before fan-out to the HUD, trace, built-in and external log sinks, reports, network diagnostics, API previews, and text files in failure bundles. Reported exception types retain the original class while messages, causes, suppressed exceptions, and stack diagnostics are redacted; the original exception still controls the test outcome.
 
-Redaction is not pixel processing. Screenshots and video, replayable auth-state files, and unknown secret formats remain outside that guarantee; page-source and console handling is best-effort. `RedactionPolicy.disabled()` is an explicit opt-out that can expose secrets. See [sensitive-data redaction](docs/security/redaction.md).
+Text redaction is not pixel processing. `VisualRedactionOptions` separately masks screenshot pixels (password inputs default to SOLID), while video, replayable auth-state files, and unknown secret formats remain outside that guarantee; page-source and console handling is best-effort. `RedactionPolicy.disabled()` is an explicit opt-out that can expose secrets. See [sensitive-data redaction](docs/security/redaction.md) and [visual redaction](docs/security/visual-redaction.md).
 
 ## Advanced capabilities
 

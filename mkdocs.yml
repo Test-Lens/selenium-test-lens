@@ -88,6 +88,7 @@ nav:
       - Logging: observability/logging.md
   - Security:
       - Sensitive-data redaction: security/redaction.md
+      - Visual redaction: security/visual-redaction.md
   - Advanced Features:
       - Advanced features overview: advanced/index.md
       - Steps & business assertions: advanced/steps-business-assertions.md

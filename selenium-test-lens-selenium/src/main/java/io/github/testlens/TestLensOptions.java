@@ -5,6 +5,7 @@ import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.locator.UiLocatorOptions;
 import io.github.testlens.selenium.evidence.FailureBundleOptions;
 import io.github.testlens.hud.HudOptions;
+import io.github.testlens.selenium.evidence.VisualRedactionOptions;
 
 import java.nio.file.Path;
 
@@ -19,6 +20,7 @@ public final class TestLensOptions {
     private final int allowedRetries;
     private final FailureBundleOptions failureBundleOptions;
     private final RedactionPolicy redactionPolicy;
+    private final VisualRedactionOptions visualRedaction;
 
     private TestLensOptions(Builder builder) {
         OverlayConfig configuredOverlay = builder.overlayConfig == null ? OverlayConfig.builder().build() : builder.overlayConfig;
@@ -32,6 +34,8 @@ public final class TestLensOptions {
         this.failureBundleOptions = builder.failureBundleOptions == null
                 ? FailureBundleOptions.defaults() : builder.failureBundleOptions;
         this.redactionPolicy = builder.redactionPolicy == null ? RedactionPolicy.defaults() : builder.redactionPolicy;
+        this.visualRedaction = builder.visualRedaction == null
+                ? VisualRedactionOptions.defaults() : builder.visualRedaction;
     }
 
     public static TestLensOptions defaults() { return builder().build(); }
@@ -47,6 +51,7 @@ public final class TestLensOptions {
     public RedactionPolicy redactionPolicy() { return redactionPolicy; }
     /** Returns the HUD configuration used by the overlay. */
     public HudOptions hud() { return overlayConfig.getHudOptions(); }
+    public VisualRedactionOptions visualRedaction() { return visualRedaction; }
 
     public static final class Builder {
         private OverlayConfig overlayConfig;
@@ -59,6 +64,7 @@ public final class TestLensOptions {
         private FailureBundleOptions failureBundleOptions = FailureBundleOptions.defaults();
         private RedactionPolicy redactionPolicy = RedactionPolicy.defaults();
         private HudOptions hudOptions;
+        private VisualRedactionOptions visualRedaction = VisualRedactionOptions.defaults();
         private Builder() {}
         public Builder overlayConfig(OverlayConfig value) { overlayConfig = value; return this; }
         public Builder locatorOptions(UiLocatorOptions value) { locatorOptions = value; return this; }
@@ -84,6 +90,10 @@ public final class TestLensOptions {
         }
         /** Configures the browser HUD without exposing CSS internals. */
         public Builder hud(HudOptions value) { hudOptions = value == null ? HudOptions.defaults() : value; return this; }
+        public Builder visualRedaction(VisualRedactionOptions value) {
+            visualRedaction = value == null ? VisualRedactionOptions.defaults() : value;
+            return this;
+        }
         public TestLensOptions build() { return new TestLensOptions(this); }
     }
 }

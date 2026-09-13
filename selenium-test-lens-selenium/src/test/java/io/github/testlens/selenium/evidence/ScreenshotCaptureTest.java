@@ -37,7 +37,8 @@ class ScreenshotCaptureTest {
                 .build();
 
         FakeScreenshotDriver driver = new FakeScreenshotDriver(source);
-        ScreenshotCaptureResult result = new ScreenshotCapture(driver).capture("After save", options, session);
+        ScreenshotCaptureResult result = new ScreenshotCapture(driver, VisualRedactionOptions.disabled())
+                .capture("After save", options, session);
 
         assertEquals(ScreenshotCaptureStatus.CAPTURED, result.status());
         assertTrue(Files.exists(result.path()));
@@ -69,7 +70,8 @@ class ScreenshotCaptureTest {
                 .includeTimestamp(false)
                 .build();
 
-        ScreenshotCaptureResult result = new ScreenshotCapture(new FakeScreenshotDriver(source)).capture("After save", options, null);
+        ScreenshotCaptureResult result = new ScreenshotCapture(new FakeScreenshotDriver(source),
+                VisualRedactionOptions.disabled()).capture("After save", options, null);
 
         assertEquals(ScreenshotCaptureStatus.CAPTURED, result.status());
         assertTrue(Files.exists(result.path()));

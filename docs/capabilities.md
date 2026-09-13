@@ -30,7 +30,7 @@ Screenshot capture remains viewport-based by default. Release 0.2.0 adds bounded
 
 ### 5. Central protection for diagnostic text
 
-One policy creates safe diagnostic copies before fan-out to HUD, trace, sinks, reports, network/API diagnostics, and failure-bundle text files. It preserves the structural exception type while leaving the original throwable untouched in the execution path. Screenshots/video are not pixel-redacted, optional page source/console are best-effort, auth-state files remain outside the transformation, and `disabled()` is an explicit opt-out. See [redaction](security/redaction.md).
+One text policy creates safe diagnostic copies before fan-out to HUD, trace, sinks, reports, network/API diagnostics, and failure-bundle text files. It preserves the structural exception type while leaving the original throwable untouched in the execution path. Separate browser-side [visual redaction](security/visual-redaction.md) masks configured screenshot regions; video is not modified. Optional page source/console are best-effort, auth-state files remain outside the transformation, and `disabled()` is an explicit text-redaction opt-out. See [redaction](security/redaction.md).
 
 ## Advanced capabilities
 

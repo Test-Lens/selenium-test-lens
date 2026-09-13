@@ -14,6 +14,7 @@ All option objects are immutable after `build()` unless their API explicitly exp
 | `outputRoot(value)` | `Path` | `target/ui-test-lens` | Root for per-session artifacts; must be usable/non-null. Do not point at a tracked or public directory. |
 | `screenshotOnFailure(value)` | `boolean` | `true` | Enables best-effort automatic screenshot for a final `FAILED` result, including policy-induced failure; final passed/skipped results never request it. |
 | `failureBundleOptions(value)` | `FailureBundleOptions` | safe defaults | Configures automatic bundle collectors and limits for final `FAILED`; raw page source and browser console default to disabled. |
+| `visualRedaction(value)` | `VisualRedactionOptions` | password-safe defaults | Configures temporary browser-side masks for screenshot pixels. |
 | `redactionPolicy(value)` | `RedactionPolicy` | `RedactionPolicy.defaults()` | Central diagnostic redaction used by logger fan-out, trace, network/API overlays, reports, and failure-bundle text; null restores the safe default. |
 | `cleanupHudOnFinish(value)` | `boolean` | `true` | Best-effort removal of injected visual artifacts. |
 | `retryOutcomePolicy(value)` | `RetryOutcomePolicy` | `REPORT_ONLY` | Policy evaluated only by `finishPassed()` when the session contains recovery retries. |
@@ -149,6 +150,12 @@ The builder exposes **all** of: `background`, `foreground`, `mutedForeground`, `
 | `maxTileCount(int)` | 200 | Rejects a full-page grid requiring too many screenshots. |
 
 `FailureBundleOptions.screenshotCaptureMode(...)` selects the same mode for diagnostic and clean failure screenshots; its default is also `VIEWPORT`.
+
+## VisualRedactionOptions
+
+`VisualRedactionOptions.defaults()` automatically applies an opaque SOLID mask to `input[type=password]` and uses fail-closed `STRICT`. Add explicit Selenium locators with `mask(By, VisualMaskMode)`, opt into `BEST_EFFORT` when incomplete masking is acceptable, and optionally configure one safe `#RRGGBB` color, a bounded blur radius, padding, and a plain-text label. This object protects screenshot pixels and is separate from text-oriented `RedactionPolicy`.
+
+See [visual redaction and its security boundary](../security/visual-redaction.md) for the complete lifecycle, BLUR warning, full-page behavior, and iframe/shadow limitations.
 
 ## ReportUploadOptions
 

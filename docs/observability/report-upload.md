@@ -206,4 +206,4 @@ if (!upload.isUploaded()) {
 }
 ```
 
-Report artifacts can contain application data. Central text redaction applies while Test Lens creates reports and to uploader response diagnostics, but screenshot/video pixels are not redacted. Apply TLS, endpoint authentication, server-side access controls, quarantine, and retention policies appropriate for test evidence.
+Report artifacts can contain application data. Central text redaction applies while Test Lens creates reports and to uploader response diagnostics; configured [visual redaction](../security/visual-redaction.md) applies to Test Lens screenshots. Video pixels are not modified. Apply TLS, endpoint authentication, server-side access controls, quarantine, and retention policies appropriate for test evidence.

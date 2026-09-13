@@ -27,7 +27,7 @@ Network matching and redirect correlation continue to use a private raw capture 
 
 Failure-bundle text components—including optional page source and browser console—receive the same best-effort redaction. The bundle configuration snapshot records only whether redaction is enabled, its replacement, and counts of added keys and literal secrets. It never records their values.
 
-Explicit report upload does not add credentials or transport settings to the trace, report, bundle, or session-report manifest. Bearer tokens and custom header values are omitted from public `toString()` output and are always treated as exact transport secrets if an endpoint echoes them. Endpoint diagnostics omit query, userinfo, and fragment; bounded server-response previews also use the uploader's effective `RedactionPolicy`. This transport boundary cannot remove secrets already rendered into screenshot or video pixels.
+Explicit report upload does not add credentials or transport settings to the trace, report, bundle, or session-report manifest. Bearer tokens and custom header values are omitted from public `toString()` output and are always treated as exact transport secrets if an endpoint echoes them. Endpoint diagnostics omit query, userinfo, and fragment; bounded server-response previews also use the uploader's effective `RedactionPolicy`. This transport boundary cannot remove secrets already rendered into pixels. Configure the separate [visual-redaction layer](visual-redaction.md) for Test Lens screenshots; attached video remains outside that boundary.
 
 Throwable redaction keeps content and identity separate. Logger sinks receive a newly built diagnostic throwable graph whose message, causes, suppressed failures, and textual stack representation are safe; they never receive the original throwable object. Before that copy is built, the logger records the original class name as structural provenance. Consequently `exceptionType` in trace, JSON, HTML, and plain-text diagnostics remains the real application exception type even though the runtime class of the safe copy is an internal wrapper. The original throwable remains owned by the execution path and runner and is neither mutated nor replaced there.
 
@@ -35,7 +35,7 @@ Throwable redaction keeps content and identity separate. Logger sinks receive a 
 
 Redaction recognizes known structured secret formats and caller-provided literals; it is not a general personal-data detector.
 
-- Viewport and stitched full-page screenshot pixels, as well as video pixels, are not modified and may show data rendered anywhere in the captured document. Apply access and retention controls to both modes.
+- Screenshot pixels are protected only by explicitly configured [`VisualRedactionOptions`](visual-redaction.md) and its automatic password rule. Text redaction does not modify them. Video pixels are not modified.
 - Page source and console redaction are best effort because arbitrary unknown secrets cannot be inferred.
 - Structural parsing applies only to complete valid JSON documents; mixed HTML, console prose, and partial JSON use the tolerant text boundary. Recognized fields and configured literals remain protected, but this is not a general parser for arbitrary embedded application formats.
 - Authentication/storage-state artifacts remain deliberately outside this transformation so they stay usable for session restoration, and are not automatically added to failure bundles.

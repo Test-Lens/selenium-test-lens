@@ -518,6 +518,7 @@ class TestLensTest {
         return (WebDriver) Proxy.newProxyInstance(TestLensTest.class.getClassLoader(),
                 new Class<?>[]{WebDriver.class, JavascriptExecutor.class, TakesScreenshot.class},
                 (proxy, method, args) -> {
+                    if (method.getName().equals("findElements")) return java.util.List.of();
                     if (method.getName().equals("getScreenshotAs")) {
                         assertSame(OutputType.FILE, args[0]);
                         screenshotCalls.incrementAndGet();
@@ -542,6 +543,7 @@ class TestLensTest {
         return (WebDriver) Proxy.newProxyInstance(TestLensTest.class.getClassLoader(),
                 new Class<?>[]{WebDriver.class, JavascriptExecutor.class, TakesScreenshot.class},
                 (proxy, method, args) -> {
+                    if (method.getName().equals("findElements")) return java.util.List.of();
                     if (method.getName().equals("getScreenshotAs")) {
                         screenshotCalls.incrementAndGet();
                         return source.toFile();

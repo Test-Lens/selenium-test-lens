@@ -164,7 +164,8 @@ final class FailureBundleCapture {
                 .captureMode(options.screenshotCaptureMode())
                 .build();
         long captureStartedNanos = System.nanoTime();
-        ScreenshotCaptureResult result = new ScreenshotCapture(driver).capture(label, screenshotOptions, null);
+        ScreenshotCaptureResult result = new ScreenshotCapture(driver, lensOptions.visualRedaction())
+                .capture(label, screenshotOptions, null);
         long durationMillis = java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(
                 Math.max(0L, System.nanoTime() - captureStartedNanos));
         Map<String, String> details = new LinkedHashMap<>();
@@ -301,6 +302,10 @@ final class FailureBundleCapture {
         data.put("redactionReplacement", redactionPolicy.replacement());
         data.put("additionalSensitiveKeys", redactionPolicy.additionalSensitiveKeyCount());
         data.put("literalSecrets", redactionPolicy.literalSecretCount());
+        data.put("visualRedactionEnabled", lensOptions.visualRedaction().hasMasks());
+        data.put("automaticPasswordMasking", lensOptions.visualRedaction().maskPasswordInputs());
+        data.put("visualMaskRuleCount", lensOptions.visualRedaction().rules().size());
+        data.put("visualRedactionFailurePolicy", lensOptions.visualRedaction().failurePolicy().name());
         writeJsonComponent("configuration", "configuration.json", data);
     }
 

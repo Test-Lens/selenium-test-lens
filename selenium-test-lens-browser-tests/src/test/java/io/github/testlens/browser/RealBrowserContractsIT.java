@@ -28,6 +28,9 @@ import io.github.testlens.selenium.evidence.FailureBundleOptions;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureMode;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureOptions;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureResult;
+import io.github.testlens.selenium.evidence.VisualMaskMode;
+import io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy;
+import io.github.testlens.selenium.evidence.VisualRedactionOptions;
 import io.github.testlens.selenium.locator.UiLocatorException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -1389,6 +1392,245 @@ class RealBrowserContractsIT {
         assertFalse(driver.getTitle().isBlank(), "capture and finalization must leave the driver active");
     }
 
+    @Test
+    void visualRedactionProtectsViewportFullPageAndFailurePairWithoutMutatingPage() throws Exception {
+        open("/visual-redaction");
+        Path output = Path.of("target", "ui-test-lens", browserName(), "visual-redaction-" + UUID.randomUUID());
+        VisualRedactionOptions visual = VisualRedactionOptions.builder()
+                .mask(By.id("customer-number"), VisualMaskMode.SOLID)
+                .mask(By.id("customer-email"), VisualMaskMode.BLUR)
+                .mask(By.id("far-secret"), VisualMaskMode.SOLID)
+                .solidColor("#13579B")
+                .blurRadiusPx(12)
+                .paddingPx(2)
+                .failurePolicy(VisualRedactionFailurePolicy.STRICT)
+                .build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+                .visualRedaction(visual)
+                .failureBundleOptions(FailureBundleOptions.defaults())
+                .outputRoot(output).build());
+        lens.startSession("visual-redaction-" + UUID.randomUUID());
+
+        @SuppressWarnings("unchecked")
+        Map<String, Number> emailRect = (Map<String, Number>) ((JavascriptExecutor) driver).executeScript("""
+                const r = document.getElementById('customer-email').getBoundingClientRect();
+                return {left:r.left, top:r.top, width:r.width, height:r.height};
+                """);
+        @SuppressWarnings("unchecked")
+        Map<String, Number> passwordRect = (Map<String, Number>) ((JavascriptExecutor) driver).executeScript("""
+                const r = document.getElementById('password-secret').getBoundingClientRect();
+                return {left:r.left, top:r.top, width:r.width, height:r.height};
+                """);
+        @SuppressWarnings("unchecked")
+        Map<String, Number> customerRect = (Map<String, Number>) ((JavascriptExecutor) driver).executeScript("""
+                const r = document.getElementById('customer-number').getBoundingClientRect();
+                return {left:r.left, top:r.top, width:r.width, height:r.height};
+                """);
+        TestLens baselineLens = TestLens.attach(driver, TestLensOptions.builder()
+                .visualRedaction(VisualRedactionOptions.disabled()).build());
+        ScreenshotCaptureResult baseline = baselineLens.captureScreenshot("visual-baseline",
+                ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false).build());
+        ScreenshotCaptureResult viewport = lens.captureScreenshot("visual-masked",
+                ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false).build());
+        assertTrue(viewport.isCaptured(), viewport.message());
+        BufferedImage baselineImage = ImageIO.read(baseline.path().toFile());
+        BufferedImage maskedImage = ImageIO.read(viewport.path().toFile());
+        assertTrue(countRgb(maskedImage, 19, 87, 155) > 2_000,
+                "password and explicit SOLID masks must produce a substantial opaque region");
+        assertTrue(regionColorRatio(maskedImage, passwordRect, 19, 87, 155) > 0.90,
+                "automatic password masking must cover its pixel region with SOLID");
+        assertTrue(regionColorRatio(maskedImage, customerRect, 19, 87, 155) > 0.90,
+                "explicit SOLID must cover its pixel region with the custom color");
+        assertTrue(regionDifference(baselineImage, maskedImage, emailRect) > 20,
+                "BLUR must alter pixels in the configured email region");
+        assertEquals("THIS_MUST_NOT_APPEAR_7F3A", driver.findElement(By.id("password-secret")).getAttribute("value"));
+        assertEquals("customer-004291", driver.findElement(By.id("customer-number")).getAttribute("value"));
+        assertEquals(0L, number("return document.querySelectorAll('[data-test-lens-visual-mask]').length"));
+
+        ((JavascriptExecutor) driver).executeScript("""
+                window.__visualBatchAttempts = [];
+                window.__visualShiftDone = false;
+                window.__visualBatchObserver = new MutationObserver(() => {
+                  const batch = document.querySelector('[data-test-lens-visual-mask-batch]');
+                  if (!batch) return;
+                  const attempt = Number(batch.getAttribute('data-test-lens-visual-mask-attempt'));
+                  if (!window.__visualBatchAttempts.includes(attempt)) window.__visualBatchAttempts.push(attempt);
+                  if (attempt === 1 && !window.__visualShiftDone) {
+                    window.__visualShiftDone = true;
+                    document.getElementById('far-secret').style.transform = 'translateX(120px)';
+                  }
+                });
+                window.__visualBatchObserver.observe(document.body, {childList:true, subtree:true});
+                """);
+        ScreenshotCaptureResult full = lens.captureScreenshot("visual-full-page", ScreenshotCaptureOptions.builder()
+                .outputDirectory(output).includeTimestamp(false).captureMode(ScreenshotCaptureMode.FULL_PAGE).build());
+        ((JavascriptExecutor) driver).executeScript("window.__visualBatchObserver.disconnect()");
+        assertTrue(full.isCaptured(), full.message());
+        assertTrue(full.tileCount() > 1);
+        BufferedImage fullImage = ImageIO.read(full.path().toFile());
+        assertTrue(countRgb(fullImage, 19, 87, 155) > 4_000,
+                "off-screen secret must be SOLID-masked in stitched output");
+        @SuppressWarnings("unchecked")
+        Map<String, Number> shiftedFarRect = (Map<String, Number>) ((JavascriptExecutor) driver).executeScript("""
+                const r = document.getElementById('far-secret').getBoundingClientRect();
+                return {left:r.left + scrollX, top:r.top + scrollY, width:r.width, height:r.height};
+                """);
+        assertTrue(fullPageRegionColorRatio(fullImage, shiftedFarRect, 19, 87, 155) > 0.90,
+                "full-page retry must mask the current post-layout-shift geometry");
+        assertTrue(number("return window.__visualBatchAttempts.includes(2) ? 1 : 0") == 1,
+                "layout shift must force a whole-batch retry");
+        assertEquals(0L, number("return document.querySelectorAll('[data-test-lens-visual-mask]').length"));
+
+        TestLensFinalizationResult failure = lens.finishFailed(new AssertionError("controlled visual failure"));
+        BufferedImage diagnostic = ImageIO.read(failure.failureScreenshot().toFile());
+        BufferedImage clean = ImageIO.read(failure.failureBundleDirectory().orElseThrow()
+                .resolve("failure-clean.png").toFile());
+        assertTrue(countRgb(diagnostic, 19, 87, 155) > 2_000, "diagnostic screenshot must remain masked");
+        assertTrue(countRgb(clean, 19, 87, 155) > 2_000, "clean screenshot must remain masked");
+        assertFalse(driver.getPageSource().isBlank());
+        assertTrue(driver.getPageSource().contains("THIS_MUST_NOT_APPEAR_7F3A"),
+                "visual redaction intentionally does not redact page source in memory");
+
+    }
+
+    @Test
+    void visualRedactionReResolvesReactLikeReplacementBeforeStrictCapture() throws Exception {
+        open("/visual-redaction");
+        Path output = Path.of("target", "ui-test-lens", browserName(), "visual-replacement-" + UUID.randomUUID());
+        ((JavascriptExecutor) driver).executeScript("""
+                window.__visualBatchAttempts = [];
+                window.__visualReplacementDone = false;
+                window.__visualBatchObserver = new MutationObserver(() => {
+                  const batch = document.querySelector('[data-test-lens-visual-mask-batch]');
+                  if (!batch) return;
+                  const attempt = Number(batch.getAttribute('data-test-lens-visual-mask-attempt'));
+                  if (!window.__visualBatchAttempts.includes(attempt)) window.__visualBatchAttempts.push(attempt);
+                  if (attempt === 1 && !window.__visualReplacementDone) {
+                    window.__visualReplacementDone = true;
+                    const oldTarget = document.getElementById('password-secret');
+                    const replacement = oldTarget.cloneNode(true);
+                    replacement.style.marginLeft = '180px';
+                    oldTarget.replaceWith(replacement);
+                  }
+                });
+                window.__visualBatchObserver.observe(document.body, {childList:true, subtree:true});
+                """);
+        TestLens lens = strictSolidLens(output, By.id("password-secret"));
+        ScreenshotCaptureResult result = lens.captureScreenshot("replacement",
+                ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false).build());
+        ((JavascriptExecutor) driver).executeScript("window.__visualBatchObserver.disconnect()");
+
+        assertTrue(result.isCaptured(), result.message());
+        @SuppressWarnings("unchecked")
+        Map<String, Number> currentRect = (Map<String, Number>) ((JavascriptExecutor) driver).executeScript("""
+                const r = document.getElementById('password-secret').getBoundingClientRect();
+                return {left:r.left, top:r.top, width:r.width, height:r.height};
+                """);
+        assertTrue(regionColorRatio(ImageIO.read(result.path().toFile()), currentRect, 19, 87, 155) > 0.90,
+                "replacement node's current bounding box must be masked");
+        assertEquals(1L, number("return window.__visualBatchAttempts.includes(2) ? 1 : 0"));
+        assertEquals("THIS_MUST_NOT_APPEAR_7F3A", driver.findElement(By.id("password-secret")).getAttribute("value"));
+        assertEquals(0L, number("return document.querySelectorAll('[data-test-lens-visual-mask]').length"));
+    }
+
+    @Test
+    void visualRedactionRetriesSameNodeMoveAndResizeBeforeStrictCapture() throws Exception {
+        open("/visual-redaction");
+        Path output = Path.of("target", "ui-test-lens", browserName(), "visual-move-" + UUID.randomUUID());
+        ((JavascriptExecutor) driver).executeScript("""
+                window.__visualBatchAttempts = [];
+                window.__visualMoveDone = false;
+                window.__visualBatchObserver = new MutationObserver(() => {
+                  const batch = document.querySelector('[data-test-lens-visual-mask-batch]');
+                  if (!batch) return;
+                  const attempt = Number(batch.getAttribute('data-test-lens-visual-mask-attempt'));
+                  if (!window.__visualBatchAttempts.includes(attempt)) window.__visualBatchAttempts.push(attempt);
+                  if (attempt === 1 && !window.__visualMoveDone) {
+                    window.__visualMoveDone = true;
+                    const target = document.getElementById('customer-number');
+                    target.style.marginLeft = '160px';
+                    target.style.width = '280px';
+                    target.style.height = '72px';
+                  }
+                });
+                window.__visualBatchObserver.observe(document.body, {childList:true, subtree:true});
+                """);
+        WebElement original = driver.findElement(By.id("customer-number"));
+        TestLens lens = strictSolidLens(output, By.id("customer-number"));
+        ScreenshotCaptureResult result = lens.captureScreenshot("move-resize",
+                ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false).build());
+        ((JavascriptExecutor) driver).executeScript("window.__visualBatchObserver.disconnect()");
+
+        assertTrue(result.isCaptured(), result.message());
+        assertEquals(original, driver.findElement(By.id("customer-number")), "the same DOM node must have moved");
+        @SuppressWarnings("unchecked")
+        Map<String, Number> currentRect = (Map<String, Number>) ((JavascriptExecutor) driver).executeScript("""
+                const r = document.getElementById('customer-number').getBoundingClientRect();
+                return {left:r.left, top:r.top, width:r.width, height:r.height};
+                """);
+        assertTrue(regionColorRatio(ImageIO.read(result.path().toFile()), currentRect, 19, 87, 155) > 0.90,
+                "same-node moved and resized bounding box must be masked");
+        assertEquals(1L, number("return window.__visualBatchAttempts.includes(2) ? 1 : 0"));
+        assertEquals(0L, number("return document.querySelectorAll('[data-test-lens-visual-mask]').length"));
+    }
+
+    @Test
+    void visualRedactionBatchPerformanceDiagnostic() {
+        open("/visual-redaction");
+        Path output = Path.of("target", "ui-test-lens", browserName(), "visual-perf-" + UUID.randomUUID());
+        for (int maskCount : List.of(1, 5, 20, 50)) {
+            ((JavascriptExecutor) driver).executeScript("""
+                    document.getElementById('visual-redaction-fixture').innerHTML = '';
+                    const count = arguments[0];
+                    for (let i = 0; i < count; i++) {
+                      const target = document.createElement('div');
+                      target.className = 'performance-secret';
+                      target.textContent = 'synthetic-' + i;
+                      target.style.cssText = 'width:120px;height:20px;margin:1px;background:#ddd';
+                      document.getElementById('visual-redaction-fixture').appendChild(target);
+                    }
+                    """, maskCount);
+            TestLens lens = strictSolidLens(output, By.cssSelector(".performance-secret"));
+            long started = System.nanoTime();
+            ScreenshotCaptureResult result = lens.captureScreenshot("batch-" + maskCount,
+                    ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false).build());
+            long elapsedMs = (System.nanoTime() - started) / 1_000_000L;
+            System.out.println("VISUAL_REDACTION_BATCH masks=" + maskCount + " elapsedMs=" + elapsedMs);
+            assertTrue(result.isCaptured(), result.message());
+            assertTrue(elapsedMs < 10_000, "batch capture should not introduce an absurd delay");
+            assertEquals(0L, number("return document.querySelectorAll('[data-test-lens-visual-mask]').length"));
+        }
+    }
+
+    private TestLens strictSolidLens(Path output, By locator) {
+        VisualRedactionOptions visual = VisualRedactionOptions.builder().maskPasswordInputs(false)
+                .mask(locator, VisualMaskMode.SOLID).solidColor("#13579B")
+                .failurePolicy(VisualRedactionFailurePolicy.STRICT).build();
+        return TestLens.attach(driver, TestLensOptions.builder().visualRedaction(visual).outputRoot(output).build());
+    }
+
+    @Test
+    void strictVisualRedactionDoesNotPublishWhenRequiredTargetIsMissing() {
+        open("/visual-redaction");
+        Path output = Path.of("target", "ui-test-lens", browserName(), "visual-strict-" + UUID.randomUUID());
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().visualRedaction(
+                VisualRedactionOptions.builder().maskPasswordInputs(false)
+                        .mask(By.id("missing-sensitive-target"), VisualMaskMode.SOLID)
+                        .failurePolicy(VisualRedactionFailurePolicy.STRICT).build())
+                .outputRoot(output).build());
+        lens.startSession("strict-redaction-" + UUID.randomUUID());
+        ScreenshotCaptureResult result = lens.captureScreenshot("strict-missing",
+                ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false).build());
+        assertFalse(result.isCaptured());
+        assertEquals(0L, number("return document.querySelectorAll('[data-test-lens-visual-mask]').length"));
+        assertFalse(Files.exists(output.resolve("screenshot_strict-missing.png")));
+        TestLensFinalizationResult finalized = lens.finishFailed(new AssertionError("original test failure"));
+        assertEquals(TraceStatus.FAILED, finalized.session().metadata().status());
+        assertNull(finalized.failureScreenshot());
+        assertFalse(finalized.diagnosticFailures().isEmpty(),
+                "mask failure must be aggregated without replacing the original failure outcome");
+    }
+
     private static Stream<Arguments> finalizationCases() {
         return Stream.of(
                 Arguments.of(TraceStatus.PASSED, true),
@@ -1799,6 +2041,15 @@ class RealBrowserContractsIT {
                       <iframe id='full-page-frame' src='/frame'></iframe>
                     </div>
                     """), true);
+            case "/visual-redaction" -> html(exchange, page("Visual redaction", """
+                    <div id='visual-redaction-fixture'>
+                      <label>Password <input id='password-secret' type='password' value='THIS_MUST_NOT_APPEAR_7F3A'></label>
+                      <label>Customer number <input id='customer-number' value='customer-004291'></label>
+                      <div id='customer-email'>alice.private@example.test</div>
+                      <div id='visual-redaction-spacer'></div>
+                      <div id='far-secret'>OFFSCREEN_SECRET_7F3A</div>
+                    </div>
+                    """), false);
             case "/app.js" -> response(exchange, "application/javascript; charset=utf-8", APP_JS, false);
             case "/app.css" -> response(exchange, "text/css; charset=utf-8", APP_CSS, false);
             default -> response(exchange, "text/plain; charset=utf-8", "not found", false, 404);
@@ -2003,6 +2254,12 @@ class RealBrowserContractsIT {
             #full-page-sticky { position: sticky; top: 80px; width: 180px; height: 48px; background: rgb(0, 220, 220); }
             #full-page-right { position: absolute; left: 1680px; top: 980px; width: 100px; height: 100px;
               background: rgb(255, 165, 0); }
+            #visual-redaction-fixture { width: 640px; }
+            #visual-redaction-fixture label, #customer-email { display: block; margin: 18px 0; }
+            #visual-redaction-fixture input, #customer-email, #far-secret { width: 360px; height: 48px;
+              box-sizing: border-box; padding: 12px; font: 20px monospace; color: rgb(15, 25, 35);
+              background: repeating-linear-gradient(90deg, rgb(245,245,245) 0 5px, rgb(210,220,235) 5px 10px); }
+            #visual-redaction-spacer { height: 1500px; }
             """;
 
     private static boolean containsRgb(BufferedImage image, int red, int green, int blue) {
@@ -2018,6 +2275,59 @@ class RealBrowserContractsIT {
             }
         }
         return count;
+    }
+
+    private long regionDifference(BufferedImage before, BufferedImage after, Map<String, Number> rect) {
+        double scaleX = after.getWidth() / (double) number("return window.innerWidth");
+        double scaleY = after.getHeight() / (double) number("return window.innerHeight");
+        int left = (int) Math.max(0, Math.round(rect.get("left").doubleValue() * scaleX));
+        int top = (int) Math.max(0, Math.round(rect.get("top").doubleValue() * scaleY));
+        int right = (int) Math.min(after.getWidth(), Math.round((rect.get("left").doubleValue()
+                + rect.get("width").doubleValue()) * scaleX));
+        int bottom = (int) Math.min(after.getHeight(), Math.round((rect.get("top").doubleValue()
+                + rect.get("height").doubleValue()) * scaleY));
+        long changed = 0;
+        for (int y = top; y < bottom; y++) for (int x = left; x < right; x++) {
+            if (before.getRGB(x, y) != after.getRGB(x, y)) changed++;
+        }
+        return changed;
+    }
+
+    private double regionColorRatio(BufferedImage image, Map<String, Number> rect, int red, int green, int blue) {
+        double scaleX = image.getWidth() / (double) number("return window.innerWidth");
+        double scaleY = image.getHeight() / (double) number("return window.innerHeight");
+        int left = (int) Math.max(0, Math.round(rect.get("left").doubleValue() * scaleX));
+        int top = (int) Math.max(0, Math.round(rect.get("top").doubleValue() * scaleY));
+        int right = (int) Math.min(image.getWidth(), Math.round((rect.get("left").doubleValue()
+                + rect.get("width").doubleValue()) * scaleX));
+        int bottom = (int) Math.min(image.getHeight(), Math.round((rect.get("top").doubleValue()
+                + rect.get("height").doubleValue()) * scaleY));
+        int expected = (red << 16) | (green << 8) | blue;
+        long matching = 0, total = 0;
+        for (int y = top; y < bottom; y++) for (int x = left; x < right; x++) {
+            total++;
+            if ((image.getRGB(x, y) & 0x00ffffff) == expected) matching++;
+        }
+        return total == 0 ? 0 : matching / (double) total;
+    }
+
+    private double fullPageRegionColorRatio(BufferedImage image, Map<String, Number> rect,
+                                            int red, int green, int blue) {
+        double scaleX = image.getWidth() / (double) number("return document.documentElement.scrollWidth");
+        double scaleY = image.getHeight() / (double) number("return document.documentElement.scrollHeight");
+        int left = (int) Math.max(0, Math.round(rect.get("left").doubleValue() * scaleX));
+        int top = (int) Math.max(0, Math.round(rect.get("top").doubleValue() * scaleY));
+        int right = (int) Math.min(image.getWidth(), Math.round((rect.get("left").doubleValue()
+                + rect.get("width").doubleValue()) * scaleX));
+        int bottom = (int) Math.min(image.getHeight(), Math.round((rect.get("top").doubleValue()
+                + rect.get("height").doubleValue()) * scaleY));
+        int expected = (red << 16) | (green << 8) | blue;
+        long matching = 0, total = 0;
+        for (int y = top; y < bottom; y++) for (int x = left; x < right; x++) {
+            total++;
+            if ((image.getRGB(x, y) & 0x00ffffff) == expected) matching++;
+        }
+        return total == 0 ? 0 : matching / (double) total;
     }
 
     private static void assertNoTransparentRow(BufferedImage image) {

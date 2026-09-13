@@ -281,7 +281,7 @@ TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
 
 Sinks receive redacted diagnostic copies, not the original throwable. Reports retain the original exception class as structural `exceptionType`, while safe copies provide redacted messages, causes, suppressed failures, and stack text. The original exception still controls the test result.
 
-This is not pixel redaction or general personal-data detection. Screenshots and video can still show secrets; page source and browser console are opt-in, best-effort text boundaries; auth-state files remain replayable secret material. `RedactionPolicy.disabled()` is a deliberate opt-out. [Review what is—and is not—protected](security/redaction.md).
+Text redaction is not pixel processing or general personal-data detection. `VisualRedactionOptions` separately masks configured screenshot regions and password inputs by default; unmasked screenshot regions and attached video can still expose sensitive data. Page source and browser console are opt-in, best-effort text boundaries, while auth-state files remain replayable secret material. `RedactionPolicy.disabled()` is a deliberate text-redaction opt-out. [Review the text boundary](security/redaction.md) and [visual-redaction contract](security/visual-redaction.md).
 
 ## Better Selenium APIs without hiding Selenium
 
@@ -362,7 +362,7 @@ HTTP report upload
 
 HTML is the human investigation view; JSON is the structured event model. A final failed session can collect diagnostic and clean screenshots, failure details, trace/report output, context, runtime and allowlisted configuration, network summary, component manifest, and a ZIP. Collectors are best effort: evidence failure does not replace the original test failure.
 
-Screenshots use the viewport by default. Opt-in full-page capture uses bounded scroll-and-stitch without CDP, keeps the current responsive viewport width, and records completed dimensions/tile count. It does not expand iframe documents or nested scroll containers, and pixels are not redacted. Video is an attachment to an existing recording, not an automatic recorder.
+Screenshots use the viewport by default. Opt-in full-page capture uses bounded scroll-and-stitch without CDP, keeps the current responsive viewport width, and records completed dimensions/tile count. It does not expand iframe documents or nested scroll containers. Configured [visual redaction](security/visual-redaction.md) protects both viewport and stitched screenshot pixels; video is an attachment to an existing recording and is not modified.
 
 `ReportUploader` can synchronously stream one completed ZIP after finalization. It supports a bearer token, controlled headers, SHA-256 checksum, deterministic idempotency key, bounded opt-in retry, and direct/system/explicit proxy selection with no-proxy rules. Upload is never implicit and never needs or closes WebDriver:
 

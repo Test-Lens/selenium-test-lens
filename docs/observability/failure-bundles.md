@@ -32,7 +32,7 @@ TestLensOptions options = TestLensOptions.builder()
         .build();
 ```
 
-Redaction cannot infer arbitrary personal data, and screenshots/video are not pixel-redacted. The configuration component records only the redaction enabled flag, replacement, and counts of caller-added keys/secrets. Replayable auth/storage state is not transformed or automatically bundled. See [Sensitive-data redaction](../security/redaction.md).
+Text redaction cannot infer arbitrary personal data. Configured [visual redaction](../security/visual-redaction.md) protects both diagnostic and clean screenshot pixels; video is not modified. The configuration component records safe text- and visual-redaction settings and counts, never locator matches or secret values. Replayable auth/storage state is not transformed or automatically bundled. See [Sensitive-data redaction](../security/redaction.md).
 
 The equivalent explicit builder is:
 

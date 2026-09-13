@@ -31,15 +31,21 @@ import java.util.UUID;
  * Captures viewport or portable full-page PNG evidence without CDP or window resizing.
  * Full-page capture snapshots the current top-level document dimensions, scrolls the existing viewport, and
  * stitches standard Selenium screenshots. It does not expand frames, shadow roots, or nested scroll containers,
- * and screenshot pixels are not redacted.
+ * and applies configured browser-side visual masks before pixels are captured.
  */
 public final class ScreenshotCapture {
     private static final String STATE_KEY_PREFIX = "__testLensFullPage_";
     private final WebDriver driver;
+    private final VisualRedactionOptions visualRedaction;
 
     public ScreenshotCapture(WebDriver driver) {
+        this(driver, VisualRedactionOptions.defaults());
+    }
+
+    public ScreenshotCapture(WebDriver driver, VisualRedactionOptions visualRedaction) {
         if (driver == null) throw new IllegalArgumentException("driver must not be null");
         this.driver = driver;
+        this.visualRedaction = visualRedaction == null ? VisualRedactionOptions.defaults() : visualRedaction;
     }
 
     public ScreenshotCaptureResult capture(String name, ScreenshotCaptureOptions options) {
@@ -66,9 +72,22 @@ public final class ScreenshotCapture {
             Path output = prepareOutputDirectory(effective.outputDirectory());
             destination = EvidencePathStrategy.screenshotPath(effectiveName, effective).toAbsolutePath().normalize();
             validateDestination(output, destination);
-            CaptureData captured = requestedMode == ScreenshotCaptureMode.FULL_PAGE
-                    ? captureFullPage(takesScreenshot, (JavascriptExecutor) driver, effective)
-                    : captureViewport(takesScreenshot);
+            VisualRedactionController masks = new VisualRedactionController(driver, visualRedaction);
+            CaptureData captured;
+            Throwable captureFailure = null;
+            try {
+                if (requestedMode == ScreenshotCaptureMode.FULL_PAGE) {
+                    captured = captureFullPage(takesScreenshot, (JavascriptExecutor) driver, effective, masks);
+                } else {
+                    masks.apply();
+                    captured = captureViewport(takesScreenshot);
+                }
+            } catch (IOException | RuntimeException failure) {
+                captureFailure = failure;
+                throw failure;
+            } finally {
+                masks.remove(captureFailure);
+            }
 
             temporary = Files.createTempFile(output, destination.getFileName().toString(), ".part");
             if (!ImageIO.write(captured.image(), "png", temporary.toFile())) {
@@ -78,7 +97,8 @@ public final class ScreenshotCapture {
             temporary = null;
 
             TraceArtifact artifact = null;
-            String message = "Screenshot captured";
+            String message = masks.warnings().isEmpty() ? "Screenshot captured"
+                    : "Screenshot captured with visual-redaction warning(s): " + String.join("; ", masks.warnings());
             if (effective.attachToSession()) {
                 if (session != null) {
                     artifact = TraceArtifact.screenshot(effectiveName, destination)
@@ -90,7 +110,7 @@ public final class ScreenshotCapture {
                             .withMetadata("durationMs", String.valueOf(elapsedMillis(started)));
                     session.attachArtifact(artifact);
                 } else {
-                    message = "Screenshot captured; no UiTestLensSession attached";
+                    message = message + "; no UiTestLensSession attached";
                 }
             }
             return ScreenshotCaptureResult.captured(effectiveName, destination, artifact, message,
@@ -115,7 +135,7 @@ public final class ScreenshotCapture {
     }
 
     private CaptureData captureFullPage(TakesScreenshot screenshots, JavascriptExecutor javascript,
-                                        ScreenshotCaptureOptions options) throws IOException {
+                                        ScreenshotCaptureOptions options, VisualRedactionController masks) throws IOException {
         String stateKey = STATE_KEY_PREFIX + UUID.randomUUID().toString().replace("-", "");
         PageSnapshot page;
         try {
@@ -157,6 +177,7 @@ public final class ScreenshotCapture {
                     Position actual = new Position(current.scrollX(), current.scrollY());
                     if (!capturedPositions.add(actual)) continue;
 
+                    masks.refresh();
                     BufferedImage tile = decode(screenshots.getScreenshotAs(OutputType.BYTES));
                     tileCount++;
                     double currentScaleX = tile.getWidth() / (double) page.viewportWidth();

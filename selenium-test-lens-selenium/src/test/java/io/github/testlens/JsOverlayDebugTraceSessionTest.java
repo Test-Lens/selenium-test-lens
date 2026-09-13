@@ -290,6 +290,7 @@ class JsOverlayDebugTraceSessionTest {
                 JsOverlayDebugTraceSessionTest.class.getClassLoader(),
                 new Class<?>[]{WebDriver.class, JavascriptExecutor.class, TakesScreenshot.class},
                 (proxy, method, args) -> {
+                    if ("findElements".equals(method.getName())) return java.util.List.of();
                     if ("getScreenshotAs".equals(method.getName())) {
                         @SuppressWarnings("unchecked")
                         OutputType<File> outputType = (OutputType<File>) args[0];

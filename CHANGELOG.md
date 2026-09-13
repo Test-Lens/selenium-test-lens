@@ -7,10 +7,16 @@ All notable changes to Selenium Test Lens will be documented in this file.
 ### Added
 
 - Added immutable `HudOptions` with Minimal, Compact, Standard, and Debug presets, semantic HUD row filtering, responsive atomic AUTO/INLINE/STACKED header layouts, validated semantic colors and opacity, anchored offsets, bounded sizing, global and section-specific local font presets, configurable native/subtle/standard event-log scrollbars, and bounded PNG branding. The shared runtime renderer now powers the runtime, homepage preview, and WYSIWYG HUD Studio.
+- Added browser-side visual redaction for every Test Lens screenshot path, with explicit SOLID/BLUR locator rules, per-tile full-page refresh, and diagnostic/clean parity.
 
 ### Changed
 
 - The runtime HUD now defaults to the compact product preset: pipeline and timestamps are hidden, TEST/STEP context is compact, and the event log receives the available panel space. Existing trace and session metadata are unchanged.
+
+### Security
+
+- Screenshot capture now masks password inputs with SOLID by default and uses a STRICT fail-closed publication policy. BLUR is documented as obfuscation and falls back safely to SOLID when unavailable.
+- Visual-mask installation verifies target geometry, recovers from React/SPA rerenders and replacements with a bounded whole-batch retry, and refreshes masks for every full-page tile.
 
 ## [0.2.0] - 2026-09-11
 

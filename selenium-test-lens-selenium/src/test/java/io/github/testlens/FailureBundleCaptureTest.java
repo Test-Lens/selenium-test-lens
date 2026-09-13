@@ -348,6 +348,7 @@ class FailureBundleCaptureTest {
             WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
                     new Class<?>[]{WebDriver.class, JavascriptExecutor.class, TakesScreenshot.class, HasCapabilities.class},
                     (proxy, method, args) -> switch (method.getName()) {
+                        case "findElements" -> List.of();
                         case "getScreenshotAs" -> {
                             screenshotCalls.incrementAndGet(); order.add("screenshot");
                             @SuppressWarnings("unchecked") OutputType<Object> output = (OutputType<Object>) args[0];

@@ -49,7 +49,7 @@ public final class TestLens {
         this.options = options == null ? TestLensOptions.defaults() : options;
         this.finalizationObserver = finalizationObserver == null ? ignored -> { } : finalizationObserver;
         this.delegate = new JsOverlayDebug(driver, this.options.overlayConfig(), this.options.redactionPolicy(),
-                this.options.locatorOptions());
+                this.options.locatorOptions(), this.options.visualRedaction());
     }
 
     public static TestLens attach(WebDriver driver) { return new TestLens(driver, TestLensOptions.defaults()); }
