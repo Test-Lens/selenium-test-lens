@@ -48,6 +48,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.json.Json;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.IOException;
@@ -75,6 +76,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class RealBrowserContractsIT {
     private static final Duration WAIT = Duration.ofSeconds(5);
@@ -1212,29 +1214,91 @@ class RealBrowserContractsIT {
         TestLensFinalizationResult result = lens.finishFailed(new AssertionError("expected browser IT failure"));
 
         assertEquals(TraceStatus.FAILED, result.session().metadata().status());
+        assertFalse(driver.getTitle().isBlank(), "finishFailed must leave the WebDriver alive");
+        String currentUrl = driver.getCurrentUrl();
+        assertTrue(currentUrl.startsWith(baseUrl),
+                "finishFailed must leave the driver in the active local page; browser=" + browserName()
+                        + ", page=" + page + ", currentUrl=" + currentUrl);
+        assertTrue(hudPresent().apply(driver), "cleanup=false must restore HUD after clean capture");
+        assertTrue(highlightPresent().apply(driver), "cleanup=false must restore highlight after clean capture");
+
+        Path bundle = result.failureBundleDirectory().orElseThrow();
         assertTrue(Files.isRegularFile(result.failureScreenshot()));
-        assertTrue(Files.isRegularFile(result.failureBundleDirectory().orElseThrow().resolve("failure-clean.png")));
-        assertTrue(Files.isRegularFile(result.failureBundleDirectory().orElseThrow().resolve("page-source.html")));
-        String context = Files.readString(result.failureBundleDirectory().orElseThrow().resolve("context.json"));
+        assertTrue(Files.isRegularFile(bundle.resolve("failure-clean.png")));
+        String context = Files.readString(bundle.resolve("context.json"));
         assertTrue(context.contains("currentUrl"));
         assertTrue(context.contains("127.0.0.1"));
         assertTrue(context.contains("title"));
         assertTrue(context.contains("currentWindowHandle"));
-        assertTrue(Files.readString(result.failureBundleDirectory().orElseThrow().resolve("runtime.json")).contains(browserName()));
+        assertTrue(Files.readString(bundle.resolve("runtime.json")).contains(browserName()));
         assertTrue(Files.isRegularFile(result.jsonReport()));
         assertTrue(Files.isRegularFile(result.htmlReport()));
         assertTrue(result.failureBundleManifest().isPresent());
         assertTrue(result.failureBundleArchive().isPresent());
-        assertTrue(hudPresent().apply(driver), "cleanup=false must restore HUD after clean capture");
-        assertTrue(highlightPresent().apply(driver), "cleanup=false must restore highlight after clean capture");
-        assertFalse(driver.getTitle().isBlank(), "finishFailed must leave the WebDriver alive");
+
+        ManifestComponent pageSource = manifestComponent(result.failureBundleManifest().orElseThrow(), "pageSource");
+        String pageSourceDiagnostic = "browser=" + browserName() + ", page=" + page
+                + ", collectorStatus=" + pageSource.status() + ", path=" + pageSource.path()
+                + ", diagnostic=" + pageSource.message();
+        if ("/clicks".equals(page)) {
+            assertEquals("CAPTURED", pageSource.status(),
+                    "Stable page must retain strong page-source coverage; " + pageSourceDiagnostic);
+        } else if (!Set.of("CAPTURED", "FAILED", "UNSUPPORTED").contains(pageSource.status())) {
+            fail("Complete page-source collection must be captured or explicitly report unavailability; "
+                    + pageSourceDiagnostic);
+        }
+
+        Path pageSourceFile = bundle.resolve("page-source.html");
+        if ("CAPTURED".equals(pageSource.status())) {
+            assertEquals("failure-bundle/page-source.html", pageSource.path(), pageSourceDiagnostic);
+            assertEquals("text/html", pageSource.mediaType(), pageSourceDiagnostic);
+            assertNotNull(pageSource.sizeBytes(), pageSourceDiagnostic);
+            assertTrue(pageSource.sizeBytes() > 0, pageSourceDiagnostic);
+            assertTrue(Files.isRegularFile(pageSourceFile), pageSourceDiagnostic);
+        } else {
+            assertTrue(pageSource.message() != null && !pageSource.message().isBlank(), pageSourceDiagnostic);
+            assertNull(pageSource.path(), pageSourceDiagnostic);
+            assertNull(pageSource.sizeBytes(), pageSourceDiagnostic);
+            assertFalse(Files.exists(pageSourceFile),
+                    "An unavailable collector must not leave a false page-source artifact; " + pageSourceDiagnostic);
+        }
+
         try (ZipFile zip = new ZipFile(result.failureBundleArchive().orElseThrow().toFile())) {
             assertTrue(zip.getEntry("manifest.json") != null);
             assertTrue(zip.getEntry("trace.json") != null);
             assertTrue(zip.getEntry("report.html") != null);
             assertTrue(zip.getEntry("failure-diagnostic.png") != null);
             assertTrue(zip.getEntry("failure-clean.png") != null);
+            if ("CAPTURED".equals(pageSource.status())) {
+                assertNotNull(zip.getEntry("page-source.html"), pageSourceDiagnostic);
+            } else {
+                assertNull(zip.getEntry("page-source.html"),
+                        "An unavailable collector must not add a false ZIP entry; " + pageSourceDiagnostic);
+            }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ManifestComponent manifestComponent(Path manifestPath, String componentName) throws IOException {
+        Map<String, Object> manifest = new Json().toType(Files.readString(manifestPath), Map.class);
+        Object componentsValue = manifest.get("components");
+        if (!(componentsValue instanceof Map<?, ?> components)) {
+            throw new AssertionError("Failure-bundle manifest has no components object: " + manifestPath);
+        }
+        Object componentValue = components.get(componentName);
+        if (!(componentValue instanceof Map<?, ?> component)) {
+            throw new AssertionError("Failure-bundle manifest has no " + componentName + " component: " + manifestPath);
+        }
+        Object size = component.get("sizeBytes");
+        return new ManifestComponent(
+                (String) component.get("status"),
+                (String) component.get("path"),
+                size instanceof Number number ? number.longValue() : null,
+                (String) component.get("mediaType"),
+                (String) component.get("message"));
+    }
+
+    private record ManifestComponent(String status, String path, Long sizeBytes, String mediaType, String message) {
     }
 
     @Test

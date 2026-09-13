@@ -19,6 +19,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.logging.LogEntries;
 import org.openqa.selenium.logging.LogEntry;
 import org.openqa.selenium.logging.Logs;
@@ -80,6 +81,31 @@ class FailureBundleCaptureTest {
         assertEquals(original.getClass().getName(), result.session().events().stream()
                 .filter(event -> event.type() == TraceEventType.SESSION_FINISHED)
                 .findFirst().orElseThrow().failure().exceptionType());
+    }
+
+    @Test
+    void pageSourceFailureRemainsBestEffortAndDoesNotCreateFalseArtifact() throws Exception {
+        DriverFixture fixture = driver("<html><body>unused</body></html>", List.of(),
+                new WebDriverException("simulated remote browser page-source failure"));
+        TestLens lens = TestLens.attach(fixture.driver, options(FailureBundleOptions.complete()));
+        lens.startSession("page-source-failure");
+
+        TestLensFinalizationResult result = lens.finishFailed(new AssertionError("primary test failure"));
+
+        assertEquals(TraceStatus.FAILED, result.session().metadata().status());
+        assertEquals("Bundle test", fixture.driver.getTitle());
+        assertTrue(Files.isRegularFile(result.failureBundleDirectory().orElseThrow().resolve("context.json")));
+        assertTrue(Files.isRegularFile(result.failureBundleDirectory().orElseThrow().resolve("failure-clean.png")));
+        assertFalse(Files.exists(result.failureBundleDirectory().orElseThrow().resolve("page-source.html")));
+        String manifest = Files.readString(result.failureBundleManifest().orElseThrow());
+        assertTrue(manifest.matches("(?s).*\\\"pageSource\\\"\\s*:\\s*\\{\\s*\\\"status\\\"\\s*:\\s*\\\"FAILED\\\".*"),
+                manifest);
+        assertTrue(manifest.contains("Page source capture failed"), manifest);
+        try (ZipFile zip = new ZipFile(result.failureBundleArchive().orElseThrow().toFile())) {
+            assertNotNull(zip.getEntry("manifest.json"));
+            assertNotNull(zip.getEntry("failure-clean.png"));
+            assertNull(zip.getEntry("page-source.html"));
+        }
     }
 
     @Test
@@ -294,6 +320,10 @@ class FailureBundleCaptureTest {
     }
 
     private DriverFixture driver(String pageSource, List<LogEntry> logs) {
+        return driver(pageSource, logs, null);
+    }
+
+    private DriverFixture driver(String pageSource, List<LogEntry> logs, RuntimeException pageSourceFailure) {
         try {
             Path screenshot = temp.resolve("source-" + System.nanoTime() + ".png");
             ImageIO.write(new BufferedImage(4, 3, BufferedImage.TYPE_INT_ARGB), "png", screenshot.toFile());
@@ -347,7 +377,10 @@ class FailureBundleCaptureTest {
                         case "getTitle" -> "Bundle test";
                         case "getWindowHandle" -> "window-1";
                         case "getWindowHandles" -> Set.of("window-1");
-                        case "getPageSource" -> pageSource;
+                        case "getPageSource" -> {
+                            if (pageSourceFailure != null) throw pageSourceFailure;
+                            yield pageSource;
+                        }
                         case "manage" -> manage;
                         case "getCapabilities" -> capabilities;
                         case "toString" -> "failure-bundle-driver";
