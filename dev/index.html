@@ -982,6 +982,34 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="features/react-spa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    React & SPA resilience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
     
@@ -996,10 +1024,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
         
           
-          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
             
   
   
@@ -1017,8 +1045,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1280,10 +1308,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
         
           
-          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
             
   
   
@@ -1301,8 +1329,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2284,34 +2312,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="integrations/react/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Optional React API
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -3202,9 +3202,9 @@
 <p><a href="advanced/auth-state/">Authentication state</a></p>
 </li>
 <li>
-<p><strong>React and SPA-aware helpers</strong></p>
+<p><strong>React &amp; SPA resilience</strong></p>
 <p>Re-resolve elements across rerenders, inspect common busy/loading DOM conventions, wait for roots and DOM stability, and work with known React Select markup through the optional module.</p>
-<p><a href="integrations/react/">React integration</a></p>
+<p><a href="features/react-spa/">React/SPA resilience and its boundaries</a></p>
 </li>
 <li>
 <p><strong>Application-aware waits</strong></p>
@@ -3267,7 +3267,7 @@
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">ReactSafeExecutor</span><span class="w"> </span><span class="n">react</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ReactSupport</span><span class="p">.</span><span class="na">reactSafe</span><span class="p">(</span><span class="n">overlay</span><span class="p">);</span>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">react</span><span class="p">.</span><span class="na">clearAndType</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">cssSelector</span><span class="p">(</span><span class="s">"[data-testid='search']"</span><span class="p">),</span><span class="w"> </span><span class="s">"camera"</span><span class="p">,</span><span class="w"> </span><span class="s">"Search"</span><span class="p">);</span>
 </span></code></pre></div>
-<p>These are DOM-convention helpers. They do not guarantee compatibility with every component library, do not cross frame/window/shadow-root boundaries automatically, and do not turn Test Lens into a React test runner. The legacy React <code>smartClick</code> has a separate contract; normal interaction should use <code>UiLocator.click()</code>. <a href="integrations/react/">Choose the React helpers deliberately</a>.</p>
+<p>These are DOM-convention helpers. They do not inspect the React component tree, guarantee compatibility with every component library, or cross frame/window/shadow-root boundaries automatically. The legacy React <code>smartClick</code> has a separate contract; normal interaction should use <code>UiLocator.click()</code>. <a href="features/react-spa/">Choose the React/SPA helpers deliberately</a>.</p>
 <h2 id="smarter-waits-and-application-readiness">Smarter waits and application readiness<a class="headerlink" href="#smarter-waits-and-application-readiness" title="Permanent link">&para;</a></h2>
 <p>Raw Selenium gives you <code>WebDriverWait</code> and <code>JavascriptExecutor</code>; Test Lens packages recurring browser/application observations behind reusable methods and records their progress through the same HUD and trace pipeline.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">waitForPageReady</span><span class="p">(</span><span class="n">Duration</span><span class="p">.</span><span class="na">ofSeconds</span><span class="p">(</span><span class="mi">5</span><span class="p">));</span>
@@ -3499,7 +3499,7 @@
 <li><a href="observability/failure-bundles/">Failure evidence</a></li>
 <li><a href="advanced/network/">WebDriver BiDi network diagnostics</a></li>
 <li><a href="advanced/auth-state/">Authentication state</a></li>
-<li><a href="integrations/react/">React integration</a></li>
+<li><a href="features/react-spa/">React &amp; SPA resilience</a></li>
 <li><a href="browser-context/">Browser context helpers</a></li>
 <li><a href="elements/select-controls/">Select controls</a></li>
 <li><a href="advanced/visual-helpers/">Advanced visual and API helpers</a></li>
