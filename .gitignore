@@ -16,6 +16,7 @@ Thumbs.db
 
 # MkDocs generated site
 /site/
+__pycache__/
 
 # UI Test Lens generated auth/session state may contain tokens.
 target/ui-test-lens/auth/

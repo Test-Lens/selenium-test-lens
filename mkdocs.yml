@@ -9,6 +9,8 @@ plugins:
   - mike:
       alias_type: copy
       canonical_version: latest
+hooks:
+  - docs-hooks/copy-hud-demo-runtime.py
 exclude_docs: |
   CURRENT_IMPLEMENTATION_AUDIT.md
   assets/brand/README.md

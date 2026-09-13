@@ -43,9 +43,29 @@ try {
     $homepage = Join-Path $worktreeRoot "docs/index.md"
     Copy-Item -LiteralPath (Join-Path $root "docs/index.md") -Destination $homepage -Force
 
+    $demoSource = Join-Path $root "docs/demo/hud"
+    $demoDestination = Join-Path $worktreeRoot "docs/demo/hud"
+    New-Item -ItemType Directory -Path $demoDestination -Force | Out-Null
+    foreach ($demoFile in @("index.html", "demo.css", "demo.js")) {
+        Copy-Item -LiteralPath (Join-Path $demoSource $demoFile) -Destination (Join-Path $demoDestination $demoFile) -Force
+    }
+    # Stable 0.2.0 must retain the renderer shipped by its release tag even when
+    # the development renderer evolves on main.
+    $runtimeSource = Join-Path $worktreeRoot "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"
+    $runtimeDestination = Join-Path $demoDestination "runtime"
+    New-Item -ItemType Directory -Path $runtimeDestination -Force | Out-Null
+    foreach ($runtimeFile in @("hud-panel.js", "highlight.js", "scroll-arrow.js")) {
+        Copy-Item -LiteralPath (Join-Path $runtimeSource $runtimeFile) -Destination (Join-Path $runtimeDestination $runtimeFile) -Force
+    }
+
     # The dev homepage maps to main and keeps its edit link. The repaired stable
     # homepage has no matching source file in v0.2.0, so hide only that edit link.
     $homepageText = [IO.File]::ReadAllText($homepage)
+    $homepageText = [Text.RegularExpressions.Regex]::Replace(
+        $homepageText,
+        '(?s)\r?\n<!-- configurable-hud-dev:start -->.*?<!-- configurable-hud-dev:end -->\r?\n',
+        "`n"
+    )
     $stableHomepageText = [regex]::Replace(
         $homepageText,
         '(?m)^(  - toc)\r?$',
@@ -57,9 +77,18 @@ try {
     }
     [IO.File]::WriteAllText($homepage, $stableHomepageText, [Text.UTF8Encoding]::new($false))
 
-    $worktreeChanges = @(& git -C $worktreeRoot status --short --untracked-files=all)
-    if ($worktreeChanges.Count -ne 1 -or $worktreeChanges[0].Trim() -ne "M docs/index.md") {
-        throw "The repair worktree must differ from $releaseTag only at docs/index.md; found: $($worktreeChanges -join ', ')."
+    $expectedWorktreeChanges = @(
+        "M docs/index.md",
+        "?? docs/demo/hud/demo.css",
+        "?? docs/demo/hud/demo.js",
+        "?? docs/demo/hud/index.html",
+        "?? docs/demo/hud/runtime/highlight.js",
+        "?? docs/demo/hud/runtime/hud-panel.js",
+        "?? docs/demo/hud/runtime/scroll-arrow.js"
+    ) | Sort-Object
+    $worktreeChanges = @(& git -C $worktreeRoot status --short --untracked-files=all | ForEach-Object { $_.Trim() } | Sort-Object)
+    if (($worktreeChanges -join "`n") -ne ($expectedWorktreeChanges -join "`n")) {
+        throw "The repair worktree contains changes outside the homepage demo: $($worktreeChanges -join ', ')."
     }
 
     Push-Location $worktreeRoot
@@ -68,6 +97,10 @@ try {
         $env:DOCS_RELEASE_EDIT_URI = "edit/v0.2.0/docs/"
         & mkdocs build --strict --config-file mkdocs-release.yml --site-dir $previewRoot
         if ($LASTEXITCODE -ne 0) { throw "The repaired 0.2.0 documentation did not build strictly." }
+        & (Join-Path $root "scripts/check-hud-demo.ps1") `
+            -SiteDirectory $previewRoot `
+            -RuntimeSourceDirectory $runtimeSource `
+            -ExpectedRuntimeRef $releaseTag
     } finally {
         Pop-Location
     }

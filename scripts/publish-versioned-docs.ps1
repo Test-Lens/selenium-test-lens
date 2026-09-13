@@ -119,6 +119,18 @@ try {
             "latest/sitemap.xml",
             "latest/sitemap.xml.gz"
         )
+        $requiredDemoFiles = @(
+            "demo/hud/index.html",
+            "demo/hud/demo.css",
+            "demo/hud/demo.js",
+            "demo/hud/runtime/hud-panel.js",
+            "demo/hud/runtime/highlight.js",
+            "demo/hud/runtime/scroll-arrow.js"
+        )
+        foreach ($requiredDemoFile in $requiredDemoFiles) {
+            $allowedRepairChanges += "0.2.0/$requiredDemoFile"
+            $allowedRepairChanges += "latest/$requiredDemoFile"
+        }
         $repairChanges = @(& git diff --name-only --no-renames $branchBefore $Branch)
         if ($LASTEXITCODE -ne 0) {
             throw "Unable to inspect the generated 0.2.0 repair diff."
@@ -136,6 +148,13 @@ try {
         foreach ($requiredHomepage in @("0.2.0/index.html", "latest/index.html")) {
             if ($repairChanges -notcontains $requiredHomepage) {
                 throw "Repairing 0.2.0 did not update required generated homepage '$requiredHomepage'."
+            }
+        }
+        foreach ($requiredDemoFile in $requiredDemoFiles) {
+            foreach ($versionPath in @("0.2.0/$requiredDemoFile", "latest/$requiredDemoFile")) {
+                if ($repairChanges -notcontains $versionPath) {
+                    throw "Repairing 0.2.0 did not publish required HUD demo file '$versionPath'."
+                }
             }
         }
         Write-Host ("Validated generated repair paths: " + ($repairChanges -join ", "))

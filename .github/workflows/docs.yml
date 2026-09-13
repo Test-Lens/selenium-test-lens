@@ -49,6 +49,7 @@ jobs:
         shell: pwsh
         run: |
           ./scripts/check-doc-links.ps1
+          ./scripts/check-hud-demo.ps1 -SiteDirectory "${env:RUNNER_TEMP}/dev-site"
           ./scripts/check-doc-signatures.ps1
           ./scripts/check-doc-version-boundary.ps1
           ./scripts/validate-stable-doc-examples.ps1

@@ -45,6 +45,60 @@ It does not replace Selenium, Page Objects, JUnit, TestNG, or an existing report
 
 The in-browser HUD makes the active Lens session visible in the page under test. It presents the current step and diagnostic rows emitted by element actions, waits, assertions, recovery retries, and network diagnostics. Rows carry their operation status and safe target or locator context; [`NetworkHudFilter`](advanced/network.md#hud-only-filtering) can reduce raw request/response noise without removing captured evidence.
 
+<style>
+.tl-hud-demo-frame { display: block; width: 100%; max-width: 100%; height: 650px; border: 1px solid var(--md-default-fg-color--lightest); border-radius: .6rem; background: #eef2f7; }
+@media (max-width: 720px) { .tl-hud-demo-frame { height: 690px; } }
+</style>
+
+<iframe
+  id="test-lens-hud-demo"
+  class="tl-hud-demo-frame"
+  src="demo/hud/"
+  title="Interactive Test Lens HUD, highlight, and scroll-cue demonstration"
+  loading="eager"
+  sandbox="allow-scripts"
+>
+  The interactive demo could not be loaded. <a href="demo/hud/">Open the standalone HUD demo.</a>
+</iframe>
+
+<script>
+(function () {
+  var frame = document.getElementById('test-lens-hud-demo');
+  if (!frame) return;
+
+  var visible = false;
+  function notifyDemo() {
+    if (frame.contentWindow) {
+      frame.contentWindow.postMessage({ type: 'test-lens-demo-visibility', visible: visible }, '*');
+    }
+  }
+
+  window.addEventListener('message', function (event) {
+    if (event.source === frame.contentWindow && event.data && event.data.type === 'test-lens-demo-ready') {
+      notifyDemo();
+    }
+  });
+
+  if (!('IntersectionObserver' in window)) {
+    visible = true;
+    frame.addEventListener('load', notifyDemo);
+    notifyDemo();
+    return;
+  }
+
+  var observer = new IntersectionObserver(function (entries) {
+    var entry = entries[0];
+    visible = Boolean(entry && entry.isIntersecting && entry.intersectionRatio >= 0.05);
+    notifyDemo();
+  }, { threshold: [0, 0.05] });
+  observer.observe(frame);
+  frame.addEventListener('load', notifyDemo);
+}());
+</script>
+
+<small>This is a deterministic simulation: the checkout UI and network rows are synthetic, while the HUD, labeled highlight, and scroll arrow use the renderer for this documentation version. No request is sent.</small>
+
+
 ```java
 lens.startSession("Checkout");
 lens.getByRole("button", "Place order")

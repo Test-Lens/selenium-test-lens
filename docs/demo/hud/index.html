@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Test Lens HUD demo</title>
+  <link rel="stylesheet" href="demo.css">
+</head>
+<body>
+  <header class="demo-toolbar">
+    <div>
+      <strong>Test Lens checkout demo</strong>
+      <span>Synthetic events · no network requests</span>
+    </div>
+    <button id="replay-demo" type="button" aria-controls="checkout-demo">Replay demo</button>
+  </header>
+
+  <p id="demo-status" class="visually-hidden" aria-live="polite">Demo ready</p>
+
+  <main id="checkout-demo">
+    <section class="checkout-card intro-card" aria-labelledby="customer-heading">
+      <p class="eyebrow">Checkout</p>
+      <h1 id="customer-heading">Customer details</h1>
+      <p class="lede">A small static page gives the real visual renderer several targets to observe.</p>
+
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="off" placeholder="you@example.test">
+      <button id="continue" class="primary" type="button">Continue</button>
+    </section>
+
+    <section class="spacer-copy" aria-label="Delivery information">
+      <p class="eyebrow">Delivery</p>
+      <h2>Review before placing the order</h2>
+      <p>The next action is below the initial viewport so the demo exercises the runtime scroll cue.</p>
+    </section>
+
+    <section id="order" class="checkout-card order-card" aria-labelledby="order-heading">
+      <p class="eyebrow">Order summary</p>
+      <h2 id="order-heading">Developer plan</h2>
+      <dl>
+        <div><dt>Seats</dt><dd>3</dd></div>
+        <div><dt>Total</dt><dd>$42.00</dd></div>
+      </dl>
+      <button id="place-order" class="primary" type="button">Place order</button>
+      <div id="confirmation" role="status" tabindex="-1" hidden>
+        <strong>Order confirmed</strong>
+        <span>Reference TL-DEMO-020</span>
+      </div>
+    </section>
+  </main>
+
+  <noscript>
+    <p class="no-script">JavaScript is required to replay this local visual demonstration.</p>
+  </noscript>
+
+  <script>
+    window.__uiTestLens = { version: '0.2.0-demo', modules: {}, state: { overlay: {} } };
+    var overlayHost = document.createElement('div');
+    overlayHost.id = 'selenium-overlay-host';
+    overlayHost.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;z-index:2147483647;pointer-events:none';
+    document.body.appendChild(overlayHost);
+    window.__seleniumOverlayRoot = overlayHost.attachShadow({ mode: 'open' });
+    window.__uiTestLens.state.overlay.root = window.__seleniumOverlayRoot;
+  </script>
+  <script src="runtime/hud-panel.js"></script>
+  <script src="runtime/highlight.js"></script>
+  <script src="runtime/scroll-arrow.js"></script>
+  <script src="demo.js"></script>
+</body>
+</html>
