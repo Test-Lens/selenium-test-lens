@@ -60,6 +60,7 @@ nav:
   - Using Test Lens:
       - Capabilities: capabilities.md
       - React & SPA resilience: features/react-spa.md
+      - Managed Test State & Resources: features/managed-test-state.md
       - Elements:
           - Elements overview: elements/index.md
           - Locators: elements/locators.md

@@ -89,6 +89,7 @@ public UiTestLensSession session()
 public TestLensTestNgListener()
 public void beforeInvocation(IInvokedMethod method, ITestResult result)
 public void afterInvocation(IInvokedMethod method, ITestResult result)
+public void onFinish(ISuite suite)
 ```
 
 ## Outcome and ownership contract
@@ -105,7 +106,7 @@ Disabled tests, configuration methods, dependency-skipped methods, and tests blo
 
 ## DataProvider, retry, and parallel execution
 
-State is stored as a namespaced attribute of the physical `ITestResult`, not on the test class or listener. Parallel methods and parallel DataProviders therefore cannot see one another's drivers or sessions, and reusing a test instance is safe. Every RetryAnalyzer attempt gets its own factory, driver, Lens, session ID, report directory, and final status: a failed attempt is recorded as `FAILED`, while a later successful attempt is a separate `PASSED` session.
+State is stored as a namespaced attribute of the physical `ITestResult`, not on the test class or listener. Parallel methods and parallel DataProviders therefore cannot see one another's drivers, sessions, scenario state, or resources, and reusing a test instance is safe. Every RetryAnalyzer attempt gets its own factory, driver, Lens, session ID, scenario scope, report directory, and final status: a failed attempt is recorded as `FAILED`, while a later successful attempt is a separate `PASSED` session. One `SuiteStateManager` is stored on the owning `ISuite`, shared atomically inside that suite, and cleared by the listener at suite end. See [Managed Test State & Resources](../features/managed-test-state.md).
 
 The default name contains the class, method, public TestNG invocation counter, and an opaque per-attempt token. It deliberately excludes DataProvider values. A custom `sessionName(ITestResult)` may return a different name, but should not include credentials or other parameter secrets.
 

@@ -129,6 +129,12 @@ HUD injection, updates, and cleanup are best effort and cannot change the result
 
     [Authentication state](advanced/auth-state.md)
 
+-   **Managed Test State & Resources**
+
+    Keep typed data inside one physical test invocation, share selected values intentionally inside one suite/run, and clean temporary resources exactly once in LIFO order across pass, failure, skip, and retry.
+
+    [Managed test state](features/managed-test-state.md)
+
 -   **React & SPA resilience**
 
     Re-resolve elements across rerenders, inspect common busy/loading DOM conventions, wait for roots and DOM stability, and work with known React Select markup through the optional module.

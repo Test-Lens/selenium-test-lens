@@ -77,7 +77,7 @@ class OrderTest {
 }
 ```
 
-The `driverFactory` is called exactly once for each invocation. `WebDriver` and `TestLens` parameters refer to that same invocation and the Lens is attached to that exact driver. Other parameter types are left to JUnit or other registered resolvers.
+The `driverFactory` is called exactly once for each invocation. `WebDriver` and `TestLens` parameters refer to that same invocation and the Lens is attached to that exact driver. Other parameter types are left to JUnit or other registered resolvers. The extension also owns one `SuiteStateManager` in the root extension context; invocations in that execution share it, and the root store clears it when the run closes.
 
 Do not call `driver.quit()` in `@AfterEach`: the extension owns the returned driver. It finalizes Lens and its JSON/HTML reports first, then calls `quit()` exactly once. `TestLens` itself still never closes the driver. A test may have already called a Lens finalizer; the extension then reuses that session's first terminal result without duplicating reports, evidence, or terminal events, and still performs its one owned driver cleanup.
 
@@ -112,7 +112,7 @@ If setup fails after driver creation, the extension closes that driver and rethr
 
 ## Parameterized, repeated, nested, and parallel tests
 
-Each `@ParameterizedTest` value and each `@RepeatedTest` repetition receives a different driver, Lens, session ID, and report directory. Nested tests are isolated the same way. The same extension object can serve concurrent invocations because current state is never kept in extension fields, a global singleton, or a `ThreadLocal`; it resides in `ExtensionContext.Store` under `context.getUniqueId()`.
+Each `@ParameterizedTest` value and each `@RepeatedTest` repetition receives a different driver, Lens, session ID, scenario state, resource manager, and report directory. Nested tests are isolated the same way. The same extension object can serve concurrent invocations because current state is never kept in extension fields, a global singleton, or a `ThreadLocal`; it resides in `ExtensionContext.Store` under `context.getUniqueId()`. Scenario resources are cleaned during Lens finalization before the owned driver is quit. See [Managed Test State & Resources](../features/managed-test-state.md).
 
 Your driver factory and application test data must still be parallel-safe. Do not share a driver returned by the factory across invocations.
 

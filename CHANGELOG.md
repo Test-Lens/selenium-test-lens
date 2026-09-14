@@ -6,6 +6,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ### Added
 
+- Added Managed Test State & Resources with typed state isolated to one physical invocation, intentionally shared suite/run state with atomic initialization, retry and parallel isolation, and exactly-once LIFO scenario-resource cleanup integrated with JUnit 5, TestNG, and manual sessions. Cleanup failures are aggregated without replacing an existing primary test failure.
 - Added Managed Auth State with restore/validate/recreate lifecycle, fail-safe tri-state validation, one-login maximum, process-local refresh/invalidate registration, canonical-path JVM and filesystem locking, and atomic old-file-preserving replacement.
 - Added immutable `HudOptions` with Minimal, Compact, Standard, and Debug presets, semantic HUD row filtering, responsive atomic AUTO/INLINE/STACKED header layouts, validated semantic colors and opacity, anchored offsets, bounded sizing, global and section-specific local font presets, configurable native/subtle/standard event-log scrollbars, and bounded PNG branding. The shared runtime renderer now powers the runtime, homepage preview, and WYSIWYG HUD Studio.
 - Added browser-side visual redaction for every Test Lens screenshot path, with explicit SOLID/BLUR locator rules, per-tile full-page refresh, and diagnostic/clean parity.
