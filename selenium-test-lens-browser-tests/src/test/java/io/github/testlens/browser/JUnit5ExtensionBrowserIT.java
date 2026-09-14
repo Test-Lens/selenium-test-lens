@@ -17,10 +17,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.IOException;
@@ -108,34 +104,11 @@ class JUnit5ExtensionBrowserIT {
     }
 
     private static WebDriver createBrowser() {
-        boolean headed = Boolean.parseBoolean(System.getProperty("headed", "false"));
-        return switch (browserName()) {
-            case "chrome" -> {
-                ChromeOptions options = new ChromeOptions();
-                options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-                String configuredBinary = System.getProperty("test.chrome.binary", "").trim();
-                if (!configuredBinary.isEmpty()) {
-                    options.setBinary(configuredBinary);
-                }
-                options.addArguments("--window-size=1280,900", "--disable-dev-shm-usage", "--no-sandbox");
-                if (!headed) options.addArguments("--headless=new");
-                yield new ChromeDriver(options);
-            }
-            case "firefox" -> {
-                FirefoxOptions options = new FirefoxOptions();
-                options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-                if (!headed) options.addArguments("-headless");
-                WebDriver firefox = new FirefoxDriver(options);
-                firefox.manage().window().setSize(new org.openqa.selenium.Dimension(1280, 900));
-                yield firefox;
-            }
-            default -> throw new IllegalArgumentException(
-                    "Unsupported -Dbrowser=" + browserName() + "; expected chrome or firefox");
-        };
+        return BrowserTestHarness.createDriver(PageLoadStrategy.NORMAL);
     }
 
     private static String browserName() {
-        return System.getProperty("browser", "chrome").trim().toLowerCase(Locale.ROOT);
+        return BrowserTestHarness.browserName();
     }
 
     private static String sanitize(String value) {

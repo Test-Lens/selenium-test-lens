@@ -11,15 +11,10 @@ import io.github.testlens.testng.TestLensTestNgContext;
 import io.github.testlens.testng.TestLensTestNgFactory;
 import io.github.testlens.testng.TestLensTestNgListener;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchSessionException;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestResult;
 import org.testng.TestNG;
@@ -108,7 +103,10 @@ class ListenerTestNgBrowserIT {
         @Override
         public WebDriver createDriver() {
             TrackedBrowser browser = new TrackedBrowser(createBrowser());
-            assertTrue(BROWSER.compareAndSet(null, browser));
+            if (!BROWSER.compareAndSet(null, browser)) {
+                browser.proxy.quit();
+                throw new IllegalStateException("A browser is already assigned to this invocation");
+            }
             return browser.proxy;
         }
 
@@ -128,32 +126,11 @@ class ListenerTestNgBrowserIT {
     }
 
     private static WebDriver createBrowser() {
-        boolean headed = Boolean.parseBoolean(System.getProperty("headed", "false"));
-        return switch (browserName()) {
-            case "chrome" -> {
-                ChromeOptions options = new ChromeOptions();
-                options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-                String configuredBinary = System.getProperty("test.chrome.binary", "").trim();
-                if (!configuredBinary.isEmpty()) options.setBinary(configuredBinary);
-                options.addArguments("--window-size=1280,900", "--disable-dev-shm-usage", "--no-sandbox");
-                if (!headed) options.addArguments("--headless=new");
-                yield new ChromeDriver(options);
-            }
-            case "firefox" -> {
-                FirefoxOptions options = new FirefoxOptions();
-                options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-                if (!headed) options.addArguments("-headless");
-                WebDriver firefox = new FirefoxDriver(options);
-                firefox.manage().window().setSize(new Dimension(1280, 900));
-                yield firefox;
-            }
-            default -> throw new IllegalArgumentException(
-                    "Unsupported -Dbrowser=" + browserName() + "; expected chrome or firefox");
-        };
+        return BrowserTestHarness.createDriver(PageLoadStrategy.NORMAL);
     }
 
     private static String browserName() {
-        return System.getProperty("browser", "chrome").trim().toLowerCase(Locale.ROOT);
+        return BrowserTestHarness.browserName();
     }
 
     private static String sanitize(String value) {

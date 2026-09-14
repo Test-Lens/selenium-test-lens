@@ -53,10 +53,6 @@ import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.SearchContext;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.json.Json;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -1667,6 +1663,10 @@ class RealBrowserContractsIT {
     }
 
     private void open(String path) {
+        if (driver != null) {
+            driver.quit();
+            driver = null;
+        }
         driver = createDriver();
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(15));
         driver.get(baseUrl + path);
@@ -1924,34 +1924,11 @@ class RealBrowserContractsIT {
     }
 
     private static WebDriver createDriver(PageLoadStrategy pageLoadStrategy) {
-        boolean headed = Boolean.parseBoolean(System.getProperty("headed", "false"));
-        return switch (browserName()) {
-            case "chrome" -> {
-                ChromeOptions options = new ChromeOptions();
-                options.setPageLoadStrategy(pageLoadStrategy);
-                String configuredBinary = System.getProperty("test.chrome.binary", "").trim();
-                if (!configuredBinary.isEmpty()) {
-                    options.setBinary(configuredBinary);
-                }
-                options.addArguments("--window-size=1280,900", "--disable-dev-shm-usage", "--no-sandbox");
-                if (!headed) options.addArguments("--headless=new");
-                yield new ChromeDriver(options);
-            }
-            case "firefox" -> {
-                FirefoxOptions options = new FirefoxOptions();
-                options.setPageLoadStrategy(pageLoadStrategy);
-                if (!headed) options.addArguments("-headless");
-                WebDriver firefox = new FirefoxDriver(options);
-                firefox.manage().window().setSize(new org.openqa.selenium.Dimension(1280, 900));
-                yield firefox;
-            }
-            default -> throw new IllegalArgumentException(
-                    "Unsupported -Dbrowser=" + browserName() + "; expected chrome or firefox");
-        };
+        return BrowserTestHarness.createDriver(pageLoadStrategy);
     }
 
     private static String browserName() {
-        return System.getProperty("browser", "chrome").trim().toLowerCase(java.util.Locale.ROOT);
+        return BrowserTestHarness.browserName();
     }
 
     private static void serve(HttpExchange exchange) throws IOException {

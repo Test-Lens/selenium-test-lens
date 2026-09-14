@@ -18,16 +18,11 @@ import org.openqa.selenium.Cookie;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -118,27 +113,7 @@ class AuthOriginIsolationIT {
     }
 
     private static WebDriver createDriver() {
-        boolean headed = Boolean.parseBoolean(System.getProperty("headed", "false"));
-        return switch (System.getProperty("browser", "chrome").trim().toLowerCase(Locale.ROOT)) {
-            case "chrome" -> {
-                ChromeOptions options = new ChromeOptions();
-                options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-                String binary = System.getProperty("test.chrome.binary", "").trim();
-                if (!binary.isEmpty()) options.setBinary(binary);
-                options.addArguments("--window-size=1280,900", "--disable-dev-shm-usage", "--no-sandbox");
-                if (!headed) options.addArguments("--headless=new");
-                yield new ChromeDriver(options);
-            }
-            case "firefox" -> {
-                FirefoxOptions options = new FirefoxOptions();
-                options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-                String binary = System.getProperty("test.firefox.binary", "").trim();
-                if (!binary.isEmpty()) options.setBinary(binary);
-                if (!headed) options.addArguments("-headless");
-                yield new FirefoxDriver(options);
-            }
-            default -> throw new IllegalArgumentException("Expected -Dbrowser=chrome or firefox");
-        };
+        return BrowserTestHarness.createDriver(PageLoadStrategy.NORMAL);
     }
 
     private record OriginServers(HttpServer application, HttpServer sso, String applicationOrigin, String ssoOrigin)

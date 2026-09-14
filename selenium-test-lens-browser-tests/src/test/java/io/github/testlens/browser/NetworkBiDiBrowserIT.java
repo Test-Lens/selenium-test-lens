@@ -25,10 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.IOException;
@@ -39,7 +35,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -522,33 +517,11 @@ class NetworkBiDiBrowserIT {
     }
 
     private static WebDriver createBiDiDriver() {
-        boolean headed = Boolean.parseBoolean(System.getProperty("headed", "false"));
-        return switch (browserName()) {
-            case "chrome" -> {
-                ChromeOptions options = new ChromeOptions().enableBiDi();
-                options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-                String configuredBinary = System.getProperty("test.chrome.binary", "").trim();
-                if (!configuredBinary.isEmpty()) options.setBinary(configuredBinary);
-                options.addArguments("--window-size=1280,900", "--disable-dev-shm-usage", "--no-sandbox");
-                if (!headed) options.addArguments("--headless=new");
-                yield new ChromeDriver(options);
-            }
-            case "firefox" -> {
-                FirefoxOptions options = new FirefoxOptions().enableBiDi();
-                options.setPageLoadStrategy(PageLoadStrategy.NORMAL);
-                String configuredBinary = System.getProperty("test.firefox.binary", "").trim();
-                if (!configuredBinary.isEmpty()) options.setBinary(configuredBinary);
-                if (!headed) options.addArguments("-headless");
-                WebDriver firefox = new FirefoxDriver(options);
-                firefox.manage().window().setSize(new org.openqa.selenium.Dimension(1280, 900));
-                yield firefox;
-            }
-            default -> throw new IllegalArgumentException("Unsupported browser: " + browserName());
-        };
+        return BrowserTestHarness.createBiDiDriver();
     }
 
     private static String browserName() {
-        return System.getProperty("browser", "chrome").trim().toLowerCase(Locale.ROOT);
+        return BrowserTestHarness.browserName();
     }
 
     private static void serve(HttpExchange exchange) throws IOException {
