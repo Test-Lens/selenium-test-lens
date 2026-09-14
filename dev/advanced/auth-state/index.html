@@ -1917,6 +1917,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#managed-auth-state-030" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managed Auth State (0.3.0)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#authstatemanager" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2813,6 +2824,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#managed-auth-state-030" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managed Auth State (0.3.0)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#authstatemanager" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2873,24 +2895,81 @@
 <h1 id="authentication-state">Authentication state<a class="headerlink" href="#authentication-state" title="Permanent link">&para;</a></h1>
 <p>Package: <code>io.github.testlens.selenium.auth</code><br>
 Module: <code>selenium-test-lens-selenium</code><br>
-API level: <strong>Advanced</strong></p>
+API level: <strong>User API for managed lifecycle; Advanced for low-level primitives</strong></p>
+<h2 id="managed-auth-state-030">Managed Auth State (0.3.0)<a class="headerlink" href="#managed-auth-state-030" title="Permanent link">&para;</a></h2>
+<p>For the normal workflow, define only where state is stored, how the application performs a real login, and how
+the application unambiguously validates authentication:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import static</span><span class="w"> </span><span class="nn">io.github.testlens.selenium.auth.AuthStateValidation.AUTHENTICATED</span><span class="p">;</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">import static</span><span class="w"> </span><span class="nn">io.github.testlens.selenium.auth.AuthStateValidation.UNAUTHENTICATED</span><span class="p">;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">AuthStateEnsureResult</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lens</span><span class="p">.</span><span class="na">authState</span><span class="p">().</span><span class="na">ensure</span><span class="p">(</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">        </span><span class="n">AuthStateRequest</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">                </span><span class="p">.</span><span class="na">key</span><span class="p">(</span><span class="s">"primary-user"</span><span class="p">)</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">                </span><span class="p">.</span><span class="na">path</span><span class="p">(</span><span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">"target/ui-test-lens/authstate/primary.json"</span><span class="p">))</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">                </span><span class="p">.</span><span class="na">login</span><span class="p">(</span><span class="n">driver</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">loginPage</span><span class="p">.</span><span class="na">login</span><span class="p">(</span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">password</span><span class="p">))</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">                </span><span class="p">.</span><span class="na">validate</span><span class="p">(</span><span class="n">driver</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">accountMenu</span><span class="p">.</span><span class="na">isDisplayed</span><span class="p">()</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">                        </span><span class="o">?</span><span class="w"> </span><span class="n">AUTHENTICATED</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">                        </span><span class="p">:</span><span class="w"> </span><span class="n">UNAUTHENTICATED</span><span class="p">)</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">                </span><span class="p">.</span><span class="na">build</span><span class="p">()</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">);</span>
+</span></code></pre></div>
+<p><code>key</code> is a process-local lifecycle identifier used by <code>refresh(key)</code> and <code>invalidate(key)</code>. It is not a
+credential, but it can still contain personal data, so Test Lens does not include it in lifecycle events or result
+strings. Requests are registered on their owning <code>AuthStateManager</code>/<code>TestLens</code> instance. Reusing a key for a
+different canonical path fails fast; callback identity is deliberately not compared.</p>
+<p>Validation is tri-state:</p>
+<ul>
+<li><code>AUTHENTICATED</code> unambiguously confirms a valid application session.</li>
+<li><code>UNAUTHENTICATED</code> unambiguously confirms that the application session is not valid.</li>
+<li><code>INCONCLUSIVE</code> represents a timeout, unavailable application/backend, transient network failure, or any state
+  where logged-out cannot be distinguished reliably from an outage. It fails the operation without login and
+  without overwriting persisted state. A validator exception is a separate <code>VALIDATION_FAILED</code> execution failure;
+  its original cause is retained and it never triggers login.</li>
+</ul>
+<p>The bounded lifecycle is:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>missing: login once -&gt; validate AUTHENTICATED -&gt; capture -&gt; atomic save -&gt; CREATED
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>valid:   restore -&gt; validate AUTHENTICATED -&gt; RESTORED (no login, no write)
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>invalid: restore -&gt; UNAUTHENTICATED -&gt; clear managed browser state -&gt; login once
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>         -&gt; validate AUTHENTICATED -&gt; capture -&gt; atomic replace -&gt; REFRESHED
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>inconclusive: fail -&gt; no login -&gt; no overwrite
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>corrupt/expired/wrong origin: clear managed browser state -&gt; login once -&gt; validate
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>                              -&gt; capture -&gt; atomic replace, or fail with old bytes preserved
+</span></code></pre></div>
+<p>Every <code>ensure</code> performs at most one login and has no retry loop. Technical restore success is never accepted as
+authentication success without the application validator. Before recreation Test Lens clears only the browser
+state it manages—cookies, local storage and session storage. It never performs a business logout, invokes a
+logout callback, closes/restarts the WebDriver, creates another driver, or automatically logs out after a test.</p>
+<p>The full decision is serialized by a canonical-path JVM lock and a stable sibling <code>.lock</code> file. Capture is
+serialized to a temporary file in the target directory, flushed, parsed, and moved with
+<code>ATOMIC_MOVE + REPLACE_EXISTING</code>. Unsupported atomic moves fail with <code>PERSIST_FAILED</code>; there is no silent
+non-atomic fallback. Until that move succeeds, an existing file remains byte-for-byte unchanged.</p>
+<p>Explicit lifecycle operations reuse the registered request:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">AuthStateEnsureResult</span><span class="w"> </span><span class="n">refreshed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lens</span><span class="p">.</span><span class="na">authState</span><span class="p">().</span><span class="na">refresh</span><span class="p">(</span><span class="s">"primary-user"</span><span class="p">);</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">authState</span><span class="p">().</span><span class="na">invalidate</span><span class="p">(</span><span class="s">"primary-user"</span><span class="p">);</span>
+</span></code></pre></div>
+<p><code>refresh</code> keeps the old file until login, validation, capture and atomic replacement all succeed. <code>invalidate</code>
+deletes only the persisted file under the same lock; it retains registration and performs no login, logout, or
+browser-state clearing. Unknown keys fail with <code>UNKNOWN_KEY</code>.</p>
 <h2 id="authstatemanager">AuthStateManager<a class="headerlink" href="#authstatemanager" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.selenium.auth.AuthStateManager -->
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">AuthStateManager</span><span class="p">(</span><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="p">)</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">AuthStateManager</span><span class="p">(</span><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="p">,</span><span class="w"> </span><span class="n">OverlayLogger</span><span class="w"> </span><span class="n">logger</span><span class="p">)</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">AuthState</span><span class="w"> </span><span class="nf">captureState</span><span class="p">(</span><span class="n">AuthStateOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">AuthRestoreResult</span><span class="w"> </span><span class="nf">restoreState</span><span class="p">(</span><span class="n">AuthState</span><span class="w"> </span><span class="n">state</span><span class="p">,</span><span class="w"> </span><span class="n">AuthRestoreOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">AuthState</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="n">Path</span><span class="w"> </span><span class="n">path</span><span class="p">)</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">AuthRestoreResult</span><span class="w"> </span><span class="nf">restoreState</span><span class="p">(</span><span class="n">Path</span><span class="w"> </span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="n">AuthRestoreOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">AuthStateManager</span><span class="p">(</span><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="p">)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">AuthStateManager</span><span class="p">(</span><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="p">,</span><span class="w"> </span><span class="n">OverlayLogger</span><span class="w"> </span><span class="n">logger</span><span class="p">)</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">AuthStateEnsureResult</span><span class="w"> </span><span class="nf">ensure</span><span class="p">(</span><span class="n">AuthStateRequest</span><span class="w"> </span><span class="n">request</span><span class="p">)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">AuthStateEnsureResult</span><span class="w"> </span><span class="nf">refresh</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">key</span><span class="p">)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="kt">void</span><span class="w"> </span><span class="nf">invalidate</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">key</span><span class="p">)</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">AuthState</span><span class="w"> </span><span class="nf">captureState</span><span class="p">(</span><span class="n">AuthStateOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">AuthRestoreResult</span><span class="w"> </span><span class="nf">restoreState</span><span class="p">(</span><span class="n">AuthState</span><span class="w"> </span><span class="n">state</span><span class="p">,</span><span class="w"> </span><span class="n">AuthRestoreOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">AuthState</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="n">Path</span><span class="w"> </span><span class="n">path</span><span class="p">)</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">AuthRestoreResult</span><span class="w"> </span><span class="nf">restoreState</span><span class="p">(</span><span class="n">Path</span><span class="w"> </span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="n">AuthRestoreOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
 </span></code></pre></div>
 <p>Capture reads selected cookies/local/session storage for an origin and returns <code>AuthState</code>. JSON export/parser types serialize it. Restore can navigate to the origin, clear existing cookies/storage, restore chosen components, validate origin, and reject expired state. Browser origin/security rules and WebDriver cookie rules still apply; restore results report counts/status/exception/elapsed time.</p>
 <p>Auth state is a controlled same-origin test setup mechanism, not automatic login federation. In particular, it does not copy application credentials into cross-origin SSO storage.</p>
 <p>With the default <code>validateOrigin(true)</code>, restore follows a mutation-before-validation-safe sequence:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>preflight state origins
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>-&gt; optional navigation
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>-&gt; post-navigation origin validation
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>-&gt; origin recheck and cookie restore
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>-&gt; atomically origin-guarded storage clear/write
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>preflight state origins
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>-&gt; optional navigation
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>-&gt; post-navigation origin validation
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>-&gt; origin recheck and cookie restore
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>-&gt; atomically origin-guarded storage clear/write
 </span></code></pre></div>
 <p>Origin comparison canonicalizes scheme and host case and treats the HTTP/HTTPS default ports as equivalent, while preserving non-default ports. Paths, query strings, and fragments do not affect the comparison. A redirect to another scheme, host, or effective port—including an SSO origin—returns <code>ORIGIN_MISMATCH</code> with zero restored counters before cookies or storage on that origin are changed. Empty, opaque, malformed, and <code>about:blank</code> URLs do not authorize restore. Storage entries that explicitly name a different origin are rejected during preflight before navigation.</p>
 <p>Storage JavaScript checks <code>window.location.origin</code> in the same script invocation that performs <code>clear()</code> or <code>setItem()</code>. This closes the gap in which the active origin could change after the Java-side check. Cookie mutation remains implemented by Selenium and receives an additional current-origin check immediately before that stage.</p>
@@ -2898,6 +2977,10 @@ API level: <strong>Advanced</strong></p>
 <p>Supporting public types have these roles: <code>AuthStateJsonExporter</code> writes state JSON, while <code>AuthStateJsonParser</code> reads it; malformed or unsupported state data can surface as <code>AuthStateException</code>. <code>AuthStorageType</code> distinguishes <code>LOCAL_STORAGE</code> from <code>SESSION_STORAGE</code>. <code>AuthRestoreStatus</code> distinguishes <code>RESTORED</code>, <code>FAILED</code>, <code>SKIPPED</code>, <code>EXPIRED</code>, and <code>ORIGIN_MISMATCH</code>; inspect the full <code>AuthRestoreResult</code> rather than treating every non-restored status as the same failure.</p>
 <h2 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h2>
 <p>Auth-state JSON can contain live session cookies, bearer-like storage values, user identifiers, domains, and expiry data. Never commit it, paste it into docs/logs, or expose it as an unrestricted CI artifact. Keep generated state under an ignored, access-controlled path; use short expiry and test-only accounts.</p>
+<p>Managed lifecycle events contain only outcome/reason/duration fields. They omit key, path, callbacks, URLs,
+cookies and storage contents, and still pass through the central <code>RedactionPolicy</code>. The persisted state file itself
+is replayable authentication material and is outside report redaction; consumers must protect it with their own
+filesystem permissions, CI artifact policy and secret-handling controls.</p>
 <h2 id="options">Options<a class="headerlink" href="#options" title="Permanent link">&para;</a></h2>
 <p>Every builder option/default is tabulated in <a href="../../reference/configuration/#authentication-options">Configuration</a>. <code>AuthCookie</code>, <code>AuthStorageEntry</code>, <code>AuthStateMetadata</code>, and result/status/storage enums are documented by signature in the <a href="../../reference/public-api-catalog/">catalog</a>.</p>
 

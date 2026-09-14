@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 251
-# Public callable methods/constructors: 1984
+# Types: 260
+# Public callable methods/constructors: 2011
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -100,6 +100,11 @@ TYPE io.github.testlens.core.logging.UiTestLensEventType
   public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_RESTORE_PASSED
   public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_RESTORE_FAILED
   public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_RESTORE_SKIPPED
+  public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_RESTORED
+  public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_CREATED
+  public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_REFRESHED
+  public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_INVALIDATED
+  public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_VALIDATION_INCONCLUSIVE
   public static final io.github.testlens.core.logging.UiTestLensEventType NETWORK_DIAGNOSTICS_STARTED
   public static final io.github.testlens.core.logging.UiTestLensEventType NETWORK_DIAGNOSTICS_STOPPED
   public static final io.github.testlens.core.logging.UiTestLensEventType NETWORK_REQUEST_RECORDED
@@ -967,7 +972,7 @@ TYPE io.github.testlens.JsOverlayDebug
   public io.github.testlens.selenium.assertions.UiPageExpect expectPage(io.github.testlens.selenium.assertions.UiAssertionOptions)
   public io.github.testlens.selenium.business.BusinessAssertions business(java.lang.String)
   public io.github.testlens.selenium.business.BusinessAssertions business(java.lang.String, io.github.testlens.selenium.business.BusinessAssertionOptions)
-  public io.github.testlens.selenium.auth.AuthStateManager auth()
+  public synchronized io.github.testlens.selenium.auth.AuthStateManager auth()
   public io.github.testlens.selenium.auth.AuthState captureAuthState(io.github.testlens.selenium.auth.AuthStateOptions)
   public io.github.testlens.selenium.auth.AuthRestoreResult restoreAuthState(io.github.testlens.selenium.auth.AuthState, io.github.testlens.selenium.auth.AuthRestoreOptions)
   public io.github.testlens.selenium.auth.AuthRestoreResult restoreAuthState(java.nio.file.Path, io.github.testlens.selenium.auth.AuthRestoreOptions)
@@ -1119,6 +1124,7 @@ TYPE io.github.testlens.TestLens
   public io.github.testlens.TestLens switchToNewWindow(java.util.Set<java.lang.String>, java.lang.String)
   public io.github.testlens.TestLensAlert alert()
   public io.github.testlens.selenium.network.NetworkDiagnostics network()
+  public io.github.testlens.selenium.auth.AuthStateManager authState()
   public io.github.testlens.TestLensFinalizationResult finishPassed()
   public io.github.testlens.TestLensFinalizationResult finishFailed(java.lang.Throwable)
   public io.github.testlens.TestLensFinalizationResult finishSkipped(java.lang.String)
@@ -1598,6 +1604,16 @@ TYPE io.github.testlens.selenium.auth.AuthState
   public java.lang.String exportJson()
   public java.nio.file.Path save(java.nio.file.Path)
   public static io.github.testlens.selenium.auth.AuthState load(java.nio.file.Path)
+TYPE io.github.testlens.selenium.auth.AuthStateEnsureOutcome
+  public static final io.github.testlens.selenium.auth.AuthStateEnsureOutcome RESTORED
+  public static final io.github.testlens.selenium.auth.AuthStateEnsureOutcome CREATED
+  public static final io.github.testlens.selenium.auth.AuthStateEnsureOutcome REFRESHED
+  public static io.github.testlens.selenium.auth.AuthStateEnsureOutcome[] values()
+  public static io.github.testlens.selenium.auth.AuthStateEnsureOutcome valueOf(java.lang.String)
+TYPE io.github.testlens.selenium.auth.AuthStateEnsureResult
+  public io.github.testlens.selenium.auth.AuthStateEnsureOutcome outcome()
+  public java.time.Duration elapsed()
+  public java.lang.String toString()
 TYPE io.github.testlens.selenium.auth.AuthStateException
   public io.github.testlens.selenium.auth.AuthStateException(java.lang.String)
   public io.github.testlens.selenium.auth.AuthStateException(java.lang.String, java.lang.Throwable)
@@ -1607,9 +1623,14 @@ TYPE io.github.testlens.selenium.auth.AuthStateJsonExporter
 TYPE io.github.testlens.selenium.auth.AuthStateJsonParser
   public io.github.testlens.selenium.auth.AuthStateJsonParser()
   public io.github.testlens.selenium.auth.AuthState parse(java.lang.String)
+TYPE io.github.testlens.selenium.auth.AuthStateLogin
+  public abstract void login(org.openqa.selenium.WebDriver)
 TYPE io.github.testlens.selenium.auth.AuthStateManager
   public io.github.testlens.selenium.auth.AuthStateManager(org.openqa.selenium.WebDriver)
   public io.github.testlens.selenium.auth.AuthStateManager(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayLogger)
+  public io.github.testlens.selenium.auth.AuthStateEnsureResult ensure(io.github.testlens.selenium.auth.AuthStateRequest)
+  public io.github.testlens.selenium.auth.AuthStateEnsureResult refresh(java.lang.String)
+  public void invalidate(java.lang.String)
   public io.github.testlens.selenium.auth.AuthState captureState(io.github.testlens.selenium.auth.AuthStateOptions)
   public io.github.testlens.selenium.auth.AuthRestoreResult restoreState(io.github.testlens.selenium.auth.AuthState, io.github.testlens.selenium.auth.AuthRestoreOptions)
   public io.github.testlens.selenium.auth.AuthState load(java.nio.file.Path)
@@ -1664,6 +1685,27 @@ TYPE io.github.testlens.selenium.auth.AuthStateOptions
   public java.time.Instant expiresAt()
   public java.util.Map<java.lang.String, java.lang.String> labels()
   public java.util.Map<java.lang.String, java.lang.String> notes()
+TYPE io.github.testlens.selenium.auth.AuthStateRequest$Builder
+  public io.github.testlens.selenium.auth.AuthStateRequest$Builder key(java.lang.String)
+  public io.github.testlens.selenium.auth.AuthStateRequest$Builder path(java.nio.file.Path)
+  public io.github.testlens.selenium.auth.AuthStateRequest$Builder login(io.github.testlens.selenium.auth.AuthStateLogin)
+  public io.github.testlens.selenium.auth.AuthStateRequest$Builder validate(io.github.testlens.selenium.auth.AuthStateValidator)
+  public io.github.testlens.selenium.auth.AuthStateRequest build()
+TYPE io.github.testlens.selenium.auth.AuthStateRequest
+  public static io.github.testlens.selenium.auth.AuthStateRequest$Builder builder()
+  public java.lang.String key()
+  public java.nio.file.Path path()
+  public io.github.testlens.selenium.auth.AuthStateLogin login()
+  public io.github.testlens.selenium.auth.AuthStateValidator validator()
+  public java.lang.String toString()
+TYPE io.github.testlens.selenium.auth.AuthStateValidation
+  public static final io.github.testlens.selenium.auth.AuthStateValidation AUTHENTICATED
+  public static final io.github.testlens.selenium.auth.AuthStateValidation UNAUTHENTICATED
+  public static final io.github.testlens.selenium.auth.AuthStateValidation INCONCLUSIVE
+  public static io.github.testlens.selenium.auth.AuthStateValidation[] values()
+  public static io.github.testlens.selenium.auth.AuthStateValidation valueOf(java.lang.String)
+TYPE io.github.testlens.selenium.auth.AuthStateValidator
+  public abstract io.github.testlens.selenium.auth.AuthStateValidation validate(org.openqa.selenium.WebDriver)
 TYPE io.github.testlens.selenium.auth.AuthStorageEntry
   public io.github.testlens.selenium.auth.AuthStorageEntry(java.lang.String, java.lang.String, java.lang.String, io.github.testlens.selenium.auth.AuthStorageType)
   public java.lang.String origin()
@@ -1675,6 +1717,24 @@ TYPE io.github.testlens.selenium.auth.AuthStorageType
   public static final io.github.testlens.selenium.auth.AuthStorageType SESSION_STORAGE
   public static io.github.testlens.selenium.auth.AuthStorageType[] values()
   public static io.github.testlens.selenium.auth.AuthStorageType valueOf(java.lang.String)
+TYPE io.github.testlens.selenium.auth.ManagedAuthStateException
+  public io.github.testlens.selenium.auth.ManagedAuthStateFailureReason reason()
+TYPE io.github.testlens.selenium.auth.ManagedAuthStateFailureReason
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason LOGIN_FAILED
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason VALIDATION_INCONCLUSIVE
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason VALIDATION_FAILED
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason LOGIN_DID_NOT_AUTHENTICATE
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason CAPTURE_FAILED
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason PERSIST_FAILED
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason RESTORE_FAILED
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason LOCK_TIMEOUT
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason LOCK_FAILED
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason UNKNOWN_KEY
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason REGISTRATION_CONFLICT
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason BROWSER_STATE_CLEAR_FAILED
+  public static final io.github.testlens.selenium.auth.ManagedAuthStateFailureReason INVALIDATE_FAILED
+  public static io.github.testlens.selenium.auth.ManagedAuthStateFailureReason[] values()
+  public static io.github.testlens.selenium.auth.ManagedAuthStateFailureReason valueOf(java.lang.String)
 TYPE io.github.testlens.selenium.business.BusinessAssertionError
   public io.github.testlens.selenium.business.BusinessAssertionError(java.lang.String, java.util.List<io.github.testlens.selenium.business.BusinessAssertionResult>, io.github.testlens.selenium.business.BusinessAssertionOptions)
   public java.lang.String subject()
