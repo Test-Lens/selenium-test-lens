@@ -49,18 +49,67 @@ public final class AuthStateManager {
 
     private final WebDriver driver;
     private final OverlayLogger logger;
+    private final AuthStateLifecycle lifecycle;
 
     public AuthStateManager(WebDriver driver) {
         this(driver, OverlayLogger.noop());
     }
 
     public AuthStateManager(WebDriver driver, OverlayLogger logger) {
+        this(driver, logger, new AuthStateStore(), new AuthStateLockManager(), new AuthStateRegistrationRegistry());
+    }
+
+    AuthStateManager(WebDriver driver, OverlayLogger logger, AuthStateStore store,
+                     AuthStateLockManager locks, AuthStateRegistrationRegistry registry) {
         if (driver == null) {
             throw new IllegalArgumentException("driver must not be null");
         }
         this.driver = driver;
         this.logger = logger == null ? OverlayLogger.noop() : logger;
+        AuthStateManager silentPrimitives = new AuthStateManager(driver, OverlayLogger.noop(), true);
+        this.lifecycle = new AuthStateLifecycle(driver, silentPrimitives, this.logger, store, locks, registry);
     }
+
+    private AuthStateManager(WebDriver driver, OverlayLogger logger, boolean primitivesOnly) {
+        this.driver = driver;
+        this.logger = logger;
+        this.lifecycle = null;
+    }
+
+    /**
+     * Ensures an authenticated browser session by restoring and validating persisted state or by performing at
+     * most one real login and atomically publishing a replacement. The full decision is protected by JVM and
+     * filesystem locks based on the canonical state path. {@code INCONCLUSIVE} and validator exceptions never
+     * trigger login. This operation never logs out, closes, replaces, or concurrently drives the WebDriver.
+     *
+     * @param request the complete lifecycle configuration to register and execute
+     * @return a minimal result describing how authenticated state was obtained
+     * @throws ManagedAuthStateException when the lifecycle cannot establish authenticated state
+     * @since 0.3.0
+     */
+    public AuthStateEnsureResult ensure(AuthStateRequest request) { return lifecycle.ensure(request); }
+
+    /**
+     * Uses the request previously registered by {@link #ensure(AuthStateRequest)} to clear managed browser state,
+     * login once, validate, capture and atomically replace persisted state. A failure preserves the old file.
+     * No business logout is performed.
+     *
+     * @param key the previously registered logical key; it is omitted from diagnostics
+     * @return a successful result with the {@link AuthStateEnsureOutcome#REFRESHED} outcome
+     * @throws ManagedAuthStateException when the key is unknown or refresh fails
+     * @since 0.3.0
+     */
+    public AuthStateEnsureResult refresh(String key) { return lifecycle.refresh(key); }
+
+    /**
+     * Deletes persisted state for a previously registered key under the same path lock. Registration is retained.
+     * This operation does not login, logout, clear browser state, or close the WebDriver.
+     *
+     * @param key the previously registered logical key; it is omitted from diagnostics
+     * @throws ManagedAuthStateException when the key is unknown or invalidation fails
+     * @since 0.3.0
+     */
+    public void invalidate(String key) { lifecycle.invalidate(key); }
 
     public AuthState captureState(AuthStateOptions options) {
         AuthStateOptions effectiveOptions = options == null ? AuthStateOptions.defaults() : options;
@@ -199,6 +248,11 @@ public final class AuthStateManager {
 
     public AuthRestoreResult restoreState(Path path, AuthRestoreOptions options) {
         return restoreState(load(path), options);
+    }
+
+    void clearManagedBrowserState() {
+        driver.manage().deleteAllCookies();
+        requireJavascriptExecutor().executeScript(CLEAR_STORAGE_SCRIPT);
     }
 
     private List<AuthCookie> captureCookies() {

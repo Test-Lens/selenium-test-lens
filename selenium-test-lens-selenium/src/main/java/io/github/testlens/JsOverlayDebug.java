@@ -104,6 +104,7 @@ public final class JsOverlayDebug {
     private OverlayPolicy overlayPolicy = OverlayPolicy.none();
     private UiTestLensSession session;
     private NetworkDiagnostics networkDiagnostics;
+    private AuthStateManager authStateManager;
 
     // ======================================================================
     //  CTOR
@@ -313,8 +314,11 @@ public final class JsOverlayDebug {
         return new BusinessAssertions(subject, options, logger);
     }
 
-    public AuthStateManager auth() {
-        return new AuthStateManager(driver, logger);
+    public synchronized AuthStateManager auth() {
+        if (authStateManager == null) {
+            authStateManager = new AuthStateManager(driver, logger);
+        }
+        return authStateManager;
     }
 
     public AuthState captureAuthState(AuthStateOptions options) {

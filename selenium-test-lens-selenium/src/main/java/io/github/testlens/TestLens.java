@@ -8,6 +8,7 @@ import io.github.testlens.core.trace.RetryOutcomePolicy;
 import io.github.testlens.selenium.assertions.UiExpect;
 import io.github.testlens.selenium.assertions.UiPageExpect;
 import io.github.testlens.selenium.assertions.UiAssertionOptions;
+import io.github.testlens.selenium.auth.AuthStateManager;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureOptions;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureResult;
 import io.github.testlens.selenium.locator.UiLocator;
@@ -176,6 +177,14 @@ public final class TestLens {
 
     /** Returns the network diagnostics owned by this Lens facade. */
     public NetworkDiagnostics network() { return delegate.network(); }
+
+    /**
+     * Returns the managed and low-level authentication-state service owned by this Lens instance.
+     *
+     * @return the persistent per-Lens authentication-state manager
+     * @since 0.3.0
+     */
+    public AuthStateManager authState() { return delegate.auth(); }
 
     /**
      * Runs the facade finalization pipeline once and requests a passed terminal outcome.

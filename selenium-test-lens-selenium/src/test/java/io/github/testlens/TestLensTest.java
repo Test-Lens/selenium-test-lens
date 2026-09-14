@@ -49,6 +49,12 @@ class TestLensTest {
     }
 
     @Test
+    void authStateManagerIsOwnedByTheLensInstance() {
+        TestLens lens = TestLens.attach(driver(false));
+        assertSame(lens.authState(), lens.authState());
+    }
+
+    @Test
     void configuredRedactionPolicyFlowsIntoTheSessionWithoutChangingOriginalFailure() {
         String secret = "lens-canary-e32a";
         RedactionPolicy policy = RedactionPolicy.builder().secret(secret).build();
