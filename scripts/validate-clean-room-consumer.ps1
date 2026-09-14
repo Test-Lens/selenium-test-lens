@@ -39,6 +39,8 @@ if ([string]::IsNullOrWhiteSpace($TestLensRepository)) {
 }
 $consumer = Join-Path $work "consumer"
 New-Item -ItemType Directory -Force -Path (Join-Path $consumer "src/test/java/cleanroom") | Out-Null
+$allureConsumer = Join-Path $work "allure-consumer"
+New-Item -ItemType Directory -Force -Path (Join-Path $allureConsumer "src/test/java/cleanroom") | Out-Null
 
 $absoluteStagingPath = [System.IO.Path]::GetFullPath($staging)
 if (-not (Test-Path -LiteralPath $absoluteStagingPath -PathType Container)) {
@@ -76,6 +78,24 @@ $consumerPom = @"
 "@
 $consumerPomPath = Join-Path $consumer "pom.xml"
 [IO.File]::WriteAllText($consumerPomPath, $consumerPom)
+
+$allureConsumerPom = @"
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>cleanroom</groupId><artifactId>allure-consumer</artifactId><version>1</version>
+  <properties><maven.compiler.release>17</maven.compiler.release></properties>
+  <repositories><repository><id>lens-staging</id><url>$stagingUri</url></repository></repositories>
+  <dependencies>
+    <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-allure</artifactId><version>$ReleaseVersion</version></dependency>
+    <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>5.11.4</version><scope>test</scope></dependency>
+  </dependencies>
+  <build><plugins>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.13.0</version></plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.2.5</version></plugin>
+  </plugins></build>
+</project>
+"@
+[IO.File]::WriteAllText((Join-Path $allureConsumer "pom.xml"), $allureConsumerPom)
 
 $generatedPom = [xml](Get-Content -Raw $consumerPomPath)
 $pomNs = [System.Xml.XmlNamespaceManager]::new($generatedPom.NameTable)
@@ -141,10 +161,40 @@ class ReleaseConsumerTest {
 '@
 [IO.File]::WriteAllText((Join-Path $consumer "src/test/java/cleanroom/ReleaseConsumerTest.java"), $smoke)
 
+$allureSmoke = @'
+package cleanroom;
+
+import io.github.testlens.TestLensFinalizationResult;
+import io.github.testlens.allure.AllureAttachStatus;
+import io.github.testlens.allure.AllureTestLens;
+import io.github.testlens.allure.AllureTestLensOptions;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+class AllureReleaseConsumerTest {
+    @Test
+    void loadsOptionalAllureAdapterAndHandlesMissingContext() {
+        AllureTestLensOptions options = AllureTestLensOptions.builder().attachTrace(true).build();
+        assertNotNull(options);
+        TestLensFinalizationResult finalized = new TestLensFinalizationResult(
+                null, null, null, null, null, List.of());
+        assertEquals(AllureAttachStatus.SKIPPED_NO_ACTIVE_CONTEXT,
+                AllureTestLens.attach(finalized, options).status());
+    }
+}
+'@
+[IO.File]::WriteAllText(
+    (Join-Path $allureConsumer "src/test/java/cleanroom/AllureReleaseConsumerTest.java"), $allureSmoke)
+
 $repoArg = "-Dmaven.repo.local=$emptyM2"
+$baseGraph = Join-Path $work "base-dependency-tree.txt"
 Push-Location $consumer
 try {
-    & $mavenCommand $repoArg dependency:tree
+    & $mavenCommand $repoArg dependency:tree "-DoutputFile=$baseGraph" "-DoutputType=text"
     if ($LASTEXITCODE -ne 0) { throw "Clean-room dependency tree failed" }
     & $mavenCommand $repoArg test-compile
     if ($LASTEXITCODE -ne 0) { throw "Clean-room test compilation failed" }
@@ -154,6 +204,50 @@ try {
     Pop-Location
 }
 
+$baseGraphText = [IO.File]::ReadAllText($baseGraph)
+if ($baseGraphText.Contains("io.qameta.allure:")) {
+    throw "The base selenium-test-lens consumer unexpectedly resolves Allure dependencies"
+}
+if ($baseGraphText.Contains("-SNAPSHOT")) { throw "Base Maven consumer resolved a snapshot dependency" }
+
+$allureGraph = Join-Path $work "allure-dependency-tree.txt"
+Push-Location $allureConsumer
+try {
+    & $mavenCommand $repoArg dependency:tree "-DoutputFile=$allureGraph" "-DoutputType=text"
+    if ($LASTEXITCODE -ne 0) { throw "Allure clean-room dependency tree failed" }
+    & $mavenCommand $repoArg test
+    if ($LASTEXITCODE -ne 0) { throw "Allure clean-room smoke failed" }
+} finally {
+    Pop-Location
+}
+
+$allureGraphText = [IO.File]::ReadAllText($allureGraph)
+if (-not $allureGraphText.Contains("io.github.test-lens:selenium-test-lens-allure:jar:$ReleaseVersion")) {
+    throw "Allure Maven consumer did not resolve selenium-test-lens-allure $ReleaseVersion"
+}
+if (-not $allureGraphText.Contains("io.qameta.allure:allure-java-commons:jar:")) {
+    throw "Allure Maven consumer did not resolve allure-java-commons transitively"
+}
+if ($allureGraphText.Contains("-SNAPSHOT")) { throw "Allure Maven consumer resolved a snapshot dependency" }
+$stagedAllureJar = Join-Path $absoluteStagingPath `
+    "io/github/test-lens/selenium-test-lens-allure/$ReleaseVersion/selenium-test-lens-allure-$ReleaseVersion.jar"
+if (-not (Test-Path -LiteralPath $stagedAllureJar -PathType Leaf)) {
+    throw "Published Allure adapter JAR is missing from isolated release staging: $stagedAllureJar"
+}
+$resolvedAllureJar = Join-Path $emptyM2 `
+    "io/github/test-lens/selenium-test-lens-allure/$ReleaseVersion/selenium-test-lens-allure-$ReleaseVersion.jar"
+if (-not (Test-Path -LiteralPath $resolvedAllureJar -PathType Leaf)) {
+    throw "Allure adapter JAR was not resolved into the empty Maven repository"
+}
+$stagedAllureHash = (Get-FileHash -LiteralPath $stagedAllureJar -Algorithm SHA256).Hash
+$resolvedAllureHash = (Get-FileHash -LiteralPath $resolvedAllureJar -Algorithm SHA256).Hash
+if ($resolvedAllureHash -ne $stagedAllureHash) {
+    throw "Resolved Allure adapter does not match the isolated release staging artifact"
+}
+
 Write-Output "Clean-room release consumer PASS"
+Write-Output "Base dependency graph contains no io.qameta.allure artifacts"
+Write-Output "Optional Allure consumer resolved allure-java-commons and passed its API smoke test"
+Write-Output "Resolved Allure adapter SHA-256 matches isolated release staging: $stagedAllureHash"
 Write-Output "Staging repository: $staging"
 Write-Output "Empty Maven repository: $emptyM2"

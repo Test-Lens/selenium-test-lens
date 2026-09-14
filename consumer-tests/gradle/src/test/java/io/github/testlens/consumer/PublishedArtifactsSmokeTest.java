@@ -2,6 +2,10 @@ package io.github.testlens.consumer;
 
 import io.github.testlens.TestLens;
 import io.github.testlens.TestLensOptions;
+import io.github.testlens.TestLensFinalizationResult;
+import io.github.testlens.allure.AllureAttachStatus;
+import io.github.testlens.allure.AllureTestLens;
+import io.github.testlens.allure.AllureTestLensOptions;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.logging.UiTestLensLogger;
 import io.github.testlens.core.redaction.RedactionPolicy;
@@ -41,6 +45,13 @@ class PublishedArtifactsSmokeTest {
         assertTrue(TestLensTestNg.class.isAnnotation());
         assertNotNull(Class.forName("io.github.testlens.react.ReactSupport"));
 
+        AllureTestLensOptions allureOptions = AllureTestLensOptions.builder().attachTrace(true).build();
+        assertNotNull(allureOptions);
+        TestLensFinalizationResult finalized = new TestLensFinalizationResult(
+                null, null, null, null, null, List.of());
+        assertEquals(AllureAttachStatus.SKIPPED_NO_ACTIVE_CONTEXT,
+                AllureTestLens.attach(finalized, allureOptions).status());
+
         UiTestLensSession session = UiTestLensSession.start("consumer " + canary,
                 io.github.testlens.core.trace.RetryOutcomePolicy.REPORT_ONLY, 0, policy);
         session.addEvent(TraceEvent.info("consumer", "password=" + canary));
@@ -58,7 +69,9 @@ class PublishedArtifactsSmokeTest {
                 "io.github.testlens.TestLens",
                 "io.github.testlens.react.ReactSupport",
                 "io.github.testlens.junit5.TestLensExtension",
-                "io.github.testlens.testng.TestLensTestNgListener"
+                "io.github.testlens.testng.TestLensTestNgListener",
+                "io.github.testlens.allure.AllureTestLens",
+                "io.github.testlens.allure.AllureTestLensOptions"
         ).forEach(name -> assertNotNull(load(name)));
     }
 

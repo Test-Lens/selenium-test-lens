@@ -13,11 +13,18 @@ val isolatedLensRepository = file(providers.gradleProperty("testLensRepository")
 group = "io.github.testlens.consumer"
 version = "1.0.0"
 
+val baseLensRuntime = configurations.create("baseLensRuntime") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+
 dependencies {
+    add(baseLensRuntime.name, "io.github.test-lens:selenium-test-lens:$lensVersion")
     testImplementation("io.github.test-lens:selenium-test-lens:$lensVersion")
     testImplementation("io.github.test-lens:selenium-test-lens-react:$lensVersion")
     testImplementation("io.github.test-lens:selenium-test-lens-junit5:$lensVersion")
     testImplementation("io.github.test-lens:selenium-test-lens-testng:$lensVersion")
+    testImplementation("io.github.test-lens:selenium-test-lens-allure:$lensVersion")
     testImplementation("org.seleniumhq.selenium:selenium-java:4.39.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.2")
@@ -25,6 +32,9 @@ dependencies {
 
 configurations.configureEach {
     resolutionStrategy.failOnVersionConflict()
+    // TestNG 7.9 requests SLF4J 1.7 while Allure 2.35 requires SLF4J 2.0. The consumer deliberately
+    // loads both optional adapters, so select Allure's backwards-compatible SLF4J API explicitly.
+    resolutionStrategy.force("org.slf4j:slf4j-api:2.0.17")
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -37,6 +47,7 @@ val verifyResolvedGraph = tasks.register("verifyResolvedGraph") {
     outputs.file(reportFile)
     doLast {
         val runtime = configurations.testRuntimeClasspath.get()
+        val baseRuntime = baseLensRuntime
         val declared = configurations.flatMap { it.dependencies }.distinct()
         check(declared.none { it is ProjectDependency }) { "Project dependencies are forbidden" }
         check(declared.filterIsInstance<ExternalModuleDependency>().none {
@@ -61,10 +72,13 @@ val verifyResolvedGraph = tasks.register("verifyResolvedGraph") {
         val lensModules = modules.filter { it.group == "io.github.test-lens" }
         val requiredLensModules = setOf(
             "selenium-test-lens", "selenium-test-lens-core", "selenium-test-lens-overlay",
-            "selenium-test-lens-react", "selenium-test-lens-junit5", "selenium-test-lens-testng"
+            "selenium-test-lens-react", "selenium-test-lens-junit5", "selenium-test-lens-testng",
+            "selenium-test-lens-allure"
         )
-        check(lensModules.map { it.module }.containsAll(requiredLensModules)) {
-            "Missing Test Lens modules: " + (requiredLensModules - lensModules.map { it.module }.toSet())
+        val resolvedLensModules = lensModules.map { it.module }.toSet()
+        check(resolvedLensModules == requiredLensModules) {
+            "Test Lens module set mismatch; missing=" + (requiredLensModules - resolvedLensModules) +
+                ", unexpected=" + (resolvedLensModules - requiredLensModules)
         }
         check(lensModules.all { it.version == lensVersion && !it.version.endsWith("-SNAPSHOT") }) {
             "Every Test Lens module must resolve as release $lensVersion: $lensModules"
@@ -81,6 +95,15 @@ val verifyResolvedGraph = tasks.register("verifyResolvedGraph") {
 
         val seleniumVersions = modules.filter { it.group == "org.seleniumhq.selenium" }.map { it.version }.toSet()
         check(seleniumVersions == setOf("4.39.0")) { "Multiple or unexpected Selenium versions: $seleniumVersions" }
+        check(modules.any { it.group == "io.qameta.allure" && it.module == "allure-java-commons" }) {
+            "The optional Allure consumer must resolve allure-java-commons through selenium-test-lens-allure"
+        }
+        val baseModules = baseRuntime.incoming.resolutionResult.allComponents
+            .mapNotNull { it.id as? ModuleComponentIdentifier }
+        check(baseModules.none { it.group == "io.qameta.allure" }) {
+            "The base selenium-test-lens consumer must not resolve optional Allure dependencies: " +
+                baseModules.filter { it.group == "io.qameta.allure" }
+        }
         check(declared.none { it.group == "org.testng" }) { "TestNG must be supplied by the TestNG adapter" }
         check(declared.filter { it.group?.startsWith("org.junit") == true }.all {
             it.name == "junit-jupiter-engine" || it.name == "junit-platform-launcher"

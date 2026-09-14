@@ -11,7 +11,26 @@ if (-not (Test-Path -LiteralPath $repository -PathType Container)) {
 $versionPath = Join-Path $repository ("io/github/test-lens")
 $jars = @(Get-ChildItem -LiteralPath $versionPath -Recurse -Filter "*-$ReleaseVersion.jar" |
     Where-Object { $_.Name -notmatch '-(sources|javadoc)\.jar$' })
-if ($jars.Count -ne 6) { throw "Expected six published library JARs, found $($jars.Count)" }
+$expectedArtifactIds = @(
+    "selenium-test-lens-core",
+    "selenium-test-lens-overlay",
+    "selenium-test-lens",
+    "selenium-test-lens-react",
+    "selenium-test-lens-junit5",
+    "selenium-test-lens-testng",
+    "selenium-test-lens-allure"
+)
+$actualArtifactIds = @($jars | ForEach-Object { $_.Directory.Parent.Name } | Sort-Object -Unique)
+$missingArtifactIds = @($expectedArtifactIds | Where-Object { $_ -notin $actualArtifactIds })
+$unexpectedArtifactIds = @($actualArtifactIds | Where-Object { $_ -notin $expectedArtifactIds })
+if ($missingArtifactIds.Count -gt 0 -or $unexpectedArtifactIds.Count -gt 0) {
+    throw "Published library JAR set mismatch. Missing: [$($missingArtifactIds -join ', ')]. " +
+        "Unexpected: [$($unexpectedArtifactIds -join ', ')]. Actual: [$($actualArtifactIds -join ', ')]."
+}
+if ($jars.Count -ne $expectedArtifactIds.Count) {
+    throw "Expected exactly one main JAR for each published library artifact; found $($jars.Count) JARs for " +
+        "$($expectedArtifactIds.Count) artifactIds."
+}
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $maximumMajor = 0
