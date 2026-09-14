@@ -15,6 +15,10 @@ import java.util.List;
  */
 public record AllureAttachResult(AllureAttachStatus status, int attachedCount, int skippedCount,
                                  List<String> missingArtifacts, List<String> failures) {
+    /**
+     * Normalizes nullable diagnostic collections to immutable empty lists.
+     * @since 0.3.0
+     */
     public AllureAttachResult {
         missingArtifacts = missingArtifacts == null ? List.of() : List.copyOf(missingArtifacts);
         failures = failures == null ? List.of() : List.copyOf(failures);

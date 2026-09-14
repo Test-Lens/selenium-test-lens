@@ -1,6 +1,10 @@
 package io.github.testlens.selenium.evidence;
 
-/** Controls whether a mask problem prevents screenshot publication. */
+/**
+ * Controls whether a mask problem prevents screenshot publication.
+ *
+ * @since 0.3.0
+ */
 public enum VisualRedactionFailurePolicy {
     /** Captures available evidence and reports mask problems in the capture result. */
     BEST_EFFORT,

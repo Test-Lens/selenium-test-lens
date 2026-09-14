@@ -7,6 +7,17 @@ import java.nio.file.Path;
  * The key is an identifier, not a credential, but is still omitted from diagnostics and {@code toString()}.
  * A manager rejects reuse of a key with a different canonical path; callback identity is not compared.
  *
+ * <pre>{@code
+ * AuthStateRequest request = AuthStateRequest.builder()
+ *         .key("primary-user")
+ *         .path(Path.of("target/auth/primary.json"))
+ *         .login(driver -> loginPage.login())
+ *         .validate(driver -> accountMenu.isDisplayed()
+ *                 ? AuthStateValidation.AUTHENTICATED
+ *                 : AuthStateValidation.UNAUTHENTICATED)
+ *         .build();
+ * }</pre>
+ *
  * @since 0.3.0
  */
 public final class AuthStateRequest {

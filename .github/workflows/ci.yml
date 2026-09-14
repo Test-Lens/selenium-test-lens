@@ -54,6 +54,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -72,6 +74,10 @@ jobs:
       - name: Check public API documentation manifest
         shell: pwsh
         run: ./scripts/check-public-api.ps1
+
+      - name: Check public API since tags
+        shell: pwsh
+        run: ./scripts/check-public-api-since.ps1
 
       - name: Check documented Java signatures
         shell: pwsh

@@ -49,8 +49,17 @@ public final class TestLensOptions {
     public int allowedRetries() { return allowedRetries; }
     public FailureBundleOptions failureBundleOptions() { return failureBundleOptions; }
     public RedactionPolicy redactionPolicy() { return redactionPolicy; }
-    /** Returns the HUD configuration used by the overlay. */
+    /**
+     * Returns the HUD configuration used by the overlay.
+     * @return effective immutable HUD options
+     * @since 0.3.0
+     */
     public HudOptions hud() { return overlayConfig.getHudOptions(); }
+    /**
+     * Returns screenshot-pixel redaction configuration.
+     * @return visual redaction options; defaults automatically mask password inputs with STRICT handling
+     * @since 0.3.0
+     */
     public VisualRedactionOptions visualRedaction() { return visualRedaction; }
 
     public static final class Builder {
@@ -88,8 +97,19 @@ public final class TestLensOptions {
             redactionPolicy = value == null ? RedactionPolicy.defaults() : value;
             return this;
         }
-        /** Configures the browser HUD without exposing CSS internals. */
+        /**
+         * Configures the browser HUD without exposing CSS internals.
+         * @param value options; null restores {@link HudOptions#defaults()}
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder hud(HudOptions value) { hudOptions = value == null ? HudOptions.defaults() : value; return this; }
+        /**
+         * Configures temporary browser-side masks for Test Lens screenshot pixels.
+         * @param value options; null restores {@link VisualRedactionOptions#defaults()}
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder visualRedaction(VisualRedactionOptions value) {
             visualRedaction = value == null ? VisualRedactionOptions.defaults() : value;
             return this;

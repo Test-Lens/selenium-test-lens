@@ -19,6 +19,16 @@ import java.util.regex.Pattern;
  * builder override wins regardless of call order. Colors accept only six-digit hexadecimal
  * values. Scrollbar styling is limited to product presets, a bounded width, and validated
  * colors; this API does not accept arbitrary CSS or HTML.
+ *
+ * <pre>{@code
+ * HudOptions hud = HudOptions.builder()
+ *         .preset(HudPreset.COMPACT)
+ *         .position(HudPosition.TOP_RIGHT)
+ *         .showNetwork(false)
+ *         .build();
+ * }</pre>
+ *
+ * @since 0.3.0
  */
 public final class HudOptions {
     private static final Pattern COLOR = Pattern.compile("#[0-9a-fA-F]{6}");
@@ -115,52 +125,251 @@ public final class HudOptions {
         }
     }
 
+    /**
+     * Returns the product default.
+     * @return options based on {@link HudPreset#COMPACT}
+     * @since 0.3.0
+     */
     public static HudOptions defaults() { return builder().build(); }
+    /**
+     * Returns a new product-level HUD builder.
+     * @return a builder based on {@link HudPreset#COMPACT}
+     * @since 0.3.0
+     */
     public static Builder builder() { return new Builder(); }
+    /**
+     * Copies the effective configuration into explicit builder overrides.
+     * @return a builder initialized from this instance
+     * @since 0.3.0
+     */
     public Builder toBuilder() { return new Builder(this); }
+    /**
+     * Returns the preset used as the base configuration.
+     * @return selected preset
+     * @since 0.3.0
+     */
     public HudPreset preset() { return preset; }
+    /**
+     * Returns the viewport-corner anchor.
+     * @return selected position
+     * @since 0.3.0
+     */
     public HudPosition position() { return position; }
-    /** Returns the responsive arrangement of test-name and current-step header items. */
+    /**
+     * Returns the responsive arrangement of test-name and current-step header items.
+     * @return header layout
+     * @since 0.3.0
+     */
     public HudHeaderLayout headerLayout() { return headerLayout; }
+    /**
+     * Returns the horizontal distance from the selected anchor.
+     * @return CSS pixels before viewport clamping
+     * @since 0.3.0
+     */
     public int offsetXPx() { return offsetXPx; }
+    /**
+     * Returns the vertical distance from the selected anchor.
+     * @return CSS pixels before viewport clamping
+     * @since 0.3.0
+     */
     public int offsetYPx() { return offsetYPx; }
+    /**
+     * Returns the requested panel width.
+     * @return CSS pixels before viewport clamping
+     * @since 0.3.0
+     */
     public int widthPx() { return widthPx; }
+    /**
+     * Returns the requested panel maximum height.
+     * @return CSS pixels before viewport clamping
+     * @since 0.3.0
+     */
     public int maxHeightPx() { return maxHeightPx; }
+    /**
+     * Returns the requested event-log maximum height.
+     * @return CSS pixels before panel and viewport limits
+     * @since 0.3.0
+     */
     public int maxLogHeightPx() { return maxLogHeightPx; }
+    /**
+     * Returns the branding rail width.
+     * @return CSS pixels
+     * @since 0.3.0
+     */
     public int railWidthPx() { return railWidthPx; }
+    /**
+     * Returns the global local-font preset inherited by sections without an override.
+     * @return global font preset
+     * @since 0.3.0
+     */
     public HudFontPreset fontPreset() { return fontPreset; }
+    /**
+     * Returns semantic section font overrides.
+     * @return typography configuration
+     * @since 0.3.0
+     */
     public HudTypography typography() { return typography; }
-    /** Returns the event-log scrollbar rendering mode. */
+    /**
+     * Returns the event-log scrollbar rendering mode.
+     * @return scrollbar style
+     * @since 0.3.0
+     */
     public HudScrollbarStyle scrollbarStyle() { return scrollbarStyle; }
-    /** Returns the configured Chromium scrollbar width in pixels. */
+    /**
+     * Returns the configured Chromium scrollbar width.
+     * @return CSS pixels; Firefox maps the style to engine-supported widths
+     * @since 0.3.0
+     */
     public int scrollbarWidthPx() { return scrollbarWidthPx; }
-    /** Returns the event-log scrollbar track color. */
+    /**
+     * Returns the event-log scrollbar track color.
+     * @return color in {@code #RRGGBB} form
+     * @since 0.3.0
+     */
     public String scrollbarTrackColor() { return scrollbarTrackColor; }
-    /** Returns the event-log scrollbar thumb color. */
+    /**
+     * Returns the event-log scrollbar thumb color.
+     * @return color in {@code #RRGGBB} form
+     * @since 0.3.0
+     */
     public String scrollbarThumbColor() { return scrollbarThumbColor; }
-    /** Returns the event-log scrollbar thumb hover color. */
+    /**
+     * Returns the event-log scrollbar thumb hover color.
+     * @return color in {@code #RRGGBB} form
+     * @since 0.3.0
+     */
     public String scrollbarThumbHoverColor() { return scrollbarThumbHoverColor; }
+    /**
+     * Returns the base font size.
+     * @return CSS pixels
+     * @since 0.3.0
+     */
     public int baseFontSizePx() { return baseFontSizePx; }
+    /**
+     * Returns the header font size.
+     * @return CSS pixels
+     * @since 0.3.0
+     */
     public int headerFontSizePx() { return headerFontSizePx; }
+    /**
+     * Reports whether the test-name item is rendered.
+     * @return configured visibility
+     * @since 0.3.0
+     */
     public boolean showTestName() { return showTestName; }
+    /**
+     * Reports whether the current-step item is rendered.
+     * @return configured visibility
+     * @since 0.3.0
+     */
     public boolean showCurrentStep() { return showCurrentStep; }
+    /**
+     * Reports whether pipeline metadata is rendered.
+     * @return configured visibility
+     * @since 0.3.0
+     */
     public boolean showPipeline() { return showPipeline; }
+    /**
+     * Reports whether event timestamps are rendered.
+     * @return configured visibility
+     * @since 0.3.0
+     */
     public boolean showTimestamps() { return showTimestamps; }
+    /**
+     * Reports whether the event-log region is rendered.
+     * @return configured visibility
+     * @since 0.3.0
+     */
     public boolean showEventLog() { return showEventLog; }
+    /**
+     * Reports whether network event rows are rendered in the HUD.
+     * @return configured visibility
+     * @since 0.3.0
+     */
     public boolean showNetwork() { return showNetwork; }
+    /**
+     * Reports whether retry and recovery rows are rendered in the HUD.
+     * @return configured visibility
+     * @since 0.3.0
+     */
     public boolean showRetries() { return showRetries; }
+    /**
+     * Reports whether wait rows are rendered in the HUD.
+     * @return configured visibility
+     * @since 0.3.0
+     */
     public boolean showWaits() { return showWaits; }
+    /**
+     * Reports whether assertion rows are rendered in the HUD.
+     * @return configured visibility
+     * @since 0.3.0
+     */
     public boolean showAssertions() { return showAssertions; }
+    /**
+     * Returns the branding assets to render.
+     * @return branding mode
+     * @since 0.3.0
+     */
     public HudBranding branding() { return branding; }
+    /**
+     * Returns placement for rendered branding assets.
+     * @return logo placement
+     * @since 0.3.0
+     */
     public HudLogoPlacement logoPlacement() { return logoPlacement; }
+    /**
+     * Returns the panel background color.
+     * @return color in {@code #RRGGBB} form
+     * @since 0.3.0
+     */
     public String background() { return background; }
+    /**
+     * Returns panel background opacity.
+     * @return finite value from {@code 0.0} through {@code 1.0}
+     * @since 0.3.0
+     */
     public double backgroundOpacity() { return backgroundOpacity; }
+    /**
+     * Returns the accent color.
+     * @return color in {@code #RRGGBB} form
+     * @since 0.3.0
+     */
     public String accentColor() { return accentColor; }
+    /**
+     * Returns the primary text color.
+     * @return color in {@code #RRGGBB} form
+     * @since 0.3.0
+     */
     public String primaryTextColor() { return primaryTextColor; }
+    /**
+     * Returns the muted text color.
+     * @return color in {@code #RRGGBB} form
+     * @since 0.3.0
+     */
     public String mutedTextColor() { return mutedTextColor; }
+    /**
+     * Returns the success semantic color.
+     * @return color in {@code #RRGGBB} form
+     * @since 0.3.0
+     */
     public String successColor() { return successColor; }
+    /**
+     * Returns the warning semantic color.
+     * @return color in {@code #RRGGBB} form
+     * @since 0.3.0
+     */
     public String warningColor() { return warningColor; }
+    /**
+     * Returns the failure semantic color.
+     * @return color in {@code #RRGGBB} form
+     * @since 0.3.0
+     */
     public String failureColor() { return failureColor; }
+    /**
+     * Reports whether a validated caller PNG is embedded in this configuration.
+     * @return whether a custom logo is present
+     * @since 0.3.0
+     */
     public boolean hasCustomLogo() { return customLogoDataUri != null; }
     String customLogoFileName() { return customLogoFileName; }
 
@@ -207,6 +416,12 @@ public final class HudOptions {
         return Collections.unmodifiableMap(values);
     }
 
+    /**
+     * Builds immutable HUD configuration. A preset is always the base; fields explicitly set by
+     * this builder take precedence independently of call order.
+     *
+     * @since 0.3.0
+     */
     public static final class Builder {
         private enum Field {
             POSITION, HEADER_LAYOUT, OFFSET_X, OFFSET_Y, WIDTH, MAX_HEIGHT, MAX_LOG_HEIGHT, RAIL_WIDTH,
@@ -288,32 +503,104 @@ public final class HudOptions {
             this.explicit.addAll(EnumSet.allOf(Field.class));
         }
 
+        /**
+         * Selects the base preset without replacing explicit overrides.
+         *
+         * @param value preset
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder preset(HudPreset value) { applyPreset(Objects.requireNonNull(value, "preset must not be null")); return this; }
+        /**
+         * Selects the viewport-corner anchor.
+         *
+         * @param value anchor
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder position(HudPosition value) { explicit.add(Field.POSITION); position = Objects.requireNonNull(value, "position must not be null"); return this; }
         /**
          * Sets the arrangement of the atomic test-name and current-step header items.
          *
          * @param value responsive, single-row, or stacked layout
          * @return this builder
+         * @since 0.3.0
          */
         public Builder headerLayout(HudHeaderLayout value) {
             explicit.add(Field.HEADER_LAYOUT);
             headerLayout = Objects.requireNonNull(value, "headerLayout must not be null");
             return this;
         }
+        /**
+         * Sets the horizontal anchor offset from 0 through 500 px.
+         *
+         * @param value offset
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder offsetXPx(int value) { explicit.add(Field.OFFSET_X); offsetXPx = bounded(value, 0, 500, "offsetXPx"); return this; }
+        /**
+         * Sets the vertical anchor offset from 0 through 500 px.
+         *
+         * @param value offset
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder offsetYPx(int value) { explicit.add(Field.OFFSET_Y); offsetYPx = bounded(value, 0, 500, "offsetYPx"); return this; }
+        /**
+         * Sets the requested width from 240 through 960 px.
+         *
+         * @param value width
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder widthPx(int value) { if (value < 240 || value > 960) throw new IllegalArgumentException("widthPx must be between 240 and 960"); explicit.add(Field.WIDTH); widthPx = value; return this; }
+        /**
+         * Sets the requested panel maximum height from 120 through 1000 px.
+         *
+         * @param value height
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder maxHeightPx(int value) { explicit.add(Field.MAX_HEIGHT); maxHeightPx = bounded(value, 120, 1000, "maxHeightPx"); return this; }
+        /**
+         * Sets the requested event-log maximum height from 80 through 720 px.
+         *
+         * @param value height
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder maxLogHeightPx(int value) { if (value < 80 || value > 720) throw new IllegalArgumentException("maxLogHeightPx must be between 80 and 720"); explicit.add(Field.MAX_LOG_HEIGHT); maxLogHeightPx = value; return this; }
+        /**
+         * Sets the branding rail width from 16 through 80 px.
+         *
+         * @param value width
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder railWidthPx(int value) { explicit.add(Field.RAIL_WIDTH); railWidthPx = bounded(value, 16, 80, "railWidthPx"); return this; }
+        /**
+         * Sets the local font stack inherited by every section.
+         *
+         * @param value font preset
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder fontPreset(HudFontPreset value) { explicit.add(Field.FONT_PRESET); fontPreset = Objects.requireNonNull(value, "fontPreset must not be null"); return this; }
+        /**
+         * Sets optional semantic section font overrides.
+         *
+         * @param value typography overrides
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder typography(HudTypography value) { explicit.add(Field.TYPOGRAPHY); typography = Objects.requireNonNull(value, "typography must not be null"); return this; }
         /**
          * Selects custom subtle/standard styling or native browser rendering.
          *
          * @param value scrollbar rendering mode
          * @return this builder
+         * @since 0.3.0
          */
         public Builder scrollbarStyle(HudScrollbarStyle value) {
             explicit.add(Field.SCROLLBAR_STYLE);
@@ -326,6 +613,7 @@ public final class HudOptions {
          *
          * @param value width from 4 through 14 pixels
          * @return this builder
+         * @since 0.3.0
          */
         public Builder scrollbarWidthPx(int value) { explicit.add(Field.SCROLLBAR_WIDTH); scrollbarWidthPx = bounded(value, 4, 14, "scrollbarWidthPx"); return this; }
         /**
@@ -333,6 +621,7 @@ public final class HudOptions {
          *
          * @param value color in {@code #RRGGBB} form
          * @return this builder
+         * @since 0.3.0
          */
         public Builder scrollbarTrackColor(String value) { explicit.add(Field.SCROLLBAR_TRACK); scrollbarTrackColor = color(value, "scrollbarTrackColor"); return this; }
         /**
@@ -340,6 +629,7 @@ public final class HudOptions {
          *
          * @param value color in {@code #RRGGBB} form
          * @return this builder
+         * @since 0.3.0
          */
         public Builder scrollbarThumbColor(String value) { explicit.add(Field.SCROLLBAR_THUMB); scrollbarThumbColor = color(value, "scrollbarThumbColor"); return this; }
         /**
@@ -347,28 +637,176 @@ public final class HudOptions {
          *
          * @param value color in {@code #RRGGBB} form
          * @return this builder
+         * @since 0.3.0
          */
         public Builder scrollbarThumbHoverColor(String value) { explicit.add(Field.SCROLLBAR_THUMB_HOVER); scrollbarThumbHoverColor = color(value, "scrollbarThumbHoverColor"); return this; }
+        /**
+         * Sets the base font size from 9 through 18 px.
+         *
+         * @param value size
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder baseFontSizePx(int value) { explicit.add(Field.BASE_FONT_SIZE); baseFontSizePx = bounded(value, 9, 18, "baseFontSizePx"); return this; }
+        /**
+         * Sets the header font size from 8 through 16 px.
+         *
+         * @param value size
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder headerFontSizePx(int value) { explicit.add(Field.HEADER_FONT_SIZE); headerFontSizePx = bounded(value, 8, 16, "headerFontSizePx"); return this; }
+        /**
+         * Controls test-name visibility.
+         *
+         * @param value enabled state
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder showTestName(boolean value) { explicit.add(Field.SHOW_TEST_NAME); showTestName = value; return this; }
+        /**
+         * Controls current-step visibility.
+         *
+         * @param value enabled state
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder showCurrentStep(boolean value) { explicit.add(Field.SHOW_CURRENT_STEP); showCurrentStep = value; return this; }
+        /**
+         * Controls pipeline metadata visibility.
+         *
+         * @param value enabled state
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder showPipeline(boolean value) { explicit.add(Field.SHOW_PIPELINE); showPipeline = value; return this; }
+        /**
+         * Controls HUD timestamp visibility.
+         *
+         * @param value enabled state
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder showTimestamps(boolean value) { explicit.add(Field.SHOW_TIMESTAMPS); showTimestamps = value; return this; }
+        /**
+         * Controls event-log region visibility.
+         *
+         * @param value enabled state
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder showEventLog(boolean value) { explicit.add(Field.SHOW_EVENT_LOG); showEventLog = value; return this; }
+        /**
+         * Controls network row visibility in the HUD only.
+         *
+         * @param value enabled state
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder showNetwork(boolean value) { explicit.add(Field.SHOW_NETWORK); showNetwork = value; return this; }
+        /**
+         * Controls retry and recovery row visibility in the HUD only.
+         *
+         * @param value enabled state
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder showRetries(boolean value) { explicit.add(Field.SHOW_RETRIES); showRetries = value; return this; }
+        /**
+         * Controls wait row visibility in the HUD only.
+         *
+         * @param value enabled state
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder showWaits(boolean value) { explicit.add(Field.SHOW_WAITS); showWaits = value; return this; }
+        /**
+         * Controls assertion row visibility in the HUD only.
+         *
+         * @param value enabled state
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder showAssertions(boolean value) { explicit.add(Field.SHOW_ASSERTIONS); showAssertions = value; return this; }
+        /**
+         * Selects the branding assets.
+         *
+         * @param value branding mode
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder branding(HudBranding value) { explicit.add(Field.BRANDING); branding = Objects.requireNonNull(value, "branding must not be null"); return this; }
+        /**
+         * Selects where branding is rendered.
+         *
+         * @param value placement
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder logoPlacement(HudLogoPlacement value) { explicit.add(Field.LOGO_PLACEMENT); logoPlacement = Objects.requireNonNull(value, "logoPlacement must not be null"); return this; }
+        /**
+         * Sets a validated panel background color.
+         *
+         * @param value color in {@code #RRGGBB} form
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder background(String value) { explicit.add(Field.BACKGROUND); background = color(value, "background"); return this; }
+        /**
+         * Sets finite background opacity from 0 through 1.
+         *
+         * @param value opacity
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder backgroundOpacity(double value) { if (!Double.isFinite(value) || value < 0 || value > 1) throw new IllegalArgumentException("backgroundOpacity must be between 0 and 1"); explicit.add(Field.BACKGROUND_OPACITY); backgroundOpacity = value; return this; }
+        /**
+         * Sets the accent color.
+         *
+         * @param value color in {@code #RRGGBB} form
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder accentColor(String value) { explicit.add(Field.ACCENT); accentColor = color(value, "accentColor"); return this; }
+        /**
+         * Sets the primary text color.
+         *
+         * @param value color in {@code #RRGGBB} form
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder primaryTextColor(String value) { explicit.add(Field.PRIMARY_TEXT); primaryTextColor = color(value, "primaryTextColor"); return this; }
+        /**
+         * Sets the muted and label text color.
+         *
+         * @param value color in {@code #RRGGBB} form
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder mutedTextColor(String value) { explicit.add(Field.MUTED_TEXT); mutedTextColor = color(value, "mutedTextColor"); return this; }
+        /**
+         * Sets the success semantic color.
+         *
+         * @param value color in {@code #RRGGBB} form
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder successColor(String value) { explicit.add(Field.SUCCESS); successColor = color(value, "successColor"); return this; }
+        /**
+         * Sets the warning semantic color.
+         *
+         * @param value color in {@code #RRGGBB} form
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder warningColor(String value) { explicit.add(Field.WARNING); warningColor = color(value, "warningColor"); return this; }
+        /**
+         * Sets the failure semantic color.
+         *
+         * @param value color in {@code #RRGGBB} form
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder failureColor(String value) { explicit.add(Field.FAILURE); failureColor = color(value, "failureColor"); return this; }
 
         /**
@@ -377,6 +815,7 @@ public final class HudOptions {
          * @param path regular, non-symbolic-link PNG path
          * @return this builder
          * @throws IllegalArgumentException if the file is unreadable or violates the PNG limits
+         * @since 0.3.0
          */
         public Builder customLogo(Path path) {
             Objects.requireNonNull(path, "path must not be null");
@@ -410,6 +849,12 @@ public final class HudOptions {
             }
         }
 
+        /**
+         * Materializes the validated immutable configuration.
+         *
+         * @return validated immutable HUD options
+         * @since 0.3.0
+         */
         public HudOptions build() { return new HudOptions(this); }
 
         private void applyPreset(HudPreset value) {

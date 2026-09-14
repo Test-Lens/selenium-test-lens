@@ -11,6 +11,13 @@ import java.util.Objects;
  * Cleanup continues after individual failures. Test Lens preserves an existing test failure as primary; a cleanup
  * failure makes an otherwise passed invocation fail. Names and resource values are not emitted to evidence.
  *
+ * <pre>{@code
+ * User user = lens.resources().create(
+ *         "temporary-user",
+ *         api::createUser,
+ *         created -> api.deleteUser(created.id()));
+ * }</pre>
+ *
  * @since 0.3.0
  */
 public final class ScenarioResourceManager {
@@ -22,6 +29,10 @@ public final class ScenarioResourceManager {
     /**
      * Registers an already-created resource for exactly-once cleanup at invocation finalization.
      * The logical name is validated but is not written to diagnostics or evidence.
+     * @param name non-blank logical name, omitted from evidence
+     * @param resource non-null resource
+     * @param cleanup cleanup callback invoked during finalization
+     * @return the registered resource
      * @since 0.3.0
      */
     public synchronized <T> T register(String name, T resource, ThrowingConsumer<? super T> cleanup) {
@@ -34,6 +45,11 @@ public final class ScenarioResourceManager {
 
     /**
      * Creates and registers a resource. A factory failure or null result registers no cleanup callback.
+     * @param name non-blank logical name, omitted from evidence
+     * @param factory resource factory
+     * @param cleanup cleanup callback invoked during finalization
+     * @return the created and registered resource
+     * @throws Exception when the factory fails
      * @since 0.3.0
      */
     public synchronized <T> T create(String name, ThrowingSupplier<? extends T> factory,

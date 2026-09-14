@@ -23,6 +23,11 @@ import java.util.function.Supplier;
  * {@code finishPassed/finishFailed/finishSkipped} and before the runner closes the current Allure executable.
  * Calls are at-most-once for the same result object and Allure context, including parallel test execution.
  *
+ * <pre>{@code
+ * TestLensFinalizationResult finalized = lens.finishFailed(failure);
+ * AllureAttachResult publication = AllureTestLens.attach(finalized);
+ * }</pre>
+ *
  * @since 0.3.0
  */
 public final class AllureTestLens {
@@ -35,6 +40,7 @@ public final class AllureTestLens {
      * Attaches evidence using the failure-focused defaults.
      * @param result completed Test Lens finalization result
      * @return non-throwing publication diagnostics
+     * @since 0.3.0
      */
     public static AllureAttachResult attach(TestLensFinalizationResult result) {
         return attach(result, AllureTestLensOptions.defaults());
@@ -45,6 +51,7 @@ public final class AllureTestLens {
      * @param result completed Test Lens finalization result
      * @param options artifact selection policy
      * @return non-throwing publication diagnostics
+     * @since 0.3.0
      */
     public static AllureAttachResult attach(TestLensFinalizationResult result, AllureTestLensOptions options) {
         Objects.requireNonNull(result, "result");

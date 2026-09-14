@@ -1,6 +1,10 @@
 package io.github.testlens.hud;
 
-/** Safe local font stack used by the HUD. */
+/**
+ * Selects a local font stack used by the HUD without loading remote font resources.
+ *
+ * @since 0.3.0
+ */
 public enum HudFontPreset {
     /** Native system UI fonts. */
     SYSTEM,

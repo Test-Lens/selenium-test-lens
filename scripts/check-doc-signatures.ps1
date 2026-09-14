@@ -41,6 +41,7 @@ function Simplify-Type([string]$type) {
 
 function Signature-Key([string]$signature, [string]$typeName) {
     $value = ($signature.Trim() -replace ';$', '')
+    $value = $value -replace '\s+throws\s+.+$', ''
     $value = $value -replace '^public\s+', ''
     $value = $value -replace '^(?:static|final|abstract|synchronized|native|strictfp)\s+', ''
     if ($value -notmatch '^(?<prefix>.*?)\((?<parameters>.*)\)$') {
@@ -74,7 +75,7 @@ foreach ($line in Get-Content -LiteralPath $manifestPath) {
         $manifestByType[$currentType] = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
         continue
     }
-    if ($currentType -and $line -match '^\s{2}(public .+\(.*\))$') {
+    if ($currentType -and $line -match '^\s{2}(public .+\(.*\)(?: throws .+)?)$') {
         [void]$manifestByType[$currentType].Add((Signature-Key $Matches[1] $currentType))
     }
 }

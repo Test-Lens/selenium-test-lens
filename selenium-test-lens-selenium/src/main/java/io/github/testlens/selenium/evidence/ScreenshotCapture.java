@@ -42,6 +42,12 @@ public final class ScreenshotCapture {
         this(driver, VisualRedactionOptions.defaults());
     }
 
+    /**
+     * Creates a capture service with an explicit screenshot-pixel masking policy.
+     * @param driver consumer-owned WebDriver
+     * @param visualRedaction masking options; null restores password-safe defaults
+     * @since 0.3.0
+     */
     public ScreenshotCapture(WebDriver driver, VisualRedactionOptions visualRedaction) {
         if (driver == null) throw new IllegalArgumentException("driver must not be null");
         this.driver = driver;

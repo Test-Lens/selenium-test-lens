@@ -88,13 +88,19 @@ public final class OverlayConfig {
         return highlightColor;
     }
 
-    /** Returns the product-level HUD configuration. */
+    /**
+     * Returns the product-level HUD configuration.
+     * @return effective immutable HUD options
+     * @since 0.3.0
+     */
     public HudOptions getHudOptions() { return hudOptions; }
 
     /**
      * Returns whether {@link #getHudOptions()} is the authoritative visual HUD configuration.
      * A legacy {@link HudTheme} remains authoritative until explicit product-level HUD options
      * are supplied.
+     * @return whether product-level options override legacy HUD position, sizing, and theme values
+     * @since 0.3.0
      */
     public boolean isHudOptionsAuthoritative() { return hudOptionsAuthoritative; }
 
@@ -194,7 +200,13 @@ public final class OverlayConfig {
             return this;
         }
 
-        /** Uses one cohesive, immutable HUD configuration. */
+        /**
+         * Uses one cohesive, immutable HUD configuration. Explicit product-level options are
+         * authoritative over overlapping legacy HUD setters, independently of call order.
+         * @param value options; null leaves the existing configuration unchanged
+         * @return this builder
+         * @since 0.3.0
+         */
         public Builder hudOptions(HudOptions value) {
             if (value != null) {
                 this.hudOptions = value;
