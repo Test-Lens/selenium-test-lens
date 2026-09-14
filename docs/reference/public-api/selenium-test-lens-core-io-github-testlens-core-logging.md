@@ -152,6 +152,11 @@ public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STA
 public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_RESTORE_PASSED
 public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_RESTORE_FAILED
 public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_RESTORE_SKIPPED
+public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_RESTORED
+public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_CREATED
+public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_REFRESHED
+public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_INVALIDATED
+public static final io.github.testlens.core.logging.UiTestLensEventType AUTH_STATE_VALIDATION_INCONCLUSIVE
 public static final io.github.testlens.core.logging.UiTestLensEventType NETWORK_DIAGNOSTICS_STARTED
 public static final io.github.testlens.core.logging.UiTestLensEventType NETWORK_DIAGNOSTICS_STOPPED
 public static final io.github.testlens.core.logging.UiTestLensEventType NETWORK_REQUEST_RECORDED

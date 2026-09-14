@@ -6,6 +6,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ### Added
 
+- Added Managed Auth State with restore/validate/recreate lifecycle, fail-safe tri-state validation, one-login maximum, process-local refresh/invalidate registration, canonical-path JVM and filesystem locking, and atomic old-file-preserving replacement.
 - Added immutable `HudOptions` with Minimal, Compact, Standard, and Debug presets, semantic HUD row filtering, responsive atomic AUTO/INLINE/STACKED header layouts, validated semantic colors and opacity, anchored offsets, bounded sizing, global and section-specific local font presets, configurable native/subtle/standard event-log scrollbars, and bounded PNG branding. The shared runtime renderer now powers the runtime, homepage preview, and WYSIWYG HUD Studio.
 - Added browser-side visual redaction for every Test Lens screenshot path, with explicit SOLID/BLUR locator rules, per-tile full-page refresh, and diagnostic/clean parity.
 - Added the optional `selenium-test-lens-allure` module for streaming finalized, redacted Test Lens screenshots, HTML, trace, and failure ZIP evidence into the active Allure test/step without replacing Allure reporting or using `ReportUploader`.

@@ -116,7 +116,7 @@ Text redaction is not pixel processing. `VisualRedactionOptions` separately mask
 ## Advanced capabilities
 
 - **WebDriver BiDi network diagnostics (0.2.0):** passive observation, correlation, waits, assertions, safe snapshots, and HUD filtering. It is not interception, mocking, or CDP. The manual event/wait/assertion path existed in `0.1.0`. [Network diagnostics](docs/advanced/network.md)
-- **Origin-isolated auth state:** capture and restore cookies and web storage for the same validated origin. It is not automatic cross-origin SSO storage handling. [Authentication state](docs/advanced/auth-state.md)
+- **Managed Auth State (0.3.0):** restore/validate/recreate cookies and web storage with tri-state validation, one-login maximum, canonical-path locking and atomic replacement; low-level origin-isolated capture/restore remains available. [Authentication state](docs/advanced/auth-state.md)
 - **Page and SPA waits:** document readiness plus an intentionally limited XHR/fetch-idle heuristic. It sees only XHR/fetch started after tracker installation—not images, CSS, scripts, WebSocket, EventSource, or beacon traffic. [Waiting](docs/elements/waiting.md)
 - **JUnit 5 and TestNG lifecycle adapters:** optional `0.2.0` artifacts that map runner outcomes and own drivers created by their factories. [Framework integrations](docs/framework-integration.md)
 - **React & SPA resilience:** an optional helpers module re-resolves elements across rerenders, observes common busy/loading DOM conventions, and supports known React Select markup. Its legacy `smartClick` helper is not the contract of `UiLocator.click()`. [React/SPA helpers](docs/features/react-spa.md)
