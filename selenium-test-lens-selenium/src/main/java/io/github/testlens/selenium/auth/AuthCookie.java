@@ -64,10 +64,14 @@ public final class AuthCookie {
         if (expiry != null) {
             builder.expiresOn(Date.from(expiry));
         }
-        if (!sameSite.isBlank()) {
+        if (shouldApplySameSite()) {
             builder.sameSite(sameSite);
         }
         return builder.build();
+    }
+
+    private boolean shouldApplySameSite() {
+        return !sameSite.isBlank() && (secure || !"None".equalsIgnoreCase(sameSite));
     }
 
     public String name() {

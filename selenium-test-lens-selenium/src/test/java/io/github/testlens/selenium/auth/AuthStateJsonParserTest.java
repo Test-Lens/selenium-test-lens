@@ -7,6 +7,8 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class AuthStateJsonParserTest {
 
@@ -35,6 +37,39 @@ class AuthStateJsonParserTest {
         assertEquals("session", parsed.cookies().get(0).name());
         assertEquals("theme", parsed.localStorage().get(0).key());
         assertEquals("tab", parsed.sessionStorage().get(0).key());
+    }
+
+    @Test
+    void parsesLegacyInsecureSameSiteNoneCookieForReplayWithoutMutatingTheState() {
+        String legacyJson = """
+                {
+                  "metadata": {
+                    "origin": "https://app.example.com"
+                  },
+                  "cookies": [
+                    {
+                      "name": "session",
+                      "value": "legacy-value",
+                      "domain": "app.example.com",
+                      "path": "/",
+                      "expiry": "",
+                      "secure": false,
+                      "httpOnly": false,
+                      "sameSite": "None"
+                    }
+                  ],
+                  "localStorage": [],
+                  "sessionStorage": []
+                }
+                """;
+
+        AuthState parsed = new AuthStateJsonParser().parse(legacyJson);
+        AuthCookie cookie = parsed.cookies().get(0);
+
+        assertEquals("None", cookie.sameSite());
+        assertFalse(cookie.secure());
+        assertNull(cookie.toSeleniumCookie().getSameSite());
+        assertEquals("None", cookie.sameSite());
     }
 }
 

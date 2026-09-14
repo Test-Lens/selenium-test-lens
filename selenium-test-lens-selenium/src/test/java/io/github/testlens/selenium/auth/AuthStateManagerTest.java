@@ -5,12 +5,16 @@ import io.github.testlens.core.logging.UiTestLensEventType;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.logging.UiTestLensLogger;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 
 import java.lang.reflect.Proxy;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -18,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -290,6 +295,42 @@ class AuthStateManagerTest {
         assertEquals("dark", browser.localStorage.get("theme"));
         assertEquals("checkout", browser.sessionStorage.get("tab"));
         assertEquals(1, result.cookiesRestored());
+    }
+
+    @Test
+    void restoresLegacyInsecureSameSiteNoneCookieWithoutApplyingInvalidAttribute(@TempDir Path temp) throws Exception {
+        FakeBrowser browser = new FakeBrowser();
+        browser.currentUrl = "https://app.example.com/login";
+        String legacyJson = """
+                {
+                  "metadata": {"origin": "https://app.example.com"},
+                  "cookies": [{
+                    "name": "session",
+                    "value": "legacy-value",
+                    "domain": "app.example.com",
+                    "path": "/",
+                    "expiry": "",
+                    "secure": false,
+                    "httpOnly": false,
+                    "sameSite": "None"
+                  }],
+                  "localStorage": [],
+                  "sessionStorage": []
+                }
+                """;
+        Path statePath = temp.resolve("legacy-auth-state.json");
+        byte[] original = legacyJson.getBytes(StandardCharsets.UTF_8);
+        Files.write(statePath, original);
+
+        AuthRestoreResult result = new AuthStateManager(browser.driver())
+                .restoreState(statePath, AuthRestoreOptions.defaults());
+
+        assertEquals(AuthRestoreStatus.RESTORED, result.status(), result.message());
+        assertEquals(1, result.cookiesRestored());
+        Cookie restored = browser.cookies.get("session");
+        assertFalse(restored.isSecure());
+        assertNull(restored.getSameSite());
+        assertArrayEquals(original, Files.readAllBytes(statePath));
     }
 
     @Test
