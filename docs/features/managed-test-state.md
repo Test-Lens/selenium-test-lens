@@ -101,6 +101,7 @@ Resource cleanup runs after initial failure evidence has been captured for an al
 <!-- API SIGNATURES: io.github.testlens.ScenarioResourceManager -->
 ```java
 public <T> T register(String name, T resource, ThrowingConsumer<? super T> cleanup)
+public <T> T create(String name, ThrowingSupplier<? extends T> factory, ThrowingConsumer<? super T> cleanup) throws Exception
 ```
 
 ## Security boundary

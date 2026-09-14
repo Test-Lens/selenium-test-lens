@@ -53,7 +53,7 @@ pre { max-height: 22rem; overflow: auto; padding: .7rem; border-radius: .5rem; c
 #preview-frame-wrap[data-viewport=mobile] { width: min(calc(100% - 2rem), 390px); }
 #preview-frame { display: block; width: 100%; height: 100%; border: 0; }
 
-@media (max-width: 860px) {
+@media (max-width: 620px) {
   .studio { display: block; }
   .controls { border-right: 0; }
   .preview { position: relative; height: auto; min-height: 700px; }

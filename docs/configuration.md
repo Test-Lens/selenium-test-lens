@@ -1,177 +1,134 @@
 # Configuration
 
-The default configuration is enough for normal use. When you need to customize Test Lens, start with `TestLensOptions` and `OverlayConfig`. More specialized features expose their own options close to the API that uses them.
+Test Lens attaches to a `WebDriver` created by the consumer. `TestLensOptions` collects session-level behavior; specialized immutable builders configure individual capabilities. Defaults are usable without configuration, and no option transfers driver ownership to the main facade.
 
-Configuration is build-tool neutral. Maven and Gradle consumers load the same
-published JARs and require Java 17 or newer; compatibility is verified on JDK
-17 and JDK 21.
+The tables below are a decision map. Exact builder methods, ranges, and defaults are in the [configuration reference](reference/configuration.md).
 
-## Test Lens options
-
-`TestLensOptions` is the main configuration object supplied when attaching Test Lens to an existing driver.
-
-| Option | Purpose |
-|---|---|
-| `overlayConfig(...)` | Configures the visual overlay and HUD. |
-| `hud(...)` | Applies immutable `HudOptions` content, responsive header layout, anchored offsets, bounded dimensions, typography, palette, opacity, and branding settings. |
-| `locatorOptions(...)` | Sets the instance-wide locator timeout, polling, retries, and actionability behavior for `locator(...)`, every `getBy*` factory, and all derived locator stages. |
-| `outputRoot(...)` | Changes the root directory for session reports and diagnostics. |
-| `screenshotOnFailure(...)` | Controls automatic screenshot capture during failed finalization. |
-| `failureBundleOptions(...)` | Controls automatic failed-session collectors, limits, and ZIP creation. |
-| `cleanupHudOnFinish(...)` | Controls whether the HUD, borders, and tooltips are cleared during finalization. |
-| `retryOutcomePolicy(...)` | Controls an otherwise passed session containing recovery retries; default `REPORT_ONLY`. |
-| `allowedRetries(...)` | Number permitted by `FAIL_AFTER_N`; default `0`, must be non-negative. |
-
-By default, session output is written beneath `target/ui-test-lens`, and visual debug artifacts are cleared during finalization.
+## Core
 
 ```java
-TestLensOptions.builder().retryOutcomePolicy(RetryOutcomePolicy.REPORT_ONLY).build();
-TestLensOptions.builder().retryOutcomePolicy(RetryOutcomePolicy.WARN).build();
-TestLensOptions.builder().retryOutcomePolicy(RetryOutcomePolicy.FAIL_ON_ANY_RETRY).build();
-TestLensOptions.builder().retryOutcomePolicy(RetryOutcomePolicy.FAIL_AFTER_N).allowedRetries(2).build();
-```
-
-These policies apply only to `finishPassed()`. Explicit failed and skipped outcomes are never replaced.
-
-```java
-OverlayConfig overlayConfig = OverlayConfig.builder()
-        .hudPosition(HudPosition.TOP_RIGHT)
-        .build();
-
-TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
-        .overlayConfig(overlayConfig)
-        .build());
-```
-
-## Visual overlay
-
-`OverlayConfig` controls browser-side decorations and the diagnostic HUD.
-
-| Option | Purpose |
-|---|---|
-| `enabled(...)` | Enables or disables overlay injection and visual decorations. |
-| `showHudPanel(...)` | Shows or hides the HUD panel. |
-| `hudPosition(...)` | Places the HUD in a viewport corner. |
-| `hudOffset(...)` | Sets its horizontal and vertical offsets from that corner. |
-| `hudMaxWidthPx(...)` | Sets the maximum HUD width. |
-| `hudTheme(...)` | Applies a preset or custom `HudTheme`. |
-| `highlightColor(...)` | Sets the element highlight color. |
-| `decorationDurationMs(...)` | Sets how long visual decorations remain visible. |
-
-```java
-OverlayConfig config = OverlayConfig.builder()
-        .showHudPanel(true)
-        .hudPosition(HudPosition.TOP_RIGHT)
-        .hudOffset(16, 16)
-        .hudTheme(HudThemePreset.DARK)
-        .highlightColor("#38bdf8")
-        .build();
-```
-
-### HUD position and appearance
-
-`HudPosition` supports `TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT`, and `BOTTOM_RIGHT`. Use `hudOffset(...)` and `hudMaxWidthPx(...)` when the panel would otherwise overlap application controls.
-
-### Theme presets
-
-| Preset | Description |
-|---|---|
-| `DEFAULT` | Default dark slate theme |
-| `DARK` | Dark neutral theme |
-| `LIGHT` | Light theme |
-| `GLASS` | Translucent dark theme |
-| `COMPACT` | Smaller text and reduced spacing |
-| `HIGH_CONTRAST` | Higher-contrast colors and border |
-| `BLACK_AND_COLORS` | Dark theme with vivid accents |
-| `MINIMAL` | Light theme with reduced visual emphasis |
-
-```java
-OverlayConfig config = OverlayConfig.builder()
-        .hudTheme(HudThemePreset.HIGH_CONTRAST)
-        .build();
-```
-
-The `GLASS` preset applies CSS backdrop blur and saturation in browsers that support those properties.
-
-### Custom theme
-
-Use `HudTheme.builder()` when a preset does not fit the application under test:
-
-```java
-HudTheme customTheme = HudTheme.builder()
-        .background("rgba(15, 23, 42, 0.92)")
-        .foreground("#f8fafc")
-        .accent("#38bdf8")
-        .borderColor("rgba(148, 163, 184, 0.35)")
-        .borderRadiusPx(16)
-        .fontSizePx(13)
-        .maxHeightPx(420)
-        .build();
-
-OverlayConfig config = OverlayConfig.builder()
-        .hudTheme(customTheme)
-        .build();
-```
-
-CSS strings are accepted without strict parsing. Numeric pixel values must be non-negative, `maxHeightPx` must be positive, and opacity must be between `0` and `1` when supplied.
-
-## Advanced overlay policy
-
-Overlay policies can detect and handle blocking UI such as consent banners. This is optional and currently configured through the lower-level `JsOverlayDebug` facade; ordinary tests should start with `TestLens`.
-
-The example below assumes an existing `JsOverlayDebug` instance named `overlay`.
-
-```java
-OverlayPolicy policy = OverlayPolicy.builder()
-        .handler(OverlayHandler.builder("Cookie consent")
-                .detect(By.cssSelector("[data-testid='cookie-banner']"))
-                .action(OverlayAction.click(
-                        By.cssSelector("[data-testid='accept-cookies']")))
-                .optional(true)
+TestLensOptions options = TestLensOptions.builder()
+        .locatorOptions(UiLocatorOptions.builder()
+                .timeout(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(100))
                 .build())
+        .outputRoot(Path.of("target", "ui-test-lens"))
         .build();
 
-overlay.setOverlayPolicy(policy);
+TestLens lens = TestLens.attach(driver, options);
 ```
 
-## Feature-specific configuration
+| Configuration | Default | Contract |
+| --- | --- | --- |
+| `locatorOptions(...)` | `UiLocatorOptions.defaults()` | Instance-wide locator timeout, polling, operation retries, and actionability. The same options reach ordinary and semantic locator factories. |
+| `outputRoot(...)` | `target/ui-test-lens` | Root for reports and diagnostics. Keep it outside tracked or public content. |
+| `cleanupHudOnFinish(...)` | `true` | Best-effort removal of Test Lens browser decorations during finalization. |
+| `retryOutcomePolicy(...)` | `REPORT_ONLY` | Controls an otherwise passed session that used recovery retries; does not redefine explicit failed/skipped outcomes. |
 
-Some features expose dedicated configuration types close to the API that uses them. You usually do not need to configure all of these globally.
+## HUD
 
-| Type | Used for |
-|---|---|
-| `UiLocatorOptions` | Locator timeouts, polling, retries, and actionability; its retained `highlightBeforeAction` option is currently not consulted by `UiLocator` |
-| `UiAssertionOptions` | Assertion timeouts, polling, missing-element fail-fast, and text comparison; state/attribute/CSS comparisons keep their fixed typed semantics, while page URLs use only timeout/polling and page titles also use text settings |
-| `BusinessAssertionOptions` | Failure collection and fail-fast behavior in business assertion groups |
-| `UiStepOptions` | Step failure behavior, HUD logging, and failure screenshots |
-| `ScreenshotCaptureOptions` | Screenshot destination, naming, session attachment, viewport/full-page mode, and full-page pixel/tile limits |
-| `VideoEvidenceOptions` | Existing video file or URL metadata and session attachment |
-| `AuthStateOptions` | Authentication-state capture scope and metadata |
-| `AuthRestoreOptions` | Authentication-state navigation, clearing, validation, and restore behavior |
-| `NetworkDiagnosticsOptions` | Requested manual/BiDi mode, failure threshold, capture ignores, HUD-only filter, optional masked headers, and event limit |
-| `NetworkWaitCondition` | URL, method, status, timeout, and polling conditions for network waits |
-| `RedactionPolicy` | Enabled-by-default masking for diagnostic text, structured sensitive keys, URLs, and explicitly supplied literal secrets |
+`HudOptions` is the preferred 0.3.0 product model:
 
-See [Configuration builders](reference/configuration.md) or Javadoc for individual builder methods.
+```java
+HudOptions hud = HudOptions.builder()
+        .preset(HudPreset.COMPACT)
+        .position(HudPosition.TOP_RIGHT)
+        .headerLayout(HudHeaderLayout.AUTO)
+        .backgroundOpacity(0.9)
+        .showNetwork(false)
+        .build();
 
-## Notes and limits
+TestLensOptions options = TestLensOptions.builder().hud(hud).build();
+```
 
-`TestLensOptions.redactionPolicy(...)` defaults to `RedactionPolicy.defaults()`; passing null restores that default. `UiTestLensLogger.Builder.redactionPolicy(...)` applies the policy once before fan-out, including caller-provided sinks. Use `RedactionPolicy.disabled()` only as a deliberate opt-out. Configuration exports contain only the enabled flag, replacement, and counts of custom keys/secrets—not their values. See [Sensitive-data redaction](security/redaction.md).
+Precedence is deterministic:
 
-- With the default options, a final `FAILED` result attempts an automatic screenshot—including `finishFailed(null)` and policy-induced failure. Passed and skipped results never do. Capture is best-effort and can be disabled with `TestLensOptions.screenshotOnFailure(...)`.
-- Failure bundles are enabled by default. Diagnostic/clean screenshots, context, trace diagnostics, the current network summary, runtime/configuration allowlists, manifest, and ZIP are enabled; page source and browser console are disabled because they may contain secrets. See [Failure bundles](observability/failure-bundles.md).
-- Network diagnostics omit headers by default. When headers are included, sensitive headers are masked by default.
-- Network diagnostics default to explicit `MANUAL` events. `BIDI`/`AUTO` require BiDi to be enabled when the WebDriver session is created and never fall back. Captured events default to a 10,000-event cap. `ignoreUrlPattern` removes data from capture; `hudFilter` only reduces raw HUD lines and defaults to responses/failures without duplicate request lines. `assertNoFailedRequests()` requires a current generation that successfully became active; a normal `stop()` preserves that valid snapshot. Session attachment requires an explicit `NetworkDiagnostics.attachToSession(...)` call.
-- Captured authentication state is written only when `AuthState.save(...)` is called. Saved files can contain cookies and tokens, so do not commit them.
-- Video evidence attaches an existing local file or URL; Test Lens does not record video.
+```text
+selected preset
+-> explicit HudOptions builder overrides
+-> validated immutable options
+-> viewport-safe effective rendering
+```
 
-!!! note "Theme scope"
+Explicit `HudOptions` is authoritative over overlapping legacy `OverlayConfig` position, offset, width, and `HudTheme` values. When no explicit `HudOptions` is supplied, those legacy setters retain their historical behavior. `OverlayConfig` still controls the master overlay switch, HUD visibility, highlight color, and decoration duration.
 
-    HUD themes configure the main HUD panel. Other visual elements may not use every HUD theme setting.
+| Area | Default / range | Security or compatibility note |
+| --- | --- | --- |
+| Preset | `COMPACT`; also `MINIMAL`, `STANDARD`, `DEBUG` | Preset is only a base; explicit overrides win regardless of call order. |
+| Header | `AUTO`; also `INLINE`, `STACKED` | TEST/STEP are atomic single-line items with ellipsis; PIPE is separate metadata. |
+| Position | `BOTTOM_RIGHT`; four corners, offsets 0–500 px | Effective offsets and dimensions are clamped to the viewport; stored options are unchanged. |
+| Size | width 240–960, panel 120–1000, log 80–720 px | Effective log height is limited by configured log height, panel content, and viewport. |
+| Typography | local `UI_SANS` except Debug uses `MONOSPACE` | `SYSTEM`, `MONOSPACE`, and `UI_SANS` are local stacks; section overrides inherit from the global preset. No font URLs. |
+| Scrollbar | `SUBTLE`; Debug uses `STANDARD`; `NATIVE` available | Chromium honors bounded 4–14 px width; Firefox maps to engine-supported widths while preserving colors. |
+| Colors | validated `#RRGGBB`; opacity 0–1 | No arbitrary CSS is accepted by `HudOptions`. |
+| Branding | Test Lens mark in a 16 px rail | Custom logos are bounded, regular non-symlink PNG files; SVG, URLs, and HTML are rejected. |
 
-## Next steps
+[Customize the same runtime renderer in HUD Studio](observability/hud-studio.md).
 
-- [Get started](getting-started.md)
-- [Browse examples](examples.md)
-- [Read the complete API reference](reference/index.md)
-- [Configure the visual overlay and HUD](observability/visual-diagnostics.md)
+## Evidence
+
+| Configuration | Default | Contract |
+| --- | --- | --- |
+| `screenshotOnFailure(...)` | `true` | Requests the historical automatic screenshot only for a final failed outcome. Capture remains best effort. |
+| `failureBundleOptions(...)` | bundle enabled, sensitive collectors off | Diagnostic/clean screenshots, context, trace diagnostics, network summary, allowlists, manifest, and ZIP are enabled; page source and console default off. |
+| `ScreenshotCaptureOptions` | viewport capture | `FULL_PAGE` is opt-in and bounded by pixel/tile limits. |
+| `VideoEvidenceOptions` | caller-supplied attachment | Test Lens attaches existing video; it does not record or visually redact it. |
+
+See [Screenshots & evidence](observability/screenshots-evidence.md) and [Failure bundles](observability/failure-bundles.md).
+
+## Visual Redaction
+
+```java
+VisualRedactionOptions visual = VisualRedactionOptions.builder()
+        .mask(By.id("account-number"), VisualMaskMode.SOLID)
+        .failurePolicy(VisualRedactionFailurePolicy.STRICT)
+        .build();
+```
+
+`TestLensOptions.visualRedaction(...)` defaults to automatic SOLID masking of password inputs and the fail-closed `STRICT` policy. Explicit masks are required targets. `BEST_EFFORT` is an opt-in that can publish a partially masked screenshot with diagnostics. `solidColor` accepts `#RRGGBB`, blur radius is 2–32 px, and padding is 0–32 px.
+
+This controls screenshot pixels only. Configure diagnostic text separately with `RedactionPolicy`. Review the [complete visual-redaction boundary](security/visual-redaction.md) before publishing evidence.
+
+## Network and WebDriver BiDi
+
+`NetworkDiagnosticsOptions` defaults to explicit `MANUAL` capture, headers off, sensitive-header masking on, failed status threshold 400, 10,000 captured events, and the default HUD filter. `BIDI` and `AUTO` require a WebDriver session created with BiDi enabled and never fall back to performance logs.
+
+`NetworkWaitCondition` defines URL, method, status, timeout, and polling criteria. Passive capture is diagnostics, not interception, stubbing, or body virtualization. See [Network diagnostics](advanced/network.md).
+
+## Managed Auth State
+
+`AuthStateRequest` combines a process-local key, persisted path, login callback, and tri-state validator. The manager performs a bounded restore–validate–recreate lifecycle with at most one login. `INCONCLUSIVE` and validator exceptions do not trigger login or overwrite old bytes.
+
+Low-level `AuthStateOptions` and `AuthRestoreOptions` still configure direct cookie and Web Storage capture/restore. Origin validation, navigation, clearing, component selection, and expiry checks default on. Persisted auth state can contain live authentication material and is outside report redaction. See [Managed Auth State](advanced/auth-state.md).
+
+## Managed Test State
+
+Scenario and suite managers have no builder because their lifetime is the configuration:
+
+- `scenarioState()` and `resources()` bind to the active physical invocation and close at finalization;
+- `suiteState()` binds to one JUnit root, TestNG `ISuite`, or explicit `TestRunScope`;
+- a manual Lens not attached through a managed run scope has no suite state and fails fast.
+
+State is in memory only and is not automatically evidence. See [Managed Test State & Resources](features/managed-test-state.md).
+
+## Reports and upload
+
+Report exporters use their own immutable options for output shape and theme. `ReportUploadOptions` is deliberately separate from `TestLensOptions`: configuration alone cannot perform network I/O. It requires an explicit HTTP(S) endpoint and controls bounded payloads, timeouts, retries, proxy routing, headers, and redaction. Upload remains an explicit post-finalization call. See [Report upload](observability/report-upload.md).
+
+## Runner integrations
+
+- JUnit 5 passes immutable options through `TestLensExtension.Builder.lensOptions(...)` and owns only drivers created by its configured factory.
+- TestNG factories return `lensOptions()` per physical invocation; the listener and factory define the runner lifecycle.
+- Allure uses separate `AllureTestLensOptions` at attachment time and consumes only finalized evidence.
+
+See [JUnit 5](integrations/junit5.md), [TestNG](integrations/testng.md), and [Allure](integrations/allure.md).
+
+## Text redaction
+
+`TestLensOptions.redactionPolicy(...)` defaults to `RedactionPolicy.defaults()`. The immutable policy protects diagnostic copies before they reach HUD, trace, sinks, network diagnostics, reports, and text bundle components. Passing null restores defaults; `RedactionPolicy.disabled()` is an explicit opt-out that can expose secrets.
+
+Configuration exports include policy state and counts, never configured literal secret values. See [Sensitive-data redaction](security/redaction.md).
+
+## Detailed reference
+
+Use the [configuration builders reference](reference/configuration.md) for the complete tables and validation ranges, or the [generated public API catalog](reference/public-api-catalog.md) for exact signatures.

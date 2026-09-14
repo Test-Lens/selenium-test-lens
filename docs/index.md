@@ -6,13 +6,14 @@ hide:
 
 <div class="lens-hero" markdown>
 
-# See your Selenium tests. Understand their failures.
+# Observe Selenium. Recover deliberately. Keep useful evidence.
 
-**Keep Selenium and your existing WebDriver. Add live browser diagnostics, application-aware synchronization, measurable recovery, and portable failure evidence around them.**
+**Keep Selenium and your existing WebDriver. Add observability, resilient browser interaction, scoped test lifecycle, and evidence with explicit security boundaries.**
 
 Test Lens shows actions, waits, assertions, retries, and network activity while a test runs. After finalization, the same structured session can become an HTML/JSON report, screenshots, a failure bundle, or an explicitly uploaded report package.
 
 [See the live diagnostics](#live-hud-and-element-highlights){ .md-button .md-button--primary }
+[What's new in 0.3.0](whats-new-0.3.0.md){ .md-button }
 [Explore the capabilities](#signature-capabilities){ .md-button }
 [Get started](#quick-start){ .md-button }
 [Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0){ .md-button }
@@ -40,6 +41,50 @@ HTML/JSON reports · screenshots · failure bundle · optional HTTP upload
 ```
 
 It does not replace Selenium, Page Objects, JUnit, TestNG, or an existing reporting stack. Raw WebDriver remains available whenever it is the clearer or more complete API.
+
+## 0.3.0 at a glance
+
+The development line adds configuration and lifecycle capabilities around the same Selenium session. These are public 0.3.0 APIs, not features of the published 0.2.0 release.
+
+<div class="grid cards" markdown>
+
+-   **NEW 0.3.0 · LIVE UI — Configurable HUD**
+
+    Start from Minimal, Compact, Standard, or Debug; then override supported content, position, viewport-safe size, header layout, typography, scrollbar, palette, opacity, and bounded PNG branding.
+
+    [Configure the runtime HUD](observability/visual-diagnostics.md#configurable-hud)
+
+-   **NEW 0.3.0 · WYSIWYG — HUD Studio**
+
+    Drag, snap, and resize the real runtime renderer in Desktop, Laptop, or Mobile preview. Copy minimal Java that reproduces the edited `HudOptions`.
+
+    [Customize your HUD](observability/hud-studio.md)
+
+-   **NEW 0.3.0 · SECURITY — Visual Redaction**
+
+    Mask screenshot pixels independently from text redaction. Password inputs use SOLID masking by default; STRICT refuses to publish a screenshot when a required mask cannot be verified.
+
+    [Define the screenshot boundary](security/visual-redaction.md)
+
+-   **NEW 0.3.0 · AUTH — Managed Auth State**
+
+    Restore and validate persisted browser state, perform at most one login when recreation is justified, and atomically preserve or replace the previous file.
+
+    [Manage authentication state](advanced/auth-state.md)
+
+-   **NEW 0.3.0 · STATE — Managed Test State & Resources**
+
+    Isolate typed data per physical invocation, share state intentionally inside one suite, and clean scenario resources exactly once in LIFO order.
+
+    [Manage state and resources](features/managed-test-state.md)
+
+-   **NEW 0.3.0 · INTEGRATION — Allure**
+
+    Attach finalized, redacted Test Lens evidence to the active Allure executable through an optional artifact. The adapter neither captures another screenshot nor changes Allure status.
+
+    [Use the Allure adapter](integrations/allure.md)
+
+</div>
 
 ## Live HUD and element highlights
 
@@ -121,11 +166,11 @@ HUD injection, updates, and cleanup are best effort and cannot change the result
 
     Follow actions, waits, assertions, network entries, and recovery diagnostics in the tested page. Highlighting shows which element was resolved without intercepting pointer input.
 
-    [Visual diagnostics](observability/visual-diagnostics.md)
+    [Visual diagnostics](observability/visual-diagnostics.md) · [Customize your HUD](observability/hud-studio.md)
 
--   **Reusable authentication state**
+-   **Managed and low-level authentication state**
 
-    Capture selected cookies, `localStorage`, and `sessionStorage`, persist them as JSON, and restore them for a validated origin. Expired or cross-origin state has explicit result statuses.
+    Use managed restore/validate/recreate with tri-state validation and atomic replacement, or call the underlying cookie and Web Storage capture/restore primitives directly. Persisted state remains sensitive authentication material.
 
     [Authentication state](advanced/auth-state.md)
 
@@ -179,31 +224,27 @@ HUD injection, updates, and cleanup are best effort and cannot change the result
 
 </div>
 
-## Reuse authentication state without replaying every login
+## Reuse authentication state with application validation
 
-`AuthStateManager` captures selected cookies and Web Storage entries together with origin and optional expiry metadata. A state file can then prepare another scenario without replaying the complete UI login flow.
+Managed Auth State restores persisted cookies and Web Storage, asks the application whether the result is authenticated, and recreates state only when validation unambiguously returns `UNAUTHENTICATED`:
 
 ```java
-JsOverlayDebug overlay = new JsOverlayDebug(driver);
-
-AuthState state = overlay.captureAuthState(AuthStateOptions.builder()
-        .label("standard-customer")
-        .origin("https://app.example.test")
-        .includeCookies(true)
-        .includeLocalStorage(true)
-        .includeSessionStorage(true)
-        .build());
-
-state.save(Path.of("target/test-auth/customer.json"));
-
-AuthRestoreResult restored = overlay.restoreAuthState(
-        Path.of("target/test-auth/customer.json"),
-        AuthRestoreOptions.defaults());
+AuthStateEnsureResult result = lens.authState().ensure(
+        AuthStateRequest.builder()
+                .key("primary-user")
+                .path(Path.of("target/test-auth/primary.json"))
+                .login(driver -> loginPage.login(username, password))
+                .validate(driver -> accountMenu.isDisplayed()
+                        ? AuthStateValidation.AUTHENTICATED
+                        : AuthStateValidation.UNAUTHENTICATED)
+                .build());
 ```
 
-Default restore can navigate to the recorded origin, clear existing cookies/storage, restore selected components, validate the effective origin, and reject expired state. Origin comparison accounts for scheme, host, and effective port; a redirect to a different origin produces `ORIGIN_MISMATCH` before foreign cookies or storage are modified.
+Missing state becomes `CREATED`; valid restored state becomes `RESTORED`; invalid restored state is cleared from the managed browser context and atomically replaced as `REFRESHED`. One operation performs at most one login. `INCONCLUSIVE` fails without login and preserves the old file, which is important when the application or identity backend is unavailable rather than logged out.
 
-This is controlled same-origin test setup, not cross-origin SSO replay. Auth-state JSON can contain live credentials and is intentionally not transformed by diagnostic text redaction, because changing it would make restoration unreliable. Store it as a secret-bearing test artifact. [Read the capture, restore, and security contract](advanced/auth-state.md).
+The lower-level `AuthStateManager` capture/load/restore primitives remain available when the consumer owns validation and persistence sequencing. Default restore validates origin before browser mutation and rejects expired state. A redirect to another scheme, host, or effective port returns `ORIGIN_MISMATCH` before foreign-origin cookies or storage are changed.
+
+This is controlled same-origin test setup, not cross-origin SSO replay or automatic logout. Auth-state JSON can contain live credentials and is intentionally not transformed by diagnostic text redaction, because changing it would make restoration unreliable. Store it as access-controlled authentication material. [Read the managed lifecycle, primitives, and security contract](advanced/auth-state.md).
 
 ## React and dynamic SPA behavior
 

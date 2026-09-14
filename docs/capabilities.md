@@ -2,6 +2,18 @@
 
 Selenium Test Lens is an observability and failure-evidence layer for a consumer-owned `WebDriver`. Its value is not the number of wrapped methods; it is the connection between native interaction, visible recovery, structured trace, policy, and post-failure evidence.
 
+## 0.3.0 capability additions
+
+| Capability | Public entry point | Core contract |
+| --- | --- | --- |
+| Configurable HUD | `TestLensOptions.hud(HudOptions)` | Preset base plus order-independent explicit overrides; same renderer in runtime, homepage demo, and HUD Studio. |
+| Visual Redaction | `TestLensOptions.visualRedaction(...)` | Screenshot-pixel masking, automatic password SOLID masks, and STRICT fail-closed publication by default. |
+| Managed Auth State | `lens.authState().ensure(...)` | Restore and tri-state validation before bounded login/recreation and atomic persistence. |
+| Managed Test State & Resources | `scenarioState()`, `suiteState()`, `resources()` | Per-invocation isolation, intentional suite sharing, and exactly-once LIFO cleanup. |
+| Allure | `AllureTestLens.attach(...)` | Optional publication of finalized Test Lens evidence into the active Allure executable. |
+
+These APIs are additive. See [What's new in 0.3.0](whats-new-0.3.0.md) and the [0.2.x migration guide](migrating-0.2-to-0.3.md).
+
 ## Five capability stories
 
 ### 1. Native interactions with visible recovery
@@ -37,7 +49,7 @@ One text policy creates safe diagnostic copies before fan-out to HUD, trace, sin
 | Capability | Boundary | Guide |
 |---|---|---|
 | WebDriver BiDi network diagnostics | Passive observation/correlation, not interception, mocking, CDP, or body capture. Manual events, waits, and assertions exist in `0.1.0`; BiDi lifecycle, safe snapshots, and HUD filtering are `0.2.0`. | [Network](advanced/network.md) |
-| Authentication state | Captures/restores cookies and storage for a validated origin; cross-origin SSO restore is not automatic. Treat exported state as a secret. | [Auth state](advanced/auth-state.md) |
+| Managed and low-level authentication state | Managed restore/validate/recreate has tri-state validation, one-login maximum, locking, and atomic replacement. Low-level cookies/storage capture and restore remain available. Cross-origin SSO restore is not automatic; persisted state is sensitive. | [Auth state](advanced/auth-state.md) |
 | Managed Test State & Resources | In-memory typed state is isolated per physical invocation; suite state is explicitly shared inside one run; temporary resources use exactly-once LIFO cleanup. There is no disk or cross-JVM state. | [Managed test state](features/managed-test-state.md) |
 | Page and SPA waits | Ready-state waits plus an XHR/fetch tracker that sees only calls begun after installation. It is not full browser network idle. | [Waiting](elements/waiting.md) |
 | React & SPA resilience | DOM-convention helpers for rerender recovery, busy/loading readiness, actionability, and React Select; no React component-tree access or universal design-system guarantee. | [React/SPA helpers](features/react-spa.md) |

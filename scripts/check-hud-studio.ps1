@@ -40,7 +40,11 @@ foreach ($contract in @("function beginDrag", "function beginResize", "stl-studi
 if ($script -match 'var presets\s*=\s*\{') { throw "HUD Studio must consume preset definitions from the runtime renderer." }
 if ($html -notmatch 'data-preset="STANDARD"' -or $html -match 'data-preset="DEFAULT"') { throw "HUD Studio preset names are stale." }
 if ($html -notmatch 'aria-pressed="true"' -or $html -notmatch 'aria-pressed="false"') { throw "HUD Studio controls must expose pressed state." }
-if ($styles -notmatch '(?s)\.code-actions\s*\{[^}]*position:\s*sticky' -or $styles -notmatch '@media\s*\(max-width:\s*860px\)') {
+$mobileBreakpoint = [regex]::Match($styles, '@media\s*\(max-width:\s*(\d+)px\)')
+if ($styles -notmatch '(?s)\.code-actions\s*\{[^}]*position:\s*sticky' -or
+    -not $mobileBreakpoint.Success -or
+    [int]$mobileBreakpoint.Groups[1].Value -lt 480 -or
+    [int]$mobileBreakpoint.Groups[1].Value -gt 860) {
     throw "HUD Studio must keep copy actions reachable and provide a real narrow-screen layout."
 }
 if (-not $previewScript.Contains("type:'hud-rendered'") -or -not $script.Contains("dataset.hudReady='true'")) {

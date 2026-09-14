@@ -152,28 +152,28 @@ mvn test
 
 When the session is finalized, Test Lens writes its HTML and JSON reports under `target/ui-test-lens` by default.
 
-## Optional: configure the HUD
+## Optional: configure the 0.3.0 HUD
 
-The default configuration is enough to get started. To change the in-browser HUD, pass `TestLensOptions` when attaching Lens:
+The default `COMPACT` HUD is enough to get started. In the 0.3.0 development line, customize it through immutable `HudOptions` and pass it with `TestLensOptions`:
 
 ```java
-import io.github.testlens.OverlayConfig;
 import io.github.testlens.TestLens;
 import io.github.testlens.TestLensOptions;
+import io.github.testlens.hud.HudOptions;
 import io.github.testlens.hud.HudPosition;
-import io.github.testlens.hud.HudThemePreset;
+import io.github.testlens.hud.HudPreset;
 
-OverlayConfig overlay = OverlayConfig.builder()
-        .hudPosition(HudPosition.TOP_RIGHT)
-        .hudTheme(HudThemePreset.DARK)
+HudOptions hud = HudOptions.builder()
+        .preset(HudPreset.COMPACT)
+        .position(HudPosition.TOP_RIGHT)
         .build();
 
 TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
-        .overlayConfig(overlay)
+        .hud(hud)
         .build());
 ```
 
-The HUD is only a diagnostic aid and does not change test execution or assertions.
+The HUD is only a diagnostic aid and does not change test execution or assertions. [HUD Studio](observability/hud-studio.md) edits the same renderer and generates matching Java configuration. Legacy `OverlayConfig` HUD setters remain compatible; explicit `HudOptions` wins for overlapping values.
 
 ## Next steps
 
@@ -181,6 +181,8 @@ The HUD is only a diagnostic aid and does not change test execution or assertion
 - [Use the JUnit 5 lifecycle extension](integrations/junit5.md)
 - [Use locators, actions, waits, and assertions](elements/index.md)
 - [Configure Test Lens](configuration.md)
+- [Review what's new in 0.3.0](whats-new-0.3.0.md)
+- [Migrate from 0.2.x](migrating-0.2-to-0.3.md)
 - [Migrate incrementally from raw Selenium](migration.md)
 - [Add the optional React/SPA helpers module](framework-integration.md#optional-reactspa-helpers-module)
 

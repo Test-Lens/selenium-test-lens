@@ -19,23 +19,32 @@ The panel observes and presents Lens operations; it does not alter Selenium's su
 
 Raw network rows can be reduced independently with [`NetworkHudFilter`](../advanced/network.md#hud-only-filtering). Its default hides duplicate request rows and shows responses and failures. This affects only the HUD: capture, waits, counters, trace, JSON, reports, external sinks, and failure evidence remain complete.
 
-### Enable and configure the HUD
+### Configurable HUD
 
-Configure the HUD through [`OverlayConfig`](../reference/configuration.md#overlayconfig) and pass it to the public [`TestLens.attach(WebDriver, OverlayConfig)`](../reference/test-lens.md#creation-and-lifecycle) overload:
+For 0.3.0, configure the panel through immutable `HudOptions`. The default is `COMPACT`; a preset establishes a coherent base and explicit builder overrides win independently of call order:
 
 ```java
-OverlayConfig overlayConfig = OverlayConfig.builder()
-        .enabled(true)
-        .showHudPanel(true)
-        .hudPosition(HudPosition.TOP_RIGHT)
-        .hudTheme(HudThemePreset.DARK)
+HudOptions hud = HudOptions.builder()
+        .preset(HudPreset.COMPACT)
+        .position(HudPosition.TOP_RIGHT)
+        .headerLayout(HudHeaderLayout.AUTO)
+        .backgroundOpacity(0.88)
+        .showNetwork(false)
         .build();
 
-TestLens lens = TestLens.attach(driver, overlayConfig);
+TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+        .hud(hud)
+        .build());
 lens.startSession("Checkout");
 ```
 
-To hide only the HUD while retaining overlay capabilities such as click decoration:
+`MINIMAL`, `COMPACT`, `STANDARD`, and `DEBUG` configure content and density. `AUTO` keeps the atomic TEST and STEP items together on one row when they fit, then moves the complete STEP item to row two; individual values remain single-line and use ellipsis. Runtime clamping keeps configured dimensions and anchored offsets reachable in the current viewport without mutating the stored options.
+
+The API also controls bounded panel/log dimensions, local global and section-specific font stacks, event categories, validated colors, opacity, branding, and native/subtle/standard event-log scrollbars. Presentation filters affect only the HUD; they never delete trace, report, retry, or network data.
+
+[Open HUD Studio](hud-studio.md) to edit the same renderer visually and copy matching Java. The complete defaults and ranges are in [`HudOptions`](../reference/configuration.md#hudoptions).
+
+Use `OverlayConfig` for the master visual switch, HUD visibility, highlight behavior, and legacy compatibility. To hide only the HUD while retaining click decoration:
 
 ```java
 OverlayConfig overlayConfig = OverlayConfig.builder()
@@ -51,7 +60,7 @@ OverlayConfig overlayConfig = OverlayConfig.builder()
         .build();
 ```
 
-See [Getting Started](../getting-started.md), the complete [`OverlayConfig` table](../reference/configuration.md#overlayconfig), [`HudTheme`](../reference/configuration.md#hudtheme), and the `hudPosition(...)` row in [`OverlayConfig`](../reference/configuration.md#overlayconfig).
+See [Getting Started](../getting-started.md) and the complete [`OverlayConfig` table](../reference/configuration.md#overlayconfig).
 
 `TestLens.startSession(...)` attempts the initial HUD injection. Events retry injection lazily when a browser document was not available earlier, such as around navigation. When [`TestLensOptions.cleanupHudOnFinish`](../reference/configuration.md#testlensoptions) is enabled, finalization removes HUD/debug artifacts on a best-effort basis. Injection and cleanup failures do not change the WebDriver operation's intended result.
 
@@ -91,9 +100,9 @@ lens.getByTestId("status").expect().toHaveText("Saved");
 
 Assertions use their own polling and comparison settings. See [Element assertions](../elements/assertions.md) and [`UiAssertionOptions`](../reference/configuration.md#uiassertionoptions). Diagnostic previews are bounded by the options, but page content and screenshots can still expose sensitive values.
 
-## Theme and placement
+## Legacy HUD theme and placement compatibility
 
-Position and theme are opt-in customizations of the default HUD:
+`OverlayConfig` HUD position, offset, width, and `HudTheme` remain available for 0.2.x source compatibility:
 
 ```java
 OverlayConfig overlayConfig = OverlayConfig.builder()
@@ -102,13 +111,7 @@ OverlayConfig overlayConfig = OverlayConfig.builder()
         .build();
 ```
 
-`HudPosition` chooses the anchored location, while a `HudThemePreset` selects a built-in palette and layout. Custom `HudTheme` values are also supported. Use the full [`OverlayConfig`](../reference/configuration.md#overlayconfig) and [`HudTheme`](../reference/configuration.md#hudtheme) configuration tables for presets, offsets, width, palette, spacing, and validation rules instead of relying on duplicated defaults here. Arbitrary custom theme strings become generated CSS and must be trusted test configuration.
-
-## Configurable HUD (`0.3.0-SNAPSHOT`)
-
-New code can configure content, position, responsive `AUTO`/`INLINE`/`STACKED` header layout, bounded dimensions, a validated color palette, opacity, branding, typed global or section-specific local font stacks, and the event-log scrollbar through immutable `HudOptions`. The default `COMPACT` preset omits pipeline and timestamps, keeps test and current-step context small, gives the categorized event log most of the panel, and uses the subtle scrollbar style. `AUTO` keeps atomic TEST/STEP items together and moves STEP to row two only when needed. `NATIVE` restores browser/operating-system scrollbar rendering.
-
-[Open HUD Studio](hud-studio.md) for a live preview and a minimal Java configuration generator. Presentation filters never remove events from trace, reports, retry summaries, or network capture.
+When explicit `HudOptions` and legacy HUD setters are combined, `HudOptions` is authoritative for every overlapping value regardless of builder call order. Without explicit `HudOptions`, legacy settings retain their historical behavior. Custom `HudTheme` strings are trusted CSS; new code should prefer the bounded product model generated by HUD Studio.
 
 ## Low-level HUD API
 

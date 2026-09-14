@@ -183,9 +183,25 @@ Report upload is configured independently of `TestLensOptions` because configura
 
 ## Authentication options
 
+Managed Auth State is configured per operation with `AuthStateRequest.builder()`: `key(String)`, `path(Path)`, `login(AuthStateLogin)`, and `validate(AuthStateValidator)` are required. The request has no hidden retry count: one `ensure` or `refresh` performs at most one login. Validation is tri-state; `INCONCLUSIVE` and validator exceptions fail without login and without replacing persisted state. The owning manager retains the request registration for `refresh(key)` and `invalidate(key)`.
+
+The key and canonical path coordinate lifecycle and locks but are not emitted to diagnostics. The persisted JSON is replayable authentication material and must be protected outside Test Lens reports and redaction.
+
 `AuthStateOptions`: `label`, `role`, `origin`, `expiresAt` default null; `includeCookies`, `includeLocalStorage`, `includeSessionStorage` default true; repeatable `labelEntry` and `note` maps default empty. Origin/expiry affect capture metadata and later validation. Every included store can contain credentials.
 
 `AuthRestoreOptions`: `navigateToOrigin`, `clearExistingCookies`, `clearExistingStorage`, `restoreCookies`, `restoreLocalStorage`, `restoreSessionStorage`, `validateOrigin`, and `failIfExpired` all default true. With validation enabled, restore preflights saved entry origins, optionally navigates, validates the resulting origin before any mutation, rechecks before cookies, and atomically guards storage operations. `validateOrigin(false)` is an explicit opt-out that can mutate the currently active origin; use it only with an independently controlled navigation lifecycle.
+
+## Managed test state and resources
+
+`ScenarioStateManager`, `SuiteStateManager`, and `ScenarioResourceManager` are lifecycle-bound services rather than option builders. `TestLens.scenarioState()` and `resources()` require an active session. `suiteState()` additionally requires a runner-owned suite scope or a Lens attached through `TestRunScope`.
+
+Keys and values are non-null; `get` returns empty for a missing key, while `require` throws for missing or incompatible data. `computeIfAbsent` publishes at most one successful value in the owning scope and does not cache supplier failures. Scenario finalization clears invocation state and runs every registered cleanup exactly once in LIFO order. No option enables persistence, cross-JVM sharing, resource retries, or automatic evidence serialization.
+
+See [Managed Test State & Resources](../features/managed-test-state.md) for runner boundaries and failure ordering.
+
+## Allure attachment options
+
+`AllureTestLensOptions.defaults()` selects diagnostic and clean screenshots, HTML report, and failure ZIP for failed sessions. `attachTrace(false)` and `attachNonFailedSessions(false)` are the defaults. Attachment options are passed to `AllureTestLens.attach(...)` after Test Lens finalization; they do not change capture or report generation and cannot make Allure transitive from the umbrella artifact.
 
 ## Network options
 
