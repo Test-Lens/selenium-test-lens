@@ -10,16 +10,38 @@ All notable changes to Selenium Test Lens will be documented in this file.
 - Added Managed Auth State with restore/validate/recreate lifecycle, fail-safe tri-state validation, one-login maximum, process-local refresh/invalidate registration, canonical-path JVM and filesystem locking, and atomic old-file-preserving replacement.
 - Added immutable `HudOptions` with Minimal, Compact, Standard, and Debug presets, semantic HUD row filtering, responsive atomic AUTO/INLINE/STACKED header layouts, validated semantic colors and opacity, anchored offsets, bounded sizing, global and section-specific local font presets, configurable native/subtle/standard event-log scrollbars, and bounded PNG branding. The shared runtime renderer now powers the runtime, homepage preview, and WYSIWYG HUD Studio.
 - Added browser-side visual redaction for every Test Lens screenshot path, with explicit SOLID/BLUR locator rules, per-tile full-page refresh, and diagnostic/clean parity.
-- Added the optional `selenium-test-lens-allure` module for streaming finalized, redacted Test Lens screenshots, HTML, trace, and failure ZIP evidence into the active Allure test/step without replacing Allure reporting or using `ReportUploader`.
 
 ### Changed
 
 - The runtime HUD now defaults to the compact product preset: pipeline and timestamps are hidden, TEST/STEP context is compact, and the event log receives the available panel space. Existing trace and session metadata are unchanged.
+- React support is documented as React & SPA resilience rather than a runner integration; its DOM-convention behavior and optional artifact are unchanged.
 
 ### Security
 
 - Screenshot capture now masks password inputs with SOLID by default and uses a STRICT fail-closed publication policy. BLUR is documented as obfuscation and falls back safely to SOLID when unavailable.
 - Visual-mask installation verifies target geometry, recovers from React/SPA rerenders and replacements with a bounded whole-batch retry, and refreshes masks for every full-page tile.
+
+### Integrations
+
+- Added the optional `selenium-test-lens-allure` module for streaming finalized, redacted Test Lens screenshots, HTML, trace, and failure ZIP evidence into the active Allure test/step without replacing Allure reporting, capturing another screenshot, or using `ReportUploader`.
+
+### Reliability
+
+- Normalized insecure `SameSite=None` cookie representations during restore so persisted Firefox/WebDriver state remains replayable without forcing `Secure`, `Lax`, or `Strict`.
+- Made browser-test Chrome process cleanup session-owned through exact profile arguments and process identity, preventing one concurrent harness from terminating another session.
+- Updated failure-bundle browser contracts to honor best-effort page-source collection while retaining strong captured-source coverage and verifying that the driver remains active.
+- Added viewport-safe runtime HUD clamping and deterministic panel/log height normalization across all four anchors.
+
+### Documentation
+
+- Added a user-facing 0.3.0 overview, a 0.2.x migration guide, consolidated configuration guidance, and prominent paths to HUD Studio and every new 0.3.0 capability.
+- Added automated verification that public types introduced after the 0.2.0 API baseline declare `@since 0.3.0`.
+
+### Compatibility
+
+- Java 17 remains the minimum runtime and bytecode level. Clean-room Maven and Gradle consumers validate all seven library artifacts on JDK 17 and JDK 21, including the optional Allure module and its dependency isolation.
+- Existing 0.2.x auth-state JSON remains readable; managed lifecycle and visual redaction are additive APIs.
+- The previous development React documentation URL remains a noindex, version-local compatibility redirect.
 
 ## [0.2.0] - 2026-09-11
 

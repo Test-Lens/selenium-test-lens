@@ -55,11 +55,14 @@ nav:
   - Home: index.md
   - Getting Started:
       - Installation & first test: getting-started.md
+      - What's new in 0.3.0: whats-new-0.3.0.md
+      - Migrating from 0.2.x: migrating-0.2-to-0.3.md
       - Existing WebDriver integration: framework-integration.md
       - Configuration: configuration.md
   - Using Test Lens:
       - Capabilities: capabilities.md
       - React & SPA resilience: features/react-spa.md
+      - Managed Auth State: advanced/auth-state.md
       - Managed Test State & Resources: features/managed-test-state.md
       - Elements:
           - Elements overview: elements/index.md
@@ -78,7 +81,7 @@ nav:
       - Examples: examples.md
   - Observability:
       - Observability overview: observability/index.md
-      - Visual runtime diagnostics: observability/visual-diagnostics.md
+      - Live HUD & configuration: observability/visual-diagnostics.md
       - HUD Studio: observability/hud-studio.md
       - Screenshots & evidence: observability/screenshots-evidence.md
       - Trace: observability/trace.md
@@ -93,7 +96,6 @@ nav:
   - Advanced Features:
       - Advanced features overview: advanced/index.md
       - Steps & business assertions: advanced/steps-business-assertions.md
-      - Authentication state: advanced/auth-state.md
       - Network diagnostics: advanced/network.md
       - Overlay policies: advanced/overlay-policies.md
       - Visual helpers: advanced/visual-helpers.md
