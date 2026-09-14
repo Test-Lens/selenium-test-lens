@@ -1848,6 +1848,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/visual-redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2233,6 +2261,34 @@
     
   
     TestNG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/allure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Allure
   
 
     
@@ -2937,7 +2993,7 @@
 
 
 <h1 id="screenshots-and-evidence">Screenshots and evidence<a class="headerlink" href="#screenshots-and-evidence" title="Permanent link">&para;</a></h1>
-<p>Screenshots capture browser pixels as PNG evidence. <code>VIEWPORT</code> is the compatible default. The opt-in <code>FULL_PAGE</code> mode captures a bounded snapshot of the current top-level document by scrolling and stitching standard Selenium screenshots. Use an explicit screenshot at a meaningful checkpoint, or let failed-session finalization attempt one automatically.</p>
+<p>Screenshots capture browser pixels as PNG evidence. <code>VIEWPORT</code> is the compatible default. The opt-in <code>FULL_PAGE</code> mode captures a bounded snapshot of the current top-level document by scrolling and stitching standard Selenium screenshots. Configured <a href="../../security/visual-redaction/">visual redaction</a> is applied at the shared capture seam in both modes. Use an explicit screenshot at a meaningful checkpoint, or let failed-session finalization attempt one automatically.</p>
 <h2 id="automatic-failure-screenshot">Automatic failure screenshot<a class="headerlink" href="#automatic-failure-screenshot" title="Permanent link">&para;</a></h2>
 <p>Start and finalize a normal Test Lens session. When the test fails, pass the original failure to <a href="../../reference/test-lens/#creation-and-lifecycle"><code>finishFailed(...)</code></a>:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">);</span>
@@ -2951,7 +3007,7 @@
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="k">throw</span><span class="w"> </span><span class="n">failure</span><span class="p">;</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>Failed finalization first attempts <code>failure-diagnostic.png</code> with the current HUD/highlight, then temporarily hides only Test Lens artifacts for <code>failure-bundle/failure-clean.png</code>. Both are controlled by <code>screenshotOnFailure</code>; independent flags live in <code>FailureBundleOptions</code>. Previous HUD visibility is restored in <code>finally</code> before normal cleanup. No failed action, click, locator resolve, frame switch, or navigation is repeated. Passed and skipped finalization never requests either screenshot. See <a href="../failure-bundles/">Failure bundles</a>.</p>
+<p>Failed finalization first attempts <code>failure-diagnostic.png</code> with the current HUD/highlight, then temporarily hides only Test Lens artifacts for <code>failure-bundle/failure-clean.png</code>. Sensitive masks are installed independently on both images: “clean” never means unredacted. Both are controlled by <code>screenshotOnFailure</code>; independent flags live in <code>FailureBundleOptions</code>. Previous HUD visibility is restored in <code>finally</code> before normal cleanup. No failed action, click, locator resolve, frame switch, or navigation is repeated. Passed and skipped finalization never requests either screenshot. See <a href="../failure-bundles/">Failure bundles</a>.</p>
 <h2 id="explicit-screenshots">Explicit screenshots<a class="headerlink" href="#explicit-screenshots" title="Permanent link">&para;</a></h2>
 <p>Call <code>captureScreenshot(...)</code> when a checkpoint is useful even if the test ultimately passes:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">ScreenshotCaptureResult</span><span class="w"> </span><span class="n">screenshot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lens</span><span class="p">.</span><span class="na">captureScreenshot</span><span class="p">(</span><span class="s">"Order summary"</span><span class="p">);</span>
@@ -2969,7 +3025,7 @@
 </span></code></pre></div>
 <p>The implementation takes one initial CSS-pixel snapshot of document dimensions, viewport dimensions, and scroll position. It keeps the current window size and responsive layout, scrolls horizontally and vertically, derives independent image scales from the returned PNG dimensions, removes clamped overlap, and publishes the final PNG only after stitching succeeds. It uses <code>TakesScreenshot</code>, <code>JavascriptExecutor</code>, <code>BufferedImage</code>, and <code>ImageIO</code>; it does not use CDP, change the browser window size, or ask JavaScript for screenshot pixels.</p>
 <p>Full-page capture is bounded by <code>maxPixelCount</code> (40 million by default) and <code>maxTileCount</code> (200 by default). A limit, changing document/viewport geometry, changing tile scale, invalid PNG, or restoration failure produces an explicit non-captured result and no partial final file. The initial dimensions are authoritative: lazy loading or scroll handlers can change the page and cause capture to fail rather than extend indefinitely.</p>
-<p>The current scroll position and root/body inline scroll behavior and snap styles are restored in <code>finally</code>. Visible <code>fixed</code> and <code>sticky</code> elements, including the Test Lens HUD host, are captured in the first tile in which they appear and then hidden with <code>visibility</code> for later tiles; their original inline value and priority are restored. This avoids repeating a header or HUD while preserving layout. Scanning covers the open document tree, not closed shadow roots.</p>
+<p>The current scroll position and root/body inline scroll behavior and snap styles are restored in <code>finally</code>. Visual-mask locators and document rectangles are refreshed after every scroll and before every tile. Visible <code>fixed</code> and <code>sticky</code> elements, including the Test Lens HUD host, are captured in the first tile in which they appear and then hidden with <code>visibility</code> for later tiles; their original inline value and priority are restored. This avoids repeating a header or HUD while preserving layout. Scanning covers the open document tree, not closed shadow roots.</p>
 <p><code>FULL_PAGE</code> is supported only in the current top-level browsing context. It never changes windows or frames. When invoked inside a frame it returns <code>SKIPPED</code> and preserves that context; switch to default content explicitly if a top-level image is wanted. Rendered iframe and shadow-DOM pixels visible in the top-level page are captured, but iframe documents and nested scroll containers are not expanded. Scroll events can run application code during capture.</p>
 <h3 id="testlenscapturescreenshot-overloads">TestLens.captureScreenshot overloads<a class="headerlink" href="#testlenscapturescreenshot-overloads" title="Permanent link">&para;</a></h3>
 <!-- API SIGNATURES: io.github.testlens.TestLens -->
@@ -2982,8 +3038,9 @@
 <p>Advanced direct service:</p>
 <!-- API SIGNATURES: io.github.testlens.selenium.evidence.ScreenshotCapture -->
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">ScreenshotCapture</span><span class="p">(</span><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="p">)</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">ScreenshotCaptureResult</span><span class="w"> </span><span class="nf">capture</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">ScreenshotCaptureOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">ScreenshotCaptureResult</span><span class="w"> </span><span class="nf">capture</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">ScreenshotCaptureOptions</span><span class="w"> </span><span class="n">options</span><span class="p">,</span><span class="w"> </span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="n">session</span><span class="p">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">ScreenshotCapture</span><span class="p">(</span><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="p">,</span><span class="w"> </span><span class="n">VisualRedactionOptions</span><span class="w"> </span><span class="n">visualRedaction</span><span class="p">)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">ScreenshotCaptureResult</span><span class="w"> </span><span class="nf">capture</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">ScreenshotCaptureOptions</span><span class="w"> </span><span class="n">options</span><span class="p">)</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">ScreenshotCaptureResult</span><span class="w"> </span><span class="nf">capture</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">ScreenshotCaptureOptions</span><span class="w"> </span><span class="n">options</span><span class="p">,</span><span class="w"> </span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="n">session</span><span class="p">)</span>
 </span></code></pre></div>
 <p>The constructor rejects a null driver. A null options argument uses <code>ScreenshotCaptureOptions.defaults()</code>. A null or blank name becomes <code>"Screenshot"</code>. The two-argument overload captures without a session. The three-argument overload can attach the resulting <code>TraceArtifact</code> when <code>options.attachToSession()</code> is true and <code>session</code> is non-null. A driver without <code>TakesScreenshot</code>, or an I/O/runtime failure during capture, produces a failed result rather than throwing from these methods.</p>
 <p>Normal consumers use <code>TestLens.captureScreenshot(...)</code>.</p>
@@ -3023,7 +3080,7 @@
 <p><code>VideoEvidenceStatus</code> is <code>ATTACHED</code>, <code>FAILED</code>, or <code>SKIPPED</code>. <code>VideoEvidenceException</code> remains available for evidence integrations, but the two direct attachment methods return validation/attachment failures through <code>VideoEvidenceResult</code> for their normal failure paths.</p>
 <p><code>JsOverlayDebug.attachVideoFile(...)</code> and <code>attachVideoUrl(...)</code> are the more ergonomic advanced facade overloads: they use defaults when options are omitted and use the facade's currently attached session.</p>
 <h2 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h2>
-<p>Screenshots and video can expose credentials, personal data, tokens, and internal URLs. Central text redaction does not modify pixels. Keep <code>target/ui-test-lens*</code>, CI report archives, and auth/network output out of source control and apply retention/access controls.</p>
+<p>Screenshots and video can expose credentials, personal data, tokens, and internal URLs. Central text redaction does not modify pixels; configure <a href="../../security/visual-redaction/">visual redaction</a> for screenshot pixels. Video remains outside this protection. Keep <code>target/ui-test-lens*</code>, CI report archives, and auth/network output out of source control and apply retention/access controls.</p>
 
 
 

@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 241
-# Public callable methods/constructors: 1921
+# Types: 251
+# Public callable methods/constructors: 1984
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -1134,6 +1134,7 @@ TYPE io.github.testlens.TestLensFinalizationResult
   public io.github.testlens.core.trace.RetrySummary retrySummary()
   public java.util.Optional<java.nio.file.Path> failureBundleDirectory()
   public java.util.Optional<java.nio.file.Path> failureBundleManifest()
+  public java.util.Optional<java.nio.file.Path> cleanFailureScreenshot()
   public java.util.Optional<java.nio.file.Path> failureBundleArchive()
   public final java.lang.String toString()
   public final int hashCode()
@@ -1155,6 +1156,7 @@ TYPE io.github.testlens.TestLensOptions$Builder
   public io.github.testlens.TestLensOptions$Builder failureBundleOptions(io.github.testlens.selenium.evidence.FailureBundleOptions)
   public io.github.testlens.TestLensOptions$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
   public io.github.testlens.TestLensOptions$Builder hud(io.github.testlens.hud.HudOptions)
+  public io.github.testlens.TestLensOptions$Builder visualRedaction(io.github.testlens.selenium.evidence.VisualRedactionOptions)
   public io.github.testlens.TestLensOptions build()
 TYPE io.github.testlens.TestLensOptions
   public static io.github.testlens.TestLensOptions defaults()
@@ -1169,6 +1171,7 @@ TYPE io.github.testlens.TestLensOptions
   public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOptions()
   public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
   public io.github.testlens.hud.HudOptions hud()
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions visualRedaction()
 TYPE io.github.testlens.actions.AssertActions$OverlayAssertionResult
   public io.github.testlens.actions.AssertActions$OverlayAssertionResult(boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, long)
   public boolean isSuccess()
@@ -1762,6 +1765,7 @@ TYPE io.github.testlens.selenium.evidence.FailureBundleOptions
   public int maxConsoleEntries()
 TYPE io.github.testlens.selenium.evidence.ScreenshotCapture
   public io.github.testlens.selenium.evidence.ScreenshotCapture(org.openqa.selenium.WebDriver)
+  public io.github.testlens.selenium.evidence.ScreenshotCapture(org.openqa.selenium.WebDriver, io.github.testlens.selenium.evidence.VisualRedactionOptions)
   public io.github.testlens.selenium.evidence.ScreenshotCaptureResult capture(java.lang.String, io.github.testlens.selenium.evidence.ScreenshotCaptureOptions)
   public io.github.testlens.selenium.evidence.ScreenshotCaptureResult capture(java.lang.String, io.github.testlens.selenium.evidence.ScreenshotCaptureOptions, io.github.testlens.core.trace.UiTestLensSession)
 TYPE io.github.testlens.selenium.evidence.ScreenshotCaptureException
@@ -1872,6 +1876,43 @@ TYPE io.github.testlens.selenium.evidence.VideoEvidenceStatus
   public static final io.github.testlens.selenium.evidence.VideoEvidenceStatus SKIPPED
   public static io.github.testlens.selenium.evidence.VideoEvidenceStatus[] values()
   public static io.github.testlens.selenium.evidence.VideoEvidenceStatus valueOf(java.lang.String)
+TYPE io.github.testlens.selenium.evidence.VisualMaskMode
+  public static final io.github.testlens.selenium.evidence.VisualMaskMode SOLID
+  public static final io.github.testlens.selenium.evidence.VisualMaskMode BLUR
+  public static io.github.testlens.selenium.evidence.VisualMaskMode[] values()
+  public static io.github.testlens.selenium.evidence.VisualMaskMode valueOf(java.lang.String)
+TYPE io.github.testlens.selenium.evidence.VisualMaskRule
+  public io.github.testlens.selenium.evidence.VisualMaskRule(org.openqa.selenium.By, io.github.testlens.selenium.evidence.VisualMaskMode)
+  public org.openqa.selenium.By locator()
+  public io.github.testlens.selenium.evidence.VisualMaskMode mode()
+TYPE io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy
+  public static final io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy BEST_EFFORT
+  public static final io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy STRICT
+  public static io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy[] values()
+  public static io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy valueOf(java.lang.String)
+TYPE io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder maskPasswordInputs(boolean)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder mask(org.openqa.selenium.By, io.github.testlens.selenium.evidence.VisualMaskMode)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder failurePolicy(io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder solidColor(java.lang.String)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder blurRadiusPx(int)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder paddingPx(int)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder maskLabel(java.lang.String)
+  public io.github.testlens.selenium.evidence.VisualRedactionOptions build()
+TYPE io.github.testlens.selenium.evidence.VisualRedactionOptions
+  public static final java.lang.String DEFAULT_SOLID_COLOR
+  public static final int DEFAULT_BLUR_RADIUS_PX
+  public static io.github.testlens.selenium.evidence.VisualRedactionOptions defaults()
+  public static io.github.testlens.selenium.evidence.VisualRedactionOptions disabled()
+  public static io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder builder()
+  public boolean maskPasswordInputs()
+  public java.util.List<io.github.testlens.selenium.evidence.VisualMaskRule> rules()
+  public io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy failurePolicy()
+  public java.lang.String solidColor()
+  public int blurRadiusPx()
+  public int paddingPx()
+  public java.lang.String maskLabel()
+  public boolean hasMasks()
 TYPE io.github.testlens.selenium.locator.UiLocator
   public io.github.testlens.selenium.locator.UiLocator(org.openqa.selenium.WebDriver, org.openqa.selenium.By, java.lang.String, io.github.testlens.JsOverlayDebug, io.github.testlens.selenium.locator.UiLocatorOptions, io.github.testlens.core.OverlayLogger)
   public io.github.testlens.selenium.locator.UiLocator click()
@@ -2432,6 +2473,52 @@ TYPE io.github.testlens.testng.TestLensTestNgListener
   public io.github.testlens.testng.TestLensTestNgListener()
   public void beforeInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
   public void afterInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
+MODULE selenium-test-lens-allure
+TYPE io.github.testlens.allure.AllureAttachResult
+  public io.github.testlens.allure.AllureAttachResult(io.github.testlens.allure.AllureAttachStatus, int, int, java.util.List<java.lang.String>, java.util.List<java.lang.String>)
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public io.github.testlens.allure.AllureAttachStatus status()
+  public int attachedCount()
+  public int skippedCount()
+  public java.util.List<java.lang.String> missingArtifacts()
+  public java.util.List<java.lang.String> failures()
+TYPE io.github.testlens.allure.AllureAttachStatus
+  public static final io.github.testlens.allure.AllureAttachStatus ATTACHED
+  public static final io.github.testlens.allure.AllureAttachStatus PARTIALLY_ATTACHED
+  public static final io.github.testlens.allure.AllureAttachStatus SKIPPED_NO_ACTIVE_CONTEXT
+  public static final io.github.testlens.allure.AllureAttachStatus SKIPPED_ALREADY_ATTACHED
+  public static final io.github.testlens.allure.AllureAttachStatus SKIPPED_BY_POLICY
+  public static final io.github.testlens.allure.AllureAttachStatus SKIPPED_NO_AVAILABLE_ARTIFACTS
+  public static final io.github.testlens.allure.AllureAttachStatus FAILED
+  public static io.github.testlens.allure.AllureAttachStatus[] values()
+  public static io.github.testlens.allure.AllureAttachStatus valueOf(java.lang.String)
+TYPE io.github.testlens.allure.AllureTestLens
+  public static io.github.testlens.allure.AllureAttachResult attach(io.github.testlens.TestLensFinalizationResult)
+  public static io.github.testlens.allure.AllureAttachResult attach(io.github.testlens.TestLensFinalizationResult, io.github.testlens.allure.AllureTestLensOptions)
+TYPE io.github.testlens.allure.AllureTestLensOptions$Builder
+  public io.github.testlens.allure.AllureTestLensOptions$Builder()
+  public io.github.testlens.allure.AllureTestLensOptions$Builder attachDiagnosticScreenshot(boolean)
+  public io.github.testlens.allure.AllureTestLensOptions$Builder attachCleanScreenshot(boolean)
+  public io.github.testlens.allure.AllureTestLensOptions$Builder attachHtmlReport(boolean)
+  public io.github.testlens.allure.AllureTestLensOptions$Builder attachTrace(boolean)
+  public io.github.testlens.allure.AllureTestLensOptions$Builder attachFailureBundle(boolean)
+  public io.github.testlens.allure.AllureTestLensOptions$Builder attachNonFailedSessions(boolean)
+  public io.github.testlens.allure.AllureTestLensOptions build()
+TYPE io.github.testlens.allure.AllureTestLensOptions
+  public io.github.testlens.allure.AllureTestLensOptions(boolean, boolean, boolean, boolean, boolean, boolean)
+  public static io.github.testlens.allure.AllureTestLensOptions defaults()
+  public static io.github.testlens.allure.AllureTestLensOptions$Builder builder()
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public boolean diagnosticScreenshot()
+  public boolean cleanScreenshot()
+  public boolean htmlReport()
+  public boolean trace()
+  public boolean failureBundle()
+  public boolean nonFailedSessions()
 MODULE selenium-test-lens-react
 TYPE io.github.testlens.react.ReactOverlaySupport
   public abstract io.github.testlens.OverlayConfig getConfig()

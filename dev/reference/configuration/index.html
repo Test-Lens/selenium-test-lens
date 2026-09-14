@@ -1702,6 +1702,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/visual-redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2100,6 +2128,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/allure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Allure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2477,6 +2533,17 @@
     <span class="md-ellipsis">
       
         ScreenshotCaptureOptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visualredactionoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VisualRedactionOptions
       
     </span>
   </a>
@@ -3010,6 +3077,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#visualredactionoptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VisualRedactionOptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#reportuploadoptions" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3149,6 +3227,12 @@
 <td><code>FailureBundleOptions</code></td>
 <td>safe defaults</td>
 <td>Configures automatic bundle collectors and limits for final <code>FAILED</code>; raw page source and browser console default to disabled.</td>
+</tr>
+<tr>
+<td><code>visualRedaction(value)</code></td>
+<td><code>VisualRedactionOptions</code></td>
+<td>password-safe defaults</td>
+<td>Configures temporary browser-side masks for screenshot pixels.</td>
 </tr>
 <tr>
 <td><code>redactionPolicy(value)</code></td>
@@ -3576,6 +3660,9 @@
 </tbody>
 </table>
 <p><code>FailureBundleOptions.screenshotCaptureMode(...)</code> selects the same mode for diagnostic and clean failure screenshots; its default is also <code>VIEWPORT</code>.</p>
+<h2 id="visualredactionoptions">VisualRedactionOptions<a class="headerlink" href="#visualredactionoptions" title="Permanent link">&para;</a></h2>
+<p><code>VisualRedactionOptions.defaults()</code> automatically applies an opaque SOLID mask to <code>input[type=password]</code> and uses fail-closed <code>STRICT</code>. Add explicit Selenium locators with <code>mask(By, VisualMaskMode)</code>, opt into <code>BEST_EFFORT</code> when incomplete masking is acceptable, and optionally configure one safe <code>#RRGGBB</code> color, a bounded blur radius, padding, and a plain-text label. This object protects screenshot pixels and is separate from text-oriented <code>RedactionPolicy</code>.</p>
+<p>See <a href="../../security/visual-redaction/">visual redaction and its security boundary</a> for the complete lifecycle, BLUR warning, full-page behavior, and iframe/shadow limitations.</p>
 <h2 id="reportuploadoptions">ReportUploadOptions<a class="headerlink" href="#reportuploadoptions" title="Permanent link">&para;</a></h2>
 <p>Report upload is configured independently of <code>TestLensOptions</code> because configuration alone must never trigger network I/O. <code>ReportUploadOptions.builder()</code> requires an absolute HTTP(S) endpoint without userinfo or fragment. Query is accepted but omitted from diagnostics.</p>
 <table>

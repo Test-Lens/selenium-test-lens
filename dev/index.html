@@ -1914,6 +1914,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="security/visual-redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2299,6 +2327,34 @@
     
   
     TestNG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="integrations/allure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Allure
   
 
     
@@ -3231,6 +3287,11 @@
 <p>Finalize once to produce a trace and HTML/JSON reports. Failed sessions can add screenshots and a ZIP evidence bundle; completed output can be streamed explicitly to your own HTTP endpoint.</p>
 <p><a href="observability/reports/">Reports</a> · <a href="observability/failure-bundles/">Failure bundles</a> · <a href="observability/report-upload/">Report upload</a></p>
 </li>
+<li>
+<p><strong>[INTEGRATION] Allure</strong></p>
+<p>Keep Allure as the report UI and attach Test Lens diagnostic and clean screenshots, HTML, trace, and failure evidence through Allure's native lifecycle.</p>
+<p><a href="integrations/allure/">Allure integration</a></p>
+</li>
 </ul>
 </div>
 <h2 id="reuse-authentication-state-without-replaying-every-login">Reuse authentication state without replaying every login<a class="headerlink" href="#reuse-authentication-state-without-replaying-every-login" title="Permanent link">&para;</a></h2>
@@ -3342,7 +3403,7 @@
 </span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">());</span>
 </span></code></pre></div>
 <p>Sinks receive redacted diagnostic copies, not the original throwable. Reports retain the original exception class as structural <code>exceptionType</code>, while safe copies provide redacted messages, causes, suppressed failures, and stack text. The original exception still controls the test result.</p>
-<p>This is not pixel redaction or general personal-data detection. Screenshots and video can still show secrets; page source and browser console are opt-in, best-effort text boundaries; auth-state files remain replayable secret material. <code>RedactionPolicy.disabled()</code> is a deliberate opt-out. <a href="security/redaction/">Review what is—and is not—protected</a>.</p>
+<p>Text redaction is not pixel processing or general personal-data detection. <code>VisualRedactionOptions</code> separately masks configured screenshot regions and password inputs by default; unmasked screenshot regions and attached video can still expose sensitive data. Page source and browser console are opt-in, best-effort text boundaries, while auth-state files remain replayable secret material. <code>RedactionPolicy.disabled()</code> is a deliberate text-redaction opt-out. <a href="security/redaction/">Review the text boundary</a> and <a href="security/visual-redaction/">visual-redaction contract</a>.</p>
 <h2 id="better-selenium-apis-without-hiding-selenium">Better Selenium APIs without hiding Selenium<a class="headerlink" href="#better-selenium-apis-without-hiding-selenium" title="Permanent link">&para;</a></h2>
 <p>Observability is the main reason to add Test Lens, but the same facade removes repeated plumbing from everyday browser tests.</p>
 <table>
@@ -3437,7 +3498,7 @@
 </span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>HTTP report upload
 </span></code></pre></div>
 <p>HTML is the human investigation view; JSON is the structured event model. A final failed session can collect diagnostic and clean screenshots, failure details, trace/report output, context, runtime and allowlisted configuration, network summary, component manifest, and a ZIP. Collectors are best effort: evidence failure does not replace the original test failure.</p>
-<p>Screenshots use the viewport by default. Opt-in full-page capture uses bounded scroll-and-stitch without CDP, keeps the current responsive viewport width, and records completed dimensions/tile count. It does not expand iframe documents or nested scroll containers, and pixels are not redacted. Video is an attachment to an existing recording, not an automatic recorder.</p>
+<p>Screenshots use the viewport by default. Opt-in full-page capture uses bounded scroll-and-stitch without CDP, keeps the current responsive viewport width, and records completed dimensions/tile count. It does not expand iframe documents or nested scroll containers. Configured <a href="security/visual-redaction/">visual redaction</a> protects both viewport and stitched screenshot pixels; video is an attachment to an existing recording and is not modified.</p>
 <p><code>ReportUploader</code> can synchronously stream one completed ZIP after finalization. It supports a bearer token, controlled headers, SHA-256 checksum, deterministic idempotency key, bounded opt-in retry, and direct/system/explicit proxy selection with no-proxy rules. Upload is never implicit and never needs or closes WebDriver:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">TestLensFinalizationResult</span><span class="w"> </span><span class="n">finalized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lens</span><span class="p">.</span><span class="na">finishPassed</span><span class="p">();</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>

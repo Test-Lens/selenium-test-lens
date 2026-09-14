@@ -10,29 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/browser-integration-tests/">
+        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/security/visual-redaction/">
       
       
-        <link rel="prev" href="../maintainers/documentation-versioning/">
+        <link rel="prev" href="../redaction/">
       
+      
+        <link rel="next" href="../../advanced/">
       
       
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Real-browser integration tests - Selenium Test Lens</title>
+        <title>Visual redaction - Selenium Test Lens</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,9 +53,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
   
@@ -88,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#real-browser-integration-tests" class="md-skip">
+        <a href="#visual-redaction-sensitive-element-masking" class="md-skip">
           Skip to content
         </a>
       
@@ -159,7 +161,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Selenium Test Lens" class="md-header__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href="../.." title="Selenium Test Lens" class="md-header__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -179,7 +181,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Real-browser integration tests
+              Visual redaction
             
           </span>
         </div>
@@ -292,7 +294,7 @@
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -313,7 +315,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../getting-started/" class="md-tabs__link">
+        <a href="../../getting-started/" class="md-tabs__link">
           
   
   
@@ -333,7 +335,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../capabilities/" class="md-tabs__link">
+        <a href="../../capabilities/" class="md-tabs__link">
           
   
   
@@ -353,7 +355,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../observability/" class="md-tabs__link">
+        <a href="../../observability/" class="md-tabs__link">
           
   
   
@@ -369,11 +371,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../security/redaction/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../redaction/" class="md-tabs__link">
           
   
   
@@ -393,7 +397,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../advanced/" class="md-tabs__link">
+        <a href="../../advanced/" class="md-tabs__link">
           
   
   
@@ -413,7 +417,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../integrations/" class="md-tabs__link">
+        <a href="../../integrations/" class="md-tabs__link">
           
   
   
@@ -433,7 +437,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../migration/" class="md-tabs__link">
+        <a href="../../migration/" class="md-tabs__link">
           
   
   
@@ -449,13 +453,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../reference/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../reference/" class="md-tabs__link">
           
   
   
@@ -489,7 +491,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Selenium Test Lens" class="md-nav__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href="../.." title="Selenium Test Lens" class="md-nav__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -519,7 +521,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -598,7 +600,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+      <a href="../../getting-started/" class="md-nav__link">
         
   
   
@@ -626,7 +628,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../framework-integration/" class="md-nav__link">
+      <a href="../../framework-integration/" class="md-nav__link">
         
   
   
@@ -654,7 +656,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../configuration/" class="md-nav__link">
+      <a href="../../configuration/" class="md-nav__link">
         
   
   
@@ -741,7 +743,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../capabilities/" class="md-nav__link">
+      <a href="../../capabilities/" class="md-nav__link">
         
   
   
@@ -769,7 +771,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../features/react-spa/" class="md-nav__link">
+      <a href="../../features/react-spa/" class="md-nav__link">
         
   
   
@@ -849,7 +851,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../elements/" class="md-nav__link">
+      <a href="../../elements/" class="md-nav__link">
         
   
   
@@ -877,7 +879,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../elements/locators/" class="md-nav__link">
+      <a href="../../elements/locators/" class="md-nav__link">
         
   
   
@@ -905,7 +907,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../elements/actions/" class="md-nav__link">
+      <a href="../../elements/actions/" class="md-nav__link">
         
   
   
@@ -933,7 +935,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../elements/waiting/" class="md-nav__link">
+      <a href="../../elements/waiting/" class="md-nav__link">
         
   
   
@@ -961,7 +963,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../elements/assertions/" class="md-nav__link">
+      <a href="../../elements/assertions/" class="md-nav__link">
         
   
   
@@ -989,7 +991,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../elements/information/" class="md-nav__link">
+      <a href="../../elements/information/" class="md-nav__link">
         
   
   
@@ -1017,7 +1019,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../elements/collections/" class="md-nav__link">
+      <a href="../../elements/collections/" class="md-nav__link">
         
   
   
@@ -1045,7 +1047,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../elements/select-controls/" class="md-nav__link">
+      <a href="../../elements/select-controls/" class="md-nav__link">
         
   
   
@@ -1133,7 +1135,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../browser-context/" class="md-nav__link">
+      <a href="../../browser-context/" class="md-nav__link">
         
   
   
@@ -1161,7 +1163,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../browser-context/frames/" class="md-nav__link">
+      <a href="../../browser-context/frames/" class="md-nav__link">
         
   
   
@@ -1189,7 +1191,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../browser-context/windows-tabs/" class="md-nav__link">
+      <a href="../../browser-context/windows-tabs/" class="md-nav__link">
         
   
   
@@ -1217,7 +1219,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../browser-context/alerts/" class="md-nav__link">
+      <a href="../../browser-context/alerts/" class="md-nav__link">
         
   
   
@@ -1253,7 +1255,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../examples/" class="md-nav__link">
+      <a href="../../examples/" class="md-nav__link">
         
   
   
@@ -1340,7 +1342,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/" class="md-nav__link">
+      <a href="../../observability/" class="md-nav__link">
         
   
   
@@ -1368,7 +1370,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/visual-diagnostics/" class="md-nav__link">
+      <a href="../../observability/visual-diagnostics/" class="md-nav__link">
         
   
   
@@ -1396,7 +1398,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/hud-studio/" class="md-nav__link">
+      <a href="../../observability/hud-studio/" class="md-nav__link">
         
   
   
@@ -1424,7 +1426,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/screenshots-evidence/" class="md-nav__link">
+      <a href="../../observability/screenshots-evidence/" class="md-nav__link">
         
   
   
@@ -1452,7 +1454,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/trace/" class="md-nav__link">
+      <a href="../../observability/trace/" class="md-nav__link">
         
   
   
@@ -1480,7 +1482,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/reports/" class="md-nav__link">
+      <a href="../../observability/reports/" class="md-nav__link">
         
   
   
@@ -1508,7 +1510,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/report-upload/" class="md-nav__link">
+      <a href="../../observability/report-upload/" class="md-nav__link">
         
   
   
@@ -1536,7 +1538,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/flakiness/" class="md-nav__link">
+      <a href="../../observability/flakiness/" class="md-nav__link">
         
   
   
@@ -1564,7 +1566,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/failure-bundles/" class="md-nav__link">
+      <a href="../../observability/failure-bundles/" class="md-nav__link">
         
   
   
@@ -1592,7 +1594,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../observability/logging/" class="md-nav__link">
+      <a href="../../observability/logging/" class="md-nav__link">
         
   
   
@@ -1624,26 +1626,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
@@ -1661,7 +1668,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1679,7 +1686,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../security/redaction/" class="md-nav__link">
+      <a href="../redaction/" class="md-nav__link">
         
   
   
@@ -1704,10 +1711,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../security/visual-redaction/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual redaction
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1723,6 +1757,92 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#modes-and-safe-defaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modes and safe defaults
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#failure-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Failure policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capture-coverage-and-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture coverage and lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-contexts-and-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported contexts and limits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screenshots-versus-livevideo-masking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Screenshots versus live/video masking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#small-visual-demo-fixture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Small visual-demo fixture
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1794,7 +1914,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced/" class="md-nav__link">
+      <a href="../../advanced/" class="md-nav__link">
         
   
   
@@ -1822,7 +1942,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced/steps-business-assertions/" class="md-nav__link">
+      <a href="../../advanced/steps-business-assertions/" class="md-nav__link">
         
   
   
@@ -1850,7 +1970,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced/auth-state/" class="md-nav__link">
+      <a href="../../advanced/auth-state/" class="md-nav__link">
         
   
   
@@ -1878,7 +1998,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced/network/" class="md-nav__link">
+      <a href="../../advanced/network/" class="md-nav__link">
         
   
   
@@ -1906,7 +2026,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced/overlay-policies/" class="md-nav__link">
+      <a href="../../advanced/overlay-policies/" class="md-nav__link">
         
   
   
@@ -1934,7 +2054,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced/visual-helpers/" class="md-nav__link">
+      <a href="../../advanced/visual-helpers/" class="md-nav__link">
         
   
   
@@ -1962,7 +2082,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced/js-overlay-debug/" class="md-nav__link">
+      <a href="../../advanced/js-overlay-debug/" class="md-nav__link">
         
   
   
@@ -2049,7 +2169,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../integrations/" class="md-nav__link">
+      <a href="../../integrations/" class="md-nav__link">
         
   
   
@@ -2077,7 +2197,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../integrations/junit5/" class="md-nav__link">
+      <a href="../../integrations/junit5/" class="md-nav__link">
         
   
   
@@ -2105,7 +2225,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../integrations/testng/" class="md-nav__link">
+      <a href="../../integrations/testng/" class="md-nav__link">
         
   
   
@@ -2133,7 +2253,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../integrations/allure/" class="md-nav__link">
+      <a href="../../integrations/allure/" class="md-nav__link">
         
   
   
@@ -2220,7 +2340,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../migration/" class="md-nav__link">
+      <a href="../../migration/" class="md-nav__link">
         
   
   
@@ -2252,31 +2372,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
         
           
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
             
   
   
@@ -2294,7 +2409,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             
@@ -2312,7 +2427,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/" class="md-nav__link">
+      <a href="../../reference/" class="md-nav__link">
         
   
   
@@ -2340,7 +2455,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/test-lens/" class="md-nav__link">
+      <a href="../../reference/test-lens/" class="md-nav__link">
         
   
   
@@ -2368,7 +2483,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/configuration/" class="md-nav__link">
+      <a href="../../reference/configuration/" class="md-nav__link">
         
   
   
@@ -2396,7 +2511,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/result-types/" class="md-nav__link">
+      <a href="../../reference/result-types/" class="md-nav__link">
         
   
   
@@ -2424,7 +2539,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/core-model/" class="md-nav__link">
+      <a href="../../reference/core-model/" class="md-nav__link">
         
   
   
@@ -2452,7 +2567,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/advanced-low-level/" class="md-nav__link">
+      <a href="../../reference/advanced-low-level/" class="md-nav__link">
         
   
   
@@ -2480,7 +2595,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/public-api-catalog/" class="md-nav__link">
+      <a href="../../reference/public-api-catalog/" class="md-nav__link">
         
   
   
@@ -2508,7 +2623,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
+      <a href="../../architecture/" class="md-nav__link">
         
   
   
@@ -2536,7 +2651,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../consumer-compatibility/" class="md-nav__link">
+      <a href="../../consumer-compatibility/" class="md-nav__link">
         
   
   
@@ -2564,7 +2679,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../maintainers/documentation-versioning/" class="md-nav__link">
+      <a href="../../maintainers/documentation-versioning/" class="md-nav__link">
         
   
   
@@ -2589,37 +2704,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Real-browser integration tests
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../browser-integration-tests/" class="md-nav__link">
         
   
   
@@ -2635,59 +2723,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#fixture-and-isolation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Fixture and isolation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#contract-coverage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Contract coverage
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ci" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CI
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2811,10 +2846,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#fixture-and-isolation" class="md-nav__link">
+  <a href="#modes-and-safe-defaults" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fixture and isolation
+        Modes and safe defaults
       
     </span>
   </a>
@@ -2822,10 +2857,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#contract-coverage" class="md-nav__link">
+  <a href="#failure-policy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Contract coverage
+        Failure policy
       
     </span>
   </a>
@@ -2833,10 +2868,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ci" class="md-nav__link">
+  <a href="#capture-coverage-and-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CI
+        Capture coverage and lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-contexts-and-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported contexts and limits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screenshots-versus-livevideo-masking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Screenshots versus live/video masking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#small-visual-demo-fixture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Small visual-demo fixture
       
     </span>
   </a>
@@ -2860,7 +2928,7 @@
 
 
   
-    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/main/docs/browser-integration-tests.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/main/docs/security/visual-redaction.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2868,53 +2936,70 @@
   
 
 
-<h1 id="real-browser-integration-tests">Real-browser integration tests<a class="headerlink" href="#real-browser-integration-tests" title="Permanent link">&para;</a></h1>
-<p>The ordinary Maven test lifecycle is intentionally fast and browser-free. It exercises logic with unit tests, fakes, and WebDriver mocks:</p>
-<p>Published-artifact compatibility is a separate boundary. The JDK 17/21
-consumer gate runs Maven and Gradle clean-room smoke tests without a browser;
-it verifies dependency metadata, linkage, and bytecode. It does not replace
-this real-browser matrix. See <a href="../consumer-compatibility/">Consumer compatibility</a>.</p>
-<p>The Chrome/Firefox contract suite additionally checks scoped semantic descendants, visible-text/DOM-attribute/has filters, exact per-button activation in the presence of global and sibling decoys, containment of user XPath beginning with <code>//</code>, and dynamic count waits across rerenders. These scenarios complement unit tests of query ordering, stale snapshots, and terminal errors.</p>
-<p>Portable screenshot coverage uses a local, CSP-restricted document that is both taller and wider than the viewport. Both browser gates verify viewport compatibility, two-dimensional stitching, image scale, seam coverage, content markers, fixed/sticky/HUD handling, scroll restoration, iframe rejection without a context switch, bounded-limit failure, full-page failure-bundle images, and continued driver ownership.</p>
-<p>The gate also exercises polling collection/state assertions against dynamic local pages: composed counts, changing DOM attributes and class tokens, computed CSS, native and ARIA selected/checked state, attachment, detachment, and same-locator replacement. Both HUD modes are covered, and click/change counters prove that assertions remain read-only.</p>
-<p>Active-window page contracts cover delayed <code>history.pushState</code>, delayed <code>document.title</code>, and URL/title checks after an explicit popup switch. Matching sees query and fragment data, while trace and generated reports are checked to ensure those sensitive URL components are not disclosed.</p>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">mvn</span> <span class="n">test</span> <span class="n">-Dheaded</span><span class="p">=</span><span class="n">false</span>
+<h1 id="visual-redaction-sensitive-element-masking">Visual redaction / sensitive element masking<a class="headerlink" href="#visual-redaction-sensitive-element-masking" title="Permanent link">&para;</a></h1>
+<p>Visual redaction covers pixels rendered by sensitive page elements while Test Lens captures screenshot evidence. It uses temporary browser-side overlay nodes: element values, attributes, application state, focus, and event handlers are not changed. Every capture removes its masks in <code>finally</code>, including when WebDriver screenshot capture fails.</p>
+<p>This mechanism complements, but does not replace, <a href="../redaction/"><code>RedactionPolicy</code></a>:</p>
+<table>
+<thead>
+<tr>
+<th>Protection</th>
+<th>Configuration</th>
+<th>Boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Text redaction</td>
+<td><code>RedactionPolicy</code></td>
+<td>logs, trace, network diagnostics, reports, and text bundle components</td>
+</tr>
+<tr>
+<td>Visual redaction</td>
+<td><code>VisualRedactionOptions</code></td>
+<td>pixels in Test Lens viewport and stitched full-page screenshots</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">VisualRedactionOptions</span><span class="w"> </span><span class="n">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">VisualRedactionOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">        </span><span class="p">.</span><span class="na">maskPasswordInputs</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">        </span><span class="p">.</span><span class="na">mask</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"username"</span><span class="p">),</span><span class="w"> </span><span class="n">VisualMaskMode</span><span class="p">.</span><span class="na">BLUR</span><span class="p">)</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">        </span><span class="p">.</span><span class="na">mask</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"password"</span><span class="p">),</span><span class="w"> </span><span class="n">VisualMaskMode</span><span class="p">.</span><span class="na">SOLID</span><span class="p">)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">        </span><span class="p">.</span><span class="na">failurePolicy</span><span class="p">(</span><span class="n">VisualRedactionFailurePolicy</span><span class="p">.</span><span class="na">STRICT</span><span class="p">)</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">,</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">        </span><span class="p">.</span><span class="na">redactionPolicy</span><span class="p">(</span><span class="n">RedactionPolicy</span><span class="p">.</span><span class="na">defaults</span><span class="p">())</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="p">.</span><span class="na">visualRedaction</span><span class="p">(</span><span class="n">visual</span><span class="p">)</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">());</span>
 </span></code></pre></div>
-<p>The <code>browser-it</code> profile adds a separate, unpublished consumer module. Maven Failsafe runs its <code>*IT</code> tests during <code>verify</code> against a real locally installed browser:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">mvn</span> <span class="n">-Pbrowser-it</span> <span class="n">-Dbrowser</span><span class="p">=</span><span class="n">chrome</span> <span class="n">-Dheaded</span><span class="p">=</span><span class="n">false</span> <span class="n">verify</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">mvn</span> <span class="n">-Pbrowser-it</span> <span class="n">-Dbrowser</span><span class="p">=</span><span class="n">firefox</span> <span class="n">-Dheaded</span><span class="p">=</span><span class="n">false</span> <span class="n">verify</span>
-</span></code></pre></div>
-<p>Set <code>-Dheaded=true</code> to watch the same tests locally. A missing browser or unusable driver fails the build; the suite does not silently skip. Selenium Manager may locate a compatible local driver according to Selenium's normal behavior.</p>
-<h2 id="fixture-and-isolation">Fixture and isolation<a class="headerlink" href="#fixture-and-isolation" title="Permanent link">&para;</a></h2>
-<p>The suite starts a JDK <code>HttpServer</code> on a random loopback port and serves all HTML, JavaScript, CSS, and API traffic locally. There are no external pages, CDNs, or fixed ports. The fixture includes click counters, navigation, an iframe, a popup, a native alert, a deterministic blocking overlay, a strict CSP page, redirects, failed responses, and a deterministic truncated response that produces a fetch error.</p>
-<p>Each test invocation creates its own <code>WebDriver</code> and closes it in teardown. Conditions use <code>WebDriverWait</code>; the tests contain no timing sleeps. Page state and driver state are not shared, so Maven/JUnit may schedule tests in parallel safely. The server is always stopped after the suite.</p>
-<h2 id="contract-coverage">Contract coverage<a class="headerlink" href="#contract-coverage" title="Permanent link">&para;</a></h2>
-<p>The browser gate verifies:</p>
+<h2 id="modes-and-safe-defaults">Modes and safe defaults<a class="headerlink" href="#modes-and-safe-defaults" title="Permanent link">&para;</a></h2>
+<p><code>SOLID</code> covers the complete bounding rectangle with an opaque surface. It is the recommended security-oriented mode for passwords, credentials, tokens, customer identifiers, and other confidential data. The default color is neutral <code>#2B2F36</code>; <code>solidColor(...)</code> accepts only <code>#RRGGBB</code>.</p>
+<p><code>BLUR</code> uses CSS <code>backdrop-filter</code> with a bounded radius of 2–32 CSS pixels (8 by default). <strong>BLUR is visual privacy/obfuscation, not cryptographic, irreversible, or equivalent to SOLID redaction.</strong> Fine shapes can remain inferable. If the browser does not confirm blur support, Test Lens safely falls back from BLUR to SOLID and reports that fallback in the capture result; it never falls back to an unmasked BLUR target.</p>
+<p><code>paddingPx(...)</code> optionally expands every rectangle by 0–32 pixels. <code>maskLabel(...)</code> adds plain text to SOLID masks; it is assigned through <code>textContent</code>, never HTML. No arbitrary CSS, HTML, JavaScript, filter string, or class injection is exposed.</p>
+<p><code>input[type=password]</code> is automatically masked with SOLID by <code>VisualRedactionOptions.defaults()</code> and therefore by <code>TestLensOptions.defaults()</code>. This selector is evaluated in the current Selenium frame immediately before capture and before every full-page tile. It does not mask ordinary text inputs. Disable it explicitly with <code>maskPasswordInputs(false)</code> only in controlled evidence.</p>
+<h2 id="failure-policy">Failure policy<a class="headerlink" href="#failure-policy" title="Permanent link">&para;</a></h2>
+<p><code>STRICT</code> is the default and fail-closed choice. A missing/stale target, locator failure, overlay failure, geometry mismatch, or missing browser confirmation returns a failed screenshot result and does not publish the PNG. Automatic password discovery may legitimately find zero fields. In failure collection, the screenshot component is marked failed and its diagnostic is aggregated with the bundle/finalization diagnostics; the original test failure remains the session outcome.</p>
+<p><code>BEST_EFFORT</code> is an explicit opt-in. Test Lens masks every target it can resolve, captures evidence, and places a structured summary in <code>ScreenshotCaptureResult.message()</code>: requested, installed, verified, failed, and non-secret reason categories. An absent automatic password selector is normal; an absent explicit locator is a warning.</p>
+<h2 id="capture-coverage-and-lifecycle">Capture coverage and lifecycle<a class="headerlink" href="#capture-coverage-and-lifecycle" title="Permanent link">&para;</a></h2>
+<p>The same <code>ScreenshotCapture</code> seam protects manual <code>TestLens</code> and <code>JsOverlayDebug</code> screenshots, failed-step screenshots, automatic legacy failure screenshots, failure-bundle diagnostic and clean screenshots, and both viewport and portable full-page captures.</p>
+<p>The lifecycle is sequential on one WebDriver: resolve all current elements, install the complete batch in one browser-side command, wait for two animation frames, verify every mask against its target's <strong>current</strong> geometry, capture pixels, then remove the batch in <code>finally</code>. Test Lens does not use parallel streams, virtual threads, or concurrent script calls against one driver.</p>
+<p>Verification checks that the original target reference is still connected, both rectangles remain valid, the mask belongs to the current batch, and the mask rectangle still covers and matches the target rectangle within an internal 1.5 CSS-pixel rounding tolerance. If React or another SPA replaces, moves, or resizes a target during the paint barrier, Test Lens removes the entire batch, resolves every rule again, and performs one bounded retry. <code>STRICT</code> captures only after all requested masks are verified. <code>BEST_EFFORT</code> reports the incomplete batch explicitly after retry exhaustion.</p>
+<p>The batch container is a top-level sibling of application roots under <code>body</code> (or the document element fallback), so React normally does not own its nodes. Mask DOM survival is not treated as proof that target geometry remains valid. Masks use <code>pointer-events: none</code>, do not receive focus, and do not change DOM values. No continuous <code>MutationObserver</code> or <code>ResizeObserver</code> tracking is installed.</p>
+<p>“Clean” means that Test Lens HUD, highlights, arrows, and diagnostic decoration are temporarily hidden. It never means unredacted: the sensitive masks are installed independently for both the diagnostic and clean capture.</p>
+<p>For <code>FULL_PAGE</code>, every tile performs scroll/settle, complete re-resolution, batch installation, paint barrier, geometry verification, tile capture, and batch replacement/cleanup. Geometry from a preceding tile is never the source of truth, including for sticky or fixed elements. Existing full-page geometry/scale limits and restoration rules still apply.</p>
+<h2 id="supported-contexts-and-limits">Supported contexts and limits<a class="headerlink" href="#supported-contexts-and-limits" title="Permanent link">&para;</a></h2>
 <ul>
-<li>decorative <code>highlightClick()</code> and <code>highlightElement()</code> never dispatch an application click with the overlay enabled or disabled;</li>
-<li><code>highlightThenClick()</code> and <code>UiLocator.click()</code> dispatch exactly one trusted application click in both overlay modes;</li>
-<li>highlight markup lives in the Test Lens shadow root and both its host and marker ignore pointer events;</li>
-<li>the HUD initializes, is injected again after navigation, and is retained or cleaned for <code>finishPassed()</code>, <code>finishFailed(...)</code>, and <code>finishSkipped(...)</code> according to <code>cleanupHudOnFinish</code>; skipped finalization retains <code>SKIPPED</code> metadata and never creates a failure screenshot;</li>
-<li>a prepared blocking overlay is closed deterministically before exactly one target click;</li>
-<li>frame switching, new-window waiting/switching, and <code>TestLensAlert</code> work through a real browser;</li>
-<li>strict page CSP does not allow a diagnostic decoration failure to change the intended Selenium click outcome.</li>
-<li>the JUnit 5 extension and TestNG listener each create, expose, finalize, report, and close a real browser invocation through their public adapter APIs.</li>
-<li>failed finalization captures diagnostic and clean screenshots, restores HUD for <code>cleanupHudOnFinish=false</code>, collects explicitly enabled page source plus context/runtime, writes manifest/reports/ZIP, remains CSP-safe, and leaves the driver alive until test or adapter cleanup.</li>
-<li>a real stale element causes exactly one recovery retry and one successful physical click; report-only and fail-on-any-retry paths verify Flakiness JSON/HTML.</li>
-<li>dedicated Chrome and Firefox drivers created with <code>enableBiDi()</code> validate real <code>BIDI</code> and <code>AUTO</code> startup, request/response/fetch-error capture, 503 accounting, redirect correlation, event-driven waits, sensitive-header masking, ignored URLs, restart/stop isolation, JSON, failure-bundle network snapshots, HUD-only URL filtering, and fail-closed failure assertions for never-started/<code>OFF</code> capture while preserving valid stopped snapshots. Existing browser contracts are not globally switched to BiDi. These tests do not assert fetch/XHR/beacon resource classification because Selenium Java 4.39.0 does not expose it through typed <code>RequestData</code>.</li>
-<li>apostrophe-bearing, escaped-quote, and failed-network-summary canaries cross a BiDi query/header, API-overlay request/response preview, step/trace metadata, network assertion error, failure throwable, page source, HUD, trace, reports, and unpacked bundle; Chrome and Firefox must retain <code>[REDACTED]</code> while no text artifact or public network failure snapshot contains either full canary or its identifying fragment. The canaries are never rendered as visible page content, because screenshots are intentionally outside text redaction.</li>
-<li>auth restore uses two dynamic loopback origins to prove that an application-to-SSO redirect returns <code>ORIGIN_MISMATCH</code> without clearing or writing the SSO cookie/local/session storage, while a same-origin redirect completes as <code>RESTORED</code>.</li>
-<li>semantic checkbox/radio and ARIA control actions verify direct and label activation, idempotence, mixed/disabled/unsupported behavior, asynchronous rerender confirmation, and foreign-overlay failure in both overlay modes;</li>
-<li>semantic accessibility locators verify browser-computed names from native labels, <code>aria-labelledby</code> (including multiple references), descendant image alt text, label/placeholder separation, alt-only matching, lazy dynamic lookup, and collection order;</li>
-<li>hidden single/multiple file inputs, focus, and centered scrolling verify one physical operation, safe upload diagnostics, and a live driver after every action.</li>
-<li>page-wait facade contracts cover <code>PageLoadStrategy.NONE</code> readiness, delayed observed fetch completion plus a full idle window, timeout for a still-active fetch, and tracker reinjection after navigation.</li>
+<li>The current Selenium browsing context is supported for viewport capture. A rule aimed at an element in the current frame can be masked. Test Lens does not traverse child iframes automatically; switch into a frame to resolve its document. It does not attempt cross-origin frame penetration.</li>
+<li>Full-page capture remains top-level-context only. It does not expand iframe documents. Pixels rendered inside an unselected iframe are not covered by rules from its parent document.</li>
+<li>Standard Selenium locators can target light DOM. Open shadow roots require the caller to expose/use an appropriate Selenium search context; the current <code>By</code> rule registry does not recursively traverse them. Closed shadow roots cannot be targeted.</li>
+<li>A mask can cover the rectangular pixels of a selected <code>canvas</code> or <code>video</code> element, but Test Lens cannot identify sensitive subregions inside their bitmap/frame. Native browser chrome, permission dialogs, URL bars, OS dialogs, and other UI outside the page DOM cannot be masked.</li>
+<li>Top-layer browser constructs and unusual compositing are browser-controlled. Use STRICT and verify evidence in the browsers you support for high-risk workflows.</li>
+<li>Page source still contains the original values. Visual masking does not sanitize DOM, page-source, console, trace, network, or attached video artifacts.</li>
 </ul>
-<h2 id="ci">CI<a class="headerlink" href="#ci" title="Permanent link">&para;</a></h2>
-<p>The required <code>browser-integration</code> job runs a matrix of Chrome and Firefox on <code>ubuntu-latest</code> with:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>mvn -Pbrowser-it -Dbrowser=&lt;browser&gt; -Dheaded=false verify
-</span></code></pre></div>
-<p>A workflow-dispatch-only Chrome job runs the suite headed under <code>xvfb-run</code> and is non-blocking. On failure, both jobs upload Surefire/Failsafe reports and any <code>target/ui-test-lens</code> diagnostics. Edge and <code>RemoteWebDriver</code> grids are not covered by the current matrix.</p>
-<p>The required job prints the selected browser and driver paths/versions and notes that BiDi is enabled for the dedicated network contracts. A remote Grid may pass a WebSocket URL through its node, but real Grid/RemoteWebDriver execution is not claimed by this matrix.</p>
+<h2 id="screenshots-versus-livevideo-masking">Screenshots versus live/video masking<a class="headerlink" href="#screenshots-versus-livevideo-masking" title="Permanent link">&para;</a></h2>
+<p>Masks exist only for the duration of a Test Lens screenshot. Existing videos are caller-supplied attachments and are not modified. The renderer can later be extended to persistent masks for live/recording use, but that requires lifecycle ownership across navigation, frame changes, DOM mutation, and recorder start/stop; it is deliberately outside this feature.</p>
+<h2 id="small-visual-demo-fixture">Small visual-demo fixture<a class="headerlink" href="#small-visual-demo-fixture" title="Permanent link">&para;</a></h2>
+<p>The real-browser contract fixture demonstrates the intended setup: a normal customer input is explicitly SOLID-masked, the customer email is BLUR-obfuscated, and a password input receives automatic SOLID masking. The test analyzes the resulting pixel regions and also places a synthetic secret below the initial viewport to exercise scroll-and-stitch. No real credentials are stored in fixtures.</p>
 
 
 
@@ -2952,7 +3037,7 @@ this real-browser matrix. See <a href="../consumer-compatibility/">Consumer comp
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../maintainers/documentation-versioning/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Publishing versioned docs">
+          <a href="../redaction/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Sensitive-data redaction">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2962,11 +3047,27 @@ this real-browser matrix. See <a href="../consumer-compatibility/">Consumer comp
                 Previous
               </span>
               <div class="md-ellipsis">
-                Publishing versioned docs
+                Sensitive-data redaction
               </div>
             </div>
           </a>
         
+        
+          
+          <a href="../../advanced/" class="md-footer__link md-footer__link--next" aria-label="Next: Advanced features overview">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Advanced features overview
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
         
       </nav>
     
@@ -2996,10 +3097,10 @@ this real-browser matrix. See <a href="../consumer-compatibility/">Consumer comp
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.3.0-SNAPSHOT", "default": "latest", "is_dev": true, "is_snapshot": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.3.0-SNAPSHOT", "default": "latest", "is_dev": true, "is_snapshot": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

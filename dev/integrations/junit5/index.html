@@ -1702,6 +1702,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/visual-redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2205,6 +2233,34 @@
     
   
     TestNG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../allure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Allure
   
 
     
@@ -2988,7 +3044,7 @@
 <p>Pass the policy through <code>lensOptions(...)</code>. If <code>finishPassed()</code> raises <code>RetryPolicyViolationException</code>, the extension fails that invocation after JSON/HTML and the optional failure screenshot are produced, then quits the driver. A quit failure is suppressed on the policy violation, and the session is not finalized a second time. Parameterized and repeated invocations each evaluate their own session summary.</p>
 <p>If a test starts <code>lens.network()</code>, all three Lens finalizers stop its active capture before session completion and before the extension calls <code>quit()</code>. To use <code>BIDI</code> or <code>AUTO</code>, the extension's driver factory must create options with <code>enableBiDi()</code>; the adapter does not retrofit the capability or fall back to manual capture.</p>
 <p>For final <code>FAILED</code>, the extension waits for the complete failure-bundle pipeline—including reports, HUD cleanup, manifest, and ZIP—before <code>driver.quit()</code>. Partial evidence never replaces the test throwable. Configure it through the same <code>lensOptions(...)</code>; raw page source and browser console remain opt-in.</p>
-<p>The extension propagates <code>TestLensOptions.redactionPolicy(...)</code> unchanged to every invocation. Redaction completes during Lens finalization before the extension's single <code>driver.quit()</code>; it neither replaces the execution throwable nor changes passed/failed/aborted mapping. Optional page source and console remain best-effort text protection, and screenshots are not pixel-redacted.</p>
+<p>The extension propagates <code>TestLensOptions.redactionPolicy(...)</code> and <code>visualRedaction(...)</code> unchanged to every invocation. Redaction completes during Lens finalization before the extension's single <code>driver.quit()</code>; it neither replaces the execution throwable nor changes passed/failed/aborted mapping. Optional page source and console remain best-effort text protection, while configured visual masks protect screenshot pixels.</p>
 <h1 id="junit-5-integration_1">JUnit 5 integration<a class="headerlink" href="#junit-5-integration_1" title="Permanent link">&para;</a></h1>
 
 

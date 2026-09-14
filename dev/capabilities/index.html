@@ -1865,6 +1865,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/visual-redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2250,6 +2278,34 @@
     
   
     TestNG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../integrations/allure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Allure
   
 
     
@@ -2980,7 +3036,7 @@
 <p>For a final failed session, Test Lens can assemble screenshots, trace, report, context, runtime/configuration allowlists, network summary, manifest, and ZIP. Collection is best-effort and finalization never closes the driver. Video is attached, not recorded. See <a href="../observability/trace/">trace</a>, <a href="../observability/reports/">reports</a>, and <a href="../observability/failure-bundles/">failure bundles</a>.</p>
 <p>Screenshot capture remains viewport-based by default. Release 0.2.0 adds bounded, opt-in full-page scroll-and-stitch capture through the same evidence pipeline, including diagnostic and clean failure images. It preserves the current viewport layout and uses no CDP. See <a href="../observability/screenshots-evidence/#portable-full-page-capture">screenshots and evidence</a>.</p>
 <h3 id="5-central-protection-for-diagnostic-text">5. Central protection for diagnostic text<a class="headerlink" href="#5-central-protection-for-diagnostic-text" title="Permanent link">&para;</a></h3>
-<p>One policy creates safe diagnostic copies before fan-out to HUD, trace, sinks, reports, network/API diagnostics, and failure-bundle text files. It preserves the structural exception type while leaving the original throwable untouched in the execution path. Screenshots/video are not pixel-redacted, optional page source/console are best-effort, auth-state files remain outside the transformation, and <code>disabled()</code> is an explicit opt-out. See <a href="../security/redaction/">redaction</a>.</p>
+<p>One text policy creates safe diagnostic copies before fan-out to HUD, trace, sinks, reports, network/API diagnostics, and failure-bundle text files. It preserves the structural exception type while leaving the original throwable untouched in the execution path. Separate browser-side <a href="../security/visual-redaction/">visual redaction</a> masks configured screenshot regions; video is not modified. Optional page source/console are best-effort, auth-state files remain outside the transformation, and <code>disabled()</code> is an explicit text-redaction opt-out. See <a href="../security/redaction/">redaction</a>.</p>
 <h2 id="advanced-capabilities">Advanced capabilities<a class="headerlink" href="#advanced-capabilities" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3020,6 +3076,11 @@
 <td>JUnit 5 / TestNG adapters</td>
 <td>Optional <code>0.2.0</code> artifacts for per-invocation lifecycle ownership.</td>
 <td><a href="../framework-integration/">Framework integration</a></td>
+</tr>
+<tr>
+<td>Allure attachments</td>
+<td>Optional <code>0.3.0</code> module streams finalized screenshots, report, trace, and ZIP into the active Allure executable.</td>
+<td><a href="../integrations/allure/">Allure integration</a></td>
 </tr>
 <tr>
 <td>Explicit report upload</td>
