@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 260
-# Public callable methods/constructors: 2011
+# Types: 267
+# Public callable methods/constructors: 2040
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -1075,6 +1075,25 @@ TYPE io.github.testlens.OverlayWait
   public io.github.testlens.OverlayWait(org.openqa.selenium.WebDriver, java.time.Duration, io.github.testlens.JsOverlayDebug, io.github.testlens.core.OverlayLogger)
   public io.github.testlens.OverlayWait(org.openqa.selenium.WebDriver, java.time.Duration, io.github.testlens.JsOverlayDebug)
   public <T> T until(java.util.function.Function<? super org.openqa.selenium.WebDriver, T>, java.lang.String)
+TYPE io.github.testlens.ScenarioResourceManager
+  public synchronized <T> T register(java.lang.String, T, io.github.testlens.ThrowingConsumer<? super T>)
+  public synchronized <T> T create(java.lang.String, io.github.testlens.ThrowingSupplier<? extends T>, io.github.testlens.ThrowingConsumer<? super T>) throws java.lang.Exception
+TYPE io.github.testlens.ScenarioStateManager
+  public <T> void put(java.lang.String, T)
+  public <T> java.util.Optional<T> get(java.lang.String, java.lang.Class<T>)
+  public <T> T require(java.lang.String, java.lang.Class<T>)
+  public boolean remove(java.lang.String)
+  public boolean contains(java.lang.String)
+  public <T> T computeIfAbsent(java.lang.String, java.lang.Class<T>, java.util.function.Supplier<? extends T>)
+  public int size()
+TYPE io.github.testlens.SuiteStateManager
+  public <T> void put(java.lang.String, T)
+  public <T> java.util.Optional<T> get(java.lang.String, java.lang.Class<T>)
+  public <T> T require(java.lang.String, java.lang.Class<T>)
+  public boolean remove(java.lang.String)
+  public boolean contains(java.lang.String)
+  public <T> T computeIfAbsent(java.lang.String, java.lang.Class<T>, java.util.function.Supplier<? extends T>)
+  public int size()
 TYPE io.github.testlens.TestLens
   public static io.github.testlens.TestLens attach(org.openqa.selenium.WebDriver)
   public static io.github.testlens.TestLens attach(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig)
@@ -1082,6 +1101,9 @@ TYPE io.github.testlens.TestLens
   public org.openqa.selenium.WebDriver driver()
   public io.github.testlens.core.trace.UiTestLensSession startSession(java.lang.String)
   public java.util.Optional<io.github.testlens.core.trace.UiTestLensSession> session()
+  public io.github.testlens.ScenarioStateManager scenarioState()
+  public io.github.testlens.ScenarioResourceManager resources()
+  public io.github.testlens.SuiteStateManager suiteState()
   public io.github.testlens.core.trace.RetrySummary retrySummary()
   public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By)
   public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By, java.lang.String)
@@ -1178,6 +1200,19 @@ TYPE io.github.testlens.TestLensOptions
   public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
   public io.github.testlens.hud.HudOptions hud()
   public io.github.testlens.selenium.evidence.VisualRedactionOptions visualRedaction()
+TYPE io.github.testlens.TestRunScope
+  public static io.github.testlens.TestRunScope open()
+  public synchronized io.github.testlens.TestLens attach(org.openqa.selenium.WebDriver)
+  public synchronized io.github.testlens.TestLens attach(org.openqa.selenium.WebDriver, io.github.testlens.TestLensOptions)
+  public synchronized io.github.testlens.SuiteStateManager suiteState()
+  public synchronized void close()
+TYPE io.github.testlens.TestStateException
+  public io.github.testlens.TestStateException(java.lang.String)
+  public io.github.testlens.TestStateException(java.lang.String, java.lang.Throwable)
+TYPE io.github.testlens.ThrowingConsumer
+  public abstract void accept(T) throws java.lang.Exception
+TYPE io.github.testlens.ThrowingSupplier
+  public abstract T get() throws java.lang.Exception
 TYPE io.github.testlens.actions.AssertActions$OverlayAssertionResult
   public io.github.testlens.actions.AssertActions$OverlayAssertionResult(boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, long)
   public boolean isSuccess()
@@ -2532,6 +2567,7 @@ TYPE io.github.testlens.testng.TestLensTestNgFactory
 TYPE io.github.testlens.testng.TestLensTestNgListener
   public io.github.testlens.testng.TestLensTestNgListener()
   public void beforeInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
+  public void onFinish(org.testng.ISuite)
   public void afterInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
 MODULE selenium-test-lens-allure
 TYPE io.github.testlens.allure.AllureAttachResult

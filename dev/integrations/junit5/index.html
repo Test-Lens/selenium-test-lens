@@ -798,6 +798,34 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../features/managed-test-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managed Test State & Resources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
     
@@ -812,10 +840,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
         
           
-          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
             
   
   
@@ -833,8 +861,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1096,10 +1124,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
         
           
-          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
             
   
   
@@ -1117,8 +1145,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2994,7 +3022,7 @@
 </span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">    </span><span class="p">}</span>
 </span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>The <code>driverFactory</code> is called exactly once for each invocation. <code>WebDriver</code> and <code>TestLens</code> parameters refer to that same invocation and the Lens is attached to that exact driver. Other parameter types are left to JUnit or other registered resolvers.</p>
+<p>The <code>driverFactory</code> is called exactly once for each invocation. <code>WebDriver</code> and <code>TestLens</code> parameters refer to that same invocation and the Lens is attached to that exact driver. Other parameter types are left to JUnit or other registered resolvers. The extension also owns one <code>SuiteStateManager</code> in the root extension context; invocations in that execution share it, and the root store clears it when the run closes.</p>
 <p>Do not call <code>driver.quit()</code> in <code>@AfterEach</code>: the extension owns the returned driver. It finalizes Lens and its JSON/HTML reports first, then calls <code>quit()</code> exactly once. <code>TestLens</code> itself still never closes the driver. A test may have already called a Lens finalizer; the extension then reuses that session's first terminal result without duplicating reports, evidence, or terminal events, and still performs its one owned driver cleanup.</p>
 <p>The extension does not upload reports. If a test deliberately finalizes and uploads before returning, the extension safely reuses that terminal result and performs its normal single driver cleanup. For centralized upload of every outcome, add an ordered project-owned extension around the explicit <a href="../../observability/report-upload/">report uploader</a>; do not place credentials in test names or Lens metadata.</p>
 <h2 id="configure-lens-and-names">Configure Lens and names<a class="headerlink" href="#configure-lens-and-names" title="Permanent link">&para;</a></h2>
@@ -3038,7 +3066,7 @@
 <p>An empty aborted message receives a safe fallback. Diagnostics returned by Lens finalization remain best-effort and do not change the JUnit result. If a failed or aborted test also encounters a driver cleanup failure, that cleanup error is suppressed on the original throwable. If a passed test cannot close its driver, the callback fails so cleanup corruption is visible.</p>
 <p>If setup fails after driver creation, the extension closes that driver and rethrows the original setup failure; a concurrent quit failure is suppressed on it. A null driver from the factory fails setup with a clear message. <code>@Disabled</code> tests do not execute <code>beforeEach</code>, so they create neither a driver nor an empty Lens session.</p>
 <h2 id="parameterized-repeated-nested-and-parallel-tests">Parameterized, repeated, nested, and parallel tests<a class="headerlink" href="#parameterized-repeated-nested-and-parallel-tests" title="Permanent link">&para;</a></h2>
-<p>Each <code>@ParameterizedTest</code> value and each <code>@RepeatedTest</code> repetition receives a different driver, Lens, session ID, and report directory. Nested tests are isolated the same way. The same extension object can serve concurrent invocations because current state is never kept in extension fields, a global singleton, or a <code>ThreadLocal</code>; it resides in <code>ExtensionContext.Store</code> under <code>context.getUniqueId()</code>.</p>
+<p>Each <code>@ParameterizedTest</code> value and each <code>@RepeatedTest</code> repetition receives a different driver, Lens, session ID, scenario state, resource manager, and report directory. Nested tests are isolated the same way. The same extension object can serve concurrent invocations because current state is never kept in extension fields, a global singleton, or a <code>ThreadLocal</code>; it resides in <code>ExtensionContext.Store</code> under <code>context.getUniqueId()</code>. Scenario resources are cleaned during Lens finalization before the owned driver is quit. See <a href="../../features/managed-test-state/">Managed Test State &amp; Resources</a>.</p>
 <p>Your driver factory and application test data must still be parallel-safe. Do not share a driver returned by the factory across invocations.</p>
 <h2 id="recovery-retry-policy">Recovery-retry policy<a class="headerlink" href="#recovery-retry-policy" title="Permanent link">&para;</a></h2>
 <p>Pass the policy through <code>lensOptions(...)</code>. If <code>finishPassed()</code> raises <code>RetryPolicyViolationException</code>, the extension fails that invocation after JSON/HTML and the optional failure screenshot are produced, then quits the driver. A quit failure is suppressed on the policy violation, and the session is not finalized a second time. Parameterized and repeated invocations each evaluate their own session summary.</p>

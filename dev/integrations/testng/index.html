@@ -798,6 +798,34 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../features/managed-test-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managed Test State & Resources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
     
@@ -812,10 +840,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
         
           
-          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
             
   
   
@@ -833,8 +861,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1096,10 +1124,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
         
           
-          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
             
   
   
@@ -1117,8 +1145,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2983,6 +3011,7 @@ These coordinates are published with the 0.2.0 release.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">public</span><span class="w"> </span><span class="nf">TestLensTestNgListener</span><span class="p">()</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">beforeInvocation</span><span class="p">(</span><span class="n">IInvokedMethod</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">ITestResult</span><span class="w"> </span><span class="n">result</span><span class="p">)</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">afterInvocation</span><span class="p">(</span><span class="n">IInvokedMethod</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">ITestResult</span><span class="w"> </span><span class="n">result</span><span class="p">)</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onFinish</span><span class="p">(</span><span class="n">ISuite</span><span class="w"> </span><span class="n">suite</span><span class="p">)</span>
 </span></code></pre></div>
 <h2 id="outcome-and-ownership-contract">Outcome and ownership contract<a class="headerlink" href="#outcome-and-ownership-contract" title="Permanent link">&para;</a></h2>
 <p>The listener maps <code>SUCCESS</code> to <code>finishPassed()</code>, <code>FAILURE</code> and <code>SUCCESS_PERCENTAGE_FAILURE</code> to <code>finishFailed(originalThrowable)</code>, and <code>SKIP</code>/<code>SkipException</code> to <code>finishSkipped(reason)</code>. It finalizes reports before calling <code>driver.quit()</code> and then removes the <code>ITestResult</code> state. If the test already finalized its Lens, the first terminal outcome and the exactly-once report pipeline are reused; the callback does not create a second terminal event or bundle. Do not call <code>quit()</code> again from <code>@AfterMethod</code>.</p>
@@ -2991,7 +3020,7 @@ These coordinates are published with the 0.2.0 release.</p>
 <p>For <code>FAILURE</code> and <code>SUCCESS_PERCENTAGE_FAILURE</code>, the listener completes the failure bundle before its single <code>driver.quit()</code>. A partial bundle does not change TestNG status or replace the original throwable. Policy-induced failure follows the same ordering and is not finalized twice.</p>
 <p>Disabled tests, configuration methods, dependency-skipped methods, and tests blocked by a failed <code>@BeforeMethod</code> do not create a driver or empty session. Calling <code>TestLensTestNgContext.current()</code> outside a managed test method throws <code>IllegalStateException</code>.</p>
 <h2 id="dataprovider-retry-and-parallel-execution">DataProvider, retry, and parallel execution<a class="headerlink" href="#dataprovider-retry-and-parallel-execution" title="Permanent link">&para;</a></h2>
-<p>State is stored as a namespaced attribute of the physical <code>ITestResult</code>, not on the test class or listener. Parallel methods and parallel DataProviders therefore cannot see one another's drivers or sessions, and reusing a test instance is safe. Every RetryAnalyzer attempt gets its own factory, driver, Lens, session ID, report directory, and final status: a failed attempt is recorded as <code>FAILED</code>, while a later successful attempt is a separate <code>PASSED</code> session.</p>
+<p>State is stored as a namespaced attribute of the physical <code>ITestResult</code>, not on the test class or listener. Parallel methods and parallel DataProviders therefore cannot see one another's drivers, sessions, scenario state, or resources, and reusing a test instance is safe. Every RetryAnalyzer attempt gets its own factory, driver, Lens, session ID, scenario scope, report directory, and final status: a failed attempt is recorded as <code>FAILED</code>, while a later successful attempt is a separate <code>PASSED</code> session. One <code>SuiteStateManager</code> is stored on the owning <code>ISuite</code>, shared atomically inside that suite, and cleared by the listener at suite end. See <a href="../../features/managed-test-state/">Managed Test State &amp; Resources</a>.</p>
 <p>The default name contains the class, method, public TestNG invocation counter, and an opaque per-attempt token. It deliberately excludes DataProvider values. A custom <code>sessionName(ITestResult)</code> may return a different name, but should not include credentials or other parameter secrets.</p>
 <h2 id="recovery-retry-policy">Recovery-retry policy<a class="headerlink" href="#recovery-retry-policy" title="Permanent link">&para;</a></h2>
 <p>Return configured <code>TestLensOptions</code> from the factory. A policy violation from an otherwise successful method is written into the completed reports, then the listener explicitly changes its <code>ITestResult</code> to <code>FAILURE</code> and installs the <code>RetryPolicyViolationException</code> as throwable. Driver quit still happens exactly once; later cleanup errors are suppressed. <code>IRetryAnalyzer</code> attempts remain independent sessions rather than one aggregated summary.</p>
