@@ -223,6 +223,55 @@ public io.github.testlens.OverlayWait(org.openqa.selenium.WebDriver, java.time.D
 public <T> T until(java.util.function.Function<? super org.openqa.selenium.WebDriver, T>, java.lang.String)
 ```
 
+## `io.github.testlens.ScenarioResourceManager` {#io-github-testlens-scenarioresourcemanager}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/features/managed-test-state.md](../../features/managed-test-state.md)
+
+```java
+public synchronized <T> T register(java.lang.String, T, io.github.testlens.ThrowingConsumer<? super T>)
+public synchronized <T> T create(java.lang.String, io.github.testlens.ThrowingSupplier<? extends T>, io.github.testlens.ThrowingConsumer<? super T>) throws java.lang.Exception
+```
+
+## `io.github.testlens.ScenarioStateManager` {#io-github-testlens-scenariostatemanager}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/features/managed-test-state.md](../../features/managed-test-state.md)
+
+```java
+public <T> void put(java.lang.String, T)
+public <T> java.util.Optional<T> get(java.lang.String, java.lang.Class<T>)
+public <T> T require(java.lang.String, java.lang.Class<T>)
+public boolean remove(java.lang.String)
+public boolean contains(java.lang.String)
+public <T> T computeIfAbsent(java.lang.String, java.lang.Class<T>, java.util.function.Supplier<? extends T>)
+public int size()
+```
+
+## `io.github.testlens.SuiteStateManager` {#io-github-testlens-suitestatemanager}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/features/managed-test-state.md](../../features/managed-test-state.md)
+
+```java
+public <T> void put(java.lang.String, T)
+public <T> java.util.Optional<T> get(java.lang.String, java.lang.Class<T>)
+public <T> T require(java.lang.String, java.lang.Class<T>)
+public boolean remove(java.lang.String)
+public boolean contains(java.lang.String)
+public <T> T computeIfAbsent(java.lang.String, java.lang.Class<T>, java.util.function.Supplier<? extends T>)
+public int size()
+```
+
 ## `io.github.testlens.TestLens` {#io-github-testlens-testlens}
 
 - Artifact/module: `selenium-test-lens-selenium`
@@ -238,6 +287,9 @@ public static io.github.testlens.TestLens attach(org.openqa.selenium.WebDriver, 
 public org.openqa.selenium.WebDriver driver()
 public io.github.testlens.core.trace.UiTestLensSession startSession(java.lang.String)
 public java.util.Optional<io.github.testlens.core.trace.UiTestLensSession> session()
+public io.github.testlens.ScenarioStateManager scenarioState()
+public io.github.testlens.ScenarioResourceManager resources()
+public io.github.testlens.SuiteStateManager suiteState()
 public io.github.testlens.core.trace.RetrySummary retrySummary()
 public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By)
 public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By, java.lang.String)
@@ -374,4 +426,57 @@ public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOp
 public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
 public io.github.testlens.hud.HudOptions hud()
 public io.github.testlens.selenium.evidence.VisualRedactionOptions visualRedaction()
+```
+
+## `io.github.testlens.TestRunScope` {#io-github-testlens-testrunscope}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens`
+- Classification: `ADVANCED_API`
+- Type kind: `class`
+- Functional documentation: [docs/features/managed-test-state.md](../../features/managed-test-state.md)
+
+```java
+public static io.github.testlens.TestRunScope open()
+public synchronized io.github.testlens.TestLens attach(org.openqa.selenium.WebDriver)
+public synchronized io.github.testlens.TestLens attach(org.openqa.selenium.WebDriver, io.github.testlens.TestLensOptions)
+public synchronized io.github.testlens.SuiteStateManager suiteState()
+public synchronized void close()
+```
+
+## `io.github.testlens.TestStateException` {#io-github-testlens-teststateexception}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/features/managed-test-state.md](../../features/managed-test-state.md)
+
+```java
+public io.github.testlens.TestStateException(java.lang.String)
+public io.github.testlens.TestStateException(java.lang.String, java.lang.Throwable)
+```
+
+## `io.github.testlens.ThrowingConsumer` {#io-github-testlens-throwingconsumer}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens`
+- Classification: `USER_API`
+- Type kind: `interface`
+- Functional documentation: [docs/features/managed-test-state.md](../../features/managed-test-state.md)
+
+```java
+public abstract void accept(T) throws java.lang.Exception
+```
+
+## `io.github.testlens.ThrowingSupplier` {#io-github-testlens-throwingsupplier}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens`
+- Classification: `USER_API`
+- Type kind: `interface`
+- Functional documentation: [docs/features/managed-test-state.md](../../features/managed-test-state.md)
+
+```java
+public abstract T get() throws java.lang.Exception
 ```

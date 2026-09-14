@@ -40,15 +40,23 @@ public final class TestLens {
     private final TestLensOptions options;
     private final Object finalizationLock = new Object();
     private final Map<UiTestLensSession, FacadeFinalization> finalizations = new IdentityHashMap<>();
+    private final Map<UiTestLensSession, ScenarioScope> scenarioScopes = new IdentityHashMap<>();
     private final FinalizationObserver finalizationObserver;
+    private final SuiteStateManager suiteState;
 
     private TestLens(WebDriver driver, TestLensOptions options) {
-        this(driver, options, ignored -> { });
+        this(driver, options, ignored -> { }, null);
     }
 
     TestLens(WebDriver driver, TestLensOptions options, FinalizationObserver finalizationObserver) {
+        this(driver, options, finalizationObserver, null);
+    }
+
+    TestLens(WebDriver driver, TestLensOptions options, FinalizationObserver finalizationObserver,
+             SuiteStateManager suiteState) {
         this.options = options == null ? TestLensOptions.defaults() : options;
         this.finalizationObserver = finalizationObserver == null ? ignored -> { } : finalizationObserver;
+        this.suiteState = suiteState;
         this.delegate = new JsOverlayDebug(driver, this.options.overlayConfig(), this.options.redactionPolicy(),
                 this.options.locatorOptions(), this.options.visualRedaction());
     }
@@ -61,6 +69,7 @@ public final class TestLens {
 
     public WebDriver driver() { return delegate.getDriver(); }
     public UiTestLensSession startSession(String name) {
+        closeTerminalReplacedScenario();
         UiTestLensSession session = delegate.startSession(name, options.retryOutcomePolicy(), options.allowedRetries(),
                 options.redactionPolicy());
         // Safe even before the first document exists; subsequent native events lazily reinject it.
@@ -69,7 +78,41 @@ public final class TestLens {
         }
         return session;
     }
+
+    private void closeTerminalReplacedScenario() {
+        UiTestLensSession previous = delegate.session().orElse(null);
+        if (previous == null) return;
+        ScenarioScope scope;
+        synchronized (finalizationLock) {
+            scope = scenarioScopes.get(previous);
+        }
+        if (scope == null) return;
+        if (previous.metadata().status() == TraceStatus.STARTED) {
+            throw new TestStateException("The active scenario must be finalized before another session starts");
+        }
+        Throwable failure = cleanupScenario(previous);
+        if (failure instanceof RuntimeException runtimeException) throw runtimeException;
+        if (failure != null) throw new TestStateException("Scenario resource cleanup failed", failure);
+    }
     public Optional<UiTestLensSession> session() { return delegate.session(); }
+
+    /** Returns typed state owned by the currently active physical test invocation. @since 0.3.0 */
+    public ScenarioStateManager scenarioState() { return currentScenarioScope().state(); }
+
+    /** Returns resources owned by the currently active physical test invocation. @since 0.3.0 */
+    public ScenarioResourceManager resources() { return currentScenarioScope().resources(); }
+
+    /**
+     * Returns state shared by this Lens's logical runner or manual run scope.
+     * @throws TestStateException when this Lens was not attached through a managed run scope
+     * @since 0.3.0
+     */
+    public SuiteStateManager suiteState() {
+        if (suiteState == null) {
+            throw new TestStateException("Suite state requires a runner-managed or explicit TestRunScope");
+        }
+        return suiteState;
+    }
     public RetrySummary retrySummary() {
         return delegate.session().map(UiTestLensSession::retrySummary)
                 .orElseGet(() -> new RetrySummary(0, java.time.Duration.ZERO, false,
@@ -274,6 +317,28 @@ public final class TestLens {
             }
         }
 
+        Throwable cleanupFailure = cleanupScenario(session);
+        if (cleanupFailure != null) {
+            diagnostics.add(cleanupFailure);
+            if (outcome == FinalizationOutcome.FAILED && originalFailure != null) {
+                addSuppressed(originalFailure, cleanupFailure);
+            } else if (predictedPolicyViolation != null) {
+                addSuppressed(predictedPolicyViolation, cleanupFailure);
+            } else {
+                outcome = FinalizationOutcome.FAILED;
+                originalFailure = cleanupFailure;
+                failedOutcome = true;
+                if (options.failureBundleOptions().enabled()) {
+                    bundle = new FailureBundleCapture(driver(), delegate, session, options, directory);
+                    screenshotPath = bundle.captureDiagnosticScreenshot(options.screenshotOnFailure());
+                    bundle.captureCleanScreenshot(options.screenshotOnFailure());
+                    bundle.captureRemaining(cleanupFailure, false);
+                } else if (options.screenshotOnFailure()) {
+                    screenshotPath = captureLegacyFailureScreenshot(directory, diagnostics);
+                }
+            }
+        }
+
         try {
             observe(FinalizationStage.NETWORK_STOP);
             delegate.stopNetworkDiagnostics();
@@ -327,7 +392,49 @@ public final class TestLens {
             });
             return new FinalizationCompletion(result, finalPolicyViolation);
         }
+        if (cleanupFailure != null && request.outcome() != FinalizationOutcome.FAILED) {
+            return new FinalizationCompletion(result, cleanupFailure);
+        }
         return new FinalizationCompletion(result, null);
+    }
+
+    private ScenarioScope currentScenarioScope() {
+        UiTestLensSession current = delegate.session()
+                .orElseThrow(() -> new TestStateException("No active Test Lens scenario session"));
+        if (current.metadata().status() != TraceStatus.STARTED) {
+            throw new TestStateException("Scenario state scope is closed");
+        }
+        synchronized (finalizationLock) {
+            return scenarioScopes.computeIfAbsent(current, ignored -> new ScenarioScope());
+        }
+    }
+
+    private Throwable cleanupScenario(UiTestLensSession session) {
+        observe(FinalizationStage.RESOURCE_CLEANUP);
+        ScenarioScope scope;
+        synchronized (finalizationLock) {
+            scope = scenarioScopes.get(session);
+        }
+        if (scope == null) return null;
+        List<Throwable> failures;
+        try {
+            failures = scope.close();
+        } finally {
+            synchronized (finalizationLock) {
+                if (scenarioScopes.get(session) == scope) scenarioScopes.remove(session);
+            }
+        }
+        if (failures.isEmpty()) return null;
+        TestStateException aggregate = new TestStateException("One or more scenario resources could not be cleaned",
+                failures.get(0));
+        for (int index = 1; index < failures.size(); index++) aggregate.addSuppressed(failures.get(index));
+        return aggregate;
+    }
+
+    private static void addSuppressed(Throwable primary, Throwable secondary) {
+        if (primary == secondary) return;
+        for (Throwable existing : primary.getSuppressed()) if (existing == secondary) return;
+        primary.addSuppressed(secondary);
     }
 
     private void observe(FinalizationStage stage) {
@@ -386,6 +493,7 @@ public final class TestLens {
 
     enum FinalizationStage {
         FAILURE_EVIDENCE,
+        RESOURCE_CLEANUP,
         NETWORK_STOP,
         SESSION_FINISH,
         JSON_EXPORT,

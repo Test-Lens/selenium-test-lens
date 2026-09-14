@@ -59,5 +59,6 @@ public default java.lang.String sessionName(org.testng.ITestResult)
 ```java
 public io.github.testlens.testng.TestLensTestNgListener()
 public void beforeInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
+public void onFinish(org.testng.ISuite)
 public void afterInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
 ```

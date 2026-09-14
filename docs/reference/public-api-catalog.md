@@ -7,7 +7,7 @@ search:
 
 This generated catalog is the optional binary-surface reference for every published public type, constructor, method, and field. Start with [Capabilities](../capabilities.md) and the functional navigation for behavior, workflows, and examples. Internal-style types appear only because Java consumers can currently access them.
 
-Inventory: **260 public types** and **2011 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
+Inventory: **267 public types** and **2040 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
 
 Classifications: USER_API is the normal consumer path; ADVANCED_API is supported specialized functionality; LOW_LEVEL_API exposes lower abstractions; INTERNAL_STYLE_PUBLIC is binary-public implementation surface and is not recommended for application code.
 
@@ -110,11 +110,18 @@ Signature details are split by published artifact and Java package to keep indiv
 | io.github.testlens.JsOverlayDebug$SoftAssertions | io.github.testlens | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-jsoverlaydebug-softassertions) |
 | io.github.testlens.JsOverlayDebug | io.github.testlens | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-jsoverlaydebug) |
 | io.github.testlens.OverlayWait | io.github.testlens | LOW_LEVEL_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-overlaywait) |
+| io.github.testlens.ScenarioResourceManager | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-scenarioresourcemanager) |
+| io.github.testlens.ScenarioStateManager | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-scenariostatemanager) |
+| io.github.testlens.SuiteStateManager | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-suitestatemanager) |
 | io.github.testlens.TestLens | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-testlens) |
 | io.github.testlens.TestLensAlert | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-testlensalert) |
 | io.github.testlens.TestLensFinalizationResult | io.github.testlens | USER_API | record | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-testlensfinalizationresult) |
 | io.github.testlens.TestLensOptions$Builder | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-testlensoptions-builder) |
 | io.github.testlens.TestLensOptions | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-testlensoptions) |
+| io.github.testlens.TestRunScope | io.github.testlens | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-testrunscope) |
+| io.github.testlens.TestStateException | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-teststateexception) |
+| io.github.testlens.ThrowingConsumer | io.github.testlens | USER_API | interface | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-throwingconsumer) |
+| io.github.testlens.ThrowingSupplier | io.github.testlens | USER_API | interface | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-throwingsupplier) |
 | io.github.testlens.actions.AssertActions$OverlayAssertionResult | io.github.testlens.actions | LOW_LEVEL_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-actions.md#io-github-testlens-actions-assertactions-overlayassertionresult) |
 | io.github.testlens.actions.AssertActions | io.github.testlens.actions | LOW_LEVEL_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-actions.md#io-github-testlens-actions-assertactions) |
 | io.github.testlens.actions.HighlightActions | io.github.testlens.actions | LOW_LEVEL_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-actions.md#io-github-testlens-actions-highlightactions) |

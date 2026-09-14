@@ -378,7 +378,7 @@ class TestLensTest {
                 assertSame(first, second, "iteration " + iteration);
                 assertEquals(TraceStatus.PASSED, session.metadata().status());
                 assertEquals(1, finishedEvents(session).size());
-                assertEquals(4, pipelineCalls.get(), "network, session, JSON and HTML stages");
+                assertEquals(5, pipelineCalls.get(), "resource cleanup, network, session, JSON and HTML stages");
             }
         } finally {
             executor.shutdownNow();

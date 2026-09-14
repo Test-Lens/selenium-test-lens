@@ -2,18 +2,22 @@ package io.github.testlens.testng;
 
 import io.github.testlens.TestLens;
 import io.github.testlens.TestLensOptions;
+import io.github.testlens.TestRunScope;
 import io.github.testlens.core.trace.UiTestLensSession;
 import org.openqa.selenium.WebDriver;
 import org.testng.IInvokedMethod;
 import org.testng.IInvokedMethodListener;
 import org.testng.ITestResult;
+import org.testng.ISuite;
+import org.testng.ISuiteListener;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 
 /** Owns and finalizes one WebDriver, Lens, and session for every physical TestNG invocation. */
-public final class TestLensTestNgListener implements IInvokedMethodListener {
+public final class TestLensTestNgListener implements IInvokedMethodListener, ISuiteListener {
     static final String STATE_ATTRIBUTE = "io.github.testlens.testng.invocation-state";
+    static final String SUITE_SCOPE_ATTRIBUTE = "io.github.testlens.testng.run-scope";
     private static final String SKIPPED_REASON_FALLBACK = "Test skipped by TestNG";
 
     /** Creates a listener suitable for explicit registration with {@code @Listeners}. */
@@ -38,7 +42,7 @@ public final class TestLensTestNgListener implements IInvokedMethodListener {
                     "TestLensTestNgFactory.createDriver() returned null");
             TestLensOptions options = Objects.requireNonNull(factory.lensOptions(),
                     "TestLensTestNgFactory.lensOptions() returned null");
-            TestLens lens = TestLens.attach(driver, options);
+            TestLens lens = suiteScope(result.getTestContext().getSuite()).attach(driver, options);
             String sessionName = Objects.requireNonNull(factory.sessionName(result),
                     "TestLensTestNgFactory.sessionName() returned null");
             UiTestLensSession session = lens.startSession(sessionName);
@@ -54,6 +58,27 @@ public final class TestLensTestNgListener implements IInvokedMethodListener {
             result.setStatus(ITestResult.FAILURE);
             result.setThrowable(setupFailure);
             rethrow(setupFailure);
+        }
+    }
+
+    @Override
+    public void onFinish(ISuite suite) {
+        SuiteScopeHolder holder;
+        synchronized (suite) {
+            Object stored = suite.getAttribute(SUITE_SCOPE_ATTRIBUTE);
+            holder = stored instanceof SuiteScopeHolder found ? found : null;
+            suite.removeAttribute(SUITE_SCOPE_ATTRIBUTE);
+        }
+        if (holder != null) holder.close();
+    }
+
+    private static TestRunScope suiteScope(ISuite suite) {
+        synchronized (suite) {
+            Object stored = suite.getAttribute(SUITE_SCOPE_ATTRIBUTE);
+            if (stored instanceof SuiteScopeHolder holder) return holder.scope;
+            SuiteScopeHolder created = new SuiteScopeHolder();
+            suite.setAttribute(SUITE_SCOPE_ATTRIBUTE, created);
+            return created.scope;
         }
     }
 
@@ -187,5 +212,10 @@ public final class TestLensTestNgListener implements IInvokedMethodListener {
         TestLensTestNgContext context() {
             return context;
         }
+    }
+
+    private static final class SuiteScopeHolder {
+        private final TestRunScope scope = TestRunScope.open();
+        private synchronized void close() { scope.close(); }
     }
 }

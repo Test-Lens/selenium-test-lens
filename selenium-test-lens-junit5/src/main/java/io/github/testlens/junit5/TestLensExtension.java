@@ -2,6 +2,7 @@ package io.github.testlens.junit5;
 
 import io.github.testlens.TestLens;
 import io.github.testlens.TestLensOptions;
+import io.github.testlens.TestRunScope;
 import io.github.testlens.core.trace.UiTestLensSession;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -27,6 +28,8 @@ public final class TestLensExtension
         implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
     private static final String STATE_KEY_PREFIX = "test-lens-invocation:";
     private static final String ABORTED_REASON_FALLBACK = "Test aborted by JUnit 5";
+    private static final ExtensionContext.Namespace RUN_SCOPE_NAMESPACE =
+            ExtensionContext.Namespace.create(TestLensExtension.class, "run-scope");
 
     private final Supplier<? extends WebDriver> driverFactory;
     private final TestLensOptions lensOptions;
@@ -55,7 +58,7 @@ public final class TestLensExtension
         WebDriver driver = Objects.requireNonNull(driverFactory.get(),
                 "TestLensExtension driverFactory returned null");
         try {
-            TestLens lens = TestLens.attach(driver, lensOptions);
+            TestLens lens = runScope(context).attach(driver, lensOptions);
             String sessionName = Objects.requireNonNull(sessionNameFactory.apply(context),
                     "TestLensExtension session name function returned null");
             UiTestLensSession session = lens.startSession(sessionName);
@@ -140,6 +143,12 @@ public final class TestLensExtension
 
     private ExtensionContext.Store store(ExtensionContext context) {
         return context.getStore(namespace);
+    }
+
+    private TestRunScope runScope(ExtensionContext context) {
+        RunScopeResource resource = context.getRoot().getStore(RUN_SCOPE_NAMESPACE)
+                .getOrComputeIfAbsent(RunScopeResource.class, ignored -> new RunScopeResource(), RunScopeResource.class);
+        return resource.scope;
     }
 
     private static String stateKey(ExtensionContext context) {
@@ -247,6 +256,15 @@ public final class TestLensExtension
             }
             quit = true;
             driver.quit();
+        }
+    }
+
+    private static final class RunScopeResource implements ExtensionContext.Store.CloseableResource {
+        private final TestRunScope scope = TestRunScope.open();
+
+        @Override
+        public void close() {
+            scope.close();
         }
     }
 }
