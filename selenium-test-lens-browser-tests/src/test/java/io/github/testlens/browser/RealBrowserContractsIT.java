@@ -751,7 +751,7 @@ class RealBrowserContractsIT {
                 """);
 
         assertTrue(layout.get("headerFont").toString().contains("ui-monospace"), layout.toString());
-        assertTrue(layout.get("stepFont").toString().contains("Inter"), layout.toString());
+        assertTrue(layout.get("stepFont").toString().contains("Test Lens Sora"), layout.toString());
         assertTrue(layout.get("metaFont").toString().contains("ui-monospace"), layout.toString());
         assertTrue(layout.get("eventFont").toString().contains("system-ui"), layout.toString());
         assertTrue(((Number) layout.get("railWidth")).doubleValue() <= 16.5, layout.toString());
@@ -791,6 +791,86 @@ class RealBrowserContractsIT {
         Map<String, Object> restoredMetrics = hudHeaderMetrics(620);
         restoredMetrics.put("resizeSettle", wideResize);
         assertAutoHeaderMatchesAvailableWidth(restoredMetrics);
+        lens.finishPassed();
+    }
+
+    @Test
+    void bundledUiFontLoadsOnceAndIsSharedByHudAndHighlightLabels() {
+        open("/clicks");
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+                .hud(HudOptions.builder().fontPreset(HudFontPreset.UI_SANS).build()).build());
+        lens.startSession("bundled-font-contract");
+        lens.step("Observe order request", () -> { });
+        JsOverlayDebug overlay = overlay(true);
+        overlay.highlightClick(driver.findElement(By.id("count-button")), "SHARED TYPE");
+        overlay.highlightClick(driver.findElement(By.id("count-button")), "SECOND LABEL");
+
+        assertTrue(await(scriptBoolean("""
+                return window.__uiTestLens.state.typography.status === 'loaded'
+                  && document.fonts.check('400 10px "Test Lens Sora"');
+                """)));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> metrics = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const panel=root.querySelector('#selenium-hud-panel');
+                const label=root.querySelector('.selenium-overlay-highlight-badge');
+                const canvas=document.createElement('canvas'), context=canvas.getContext('2d');
+                const width=(text,font)=>{context.font=font;return context.measureText(text).width;};
+                let faces=0;
+                document.fonts.forEach(face=>{if(face.family.replaceAll('"','')==='Test Lens Sora')faces++;});
+                return {hudFont:getComputedStyle(panel).fontFamily,
+                  labelFont:getComputedStyle(label).fontFamily,
+                  status:panel.dataset.testLensFontStatus,
+                  typographyStyles:root.querySelectorAll('style[data-test-lens-visual-typography]').length,
+                  faces:faces,
+                  testSoraWidth:width('bundled-font-contract','400 10px "Test Lens Sora"'),
+                  testSystemWidth:width('bundled-font-contract','400 10px system-ui'),
+                  stepSoraWidth:width('Observe order request','400 10px "Test Lens Sora"'),
+                  stepSystemWidth:width('Observe order request','400 10px system-ui')};
+                """);
+        assertTrue(metrics.get("hudFont").toString().contains("Test Lens Sora"), metrics.toString());
+        assertTrue(metrics.get("labelFont").toString().contains("Test Lens Sora"), metrics.toString());
+        assertEquals("loaded", metrics.get("status"));
+        assertEquals(1L, ((Number) metrics.get("typographyStyles")).longValue());
+        assertEquals(1L, ((Number) metrics.get("faces")).longValue());
+        System.out.printf("HUD_FONT_METRICS test Sora=%.3f system=%.3f; step Sora=%.3f system=%.3f%n",
+                metric(metrics, "testSoraWidth"), metric(metrics, "testSystemWidth"),
+                metric(metrics, "stepSoraWidth"), metric(metrics, "stepSystemWidth"));
+        lens.finishPassed();
+    }
+
+    @Test
+    void autoHeaderReflowsAfterDelayedFontReadinessAndStillRespondsToResize() {
+        open("/clicks");
+        ((JavascriptExecutor) driver).executeScript("""
+                window.__testLensNativeFontLoad = FontFace.prototype.load;
+                FontFace.prototype.load = function() {
+                  const face=this, nativeLoad=window.__testLensNativeFontLoad;
+                  return new Promise((resolve,reject)=>setTimeout(()=>nativeLoad.call(face).then(resolve,reject),1500));
+                };
+                """);
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(HudOptions.builder()
+                .widthPx(620).headerLayout(HudHeaderLayout.AUTO).fontPreset(HudFontPreset.UI_SANS).build()).build());
+        lens.startSession("Checkout creates an order for a returning customer");
+        lens.step("Observe order request", () -> { });
+        assertTrue(await(hudPresent()));
+        assertEquals("loading", ((JavascriptExecutor) driver).executeScript(
+                "return window.__uiTestLens.state.typography.status"));
+
+        assertTrue(await(scriptBoolean("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const panel=root.querySelector('#selenium-hud-panel');
+                return window.__uiTestLens.state.typography.status==='loaded'
+                  && Number(panel.dataset.testLensFontReflow||0)>=1
+                  && document.fonts.check('400 10px "Test Lens Sora"');
+                """)));
+        Map<String, Object> loadedMetrics = hudHeaderMetrics(620);
+        assertAutoHeaderMatchesAvailableWidth(loadedMetrics);
+        driver.manage().window().setSize(new org.openqa.selenium.Dimension(390, 844));
+        Map<String, Object> resized = awaitHudResize(390, 844, 620, loadedMetrics, true);
+        assertTrue(metric(resized, "panelWidth") < metric(loadedMetrics, "panelWidth"), resized.toString());
+        ((JavascriptExecutor) driver).executeScript(
+                "FontFace.prototype.load=window.__testLensNativeFontLoad;delete window.__testLensNativeFontLoad");
         lens.finishPassed();
     }
 
@@ -1135,6 +1215,18 @@ class RealBrowserContractsIT {
 
         awaitClickCount(1);
         assertClickCounts(1);
+        assertTrue(await(highlightPresent()));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> typography = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const badge=root.querySelector('.selenium-overlay-highlight-badge');
+                return {font:getComputedStyle(badge).fontFamily,
+                  status:window.__uiTestLens.state.typography.status};
+                """);
+        String cspFont = typography.get("font").toString();
+        assertTrue(cspFont.contains("Test Lens Sora") || cspFont.contains("sans-serif"), typography.toString());
+        assertTrue(Set.of("loading", "loaded", "timeout", "failed", "unsupported")
+                .contains(typography.get("status").toString()), typography.toString());
     }
 
     @Test
@@ -1512,6 +1604,39 @@ class RealBrowserContractsIT {
             assertTrue(pngs.stream().anyMatch(bytes -> java.util.Arrays.equals(bytes, diagnosticBytes)));
             assertTrue(pngs.stream().anyMatch(bytes -> java.util.Arrays.equals(bytes, cleanBytes)));
         }
+    }
+
+    @Test
+    void visualRedactionLabelUsesSharedTypographyWithoutOwningMaskGeometry() {
+        open("/visual-redaction");
+        ((JavascriptExecutor) driver).executeScript("""
+                window.__visualMaskLabelFont = null;
+                window.__visualMaskLabelObserver = new MutationObserver(() => {
+                  const mask=document.querySelector('[data-test-lens-visual-mask]');
+                  if(mask && mask.textContent==='REDACTED') {
+                    window.__visualMaskLabelFont=getComputedStyle(mask).fontFamily;
+                  }
+                });
+                window.__visualMaskLabelObserver.observe(document.body,{childList:true,subtree:true});
+                """);
+        Path output = Path.of("target", "ui-test-lens", browserName(), "visual-redaction-font-" + UUID.randomUUID());
+        VisualRedactionOptions visual = VisualRedactionOptions.builder()
+                .maskPasswordInputs(false)
+                .mask(By.id("customer-number"), VisualMaskMode.SOLID)
+                .maskLabel("REDACTED")
+                .failurePolicy(VisualRedactionFailurePolicy.STRICT)
+                .build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+                .visualRedaction(visual).outputRoot(output).build());
+        ScreenshotCaptureResult capture = lens.captureScreenshot("redaction-label-font",
+                ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false).build());
+        assertTrue(capture.isCaptured(), capture.message());
+        assertTrue(await(scriptBoolean("return !!window.__visualMaskLabelFont")));
+        String font = String.valueOf(((JavascriptExecutor) driver)
+                .executeScript("return window.__visualMaskLabelFont"));
+        assertTrue(font.contains("Test Lens Sora"), font);
+        assertEquals(0L, number("return document.querySelectorAll('[data-test-lens-visual-mask]').length"));
+        ((JavascriptExecutor) driver).executeScript("window.__visualMaskLabelObserver.disconnect()");
     }
 
     @Test

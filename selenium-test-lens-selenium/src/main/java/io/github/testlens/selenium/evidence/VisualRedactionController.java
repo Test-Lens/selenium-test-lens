@@ -1,12 +1,16 @@
 package io.github.testlens.selenium.evidence;
 
+import io.github.testlens.utils.JsResources;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,6 +121,7 @@ final class VisualRedactionController {
     private BatchResult installAndVerify(JavascriptExecutor js, ResolvedBatch resolved, int attempt) {
         // One command installs the complete batch, crosses the paint barrier, and verifies every mask.
         installed = true;
+        ensureVisualTypography(js);
         Object value = js.executeAsyncScript(APPLY_AND_VERIFY_SCRIPT, batchId, attempt,
                 resolved.elements(), resolved.modes(), options.solidColor(), options.blurRadiusPx(),
                 options.paddingPx(), options.maskLabel(), GEOMETRY_TOLERANCE_CSS_PX);
@@ -212,6 +217,9 @@ final class VisualRedactionController {
             const batchId = arguments[0], attempt = arguments[1], elements = arguments[2], modes = arguments[3];
             const color = arguments[4], blur = arguments[5], padding = arguments[6], label = arguments[7];
             const tolerance = arguments[8], done = arguments[arguments.length - 1];
+            const typography = window.__uiTestLens && window.__uiTestLens.modules.visualTypography;
+            const uiFont = typography ? typography.uiStack
+              : '"Test Lens Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
             const selector = '[data-test-lens-visual-mask-batch="' + CSS.escape(batchId) + '"]';
             document.querySelectorAll(selector).forEach(node => node.remove());
             const host = document.body || document.documentElement;
@@ -271,7 +279,10 @@ final class VisualRedactionController {
               if (label && (!wantsBlur || !supportsBlur)) {
                 mask.textContent = label;
                 style.setProperty('color', '#FFFFFF', 'important');
-                style.setProperty('font', '600 11px/1 sans-serif', 'important');
+                style.setProperty('font-family', uiFont, 'important');
+                style.setProperty('font-size', '11px', 'important');
+                style.setProperty('font-weight', '600', 'important');
+                style.setProperty('line-height', '1', 'important');
                 style.setProperty('letter-spacing', '0.08em', 'important');
               }
               container.appendChild(mask);
@@ -321,6 +332,34 @@ final class VisualRedactionController {
               done({batchId, installed: records.length, verified, statuses, blurFallback});
             }));
             """;
+
+    private static final String TYPOGRAPHY_PROBE = """
+            return !!(window.__uiTestLens && window.__uiTestLens.modules
+              && window.__uiTestLens.modules.visualTypography
+              && window.__uiTestLens.state.typography.loadPromise);
+            """;
+
+    private static void ensureVisualTypography(JavascriptExecutor js) {
+        try {
+            if (!Boolean.TRUE.equals(js.executeScript(TYPOGRAPHY_PROBE))) {
+                js.executeScript(visualTypographyInit());
+            }
+        } catch (RuntimeException ignored) {
+            // Typography is presentation-only; masking and STRICT verification must still run.
+        }
+    }
+
+    private static String visualTypographyInit() {
+        String fontPath = "uitestlens/runtime/fonts/Sora-wght.woff2";
+        try (InputStream input = VisualRedactionController.class.getClassLoader().getResourceAsStream(fontPath)) {
+            if (input == null) throw new IllegalArgumentException("Font resource not found: " + fontPath);
+            return JsResources.load("uitestlens/runtime/visual-typography.js")
+                    + "window.__uiTestLens.modules.visualTypography.installBase64('"
+                    + Base64.getEncoder().encodeToString(input.readAllBytes()) + "');";
+        } catch (IOException failure) {
+            throw new IllegalStateException("Failed to load font resource: " + fontPath, failure);
+        }
+    }
 
     private static final String REMOVE_SCRIPT = """
             const batchId = arguments[0];

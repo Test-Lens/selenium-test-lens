@@ -36,6 +36,9 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("ensureScrollbarStyles"));
         assertTrue(HudPanelJs.INIT.contains("scrollbar-color"));
         assertTrue(HudPanelJs.INIT.contains("::-webkit-scrollbar-thumb:hover"));
+        assertTrue(HudPanelJs.INIT.contains("data-test-lens-font-status"));
+        assertTrue(HudPanelJs.INIT.contains("data-test-lens-font-reflow"));
+        assertTrue(HudPanelJs.INIT.contains("sharedTypography.subscribe"));
     }
 
     @Test
@@ -60,7 +63,6 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("<svg class=\"stl-hud-brand-icon-svg\" width=\"14\" height=\"14\""));
         assertTrue(HudPanelJs.INIT.contains("configureBrandContent(railBrand, config, false)"));
         assertFalse(HudPanelJs.INIT.contains("Selenium/WebDriver"));
-        assertFalse(HudPanelJs.INIT.contains("Test Lens"));
     }
 
     @Test
@@ -361,8 +363,10 @@ class HudPanelJsTest {
                 assert(root.querySelector('#selenium-hud-panel').style['--ui-test-lens-hud-font-size'] === '12px', 'base font size missing');
                 assert(root.querySelector('#selenium-hud-panel').style['--ui-test-lens-hud-header-font-size'] === '9px', 'header font size missing');
                 assert(root.querySelector('#selenium-hud-panel').style['--ui-test-lens-hud-header-font-family'].indexOf('system-ui') >= 0, 'header override missing');
+                assert(root.querySelector('#selenium-hud-panel').style['--ui-test-lens-hud-header-font-family'].indexOf('Test Lens Sora') < 0, 'SYSTEM header forced the UI font');
                 assert(root.querySelector('#selenium-hud-panel').style['--ui-test-lens-hud-step-font-family'].indexOf('ui-monospace') >= 0, 'step did not inherit global font');
-                assert(root.querySelector('#selenium-hud-panel').style['--ui-test-lens-hud-event-font-family'].indexOf('Inter') >= 0, 'event override missing');
+                assert(root.querySelector('#selenium-hud-panel').style['--ui-test-lens-hud-step-font-family'].indexOf('Test Lens Sora') < 0, 'MONOSPACE step forced the UI font');
+                assert(root.querySelector('#selenium-hud-panel').style['--ui-test-lens-hud-event-font-family'].indexOf('Test Lens Sora') >= 0, 'event override missing');
                 assert(root.querySelector('#selenium-hud-logs').className.indexOf('stl-hud-scrollbar-standard') >= 0, 'standard scrollbar class missing');
                 assert(root.querySelector('#selenium-hud-logs').style['--ui-test-lens-scrollbar-width'] === '8px', 'custom scrollbar width missing');
                 assert(root.querySelector('#selenium-hud-logs').style['--ui-test-lens-scrollbar-track'] === '#010203', 'custom scrollbar track missing');

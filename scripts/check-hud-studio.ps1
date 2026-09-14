@@ -15,7 +15,7 @@ if ($html -match '(?i)(?:src|href)\s*=\s*["''](?:https?:)?//') { throw "HUD Stud
 if ($html -notmatch 'sandbox=["'']allow-scripts["'']') { throw "HUD Studio preview must use the minimal allow-scripts sandbox." }
 
 $previewHtml = [IO.File]::ReadAllText((Join-Path $source "preview.html"))
-foreach ($asset in @("runtime/hud-panel.js", "runtime/highlight.js", "preview.js", "preview.css")) {
+foreach ($asset in @("runtime/visual-typography.js", "runtime/hud-panel.js", "runtime/highlight.js", "preview.js", "preview.css")) {
     if (-not $previewHtml.Contains($asset)) { throw "HUD Studio preview does not use required relative asset: $asset" }
 }
 
@@ -58,7 +58,7 @@ if ($LASTEXITCODE -ne 0) { throw "HUD Studio behavior validation failed." }
 
 if (-not [string]::IsNullOrWhiteSpace($SiteDirectory)) {
     $site = (Resolve-Path -LiteralPath $SiteDirectory).Path
-    foreach ($name in @("hud-panel.js", "highlight.js", "scroll-arrow.js")) {
+    foreach ($name in @("visual-typography.js", "fonts/Sora-wght.woff2", "hud-panel.js", "highlight.js", "scroll-arrow.js")) {
         $built = Join-Path $site "demo/hud-studio/runtime/$name"
         if (-not (Test-Path -LiteralPath $built -PathType Leaf)) { throw "Built HUD Studio renderer is missing: $name" }
         if ((Get-FileHash $built -Algorithm SHA256).Hash -ne (Get-FileHash (Join-Path $runtime $name) -Algorithm SHA256).Hash) {

@@ -17,6 +17,9 @@ class HighlightJsTest {
         assertTrue(HighlightJs.INIT.contains("ancestor: ancestor"));
         assertTrue(HighlightJs.INIT.contains("closest: closest"));
         assertTrue(HighlightJs.INIT.contains("clear: clear"));
+        assertTrue(HighlightJs.INIT.contains("--ui-test-lens-font-family"));
+        assertTrue(HighlightJs.INIT.contains("Test Lens Sora"));
+        assertFalse(HighlightJs.INIT.contains("font-family:Arial"));
     }
 
     @Test

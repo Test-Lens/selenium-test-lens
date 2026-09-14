@@ -51,13 +51,15 @@
       return;
     }
 
+    var typography = lens.modules.visualTypography;
+    if (typography) typography.ensureRoot(root);
     var style = document.createElement('style');
     style.id = 'selenium-api-modal-style';
     style.textContent = ''
       + '#selenium-api-modal{position:fixed;right:18px;bottom:18px;z-index:2147483647;'
       + 'width:min(760px,calc(100vw - 36px));max-height:min(720px,calc(100vh - 36px));'
       + 'overflow:auto;background:#101317;color:#f3f4f6;border:1px solid #374151;'
-      + 'box-shadow:0 18px 48px rgba(0,0,0,.35);font:12px/1.45 Arial,sans-serif;'
+      + 'box-shadow:0 18px 48px rgba(0,0,0,.35);font:12px/1.45 var(--ui-test-lens-font-family,"Test Lens Sora",system-ui,sans-serif);'
       + 'border-radius:8px;padding:12px;}'
       + '#selenium-api-modal[data-filtered="true"]{border-color:#38bdf8;}'
       + '#selenium-api-modal .utl-api-head{display:flex;justify-content:space-between;gap:12px;'

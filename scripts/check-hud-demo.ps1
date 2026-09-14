@@ -12,7 +12,7 @@ $runtimeSource = if ([string]::IsNullOrWhiteSpace($RuntimeSourceDirectory)) {
 } else {
     (Resolve-Path -LiteralPath $RuntimeSourceDirectory).Path
 }
-$runtimeFiles = @("hud-panel.js", "highlight.js", "scroll-arrow.js")
+$runtimeFiles = @("visual-typography.js", "fonts/Sora-wght.woff2", "hud-panel.js", "highlight.js", "scroll-arrow.js")
 
 function Require-File {
     param([Parameter(Mandatory=$true)][string]$Path)
@@ -53,10 +53,15 @@ if (-not $homepage.Contains("Open the standalone HUD demo")) {
 }
 
 $demoHtml = [IO.File]::ReadAllText((Join-Path $demoSource "index.html"))
-foreach ($asset in @("demo.css", "demo.js", "runtime/hud-panel.js", "runtime/highlight.js", "runtime/scroll-arrow.js")) {
+foreach ($asset in @("demo.css", "demo.js", "runtime/visual-typography.js", "runtime/hud-panel.js", "runtime/highlight.js", "runtime/scroll-arrow.js")) {
     if (-not $demoHtml.Contains($asset)) {
         throw "HUD demo HTML does not reference relative asset '$asset'."
     }
+}
+
+$typographyJs = [IO.File]::ReadAllText((Join-Path $runtimeSource "visual-typography.js"))
+if (-not $typographyJs.Contains("fonts/Sora-wght.woff2") -or $typographyJs -match '(?i)https?://') {
+    throw "The shared visual typography runtime must load only the bundled relative Sora asset."
 }
 if ($demoHtml -match '(?i)(?:src|href)\s*=\s*["''](?:https?:)?//') {
     throw "HUD demo HTML must not load external assets."

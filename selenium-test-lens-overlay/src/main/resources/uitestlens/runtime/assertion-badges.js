@@ -58,6 +58,8 @@
     if (!shadow) {
       return;
     }
+    var typography = lens.modules.visualTypography;
+    if (typography) typography.ensureRoot(shadow);
 
     var container = target.__seleniumAssertContainer;
     if (!container) {
@@ -87,6 +89,7 @@
     badge.style.left = '0';
     badge.style.padding = '2px 6px';
     badge.style.fontSize = '10px';
+    badge.style.fontFamily = 'var(--ui-test-lens-font-family, "Test Lens Sora", system-ui, sans-serif)';
     badge.style.background = color;
     badge.style.color = '#fff';
     badge.style.borderRadius = '3px';

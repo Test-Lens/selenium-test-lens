@@ -6,6 +6,6 @@ public enum HudFontPreset {
     SYSTEM,
     /** Native monospace fonts. */
     MONOSPACE,
-    /** Compact UI sans-serif stack with local fallbacks only. */
+    /** Test Lens UI-oriented sans-serif stack with local fallbacks only. */
     UI_SANS
 }

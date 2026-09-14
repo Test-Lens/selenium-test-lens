@@ -1,7 +1,13 @@
 package io.github.testlens.core;
 
+import io.github.testlens.OverlayConfig;
+import io.github.testlens.core.browser.BrowserScriptExecutor;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OverlayRootManagerTest {
@@ -43,6 +49,25 @@ class OverlayRootManagerTest {
         assertTrue(script.contains("var overlayState = window.__uiTestLens.state.overlay"));
         assertTrue(script.contains("var shadow = overlayState.root || window.__seleniumOverlayRoot"));
         assertTrue(script.contains("window.__seleniumOverlayRoot = overlayState.root"));
+    }
+
+    @Test
+    void repeatedRootEnsureTransfersFontPayloadOnlyOncePerDocument() {
+        List<String> scripts = new ArrayList<>();
+        BrowserScriptExecutor executor = (script, args) -> {
+            scripts.add(script);
+            if (script.contains("return !!(window.__uiTestLens.modules.visualTypography")) {
+                return scripts.stream().anyMatch(value -> value.contains("installBase64"));
+            }
+            return null;
+        };
+        OverlayRootManager manager = new OverlayRootManager(executor, OverlayConfig.builder().build());
+
+        manager.ensureRootExists();
+        manager.ensureRootExists();
+
+        assertEquals(1, scripts.stream().filter(value -> value.contains("installBase64")).count());
+        assertEquals(2, scripts.stream().filter(value -> value.contains("return !!(window.__uiTestLens.modules.visualTypography")).count());
     }
 }
 

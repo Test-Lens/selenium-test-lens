@@ -68,6 +68,7 @@ class VisualRedactionCaptureTest {
         assertTrue(capture(success, VisualRedactionOptions.defaults(), "success").isCaptured());
         assertEquals(1, success.applyCalls);
         assertEquals(1, success.removeCalls);
+        assertEquals(1, success.typographyInstallCalls);
 
         MaskDriver failure = new MaskDriver(true, false, true);
         ScreenshotCaptureResult result = capture(failure, VisualRedactionOptions.defaults(), "failure");
@@ -143,6 +144,20 @@ class VisualRedactionCaptureTest {
     }
 
     @Test
+    void typographyInstallFailureDoesNotBlockVerifiedRedaction() {
+        BatchDriver driver = new BatchDriver(1, List.of(replies(1, "VERIFIED")));
+        driver.failTypographyInstall = true;
+        VisualRedactionOptions masks = VisualRedactionOptions.builder().maskPasswordInputs(false)
+                .mask(By.id("secret"), VisualMaskMode.SOLID).maskLabel("REDACTED").build();
+
+        ScreenshotCaptureResult result = capture(driver, masks, "font-failure");
+
+        assertTrue(result.isCaptured(), result.message());
+        assertEquals(1, driver.applyCalls);
+        assertEquals(1, driver.removeCalls);
+    }
+
+    @Test
     void geometryMismatchRetriesTheWholeBatchAndCleansOldBatch() {
         BatchDriver driver = new BatchDriver(2, List.of(
                 replies("VERIFIED", "RECT_MISMATCH"), replies(2, "VERIFIED")));
@@ -213,7 +228,8 @@ class VisualRedactionCaptureTest {
         private final boolean staleApply;
         private final boolean blurFallback;
         private final boolean confirmed;
-        int applyCalls, removeCalls, screenshotCalls;
+        int applyCalls, removeCalls, screenshotCalls, typographyInstallCalls;
+        boolean typographyInstalled, failTypographyInstall;
         MaskDriver(boolean failScreenshot) { this(failScreenshot, false, false, true); }
         MaskDriver(boolean failScreenshot, boolean staleApply) {
             this(failScreenshot, staleApply, false, true);
@@ -249,7 +265,19 @@ class VisualRedactionCaptureTest {
             return Map.of("batchId", args[0], "installed", confirmed ? count : 0,
                     "verified", confirmed ? count : 0, "statuses", statuses, "blurFallback", blurFallback);
         }
-        @Override public Object executeScript(String script, Object... args) { removeCalls++; return true; }
+        @Override public Object executeScript(String script, Object... args) {
+            if (script.contains("modules.visualTypography") && script.contains("return !!")) {
+                return typographyInstalled;
+            }
+            if (script.contains("installBase64")) {
+                if (failTypographyInstall) throw new IllegalStateException("controlled font install failure");
+                typographyInstalled = true;
+                typographyInstallCalls++;
+                return null;
+            }
+            removeCalls++;
+            return true;
+        }
         @Override public <X> X getScreenshotAs(OutputType<X> target) {
             screenshotCalls++;
             if (failScreenshot) throw new IllegalStateException("controlled screenshot failure");
@@ -280,7 +308,8 @@ class VisualRedactionCaptureTest {
         private final List<WebElement> elements;
         final List<Integer> batchSizes = new ArrayList<>();
         final List<String> batchIds = new ArrayList<>();
-        int applyCalls, removeCalls, resolveCalls, screenshotCalls, remainingMaskNodes;
+        int applyCalls, removeCalls, resolveCalls, screenshotCalls, remainingMaskNodes, typographyInstallCalls;
+        boolean typographyInstalled, failTypographyInstall;
 
         BatchDriver(int elementCount, List<Map<String, Object>> replies) {
             this.elementCount = elementCount;
@@ -307,6 +336,15 @@ class VisualRedactionCaptureTest {
             return reply;
         }
         @Override public Object executeScript(String script, Object... args) {
+            if (script.contains("modules.visualTypography") && script.contains("return !!")) {
+                return typographyInstalled;
+            }
+            if (script.contains("installBase64")) {
+                if (failTypographyInstall) throw new IllegalStateException("controlled font install failure");
+                typographyInstalled = true;
+                typographyInstallCalls++;
+                return null;
+            }
             removeCalls++;
             remainingMaskNodes = 0;
             return true;

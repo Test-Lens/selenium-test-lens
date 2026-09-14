@@ -64,6 +64,8 @@
     if (!root) {
       return false;
     }
+    var typography = lens.modules.visualTypography;
+    if (typography) typography.ensureRoot(root);
 
     var opts = options(rawOptions);
     var rect = element.getBoundingClientRect();
@@ -76,6 +78,7 @@
     hint.style.top = rect.top + 'px';
     hint.style.padding = '2px 6px';
     hint.style.fontSize = '10px';
+    hint.style.fontFamily = 'var(--ui-test-lens-font-family, "Test Lens Sora", system-ui, sans-serif)';
     hint.style.background = 'rgba(0,0,0,0.8)';
     hint.style.color = '#ffffff';
     hint.style.borderRadius = '3px';

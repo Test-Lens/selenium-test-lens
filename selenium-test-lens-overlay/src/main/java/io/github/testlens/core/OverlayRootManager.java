@@ -24,6 +24,7 @@ public class OverlayRootManager {
         }
 
         executor.execute(ensureRootScript());
+        VisualTypographyJs.ensureInstalled(executor);
     }
 
     public void clearAll() {

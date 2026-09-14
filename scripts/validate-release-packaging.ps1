@@ -39,6 +39,19 @@ foreach ($component in $components) {
         }
         $licenseCount = @(jar tf (Join-Path $component.Directory "target/$artifact-$Version.jar") | Where-Object { $_ -eq "META-INF/LICENSE" }).Count
         if ($licenseCount -ne 1) { throw "$artifact must contain exactly one META-INF/LICENSE; found $licenseCount" }
+        if ($artifact -eq "selenium-test-lens-overlay") {
+            $requiredTypographyAssets = @(
+                "uitestlens/runtime/visual-typography.js",
+                "uitestlens/runtime/fonts/Sora-wght.woff2",
+                "META-INF/licenses/OFL-Sora.txt"
+            )
+            $binaryEntries = @(jar tf (Join-Path $component.Directory "target/$artifact-$Version.jar"))
+            $sourceEntries = @(jar tf (Join-Path $component.Directory "target/$artifact-$Version-sources.jar"))
+            foreach ($entry in $requiredTypographyAssets) {
+                if ($entry -notin $binaryEntries) { throw "$artifact binary JAR is missing $entry" }
+                if ($entry -notin $sourceEntries) { throw "$artifact source JAR is missing $entry" }
+            }
+        }
     }
 }
 

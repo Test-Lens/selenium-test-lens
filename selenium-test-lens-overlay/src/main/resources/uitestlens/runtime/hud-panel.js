@@ -36,6 +36,10 @@
     return null;
   }
 
+  function visualTypography() {
+    return lens.modules.visualTypography || null;
+  }
+
   function valueOrDash(value) {
     return value || '-';
   }
@@ -67,7 +71,7 @@
     borderColor: 'rgba(148, 163, 184, 0.28)',
     borderRadiusPx: 10,
     fontSizePx: 12,
-    fontFamily: 'Inter, system-ui, sans-serif',
+    fontFamily: '"Test Lens Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     boxShadow: '0 16px 40px rgba(2, 6, 23, 0.34)',
     opacity: 1,
     paddingPx: 10,
@@ -93,11 +97,12 @@
   }
 
   function fontFamilyForPreset(fontPreset) {
+    var typography = visualTypography();
     return fontPreset === 'MONOSPACE'
-      ? 'ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace'
+      ? (typography ? typography.monospaceStack : 'ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace')
       : fontPreset === 'SYSTEM'
-        ? 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-        : 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ? (typography ? typography.systemStack : 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif')
+        : (typography ? typography.uiStack : '"Test Lens Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif');
   }
 
   function viewportWidth() { return positiveNumber(window.innerWidth) || 1024; }
@@ -210,7 +215,7 @@
     panel.style.background = 'var(--ui-test-lens-hud-bg, ' + DEFAULT_THEME.background + ')';
     panel.style.color = 'var(--ui-test-lens-hud-fg, ' + DEFAULT_THEME.foreground + ')';
     panel.style.fontSize = 'var(--ui-test-lens-hud-font-size, 11px)';
-    panel.style.fontFamily = 'var(--ui-test-lens-hud-font-family, Arial, sans-serif)';
+    panel.style.fontFamily = 'var(--ui-test-lens-hud-font-family, "Test Lens Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
     panel.style.padding = 'var(--ui-test-lens-hud-padding-y, 8px) var(--ui-test-lens-hud-padding-x, 10px)';
     panel.style.borderRadius = 'var(--ui-test-lens-hud-radius, 4px)';
     panel.style.boxShadow = 'var(--ui-test-lens-hud-shadow, 0 2px 6px rgba(0,0,0,0.4))';
@@ -580,6 +585,8 @@
     if (!shadow) {
       return null;
     }
+    var typography = visualTypography();
+    if (typography) typography.ensureRoot(shadow);
 
     var panel = shadow.querySelector('#selenium-hud-panel');
     if (!panel) {
@@ -592,6 +599,7 @@
     }
 
     applyTheme(panel, config);
+    panel.setAttribute('data-test-lens-font-status', typography ? typography.status() : 'fallback');
     ensureHeaderStyles(overlayRoot());
     var structure = ensureStructure(panel, config);
     migrateHudContent(panel, structure, config);
@@ -747,6 +755,19 @@
     }
   };
   if (window.addEventListener) window.addEventListener('resize', lens.state.hud.resizeHandler);
+
+  if (lens.state.hud.typographyUnsubscribe) lens.state.hud.typographyUnsubscribe();
+  var sharedTypography = visualTypography();
+  if (sharedTypography) {
+    lens.state.hud.typographyUnsubscribe = sharedTypography.subscribe(function (status) {
+      var panel = overlayRoot() && overlayRoot().querySelector('#selenium-hud-panel');
+      if (!panel) return;
+      panel.setAttribute('data-test-lens-font-status', status);
+      panel.setAttribute('data-test-lens-font-reflow', String(Number(panel.getAttribute('data-test-lens-font-reflow') || 0) + 1));
+      updateScrollableRegions(panel);
+      positionPanel(panel, lens.state.hud.lastConfig || {});
+    });
+  }
 
   lens.modules.hud = {
     __uiTestLensHud: true,

@@ -4,7 +4,13 @@ from pathlib import Path
 import shutil
 
 
-RUNTIME_FILES = ("hud-panel.js", "highlight.js", "scroll-arrow.js")
+RUNTIME_FILES = (
+    "visual-typography.js",
+    "fonts/Sora-wght.woff2",
+    "hud-panel.js",
+    "highlight.js",
+    "scroll-arrow.js",
+)
 
 
 def on_post_build(config, **kwargs):
@@ -24,4 +30,6 @@ def on_post_build(config, **kwargs):
             continue
         destination.mkdir(parents=True, exist_ok=True)
         for name in RUNTIME_FILES:
-            shutil.copyfile(source / name, destination / name)
+            target = destination / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source / name, target)
