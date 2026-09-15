@@ -18,6 +18,14 @@ $futureReleaseVersion = if ($sourceIsSnapshot) {
 $developmentTitle = if ($sourceIsSnapshot) { "$developmentVersion / coming soon" } else { $developmentVersion }
 $work = Join-Path ([IO.Path]::GetTempPath()) ("test-lens-versioned-docs-" + [guid]::NewGuid())
 $ok = $false
+$runtimeManifest = Join-Path $root "docs-hooks/hud-demo-runtime-assets.txt"
+if (-not (Test-Path -LiteralPath $runtimeManifest -PathType Leaf)) {
+    throw "HUD demo runtime asset manifest is missing: $runtimeManifest"
+}
+$runtimeFiles = @(Get-Content -LiteralPath $runtimeManifest | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith("#") })
+if ($runtimeFiles.Count -eq 0 -or @($runtimeFiles | Sort-Object -Unique).Count -ne $runtimeFiles.Count) {
+    throw "HUD demo runtime asset manifest must be non-empty and contain unique paths."
+}
 $compatibilityRedirects = [ordered]@{
     "integrations/react/index.html" = [pscustomobject]@{
         Target = "../../features/react-spa/"
@@ -95,13 +103,24 @@ try {
     foreach ($directory in @("docs", "docs-versions", "docs-versioning", "overrides", "scripts")) {
         Copy-Item -LiteralPath (Join-Path $root $directory) -Destination $repo -Recurse
     }
-    New-Item -ItemType Directory -Path (Join-Path $repo "docs-hooks") | Out-Null
-    Copy-Item -LiteralPath (Join-Path $root "docs-hooks/copy-hud-demo-runtime.py") -Destination (Join-Path $repo "docs-hooks")
+    Copy-Item -LiteralPath (Join-Path $root "docs-hooks") -Destination $repo -Recurse
     $runtimeSource = Join-Path $root "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"
     $runtimeFixture = Join-Path $repo "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"
     New-Item -ItemType Directory -Path $runtimeFixture -Force | Out-Null
-    foreach ($runtimeFile in @("hud-panel.js", "highlight.js", "scroll-arrow.js")) {
-        Copy-Item -LiteralPath (Join-Path $runtimeSource $runtimeFile) -Destination (Join-Path $runtimeFixture $runtimeFile)
+    foreach ($runtimeFile in $runtimeFiles) {
+        $fixtureAsset = Join-Path $runtimeFixture $runtimeFile
+        New-Item -ItemType Directory -Path (Split-Path -Parent $fixtureAsset) -Force | Out-Null
+        Copy-Item -LiteralPath (Join-Path $runtimeSource $runtimeFile) -Destination $fixtureAsset
+    }
+    foreach ($runtimeFile in $runtimeFiles) {
+        if (-not (Test-Path -LiteralPath (Join-Path $runtimeFixture $runtimeFile) -PathType Leaf)) {
+            throw "Versioned docs fixture did not materialize manifest asset: $runtimeFile"
+        }
+    }
+    foreach ($requiredRuntimeAsset in @("visual-typography.js", "fonts/Sora-wght.woff2")) {
+        if ($runtimeFiles -notcontains $requiredRuntimeAsset) {
+            throw "Current typography asset is absent from the shared runtime manifest: $requiredRuntimeAsset"
+        }
     }
     foreach ($file in @("mkdocs.yml", "mkdocs-0.1.0.yml", "mkdocs-release.yml", "requirements-docs.txt", "README.md")) {
         Copy-Item -LiteralPath (Join-Path $root $file) -Destination $repo
@@ -202,18 +221,18 @@ try {
             "latest/index.html", "index.html", "versions.json"
         )
         foreach ($versionDirectory in @("0.2.0", "dev", "latest")) {
-            foreach ($demoFile in @(
-                "index.html", "demo.css", "demo.js",
-                "runtime/hud-panel.js", "runtime/highlight.js", "runtime/scroll-arrow.js"
-            )) {
+            foreach ($demoFile in @("index.html", "demo.css", "demo.js")) {
                 $requiredVersionedOutputs += "$versionDirectory/demo/hud/$demoFile"
             }
+            foreach ($runtimeFile in $runtimeFiles) {
+                $requiredVersionedOutputs += "$versionDirectory/demo/hud/runtime/$runtimeFile"
+            }
         }
-        foreach ($studioFile in @(
-            "index.html", "studio.css", "studio.js", "preview.html", "preview.css", "preview.js",
-            "runtime/hud-panel.js", "runtime/highlight.js", "runtime/scroll-arrow.js"
-        )) {
+        foreach ($studioFile in @("index.html", "studio.css", "studio.js", "preview.html", "preview.css", "preview.js")) {
             $requiredVersionedOutputs += "dev/demo/hud-studio/$studioFile"
+        }
+        foreach ($runtimeFile in $runtimeFiles) {
+            $requiredVersionedOutputs += "dev/demo/hud-studio/runtime/$runtimeFile"
         }
         foreach ($required in $requiredVersionedOutputs) {
             if (-not (Test-Path (Join-Path $stage2 $required))) { throw "Missing versioned output: $required" }
@@ -243,11 +262,11 @@ try {
             $versionHome = [IO.File]::ReadAllText((Join-Path $stage2 "$versionDirectory/index.html"))
             if (-not $versionHome.Contains('src="demo/hud/"')) { throw "Homepage iframe is not relative under $versionDirectory." }
             $demoHtml = [IO.File]::ReadAllText((Join-Path $stage2 "$versionDirectory/demo/hud/index.html"))
-            foreach ($asset in @("demo.css", "demo.js", "runtime/hud-panel.js", "runtime/highlight.js", "runtime/scroll-arrow.js")) {
+            foreach ($asset in @("demo.css", "demo.js") + @($runtimeFiles | Where-Object { $_.EndsWith(".js") } | ForEach-Object { "runtime/$_" })) {
                 if (-not $demoHtml.Contains($asset)) { throw "HUD demo under $versionDirectory does not reference relative asset $asset." }
             }
         }
-        foreach ($runtimeFile in @("hud-panel.js", "highlight.js", "scroll-arrow.js")) {
+        foreach ($runtimeFile in $runtimeFiles) {
             $developmentHash = (Get-FileHash (Join-Path $runtimeFixture $runtimeFile) -Algorithm SHA256).Hash
             $publishedDevHash = (Get-FileHash (Join-Path $stage2 "dev/demo/hud/runtime/$runtimeFile") -Algorithm SHA256).Hash
             if ($publishedDevHash -ne $developmentHash) { throw "HUD demo runtime drift for dev/$runtimeFile." }

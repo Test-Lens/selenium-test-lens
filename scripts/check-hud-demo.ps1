@@ -12,7 +12,14 @@ $runtimeSource = if ([string]::IsNullOrWhiteSpace($RuntimeSourceDirectory)) {
 } else {
     (Resolve-Path -LiteralPath $RuntimeSourceDirectory).Path
 }
-$runtimeFiles = @("visual-typography.js", "fonts/Sora-wght.woff2", "hud-panel.js", "highlight.js", "scroll-arrow.js")
+$runtimeManifest = Join-Path $root "docs-hooks/hud-demo-runtime-assets.txt"
+if (-not (Test-Path -LiteralPath $runtimeManifest -PathType Leaf)) {
+    throw "HUD demo runtime asset manifest is missing: $runtimeManifest"
+}
+$runtimeFiles = @(Get-Content -LiteralPath $runtimeManifest | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith("#") })
+if ($runtimeFiles.Count -eq 0 -or @($runtimeFiles | Sort-Object -Unique).Count -ne $runtimeFiles.Count) {
+    throw "HUD demo runtime asset manifest must be non-empty and contain unique paths."
+}
 
 function Require-File {
     param([Parameter(Mandatory=$true)][string]$Path)

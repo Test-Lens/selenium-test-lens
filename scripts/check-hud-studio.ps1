@@ -3,6 +3,12 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $source = Join-Path $root "docs/demo/hud-studio"
 $runtime = Join-Path $root "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"
+$runtimeManifest = Join-Path $root "docs-hooks/hud-demo-runtime-assets.txt"
+if (-not (Test-Path -LiteralPath $runtimeManifest -PathType Leaf)) { throw "HUD Studio runtime asset manifest is missing." }
+$runtimeFiles = @(Get-Content -LiteralPath $runtimeManifest | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith("#") })
+if ($runtimeFiles.Count -eq 0 -or @($runtimeFiles | Sort-Object -Unique).Count -ne $runtimeFiles.Count) {
+    throw "HUD Studio runtime asset manifest must be non-empty and contain unique paths."
+}
 
 foreach ($name in @("index.html", "studio.css", "studio.js", "preview.html", "preview.css", "preview.js")) {
     if (-not (Test-Path -LiteralPath (Join-Path $source $name) -PathType Leaf)) { throw "HUD Studio asset is missing: $name" }
@@ -58,7 +64,7 @@ if ($LASTEXITCODE -ne 0) { throw "HUD Studio behavior validation failed." }
 
 if (-not [string]::IsNullOrWhiteSpace($SiteDirectory)) {
     $site = (Resolve-Path -LiteralPath $SiteDirectory).Path
-    foreach ($name in @("visual-typography.js", "fonts/Sora-wght.woff2", "hud-panel.js", "highlight.js", "scroll-arrow.js")) {
+    foreach ($name in $runtimeFiles) {
         $built = Join-Path $site "demo/hud-studio/runtime/$name"
         if (-not (Test-Path -LiteralPath $built -PathType Leaf)) { throw "Built HUD Studio renderer is missing: $name" }
         if ((Get-FileHash $built -Algorithm SHA256).Hash -ne (Get-FileHash (Join-Path $runtime $name) -Algorithm SHA256).Hash) {
