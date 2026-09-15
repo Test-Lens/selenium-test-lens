@@ -53,6 +53,8 @@
       return;
     }
 
+    var typography = lens.modules.visualTypography;
+    if (typography) typography.ensureRoot(root);
     var style = document.createElement('style');
     style.id = 'selenium-highlight-style';
     style.textContent = ''
@@ -61,7 +63,7 @@
       + 'pointer-events:none;z-index:2147483647;}'
       + '.selenium-overlay-highlight-badge{position:absolute;top:-18px;left:0;padding:2px 6px;'
       + 'font-size:10px;line-height:1.3;color:#000;border-radius:3px;white-space:nowrap;'
-      + 'font-family:Arial,sans-serif;}';
+      + 'font-family:var(--ui-test-lens-font-family,"Test Lens Sora",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);}';
     root.appendChild(style);
   }
 
