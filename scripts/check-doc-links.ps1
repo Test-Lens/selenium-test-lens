@@ -14,8 +14,24 @@ $mkdocsConfig = Join-Path $root "mkdocs.yml"
 $excludedDocs = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
 if (Test-Path $mkdocsConfig) {
+    $mkdocsLines = @(Get-Content -Path $mkdocsConfig)
+    $inTheme = $false
+    $faviconPath = $null
+    foreach ($line in $mkdocsLines) {
+        if ($line -match '^theme:\s*$') { $inTheme = $true; continue }
+        if ($inTheme -and $line -match '^\S') { break }
+        if ($inTheme -and $line -match '^\s{2}favicon:\s*([^#]+?)\s*$') {
+            $faviconPath = $Matches[1].Trim().Trim('"', "'")
+        }
+    }
+    if ([string]::IsNullOrWhiteSpace($faviconPath)) {
+        throw "mkdocs.yml theme.favicon is not configured."
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $docsRoot $faviconPath) -PathType Leaf)) {
+        throw "mkdocs.yml theme.favicon does not point to an existing documentation asset: $faviconPath"
+    }
     $inExcludeDocs = $false
-    foreach ($line in Get-Content -Path $mkdocsConfig) {
+    foreach ($line in $mkdocsLines) {
         if ($line -match '^exclude_docs:\s*\|\s*$') {
             $inExcludeDocs = $true
             continue

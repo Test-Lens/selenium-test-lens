@@ -19,9 +19,14 @@ $developmentTitle = if ($sourceIsSnapshot) { "$developmentVersion / coming soon"
 $work = Join-Path ([IO.Path]::GetTempPath()) ("test-lens-versioned-docs-" + [guid]::NewGuid())
 $ok = $false
 $runtimeManifest = Join-Path $root "docs-hooks/hud-demo-runtime-assets.txt"
+$faviconSource = Join-Path $root "docs/assets/images/favicon.png"
 if (-not (Test-Path -LiteralPath $runtimeManifest -PathType Leaf)) {
     throw "HUD demo runtime asset manifest is missing: $runtimeManifest"
 }
+if (-not (Test-Path -LiteralPath $faviconSource -PathType Leaf)) {
+    throw "Documentation favicon is missing: $faviconSource"
+}
+$faviconHash = (Get-FileHash $faviconSource -Algorithm SHA256).Hash
 $runtimeFiles = @(Get-Content -LiteralPath $runtimeManifest | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith("#") })
 if ($runtimeFiles.Count -eq 0 -or @($runtimeFiles | Sort-Object -Unique).Count -ne $runtimeFiles.Count) {
     throw "HUD demo runtime asset manifest must be non-empty and contain unique paths."
@@ -217,7 +222,7 @@ try {
         $requiredVersionedOutputs = @(
             "0.1.0/index.html", "0.1.0/search/search_index.json",
             "0.2.0/index.html", "0.2.0/search/search_index.json",
-            "dev/index.html", "dev/search/search_index.json",
+            "dev/index.html", "dev/search/search_index.json", "dev/assets/images/favicon.png",
             "latest/index.html", "index.html", "versions.json"
         )
         foreach ($versionDirectory in @("0.2.0", "dev", "latest")) {
@@ -236,6 +241,9 @@ try {
         }
         foreach ($required in $requiredVersionedOutputs) {
             if (-not (Test-Path (Join-Path $stage2 $required))) { throw "Missing versioned output: $required" }
+        }
+        if ((Get-FileHash (Join-Path $stage2 "dev/assets/images/favicon.png") -Algorithm SHA256).Hash -ne $faviconHash) {
+            throw "Development documentation favicon differs from the canonical derived asset."
         }
         foreach ($versionDirectory in @("0.1.0", "0.2.0", "dev")) {
             $assets = Join-Path $stage2 "$versionDirectory/assets"
@@ -307,6 +315,17 @@ try {
         $futureRelease = $future | Where-Object version -eq $futureReleaseVersion
         if ($null -eq $futureRelease -or $futureRelease.aliases -notcontains "latest") { throw "Future release did not move latest." }
         if (-not (Test-Path (Join-Path $stage3 "0.1.0/index.html"))) { throw "Future release removed 0.1.0." }
+        foreach ($faviconPath in @(
+            "$futureReleaseVersion/assets/images/favicon.png",
+            "latest/assets/images/favicon.png"
+        )) {
+            if (-not (Test-Path -LiteralPath (Join-Path $stage3 $faviconPath) -PathType Leaf)) {
+                throw "Future release is missing the Test Lens favicon: $faviconPath"
+            }
+            if ((Get-FileHash (Join-Path $stage3 $faviconPath) -Algorithm SHA256).Hash -ne $faviconHash) {
+                throw "Future release favicon differs from the canonical derived asset: $faviconPath"
+            }
+        }
         foreach ($relativePath in $activeCompatibilityRedirects) {
             Assert-CompatibilityRedirectPage $stage3 $futureReleaseVersion $relativePath $compatibilityRedirects[$relativePath].Target
         }
