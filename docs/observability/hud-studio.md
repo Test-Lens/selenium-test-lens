@@ -2,21 +2,31 @@
 title: HUD Studio
 ---
 
-# Test Lens HUD Studio
+# HUD Studio
 
-HUD Studio configures the same browser-side renderer that Test Lens injects at runtime. Drag and resize the HUD in the preview or use the bounded product controls; both paths update one `HudOptions` model and the generated Java. The preview supplies synthetic events and never contacts an application or external service.
+<style>
+.tl-hud-studio-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:.75rem 0}.tl-hud-studio-toolbar a,.tl-hud-studio-toolbar button{display:inline-flex;align-items:center;justify-content:center;min-height:2.35rem;padding:.45rem .8rem;border:1px solid var(--md-default-fg-color--lightest);border-radius:.35rem;color:var(--md-typeset-color);background:var(--md-default-bg-color);font:inherit;font-weight:600;cursor:pointer}.tl-hud-studio-toolbar>[hidden]{display:none}.tl-hud-studio-toolbar .tl-hud-studio-open{border-color:var(--md-primary-fg-color);color:var(--md-primary-bg-color);background:var(--md-primary-fg-color)}.tl-hud-studio-toolbar a:focus-visible,.tl-hud-studio-toolbar button:focus-visible{outline:.15rem solid var(--md-accent-fg-color);outline-offset:.15rem}.tl-hud-studio-note{margin:.5rem 0 1rem;color:var(--md-default-fg-color--light);font-size:.85rem}.tl-hud-studio-frame{display:block;width:100%;max-width:100%;height:950px;border:1px solid var(--md-default-fg-color--lightest);border-radius:.6rem;background:#e7edf4}.tl-studio-focus-mode{overflow:hidden}.tl-studio-focus-mode .md-header,.tl-studio-focus-mode .md-tabs,.tl-studio-focus-mode .md-sidebar,.tl-studio-focus-mode .md-footer{display:none}.tl-studio-focus-mode .tl-hud-studio-host,.tl-hud-studio-host:fullscreen{position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;width:100vw;max-width:none;height:100vh;margin:0;padding:.5rem;background:var(--md-default-bg-color)}.tl-studio-focus-mode .tl-hud-studio-toolbar,.tl-hud-studio-host:fullscreen .tl-hud-studio-toolbar{flex:0 0 auto;margin:0 0 .5rem}.tl-studio-focus-mode .tl-hud-studio-frame,.tl-hud-studio-host:fullscreen .tl-hud-studio-frame{flex:1 1 auto;min-height:0;height:auto;border-radius:.35rem}.tl-studio-focus-mode .tl-hud-studio-note,.tl-studio-focus-mode .tl-hud-studio-description,.tl-hud-studio-host:fullscreen .tl-hud-studio-note,.tl-hud-studio-host:fullscreen .tl-hud-studio-description{display:none}body.tl-hud-studio-page .md-main__inner{max-width:none}body.tl-hud-studio-page .md-sidebar--secondary{display:none}body.tl-hud-studio-page .md-content{min-width:0}
+@media(max-width:760px){.tl-hud-studio-frame{height:1550px}.tl-hud-studio-toolbar a,.tl-hud-studio-toolbar button{flex:1 1 auto}}
+</style>
+
+<div class="tl-hud-studio-host" data-studio-host>
+  <div class="tl-hud-studio-toolbar" role="toolbar" aria-label="HUD Studio view options">
+    <a class="tl-hud-studio-open" data-studio-open href="../../demo/hud-studio/" target="_blank" rel="noopener noreferrer" aria-label="Open HUD Studio in a new full-width tab" title="Open HUD Studio in a new full-width tab">Open Studio ↗</a>
+    <button type="button" data-studio-expand aria-pressed="false" aria-label="Expand HUD Studio in this page" title="Expand HUD Studio in this page">Expand</button>
+    <button type="button" data-studio-fullscreen aria-pressed="false" aria-label="Open HUD Studio in browser fullscreen" title="Open HUD Studio in browser fullscreen">Fullscreen</button>
+    <button type="button" data-studio-exit aria-label="Exit expanded HUD Studio view" title="Exit expanded HUD Studio view" hidden>Exit expanded view</button>
+  </div>
+  <p class="tl-hud-studio-note">For the best editing experience, open Studio in a full-width view.</p>
+  <p class="tl-hud-studio-description">Drag and resize the HUD in the preview or use the bounded controls. Every mode below uses the same Studio application, <code>HudOptions</code> model, runtime renderer, and generated Java.</p>
+  <iframe class="tl-hud-studio-frame" data-studio-frame src="../../demo/hud-studio/" title="Interactive Test Lens HUD Studio" sandbox="allow-scripts" allow="fullscreen" allowfullscreen>
+    HUD Studio could not be loaded. <a href="../../demo/hud-studio/" target="_blank" rel="noopener noreferrer">Open the standalone configurator</a>.
+  </iframe>
+</div>
+
+<script src="../../javascripts/hud-studio-host.js"></script>
 
 !!! info "Development API"
     Configurable HUD presets and HUD Studio are part of `0.3.0`. The `0.2.0` renderer does not accept `HudOptions`.
-
-<style>
-.tl-hud-studio-frame { display:block; width:100%; max-width:100%; height:900px; border:1px solid var(--md-default-fg-color--lightest); border-radius:.6rem; background:#e7edf4; }
-@media(max-width:760px){.tl-hud-studio-frame{height:1500px}}
-</style>
-
-<iframe class="tl-hud-studio-frame" src="../../demo/hud-studio/" title="Interactive Test Lens HUD Studio" sandbox="allow-scripts">
-  HUD Studio could not be loaded. [Open the standalone configurator](../demo/hud-studio/index.html).
-</iframe>
 
 ## Public configuration
 
