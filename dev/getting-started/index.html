@@ -16,7 +16,7 @@
         <link rel="prev" href="..">
       
       
-        <link rel="next" href="../framework-integration/">
+        <link rel="next" href="../whats-new-0.3.0/">
       
       
         
@@ -709,10 +709,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#optional-configure-the-hud" class="md-nav__link">
+  <a href="#optional-configure-the-030-hud" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Optional: configure the HUD
+        Optional: configure the 0.3.0 HUD
       
     </span>
   </a>
@@ -734,6 +734,62 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../whats-new-0.3.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migrating-0.2-to-0.3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating from 0.2.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -917,6 +973,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../advanced/auth-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managed Auth State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../features/managed-test-state/" class="md-nav__link">
         
   
@@ -958,10 +1042,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
         
           
-          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
             
   
   
@@ -979,8 +1063,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1242,10 +1326,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
             
   
   
@@ -1263,8 +1347,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1523,7 +1607,7 @@
   <span class="md-ellipsis">
     
   
-    Visual runtime diagnostics
+    Live HUD & configuration
   
 
     
@@ -1978,34 +2062,6 @@
     
   
     Steps & business assertions
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../advanced/auth-state/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Authentication state
   
 
     
@@ -2918,10 +2974,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#optional-configure-the-hud" class="md-nav__link">
+  <a href="#optional-configure-the-030-hud" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Optional: configure the HUD
+        Optional: configure the 0.3.0 HUD
       
     </span>
   </a>
@@ -3074,30 +3130,32 @@ on JDK 17 and JDK 21.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>mvn<span class="w"> </span><span class="nb">test</span>
 </span></code></pre></div>
 <p>When the session is finalized, Test Lens writes its HTML and JSON reports under <code>target/ui-test-lens</code> by default.</p>
-<h2 id="optional-configure-the-hud">Optional: configure the HUD<a class="headerlink" href="#optional-configure-the-hud" title="Permanent link">&para;</a></h2>
-<p>The default configuration is enough to get started. To change the in-browser HUD, pass <code>TestLensOptions</code> when attaching Lens:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.OverlayConfig</span><span class="p">;</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.TestLens</span><span class="p">;</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.TestLensOptions</span><span class="p">;</span>
+<h2 id="optional-configure-the-030-hud">Optional: configure the 0.3.0 HUD<a class="headerlink" href="#optional-configure-the-030-hud" title="Permanent link">&para;</a></h2>
+<p>The default <code>COMPACT</code> HUD is enough to get started. In the 0.3.0 development line, customize it through immutable <code>HudOptions</code> and pass it with <code>TestLensOptions</code>:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.TestLens</span><span class="p">;</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.TestLensOptions</span><span class="p">;</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.hud.HudOptions</span><span class="p">;</span>
 </span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.hud.HudPosition</span><span class="p">;</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.hud.HudThemePreset</span><span class="p">;</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.hud.HudPreset</span><span class="p">;</span>
 </span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="n">OverlayConfig</span><span class="w"> </span><span class="n">overlay</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OverlayConfig</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">        </span><span class="p">.</span><span class="na">hudPosition</span><span class="p">(</span><span class="n">HudPosition</span><span class="p">.</span><span class="na">TOP_RIGHT</span><span class="p">)</span>
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">        </span><span class="p">.</span><span class="na">hudTheme</span><span class="p">(</span><span class="n">HudThemePreset</span><span class="p">.</span><span class="na">DARK</span><span class="p">)</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="n">HudOptions</span><span class="w"> </span><span class="n">hud</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HudOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">        </span><span class="p">.</span><span class="na">preset</span><span class="p">(</span><span class="n">HudPreset</span><span class="p">.</span><span class="na">COMPACT</span><span class="p">)</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">        </span><span class="p">.</span><span class="na">position</span><span class="p">(</span><span class="n">HudPosition</span><span class="p">.</span><span class="na">TOP_RIGHT</span><span class="p">)</span>
 </span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
 </span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
 </span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">,</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">        </span><span class="p">.</span><span class="na">overlayConfig</span><span class="p">(</span><span class="n">overlay</span><span class="p">)</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">        </span><span class="p">.</span><span class="na">hud</span><span class="p">(</span><span class="n">hud</span><span class="p">)</span>
 </span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">());</span>
 </span></code></pre></div>
-<p>The HUD is only a diagnostic aid and does not change test execution or assertions.</p>
+<p>The HUD is only a diagnostic aid and does not change test execution or assertions. <a href="../observability/hud-studio/">HUD Studio</a> edits the same renderer and generates matching Java configuration. Legacy <code>OverlayConfig</code> HUD setters remain compatible; explicit <code>HudOptions</code> wins for overlapping values.</p>
 <h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../framework-integration/">Integrate Lens with JUnit, TestNG, or an existing reporter</a></li>
 <li><a href="../integrations/junit5/">Use the JUnit 5 lifecycle extension</a></li>
 <li><a href="../elements/">Use locators, actions, waits, and assertions</a></li>
 <li><a href="../configuration/">Configure Test Lens</a></li>
+<li><a href="../whats-new-0.3.0/">Review what's new in 0.3.0</a></li>
+<li><a href="../migrating-0.2-to-0.3/">Migrate from 0.2.x</a></li>
 <li><a href="../migration/">Migrate incrementally from raw Selenium</a></li>
 <li><a href="../framework-integration/#optional-reactspa-helpers-module">Add the optional React/SPA helpers module</a></li>
 </ul>
@@ -3156,13 +3214,13 @@ on JDK 17 and JDK 21.</p>
         
         
           
-          <a href="../framework-integration/" class="md-footer__link md-footer__link--next" aria-label="Next: Existing WebDriver integration">
+          <a href="../whats-new-0.3.0/" class="md-footer__link md-footer__link--next" aria-label="Next: What&#39;s new in 0.3.0">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Existing WebDriver integration
+                What's new in 0.3.0
               </div>
             </div>
             <div class="md-footer__button md-icon">

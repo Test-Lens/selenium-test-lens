@@ -628,6 +628,62 @@
   
   
     <li class="md-nav__item">
+      <a href="../whats-new-0.3.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migrating-0.2-to-0.3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating from 0.2.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../framework-integration/" class="md-nav__link">
         
   
@@ -808,6 +864,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#030-capability-additions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.3.0 capability additions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#five-capability-stories" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -956,6 +1023,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../advanced/auth-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managed Auth State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../features/managed-test-state/" class="md-nav__link">
         
   
@@ -1000,10 +1095,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
         
           
-          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
             
   
   
@@ -1021,8 +1116,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1287,10 +1382,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="">
             
   
   
@@ -1308,8 +1403,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1568,7 +1663,7 @@
   <span class="md-ellipsis">
     
   
-    Visual runtime diagnostics
+    Live HUD & configuration
   
 
     
@@ -2023,34 +2118,6 @@
     
   
     Steps & business assertions
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../advanced/auth-state/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Authentication state
   
 
     
@@ -2919,6 +2986,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#030-capability-additions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.3.0 capability additions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#five-capability-stories" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3050,6 +3128,44 @@
 
 <h1 id="capabilities">Capabilities<a class="headerlink" href="#capabilities" title="Permanent link">&para;</a></h1>
 <p>Selenium Test Lens is an observability and failure-evidence layer for a consumer-owned <code>WebDriver</code>. Its value is not the number of wrapped methods; it is the connection between native interaction, visible recovery, structured trace, policy, and post-failure evidence.</p>
+<h2 id="030-capability-additions">0.3.0 capability additions<a class="headerlink" href="#030-capability-additions" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Public entry point</th>
+<th>Core contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Configurable HUD</td>
+<td><code>TestLensOptions.hud(HudOptions)</code></td>
+<td>Preset base plus order-independent explicit overrides; same renderer in runtime, homepage demo, and HUD Studio.</td>
+</tr>
+<tr>
+<td>Visual Redaction</td>
+<td><code>TestLensOptions.visualRedaction(...)</code></td>
+<td>Screenshot-pixel masking, automatic password SOLID masks, and STRICT fail-closed publication by default.</td>
+</tr>
+<tr>
+<td>Managed Auth State</td>
+<td><code>lens.authState().ensure(...)</code></td>
+<td>Restore and tri-state validation before bounded login/recreation and atomic persistence.</td>
+</tr>
+<tr>
+<td>Managed Test State &amp; Resources</td>
+<td><code>scenarioState()</code>, <code>suiteState()</code>, <code>resources()</code></td>
+<td>Per-invocation isolation, intentional suite sharing, and exactly-once LIFO cleanup.</td>
+</tr>
+<tr>
+<td>Allure</td>
+<td><code>AllureTestLens.attach(...)</code></td>
+<td>Optional publication of finalized Test Lens evidence into the active Allure executable.</td>
+</tr>
+</tbody>
+</table>
+<p>These APIs are additive. See <a href="../whats-new-0.3.0/">What's new in 0.3.0</a> and the <a href="../migrating-0.2-to-0.3/">0.2.x migration guide</a>.</p>
 <h2 id="five-capability-stories">Five capability stories<a class="headerlink" href="#five-capability-stories" title="Permanent link">&para;</a></h2>
 <h3 id="1-native-interactions-with-visible-recovery">1. Native interactions with visible recovery<a class="headerlink" href="#1-native-interactions-with-visible-recovery" title="Permanent link">&para;</a></h3>
 <p>The recommended <code>UiLocator.click()</code> resolves the current element, runs best-effort actionability diagnostics, decorates it when configured, and activates it with native <code>WebElement.click()</code>. Highlighting is pointer-transparent visual feedback. An intercepted click may be retried after an explicit overlay policy handles a blocker, and the locator policy may begin a fresh action attempt. There is no JavaScript-click, Actions-click, ancestor-click, or hidden mutation fallback.</p>
@@ -3081,8 +3197,8 @@
 <td><a href="../advanced/network/">Network</a></td>
 </tr>
 <tr>
-<td>Authentication state</td>
-<td>Captures/restores cookies and storage for a validated origin; cross-origin SSO restore is not automatic. Treat exported state as a secret.</td>
+<td>Managed and low-level authentication state</td>
+<td>Managed restore/validate/recreate has tri-state validation, one-login maximum, locking, and atomic replacement. Low-level cookies/storage capture and restore remain available. Cross-origin SSO restore is not automatic; persisted state is sensitive.</td>
 <td><a href="../advanced/auth-state/">Auth state</a></td>
 </tr>
 <tr>
