@@ -4,6 +4,8 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-15
+
 ### Added
 
 - Added Managed Test State & Resources with typed state isolated to one physical invocation, intentionally shared suite/run state with atomic initialization, retry and parallel isolation, and exactly-once LIFO scenario-resource cleanup integrated with JUnit 5, TestNG, and manual sessions. Cleanup failures are aggregated without replacing an existing primary test failure.
@@ -123,7 +125,8 @@ All notable changes to Selenium Test Lens will be documented in this file.
 - Central Publisher Portal publication remains a manual, reviewed operation.
 - Legacy browser runtime aliases are still maintained for compatibility.
 
-[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.1.0
 

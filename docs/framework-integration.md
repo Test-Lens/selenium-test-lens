@@ -13,7 +13,7 @@ lens.startSession(testName);
 
 In a manual integration, your project remains responsible for creating and closing `WebDriver`. Test Lens attaches to that driver, records Lens operations, and writes session diagnostics when the test finishes. The optional JUnit 5 and TestNG integrations deliberately own drivers returned by their configured factories.
 
-Maven and Gradle use the same coordinate form. The main, React, JUnit 5, and TestNG artifacts are published in `0.2.0`. With Gradle, use the chosen adapter as a `testImplementation` dependency and do not combine both lifecycle adapters for one invocation. The clean-room smoke validates both adapters on JDK 17 and 21 without constructing a browser; browser behavior is covered separately.
+Maven and Gradle use the same coordinate form. The main, React, JUnit 5, TestNG, and Allure artifacts are published in `0.3.0`. With Gradle, use the chosen adapter as a `testImplementation` dependency and do not combine both lifecycle adapters for one invocation. The clean-room smoke validates both adapters on JDK 17 and 21 without constructing a browser; browser behavior is covered separately.
 
 A typical integration has three lifecycle points:
 
@@ -60,7 +60,7 @@ Page Objects can keep form interaction behind `UiLocator`: `check()`, `uncheck()
 
 ## JUnit 5
 
-When building the current source, use `selenium-test-lens-junit5` instead of copying lifecycle callbacks into each project:
+Use `selenium-test-lens-junit5` instead of copying lifecycle callbacks into each project:
 
 ```java
 @RegisterExtension
@@ -82,7 +82,7 @@ The extension owns the driver returned by the factory. It finalizes reports befo
 
 ## TestNG
 
-When building the current source, use the `selenium-test-lens-testng` listener rather than copying `@BeforeMethod`/`@AfterMethod` lifecycle code:
+Use the `selenium-test-lens-testng` listener rather than copying `@BeforeMethod`/`@AfterMethod` lifecycle code:
 
 ```java
 @Listeners(TestLensTestNgListener.class)
@@ -131,7 +131,7 @@ React/SPA resilience helpers are separate from the main runtime. Add the module 
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-react</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 

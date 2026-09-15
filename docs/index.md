@@ -16,13 +16,13 @@ Test Lens shows actions, waits, assertions, retries, and network activity while 
 [What's new in 0.3.0](whats-new-0.3.0.md){ .md-button }
 [Explore the capabilities](#signature-capabilities){ .md-button }
 [Get started](#quick-start){ .md-button }
-[Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0){ .md-button }
+[Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.0){ .md-button }
 
 | Documentation | Status | Library availability |
 |---|---|---|
-| [0.2.0 stable](https://test-lens.github.io/selenium-test-lens/0.2.0/) | Latest published release | Maven Central |
-| [0.3.0-SNAPSHOT development](https://test-lens.github.io/selenium-test-lens/dev/) | Current source line | Source build only; not available from Maven Central |
-| [0.1.0 historical](https://test-lens.github.io/selenium-test-lens/0.1.0/) | Previous release | Maven Central |
+| [0.3.0 stable](https://test-lens.github.io/selenium-test-lens/0.3.0/) | Latest published release | Maven Central |
+| [0.2.0 historical](https://test-lens.github.io/selenium-test-lens/0.2.0/) | Previous release | Maven Central |
+| [0.1.0 historical](https://test-lens.github.io/selenium-test-lens/0.1.0/) | Historical release | Maven Central |
 
 </div>
 
@@ -44,7 +44,7 @@ It does not replace Selenium, Page Objects, JUnit, TestNG, or an existing report
 
 ## 0.3.0 at a glance
 
-The development line adds configuration and lifecycle capabilities around the same Selenium session. These are public 0.3.0 APIs, not features of the published 0.2.0 release.
+Release 0.3.0 adds configuration and lifecycle capabilities around the same Selenium session. These are public 0.3.0 APIs and were not features of release 0.2.0.
 
 <div class="grid cards" markdown>
 
@@ -452,7 +452,7 @@ The latest stable release requires Java 17 or newer. Selenium remains an explici
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 

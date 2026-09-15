@@ -2,7 +2,7 @@
 
 Managed Test State & Resources removes lifecycle glue around in-memory scenario data, intentionally shared run data, and temporary objects that must be deleted. It follows the existing Test Lens session boundary rather than introducing a second scenario lifecycle.
 
-This feature is part of the `0.3.0-SNAPSHOT` development line.
+This feature is part of release `0.3.0`.
 
 ## Scenario state: one physical invocation
 

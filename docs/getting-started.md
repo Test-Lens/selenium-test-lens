@@ -10,7 +10,7 @@ This guide shows the shortest path from the Maven dependency to a working Lens s
 - Maven 3.x or Gradle
 - A Selenium `WebDriver` created by your test project
 
-The latest published Selenium Test Lens release is `0.2.0`, verified with Selenium 4.39.0.
+The latest Selenium Test Lens release is `0.3.0`, verified with Selenium 4.39.0.
 
 ## Installation
 
@@ -20,7 +20,7 @@ Add the main Selenium Test Lens runtime to your Maven project:
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
@@ -30,7 +30,7 @@ The same stable release is available to Gradle consumers.
 
     ```kotlin
     dependencies {
-        testImplementation("io.github.test-lens:selenium-test-lens:0.2.0")
+        testImplementation("io.github.test-lens:selenium-test-lens:0.3.0")
     }
     ```
 
@@ -38,7 +38,7 @@ The same stable release is available to Gradle consumers.
 
     ```groovy
     dependencies {
-        testImplementation 'io.github.test-lens:selenium-test-lens:0.2.0'
+        testImplementation 'io.github.test-lens:selenium-test-lens:0.3.0'
     }
     ```
 
@@ -62,7 +62,7 @@ Add the optional JUnit 5 integration as a test dependency. It brings the lifecyc
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-junit5</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -140,7 +140,7 @@ The defaults come from `TestLensOptions.locatorOptions()`. The network wait is a
 
 Lens finalization writes the session diagnostics. Use `finishSkipped(reason)` for an aborted test or unmet assumption; unlike `finishFailed(...)`, it does not request a failure screenshot. Keep your existing `WebDriver` cleanup as-is.
 
-For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The runner adapters are the recommended JUnit 5 and TestNG paths in 0.2.0.
+For JUnit, TestNG and reporter lifecycle examples, see [Framework integration](framework-integration.md). The runner adapters are the recommended JUnit 5 and TestNG paths in 0.3.0.
 
 ## Run your test
 
@@ -154,7 +154,7 @@ When the session is finalized, Test Lens writes its HTML and JSON reports under 
 
 ## Optional: configure the 0.3.0 HUD
 
-The default `COMPACT` HUD is enough to get started. In the 0.3.0 development line, customize it through immutable `HudOptions` and pass it with `TestLensOptions`:
+The default `COMPACT` HUD is enough to get started. In release 0.3.0, customize it through immutable `HudOptions` and pass it with `TestLensOptions`:
 
 ```java
 import io.github.testlens.TestLens;
