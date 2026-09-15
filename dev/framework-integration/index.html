@@ -140,8 +140,7 @@
   </script>
   
     
-      Development documentation for <strong>0.3.0-SNAPSHOT</strong>.
-      These features are not yet available in the latest Maven Central release.
+      Documentation source for <strong>0.3.0</strong>.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -2858,7 +2857,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.0" class="md-nav__link">
         
   
   
@@ -2886,7 +2885,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.0/" class="md-nav__link">
         
   
   
@@ -3050,7 +3049,7 @@
 </span></code></pre></div>
 <h2 id="integration-model">Integration model<a class="headerlink" href="#integration-model" title="Permanent link">&para;</a></h2>
 <p>In a manual integration, your project remains responsible for creating and closing <code>WebDriver</code>. Test Lens attaches to that driver, records Lens operations, and writes session diagnostics when the test finishes. The optional JUnit 5 and TestNG integrations deliberately own drivers returned by their configured factories.</p>
-<p>Maven and Gradle use the same coordinate form. The main, React, JUnit 5, and TestNG artifacts are published in <code>0.2.0</code>. With Gradle, use the chosen adapter as a <code>testImplementation</code> dependency and do not combine both lifecycle adapters for one invocation. The clean-room smoke validates both adapters on JDK 17 and 21 without constructing a browser; browser behavior is covered separately.</p>
+<p>Maven and Gradle use the same coordinate form. The main, React, JUnit 5, TestNG, and Allure artifacts are published in <code>0.3.0</code>. With Gradle, use the chosen adapter as a <code>testImplementation</code> dependency and do not combine both lifecycle adapters for one invocation. The clean-room smoke validates both adapters on JDK 17 and 21 without constructing a browser; browser behavior is covered separately.</p>
 <p>A typical integration has three lifecycle points:</p>
 <ol>
 <li>Create the driver as usual.</li>
@@ -3085,7 +3084,7 @@
 <p>You can introduce Lens gradually. Existing Page Objects and direct Selenium calls can continue to use the attached driver.</p>
 <p>Page Objects can keep form interaction behind <code>UiLocator</code>: <code>check()</code>, <code>uncheck()</code>, <code>isChecked()</code>, <code>upload(Path...)</code>, <code>focus()</code>, and <code>scrollIntoView()</code> avoid exposing a raw <code>WebElement</code>. The lifecycle ownership rules below are unchanged by these actions.</p>
 <h2 id="junit-5">JUnit 5<a class="headerlink" href="#junit-5" title="Permanent link">&para;</a></h2>
-<p>When building the current source, use <code>selenium-test-lens-junit5</code> instead of copying lifecycle callbacks into each project:</p>
+<p>Use <code>selenium-test-lens-junit5</code> instead of copying lifecycle callbacks into each project:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nd">@RegisterExtension</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kd">final</span><span class="w"> </span><span class="n">TestLensExtension</span><span class="w"> </span><span class="n">testLens</span><span class="w"> </span><span class="o">=</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">        </span><span class="n">TestLensExtension</span><span class="p">.</span><span class="na">builder</span><span class="p">(</span><span class="n">ExistingDriverFactory</span><span class="p">::</span><span class="n">create</span><span class="p">).</span><span class="na">build</span><span class="p">();</span>
@@ -3100,7 +3099,7 @@
 <p>If <code>finishPassed()</code> detects a configured retry-policy violation, the extension propagates it as the invocation failure after Lens has finalized and exported the session. It does not call <code>finishFailed()</code> a second time.</p>
 <p>The extension owns the driver returned by the factory. It finalizes reports before calling <code>driver.quit()</code>, so do not add another quit in <code>@AfterEach</code>. Disabled tests do not create drivers or sessions. See the dedicated <a href="../integrations/junit5/">JUnit 5 integration guide</a> for dependencies, configuration, cleanup errors, and the complete concurrency contract.</p>
 <h2 id="testng">TestNG<a class="headerlink" href="#testng" title="Permanent link">&para;</a></h2>
-<p>When building the current source, use the <code>selenium-test-lens-testng</code> listener rather than copying <code>@BeforeMethod</code>/<code>@AfterMethod</code> lifecycle code:</p>
+<p>Use the <code>selenium-test-lens-testng</code> listener rather than copying <code>@BeforeMethod</code>/<code>@AfterMethod</code> lifecycle code:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nd">@Listeners</span><span class="p">(</span><span class="n">TestLensTestNgListener</span><span class="p">.</span><span class="na">class</span><span class="p">)</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nd">@TestLensTestNg</span><span class="p">(</span><span class="n">factory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ExistingDriverFactory</span><span class="p">.</span><span class="na">class</span><span class="p">)</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kd">class</span> <span class="nc">OrderTest</span><span class="w"> </span><span class="p">{</span>
@@ -3134,7 +3133,7 @@
 <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">&lt;dependency&gt;</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="nt">&lt;groupId&gt;</span>io.github.test-lens<span class="nt">&lt;/groupId&gt;</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">&lt;artifactId&gt;</span>selenium-test-lens-react<span class="nt">&lt;/artifactId&gt;</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.2.0<span class="nt">&lt;/version&gt;</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.3.0<span class="nt">&lt;/version&gt;</span>
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nt">&lt;/dependency&gt;</span>
 </span></code></pre></div>
 <p>The main <code>selenium-test-lens</code> artifact has no React dependency. Standard DOM interactions can continue to use the <code>TestLens</code> facade; the React/SPA helpers module is optional. See its <a href="../features/react-spa/">capabilities and limitations</a>.</p>
@@ -3244,7 +3243,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.3.0-SNAPSHOT", "default": "latest", "is_dev": true, "is_snapshot": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.3.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>

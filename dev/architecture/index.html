@@ -140,8 +140,7 @@
   </script>
   
     
-      Development documentation for <strong>0.3.0-SNAPSHOT</strong>.
-      These features are not yet available in the latest Maven Central release.
+      Documentation source for <strong>0.3.0</strong>.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -2935,7 +2934,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.0" class="md-nav__link">
         
   
   
@@ -2963,7 +2962,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.2.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.0/" class="md-nav__link">
         
   
   
@@ -3331,7 +3330,7 @@ remains authoritative for real Chrome and Firefox behavior.</p>
 <p>Auth-state restoration places origin validation ahead of every mutation boundary. The Selenium layer canonicalizes and preflights the saved origin and storage-entry origins, optionally navigates, validates the resulting browser origin, rechecks immediately before cookie work, and runs storage clear/write with an atomic <code>window.location.origin</code> guard. A foreign redirect therefore produces <code>ORIGIN_MISMATCH</code> without a recovery navigation or partial mutation of that origin.</p>
 <h2 id="overlay-runtime">Overlay runtime<a class="headerlink" href="#overlay-runtime" title="Permanent link">&para;</a></h2>
 <p>The overlay module contains resources for the HUD, highlighting and decorations, assertion and wait indicators, and API/debug overlays. The Selenium runtime injects and updates them through the driver. Consumers configure this layer through <code>OverlayConfig</code>.</p>
-<p>In the <code>0.3.0-SNAPSHOT</code> line, immutable <code>HudOptions</code> is the product-level HUD contract. Runtime sinks apply the configured event-category visibility before <code>HudPanel</code> serializes visible rows into the canonical <code>hud-panel.js</code> runtime resource. The runtime, homepage demonstration, and HUD Studio all execute that same resource; documentation supplies synthetic events but does not maintain a second HUD implementation. Content visibility is a presentation boundary and does not remove events from trace or other sinks.</p>
+<p>In the <code>0.3.0</code> line, immutable <code>HudOptions</code> is the product-level HUD contract. Runtime sinks apply the configured event-category visibility before <code>HudPanel</code> serializes visible rows into the canonical <code>hud-panel.js</code> runtime resource. The runtime, homepage demonstration, and HUD Studio all execute that same resource; documentation supplies synthetic events but does not maintain a second HUD implementation. Content visibility is a presentation boundary and does not remove events from trace or other sinks.</p>
 <h2 id="reporting-boundary">Reporting boundary<a class="headerlink" href="#reporting-boundary" title="Permanent link">&para;</a></h2>
 <p>Report generation lives in core. Collected sessions can be exported as HTML, JSON, or portable bundles without Selenium or a live browser. All formats use the same status aggregation in <code>TraceReportSupport</code>: failure/error, warning, incomplete <code>STARTED</code>, empty <code>INFO</code>, all-skipped <code>SKIPPED</code>, then completed <code>PASSED</code>. Exporters only snapshot sessions; they never finalize or mutate them. See <a href="../examples/">Examples</a> and <a href="../observability/reports/">Reports</a> for usage.</p>
 <p>Report upload is a separate, explicit post-finalization boundary in the Selenium artifact. It consumes <code>TestLensFinalizationResult</code>, selects one completed ZIP, and uses the JDK HTTP client without accessing WebDriver or adding session events. The immutable uploader has no background executor or global transport state; retries reuse the same file checksum and idempotency key. Local finalization remains authoritative when transport fails. See <a href="../observability/report-upload/">Report upload</a>.</p>
@@ -3458,7 +3457,7 @@ remains authoritative for real Chrome and Firefox behavior.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.3.0-SNAPSHOT", "default": "latest", "is_dev": true, "is_snapshot": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.3.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
