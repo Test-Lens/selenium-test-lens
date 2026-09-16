@@ -1,8 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$BaselineTag = "v0.2.0",
-    [string]$ExpectedSince = "0.3.0"
+    [string]$BaselineTag = "v0.3.0",
+    [string]$ExpectedSince = "0.3.1"
 )
 
 $ErrorActionPreference = "Stop"

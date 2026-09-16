@@ -71,6 +71,7 @@ public final class HighlightOptions {
         return values;
     }
 
+    /** Builder for immutable highlight configuration. @since 0.3.1 */
     public static final class Builder {
         private boolean enabled = true;
         private boolean automaticFeedback = true;
