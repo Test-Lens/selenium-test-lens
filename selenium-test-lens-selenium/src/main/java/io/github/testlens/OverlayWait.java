@@ -10,8 +10,7 @@ import io.github.testlens.core.logging.UiTestLensStatus;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 import java.util.function.Function;
 
 public class OverlayWait {
@@ -21,8 +20,6 @@ public class OverlayWait {
     private final JsOverlayDebug overlay;
     private final OverlayLogger logger;
     private final Clock clock;
-    private static final DateTimeFormatter HUD_TIMESTAMP_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS z");
 
     public OverlayWait(WebDriver driver,
                        Duration timeout,
@@ -134,6 +131,7 @@ public class OverlayWait {
 
         } finally {
             long elapsedMs = System.currentTimeMillis() - startedMs;
+            Instant completedAt = clock.instant();
 
             // ===== TAGS / FORMAT =====
             String duration = formatDuration(elapsedMs); // mm:ss.SSS
@@ -149,17 +147,13 @@ public class OverlayWait {
             safeOverlay(() -> overlay.hudLog(
                     finalStatus.hudLevel,
                     msg,
-                    timestamp()
+                    completedAt.toString()
             ));
 
-            safeLog(finalStatus, desc, duration, elapsedMs);
+            safeLog(finalStatus, desc, duration, elapsedMs, completedAt);
 
         }
 
-    }
-
-    private String timestamp() {
-        return HUD_TIMESTAMP_FORMATTER.format(ZonedDateTime.now(clock));
     }
 
     private static String formatDuration(long ms) {
@@ -177,7 +171,7 @@ public class OverlayWait {
         try { r.run(); } catch (Exception ignored) {}
     }
 
-    private void safeLog(Status status, String desc, String duration, long elapsedMs) {
+    private void safeLog(Status status, String desc, String duration, long elapsedMs, Instant timestamp) {
         String msg = "WAIT " + status.prefix + " | " + desc + " | duration=" + duration + " | elapsedMs=" + elapsedMs;
         UiTestLensLogLevel level = switch (status) {
             case DONE -> UiTestLensLogLevel.INFO;
@@ -192,6 +186,7 @@ public class OverlayWait {
                 : UiTestLensStatus.FAILED;
 
         safeLog(UiTestLensLogEntry.builder()
+                .timestamp(timestamp)
                 .level(level)
                 .eventType(eventType)
                 .status(lensStatus)

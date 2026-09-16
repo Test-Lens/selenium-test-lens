@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 class OverlayConfigTest {
 
@@ -85,6 +86,35 @@ class OverlayConfigTest {
         assertEquals(hud, legacyLast.getHudOptions());
         assertTrue(legacyFirst.isHudOptionsAuthoritative());
         assertTrue(legacyLast.isHudOptionsAuthoritative());
+    }
+
+    @Test
+    void typedHighlightOptionsWinOverLegacySettingsRegardlessOfCallOrder() {
+        HighlightOptions typed = HighlightOptions.builder().actionColor("#112233")
+                .successColor("#224466").failureColor("#662244").durationMs(3210).borderWidthPx(5).build();
+
+        OverlayConfig legacyFirst = OverlayConfig.builder().highlightColor("#ffffff")
+                .decorationDurationMs(12).highlightOptions(typed).build();
+        OverlayConfig legacyLast = OverlayConfig.builder().highlightOptions(typed)
+                .highlightColor("#ffffff").decorationDurationMs(12).build();
+
+        assertEquals("#112233", legacyFirst.getHighlightColor());
+        assertEquals("#112233", legacyLast.getHighlightColor());
+        assertEquals(3210, legacyFirst.getDecorationDurationMs());
+        assertEquals(3210, legacyLast.getDecorationDurationMs());
+        assertEquals(5, legacyFirst.getHighlightOptions().borderWidthPx());
+        assertSame(typed, legacyLast.getHighlightOptions());
+        assertTrue(legacyFirst.isHighlightOptionsAuthoritative());
+        assertTrue(legacyLast.isHighlightOptionsAuthoritative());
+    }
+
+    @Test
+    void legacyHighlightSettingsPopulateTypedDefaults() {
+        OverlayConfig config = OverlayConfig.builder().highlightColor("#abcdef").decorationDurationMs(99).build();
+
+        assertEquals("#abcdef", config.getHighlightOptions().actionColor());
+        assertEquals(99, config.getHighlightOptions().durationMs());
+        assertFalse(config.isHighlightOptionsAuthoritative());
     }
 }
 

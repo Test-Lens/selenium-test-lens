@@ -7,7 +7,7 @@ search:
 
 This generated catalog is the optional binary-surface reference for every published public type, constructor, method, and field. Start with [Capabilities](../capabilities.md) and the functional navigation for behavior, workflows, and examples. Internal-style types appear only because Java consumers can currently access them.
 
-Inventory: **267 public types** and **2040 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
+Inventory: **271 public types** and **2091 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
 
 Classifications: USER_API is the normal consumer path; ADVANCED_API is supported specialized functionality; LOW_LEVEL_API exposes lower abstractions; INTERNAL_STYLE_PUBLIC is binary-public implementation surface and is not recommended for application code.
 
@@ -73,6 +73,9 @@ Signature details are split by published artifact and Java package to keep indiv
 
 | Type | Package | Classification | Kind | Surface |
 | --- | --- | --- | --- | --- |
+| io.github.testlens.HighlightOptions$Builder | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens.md#io-github-testlens-highlightoptions-builder) |
+| io.github.testlens.HighlightOptions | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens.md#io-github-testlens-highlightoptions) |
+| io.github.testlens.HighlightState | io.github.testlens | USER_API | enum | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens.md#io-github-testlens-highlightstate) |
 | io.github.testlens.OverlayConfig$Builder | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens.md#io-github-testlens-overlayconfig-builder) |
 | io.github.testlens.OverlayConfig | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens.md#io-github-testlens-overlayconfig) |
 | io.github.testlens.api.ApiOverlayJs | io.github.testlens.api | INTERNAL_STYLE_PUBLIC | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-api.md#io-github-testlens-api-apioverlayjs) |
@@ -98,6 +101,7 @@ Signature details are split by published artifact and Java package to keep indiv
 | io.github.testlens.hud.HudTheme$Builder | io.github.testlens.hud | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudtheme-builder) |
 | io.github.testlens.hud.HudTheme | io.github.testlens.hud | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudtheme) |
 | io.github.testlens.hud.HudThemePreset | io.github.testlens.hud | USER_API | enum | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudthemepreset) |
+| io.github.testlens.hud.HudTimestampFormat | io.github.testlens.hud | USER_API | enum | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudtimestampformat) |
 | io.github.testlens.hud.HudTypography$Builder | io.github.testlens.hud | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudtypography-builder) |
 | io.github.testlens.hud.HudTypography | io.github.testlens.hud | USER_API | class | [signatures](public-api/selenium-test-lens-overlay-io-github-testlens-hud.md#io-github-testlens-hud-hudtypography) |
 

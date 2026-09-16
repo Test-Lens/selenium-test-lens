@@ -37,6 +37,7 @@ public java.lang.String toJson()
 ```java
 public io.github.testlens.actions.AssertActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.hud.HudPanel)
 public io.github.testlens.actions.AssertActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.hud.HudPanel, io.github.testlens.core.OverlayLogger)
+public io.github.testlens.actions.AssertActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.hud.HudPanel, io.github.testlens.core.OverlayLogger, io.github.testlens.actions.HighlightActions)
 public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertTextEqualsModified(org.openqa.selenium.WebElement, java.lang.String, java.util.function.Function<java.lang.String, java.lang.String>, java.lang.String)
 public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertTextContainsModified(org.openqa.selenium.WebElement, java.lang.String, java.util.function.Function<java.lang.String, java.lang.String>, java.lang.String)
 public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertTextEquals(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)
@@ -67,6 +68,7 @@ public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertFal
 public io.github.testlens.actions.HighlightActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig)
 public io.github.testlens.actions.HighlightActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayLogger)
 public void highlightClick(org.openqa.selenium.WebElement, java.lang.String)
+public void highlight(org.openqa.selenium.WebElement, java.lang.String, io.github.testlens.HighlightState, boolean)
 public void highlightParent(org.openqa.selenium.WebElement, int, java.lang.String)
 public void highlightClosest(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)
 ```

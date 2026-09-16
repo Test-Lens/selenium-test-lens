@@ -3,6 +3,8 @@ package io.github.testlens.browser;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import io.github.testlens.JsOverlayDebug;
+import io.github.testlens.HighlightOptions;
+import io.github.testlens.HighlightState;
 import io.github.testlens.OverlayConfig;
 import io.github.testlens.TestLens;
 import io.github.testlens.TestLensFinalizationResult;
@@ -14,6 +16,7 @@ import io.github.testlens.hud.HudPosition;
 import io.github.testlens.hud.HudPreset;
 import io.github.testlens.hud.HudScrollbarStyle;
 import io.github.testlens.hud.HudTypography;
+import io.github.testlens.hud.HudTimestampFormat;
 import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.RetryOutcomePolicy;
@@ -64,6 +67,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -127,6 +131,54 @@ class RealBrowserContractsIT {
         lens.highlightClick(driver.findElement(By.id("count-button")), "COUNT");
 
         assertClickCounts(0);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void hudTimestampContractIsRenderedInTheLocalFixtureDom() {
+        open("/clicks");
+        HudOptions hudOptions = HudOptions.builder()
+                .showTimestamps(true)
+                .timestampFormat(HudTimestampFormat.DATE_TIME)
+                .timestampZone(ZoneId.of("Europe/Warsaw"))
+                .build();
+        JsOverlayDebug overlay = new JsOverlayDebug(driver, OverlayConfig.builder()
+                .hudOptions(hudOptions).build());
+        overlay.initHud("timestamp contract", "local");
+        overlay.hudLog("info", "winter", "2026-01-15T22:59:59Z");
+        overlay.hudLog("info", "summer midnight", "2026-07-15T22:00:00Z");
+        overlay.hudLog("warn", "placeholder", "ui-test-lens");
+
+        List<String> javaRows = (List<String>) ((JavascriptExecutor) driver).executeScript("""
+                return Array.from(window.__seleniumOverlayRoot.querySelectorAll('#selenium-hud-logs > div'))
+                  .map(row => row.textContent);
+                """);
+        assertEquals("[15.01.26 23:59:59][INFO] winter", javaRows.get(javaRows.size() - 3));
+        assertEquals("[16.07.26 00:00:00][INFO] summer midnight", javaRows.get(javaRows.size() - 2));
+        String fallback = javaRows.get(javaRows.size() - 1);
+        assertTrue(fallback.matches("\\[\\d{2}\\.\\d{2}\\.\\d{2} \\d{2}:\\d{2}:\\d{2}\\]\\[WARN] placeholder"), fallback);
+        assertFalse(fallback.contains("ui-test-lens"));
+
+        Map<String, Object> direct = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const hud = window.__uiTestLens.modules.hud;
+                function render(format, zone, shown, timestamp, message) {
+                  hud.init({testName:'direct runtime',theme:{},hudOptions:{showEventLog:true,
+                    showTimestamps:shown,timestampFormat:format,timestampZone:zone,branding:'NONE'}});
+                  hud.clear();
+                  hud.log(message,'info',timestamp,'GENERAL');
+                  const row=window.__seleniumOverlayRoot.querySelector('#selenium-hud-logs > div');
+                  return {text:row.textContent,stored:row.getAttribute('data-test-lens-timestamp')};
+                }
+                return {
+                  iso:render('ISO_UTC','Europe/Warsaw',true,'2026-01-15T22:59:59Z','iso'),
+                  utc:render('TIME_ONLY','UTC',true,'2026-01-15T22:59:59Z','utc'),
+                  hidden:render('DATE_TIME','Europe/Warsaw',false,null,'hidden')
+                };
+                """);
+        assertEquals("[2026-01-15T22:59:59.000Z][INFO] iso", ((Map<?, ?>) direct.get("iso")).get("text"));
+        assertEquals("[22:59:59][INFO] utc", ((Map<?, ?>) direct.get("utc")).get("text"));
+        assertEquals("[INFO] hidden", ((Map<?, ?>) direct.get("hidden")).get("text"));
+        assertTrue(String.valueOf(((Map<?, ?>) direct.get("hidden")).get("stored")).matches("\\d{4}-.*Z"));
     }
 
     @ParameterizedTest(name = "highlightElement is decoration only (overlay enabled={0})")
@@ -656,6 +708,63 @@ class RealBrowserContractsIT {
                 """)));
         assertFalse(driver.findElements(By.cssSelector("[data-uitestlens-highlight='1']")).size() > 0,
                 "The decoration must not leak into the application DOM");
+    }
+
+    @Test
+    void typedHighlightUsesConfiguredStateAndOperationScopedLifecycle() {
+        open("/clicks");
+        HighlightOptions highlights = HighlightOptions.builder().actionColor("#123456")
+                .waitingColor("#2468ac").retryColor("#c47a00").successColor("#16803a")
+                .failureColor("#b91c1c").durationMs(1000).borderWidthPx(5).showLabels(true).build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().highlight(highlights).build());
+        WebElement button = driver.findElement(By.id("count-button"));
+
+        lens.highlight(button, "Count control", HighlightState.SUCCESS);
+        assertTrue(await(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='success'
+                    && getComputedStyle(mark).borderColor==='rgb(22, 128, 58)'
+                    && getComputedStyle(mark).borderWidth==='5px'
+                    && mark.textContent==='Count control';
+                """)));
+
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("window.__highlightTimerCheck=performance.now()");
+        js.executeScript("""
+                window.__uiTestLens.modules.highlight.element(arguments[0], 'OLD',
+                    {duration:80,color:'#ef4444',borderWidth:2,state:'failure'});
+                """, button);
+        js.executeScript("""
+                window.__uiTestLens.modules.highlight.element(arguments[0], 'NEW',
+                    {duration:1000,color:'#22c55e',borderWidth:3,state:'success'});
+                """, button);
+        assertTrue(await(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return performance.now()-window.__highlightTimerCheck>180 && mark
+                    && mark.textContent==='NEW' && mark.dataset.uitestlensHighlightState==='success';
+                """)));
+        js.executeScript("window.__uiTestLens.modules.highlight.clear()");
+
+        WebElement shadowButton = (WebElement) js.executeScript("""
+                const host=document.createElement('div');document.body.appendChild(host);
+                const root=host.attachShadow({mode:'open'});const button=document.createElement('button');
+                button.textContent='Shadow action';root.appendChild(button);return button;
+                """);
+        lens.highlight(shadowButton, "Shadow control", HighlightState.RETRY);
+        assertTrue(await(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='retry'
+                    && getComputedStyle(mark).borderColor==='rgb(196, 122, 0)';
+                """)));
+        js.executeScript("arguments[0].remove()", shadowButton);
+        js.executeScript("window.dispatchEvent(new Event('resize'))");
+        assertTrue(await(scriptBoolean("""
+                return !document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                """)));
     }
 
     @Test

@@ -6,8 +6,11 @@ title: HUD Studio
 
 HUD Studio configures the same browser-side renderer that Test Lens injects at runtime. Drag and resize the HUD in the preview or use the bounded product controls; both paths update one `HudOptions` model and the generated Java. The preview supplies synthetic events and never contacts an application or external service.
 
-!!! info "Development API"
-    Configurable HUD presets and HUD Studio are part of `0.3.0`. The `0.2.0` renderer does not accept `HudOptions`.
+!!! info "0.3.1 timestamp API"
+    HUD timestamp format and zone controls are available in `0.3.1`. The configurable HUD and Studio introduced in `0.3.0` remain compatible.
+
+!!! info "0.3.1 highlight API"
+    The Highlights section configures independent action, waiting, retry, success, and failure colors plus duration, border width, labels, enablement, and automatic feedback. HUD preset changes do not reset these values, and generated Java includes `HighlightOptions` in `TestLensOptions`.
 
 <style>
 .tl-hud-studio-frame { display:block; width:100%; max-width:100%; height:900px; border:1px solid var(--md-default-fg-color--lightest); border-radius:.6rem; background:#e7edf4; }
@@ -38,6 +41,9 @@ HudOptions hud = HudOptions.builder()
         .scrollbarStyle(HudScrollbarStyle.SUBTLE)
         .scrollbarThumbColor("#526174")
         .backgroundOpacity(0.82)
+        .showTimestamps(true)
+        .timestampFormat(HudTimestampFormat.DATE_TIME)
+        .timestampZone(ZoneId.of("Europe/Warsaw"))
         .showNetwork(false)
         .build();
 
@@ -58,6 +64,8 @@ TestLens lens = TestLens.attach(driver, options);
 All presets use `HudHeaderLayout.AUTO`: TEST and STEP share a row while their atomic label/value pairs fit, then the complete STEP item moves to a second row. `INLINE` keeps both items on one row and truncates their values; `STACKED` always uses separate rows. Individual values remain single-line, expose their full text as a tooltip, and use ellipsis when constrained. The optional DEBUG/custom PIPE value is a separate metadata row, so it does not change the responsive TEST/STEP decision.
 
 Visibility switches affect only presentation. Suppressed network, recovery, wait, or assertion rows still flow to trace, reports, and other configured sinks. `showTimestamps(false)` removes timestamps from HUD rows; it does not change event timestamps in the model.
+
+`ISO_UTC` is the compatibility default and always renders in UTC. `TIME_ONLY` renders `HH:mm:ss`; `DATE_TIME` renders `dd.MM.yy HH:mm:ss`. The readable formats use either the test JVM system zone or an explicit `ZoneId`, including daylight-saving rules. Studio's **JVM system zone** choice is exported as system behavior rather than the concrete zone of the computer where Studio happened to run.
 
 ## Visual editing and responsive preview
 

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.ZoneId;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,6 +17,9 @@ class HudOptionsTest {
         assertEquals(HudPreset.COMPACT, options.preset());
         assertFalse(options.showPipeline());
         assertFalse(options.showTimestamps());
+        assertEquals(HudTimestampFormat.ISO_UTC, options.timestampFormat());
+        assertTrue(options.usesSystemTimestampZone());
+        assertTrue(options.timestampZone().isEmpty());
         assertTrue(options.showEventLog());
         assertEquals(HudBranding.TEST_LENS, options.branding());
         assertEquals(HudPosition.BOTTOM_RIGHT, options.position());
@@ -68,6 +72,35 @@ class HudOptionsTest {
         assertEquals(HudHeaderLayout.STACKED, options.headerLayout());
         assertFalse(options.showEventLog());
         assertEquals(280, options.widthPx());
+    }
+
+    @Test void timestampFormatAndZoneAreIndependentOrderSafeAndRoundTripThroughBuilder() {
+        HudOptions beforePreset = HudOptions.builder()
+                .timestampFormat(HudTimestampFormat.DATE_TIME)
+                .timestampZone(ZoneId.of("Europe/Warsaw"))
+                .preset(HudPreset.MINIMAL)
+                .build();
+        HudOptions afterPreset = HudOptions.builder()
+                .preset(HudPreset.MINIMAL)
+                .timestampFormat(HudTimestampFormat.DATE_TIME)
+                .timestampZone(ZoneId.of("Europe/Warsaw"))
+                .build();
+
+        assertEquals(snapshot(beforePreset), snapshot(afterPreset));
+        assertEquals(HudTimestampFormat.DATE_TIME, beforePreset.timestampFormat());
+        assertEquals(ZoneId.of("Europe/Warsaw"), beforePreset.timestampZone().orElseThrow());
+        assertFalse(beforePreset.usesSystemTimestampZone());
+        assertEquals("EXPLICIT", beforePreset.toRuntimeMap().get("timestampZoneSource"));
+        assertEquals("Europe/Warsaw", beforePreset.toRuntimeMap().get("timestampZone"));
+
+        HudOptions copied = beforePreset.toBuilder().build();
+        assertEquals(snapshot(beforePreset), snapshot(copied));
+        HudOptions system = copied.toBuilder().systemTimestampZone().build();
+        assertTrue(system.usesSystemTimestampZone());
+        assertEquals(ZoneId.systemDefault(), system.effectiveTimestampZone());
+        assertEquals("SYSTEM", system.toRuntimeMap().get("timestampZoneSource"));
+        assertThrows(NullPointerException.class, () -> HudOptions.builder().timestampFormat(null));
+        assertThrows(NullPointerException.class, () -> HudOptions.builder().timestampZone(null));
     }
 
     @Test void explicitOverridesAreIndependentOfBuilderCallOrderAcrossAllGroups() {

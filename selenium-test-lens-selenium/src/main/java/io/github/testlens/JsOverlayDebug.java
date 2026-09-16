@@ -66,6 +66,8 @@ import io.github.testlens.selenium.steps.UiStepStatus;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -179,7 +181,7 @@ public final class JsOverlayDebug {
                 this.locatorOptions.pollInterval(), this.logger);
         this.popupDetector = new PopupDetector(driver, config, rootManager, highlightActions);
         this.scrollActions = new ScrollActions(driver, config, rootManager, this.logger);
-        this.assertActions = new AssertActions(driver, rootManager, config, hudPanel, this.logger);
+        this.assertActions = new AssertActions(driver, rootManager, config, hudPanel, this.logger, highlightActions);
         this.targetResolverActions = new TargetResolverActions(driver, this.logger);
     }
 
@@ -454,7 +456,7 @@ public final class JsOverlayDebug {
         UiStepScope scope = new UiStepScope(
                 logger,
                 this::setStep,
-                message -> hudLog("info", message, "ui-test-lens")
+                message -> hudLog("info", message, null)
         );
         try {
             UiStepResult result = scope.run(name, options, body);
@@ -556,16 +558,30 @@ public final class JsOverlayDebug {
     }
 
     public void hudLog(String level, String message, String timestamp) {
-        hudPanel.appendLog(redact(level), redact(message), redact(timestamp));
+        Instant eventTimestamp = hudTimestamp(timestamp);
+        String canonicalTimestamp = eventTimestamp.toString();
+        hudPanel.appendLog(redact(level), redact(message), canonicalTimestamp);
         emit(UiTestLensLogEntry.builder()
+                .timestamp(eventTimestamp)
                 .level(toLogLevel(level))
                 .eventType(UiTestLensEventType.HUD)
                 .status(toStatus(level))
                 .message(message)
                 .action("hud.log")
                 .metadata("hudLevel", safeString(level))
-                .metadata("timestamp", safeString(timestamp))
+                .metadata("timestamp", canonicalTimestamp)
                 .build());
+    }
+
+    private static Instant hudTimestamp(String value) {
+        if (value != null && !value.isBlank()) {
+            try {
+                return Instant.parse(value.trim());
+            } catch (DateTimeParseException ignored) {
+                // Labels and local/ambiguous date strings are not timestamps. Assign one instant below.
+            }
+        }
+        return Instant.now();
     }
 
     private void emit(UiTestLensLogEntry entry) {
@@ -766,6 +782,17 @@ public final class JsOverlayDebug {
     public WebElement highlightElement(WebElement element, String label) {
         highlightActions.highlightClick(element, label);
         return element;
+    }
+
+    /** Draws a typed manual decoration without interacting with the element. @since 0.3.1 */
+    public WebElement highlightElement(WebElement element, String label, HighlightState state) {
+        highlightActions.highlight(element, label, state, false);
+        return element;
+    }
+
+    /** Internal operation feedback; failures are deliberately swallowed by the decorator. @since 0.3.1 */
+    public void automaticHighlight(WebElement element, String label, HighlightState state) {
+        highlightActions.highlight(element, label, state, true);
     }
 
     /** Draws a border around the direct parent of the given element. */

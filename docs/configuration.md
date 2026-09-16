@@ -35,6 +35,9 @@ HudOptions hud = HudOptions.builder()
         .position(HudPosition.TOP_RIGHT)
         .headerLayout(HudHeaderLayout.AUTO)
         .backgroundOpacity(0.9)
+        .showTimestamps(true)
+        .timestampFormat(HudTimestampFormat.DATE_TIME)
+        .timestampZone(ZoneId.of("Europe/Warsaw"))
         .showNetwork(false)
         .build();
 
@@ -61,9 +64,35 @@ Explicit `HudOptions` is authoritative over overlapping legacy `OverlayConfig` p
 | Typography | local `UI_SANS` except Debug uses `MONOSPACE` | `SYSTEM`, `MONOSPACE`, and `UI_SANS` are local stacks; section overrides inherit from the global preset. No font URLs. |
 | Scrollbar | `SUBTLE`; Debug uses `STANDARD`; `NATIVE` available | Chromium honors bounded 4–14 px width; Firefox maps to engine-supported widths while preserving colors. |
 | Colors | validated `#RRGGBB`; opacity 0–1 | No arbitrary CSS is accepted by `HudOptions`. |
+| Timestamps | `ISO_UTC`; JVM system zone | `TIME_ONLY` uses `HH:mm:ss`; `DATE_TIME` uses `dd.MM.yy HH:mm:ss`. Readable formats use the selected zone; ISO remains UTC. |
 | Branding | Test Lens mark in a 16 px rail | Custom logos are bounded, regular non-symlink PNG files; SVG, URLs, and HTML are rejected. |
 
 [Customize the same runtime renderer in HUD Studio](observability/hud-studio.md).
+
+Use `.systemTimestampZone()` to explicitly retain JVM-system behavior in a reusable builder. The JVM running the test resolves that zone when the HUD configuration is sent to the browser, so a remote BrowserStack browser cannot substitute its own system zone. Trace and JSON timestamps remain canonical UTC.
+
+## Element feedback
+
+```java
+HighlightOptions highlights = HighlightOptions.builder()
+        .enabled(true)
+        .automaticFeedback(true)
+        .actionColor("#ffeb3b")
+        .waitingColor("#38bdf8")
+        .retryColor("#f59e0b")
+        .successColor("#22c55e")
+        .failureColor("#ef4444")
+        .durationMs(1500)
+        .borderWidthPx(2)
+        .showLabels(true)
+        .build();
+
+TestLensOptions options = TestLensOptions.builder().hud(hud).highlight(highlights).build();
+```
+
+`enabled(false)` disables both manual and automatic state borders. `automaticFeedback(false)` keeps manual `lens.highlight(...)` and `locator.highlight()` available. HUD visibility is independent. Legacy `OverlayConfig.highlightColor` and `decorationDurationMs` feed the action color and duration unless typed options are supplied; typed options win regardless of setter order.
+
+For a consumer `LensTestBase`, create `TestLensOptions` once in its setup/option factory and attach the facade with those options. Use `lens.highlight(element, label)` instead of allocating an additional `JsOverlayDebug`; this keeps the active driver, session, redaction, logger, and cleanup ownership together.
 
 ## Evidence
 

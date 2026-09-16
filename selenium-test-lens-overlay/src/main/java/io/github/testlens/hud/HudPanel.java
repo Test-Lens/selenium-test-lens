@@ -98,7 +98,7 @@ public class HudPanel {
                 config.getHudTheme().toMap(),
                 config.getHudThemePreset() == null ? "CUSTOM" : config.getHudThemePreset().name(),
                 config.isHudOptionsAuthoritative()
-                        ? config.getHudOptions().toRuntimeMap()
+                        ? config.getHudOptions().toBrowserRuntimeMap()
                         : Collections.emptyMap()
         );
     }

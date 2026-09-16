@@ -1,5 +1,7 @@
 package io.github.testlens.actions;
 
+import io.github.testlens.HighlightOptions;
+import io.github.testlens.HighlightState;
 import io.github.testlens.OverlayConfig;
 import io.github.testlens.core.HighlightJs;
 import io.github.testlens.core.OverlayLogger;
@@ -26,72 +28,66 @@ public class HighlightActions {
 
     public HighlightActions(WebDriver driver, OverlayRootManager rootManager, OverlayConfig config, OverlayLogger logger) {
         if (driver == null) throw new IllegalArgumentException("driver must not be null");
-        if (!(driver instanceof JavascriptExecutor)) {
-            throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
-        }
+        if (!(driver instanceof JavascriptExecutor)) throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
         this.js = (JavascriptExecutor) driver;
         this.rootManager = rootManager;
-        this.config = config;
+        this.config = config == null ? OverlayConfig.builder().build() : config;
         this.logger = logger != null ? logger : OverlayLogger.noop();
     }
 
-    /** Draws a border and optional label around an element without clicking it. */
-    public void highlightClick(WebElement element, String label) {
-        if (!config.isEnabled() || element == null) return;
-        emitHighlight("highlightClick", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null);
+    /** Legacy manual highlight; it is a neutral visual event, never an assertion result. */
+    public void highlightClick(WebElement element, String label) { highlight(element, label, HighlightState.ACTION, false); }
+
+    public void highlight(WebElement element, String label, HighlightState state, boolean automatic) {
+        HighlightOptions options = config.getHighlightOptions();
+        if (!config.isEnabled() || !options.enabled() || (automatic && !options.automaticFeedback()) || element == null) return;
+        String safeLabel = logger.redactionPolicy().redact(label == null ? "" : label);
+        HighlightState effective = state == null ? HighlightState.ACTION : state;
         try {
             rootManager.ensureRootExists();
-            js.executeScript(
-                    HighlightJs.INIT
-                            + "return window.__uiTestLens.modules.highlight.element(arguments[0], arguments[1], { duration: arguments[2], color: arguments[3] });",
-                    element, label, Math.max(0, config.getDecorationDurationMs()), config.getHighlightColor());
-            emitHighlight("highlightClick", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null);
+            Object rendered = js.executeScript(HighlightJs.INIT
+                    + "return window.__uiTestLens.modules.highlight.element(arguments[0], arguments[1], arguments[2]);",
+                    element, safeLabel, options.toRuntimeMap(effective));
+            emitHighlight("highlightElement", safeLabel, effective, Boolean.TRUE.equals(rendered), null);
         } catch (RuntimeException decorationFailure) {
-            emitHighlight("highlightClick", label, UiTestLensStatus.WARN, UiTestLensLogLevel.WARN, decorationFailure);
+            emitHighlight("highlightElement", safeLabel, effective, false, decorationFailure);
         }
     }
 
-    /** Draws the same decoration around an ancestor a specified number of levels up. */
     public void highlightParent(WebElement element, int levelsUp, String label) {
-        if (!config.isEnabled() || element == null) return;
-        if (levelsUp < 1) levelsUp = 1;
-        emitHighlight("highlightParent", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null);
-        rootManager.ensureRootExists();
-        js.executeScript(
-                HighlightJs.INIT
-                        + "return window.__uiTestLens.modules.highlight.parent(arguments[0], arguments[1], arguments[2], { duration: arguments[3], color: arguments[4] });",
-                element, levelsUp, label, config.getDecorationDurationMs(), config.getHighlightColor());
-        emitHighlight("highlightParent", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null);
+        decorateRelative("highlightParent", true, element, Math.max(1, levelsUp), null, label);
     }
 
-    /** Draws the same decoration around the closest ancestor matching a CSS selector. */
     public void highlightClosest(WebElement element, String cssSelector, String label) {
-        if (!config.isEnabled() || element == null || cssSelector == null) return;
-        emitHighlight("highlightClosest", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null);
-        rootManager.ensureRootExists();
-        js.executeScript(
-                HighlightJs.INIT
-                        + "return window.__uiTestLens.modules.highlight.closest(arguments[0], arguments[1], arguments[2], { duration: arguments[3], color: arguments[4] });",
-                element, cssSelector, label, config.getDecorationDurationMs(), config.getHighlightColor());
-        emitHighlight("highlightClosest", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null);
+        if (cssSelector != null) decorateRelative("highlightClosest", false, element, 0, cssSelector, label);
     }
 
-    private void emitHighlight(String method, String label, UiTestLensStatus status,
-                               UiTestLensLogLevel level, Throwable throwable) {
+    private void decorateRelative(String method, boolean parent, WebElement element, int levels, String selector, String label) {
+        HighlightOptions options = config.getHighlightOptions();
+        if (!config.isEnabled() || !options.enabled() || element == null) return;
+        String safeLabel = logger.redactionPolicy().redact(label == null ? "" : label);
         try {
-            logger.emit(UiTestLensLogEntry.builder()
-                    .level(level)
-                    .eventType(status == UiTestLensStatus.FAILED ? UiTestLensEventType.ERROR : UiTestLensEventType.HIGHLIGHT)
-                    .status(status)
-                    .message("Highlight " + method + " " + status)
-                    .action(method)
-                    .target(TargetDescriptor.label(label))
-                    .metadata("method", method)
-                    .metadata("label", label == null ? "" : label)
-                    .throwable(throwable)
-                    .build());
-        } catch (Exception ignored) {
-            // Logging is best effort.
+            rootManager.ensureRootExists();
+            String script = HighlightJs.INIT + (parent
+                    ? "return window.__uiTestLens.modules.highlight.parent(arguments[0], arguments[1], arguments[2], arguments[3]);"
+                    : "return window.__uiTestLens.modules.highlight.closest(arguments[0], arguments[1], arguments[2], arguments[3]);");
+            Object rendered = parent
+                    ? js.executeScript(script, element, levels, safeLabel, options.toRuntimeMap(HighlightState.ACTION))
+                    : js.executeScript(script, element, selector, safeLabel, options.toRuntimeMap(HighlightState.ACTION));
+            emitHighlight(method, safeLabel, HighlightState.ACTION, Boolean.TRUE.equals(rendered), null);
+        } catch (RuntimeException failure) {
+            emitHighlight(method, safeLabel, HighlightState.ACTION, false, failure);
         }
+    }
+
+    private void emitHighlight(String method, String label, HighlightState state, boolean rendered, Throwable failure) {
+        try {
+            logger.emit(UiTestLensLogEntry.builder().level(failure == null ? UiTestLensLogLevel.INFO : UiTestLensLogLevel.WARN)
+                    .eventType(UiTestLensEventType.HIGHLIGHT).status(failure == null ? UiTestLensStatus.INFO : UiTestLensStatus.WARN)
+                    .message("Highlight " + state + (rendered ? " rendered" : " skipped"))
+                    .action(method).target(TargetDescriptor.label(label)).metadata("method", method)
+                    .metadata("highlightState", state.name()).metadata("rendered", String.valueOf(rendered))
+                    .metadata("label", label).throwable(failure).build());
+        } catch (Exception ignored) { }
     }
 }

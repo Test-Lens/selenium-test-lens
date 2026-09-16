@@ -8,8 +8,9 @@
 
 | Version | Status | Availability | Documentation |
 |---|---|---|---|
-| `0.3.0` | Latest stable | Maven Central | [Stable documentation — 0.3.0](https://test-lens.github.io/selenium-test-lens/0.3.0/) |
-| `0.2.0` | Previous release | Maven Central | [Historical documentation — 0.2.0](https://test-lens.github.io/selenium-test-lens/0.2.0/) |
+| `0.3.1` | Latest stable | Maven Central | [Stable documentation — 0.3.1](https://test-lens.github.io/selenium-test-lens/0.3.1/) |
+| `0.3.0` | Previous release | Maven Central | [Historical documentation — 0.3.0](https://test-lens.github.io/selenium-test-lens/0.3.0/) |
+| `0.2.0` | Historical release | Maven Central | [Historical documentation — 0.2.0](https://test-lens.github.io/selenium-test-lens/0.2.0/) |
 | `0.1.0` | Historical release | Maven Central | [Historical documentation — 0.1.0](https://test-lens.github.io/selenium-test-lens/0.1.0/) |
 
 Install the current stable release (Java 17 or newer):
@@ -18,7 +19,7 @@ Install the current stable release (Java 17 or newer):
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
 </dependency>
 ```
 
@@ -41,11 +42,11 @@ try {
 }
 ```
 
-[Getting started](docs/getting-started.md) · [What's new in 0.3.0](docs/whats-new-0.3.0.md) · [0.2.x migration](docs/migrating-0.2-to-0.3.md) · [Stable documentation](https://test-lens.github.io/selenium-test-lens/0.3.0/) · [Development documentation](https://test-lens.github.io/selenium-test-lens/dev/)
+[Getting started](docs/getting-started.md) · [What's new in 0.3.1](docs/whats-new-0.3.1.md) · [0.2.x migration](docs/migrating-0.2-to-0.3.md) · [Stable documentation](https://test-lens.github.io/selenium-test-lens/0.3.1/) · [Development documentation](https://test-lens.github.io/selenium-test-lens/dev/)
 
 ## Why Test Lens
 
-Release `0.3.0` adds a configurable runtime HUD and [HUD Studio](https://test-lens.github.io/selenium-test-lens/0.3.0/observability/hud-studio/), screenshot-pixel Visual Redaction, Managed Auth State, invocation/suite state with LIFO resources, and an optional Allure adapter. See the concise [0.3.0 overview](docs/whats-new-0.3.0.md).
+Release `0.3.1` adds complete configurable HUD timestamps and outcome-driven element feedback to the configurable runtime HUD and [HUD Studio](https://test-lens.github.io/selenium-test-lens/0.3.1/observability/hud-studio/). See the concise [0.3.1 overview](docs/whats-new-0.3.1.md); the [0.3.0 overview](docs/whats-new-0.3.0.md) remains archived.
 
 ### Native interactions with visible recovery
 
@@ -132,7 +133,7 @@ Gradle Kotlin DSL:
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.test-lens:selenium-test-lens:0.3.0")
+    testImplementation("io.github.test-lens:selenium-test-lens:0.3.1")
 }
 ```
 
@@ -140,7 +141,7 @@ Gradle Groovy DSL:
 
 ```groovy
 dependencies {
-    testImplementation 'io.github.test-lens:selenium-test-lens:0.3.0'
+    testImplementation 'io.github.test-lens:selenium-test-lens:0.3.1'
 }
 ```
 
@@ -159,7 +160,7 @@ mvn -Pbrowser-it -Dbrowser=chrome -Dheaded=false verify
 mvn -Pbrowser-it -Dbrowser=firefox -Dheaded=false verify
 ```
 
-See [browser integration tests](docs/browser-integration-tests.md), the [changelog](CHANGELOG.md), [Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.0), and [0.3.0 Javadoc](https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.0/).
+See [browser integration tests](docs/browser-integration-tests.md), the [changelog](CHANGELOG.md), [Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1), and [0.3.1 Javadoc](https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/).
 
 ## License
 

@@ -375,6 +375,49 @@ class HudPanelJsTest {
                 window.__uiTestLens.modules.hud.log('visible assertion', 'info', 'now', 'ASSERTION_PASSED');
                 assert(root.querySelector('#selenium-hud-logs').children.length === rowsBefore + 1, 'semantic event filter failed');
 
+                function lastLog() {
+                  var values = root.querySelector('#selenium-hud-logs').children;
+                  return values[values.length - 1];
+                }
+                function timestampConfig(format, zone, shown) {
+                  window.__uiTestLens.modules.hud.init({testName:'Timestamps',theme:{},hudOptions:{
+                    showEventLog:true,showTimestamps:shown,timestampFormat:format,timestampZone:zone,
+                    branding:'NONE',showNetwork:true,showRetries:true,showWaits:true,showAssertions:true}});
+                }
+                timestampConfig('ISO_UTC', 'UTC', true);
+                window.__uiTestLens.modules.hud.clear();
+                window.__uiTestLens.modules.hud.log('canonical','info','2026-01-15T12:34:56.789Z','GENERAL');
+                assert(lastLog().textContent === '[2026-01-15T12:34:56.789Z][INFO] canonical', 'ISO UTC rendering differs');
+                assert(lastLog().attributes['data-test-lens-timestamp'] === '2026-01-15T12:34:56.789Z', 'canonical timestamp was not retained');
+                timestampConfig('TIME_ONLY', 'Europe/Warsaw', true);
+                window.__uiTestLens.modules.hud.clear();
+                window.__uiTestLens.modules.hud.log('winter','info','2026-01-15T22:59:59Z','GENERAL');
+                assert(lastLog().textContent === '[23:59:59][INFO] winter', 'Warsaw winter offset differs');
+                window.__uiTestLens.modules.hud.log('summer','info','2026-07-15T21:59:59Z','GENERAL');
+                assert(lastLog().textContent === '[23:59:59][INFO] summer', 'Warsaw summer offset differs');
+                timestampConfig('DATE_TIME', 'Europe/Warsaw', true);
+                window.__uiTestLens.modules.hud.clear();
+                window.__uiTestLens.modules.hud.log('midnight','info','2026-07-15T22:00:00Z','GENERAL');
+                assert(lastLog().textContent === '[16.07.26 00:00:00][INFO] midnight', 'date rollover differs');
+                var categories=['STEP','ACTION','HIGHLIGHT','WAIT','LOCATOR_RETRY','ASSERTION_PASSED','NETWORK_WAIT_STARTED','NETWORK_RESPONSE_RECORDED','AUTH_STATE_CREATED','SCREENSHOT_CAPTURE_PASSED','WARNING','ERROR','HUD'];
+                var categoryStart=root.querySelector('#selenium-hud-logs').children.length;
+                categories.forEach(function(type,index){window.__uiTestLens.modules.hud.log(type,'info','2026-07-15T22:00:00Z',type);});
+                assert(root.querySelector('#selenium-hud-logs').children.length-categoryStart === categories.length, 'a visible category was lost or duplicated');
+                for(var categoryIndex=0;categoryIndex<categories.length;categoryIndex++) {
+                  assert(root.querySelector('#selenium-hud-logs').children[categoryStart+categoryIndex].textContent.indexOf('[16.07.26 00:00:00][INFO] ') === 0, 'category timestamp missing');
+                }
+                ['','not-a-date','ui-test-lens',null,undefined].forEach(function(value){
+                  window.__uiTestLens.modules.hud.log('fallback','info',value,'GENERAL');
+                  var text=lastLog().textContent;
+                  assert(/^\\[\\d{2}\\.\\d{2}\\.\\d{2} \\d{2}:\\d{2}:\\d{2}\\]\\[INFO\\] fallback$/.test(text), 'invalid timestamp fallback missing');
+                  assert(text.indexOf('Invalid Date')<0&&text.indexOf('undefined')<0&&text.indexOf('null')<0&&text.indexOf('ui-test-lens')<0&&text.indexOf('[]')<0, 'invalid timestamp leaked');
+                });
+                timestampConfig('DATE_TIME', 'Europe/Warsaw', false);
+                window.__uiTestLens.modules.hud.clear();
+                window.__uiTestLens.modules.hud.log('hidden prefix','info',null,'GENERAL');
+                assert(lastLog().textContent === '[INFO] hidden prefix', 'hidden timestamp left spacing or brackets');
+                assert(/^\\d{4}-\\d{2}-\\d{2}T/.test(lastLog().attributes['data-test-lens-timestamp']), 'hidden timestamp was not assigned once');
+
                 [{w:1440,h:900},{w:1024,h:768},{w:768,h:700},{w:390,h:844}].forEach(function(viewport) {
                   ['TOP_LEFT', 'TOP_RIGHT', 'BOTTOM_LEFT', 'BOTTOM_RIGHT'].forEach(function(position) {
                     window.innerWidth = viewport.w;

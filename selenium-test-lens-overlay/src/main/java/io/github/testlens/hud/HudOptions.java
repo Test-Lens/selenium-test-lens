@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -59,6 +61,8 @@ public final class HudOptions {
     private final boolean showCurrentStep;
     private final boolean showPipeline;
     private final boolean showTimestamps;
+    private final HudTimestampFormat timestampFormat;
+    private final ZoneId timestampZone;
     private final boolean showEventLog;
     private final boolean showNetwork;
     private final boolean showRetries;
@@ -100,6 +104,8 @@ public final class HudOptions {
         this.showCurrentStep = builder.showCurrentStep;
         this.showPipeline = builder.showPipeline;
         this.showTimestamps = builder.showTimestamps;
+        this.timestampFormat = builder.timestampFormat;
+        this.timestampZone = builder.timestampZone;
         this.showEventLog = builder.showEventLog;
         this.showNetwork = builder.showNetwork;
         this.showRetries = builder.showRetries;
@@ -276,6 +282,34 @@ public final class HudOptions {
      */
     public boolean showTimestamps() { return showTimestamps; }
     /**
+     * Returns the presentation format used for visible HUD timestamps.
+     * @return timestamp format; defaults to {@link HudTimestampFormat#ISO_UTC}
+     * @since 0.3.1
+     */
+    public HudTimestampFormat timestampFormat() { return timestampFormat; }
+    /**
+     * Returns the explicitly selected timestamp zone.
+     *
+     * <p>An empty value means that the JVM system zone is resolved by the test process when the
+     * HUD runtime configuration is created. It does not mean the remote browser's system zone.
+     *
+     * @return explicit zone, or empty for the JVM system zone
+     * @since 0.3.1
+     */
+    public Optional<ZoneId> timestampZone() { return Optional.ofNullable(timestampZone); }
+    /**
+     * Reports whether timestamp presentation follows the test JVM system zone.
+     * @return {@code true} for the system-zone mode
+     * @since 0.3.1
+     */
+    public boolean usesSystemTimestampZone() { return timestampZone == null; }
+    /**
+     * Resolves the zone that will be sent to the browser HUD.
+     * @return explicit zone or the current test JVM system zone
+     * @since 0.3.1
+     */
+    public ZoneId effectiveTimestampZone() { return timestampZone != null ? timestampZone : ZoneId.systemDefault(); }
+    /**
      * Reports whether the event-log region is rendered.
      * @return configured visibility
      * @since 0.3.0
@@ -397,6 +431,9 @@ public final class HudOptions {
         values.put("showCurrentStep", showCurrentStep);
         values.put("showPipeline", showPipeline);
         values.put("showTimestamps", showTimestamps);
+        values.put("timestampFormat", timestampFormat.name());
+        values.put("timestampZone", usesSystemTimestampZone() ? "SYSTEM" : timestampZone.getId());
+        values.put("timestampZoneSource", usesSystemTimestampZone() ? "SYSTEM" : "EXPLICIT");
         values.put("showEventLog", showEventLog);
         values.put("showNetwork", showNetwork);
         values.put("showRetries", showRetries);
@@ -416,6 +453,12 @@ public final class HudOptions {
         return Collections.unmodifiableMap(values);
     }
 
+    Map<String, Object> toBrowserRuntimeMap() {
+        Map<String, Object> values = new LinkedHashMap<>(toRuntimeMap());
+        if (usesSystemTimestampZone()) values.put("timestampZone", effectiveTimestampZone().getId());
+        return Collections.unmodifiableMap(values);
+    }
+
     /**
      * Builds immutable HUD configuration. A preset is always the base; fields explicitly set by
      * this builder take precedence independently of call order.
@@ -428,7 +471,7 @@ public final class HudOptions {
             FONT_PRESET, TYPOGRAPHY, SCROLLBAR_STYLE, SCROLLBAR_WIDTH, SCROLLBAR_TRACK,
             SCROLLBAR_THUMB, SCROLLBAR_THUMB_HOVER, BASE_FONT_SIZE, HEADER_FONT_SIZE,
             SHOW_TEST_NAME, SHOW_CURRENT_STEP,
-            SHOW_PIPELINE, SHOW_TIMESTAMPS, SHOW_EVENT_LOG, SHOW_NETWORK, SHOW_RETRIES,
+            SHOW_PIPELINE, SHOW_TIMESTAMPS, TIMESTAMP_FORMAT, TIMESTAMP_ZONE, SHOW_EVENT_LOG, SHOW_NETWORK, SHOW_RETRIES,
             SHOW_WAITS, SHOW_ASSERTIONS, BRANDING, LOGO_PLACEMENT, BACKGROUND,
             BACKGROUND_OPACITY, ACCENT, PRIMARY_TEXT, MUTED_TEXT, SUCCESS, WARNING, FAILURE
         }
@@ -456,6 +499,8 @@ public final class HudOptions {
         private boolean showCurrentStep;
         private boolean showPipeline;
         private boolean showTimestamps;
+        private HudTimestampFormat timestampFormat;
+        private ZoneId timestampZone;
         private boolean showEventLog;
         private boolean showNetwork;
         private boolean showRetries;
@@ -491,6 +536,7 @@ public final class HudOptions {
             this.showTestName = source.showTestName;
             this.showCurrentStep = source.showCurrentStep; this.showPipeline = source.showPipeline;
             this.showTimestamps = source.showTimestamps; this.showEventLog = source.showEventLog;
+            this.timestampFormat = source.timestampFormat; this.timestampZone = source.timestampZone;
             this.showNetwork = source.showNetwork; this.showRetries = source.showRetries;
             this.showWaits = source.showWaits; this.showAssertions = source.showAssertions;
             this.branding = source.branding; this.logoPlacement = source.logoPlacement;
@@ -689,6 +735,43 @@ public final class HudOptions {
          */
         public Builder showTimestamps(boolean value) { explicit.add(Field.SHOW_TIMESTAMPS); showTimestamps = value; return this; }
         /**
+         * Selects the presentation format for visible HUD timestamps.
+         *
+         * @param value timestamp format
+         * @return this builder
+         * @since 0.3.1
+         */
+        public Builder timestampFormat(HudTimestampFormat value) {
+            explicit.add(Field.TIMESTAMP_FORMAT);
+            timestampFormat = Objects.requireNonNull(value, "timestampFormat must not be null");
+            return this;
+        }
+        /**
+         * Selects an explicit zone for readable HUD timestamp formats.
+         *
+         * <p>{@link HudTimestampFormat#ISO_UTC} remains UTC regardless of this value.
+         *
+         * @param value IANA or fixed-offset zone
+         * @return this builder
+         * @since 0.3.1
+         */
+        public Builder timestampZone(ZoneId value) {
+            explicit.add(Field.TIMESTAMP_ZONE);
+            timestampZone = Objects.requireNonNull(value, "timestampZone must not be null");
+            return this;
+        }
+        /**
+         * Uses the test JVM system zone for readable HUD timestamp formats.
+         *
+         * @return this builder
+         * @since 0.3.1
+         */
+        public Builder systemTimestampZone() {
+            explicit.add(Field.TIMESTAMP_ZONE);
+            timestampZone = null;
+            return this;
+        }
+        /**
          * Controls event-log region visibility.
          *
          * @param value enabled state
@@ -883,6 +966,8 @@ public final class HudOptions {
             if (!explicit.contains(Field.RAIL_WIDTH)) railWidthPx = 16;
             if (!explicit.contains(Field.SHOW_PIPELINE)) showPipeline = value == HudPreset.DEBUG;
             if (!explicit.contains(Field.SHOW_TIMESTAMPS)) showTimestamps = value == HudPreset.STANDARD || value == HudPreset.DEBUG;
+            if (!explicit.contains(Field.TIMESTAMP_FORMAT)) timestampFormat = HudTimestampFormat.ISO_UTC;
+            if (!explicit.contains(Field.TIMESTAMP_ZONE)) timestampZone = null;
             if (!explicit.contains(Field.SHOW_TEST_NAME)) showTestName = value != HudPreset.MINIMAL;
             if (!explicit.contains(Field.SHOW_CURRENT_STEP)) showCurrentStep = true;
             if (!explicit.contains(Field.SHOW_EVENT_LOG)) showEventLog = value != HudPreset.MINIMAL;

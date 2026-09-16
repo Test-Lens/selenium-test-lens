@@ -64,11 +64,11 @@
     hud.remove();
     hud.init({testName:'Checkout creates an order',pipelineId:'studio-preview',offsetX:state.offsetX,offsetY:state.offsetY,maxWidth:state.width,themeName:'CUSTOM',hudOptions:state});
     hud.setStep('WAIT checkout ready');
-    hud.log('WAIT checkout ready — PASSED','success','00:00.4','WAIT');
-    hud.log('CLICK Place order — RETRY after overlay recovery','warn','00:01.2','LOCATOR_RETRY');
-    hud.log('POST /api/orders','royal','00:01.8','NETWORK_REQUEST_RECORDED');
-    hud.log('Response recorded: 200 /api/orders','success','00:02.1','NETWORK_RESPONSE_RECORDED');
-    hud.log('ASSERT confirmation visible — PASSED','success','00:02.6','ASSERTION_PASSED');
+    hud.log('WAIT checkout ready — PASSED','success','2026-07-15T21:59:58Z','WAIT');
+    hud.log('CLICK Place order — RETRY after overlay recovery','warn','2026-07-15T21:59:59Z','LOCATOR_RETRY');
+    hud.log('POST /api/orders','royal','2026-07-15T22:00:00Z','NETWORK_REQUEST_RECORDED');
+    hud.log('Response recorded: 200 /api/orders','success','2026-07-15T22:00:01Z','NETWORK_RESPONSE_RECORDED');
+    hud.log('ASSERT confirmation visible — PASSED','success','2026-07-15T22:00:02Z','ASSERTION_PASSED');
     enhancePanel();
     if (panel()) window.parent.postMessage({type:'hud-rendered'},'*');
   }
@@ -79,9 +79,13 @@
     var target = document.getElementById('preview-order');
     document.getElementById('preview-result').hidden = true;
     render();
-    highlight.element(target, 'CLICK Place order', {duration:1800,color:'#ffeb3b'});
-    later(function () { hud.setStep('CLICK Place order'); }, 500, run);
-    later(function () { document.getElementById('preview-result').hidden=false; hud.setStep('PASSED'); }, 1700, run);
+    var configured=state.highlight||{},base={duration:configured.durationMs,borderWidth:configured.borderWidthPx,showLabel:configured.showLabels};
+    function show(label,visual,color,automatic){if(configured.enabled!==false&&(!automatic||configured.automaticFeedback!==false))highlight.element(target,label,Object.assign({},base,{state:visual,color:color}));}
+    show('ACTION Place order','action',configured.actionColor,false);
+    later(function () { hud.setStep('WAIT checkout ready');show('WAIT checkout ready','waiting',configured.waitingColor,true); }, 350, run);
+    later(function () { hud.setStep('RETRY checkout ready');show('RETRY checkout ready','retry',configured.retryColor,true); }, 800, run);
+    later(function () { document.getElementById('preview-result').hidden=false;hud.setStep('PASSED');show('SUCCESS Place order','success',configured.successColor,true); }, 1400, run);
+    later(function () { show('FAILURE demo','failure',configured.failureColor,true); }, 2300, run);
   }
 
   function beginDrag(event) {

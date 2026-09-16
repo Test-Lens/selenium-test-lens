@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 267
-# Public callable methods/constructors: 2040
+# Types: 271
+# Public callable methods/constructors: 2091
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -594,6 +594,42 @@ TYPE io.github.testlens.utils.JsResources
   public static java.lang.String load(java.lang.String)
   public static java.lang.String readFirstExisting(java.lang.String, java.lang.String)
 MODULE selenium-test-lens-overlay
+TYPE io.github.testlens.HighlightOptions$Builder
+  public io.github.testlens.HighlightOptions$Builder enabled(boolean)
+  public io.github.testlens.HighlightOptions$Builder automaticFeedback(boolean)
+  public io.github.testlens.HighlightOptions$Builder actionColor(java.lang.String)
+  public io.github.testlens.HighlightOptions$Builder waitingColor(java.lang.String)
+  public io.github.testlens.HighlightOptions$Builder retryColor(java.lang.String)
+  public io.github.testlens.HighlightOptions$Builder successColor(java.lang.String)
+  public io.github.testlens.HighlightOptions$Builder failureColor(java.lang.String)
+  public io.github.testlens.HighlightOptions$Builder durationMs(long)
+  public io.github.testlens.HighlightOptions$Builder borderWidthPx(int)
+  public io.github.testlens.HighlightOptions$Builder showLabels(boolean)
+  public io.github.testlens.HighlightOptions build()
+TYPE io.github.testlens.HighlightOptions
+  public static io.github.testlens.HighlightOptions defaults()
+  public static io.github.testlens.HighlightOptions$Builder builder()
+  public boolean enabled()
+  public boolean automaticFeedback()
+  public java.lang.String actionColor()
+  public java.lang.String waitingColor()
+  public java.lang.String retryColor()
+  public java.lang.String successColor()
+  public java.lang.String failureColor()
+  public long durationMs()
+  public int borderWidthPx()
+  public boolean showLabels()
+  public java.lang.String color(io.github.testlens.HighlightState)
+  public io.github.testlens.HighlightOptions$Builder toBuilder()
+  public java.util.Map<java.lang.String, java.lang.Object> toRuntimeMap(io.github.testlens.HighlightState)
+TYPE io.github.testlens.HighlightState
+  public static final io.github.testlens.HighlightState ACTION
+  public static final io.github.testlens.HighlightState WAITING
+  public static final io.github.testlens.HighlightState RETRY
+  public static final io.github.testlens.HighlightState SUCCESS
+  public static final io.github.testlens.HighlightState FAILURE
+  public static io.github.testlens.HighlightState[] values()
+  public static io.github.testlens.HighlightState valueOf(java.lang.String)
 TYPE io.github.testlens.OverlayConfig$Builder
   public io.github.testlens.OverlayConfig$Builder()
   public io.github.testlens.OverlayConfig$Builder enabled(boolean)
@@ -607,6 +643,7 @@ TYPE io.github.testlens.OverlayConfig$Builder
   public io.github.testlens.OverlayConfig$Builder hudOptions(io.github.testlens.hud.HudOptions)
   public io.github.testlens.OverlayConfig$Builder hudTheme(io.github.testlens.hud.HudThemePreset)
   public io.github.testlens.OverlayConfig$Builder highlightColor(java.lang.String)
+  public io.github.testlens.OverlayConfig$Builder highlightOptions(io.github.testlens.HighlightOptions)
   public io.github.testlens.OverlayConfig build()
 TYPE io.github.testlens.OverlayConfig
   public static io.github.testlens.OverlayConfig$Builder builder()
@@ -621,6 +658,8 @@ TYPE io.github.testlens.OverlayConfig
   public io.github.testlens.hud.HudTheme getHudTheme()
   public io.github.testlens.hud.HudThemePreset getHudThemePreset()
   public java.lang.String getHighlightColor()
+  public io.github.testlens.HighlightOptions getHighlightOptions()
+  public boolean isHighlightOptionsAuthoritative()
   public io.github.testlens.hud.HudOptions getHudOptions()
   public boolean isHudOptionsAuthoritative()
 TYPE io.github.testlens.api.ApiOverlayJs
@@ -748,6 +787,9 @@ TYPE io.github.testlens.hud.HudOptions$Builder
   public io.github.testlens.hud.HudOptions$Builder showCurrentStep(boolean)
   public io.github.testlens.hud.HudOptions$Builder showPipeline(boolean)
   public io.github.testlens.hud.HudOptions$Builder showTimestamps(boolean)
+  public io.github.testlens.hud.HudOptions$Builder timestampFormat(io.github.testlens.hud.HudTimestampFormat)
+  public io.github.testlens.hud.HudOptions$Builder timestampZone(java.time.ZoneId)
+  public io.github.testlens.hud.HudOptions$Builder systemTimestampZone()
   public io.github.testlens.hud.HudOptions$Builder showEventLog(boolean)
   public io.github.testlens.hud.HudOptions$Builder showNetwork(boolean)
   public io.github.testlens.hud.HudOptions$Builder showRetries(boolean)
@@ -791,6 +833,10 @@ TYPE io.github.testlens.hud.HudOptions
   public boolean showCurrentStep()
   public boolean showPipeline()
   public boolean showTimestamps()
+  public io.github.testlens.hud.HudTimestampFormat timestampFormat()
+  public java.util.Optional<java.time.ZoneId> timestampZone()
+  public boolean usesSystemTimestampZone()
+  public java.time.ZoneId effectiveTimestampZone()
   public boolean showEventLog()
   public boolean showNetwork()
   public boolean showRetries()
@@ -894,6 +940,12 @@ TYPE io.github.testlens.hud.HudThemePreset
   public static final io.github.testlens.hud.HudThemePreset MINIMAL
   public static io.github.testlens.hud.HudThemePreset[] values()
   public static io.github.testlens.hud.HudThemePreset valueOf(java.lang.String)
+TYPE io.github.testlens.hud.HudTimestampFormat
+  public static final io.github.testlens.hud.HudTimestampFormat ISO_UTC
+  public static final io.github.testlens.hud.HudTimestampFormat TIME_ONLY
+  public static final io.github.testlens.hud.HudTimestampFormat DATE_TIME
+  public static io.github.testlens.hud.HudTimestampFormat[] values()
+  public static io.github.testlens.hud.HudTimestampFormat valueOf(java.lang.String)
 TYPE io.github.testlens.hud.HudTypography$Builder
   public io.github.testlens.hud.HudTypography$Builder header(io.github.testlens.hud.HudFontPreset)
   public io.github.testlens.hud.HudTypography$Builder currentStep(io.github.testlens.hud.HudFontPreset)
@@ -1001,6 +1053,8 @@ TYPE io.github.testlens.JsOverlayDebug
   public void hudLog(java.lang.String, java.lang.String, java.lang.String)
   public void highlightClick(org.openqa.selenium.WebElement, java.lang.String)
   public org.openqa.selenium.WebElement highlightElement(org.openqa.selenium.WebElement, java.lang.String)
+  public org.openqa.selenium.WebElement highlightElement(org.openqa.selenium.WebElement, java.lang.String, io.github.testlens.HighlightState)
+  public void automaticHighlight(org.openqa.selenium.WebElement, java.lang.String, io.github.testlens.HighlightState)
   public void highlightParent(org.openqa.selenium.WebElement, java.lang.String)
   public void highlightAncestor(org.openqa.selenium.WebElement, int, java.lang.String)
   public void highlightClosest(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)
@@ -1107,6 +1161,8 @@ TYPE io.github.testlens.TestLens
   public io.github.testlens.core.trace.RetrySummary retrySummary()
   public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By)
   public io.github.testlens.selenium.locator.UiLocator locator(org.openqa.selenium.By, java.lang.String)
+  public org.openqa.selenium.WebElement highlight(org.openqa.selenium.WebElement, java.lang.String)
+  public org.openqa.selenium.WebElement highlight(org.openqa.selenium.WebElement, java.lang.String, io.github.testlens.HighlightState)
   public io.github.testlens.selenium.assertions.UiExpect expect(org.openqa.selenium.By)
   public io.github.testlens.selenium.assertions.UiExpect expect(org.openqa.selenium.By, java.lang.String)
   public io.github.testlens.selenium.assertions.UiPageExpect expectPage()
@@ -1184,6 +1240,7 @@ TYPE io.github.testlens.TestLensOptions$Builder
   public io.github.testlens.TestLensOptions$Builder failureBundleOptions(io.github.testlens.selenium.evidence.FailureBundleOptions)
   public io.github.testlens.TestLensOptions$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
   public io.github.testlens.TestLensOptions$Builder hud(io.github.testlens.hud.HudOptions)
+  public io.github.testlens.TestLensOptions$Builder highlight(io.github.testlens.HighlightOptions)
   public io.github.testlens.TestLensOptions$Builder visualRedaction(io.github.testlens.selenium.evidence.VisualRedactionOptions)
   public io.github.testlens.TestLensOptions build()
 TYPE io.github.testlens.TestLensOptions
@@ -1199,6 +1256,7 @@ TYPE io.github.testlens.TestLensOptions
   public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOptions()
   public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
   public io.github.testlens.hud.HudOptions hud()
+  public io.github.testlens.HighlightOptions highlight()
   public io.github.testlens.selenium.evidence.VisualRedactionOptions visualRedaction()
 TYPE io.github.testlens.TestRunScope
   public static io.github.testlens.TestRunScope open()
@@ -1227,6 +1285,7 @@ TYPE io.github.testlens.actions.AssertActions$OverlayAssertionResult
 TYPE io.github.testlens.actions.AssertActions
   public io.github.testlens.actions.AssertActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.hud.HudPanel)
   public io.github.testlens.actions.AssertActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.hud.HudPanel, io.github.testlens.core.OverlayLogger)
+  public io.github.testlens.actions.AssertActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.hud.HudPanel, io.github.testlens.core.OverlayLogger, io.github.testlens.actions.HighlightActions)
   public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertTextEqualsModified(org.openqa.selenium.WebElement, java.lang.String, java.util.function.Function<java.lang.String, java.lang.String>, java.lang.String)
   public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertTextContainsModified(org.openqa.selenium.WebElement, java.lang.String, java.util.function.Function<java.lang.String, java.lang.String>, java.lang.String)
   public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertTextEquals(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)
@@ -1248,6 +1307,7 @@ TYPE io.github.testlens.actions.HighlightActions
   public io.github.testlens.actions.HighlightActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig)
   public io.github.testlens.actions.HighlightActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayLogger)
   public void highlightClick(org.openqa.selenium.WebElement, java.lang.String)
+  public void highlight(org.openqa.selenium.WebElement, java.lang.String, io.github.testlens.HighlightState, boolean)
   public void highlightParent(org.openqa.selenium.WebElement, int, java.lang.String)
   public void highlightClosest(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)
 TYPE io.github.testlens.actions.ScrollActions
@@ -1553,6 +1613,7 @@ TYPE io.github.testlens.selenium.assertions.UiExpect
   public io.github.testlens.selenium.assertions.UiExpect(io.github.testlens.selenium.locator.UiLocator, io.github.testlens.selenium.assertions.UiAssertionOptions, io.github.testlens.core.OverlayLogger)
   public io.github.testlens.selenium.assertions.UiExpect(io.github.testlens.selenium.locator.UiLocator, io.github.testlens.selenium.assertions.UiAssertionOptions, io.github.testlens.core.OverlayLogger, io.github.testlens.selenium.assertions.UiExpect$VisibilityProbe)
   public io.github.testlens.selenium.assertions.UiExpect(io.github.testlens.selenium.locator.UiLocator, io.github.testlens.selenium.assertions.UiAssertionOptions, io.github.testlens.core.OverlayLogger, io.github.testlens.selenium.assertions.UiExpect$VisibilityProbe, io.github.testlens.selenium.assertions.UiExpect$ElementProbe)
+  public io.github.testlens.selenium.assertions.UiExpect(io.github.testlens.selenium.locator.UiLocator, io.github.testlens.selenium.assertions.UiAssertionOptions, io.github.testlens.core.OverlayLogger, io.github.testlens.selenium.assertions.UiExpect$VisibilityProbe, io.github.testlens.selenium.assertions.UiExpect$ElementProbe, java.util.function.Consumer<io.github.testlens.HighlightState>)
   public io.github.testlens.selenium.assertions.UiAssertionResult toBeVisible()
   public io.github.testlens.selenium.assertions.UiAssertionResult toBeHidden()
   public io.github.testlens.selenium.assertions.UiAssertionResult toBeEnabled()
@@ -2013,6 +2074,8 @@ TYPE io.github.testlens.selenium.locator.UiLocator
   public io.github.testlens.selenium.locator.UiLocator click()
   public io.github.testlens.selenium.locator.UiLocator fill(java.lang.String)
   public io.github.testlens.selenium.locator.UiLocator clear()
+  public io.github.testlens.selenium.locator.UiLocator highlight()
+  public io.github.testlens.selenium.locator.UiLocator highlight(io.github.testlens.HighlightState)
   public io.github.testlens.selenium.locator.UiLocator pressEnter()
   public io.github.testlens.selenium.locator.UiLocator press(java.lang.CharSequence...)
   public io.github.testlens.selenium.locator.UiLocator selectByVisibleText(java.lang.String)

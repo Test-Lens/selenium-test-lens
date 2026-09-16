@@ -27,7 +27,7 @@ foreach ($asset in @("runtime/visual-typography.js", "runtime/hud-panel.js", "ru
 
 $script = [IO.File]::ReadAllText((Join-Path $source "studio.js"))
 $styles = [IO.File]::ReadAllText((Join-Path $source "studio.css"))
-foreach ($contract in @("HudOptions.builder()", ".preset(HudPreset.", ".hud(hud)", "offsetXPx", "maxHeightPx", "headerLayout", "HudHeaderLayout", "data-header-layout", "fontPreset", "HudTypography.builder()", "data-typography", "scrollbarStyle", "scrollbarThumbColor", "scrollbar-style", "customLogo", "runtime-logo-path", "showNetwork", "showRetries", "import io.github.testlens.TestLens")) {
+foreach ($contract in @("HudOptions.builder()", ".preset(HudPreset.", ".hud(hud)", "offsetXPx", "maxHeightPx", "headerLayout", "HudHeaderLayout", "data-header-layout", "fontPreset", "HudTypography.builder()", "data-typography", "scrollbarStyle", "scrollbarThumbColor", "scrollbar-style", "customLogo", "runtime-logo-path", "showNetwork", "showRetries", "timestampFormat", "timestampZone", "HudTimestampFormat", "ZoneId.of", "import io.github.testlens.TestLens")) {
     if (-not $script.Contains($contract)) { throw "HUD Studio is missing contract: $contract" }
 }
 $allScripts = $script + [IO.File]::ReadAllText((Join-Path $source "preview.js"))

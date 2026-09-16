@@ -4,6 +4,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import io.github.testlens.OverlayConfig;
+import io.github.testlens.HighlightState;
 import io.github.testlens.core.AssertionBadgesJs;
 import io.github.testlens.core.OverlayLogger;
 import io.github.testlens.core.OverlayRootManager;
@@ -24,6 +25,7 @@ public class AssertActions {
     private final OverlayConfig config;
     private final HudPanel hudPanel;
     private final OverlayLogger logger;
+    private final HighlightActions highlightActions;
 
     public AssertActions(WebDriver driver,
                          OverlayRootManager rootManager,
@@ -37,6 +39,12 @@ public class AssertActions {
                          OverlayConfig config,
                          HudPanel hudPanel,
                          OverlayLogger logger) {
+        this(driver, rootManager, config, hudPanel, logger,
+                new HighlightActions(driver, rootManager, config, logger));
+    }
+
+    public AssertActions(WebDriver driver, OverlayRootManager rootManager, OverlayConfig config,
+                         HudPanel hudPanel, OverlayLogger logger, HighlightActions highlightActions) {
         if (!(driver instanceof JavascriptExecutor)) {
             throw new IllegalArgumentException("WebDriver must implement JavascriptExecutor");
         }
@@ -45,6 +53,7 @@ public class AssertActions {
         this.config = config;
         this.hudPanel = hudPanel;
         this.logger = logger != null ? logger : OverlayLogger.noop();
+        this.highlightActions = Objects.requireNonNull(highlightActions, "highlightActions must not be null");
     }
 
     // ========== PUBLIC ASSERTIONS ==========
@@ -554,16 +563,7 @@ public class AssertActions {
      * A failed assertion changes the shared container border and badge background to the failure color.
      */
     private void drawOverlayBadge(WebElement element, boolean ok, String label) {
-        if (!config.isEnabled() || element == null) return;
-
-        rootManager.ensureRootExists();
-        long duration = config.getDecorationDurationMs();
-
-        js.executeScript(
-                AssertionBadgesJs.INIT +
-                        "window.__uiTestLens.modules.assertionBadges.show(arguments[0], { ok: arguments[1], label: arguments[3] }, { duration: arguments[2] });",
-                element, ok, duration, logger.redactionPolicy().redact(label)
-        );
+        highlightActions.highlight(element, label, ok ? HighlightState.SUCCESS : HighlightState.FAILURE, true);
     }
 
     private void hudUpdate(String msg) {

@@ -15,10 +15,10 @@
   var SAFE_MARGIN_PX = 10;
 
   var HUD_PRESETS = {
-    MINIMAL: {width:280,maxHeight:180,maxLogHeight:80,headerLayout:'AUTO',showTestName:false,showCurrentStep:true,showPipeline:false,showTimestamps:false,showEventLog:false,showNetwork:false,showRetries:false,showWaits:true,showAssertions:true,fontPreset:'UI_SANS',baseFontSize:9,headerFontSize:10,scrollbarStyle:'SUBTLE',scrollbarWidth:6,scrollbarTrack:'#111827',scrollbarThumb:'#64748b',scrollbarThumbHover:'#94a3b8'},
-    COMPACT: {width:420,maxHeight:280,maxLogHeight:180,headerLayout:'AUTO',showTestName:true,showCurrentStep:true,showPipeline:false,showTimestamps:false,showEventLog:true,showNetwork:true,showRetries:true,showWaits:true,showAssertions:true,fontPreset:'UI_SANS',baseFontSize:10,headerFontSize:10,scrollbarStyle:'SUBTLE',scrollbarWidth:6,scrollbarTrack:'#111827',scrollbarThumb:'#64748b',scrollbarThumbHover:'#94a3b8'},
-    STANDARD: {width:520,maxHeight:380,maxLogHeight:260,headerLayout:'AUTO',showTestName:true,showCurrentStep:true,showPipeline:false,showTimestamps:true,showEventLog:true,showNetwork:true,showRetries:true,showWaits:true,showAssertions:true,fontPreset:'UI_SANS',baseFontSize:10,headerFontSize:10,scrollbarStyle:'SUBTLE',scrollbarWidth:6,scrollbarTrack:'#111827',scrollbarThumb:'#64748b',scrollbarThumbHover:'#94a3b8'},
-    DEBUG: {width:620,maxHeight:520,maxLogHeight:360,headerLayout:'AUTO',showTestName:true,showCurrentStep:true,showPipeline:true,showTimestamps:true,showEventLog:true,showNetwork:true,showRetries:true,showWaits:true,showAssertions:true,fontPreset:'MONOSPACE',baseFontSize:10,headerFontSize:11,scrollbarStyle:'STANDARD',scrollbarWidth:10,scrollbarTrack:'#1e293b',scrollbarThumb:'#94a3b8',scrollbarThumbHover:'#cbd5e1'}
+    MINIMAL: {width:280,maxHeight:180,maxLogHeight:80,headerLayout:'AUTO',showTestName:false,showCurrentStep:true,showPipeline:false,showTimestamps:false,timestampFormat:'ISO_UTC',timestampZone:'SYSTEM',timestampZoneSource:'SYSTEM',showEventLog:false,showNetwork:false,showRetries:false,showWaits:true,showAssertions:true,fontPreset:'UI_SANS',baseFontSize:9,headerFontSize:10,scrollbarStyle:'SUBTLE',scrollbarWidth:6,scrollbarTrack:'#111827',scrollbarThumb:'#64748b',scrollbarThumbHover:'#94a3b8'},
+    COMPACT: {width:420,maxHeight:280,maxLogHeight:180,headerLayout:'AUTO',showTestName:true,showCurrentStep:true,showPipeline:false,showTimestamps:false,timestampFormat:'ISO_UTC',timestampZone:'SYSTEM',timestampZoneSource:'SYSTEM',showEventLog:true,showNetwork:true,showRetries:true,showWaits:true,showAssertions:true,fontPreset:'UI_SANS',baseFontSize:10,headerFontSize:10,scrollbarStyle:'SUBTLE',scrollbarWidth:6,scrollbarTrack:'#111827',scrollbarThumb:'#64748b',scrollbarThumbHover:'#94a3b8'},
+    STANDARD: {width:520,maxHeight:380,maxLogHeight:260,headerLayout:'AUTO',showTestName:true,showCurrentStep:true,showPipeline:false,showTimestamps:true,timestampFormat:'ISO_UTC',timestampZone:'SYSTEM',timestampZoneSource:'SYSTEM',showEventLog:true,showNetwork:true,showRetries:true,showWaits:true,showAssertions:true,fontPreset:'UI_SANS',baseFontSize:10,headerFontSize:10,scrollbarStyle:'SUBTLE',scrollbarWidth:6,scrollbarTrack:'#111827',scrollbarThumb:'#64748b',scrollbarThumbHover:'#94a3b8'},
+    DEBUG: {width:620,maxHeight:520,maxLogHeight:360,headerLayout:'AUTO',showTestName:true,showCurrentStep:true,showPipeline:true,showTimestamps:true,timestampFormat:'ISO_UTC',timestampZone:'SYSTEM',timestampZoneSource:'SYSTEM',showEventLog:true,showNetwork:true,showRetries:true,showWaits:true,showAssertions:true,fontPreset:'MONOSPACE',baseFontSize:10,headerFontSize:11,scrollbarStyle:'STANDARD',scrollbarWidth:10,scrollbarTrack:'#1e293b',scrollbarThumb:'#94a3b8',scrollbarThumbHover:'#cbd5e1'}
   };
   var HUD_PRESET_SHARED = {
     position:'BOTTOM_RIGHT',offsetX:10,offsetY:10,railWidth:16,branding:'TEST_LENS',typography:{},
@@ -683,6 +683,43 @@
     return true;
   }
 
+  function acceptedTimestamp(value) {
+    var raw = value == null ? '' : String(value).trim();
+    // Only unambiguous ISO-8601 instants with an explicit UTC/offset suffix are accepted.
+    var explicitInstant = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/.test(raw);
+    var millis = explicitInstant ? Date.parse(raw) : NaN;
+    return Number.isFinite(millis) ? new Date(millis) : new Date();
+  }
+
+  function timestampZone(config) {
+    var configured = option(config, 'timestampZone', 'SYSTEM');
+    if (configured && configured !== 'SYSTEM') return configured;
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; }
+    catch (ignored) { return 'UTC'; }
+  }
+
+  function readableTimestamp(date, format, zone) {
+    var options = {timeZone:zone,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'};
+    if (format === 'DATE_TIME') {
+      options.day = '2-digit'; options.month = '2-digit'; options.year = '2-digit';
+    }
+    var parts;
+    try { parts = new Intl.DateTimeFormat('en-GB', options).formatToParts(date); }
+    catch (ignored) { options.timeZone = 'UTC'; parts = new Intl.DateTimeFormat('en-GB', options).formatToParts(date); }
+    var values = {};
+    parts.forEach(function(part) { if (part.type !== 'literal') values[part.type] = part.value; });
+    var time = values.hour + ':' + values.minute + ':' + values.second;
+    return format === 'DATE_TIME' ? values.day + '.' + values.month + '.' + values.year + ' ' + time : time;
+  }
+
+  function formatTimestamp(date, config) {
+    var format = option(config, 'timestampFormat', 'ISO_UTC');
+    if (format === 'TIME_ONLY' || format === 'DATE_TIME') {
+      return readableTimestamp(date, format, timestampZone(config));
+    }
+    return date.toISOString();
+  }
+
   function log(message, level, timestamp, eventType) {
     var config = lens.state.hud.lastConfig || {};
     if (!option(config, 'showEventLog', true) || !eventVisible(config, eventType)) return;
@@ -716,7 +753,9 @@
     }
     row.style.color = color;
 
-    var timestampText = option(config, 'showTimestamps', false) ? '[' + (timestamp || '') + ']' : '';
+    var eventTimestamp = acceptedTimestamp(timestamp);
+    row.setAttribute('data-test-lens-timestamp', eventTimestamp.toISOString());
+    var timestampText = option(config, 'showTimestamps', false) ? '[' + formatTimestamp(eventTimestamp, config) + ']' : '';
     row.textContent = timestampText + '[' + (level || '').toUpperCase() + '] ' + (message || '');
     logs.appendChild(row);
     updateScrollableRegions(panel);

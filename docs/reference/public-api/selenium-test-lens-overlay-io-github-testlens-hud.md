@@ -103,6 +103,9 @@ public io.github.testlens.hud.HudOptions$Builder showTestName(boolean)
 public io.github.testlens.hud.HudOptions$Builder showCurrentStep(boolean)
 public io.github.testlens.hud.HudOptions$Builder showPipeline(boolean)
 public io.github.testlens.hud.HudOptions$Builder showTimestamps(boolean)
+public io.github.testlens.hud.HudOptions$Builder timestampFormat(io.github.testlens.hud.HudTimestampFormat)
+public io.github.testlens.hud.HudOptions$Builder timestampZone(java.time.ZoneId)
+public io.github.testlens.hud.HudOptions$Builder systemTimestampZone()
 public io.github.testlens.hud.HudOptions$Builder showEventLog(boolean)
 public io.github.testlens.hud.HudOptions$Builder showNetwork(boolean)
 public io.github.testlens.hud.HudOptions$Builder showRetries(boolean)
@@ -156,6 +159,10 @@ public boolean showTestName()
 public boolean showCurrentStep()
 public boolean showPipeline()
 public boolean showTimestamps()
+public io.github.testlens.hud.HudTimestampFormat timestampFormat()
+public java.util.Optional<java.time.ZoneId> timestampZone()
+public boolean usesSystemTimestampZone()
+public java.time.ZoneId effectiveTimestampZone()
 public boolean showEventLog()
 public boolean showNetwork()
 public boolean showRetries()
@@ -328,6 +335,22 @@ public static final io.github.testlens.hud.HudThemePreset BLACK_AND_COLORS
 public static final io.github.testlens.hud.HudThemePreset MINIMAL
 public static io.github.testlens.hud.HudThemePreset[] values()
 public static io.github.testlens.hud.HudThemePreset valueOf(java.lang.String)
+```
+
+## `io.github.testlens.hud.HudTimestampFormat` {#io-github-testlens-hud-hudtimestampformat}
+
+- Artifact/module: `selenium-test-lens-overlay`
+- Package: `io.github.testlens.hud`
+- Classification: `USER_API`
+- Type kind: `enum`
+- Functional documentation: [docs/observability/hud-studio.md](../../observability/hud-studio.md)
+
+```java
+public static final io.github.testlens.hud.HudTimestampFormat ISO_UTC
+public static final io.github.testlens.hud.HudTimestampFormat TIME_ONLY
+public static final io.github.testlens.hud.HudTimestampFormat DATE_TIME
+public static io.github.testlens.hud.HudTimestampFormat[] values()
+public static io.github.testlens.hud.HudTimestampFormat valueOf(java.lang.String)
 ```
 
 ## `io.github.testlens.hud.HudTypography$Builder` {#io-github-testlens-hud-hudtypography-builder}

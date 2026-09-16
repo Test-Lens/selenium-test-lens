@@ -20,6 +20,8 @@ public io.github.testlens.selenium.locator.UiLocator(org.openqa.selenium.WebDriv
 public io.github.testlens.selenium.locator.UiLocator click()
 public io.github.testlens.selenium.locator.UiLocator fill(java.lang.String)
 public io.github.testlens.selenium.locator.UiLocator clear()
+public io.github.testlens.selenium.locator.UiLocator highlight()
+public io.github.testlens.selenium.locator.UiLocator highlight(io.github.testlens.HighlightState)
 public io.github.testlens.selenium.locator.UiLocator pressEnter()
 public io.github.testlens.selenium.locator.UiLocator press(java.lang.CharSequence...)
 public io.github.testlens.selenium.locator.UiLocator selectByVisibleText(java.lang.String)
