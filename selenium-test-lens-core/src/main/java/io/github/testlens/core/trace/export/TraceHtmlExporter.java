@@ -30,6 +30,8 @@ import java.util.TreeMap;
  * Exports a {@link UiTestLensSession} as a standalone HTML trace report.
  *
  * <p>The exporter renders metadata, categorized timeline events, failures, artifacts, and optional raw JSON.
+ * CSS and progressive-enhancement JavaScript are embedded so the report remains portable over {@code file://}
+ * and HTTP. Core content and native attribute details remain available when JavaScript is disabled.
  */
 public final class TraceHtmlExporter {
     public static final Path DEFAULT_OUTPUT_PATH = Path.of("target", "ui-test-lens-report", "index.html");
@@ -83,7 +85,7 @@ public final class TraceHtmlExporter {
         if (effectiveOptions.includeEventTypeSummary()) {
             appendEventTypeSummary(out, session.events());
         }
-        appendTimeline(out, session.events(), effectiveOptions);
+        appendTimeline(out, session.events(), effectiveOptions, "");
         appendSteps(out, session.events(), effectiveOptions);
         if (effectiveOptions.includeArtifacts()) {
             appendArtifacts(out, session.artifacts(), effectiveOptions, artifactBaseDirectory, Map.of());
@@ -91,6 +93,7 @@ public final class TraceHtmlExporter {
         if (effectiveOptions.includeJsonPayload()) {
             appendRawJson(out, session, effectiveOptions);
         }
+        appendReportBehavior(out);
         out.append("</body></html>");
         return out.toString();
     }
@@ -160,6 +163,7 @@ public final class TraceHtmlExporter {
         appendSuiteFailures(out, safeSessions, effectiveOptions);
         appendSuiteTable(out, safeSessions);
         appendSuiteDetails(out, safeSessions, effectiveOptions, artifactBaseDirectory, safeOverrides);
+        appendReportBehavior(out);
         out.append("</body></html>");
         return out.toString();
     }
@@ -324,6 +328,7 @@ public final class TraceHtmlExporter {
             return;
         }
         for (UiTestLensSession session : sessions) {
+            String eventScope = sessionAnchor(session) + "-";
             out.append("<article class=\"session-detail\" id=\"")
                     .append(escape(sessionAnchor(session)))
                     .append("\"><div class=\"event-title\"><h3>")
@@ -343,10 +348,10 @@ public final class TraceHtmlExporter {
                 appendMap(out, session.metadata().labels(), true);
                 out.append("</details>");
             }
-            appendFailureSummary(out, session.events(), options);
+            appendFailureSummary(out, session.events(), options, eventScope);
             appendFlakiness(out, session);
             appendFailureBundle(out, session.events());
-            appendTimeline(out, session.events(), options);
+            appendTimeline(out, session.events(), options, eventScope);
             if (options.includeArtifacts()) {
                 appendArtifacts(out, session.artifacts(), options, artifactBaseDirectory, artifactPathOverrides);
             }
@@ -498,7 +503,10 @@ public final class TraceHtmlExporter {
         out.append("</tbody></table></div></section>");
     }
 
-    private void appendTimeline(StringBuilder out, List<TraceEvent> events, TraceHtmlExportOptions options) {
+    private void appendTimeline(StringBuilder out,
+                                List<TraceEvent> events,
+                                TraceHtmlExportOptions options,
+                                String eventScope) {
         out.append("<section><h2>Timeline</h2>");
         if (options.groupTimelineByCategory()) {
             Map<EventCategory, List<TraceEvent>> grouped = groupedEvents(filteredTimelineEvents(events, options));
@@ -508,10 +516,10 @@ public final class TraceHtmlExporter {
                     continue;
                 }
                 out.append("<h3>").append(escape(category.label)).append("</h3>");
-                appendTimelineTable(out, categoryEvents, options);
+                appendTimelineTable(out, categoryEvents, options, eventScope);
             }
         } else {
-            appendTimelineTable(out, filteredTimelineEvents(events, options), options);
+            appendTimelineTable(out, filteredTimelineEvents(events, options), options, eventScope);
         }
         out.append("</section>");
     }
@@ -522,7 +530,10 @@ public final class TraceHtmlExporter {
                 .toList();
     }
 
-    private void appendTimelineTable(StringBuilder out, List<TraceEvent> events, TraceHtmlExportOptions options) {
+    private void appendTimelineTable(StringBuilder out,
+                                     List<TraceEvent> events,
+                                     TraceHtmlExportOptions options,
+                                     String eventScope) {
         boolean showAttributes = options.includeAttributes() && !options.compactTimeline();
         int messageLimit = options.compactTimeline() ? Math.min(options.maxMessageLength(), 160) : options.maxMessageLength();
         Instant firstTimestamp = events.stream()
@@ -530,29 +541,52 @@ public final class TraceHtmlExporter {
                 .filter(timestamp -> timestamp != null)
                 .min(Instant::compareTo)
                 .orElse(null);
-        out.append("<div class=\"table-wrap\"><table class=\"timeline\"><thead><tr>")
-                .append("<th>Time</th><th>Offset</th><th>Category</th><th>Type</th><th>Status</th><th>Name</th><th>Message</th><th>Duration</th><th>Parent</th>");
+        String timelineId = "timeline-" + eventScope + (events.isEmpty() ? "empty" : events.get(0).id());
+        out.append("<div class=\"table-wrap timeline-wrap\" id=\"").append(escape(timelineId))
+                .append("\"><table class=\"timeline\"><thead><tr>")
+                .append("<th class=\"col-time\">Time</th><th class=\"col-offset\">Offset</th>")
+                .append("<th class=\"col-category\">Category</th><th class=\"col-type\">Type</th>")
+                .append("<th class=\"col-status\">Status</th><th class=\"col-name\">Name</th>")
+                .append("<th class=\"col-message\">Message</th><th class=\"col-duration\">Duration</th>")
+                .append("<th class=\"col-parent\">Parent</th>");
         if (showAttributes) {
-            out.append("<th>Details</th>");
+            out.append("<th class=\"col-details\">Details</th>");
         }
         out.append("</tr></thead><tbody>");
         for (TraceEvent event : events) {
-            out.append("<tr id=\"event-").append(escape(event.id())).append("\"><td class=\"mono\">")
+            String eventAnchor = eventScope + "event-" + event.id();
+            String detailsId = eventAnchor + "-attributes";
+            boolean hasAttributes = showAttributes && event.attributes() != null && !event.attributes().isEmpty();
+            out.append("<tr class=\"timeline-event-row\" id=\"").append(escape(eventAnchor))
+                    .append("\" data-event-id=\"").append(escape(event.id())).append("\"><td class=\"mono col-time\">")
                     .append(escape(shortInstant(event.timestamp()))).append("</td>")
-                    .append("<td class=\"mono\">").append(escape(offset(firstTimestamp, event.timestamp()))).append("</td>")
-                    .append("<td>").append(categoryBadge(categoryFor(event))).append("</td>")
-                    .append("<td>").append(typeBadge(event.type())).append("</td>")
-                    .append("<td>").append(badge(event.status())).append("</td>")
-                    .append("<td><strong>").append(escape(event.name())).append("</strong></td>")
-                    .append("<td>").append(escape(preview(event.message(), messageLimit))).append("</td>")
-                    .append("<td class=\"mono\">").append(escape(duration(event.duration()))).append("</td>")
-                    .append("<td class=\"muted mono\">").append(escape(event.parentId())).append("</td>");
+                    .append("<td class=\"mono col-offset\">").append(escape(offset(firstTimestamp, event.timestamp()))).append("</td>")
+                    .append("<td class=\"col-category\">").append(categoryBadge(categoryFor(event))).append("</td>")
+                    .append("<td class=\"col-type\">").append(typeBadge(event.type())).append("</td>")
+                    .append("<td class=\"col-status\">").append(badge(event.status())).append("</td>")
+                    .append("<td class=\"col-name\"><strong>").append(escape(event.name())).append("</strong></td>")
+                    .append("<td class=\"col-message\">").append(escape(preview(event.message(), messageLimit))).append("</td>")
+                    .append("<td class=\"mono col-duration\">").append(escape(duration(event.duration()))).append("</td>")
+                    .append("<td class=\"muted mono col-parent\">").append(escape(event.parentId())).append("</td>");
             if (showAttributes) {
-                out.append("<td>");
-                appendDetailsMap(out, "Attributes", event.attributes());
+                out.append("<td class=\"col-details\">");
+                if (hasAttributes) {
+                    out.append("<button class=\"details-toggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"")
+                            .append(escape(detailsId)).append("\">Show attributes</button>");
+                } else {
+                    out.append("<span class=\"muted\">-</span>");
+                }
                 out.append("</td>");
             }
             out.append("</tr>");
+            if (hasAttributes) {
+                out.append("<tr class=\"event-details-row\" id=\"").append(escape(detailsId))
+                        .append("\"><td colspan=\"10\"><div class=\"event-details-panel\">")
+                        .append("<details class=\"details event-attributes\"><summary>Attributes for ")
+                        .append(escape(event.name())).append("</summary>");
+                appendMap(out, event.attributes(), true);
+                out.append("</details></div></td></tr>");
+            }
         }
         if (events.isEmpty()) {
             int colspan = showAttributes ? 10 : 9;
@@ -590,6 +624,13 @@ public final class TraceHtmlExporter {
     }
 
     private void appendFailureSummary(StringBuilder out, List<TraceEvent> events, TraceHtmlExportOptions options) {
+        appendFailureSummary(out, events, options, "");
+    }
+
+    private void appendFailureSummary(StringBuilder out,
+                                      List<TraceEvent> events,
+                                      TraceHtmlExportOptions options,
+                                      String eventScope) {
         List<TraceEvent> failures = events.stream()
                 .filter(event -> event.failure() != null || isFailedOrError(event))
                 .toList();
@@ -608,7 +649,7 @@ public final class TraceHtmlExporter {
                     .append(badge(event.status()))
                     .append("</div><p>")
                     .append(escape(preview(event.message(), options.maxMessageLength())))
-                    .append("</p><p><a href=\"#event-")
+                    .append("</p><p><a href=\"#").append(escape(eventScope)).append("event-")
                     .append(escape(event.id()))
                     .append("\">Open timeline event</a></p>");
             appendFailureBlock(out, event.failure(), options);
@@ -736,6 +777,135 @@ public final class TraceHtmlExporter {
                 .append("</summary>");
         appendMap(out, map, true);
         out.append("</details>");
+    }
+
+    private void appendReportBehavior(StringBuilder out) {
+        out.append("""
+                <script>
+                (() => {
+                  const root = document.documentElement;
+                  root.classList.add('report-enhanced');
+
+                  const updateDetailsButton = (button, expanded) => {
+                    button.setAttribute('aria-expanded', String(expanded));
+                    button.textContent = expanded ? 'Hide attributes' : 'Show attributes';
+                  };
+                  document.querySelectorAll('.details-toggle').forEach(button => {
+                    const row = document.getElementById(button.getAttribute('aria-controls'));
+                    const details = row?.querySelector('.event-attributes');
+                    if (!row || !details) return;
+                    row.classList.add('is-collapsed');
+                    details.open = false;
+                    updateDetailsButton(button, false);
+                    button.addEventListener('click', () => {
+                      const expanded = button.getAttribute('aria-expanded') !== 'true';
+                      row.classList.toggle('is-collapsed', !expanded);
+                      details.open = expanded;
+                      updateDetailsButton(button, expanded);
+                      requestAnimationFrame(refreshScrollProxy);
+                    });
+                    details.addEventListener('toggle', () => {
+                      row.classList.toggle('is-collapsed', !details.open);
+                      updateDetailsButton(button, details.open);
+                      requestAnimationFrame(refreshScrollProxy);
+                    });
+                  });
+
+                  const proxy = document.createElement('div');
+                  proxy.className = 'timeline-scroll-proxy';
+                  proxy.setAttribute('role', 'scrollbar');
+                  proxy.setAttribute('aria-label', 'Horizontal timeline scroll');
+                  proxy.setAttribute('aria-orientation', 'horizontal');
+                  proxy.tabIndex = 0;
+                  const proxyContent = document.createElement('div');
+                  proxyContent.className = 'timeline-scroll-proxy-content';
+                  proxy.append(proxyContent);
+                  document.body.append(proxy);
+
+                  const timelines = Array.from(document.querySelectorAll('.timeline-wrap'));
+                  let activeTimeline = null;
+                  let synchronizing = false;
+
+                  const maximumScroll = element => Math.max(0, element.scrollWidth - element.clientWidth);
+                  const scrollRatio = element => {
+                    const maximum = maximumScroll(element);
+                    return maximum === 0 ? 0 : element.scrollLeft / maximum;
+                  };
+
+                  const visibleHeight = rect => Math.max(0,
+                    Math.min(innerHeight, rect.bottom) - Math.max(0, rect.top));
+                  const chooseTimeline = () => timelines
+                    .filter(timeline => timeline.scrollWidth > timeline.clientWidth + 1)
+                    .map(timeline => ({timeline, rect: timeline.getBoundingClientRect()}))
+                    .filter(entry => entry.rect.bottom > 0 && entry.rect.top < innerHeight)
+                    .sort((left, right) => {
+                      const height = visibleHeight(right.rect) - visibleHeight(left.rect);
+                      if (height !== 0) return height;
+                      return Math.abs(left.rect.top) - Math.abs(right.rect.top);
+                    })[0];
+
+                  function refreshScrollProxy() {
+                    timelines.forEach(timeline => timeline.style.setProperty(
+                      '--timeline-visible-width', `${timeline.clientWidth}px`));
+                    const selected = chooseTimeline();
+                    activeTimeline = selected?.timeline || null;
+                    if (!selected) {
+                      proxy.hidden = true;
+                      document.body.classList.remove('has-scroll-proxy');
+                      return;
+                    }
+                    const left = Math.max(8, selected.rect.left);
+                    const right = Math.min(innerWidth - 8, selected.rect.right);
+                    proxy.style.left = `${left}px`;
+                    proxy.style.width = `${Math.max(0, right - left)}px`;
+                    proxyContent.style.width = `${activeTimeline.scrollWidth}px`;
+                    synchronizing = true;
+                    proxy.scrollLeft = scrollRatio(activeTimeline) * maximumScroll(proxy);
+                    synchronizing = false;
+                    proxy.setAttribute('aria-valuemin', '0');
+                    proxy.setAttribute('aria-valuemax', String(
+                      Math.max(0, activeTimeline.scrollWidth - activeTimeline.clientWidth)));
+                    proxy.setAttribute('aria-valuenow', String(Math.round(activeTimeline.scrollLeft)));
+                    proxy.setAttribute('aria-controls', activeTimeline.id);
+                    proxy.dataset.activeTimeline = activeTimeline.id;
+                    proxy.hidden = false;
+                    document.body.classList.add('has-scroll-proxy');
+                  }
+
+                  proxy.addEventListener('scroll', () => {
+                    if (!activeTimeline || synchronizing) return;
+                    synchronizing = true;
+                    activeTimeline.scrollLeft = scrollRatio(proxy) * maximumScroll(activeTimeline);
+                    proxy.setAttribute('aria-valuenow', String(Math.round(proxy.scrollLeft)));
+                    synchronizing = false;
+                  }, {passive: true});
+                  timelines.forEach(timeline => timeline.addEventListener('scroll', () => {
+                    if (timeline !== activeTimeline || synchronizing) return;
+                    synchronizing = true;
+                    proxy.scrollLeft = scrollRatio(timeline) * maximumScroll(proxy);
+                    proxy.setAttribute('aria-valuenow', String(Math.round(timeline.scrollLeft)));
+                    synchronizing = false;
+                  }, {passive: true}));
+                  addEventListener('scroll', refreshScrollProxy, {passive: true});
+                  addEventListener('resize', refreshScrollProxy, {passive: true});
+                  if ('ResizeObserver' in window) {
+                    const observer = new ResizeObserver(refreshScrollProxy);
+                    timelines.forEach(timeline => {
+                      observer.observe(timeline);
+                      const table = timeline.querySelector('table');
+                      if (table) observer.observe(table);
+                    });
+                  }
+                  addEventListener('hashchange', () => {
+                    const target = document.getElementById(location.hash.slice(1));
+                    if (target?.classList.contains('event-details-row')) {
+                      target.previousElementSibling?.querySelector('.details-toggle')?.click();
+                    }
+                  });
+                  refreshScrollProxy();
+                })();
+                </script>
+                """);
     }
 
     private void metadata(StringBuilder out, String label, String value) {
@@ -990,16 +1160,17 @@ public final class TraceHtmlExporter {
 
     private String css(HtmlReportTheme theme) {
         return themeVariables(theme == null ? HtmlReportTheme.AUTO : theme) + """
-                *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body:before{content:"";display:block;height:4px;background:linear-gradient(90deg,var(--success),var(--accent),var(--info),var(--warning),var(--danger))}
-                .hero,section{max-width:1240px;margin:22px auto;padding:24px;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow)}.hero{margin-top:0;border-radius:0 0 8px 8px}.session-detail{margin:18px 0;padding:18px;border:1px solid var(--border);border-radius:8px;background:var(--panel-muted)}
+                *{box-sizing:border-box}html{min-width:0}body{margin:0;max-width:100%;overflow-x:hidden;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body:before{content:"";display:block;height:4px;background:linear-gradient(90deg,var(--success),var(--accent),var(--info),var(--warning),var(--danger))}
+                body>.hero,body>section{width:calc(100% - 32px);margin:18px auto;padding:22px;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow)}body>.hero{width:100%;margin-top:0;border-radius:0 0 8px 8px}.session-detail{min-width:0;margin:18px 0;padding:18px;border:1px solid var(--border);border-radius:8px;background:var(--panel-muted)}.session-detail>section{min-width:0;margin:16px 0;padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:none}
                 .eyebrow{margin:0 0 4px;color:var(--accent);text-transform:uppercase;font-size:12px;letter-spacing:.08em}h1{margin:0 0 18px;font-size:28px;letter-spacing:0}h2{margin:0 0 14px;font-size:19px;letter-spacing:0}h3{margin:18px 0 10px;font-size:15px;color:var(--heading);letter-spacing:0}
-                .metadata-grid,.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.meta,.card{padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--panel-muted)}.meta span,.card span{display:block;color:var(--muted);font-size:12px}.meta strong,.card strong{display:block;margin-top:4px;word-break:break-word}
+                .metadata-grid,.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.meta,.card{min-width:0;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--panel-muted)}.meta span,.card span{display:block;color:var(--muted);font-size:12px}.meta strong,.card strong{display:block;margin-top:4px;overflow-wrap:anywhere}
                 .badge{display:inline-flex;align-items:center;gap:4px;margin:0 4px 0 0;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;border:1px solid transparent}.status.passed{background:var(--success-bg);border-color:var(--success-border);color:var(--success-text)}.status.failed{background:var(--danger-bg);border-color:var(--danger-border);color:var(--danger-text)}.status.warning{background:var(--warning-bg);border-color:var(--warning-border);color:var(--warning-text)}.status.skipped,.status.info{background:var(--badge-bg);color:var(--badge-text)}.status.started{background:var(--info-bg);border-color:var(--info-border);color:var(--info-text)}.type{background:var(--type-bg);color:var(--type-text)}.category{background:var(--category-bg);color:var(--category-text)}.category-network{background:var(--network-bg);color:var(--network-text)}.category-evidence{background:var(--evidence-bg);color:var(--evidence-text)}.artifact{background:var(--artifact-bg);color:var(--artifact-text)}
-                .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:8px;background:var(--panel-muted)}table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid var(--border-soft);vertical-align:top;text-align:left}tr:hover td{background:var(--row-hover)}th{position:sticky;top:0;background:var(--table-head);color:var(--table-head-text);font-size:12px;text-transform:uppercase;z-index:1}
-                .timeline td{min-width:90px}.event-list{display:grid;gap:12px}.event-card,.artifact-card{padding:14px;border:1px solid var(--border);border-radius:8px;background:var(--panel-muted)}.event-card.failure{border-color:var(--danger-border);background:var(--danger-bg)}.event-title{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.artifact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-                .failure-box{margin-top:10px;padding:10px;border-left:4px solid var(--danger);background:var(--code-bg)}.ok-line{padding:10px 12px;border:1px solid var(--success-border);background:var(--success-bg);border-radius:8px;color:var(--success-text)}.muted{color:var(--muted)}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}.kv{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:4px 10px}.kv.compact{margin-top:8px}.kv dt{font-weight:700}.kv dd{margin:0;word-break:break-word}.details summary{cursor:pointer;color:var(--heading);font-weight:700}pre{white-space:pre-wrap;overflow:auto;background:var(--code-bg);color:var(--code-text);padding:14px;border-radius:8px;border:1px solid var(--border)}a{color:var(--link);word-break:break-word}.artifact-warning{display:inline-flex;margin-left:6px;padding:1px 6px;border-radius:999px;background:var(--warning-bg);color:var(--warning-text);font-size:12px;font-weight:700}.artifact-thumb{display:block;max-width:100%;max-height:180px;margin-top:10px;border:1px solid var(--border);border-radius:8px;object-fit:contain;background:var(--code-bg)}
+                .table-wrap{max-width:100%;overflow:auto;border:1px solid var(--border);border-radius:8px;background:var(--panel-muted)}.timeline-wrap{max-height:min(70vh,720px);scrollbar-gutter:stable}table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid var(--border-soft);vertical-align:top;text-align:left}tr:hover>td{background:var(--row-hover)}th{position:sticky;top:0;background:var(--table-head);color:var(--table-head-text);font-size:12px;text-transform:uppercase;z-index:2}
+                .timeline{width:max-content;min-width:100%}.timeline .col-time,.timeline .col-offset,.timeline .col-category,.timeline .col-type,.timeline .col-status,.timeline .col-duration,.timeline .col-details{white-space:nowrap}.timeline .col-name{min-width:180px;max-width:320px}.timeline .col-message{min-width:320px;max-width:42vw;overflow-wrap:anywhere}.timeline .col-parent{min-width:180px;max-width:300px;overflow-wrap:anywhere}.timeline .col-details{min-width:130px}.details-toggle{appearance:none;padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--panel);color:var(--link);font:inherit;font-weight:700;cursor:pointer}.report-enhanced .event-details-row.is-collapsed{display:none}.event-details-row>td{padding:0;background:var(--panel)}.event-details-panel{position:sticky;left:0;width:calc(var(--timeline-visible-width,100vw) - 20px);max-width:calc(100vw - 52px);padding:14px 16px;background:var(--panel);border-left:4px solid var(--accent)}.event-attributes{min-width:0}.event-list{display:grid;gap:12px}.event-card,.artifact-card{min-width:0;padding:14px;border:1px solid var(--border);border-radius:8px;background:var(--panel-muted);overflow-wrap:anywhere}.event-card.failure{border-color:var(--danger-border);background:var(--danger-bg)}.event-title{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.artifact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+                .failure-box{min-width:0;margin-top:10px;padding:12px;border-left:4px solid var(--danger);background:var(--code-bg);color:var(--code-text)}.failure-box .muted{color:var(--code-muted)}.failure-box .details summary,.failure-box details>summary,.failure-box a{color:var(--code-link)}.failure-box pre{border-color:var(--code-border)}.ok-line{padding:10px 12px;border:1px solid var(--success-border);background:var(--success-bg);border-radius:8px;color:var(--success-text)}.muted{color:var(--muted)}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}.kv{min-width:0;margin:0;display:grid;grid-template-columns:minmax(8rem,min(28%,18rem)) minmax(0,1fr);gap:6px 14px}.kv.compact{margin-top:8px}.kv dt{min-width:0;font-weight:700;overflow-wrap:anywhere}.kv dd{min-width:0;margin:0;overflow-wrap:anywhere;word-break:normal}.details summary{cursor:pointer;color:var(--heading);font-weight:700}pre{max-width:100%;white-space:pre;overflow:auto;background:var(--code-bg);color:var(--code-text);padding:14px;border-radius:8px;border:1px solid var(--border)}a{color:var(--link);overflow-wrap:anywhere}.artifact-warning{display:inline-flex;margin-left:6px;padding:1px 6px;border-radius:999px;background:var(--warning-bg);color:var(--warning-text);font-size:12px;font-weight:700}.artifact-thumb{display:block;max-width:100%;max-height:180px;margin-top:10px;border:1px solid var(--border);border-radius:8px;object-fit:contain;background:var(--code-bg)}
                 .flaky-info,.flaky-warning,.flaky-failure{padding:14px;border:1px solid var(--border);border-radius:8px}.flaky-info{background:var(--info-bg);color:var(--info-text)}.flaky-warning{background:var(--warning-bg);border-color:var(--warning-border);color:var(--warning-text)}.flaky-failure{background:var(--danger-bg);border-color:var(--danger-border);color:var(--danger-text)}
-                @media (max-width:720px){.hero,section{margin:14px 10px;padding:16px}.event-title{display:block}.badge{margin-top:4px}}@media print{body{background:#fff;color:#111}.hero,section,.session-detail{box-shadow:none;break-inside:avoid}.table-wrap{overflow:visible}th{position:static}}
+                .timeline-scroll-proxy{position:fixed;right:auto;bottom:0;height:22px;overflow-x:auto;overflow-y:hidden;border:1px solid var(--border);border-radius:7px 7px 0 0;background:var(--panel);box-shadow:0 -4px 14px rgba(15,23,42,.16);z-index:30}.timeline-scroll-proxy[hidden]{display:none}.timeline-scroll-proxy-content{height:1px}.has-scroll-proxy{padding-bottom:24px}.details-toggle:focus-visible,a:focus-visible,summary:focus-visible,.timeline-scroll-proxy:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+                @media (max-width:720px){body>.hero,body>section{width:calc(100% - 20px);margin:10px;padding:14px}.session-detail{padding:12px}.session-detail>section{padding:12px}.event-title{display:block}.badge{margin-top:4px}.kv{grid-template-columns:minmax(0,1fr);gap:2px}.kv dd{margin:0 0 8px}.timeline .col-message{max-width:75vw}.event-details-panel{max-width:calc(100vw - 40px)}}@media print{body{overflow:visible;background:#fff;color:#111}.hero,section,.session-detail{box-shadow:none;break-inside:avoid}.table-wrap{max-height:none;overflow:visible}th{position:static}.timeline-scroll-proxy{display:none!important}.has-scroll-proxy{padding-bottom:0}}
                 """;
     }
 
@@ -1007,7 +1178,7 @@ public final class TraceHtmlExporter {
         return switch (theme) {
             case LIGHT -> lightVariables();
             case DARK -> darkVariables();
-            case AUTO -> lightVariables() + "@media (prefers-color-scheme: dark){" + darkVariableBody() + "}";
+            case AUTO -> lightVariables() + "@media (prefers-color-scheme: dark){" + darkVariables() + "}";
         };
     }
 
@@ -1020,11 +1191,11 @@ public final class TraceHtmlExporter {
     }
 
     private String lightVariableBody() {
-        return "color-scheme:light;--bg:#f5f7fb;--panel:#ffffff;--panel-muted:#f8fafc;--text:#172033;--muted:#667085;--border:#d8dee9;--border-soft:#e8edf5;--accent:#2563eb;--success:#16a34a;--warning:#ca8a04;--danger:#dc2626;--info:#0891b2;--code-bg:#111827;--code-text:#f9fafb;--heading:#27364a;--shadow:0 10px 28px rgba(15,23,42,.08);--success-bg:#dcfce7;--success-border:#86efac;--success-text:#166534;--danger-bg:#fee2e2;--danger-border:#fecaca;--danger-text:#991b1b;--warning-bg:#fef3c7;--warning-border:#fde68a;--warning-text:#92400e;--info-bg:#dbeafe;--info-border:#93c5fd;--info-text:#1d4ed8;--badge-bg:#e5e7eb;--badge-text:#374151;--type-bg:#eef2ff;--type-text:#3730a3;--category-bg:#f1f5f9;--category-text:#334155;--network-bg:#ccfbf1;--network-text:#115e59;--evidence-bg:#ede9fe;--evidence-text:#5b21b6;--artifact-bg:#ecfeff;--artifact-text:#155e75;--table-head:#f9fafb;--table-head-text:#374151;--row-hover:#f8fbff;--link:#1d4ed8;";
+        return "color-scheme:light;--bg:#f5f7fb;--panel:#ffffff;--panel-muted:#f8fafc;--text:#172033;--muted:#667085;--border:#d8dee9;--border-soft:#e8edf5;--accent:#2563eb;--success:#16a34a;--warning:#ca8a04;--danger:#dc2626;--info:#0891b2;--code-bg:#111827;--code-text:#f9fafb;--code-muted:#cbd5e1;--code-link:#93c5fd;--code-border:#475569;--heading:#27364a;--focus:#2563eb;--shadow:0 10px 28px rgba(15,23,42,.08);--success-bg:#dcfce7;--success-border:#86efac;--success-text:#166534;--danger-bg:#fee2e2;--danger-border:#fecaca;--danger-text:#991b1b;--warning-bg:#fef3c7;--warning-border:#fde68a;--warning-text:#92400e;--info-bg:#dbeafe;--info-border:#93c5fd;--info-text:#1d4ed8;--badge-bg:#e5e7eb;--badge-text:#374151;--type-bg:#eef2ff;--type-text:#3730a3;--category-bg:#f1f5f9;--category-text:#334155;--network-bg:#ccfbf1;--network-text:#115e59;--evidence-bg:#ede9fe;--evidence-text:#5b21b6;--artifact-bg:#ecfeff;--artifact-text:#155e75;--table-head:#f9fafb;--table-head-text:#374151;--row-hover:#f8fbff;--link:#1d4ed8;";
     }
 
     private String darkVariableBody() {
-        return "color-scheme:dark;--bg:#070b12;--panel:#101722;--panel-muted:#0c121b;--text:#e6edf7;--muted:#93a4b8;--border:#273244;--border-soft:#1c2635;--accent:#38bdf8;--success:#39ff14;--warning:#facc15;--danger:#ff4d6d;--info:#2dd4bf;--code-bg:#05070b;--code-text:#e6edf7;--heading:#c8d4e3;--shadow:0 18px 44px rgba(0,0,0,.32);--success-bg:rgba(57,255,20,.12);--success-border:rgba(57,255,20,.45);--success-text:#9cff8d;--danger-bg:rgba(255,77,109,.14);--danger-border:rgba(255,77,109,.5);--danger-text:#ff9aad;--warning-bg:rgba(250,204,21,.14);--warning-border:rgba(250,204,21,.45);--warning-text:#fde68a;--info-bg:rgba(56,189,248,.14);--info-border:rgba(56,189,248,.45);--info-text:#7dd3fc;--badge-bg:#243044;--badge-text:#cbd5e1;--type-bg:#172554;--type-text:#bfdbfe;--category-bg:#172033;--category-text:#cbd5e1;--network-bg:rgba(45,212,191,.14);--network-text:#99f6e4;--evidence-bg:rgba(192,132,252,.16);--evidence-text:#e9d5ff;--artifact-bg:rgba(56,189,248,.12);--artifact-text:#bae6fd;--table-head:#121b29;--table-head-text:#aab8ca;--row-hover:#121b29;--link:#7dd3fc;";
+        return "color-scheme:dark;--bg:#070b12;--panel:#101722;--panel-muted:#0c121b;--text:#e6edf7;--muted:#93a4b8;--border:#273244;--border-soft:#1c2635;--accent:#38bdf8;--success:#39ff14;--warning:#facc15;--danger:#ff4d6d;--info:#2dd4bf;--code-bg:#05070b;--code-text:#e6edf7;--code-muted:#aab8ca;--code-link:#7dd3fc;--code-border:#334155;--heading:#c8d4e3;--focus:#38bdf8;--shadow:0 18px 44px rgba(0,0,0,.32);--success-bg:rgba(57,255,20,.12);--success-border:rgba(57,255,20,.45);--success-text:#9cff8d;--danger-bg:rgba(255,77,109,.14);--danger-border:rgba(255,77,109,.5);--danger-text:#ff9aad;--warning-bg:rgba(250,204,21,.14);--warning-border:rgba(250,204,21,.45);--warning-text:#fde68a;--info-bg:rgba(56,189,248,.14);--info-border:rgba(56,189,248,.45);--info-text:#7dd3fc;--badge-bg:#243044;--badge-text:#cbd5e1;--type-bg:#172554;--type-text:#bfdbfe;--category-bg:#172033;--category-text:#cbd5e1;--network-bg:rgba(45,212,191,.14);--network-text:#99f6e4;--evidence-bg:rgba(192,132,252,.16);--evidence-text:#e9d5ff;--artifact-bg:rgba(56,189,248,.12);--artifact-text:#bae6fd;--table-head:#121b29;--table-head-text:#aab8ca;--row-hover:#121b29;--link:#7dd3fc;";
     }
 }
 

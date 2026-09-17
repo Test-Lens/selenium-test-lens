@@ -28,6 +28,8 @@ class HtmlLogExporterTest {
         assertTrue(html.contains("<html"));
         assertTrue(html.contains("Selenium Test Lens Log Report"));
         assertTrue(html.contains("<table"));
+        assertTrue(html.contains("timeline-scroll-proxy"));
+        assertTrue(html.contains("body>section"));
         assertTrue(html.contains("</html>"));
     }
 

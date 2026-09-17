@@ -62,3 +62,11 @@ lens.highlight(element, "Zapis zakończony", HighlightState.SUCCESS);
 These calls do not click, type, focus, or scroll. A manual `By` highlight resolves the locator once using its normal locator contract. Automatic feedback reuses the element already resolved by the operation, including scoped, `nth`, and Shadow DOM targets. Missing/detached targets simply omit decoration while HUD/trace keep the result.
 
 Migration: `OverlayConfig.highlightColor(...)` supplies `HighlightOptions.actionColor(...)`, and `decorationDurationMs(...)` supplies its `durationMs(...)` only when the corresponding typed field was not explicitly set. Explicit typed fields win in either setter order; the legacy duration still controls arrows and other historical decorations. Replace consumer-created `new JsOverlayDebug(driver)` instances with the facade calls above; legacy use remains supported and renders through the same mechanism.
+
+## Readable standalone HTML reports
+
+Session, suite, log-export, and bundle HTML now share a fluid layout that uses the available viewport instead of stopping at 1240 px. Failure details define a complete high-contrast palette in LIGHT, DARK, and reactive AUTO themes. AUTO follows a changed `prefers-color-scheme` value in the already-open document.
+
+Timeline attributes open in a full-width row below their event. Keys are bounded and values receive the remaining width, with a stacked key/value layout on narrow screens. Long timelines keep sticky headers inside their vertical scroll region and expose a synchronized horizontal bar for the overflowing table currently in view. The standard table scrollbar, touchpad scrolling, selectable text, anchors, and native `<details>` fallback remain available; no network resource is required when the report is opened through `file://`.
+
+Previously generated HTML embeds its old CSS and markup. Regenerate it with 0.3.1 to receive these fixes; replacing only the library JAR does not rewrite archived reports.

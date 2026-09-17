@@ -13,6 +13,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ### Fixed
 
+- HTML session, suite, log, and bundle reports now use a fluid viewport-width layout, readable failure diagnostics in every theme, full-row event attributes, sticky timeline headers, and a synchronized horizontal scrollbar for the currently visible overflowing timeline. AUTO now reacts correctly to system light/dark changes, and the standalone report remains usable offline with a no-JavaScript fallback.
 - Every visible HUD event row now receives exactly one normalized timestamp through the shared runtime renderer, including steps, actions, highlights, waits, retries, assertions, network/control, auth-state, screenshot, warning, error, manual `hudLog`, and direct JavaScript paths.
 - Invalid, missing, local/ambiguous, and placeholder timestamp values now receive one canonical instant when accepted instead of displaying empty brackets, `null`, `undefined`, `Invalid Date`, or labels such as `ui-test-lens`.
 - Wait and structured-log paths now preserve the event instant; entries deferred while a browser alert is open retain their original time. Trace and JSON timestamps remain canonical UTC and duration/ordering behavior is unchanged.
