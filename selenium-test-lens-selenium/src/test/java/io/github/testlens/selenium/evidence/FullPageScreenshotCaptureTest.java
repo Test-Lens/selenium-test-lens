@@ -64,6 +64,11 @@ class FullPageScreenshotCaptureTest {
         assertEquals(0, driver.scrollX);
         assertEquals(0, driver.scrollY);
         assertEquals(1, driver.restoreCalls);
+        assertEquals(1, driver.guardInstallCalls);
+        assertFalse(driver.guardActive);
+        assertEquals(1, driver.overlaySnapshotInstallCalls);
+        assertEquals(1, driver.overlaySnapshotRestoreCalls);
+        assertFalse(driver.overlaySnapshotActive);
         assertEquals(6, driver.hideCalls);
         assertEquals(1, session.artifacts().size());
         assertEquals("FULL_PAGE", session.artifacts().get(0).metadata().get("captureMode"));
@@ -122,22 +127,66 @@ class FullPageScreenshotCaptureTest {
         assertEquals("tile failure", result.exception().getMessage());
         assertEquals(1, result.exception().getSuppressed().length);
         assertEquals("restore failure", result.exception().getSuppressed()[0].getMessage());
+        assertTrue(driver.guardActive, "the fake restoration failure deliberately leaves the guard installed");
         assertFalse(Files.exists(tempDir.resolve("shot_page.png")));
     }
 
     @Test
-    void changingGeometryOrTileScaleFailsWithoutPublishingPartialImage() {
+    void middleTileFailureStillRestoresAndRemovesTheScreenshotGuard() {
+        StitchDriver driver = new StitchDriver(4, 7, 4, 3, 1.0);
+        driver.failScreenshotAt = 2;
+
+        ScreenshotCaptureResult result = capture(driver, null, 100, 10);
+
+        assertEquals(ScreenshotCaptureStatus.FAILED, result.status());
+        assertEquals("tile failure", result.exception().getMessage());
+        assertEquals(1, driver.restoreCalls);
+        assertFalse(driver.guardActive);
+        assertFalse(driver.overlaySnapshotActive);
+        assertFalse(Files.exists(tempDir.resolve("shot_page.png")));
+    }
+
+    @Test
+    void retriesTheWholeCaptureAfterOneDimensionChangeAndRestoresEachGuard() {
+        StitchDriver driver = new StitchDriver(4, 7, 4, 3, 1.0);
+        driver.dimensionChangesRemaining = 1;
+
+        ScreenshotCaptureResult result = capture(driver, null, 100, 10);
+
+        assertTrue(result.isCaptured(), result.message());
+        assertEquals(2, driver.guardInstallCalls);
+        assertEquals(2, driver.restoreCalls);
+        assertFalse(driver.guardActive);
+        assertEquals(1, driver.overlaySnapshotInstallCalls,
+                "retry must retain the overlay snapshot from the beginning of the overall capture");
+        assertEquals(1, driver.overlaySnapshotRestoreCalls);
+        assertFalse(driver.overlaySnapshotActive);
+        assertTrue(driver.screenshotCalls > result.tileCount(), "the failed attempt must be discarded and restarted");
+        assertTrue(Files.exists(tempDir.resolve("shot_page.png")));
+    }
+
+    @Test
+    void repeatedGeometryChangeReportsAttemptCountAndTileScaleFailsWithoutPublishingPartialImage() {
         StitchDriver geometry = new StitchDriver(4, 7, 4, 3, 1.0);
-        geometry.changeGeometry = true;
+        geometry.dimensionChangesRemaining = Integer.MAX_VALUE;
         ScreenshotCaptureResult geometryResult = capture(geometry, null, 100, 10);
         assertEquals(ScreenshotCaptureStatus.FAILED, geometryResult.status());
         assertTrue(geometryResult.message().contains("dimensions changed"));
+        assertTrue(geometryResult.message().contains("after 2 attempts"));
+        assertEquals(2, geometry.guardInstallCalls);
+        assertEquals(2, geometry.restoreCalls);
+        assertFalse(geometry.guardActive);
+        assertFalse(geometry.overlaySnapshotActive);
+        assertEquals(1, geometry.overlaySnapshotRestoreCalls);
 
         StitchDriver scale = new StitchDriver(4, 7, 4, 3, 1.0);
         scale.changeScale = true;
         ScreenshotCaptureResult scaleResult = capture(scale, null, 100, 10);
         assertEquals(ScreenshotCaptureStatus.FAILED, scaleResult.status());
         assertTrue(scaleResult.message().contains("scale changed"));
+        assertFalse(scale.guardActive);
+        assertFalse(scale.overlaySnapshotActive);
+        assertEquals(1, scale.overlaySnapshotRestoreCalls);
         assertFalse(Files.exists(tempDir.resolve("shot_page.png")));
     }
 
@@ -201,10 +250,13 @@ class FullPageScreenshotCaptureTest {
         long scrollX, scrollY;
         boolean topLevel = true;
         boolean failRestore;
-        boolean changeGeometry;
+        int dimensionChangesRemaining;
         boolean changeScale;
+        boolean guardActive;
+        boolean overlaySnapshotActive;
         int failScreenshotAt;
-        int screenshotCalls, restoreCalls, hideCalls, switchCalls;
+        int screenshotCalls, restoreCalls, hideCalls, switchCalls, guardInstallCalls;
+        int overlaySnapshotInstallCalls, overlaySnapshotRestoreCalls;
         long savedScrollX, savedScrollY;
 
         StitchDriver(long documentWidth, long documentHeight, long viewportWidth, long viewportHeight, double scale) {
@@ -219,29 +271,50 @@ class FullPageScreenshotCaptureTest {
         }
 
         @Override public Object executeScript(String script, Object... args) {
-            if (script.contains("window[key] =")) {
-                savedScrollX = scrollX;
-                savedScrollY = scrollY;
-                return geometry();
+            if (script.contains("cloneNode(false)")) {
+                overlaySnapshotInstallCalls++;
+                overlaySnapshotActive = true;
+                return true;
+            }
+            if (script.contains("state.snapshot && state.snapshot.isConnected")) {
+                overlaySnapshotRestoreCalls++;
+                overlaySnapshotActive = false;
+                return true;
             }
             if (script.contains("querySelectorAll")) { hideCalls++; return null; }
             if (script.contains("state.hidden.length")) {
                 restoreCalls++;
                 if (failRestore) throw new IllegalStateException("restore failure");
+                guardActive = false;
                 scrollX = savedScrollX; scrollY = savedScrollY; return true;
             }
             throw new AssertionError("Unexpected script");
         }
 
         @Override public Object executeAsyncScript(String script, Object... args) {
+            if (script.contains("data-test-lens-screenshot-guard")) {
+                savedScrollX = scrollX;
+                savedScrollY = scrollY;
+                guardInstallCalls++;
+                guardActive = true;
+                return geometry();
+            }
+            if (args.length == 0) return geometry();
             scrollX = Math.min(((Number) args[0]).longValue(), Math.max(0, documentWidth - viewportWidth));
             scrollY = Math.min(((Number) args[1]).longValue(), Math.max(0, documentHeight - viewportHeight));
             Map<String, Object> result = geometry();
-            if (changeGeometry) result.put("documentHeight", documentHeight + 1);
+            if (dimensionChangesRemaining > 0 && screenshotCalls > 0) {
+                dimensionChangesRemaining--;
+                result.put("documentHeight", documentHeight + 1);
+            }
             return result;
         }
 
         @Override public <X> X getScreenshotAs(OutputType<X> target) {
+            assertTrue(guardInstallCalls == 0 || guardActive,
+                    "every full-page tile must be captured while the screenshot guard is active");
+            assertTrue(guardInstallCalls == 0 || overlaySnapshotActive,
+                    "every full-page tile must use the one frozen overlay snapshot");
             screenshotCalls++;
             if (failScreenshotAt == screenshotCalls) throw new IllegalStateException("tile failure");
             int width = (int) Math.round(viewportWidth * scaleX);
@@ -264,7 +337,8 @@ class FullPageScreenshotCaptureTest {
             Map<String, Object> value = new LinkedHashMap<>();
             value.put("documentWidth", documentWidth); value.put("documentHeight", documentHeight);
             value.put("viewportWidth", viewportWidth); value.put("viewportHeight", viewportHeight);
-            value.put("scrollX", scrollX); value.put("scrollY", scrollY); value.put("topLevel", topLevel);
+            value.put("scrollX", scrollX); value.put("scrollY", scrollY);
+            value.put("devicePixelRatio", 1.0); value.put("topLevel", topLevel);
             return value;
         }
 
