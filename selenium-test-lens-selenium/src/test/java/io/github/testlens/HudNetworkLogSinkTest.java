@@ -22,6 +22,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class HudNetworkLogSinkTest {
     @Test
+    void disabledSourceNavigationDoesNotCreateOrInvokeResolutionPipeline() {
+        SourceFileResolver.resetMetrics();
+        IdeNavigationUriProvider.resetMetrics();
+        RecordingHud hud = new RecordingHud();
+        JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();
+
+        sink.attach(hud, null, HudOptions.defaults());
+        sink.accept(UiTestLensLogEntry.builder().eventType(UiTestLensEventType.ACTION).message("disabled").build());
+
+        assertEquals(0, SourceFileResolver.createdCount());
+        assertEquals(0, SourceFileResolver.resolutionCount());
+        assertEquals(0, SourceFileResolver.discoveryCount());
+        assertEquals(0, IdeNavigationUriProvider.targetInvocationCount());
+    }
+
+    @Test
     void skipsOnlyRawNetworkEntriesExplicitlyMarkedHidden() {
         RecordingHud hud = new RecordingHud();
         JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();

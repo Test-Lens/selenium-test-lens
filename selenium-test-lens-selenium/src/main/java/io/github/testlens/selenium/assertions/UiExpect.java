@@ -34,30 +34,39 @@ public final class UiExpect {
     private final ElementProbe elementProbe;
     private final RedactionPolicy redactionPolicy;
     private final Consumer<HighlightState> decoration;
+    private final boolean sourceNavigationEnabled;
 
     public UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger) {
-        this(locator, options, logger, null, null, null);
+        this(locator, options, logger, null, null, null, false);
     }
 
     public UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger, VisibilityProbe visibilityProbe) {
-        this(locator, options, logger, visibilityProbe, null, null);
+        this(locator, options, logger, visibilityProbe, null, null, false);
     }
 
     public UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger, VisibilityProbe visibilityProbe, ElementProbe elementProbe) {
-        this(locator, options, logger, visibilityProbe, elementProbe, null);
+        this(locator, options, logger, visibilityProbe, elementProbe, null, false);
     }
 
     /** Internal integration constructor used by locator-backed assertions. @since 0.3.1 */
     public UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger,
                     VisibilityProbe visibilityProbe, ElementProbe elementProbe,
                     Consumer<HighlightState> decoration) {
+        this(locator, options, logger, visibilityProbe, elementProbe, decoration, false);
+    }
+
+    /** Internal integration constructor used by source-aware locator assertions. @since 0.3.1 */
+    public UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger,
+                    VisibilityProbe visibilityProbe, ElementProbe elementProbe,
+                    Consumer<HighlightState> decoration, boolean sourceNavigationEnabled) {
         this.locator = Objects.requireNonNull(locator, "locator must not be null");
         this.options = options != null ? options : UiAssertionOptions.defaults();
-        this.reporter = new UiAssertionReporter(logger);
+        this.reporter = new UiAssertionReporter(logger, sourceNavigationEnabled);
         this.redactionPolicy = logger == null ? RedactionPolicy.defaults() : logger.redactionPolicy();
         this.visibilityProbe = visibilityProbe;
         this.elementProbe = elementProbe;
         this.decoration = decoration == null ? ignored -> { } : decoration;
+        this.sourceNavigationEnabled = sourceNavigationEnabled;
     }
 
     public UiAssertionResult toBeVisible() {

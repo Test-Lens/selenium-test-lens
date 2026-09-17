@@ -9,8 +9,9 @@ import java.util.Optional;
 /**
  * Optional font-stack overrides for semantic HUD sections.
  *
- * <p>Sections without an override inherit {@link HudOptions#fontPreset()}. Metadata includes
- * labels, pipeline information, and branding. Timestamps remain part of the event-log section.
+ * <p>Sections without a font override inherit {@link HudOptions#fontPreset()}. Metadata includes
+ * labels, pipeline information, and branding. Timestamp font size is independent from the
+ * event-log text size and defaults to 9 CSS pixels.
  *
  * @since 0.3.0
  */
@@ -19,12 +20,14 @@ public final class HudTypography {
     private final HudFontPreset currentStep;
     private final HudFontPreset eventLog;
     private final HudFontPreset metadata;
+    private final int timestampFontSizePx;
 
     private HudTypography(Builder builder) {
         this.header = builder.header;
         this.currentStep = builder.currentStep;
         this.eventLog = builder.eventLog;
         this.metadata = builder.metadata;
+        this.timestampFontSizePx = builder.timestampFontSizePx;
     }
 
     /**
@@ -40,6 +43,9 @@ public final class HudTypography {
      * @since 0.3.0
      */
     public static Builder builder() { return new Builder(); }
+
+    /** Returns a builder containing every value from this configuration. @since 0.3.1 */
+    public Builder toBuilder() { return new Builder(this); }
 
     /**
      * Returns the test-name/header override.
@@ -69,12 +75,16 @@ public final class HudTypography {
      */
     public Optional<HudFontPreset> metadata() { return Optional.ofNullable(metadata); }
 
+    /** Returns the independent timestamp font size. @return CSS pixels @since 0.3.1 */
+    public int timestampFontSizePx() { return timestampFontSizePx; }
+
     Map<String, Object> toRuntimeMap() {
         Map<String, Object> values = new LinkedHashMap<>();
         if (header != null) values.put("header", header.name());
         if (currentStep != null) values.put("currentStep", currentStep.name());
         if (eventLog != null) values.put("eventLog", eventLog.name());
         if (metadata != null) values.put("metadata", metadata.name());
+        values.put("timestampFontSize", timestampFontSizePx);
         return Collections.unmodifiableMap(values);
     }
 
@@ -87,8 +97,16 @@ public final class HudTypography {
         private HudFontPreset currentStep;
         private HudFontPreset eventLog;
         private HudFontPreset metadata;
+        private int timestampFontSizePx = 9;
 
         private Builder() {}
+        private Builder(HudTypography source) {
+            header = source.header;
+            currentStep = source.currentStep;
+            eventLog = source.eventLog;
+            metadata = source.metadata;
+            timestampFontSizePx = source.timestampFontSizePx;
+        }
 
         /**
          * Overrides the test-name/header font stack.
@@ -121,6 +139,20 @@ public final class HudTypography {
          * @since 0.3.0
          */
         public Builder metadata(HudFontPreset value) { metadata = Objects.requireNonNull(value, "metadata must not be null"); return this; }
+
+        /**
+         * Sets the timestamp font size independently from event-log messages.
+         * @param value size from 8 through 18 CSS pixels
+         * @return this builder
+         * @since 0.3.1
+         */
+        public Builder timestampFontSizePx(int value) {
+            if (value < 8 || value > 18) {
+                throw new IllegalArgumentException("timestampFontSizePx must be between 8 and 18");
+            }
+            timestampFontSizePx = value;
+            return this;
+        }
 
         /**
          * Creates the immutable typography overrides.

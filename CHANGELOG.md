@@ -8,6 +8,7 @@ All notable changes to Selenium Test Lens will be documented in this file.
 
 ### Added
 
+- Added opt-in Ctrl+Alt HUD source navigation for user-facing locator actions, waits, assertions, and manual highlights, with logical call-site metadata, lazy cached Maven/Gradle source resolution, IntelliJ/VS Code/custom protocol providers, remote-session safeguards, and HUD Studio generation. Absolute local paths remain local-only and are not exported.
 - Added independent HUD timestamp presentation options: `HudTimestampFormat.ISO_UTC`, `TIME_ONLY`, and `DATE_TIME`, plus either the test JVM system zone or an explicit `ZoneId`. HUD Studio previews and generates the same configuration without freezing the author's local zone when SYSTEM is selected.
 - Added immutable `HighlightOptions`, typed `HighlightState` values, and facade/locator entry points (`TestLens.highlight(...)`, `UiLocator.highlight(...)`) for interaction-free manual decoration. HUD Studio now previews and exports all five state colors, duration, border width, labels, enablement, and automatic feedback.
 
@@ -17,8 +18,9 @@ All notable changes to Selenium Test Lens will be documented in this file.
 - Every visible HUD event row now receives exactly one normalized timestamp through the shared runtime renderer, including steps, actions, highlights, waits, retries, assertions, network/control, auth-state, screenshot, warning, error, manual `hudLog`, and direct JavaScript paths.
 - Invalid, missing, local/ambiguous, and placeholder timestamp values now receive one canonical instant when accepted instead of displaying empty brackets, `null`, `undefined`, `Invalid Date`, or labels such as `ui-test-lens`.
 - Wait and structured-log paths now preserve the event instant; entries deferred while a browser alert is open retain their original time. Trace and JSON timestamps remain canonical UTC and duration/ordering behavior is unchanged.
-- Element actions, waits, `UiExpect`, and legacy element assertions now share one state renderer driven by operation outcomes rather than log text. Poll misses use WAITING/RETRY and only terminal failures use FAILURE; negative assertions may succeed without inventing an element decoration.
+- Element actions, waits, `UiExpect`, and legacy element assertions now share one state renderer driven by operation outcomes rather than log text. Ordinary polling uses WAITING, only a genuine subsequent operation/recovery attempt uses RETRY, and only terminal failures use FAILURE; negative assertions may succeed without inventing an element decoration.
 - Highlight cleanup is operation-scoped: replacing a decoration cancels its old timer/listeners, stale timers cannot remove newer state, detached and Shadow DOM targets are handled safely, and decoration failures never replace the operation exception.
+- Full-page diagnostic evidence keeps fixed and sticky Test Lens artifacts visible exactly once in the stitched image while refreshing geometry and visual-redaction masks for each tile.
 
 ## [0.3.0] - 2026-09-15
 
@@ -142,7 +144,8 @@ All notable changes to Selenium Test Lens will be documented in this file.
 - Central Publisher Portal publication remains a manual, reviewed operation.
 - Legacy browser runtime aliases are still maintained for compatibility.
 
-[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.1.0

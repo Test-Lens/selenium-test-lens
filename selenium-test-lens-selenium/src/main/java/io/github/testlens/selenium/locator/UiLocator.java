@@ -376,7 +376,7 @@ public final class UiLocator {
     public UiExpect expect(UiAssertionOptions assertionOptions) {
         lastAssertionElement = null;
         return new UiExpect(this, assertionOptions, logger, this::probeVisibilityForAssertion,
-                this::probeElementForAssertion, this::decorateAssertion);
+                this::probeElementForAssertion, this::decorateAssertion, sourceNavigationEnabled());
     }
 
     public WebElement resolve() {
@@ -1101,6 +1101,7 @@ public final class UiLocator {
                     .metadata("exceptionType", cause == null ? "" : cause.getClass().getName())
                     .metadata("failedAttemptDurationNanos", String.valueOf(failedAttemptDurationNanos))
                     .throwable(cause);
+            if (sourceNavigationEnabled()) builder.metadata("testlens.internal.captureSourceLocation", "true");
             if (valueLength != null) builder.metadata("valueLength", String.valueOf(valueLength));
             logger.emit(builder.build());
         } catch (RuntimeException ignored) {
@@ -1147,6 +1148,7 @@ public final class UiLocator {
                     .metadata("description", description.displayName())
                     .metadata("attempt", String.valueOf(attempt))
                     .throwable(throwable);
+            if (sourceNavigationEnabled()) builder.metadata("testlens.internal.captureSourceLocation", "true");
             if (valueLength != null) {
                 builder.metadata("valueLength", String.valueOf(valueLength));
             }
@@ -1154,6 +1156,10 @@ public final class UiLocator {
             logger.emit(builder.build());
         } catch (Exception ignored) {
         }
+    }
+
+    private boolean sourceNavigationEnabled() {
+        return overlay.getConfig().getHudOptions().sourceNavigation().enabled();
     }
 
     private void emitControl(UiTestLensEventType eventType,

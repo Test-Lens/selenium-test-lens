@@ -56,9 +56,9 @@ public class HighlightActions {
             Object rendered = js.executeScript(HighlightJs.INIT
                     + "return window.__uiTestLens.modules.highlight.element(arguments[0], arguments[1], arguments[2]);",
                     element, safeLabel, options.toRuntimeMap(effective));
-            emitHighlight("highlightElement", safeLabel, effective, Boolean.TRUE.equals(rendered), null);
+            emitHighlight("highlightElement", safeLabel, effective, Boolean.TRUE.equals(rendered), null, automatic);
         } catch (RuntimeException decorationFailure) {
-            emitHighlight("highlightElement", safeLabel, effective, false, decorationFailure);
+            emitHighlight("highlightElement", safeLabel, effective, false, decorationFailure, automatic);
         }
     }
 
@@ -82,20 +82,26 @@ public class HighlightActions {
             Object rendered = parent
                     ? js.executeScript(script, element, levels, safeLabel, options.toRuntimeMap(HighlightState.ACTION))
                     : js.executeScript(script, element, selector, safeLabel, options.toRuntimeMap(HighlightState.ACTION));
-            emitHighlight(method, safeLabel, HighlightState.ACTION, Boolean.TRUE.equals(rendered), null);
+            emitHighlight(method, safeLabel, HighlightState.ACTION, Boolean.TRUE.equals(rendered), null, false);
         } catch (RuntimeException failure) {
-            emitHighlight(method, safeLabel, HighlightState.ACTION, false, failure);
+            emitHighlight(method, safeLabel, HighlightState.ACTION, false, failure, false);
         }
     }
 
-    private void emitHighlight(String method, String label, HighlightState state, boolean rendered, Throwable failure) {
+    private void emitHighlight(String method, String label, HighlightState state, boolean rendered, Throwable failure,
+                               boolean automatic) {
         try {
-            logger.emit(UiTestLensLogEntry.builder().level(failure == null ? UiTestLensLogLevel.INFO : UiTestLensLogLevel.WARN)
+            UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder().level(failure == null ? UiTestLensLogLevel.INFO : UiTestLensLogLevel.WARN)
                     .eventType(UiTestLensEventType.HIGHLIGHT).status(failure == null ? UiTestLensStatus.INFO : UiTestLensStatus.WARN)
                     .message("Highlight " + state + (rendered ? " rendered" : " skipped"))
                     .action(method).target(TargetDescriptor.label(label)).metadata("method", method)
                     .metadata("highlightState", state.name()).metadata("rendered", String.valueOf(rendered))
-                    .metadata("label", label).throwable(failure).build());
+                    .metadata("label", label).throwable(failure);
+            if (!automatic && config.getHudOptions().sourceNavigation().enabled()) {
+                builder.metadata("testlens.internal.captureSourceLocation", "true");
+            }
+            logger.emit(builder.build());
         } catch (Exception ignored) { }
     }
+
 }

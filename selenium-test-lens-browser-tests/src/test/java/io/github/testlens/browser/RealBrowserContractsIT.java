@@ -1,5 +1,6 @@
 package io.github.testlens.browser;
 
+import consumer.pages.ConsumerSourcePage;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import io.github.testlens.JsOverlayDebug;
@@ -17,6 +18,8 @@ import io.github.testlens.hud.HudPreset;
 import io.github.testlens.hud.HudScrollbarStyle;
 import io.github.testlens.hud.HudTypography;
 import io.github.testlens.hud.HudTimestampFormat;
+import io.github.testlens.hud.SourceIde;
+import io.github.testlens.hud.SourceNavigationOptions;
 import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.RetryOutcomePolicy;
@@ -139,8 +142,9 @@ class RealBrowserContractsIT {
         open("/clicks");
         HudOptions hudOptions = HudOptions.builder()
                 .showTimestamps(true)
-                .timestampFormat(HudTimestampFormat.DATE_TIME)
+                .timestampPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSS XXX")
                 .timestampZone(ZoneId.of("Europe/Warsaw"))
+                .typography(io.github.testlens.hud.HudTypography.builder().timestampFontSizePx(8).build())
                 .build();
         JsOverlayDebug overlay = new JsOverlayDebug(driver, OverlayConfig.builder()
                 .hudOptions(hudOptions).build());
@@ -153,25 +157,29 @@ class RealBrowserContractsIT {
                 return Array.from(window.__seleniumOverlayRoot.querySelectorAll('#selenium-hud-logs > div'))
                   .map(row => row.textContent);
                 """);
-        assertEquals("[15.01.26 23:59:59][INFO] winter", javaRows.get(javaRows.size() - 3));
-        assertEquals("[16.07.26 00:00:00][INFO] summer midnight", javaRows.get(javaRows.size() - 2));
+        assertEquals("[2026-01-15 23:59:59.000000000 +01:00][INFO] winter", javaRows.get(javaRows.size() - 3));
+        assertEquals("[2026-07-16 00:00:00.000000000 +02:00][INFO] summer midnight", javaRows.get(javaRows.size() - 2));
         String fallback = javaRows.get(javaRows.size() - 1);
-        assertTrue(fallback.matches("\\[\\d{2}\\.\\d{2}\\.\\d{2} \\d{2}:\\d{2}:\\d{2}\\]\\[WARN] placeholder"), fallback);
+        assertTrue(fallback.matches("\\[\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{9} [+-]\\d{2}:\\d{2}]\\[WARN] placeholder"), fallback);
         assertFalse(fallback.contains("ui-test-lens"));
+        assertEquals("8px", ((JavascriptExecutor) driver).executeScript("""
+                return getComputedStyle(document.getElementById('selenium-overlay-host').shadowRoot
+                  .querySelector('.stl-hud-timestamp')).fontSize;
+                """));
 
         Map<String, Object> direct = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
                 const hud = window.__uiTestLens.modules.hud;
-                function render(format, zone, shown, timestamp, message) {
+                function render(format, zone, shown, timestamp, message, presentation) {
                   hud.init({testName:'direct runtime',theme:{},hudOptions:{showEventLog:true,
                     showTimestamps:shown,timestampFormat:format,timestampZone:zone,branding:'NONE'}});
                   hud.clear();
-                  hud.log(message,'info',timestamp,'GENERAL');
+                  hud.log(message,'info',timestamp,'GENERAL',null,null,presentation);
                   const row=window.__seleniumOverlayRoot.querySelector('#selenium-hud-logs > div');
                   return {text:row.textContent,stored:row.getAttribute('data-test-lens-timestamp')};
                 }
                 return {
-                  iso:render('ISO_UTC','Europe/Warsaw',true,'2026-01-15T22:59:59Z','iso'),
-                  utc:render('TIME_ONLY','UTC',true,'2026-01-15T22:59:59Z','utc'),
+                  iso:render('ISO_UTC','Europe/Warsaw',true,'2026-01-15T22:59:59Z','iso','2026-01-15T22:59:59.000Z'),
+                  utc:render('TIME_ONLY','UTC',true,'2026-01-15T22:59:59Z','utc','22:59:59'),
                   hidden:render('DATE_TIME','Europe/Warsaw',false,null,'hidden')
                 };
                 """);
@@ -849,6 +857,174 @@ class RealBrowserContractsIT {
         lens.step("after navigation", () -> { });
 
         assertTrue(await(hudPresent()));
+    }
+
+    @Test
+    void hudSourceNavigationIsModifierScopedPassiveAndLifecycleSafe() {
+        open("/clicks");
+        HudOptions hud = HudOptions.builder().showTimestamps(true).timestampPattern("HH:mm:ss.SSS")
+                .timestampZone(java.time.ZoneOffset.UTC).sourceNavigation(SourceNavigationOptions.builder()
+                .enabled(true).ide(SourceIde.INTELLIJ).build()).build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(hud).build());
+        lens.startSession("source-navigation");
+        ConsumerSourcePage.clickCounter(lens);
+
+        assertTrue(await(scriptBoolean("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                return !!root.querySelector('.stl-hud-source-location');
+                """)));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> passive = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const panel=root.querySelector('#selenium-hud-panel');
+                const link=root.querySelector('.stl-hud-source-location');
+                const timestamp=link.closest('[data-test-lens-timestamp]').querySelector('.stl-hud-timestamp');
+                return {label:link.textContent, panelPointer:getComputedStyle(panel).pointerEvents,
+                  linkPointer:getComputedStyle(link).pointerEvents, display:getComputedStyle(link).display,
+                  active:panel.dataset.sourceNavigationActive,timestamp:timestamp.textContent,
+                  eventTime:timestamp.closest('[data-test-lens-timestamp]').dataset.testLensTimestamp,
+                  timestampRole:timestamp.getAttribute('role'),timestampTabIndex:timestamp.getAttribute('tabindex')};
+                """);
+        assertTrue(passive.get("label").toString().matches("ConsumerSourcePage\\.java:\\d+"), passive.toString());
+        assertEquals("none", passive.get("panelPointer"));
+        assertEquals("none", passive.get("linkPointer"));
+        assertEquals("none", passive.get("display"));
+        assertEquals(null, passive.get("timestampRole"));
+        assertEquals(null, passive.get("timestampTabIndex"));
+        assertTrue(scriptBoolean("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const link=root.querySelector('.stl-hud-source-location');
+                const attributes=Array.from(link.attributes).map(attribute=>attribute.value).join(' ');
+                return !root.innerHTML.includes('idea://') && !root.innerHTML.includes('vscode://')
+                  && !root.innerHTML.includes('Java%20Projects') && !root.innerHTML.includes('Java Projects')
+                  && !attributes.includes('idea://') && !attributes.includes('vscode://')
+                  && !link.hasAttribute('href');
+                """).apply(driver), "absolute source path or IDE URI leaked into Shadow DOM");
+
+        ((JavascriptExecutor) driver).executeScript("""
+                window.__uiTestLensSourceTargets=[];
+                window.__uiTestLensSourceNavigation=target=>window.__uiTestLensSourceTargets.push(target);
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Control',ctrlKey:true}));
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Alt',ctrlKey:true,altKey:true}));
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Shift',ctrlKey:true,altKey:true,shiftKey:true}));
+                window.dispatchEvent(new KeyboardEvent('keyup',{key:'Shift',ctrlKey:true,altKey:true,shiftKey:false}));
+                """);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> active = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const panel=root.querySelector('#selenium-hud-panel');
+                const link=root.querySelector('.stl-hud-source-location[data-navigable="true"]');
+                link.click();
+                return {panelPointer:getComputedStyle(panel).pointerEvents,
+                  linkPointer:getComputedStyle(link).pointerEvents, display:getComputedStyle(link).display,
+                  active:panel.dataset.sourceNavigationActive,status:getComputedStyle(root.querySelector('.stl-hud-source-status')).display,
+                  timestamp:link.closest('[data-test-lens-timestamp]').querySelector('.stl-hud-timestamp').textContent,
+                  eventTime:link.closest('[data-test-lens-timestamp]').dataset.testLensTimestamp,
+                  target:window.__uiTestLensSourceTargets[0]};
+                """);
+        assertEquals("none", active.get("panelPointer"));
+        assertEquals("auto", active.get("linkPointer"));
+        assertEquals("block", active.get("display"));
+        assertEquals("true", active.get("active"));
+        assertEquals("block", active.get("status"));
+        assertEquals(passive.get("timestamp"), active.get("timestamp"));
+        assertEquals(passive.get("eventTime"), active.get("eventTime"));
+        String navigationTarget = active.get("target").toString();
+        assertTrue(navigationTarget.startsWith("idea://open?file="), navigationTarget);
+        assertTrue(navigationTarget.contains("ConsumerSourcePage.java"), navigationTarget);
+
+        WebElement besideHud = (WebElement) ((JavascriptExecutor) driver).executeScript("""
+                const panel=document.getElementById('selenium-overlay-host').shadowRoot.querySelector('#selenium-hud-panel');
+                const rect=panel.getBoundingClientRect();
+                const button=document.createElement('button');
+                button.id='hud-click-through'; button.textContent='under HUD';
+                button.style.cssText=`position:fixed;left:${rect.left+4}px;top:${rect.top+4}px;width:24px;height:24px;z-index:2147483646`;
+                button.addEventListener('click',()=>button.dataset.clicks=String(Number(button.dataset.clicks||0)+1));
+                document.body.appendChild(button); return button;
+                """);
+        besideHud.click();
+        assertEquals("1", besideHud.getAttribute("data-clicks"), "active HUD intercepted click beside source link");
+
+        ((JavascriptExecutor) driver).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const rect=root.querySelector('.stl-hud-source-location[data-navigable="true"]').getBoundingClientRect();
+                const button=document.createElement('button');
+                button.id='under-source-link'; button.textContent='under source';
+                button.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${Math.max(1,rect.width)}px;height:${Math.max(1,rect.height)}px;z-index:2147483646`;
+                button.addEventListener('click',()=>button.dataset.clicks=String(Number(button.dataset.clicks||0)+1));
+                document.body.appendChild(button);
+                """);
+
+        ((JavascriptExecutor) driver).executeScript(
+                "window.dispatchEvent(new KeyboardEvent('keyup',{key:'Alt',ctrlKey:true,altKey:false}));");
+        assertTrue(scriptBoolean("""
+                const p=document.getElementById('selenium-overlay-host').shadowRoot.querySelector('#selenium-hud-panel');
+                return p.dataset.sourceNavigationActive==='false' && getComputedStyle(p.querySelector('.stl-hud-source-location')).display==='none';
+                """).apply(driver));
+        WebElement underSource = driver.findElement(By.id("under-source-link"));
+        underSource.click();
+        assertEquals("1", underSource.getAttribute("data-clicks"), "released source link remained a click target");
+
+        ((JavascriptExecutor) driver).executeScript("""
+                const altGraph=new KeyboardEvent('keydown',{key:'AltGraph',code:'AltRight',ctrlKey:true,altKey:true});
+                Object.defineProperty(altGraph,'getModifierState',{value:name=>name==='AltGraph'});
+                window.dispatchEvent(altGraph);
+                """);
+        assertTrue(scriptBoolean("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const panel=root.querySelector('#selenium-hud-panel');
+                const link=root.querySelector('.stl-hud-source-location');
+                return panel.dataset.sourceNavigationActive==='false' && getComputedStyle(link).pointerEvents==='none';
+                """).apply(driver), "AltGraph activated source navigation");
+        ((JavascriptExecutor) driver).executeScript("""
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Control',ctrlKey:true}));
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Alt',ctrlKey:true,altKey:true}));
+                window.dispatchEvent(new Event('blur'));
+                """);
+        assertTrue(scriptBoolean("""
+                return document.getElementById('selenium-overlay-host').shadowRoot
+                  .querySelector('#selenium-hud-panel').dataset.sourceNavigationActive==='false';
+                """).apply(driver));
+
+        lens.finishPassed();
+        TestLens next = TestLens.attach(driver, TestLensOptions.builder().hud(hud).build());
+        next.startSession("source-navigation-next-session");
+        ConsumerSourcePage.clickCounter(next);
+        ((JavascriptExecutor) driver).executeScript("""
+                window.__uiTestLensSourceTargets=[];
+                window.__uiTestLensSourceNavigation=target=>window.__uiTestLensSourceTargets.push(target);
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Control',ctrlKey:true}));
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Alt',ctrlKey:true,altKey:true}));
+                document.getElementById('selenium-overlay-host').shadowRoot
+                  .querySelector('.stl-hud-source-location[data-navigable="true"]').click();
+                """);
+        assertEquals(1L, ((Number) ((JavascriptExecutor) driver).executeScript(
+                "return window.__uiTestLensSourceTargets.length")).longValue());
+        next.finishPassed();
+    }
+
+    @Test
+    void disabledSourceNavigationInstallsNoKeyboardListeners() {
+        open("/clicks");
+        ((JavascriptExecutor) driver).executeScript("""
+                window.__sourceNavigationListenerTypes=[];
+                window.__originalAddEventListener=window.addEventListener;
+                window.addEventListener=function(type,listener,options){
+                  if(type==='keydown'||type==='keyup'||type==='blur') window.__sourceNavigationListenerTypes.push(type);
+                  return window.__originalAddEventListener.call(window,type,listener,options);
+                };
+                """);
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(HudOptions.defaults()).build());
+        lens.startSession("source-navigation-disabled");
+        ConsumerSourcePage.clickCounter(lens);
+
+        @SuppressWarnings("unchecked")
+        List<String> listenerTypes = (List<String>) ((JavascriptExecutor) driver).executeScript("""
+                window.addEventListener=window.__originalAddEventListener;
+                return window.__sourceNavigationListenerTypes;
+                """);
+        assertEquals(List.of(), listenerTypes);
+        lens.finishPassed();
     }
 
     @Test

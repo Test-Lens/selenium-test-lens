@@ -6,6 +6,8 @@ title: HUD Studio
 
 HUD Studio configures the same browser-side renderer that Test Lens injects at runtime. Drag and resize the HUD in the preview or use the bounded product controls; both paths update one `HudOptions` model and the generated Java. The preview supplies synthetic events and never contacts an application or external service.
 
+The Source navigation section generates the opt-in `SourceNavigationOptions` block, IDE provider, and Ctrl+Alt activation modifier. Its preview uses synthetic file labels only and does not open an IDE.
+
 !!! info "0.3.1 timestamp API"
     HUD timestamp format and zone controls are available in `0.3.1`. The configurable HUD and Studio introduced in `0.3.0` remain compatible.
 
@@ -37,18 +39,34 @@ HudOptions hud = HudOptions.builder()
         .typography(HudTypography.builder()
                 .header(HudFontPreset.MONOSPACE)
                 .eventLog(HudFontPreset.UI_SANS)
+                .timestampFontSizePx(10)
                 .build())
         .scrollbarStyle(HudScrollbarStyle.SUBTLE)
         .scrollbarThumbColor("#526174")
         .backgroundOpacity(0.82)
         .showTimestamps(true)
-        .timestampFormat(HudTimestampFormat.DATE_TIME)
+        .timestampPattern("HH:mm:ss.SSS")
         .timestampZone(ZoneId.of("Europe/Warsaw"))
         .showNetwork(false)
         .build();
 
+HighlightOptions highlights = HighlightOptions.builder()
+        .enabled(true)
+        .automaticFeedback(true)
+        .actionColor("#ffeb3b")
+        .waitingColor("#2196f3")
+        .retryColor("#ff9800")
+        .successColor("#4caf50")
+        .failureColor("#f44336")
+        .durationMs(1500)
+        .borderWidthPx(2)
+        .showLabels(true)
+        .build();
+
 TestLensOptions options = TestLensOptions.builder()
         .hud(hud)
+        .highlights(highlights)
+        .visualRedaction(VisualRedactionOptions.defaults())
         .build();
 
 TestLens lens = TestLens.attach(driver, options);
@@ -65,7 +83,25 @@ All presets use `HudHeaderLayout.AUTO`: TEST and STEP share a row while their at
 
 Visibility switches affect only presentation. Suppressed network, recovery, wait, or assertion rows still flow to trace, reports, and other configured sinks. `showTimestamps(false)` removes timestamps from HUD rows; it does not change event timestamps in the model.
 
-`ISO_UTC` is the compatibility default and always renders in UTC. `TIME_ONLY` renders `HH:mm:ss`; `DATE_TIME` renders `dd.MM.yy HH:mm:ss`. The readable formats use either the test JVM system zone or an explicit `ZoneId`, including daylight-saving rules. Studio's **JVM system zone** choice is exported as system behavior rather than the concrete zone of the computer where Studio happened to run.
+`ISO_UTC` is the compatibility default and renders in UTC unless an explicit timestamp zone overrides it. `TIME_ONLY` and `DATE_TIME`
+remain shortcuts, while **Timestamp pattern** accepts Java `DateTimeFormatter` syntax and takes
+precedence. One through nine `S` letters select fraction precision. **Timestamp zone** accepts
+`SYSTEM` or a standard IANA ID and validates it before updating the preview. Studio shows fixed
+winter and summer examples so DST differences are visible without a DST switch. Its **JVM system
+zone** choice is exported as system behavior rather than the concrete zone of the computer where
+Studio happened to run.
+
+## Source navigation controls and preview
+
+Source navigation is disabled by default. Enable it, choose `INTELLIJ`, `VSCODE`, or `CUSTOM`, and retain the currently supported `CTRL_ALT` modifier. **Preview Ctrl+Alt active** shows the same `File.java:line` reveal state used by the runtime; turning it off shows the passive state. The preview uses synthetic paths and never launches an IDE.
+
+`CUSTOM` remains partly programmatic: Studio generates `.ide(SourceIde.CUSTOM)`, while the required `customUriTemplate(...)` and any non-standard `sourceRoots(...)` must be added in Java. Reset returns to disabled, IntelliJ, Ctrl+Alt, and inactive preview. See [local source navigation](visual-diagnostics.md#local-source-navigation) for AltGr behavior, remote sessions, unresolved paths, providers, and the privacy boundary.
+
+## Highlight configurator and preview
+
+The Highlights section maps one-to-one to `HighlightOptions`: enabled, automatic feedback, five state colors, duration, 1–16 px border width, and labels. Duration zero is valid. **Replay** cycles over ACTION, WAITING, RETRY, SUCCESS, and final FAILURE using the selected colors. Turning automatic feedback off preserves manual highlights in the runtime; turning highlights off suppresses every state. Reset restores the public 0.3.1 defaults without changing the selected HUD preset.
+
+The generated code uses the plural `.highlights(highlights)` API, not its deprecated singular preview alias. It produces one `TestLensOptions` builder containing the HUD (including timestamps and source navigation), highlights, and explicit password-safe `VisualRedactionOptions.defaults()`. Advanced visual mask rules remain programmatic. See [state-aware highlights](visual-diagnostics.md#state-aware-highlights) for the semantic contract of each state.
 
 ## Visual editing and responsive preview
 
@@ -77,7 +113,7 @@ Clicking HUD context, branding, or log regions selects the related control group
 
 The four `HudPosition` values anchor the panel to a viewport corner. Offsets are limited to 0–500 px, width to 240–960 px, panel maximum height to 120–1000 px, and log maximum height to 80–720 px. At render time the dimensions and anchored offsets are clamped to a 10 px viewport margin without changing the stored options. The effective log height is the minimum of its configured limit, the panel content area, and the available viewport area.
 
-`HudFontPreset` selects a bundled local stack (`SYSTEM`, `MONOSPACE`, or `UI_SANS`), with bounded base and header sizes. The global preset is the baseline. Optional `HudTypography` overrides independently select the stack for the header, current step, event log, and metadata; any section without an override inherits the global preset. Timestamps belong to the event log, while labels, optional pipeline text, and branding belong to metadata. A section override is explicit builder state, so it wins over the selected HUD preset regardless of builder call order. Studio exposes the same four overrides with **Inherit** as the default and emits only the overrides that were selected. No font is downloaded.
+`HudFontPreset` selects a bundled local stack (`SYSTEM`, `MONOSPACE`, or `UI_SANS`), with bounded base and header sizes. The global preset is the baseline. Optional `HudTypography` overrides independently select the stack for the header, current step, event log, and metadata; any section without an override inherits the global preset. Timestamp size is independently configurable from 8–18 px and defaults to 9 px, so changing it never changes message text size. Timestamps belong to the event log, while labels, optional pipeline text, and branding belong to metadata. Explicit typography wins over the selected HUD preset regardless of builder call order. Studio exposes the same controls and emits only selected overrides. No font is downloaded.
 
 Colors accept six-digit hexadecimal values, and background opacity must be between `0` and `1`. Success, warning, and failure colors drive matching event rows. The API deliberately does not accept arbitrary CSS, font URLs, or `@font-face` declarations.
 

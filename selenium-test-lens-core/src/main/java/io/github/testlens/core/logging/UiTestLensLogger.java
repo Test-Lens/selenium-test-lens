@@ -38,7 +38,7 @@ public final class UiTestLensLogger {
         if (entry == null || sinks.isEmpty()) {
             return;
         }
-        UiTestLensLogEntry safe = safeEntry(entry);
+        UiTestLensLogEntry safe = safeEntry(SourceLocationCapture.enrich(entry));
         for (UiTestLensLogSink sink : sinks) {
             try {
                 sink.accept(safe);

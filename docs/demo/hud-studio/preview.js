@@ -64,12 +64,17 @@
     hud.remove();
     hud.init({testName:'Checkout creates an order',pipelineId:'studio-preview',offsetX:state.offsetX,offsetY:state.offsetY,maxWidth:state.width,themeName:'CUSTOM',hudOptions:state});
     hud.setStep('WAIT checkout ready');
-    hud.log('WAIT checkout ready — PASSED','success','2026-07-15T21:59:58Z','WAIT');
-    hud.log('CLICK Place order — RETRY after overlay recovery','warn','2026-07-15T21:59:59Z','LOCATOR_RETRY');
-    hud.log('POST /api/orders','royal','2026-07-15T22:00:00Z','NETWORK_REQUEST_RECORDED');
-    hud.log('Response recorded: 200 /api/orders','success','2026-07-15T22:00:01Z','NETWORK_RESPONSE_RECORDED');
-    hud.log('ASSERT confirmation visible — PASSED','success','2026-07-15T22:00:02Z','ASSERTION_PASSED');
+    var times=state.timestampPreview&&state.timestampPreview.events||[];
+    hud.log('WAIT checkout ready — PASSED','success','2026-07-15T21:59:58.123456789Z','WAIT','CheckoutPage.java:41',null,times[0]);
+    hud.log('CLICK Place order — RETRY after overlay recovery','warn','2026-07-15T21:59:59.123456789Z','LOCATOR_RETRY','CheckoutPage.java:53','idea://open?file=CheckoutPage.java&line=53',times[1]);
+    hud.log('POST /api/orders','royal','2026-07-15T22:00:00.123456789Z','NETWORK_REQUEST_RECORDED',null,null,times[2]);
+    hud.log('Response recorded: 200 /api/orders','success','2026-07-15T22:00:01.123456789Z','NETWORK_RESPONSE_RECORDED',null,null,times[3]);
+    hud.log('ASSERT confirmation visible — PASSED','success','2026-07-15T22:00:02.123456789Z','ASSERTION_PASSED',null,null,times[4]);
     enhancePanel();
+    if (state.sourceNavigationEnabled) {
+      var sourcePreviewActive=!!state.sourceNavigationPreviewActive;
+      window.dispatchEvent(new KeyboardEvent(sourcePreviewActive?'keydown':'keyup',{key:sourcePreviewActive?'Alt':'Shift',ctrlKey:sourcePreviewActive,altKey:sourcePreviewActive,bubbles:true}));
+    }
     if (panel()) window.parent.postMessage({type:'hud-rendered'},'*');
   }
 

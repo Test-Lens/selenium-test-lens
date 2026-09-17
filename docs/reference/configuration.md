@@ -10,6 +10,7 @@ All option objects are immutable after `build()` unless their API explicitly exp
 | --- | --- | --- | --- |
 | `overlayConfig(value)` | `OverlayConfig` | `OverlayConfig.builder().build()` | Visual runtime behavior; null is rejected when options are built/used. |
 | `hud(value)` | `HudOptions` | `HudOptions.defaults()` | Product-level HUD content, layout, palette, opacity, and branding. Added in `0.3.0`. |
+| `highlights(value)` | `HighlightOptions` | `HighlightOptions.defaults()` | Manual and automatic ACTION/WAITING/RETRY/SUCCESS/FAILURE element decoration. The deprecated singular `highlight(value)` alias exists only for 0.3.1 preview compatibility. |
 | `locatorOptions(value)` | `UiLocatorOptions` | `UiLocatorOptions.defaults()` | Locator wait, retry, actionability, and the default timeout/poll interval for `TestLens` page waits. The nested retained `highlightBeforeAction` value is currently not consulted by `UiLocator`. |
 | `outputRoot(value)` | `Path` | `target/ui-test-lens` | Root for per-session artifacts; must be usable/non-null. Do not point at a tracked or public directory. |
 | `screenshotOnFailure(value)` | `boolean` | `true` | Enables best-effort automatic screenshot for a final `FAILED` result, including policy-induced failure; final passed/skipped results never request it. |
@@ -91,13 +92,26 @@ Accessors use JavaBean `is...`/`get...` names shown in the [catalog](public-api-
 
 `HudOptions.defaults()` selects `HudPreset.COMPACT`; the fuller timestamped preset is `STANDARD`. Presets provide base values and explicit builder overrides win independently of call order. The builder exposes the corner anchor and bounded offsets, `HudHeaderLayout`, panel width and maximum height, internal log maximum height, controlled font presets and sizes, semantic visibility switches, timestamp format and zone, branding placement and rail width, the validated palette, background opacity, and `customLogo(Path)`. Offsets are 0–500 px, width 240–960 px, panel height 120–1000 px, log height 80–720 px, rail width 16–80 px, opacity 0–1, and colors are six-digit hexadecimal values. Runtime rendering clamps effective dimensions and offsets to the current viewport.
 
-`timestampFormat(...)` accepts `ISO_UTC` (default), `TIME_ONLY`, or `DATE_TIME`. `timestampZone(ZoneId)` selects an explicit zone; `systemTimestampZone()` restores test-JVM system-zone behavior. `timestampZone()` returns the optional explicit value, `usesSystemTimestampZone()` identifies system mode, and `effectiveTimestampZone()` resolves it in the JVM. The zone does not affect `ISO_UTC`, trace JSON, ordering, or durations.
+`timestampFormat(...)` accepts the compatibility shortcuts `ISO_UTC` (default), `TIME_ONLY`, or
+`DATE_TIME`. `timestampPattern(String)` accepts and eagerly validates a Java `DateTimeFormatter`
+pattern; an explicit pattern wins over the shortcut independently of setter order. The default
+effective pattern is `yyyy-MM-dd'T'HH:mm:ss.SSSXXX`. Fraction width follows the number of `S`
+letters from 1 through 9, matching the nanosecond capacity of the stored event `Instant`.
+`timestampZone(ZoneId)` selects any standard region or fixed-offset zone;
+`systemTimestampZone()` restores test-runner JVM system-zone behavior. `timestampZone()` returns
+the optional explicit value, `usesSystemTimestampZone()` identifies system mode, and
+`effectiveTimestampZone()` resolves it in the JVM. An explicit zone overrides the zone implied by
+every format preset, including `ISO_UTC`. Region zones apply DST; fixed `ZoneOffset`
+values do not. These settings affect only HUD presentation, never trace/report data, ordering, or
+durations.
+
+`sourceNavigation(...)` installs disabled-by-default `SourceNavigationOptions`. The current activation modifier is `CTRL_ALT`; providers are `INTELLIJ`, `VSCODE`, and `CUSTOM`. Additional `sourceRoots(Path...)` supplement lazy standard Maven/Gradle Java/Kotlin discovery, and `customUriTemplate(...)` accepts `{file}`, `{line}`, and `{column}` placeholders. Logical source metadata never contains the resolved absolute path. See [local source navigation](../observability/visual-diagnostics.md#local-source-navigation) for local/remote and interaction behavior.
 
 `HighlightOptions` defaults are: enabled and automatic feedback on; ACTION `#ffeb3b`, WAITING `#2196f3`, RETRY `#ff9800`, SUCCESS `#4caf50`, FAILURE `#f44336`; 1500 ms; 2 px border; labels on. `TestLensOptions.Builder.highlights(...)` installs the typed options; the singular 0.3.1 preview alias remains deprecated for source compatibility. Duration accepts zero and border width accepts 1-16 px. `OverlayConfig.highlightColor(...)` and `decorationDurationMs(...)` remain compatibility inputs for action color and highlight duration only when the corresponding typed field is unset. Explicit typed fields are authoritative in either call order, and the legacy duration continues to configure other decorations.
 
 `HudHeaderLayout.AUTO` is the preset default. It places the atomic TEST and STEP label/value items on one row when their natural widths fit and moves the complete STEP item to row two otherwise. `INLINE` always uses one row with ellipsis as needed; `STACKED` always uses two. Values never wrap and retain their full tooltip. PIPE, when enabled, is rendered as a separate metadata row and does not participate in the TEST/STEP layout decision.
 
-The global `fontPreset(...)` is the baseline for every section. `typography(HudTypography)` can override the local font stack for the header, current step, event log, or metadata; omitted section values inherit the global preset. These typed presets use local font stacks only. Arbitrary CSS, remote fonts, and font URLs are not accepted.
+The global `fontPreset(...)` is the baseline for every section. `typography(HudTypography)` can override the local font stack for the header, current step, event log, or metadata; omitted section values inherit the global preset. `HudTypography.timestampFontSizePx(...)` independently configures timestamp text from 8 through 18 px and defaults to 9 px without changing message size. These typed presets use local font stacks only. Arbitrary CSS, remote fonts, and font URLs are not accepted.
 
 `scrollbarStyle(...)` selects `SUBTLE`, `STANDARD`, or `NATIVE` for the event log. `SUBTLE` is the default except that `DEBUG` selects `STANDARD`. The custom styles accept a bounded 4–14 px Chromium width plus validated `#RRGGBB` track, thumb, and hover colors. Firefox applies the same colors but maps the styles to the engine's supported `thin` or native width rather than an exact pixel width. `NATIVE` leaves scrollbar rendering to the browser and operating system.
 

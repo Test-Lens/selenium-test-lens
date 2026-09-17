@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 271
-# Public callable methods/constructors: 2094
+# Types: 276
+# Public callable methods/constructors: 2132
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -31,6 +31,16 @@ TYPE io.github.testlens.core.logging.InMemoryLogSink
   public java.nio.file.Path exportHtml(java.nio.file.Path, io.github.testlens.core.trace.export.TraceHtmlExportOptions)
   public java.nio.file.Path exportHtmlReport()
   public java.nio.file.Path exportHtmlReport(io.github.testlens.core.trace.export.TraceHtmlExportOptions)
+TYPE io.github.testlens.core.logging.SourceLocation
+  public io.github.testlens.core.logging.SourceLocation(java.lang.String, java.lang.String, java.lang.String, int)
+  public java.lang.String displayName()
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public java.lang.String className()
+  public java.lang.String methodName()
+  public java.lang.String fileName()
+  public int lineNumber()
 TYPE io.github.testlens.core.logging.TargetDescriptor
   public io.github.testlens.core.logging.TargetDescriptor(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.util.Map<java.lang.String, java.lang.String>)
   public static io.github.testlens.core.logging.TargetDescriptor none()
@@ -135,11 +145,17 @@ TYPE io.github.testlens.core.logging.UiTestLensLogEntry$Builder
   public io.github.testlens.core.logging.UiTestLensLogEntry$Builder target(io.github.testlens.core.logging.TargetDescriptor)
   public io.github.testlens.core.logging.UiTestLensLogEntry$Builder metadata(java.util.Map<java.lang.String, java.lang.String>)
   public io.github.testlens.core.logging.UiTestLensLogEntry$Builder metadata(java.lang.String, java.lang.String)
+  public io.github.testlens.core.logging.UiTestLensLogEntry$Builder sourceLocation(io.github.testlens.core.logging.SourceLocation)
   public io.github.testlens.core.logging.UiTestLensLogEntry$Builder throwable(java.lang.Throwable)
   public io.github.testlens.core.logging.UiTestLensLogEntry build()
 TYPE io.github.testlens.core.logging.UiTestLensLogEntry
+  public static final java.lang.String SOURCE_CLASS
+  public static final java.lang.String SOURCE_METHOD
+  public static final java.lang.String SOURCE_FILE
+  public static final java.lang.String SOURCE_LINE
   public io.github.testlens.core.logging.UiTestLensLogEntry(java.time.Instant, io.github.testlens.core.logging.UiTestLensLogLevel, io.github.testlens.core.logging.UiTestLensEventType, io.github.testlens.core.logging.UiTestLensStatus, java.lang.String, java.lang.String, java.lang.String, io.github.testlens.core.logging.TargetDescriptor, java.util.Map<java.lang.String, java.lang.String>, java.lang.Throwable)
   public static io.github.testlens.core.logging.UiTestLensLogEntry$Builder builder()
+  public java.util.Optional<io.github.testlens.core.logging.SourceLocation> sourceLocation()
   public static io.github.testlens.core.logging.UiTestLensLogEntry info(java.lang.String)
   public static io.github.testlens.core.logging.UiTestLensLogEntry warn(java.lang.String)
   public static io.github.testlens.core.logging.UiTestLensLogEntry error(java.lang.String, java.lang.Throwable)
@@ -788,6 +804,7 @@ TYPE io.github.testlens.hud.HudOptions$Builder
   public io.github.testlens.hud.HudOptions$Builder showPipeline(boolean)
   public io.github.testlens.hud.HudOptions$Builder showTimestamps(boolean)
   public io.github.testlens.hud.HudOptions$Builder timestampFormat(io.github.testlens.hud.HudTimestampFormat)
+  public io.github.testlens.hud.HudOptions$Builder timestampPattern(java.lang.String)
   public io.github.testlens.hud.HudOptions$Builder timestampZone(java.time.ZoneId)
   public io.github.testlens.hud.HudOptions$Builder systemTimestampZone()
   public io.github.testlens.hud.HudOptions$Builder showEventLog(boolean)
@@ -795,6 +812,7 @@ TYPE io.github.testlens.hud.HudOptions$Builder
   public io.github.testlens.hud.HudOptions$Builder showRetries(boolean)
   public io.github.testlens.hud.HudOptions$Builder showWaits(boolean)
   public io.github.testlens.hud.HudOptions$Builder showAssertions(boolean)
+  public io.github.testlens.hud.HudOptions$Builder sourceNavigation(io.github.testlens.hud.SourceNavigationOptions)
   public io.github.testlens.hud.HudOptions$Builder branding(io.github.testlens.hud.HudBranding)
   public io.github.testlens.hud.HudOptions$Builder logoPlacement(io.github.testlens.hud.HudLogoPlacement)
   public io.github.testlens.hud.HudOptions$Builder background(java.lang.String)
@@ -834,6 +852,8 @@ TYPE io.github.testlens.hud.HudOptions
   public boolean showPipeline()
   public boolean showTimestamps()
   public io.github.testlens.hud.HudTimestampFormat timestampFormat()
+  public java.util.Optional<java.lang.String> timestampPattern()
+  public java.lang.String effectiveTimestampPattern()
   public java.util.Optional<java.time.ZoneId> timestampZone()
   public boolean usesSystemTimestampZone()
   public java.time.ZoneId effectiveTimestampZone()
@@ -842,6 +862,7 @@ TYPE io.github.testlens.hud.HudOptions
   public boolean showRetries()
   public boolean showWaits()
   public boolean showAssertions()
+  public io.github.testlens.hud.SourceNavigationOptions sourceNavigation()
   public io.github.testlens.hud.HudBranding branding()
   public io.github.testlens.hud.HudLogoPlacement logoPlacement()
   public java.lang.String background()
@@ -858,6 +879,7 @@ TYPE io.github.testlens.hud.HudPanel
   public void init(java.lang.String, java.lang.String)
   public void updateStep(java.lang.String)
   public void appendLog(java.lang.String, java.lang.String, java.lang.String)
+  public void appendLog(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
 TYPE io.github.testlens.hud.HudPosition
   public static final io.github.testlens.hud.HudPosition TOP_LEFT
   public static final io.github.testlens.hud.HudPosition TOP_RIGHT
@@ -951,14 +973,42 @@ TYPE io.github.testlens.hud.HudTypography$Builder
   public io.github.testlens.hud.HudTypography$Builder currentStep(io.github.testlens.hud.HudFontPreset)
   public io.github.testlens.hud.HudTypography$Builder eventLog(io.github.testlens.hud.HudFontPreset)
   public io.github.testlens.hud.HudTypography$Builder metadata(io.github.testlens.hud.HudFontPreset)
+  public io.github.testlens.hud.HudTypography$Builder timestampFontSizePx(int)
   public io.github.testlens.hud.HudTypography build()
 TYPE io.github.testlens.hud.HudTypography
   public static io.github.testlens.hud.HudTypography inheritAll()
   public static io.github.testlens.hud.HudTypography$Builder builder()
+  public io.github.testlens.hud.HudTypography$Builder toBuilder()
   public java.util.Optional<io.github.testlens.hud.HudFontPreset> header()
   public java.util.Optional<io.github.testlens.hud.HudFontPreset> currentStep()
   public java.util.Optional<io.github.testlens.hud.HudFontPreset> eventLog()
   public java.util.Optional<io.github.testlens.hud.HudFontPreset> metadata()
+  public int timestampFontSizePx()
+TYPE io.github.testlens.hud.SourceIde
+  public static final io.github.testlens.hud.SourceIde INTELLIJ
+  public static final io.github.testlens.hud.SourceIde VSCODE
+  public static final io.github.testlens.hud.SourceIde CUSTOM
+  public static io.github.testlens.hud.SourceIde[] values()
+  public static io.github.testlens.hud.SourceIde valueOf(java.lang.String)
+TYPE io.github.testlens.hud.SourceNavigationModifier
+  public static final io.github.testlens.hud.SourceNavigationModifier CTRL_ALT
+  public static io.github.testlens.hud.SourceNavigationModifier[] values()
+  public static io.github.testlens.hud.SourceNavigationModifier valueOf(java.lang.String)
+TYPE io.github.testlens.hud.SourceNavigationOptions$Builder
+  public io.github.testlens.hud.SourceNavigationOptions$Builder enabled(boolean)
+  public io.github.testlens.hud.SourceNavigationOptions$Builder activationModifier(io.github.testlens.hud.SourceNavigationModifier)
+  public io.github.testlens.hud.SourceNavigationOptions$Builder ide(io.github.testlens.hud.SourceIde)
+  public io.github.testlens.hud.SourceNavigationOptions$Builder sourceRoots(java.nio.file.Path...)
+  public io.github.testlens.hud.SourceNavigationOptions$Builder customUriTemplate(java.lang.String)
+  public io.github.testlens.hud.SourceNavigationOptions build()
+TYPE io.github.testlens.hud.SourceNavigationOptions
+  public static io.github.testlens.hud.SourceNavigationOptions defaults()
+  public static io.github.testlens.hud.SourceNavigationOptions$Builder builder()
+  public boolean enabled()
+  public io.github.testlens.hud.SourceNavigationModifier activationModifier()
+  public io.github.testlens.hud.SourceIde ide()
+  public java.util.List<java.nio.file.Path> sourceRoots()
+  public java.lang.String customUriTemplate()
 MODULE selenium-test-lens-selenium
 TYPE io.github.testlens.JsOverlayDebug$AssertionSummary$AssertionTextFormat
   public static final io.github.testlens.JsOverlayDebug$AssertionSummary$AssertionTextFormat MESSAGE
@@ -1617,6 +1667,7 @@ TYPE io.github.testlens.selenium.assertions.UiExpect
   public io.github.testlens.selenium.assertions.UiExpect(io.github.testlens.selenium.locator.UiLocator, io.github.testlens.selenium.assertions.UiAssertionOptions, io.github.testlens.core.OverlayLogger, io.github.testlens.selenium.assertions.UiExpect$VisibilityProbe)
   public io.github.testlens.selenium.assertions.UiExpect(io.github.testlens.selenium.locator.UiLocator, io.github.testlens.selenium.assertions.UiAssertionOptions, io.github.testlens.core.OverlayLogger, io.github.testlens.selenium.assertions.UiExpect$VisibilityProbe, io.github.testlens.selenium.assertions.UiExpect$ElementProbe)
   public io.github.testlens.selenium.assertions.UiExpect(io.github.testlens.selenium.locator.UiLocator, io.github.testlens.selenium.assertions.UiAssertionOptions, io.github.testlens.core.OverlayLogger, io.github.testlens.selenium.assertions.UiExpect$VisibilityProbe, io.github.testlens.selenium.assertions.UiExpect$ElementProbe, java.util.function.Consumer<io.github.testlens.HighlightState>)
+  public io.github.testlens.selenium.assertions.UiExpect(io.github.testlens.selenium.locator.UiLocator, io.github.testlens.selenium.assertions.UiAssertionOptions, io.github.testlens.core.OverlayLogger, io.github.testlens.selenium.assertions.UiExpect$VisibilityProbe, io.github.testlens.selenium.assertions.UiExpect$ElementProbe, java.util.function.Consumer<io.github.testlens.HighlightState>, boolean)
   public io.github.testlens.selenium.assertions.UiAssertionResult toBeVisible()
   public io.github.testlens.selenium.assertions.UiAssertionResult toBeHidden()
   public io.github.testlens.selenium.assertions.UiAssertionResult toBeEnabled()

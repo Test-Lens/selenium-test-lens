@@ -710,12 +710,17 @@ public final class JsOverlayDebug {
         private volatile HudPanel hud;
         private volatile WebDriver driver;
         private volatile io.github.testlens.hud.HudOptions options;
+        private volatile SourceFileResolver sourceResolver;
+        private volatile boolean localDriver;
         private final java.util.Queue<UiTestLensLogEntry> deferredDuringAlert = new java.util.concurrent.ConcurrentLinkedQueue<>();
 
         void attach(HudPanel hud, WebDriver driver, io.github.testlens.hud.HudOptions options) {
             this.hud = hud;
             this.driver = driver;
             this.options = options;
+            this.sourceResolver = options != null && options.sourceNavigation().enabled()
+                    ? new SourceFileResolver(Path.of(""), options.sourceNavigation().sourceRoots()) : null;
+            this.localDriver = LocalWebDriverDetector.isLocal(driver);
         }
 
         @Override
@@ -761,11 +766,23 @@ public final class JsOverlayDebug {
                     || name.startsWith("NETWORK_ASSERTION_")) || options.showAssertions();
         }
 
-        private static void append(HudPanel hud, UiTestLensLogEntry entry) {
+        private void append(HudPanel hud, UiTestLensLogEntry entry) {
             String description = entry.metadata().getOrDefault("description", "");
             String action = entry.action() == null ? "" : entry.action();
             String message = description.isBlank() ? entry.message() : action + ": " + description;
-            hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString());
+            String sourceLabel = entry.sourceLocation().map(io.github.testlens.core.logging.SourceLocation::displayName).orElse(null);
+            String navigationTarget = null;
+            if (localDriver && sourceResolver != null && options != null) {
+                navigationTarget = entry.sourceLocation().flatMap(sourceResolver::resolve)
+                        .flatMap(path -> IdeNavigationUriProvider.target(options.sourceNavigation(), path,
+                                entry.sourceLocation().orElseThrow().lineNumber(), null)).orElse(null);
+            }
+            if (sourceLabel == null && navigationTarget == null) {
+                hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString());
+            } else {
+                hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString(),
+                        entry.eventType().name(), sourceLabel, navigationTarget);
+            }
         }
     }
 

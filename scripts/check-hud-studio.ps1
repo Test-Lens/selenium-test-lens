@@ -27,7 +27,7 @@ foreach ($asset in @("runtime/visual-typography.js", "runtime/hud-panel.js", "ru
 
 $script = [IO.File]::ReadAllText((Join-Path $source "studio.js"))
 $styles = [IO.File]::ReadAllText((Join-Path $source "studio.css"))
-foreach ($contract in @("HudOptions.builder()", ".preset(HudPreset.", ".hud(hud)", "offsetXPx", "maxHeightPx", "headerLayout", "HudHeaderLayout", "data-header-layout", "fontPreset", "HudTypography.builder()", "data-typography", "scrollbarStyle", "scrollbarThumbColor", "scrollbar-style", "customLogo", "runtime-logo-path", "showNetwork", "showRetries", "timestampFormat", "timestampZone", "HudTimestampFormat", "ZoneId.of", "import io.github.testlens.TestLens")) {
+foreach ($contract in @("HudOptions.builder()", ".preset(HudPreset.", ".hud(hud)", "offsetXPx", "maxHeightPx", "headerLayout", "HudHeaderLayout", "data-header-layout", "fontPreset", "HudTypography.builder()", "data-typography", "scrollbarStyle", "scrollbarThumbColor", "scrollbar-style", "customLogo", "runtime-logo-path", "showNetwork", "showRetries", "timestampFormat", "timestampZone", "HudTimestampFormat", "ZoneId.of", "HighlightOptions.builder()", ".highlights(highlights)", "actionColor", "waitingColor", "retryColor", "successColor", "failureColor", "automaticFeedback", "borderWidthPx", "sourceNavigation(SourceNavigationOptions.builder()", "SourceNavigationModifier", "VisualRedactionOptions.defaults()", "import io.github.testlens.TestLens")) {
     if (-not $script.Contains($contract)) { throw "HUD Studio is missing contract: $contract" }
 }
 $allScripts = $script + [IO.File]::ReadAllText((Join-Path $source "preview.js"))
@@ -36,6 +36,9 @@ $previewScript = [IO.File]::ReadAllText((Join-Path $source "preview.js"))
 $previewStyles = [IO.File]::ReadAllText((Join-Path $source "preview.css"))
 foreach ($contract in @("function beginDrag", "function beginResize", "stl-studio-drag-handle", "position:vertical+'_'+horizontal", "Math.min(500", "offsetX", "maxHeight", "type:'hud-change'", "type:'hud-select'")) {
     if (-not $previewScript.Contains($contract)) { throw "HUD Studio preview is missing WYSIWYG contract: $contract" }
+}
+if ($previewScript -notmatch 'sourceNavigationPreviewActive' -or $previewScript -notmatch 'new KeyboardEvent') {
+    throw "HUD Studio preview must expose inactive and active source-navigation states through the runtime keyboard contract."
 }
 if ($script -match 'var presets\s*=\s*\{') { throw "HUD Studio must consume preset definitions from the runtime renderer." }
 if ($html -notmatch 'data-preset="STANDARD"' -or $html -match 'data-preset="DEFAULT"') { throw "HUD Studio preset names are stale." }

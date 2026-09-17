@@ -5,11 +5,15 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -33,6 +37,9 @@ import java.util.regex.Pattern;
  * @since 0.3.0
  */
 public final class HudOptions {
+    private static final String ISO_UTC_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+    private static final String TIME_ONLY_PATTERN = "HH:mm:ss";
+    private static final String DATE_TIME_PATTERN = "dd.MM.yy HH:mm:ss";
     private static final Pattern COLOR = Pattern.compile("#[0-9a-fA-F]{6}");
     private static final int MAX_LOGO_BYTES = 1_048_576;
     private static final int MAX_LOGO_DIMENSION = 4096;
@@ -62,12 +69,14 @@ public final class HudOptions {
     private final boolean showPipeline;
     private final boolean showTimestamps;
     private final HudTimestampFormat timestampFormat;
+    private final String timestampPattern;
     private final ZoneId timestampZone;
     private final boolean showEventLog;
     private final boolean showNetwork;
     private final boolean showRetries;
     private final boolean showWaits;
     private final boolean showAssertions;
+    private final SourceNavigationOptions sourceNavigation;
     private final HudBranding branding;
     private final HudLogoPlacement logoPlacement;
     private final String background;
@@ -105,12 +114,14 @@ public final class HudOptions {
         this.showPipeline = builder.showPipeline;
         this.showTimestamps = builder.showTimestamps;
         this.timestampFormat = builder.timestampFormat;
+        this.timestampPattern = builder.timestampPattern;
         this.timestampZone = builder.timestampZone;
         this.showEventLog = builder.showEventLog;
         this.showNetwork = builder.showNetwork;
         this.showRetries = builder.showRetries;
         this.showWaits = builder.showWaits;
         this.showAssertions = builder.showAssertions;
+        this.sourceNavigation = builder.sourceNavigation;
         this.branding = builder.branding;
         this.logoPlacement = builder.logoPlacement;
         this.background = builder.background;
@@ -288,6 +299,25 @@ public final class HudOptions {
      */
     public HudTimestampFormat timestampFormat() { return timestampFormat; }
     /**
+     * Returns the explicitly configured Java {@link DateTimeFormatter} pattern.
+     * @return explicit pattern, or empty when the selected preset format supplies it
+     * @since 0.3.1
+     */
+    public Optional<String> timestampPattern() { return Optional.ofNullable(timestampPattern); }
+    /**
+     * Returns the effective Java {@link DateTimeFormatter} pattern.
+     * @return custom pattern or the selected format preset pattern
+     * @since 0.3.1
+     */
+    public String effectiveTimestampPattern() {
+        if (timestampPattern != null) return timestampPattern;
+        return switch (timestampFormat) {
+            case ISO_UTC -> ISO_UTC_PATTERN;
+            case TIME_ONLY -> TIME_ONLY_PATTERN;
+            case DATE_TIME -> DATE_TIME_PATTERN;
+        };
+    }
+    /**
      * Returns the explicitly selected timestamp zone.
      *
      * <p>An empty value means that the JVM system zone is resolved by the test process when the
@@ -309,6 +339,17 @@ public final class HudOptions {
      * @since 0.3.1
      */
     public ZoneId effectiveTimestampZone() { return timestampZone != null ? timestampZone : ZoneId.systemDefault(); }
+
+    String formatHudTimestamp(Instant eventTimestamp) {
+        Objects.requireNonNull(eventTimestamp, "eventTimestamp must not be null");
+        ZoneId zone = timestampZone != null
+                ? timestampZone
+                : timestampPattern == null && timestampFormat == HudTimestampFormat.ISO_UTC
+                        ? ZoneOffset.UTC
+                        : effectiveTimestampZone();
+        return DateTimeFormatter.ofPattern(effectiveTimestampPattern(), Locale.ROOT)
+                .withZone(zone).format(eventTimestamp);
+    }
     /**
      * Reports whether the event-log region is rendered.
      * @return configured visibility
@@ -339,6 +380,8 @@ public final class HudOptions {
      * @since 0.3.0
      */
     public boolean showAssertions() { return showAssertions; }
+    /** Returns the opt-in local source-navigation configuration. @since 0.3.1 */
+    public SourceNavigationOptions sourceNavigation() { return sourceNavigation; }
     /**
      * Returns the branding assets to render.
      * @return branding mode
@@ -432,6 +475,8 @@ public final class HudOptions {
         values.put("showPipeline", showPipeline);
         values.put("showTimestamps", showTimestamps);
         values.put("timestampFormat", timestampFormat.name());
+        values.put("timestampPattern", effectiveTimestampPattern());
+        values.put("timestampPatternSource", timestampPattern == null ? "PRESET" : "EXPLICIT");
         values.put("timestampZone", usesSystemTimestampZone() ? "SYSTEM" : timestampZone.getId());
         values.put("timestampZoneSource", usesSystemTimestampZone() ? "SYSTEM" : "EXPLICIT");
         values.put("showEventLog", showEventLog);
@@ -439,6 +484,8 @@ public final class HudOptions {
         values.put("showRetries", showRetries);
         values.put("showWaits", showWaits);
         values.put("showAssertions", showAssertions);
+        values.put("sourceNavigationEnabled", sourceNavigation.enabled());
+        values.put("sourceNavigationModifier", sourceNavigation.activationModifier().name());
         values.put("branding", branding.name());
         values.put("logoPlacement", logoPlacement.name());
         values.put("background", background);
@@ -471,7 +518,7 @@ public final class HudOptions {
             FONT_PRESET, TYPOGRAPHY, SCROLLBAR_STYLE, SCROLLBAR_WIDTH, SCROLLBAR_TRACK,
             SCROLLBAR_THUMB, SCROLLBAR_THUMB_HOVER, BASE_FONT_SIZE, HEADER_FONT_SIZE,
             SHOW_TEST_NAME, SHOW_CURRENT_STEP,
-            SHOW_PIPELINE, SHOW_TIMESTAMPS, TIMESTAMP_FORMAT, TIMESTAMP_ZONE, SHOW_EVENT_LOG, SHOW_NETWORK, SHOW_RETRIES,
+            SHOW_PIPELINE, SHOW_TIMESTAMPS, TIMESTAMP_FORMAT, TIMESTAMP_PATTERN, TIMESTAMP_ZONE, SHOW_EVENT_LOG, SHOW_NETWORK, SHOW_RETRIES,
             SHOW_WAITS, SHOW_ASSERTIONS, BRANDING, LOGO_PLACEMENT, BACKGROUND,
             BACKGROUND_OPACITY, ACCENT, PRIMARY_TEXT, MUTED_TEXT, SUCCESS, WARNING, FAILURE
         }
@@ -500,12 +547,14 @@ public final class HudOptions {
         private boolean showPipeline;
         private boolean showTimestamps;
         private HudTimestampFormat timestampFormat;
+        private String timestampPattern;
         private ZoneId timestampZone;
         private boolean showEventLog;
         private boolean showNetwork;
         private boolean showRetries;
         private boolean showWaits;
         private boolean showAssertions;
+        private SourceNavigationOptions sourceNavigation = SourceNavigationOptions.defaults();
         private HudBranding branding;
         private HudLogoPlacement logoPlacement;
         private String background;
@@ -536,9 +585,11 @@ public final class HudOptions {
             this.showTestName = source.showTestName;
             this.showCurrentStep = source.showCurrentStep; this.showPipeline = source.showPipeline;
             this.showTimestamps = source.showTimestamps; this.showEventLog = source.showEventLog;
-            this.timestampFormat = source.timestampFormat; this.timestampZone = source.timestampZone;
+            this.timestampFormat = source.timestampFormat; this.timestampPattern = source.timestampPattern;
+            this.timestampZone = source.timestampZone;
             this.showNetwork = source.showNetwork; this.showRetries = source.showRetries;
             this.showWaits = source.showWaits; this.showAssertions = source.showAssertions;
+            this.sourceNavigation = source.sourceNavigation;
             this.branding = source.branding; this.logoPlacement = source.logoPlacement;
             this.background = source.background;
             this.backgroundOpacity = source.backgroundOpacity; this.accentColor = source.accentColor;
@@ -747,9 +798,31 @@ public final class HudOptions {
             return this;
         }
         /**
+         * Sets an explicit Java {@link DateTimeFormatter} pattern for HUD presentation.
+         * The pattern is validated immediately and takes precedence over
+         * {@link #timestampFormat(HudTimestampFormat)} independently of setter order.
+         *
+         * @param value non-blank Java date/time pattern
+         * @return this builder
+         * @since 0.3.1
+         */
+        public Builder timestampPattern(String value) {
+            Objects.requireNonNull(value, "timestampPattern must not be null");
+            if (value.isBlank()) throw new IllegalArgumentException("timestampPattern must not be blank");
+            try {
+                DateTimeFormatter.ofPattern(value, Locale.ROOT);
+            } catch (IllegalArgumentException invalid) {
+                throw new IllegalArgumentException("Invalid timestampPattern: " + invalid.getMessage(), invalid);
+            }
+            explicit.add(Field.TIMESTAMP_PATTERN);
+            timestampPattern = value;
+            return this;
+        }
+        /**
          * Selects an explicit zone for readable HUD timestamp formats.
          *
-         * <p>{@link HudTimestampFormat#ISO_UTC} remains UTC regardless of this value.
+         * <p>An explicit zone takes precedence over the zone implied by a timestamp format preset,
+         * including {@link HudTimestampFormat#ISO_UTC}.
          *
          * @param value IANA or fixed-offset zone
          * @return this builder
@@ -811,6 +884,11 @@ public final class HudOptions {
          * @since 0.3.0
          */
         public Builder showAssertions(boolean value) { explicit.add(Field.SHOW_ASSERTIONS); showAssertions = value; return this; }
+        /** Configures opt-in HUD source navigation. @since 0.3.1 */
+        public Builder sourceNavigation(SourceNavigationOptions value) {
+            sourceNavigation = value == null ? SourceNavigationOptions.defaults() : value;
+            return this;
+        }
         /**
          * Selects the branding assets.
          *
@@ -967,6 +1045,7 @@ public final class HudOptions {
             if (!explicit.contains(Field.SHOW_PIPELINE)) showPipeline = value == HudPreset.DEBUG;
             if (!explicit.contains(Field.SHOW_TIMESTAMPS)) showTimestamps = value == HudPreset.STANDARD || value == HudPreset.DEBUG;
             if (!explicit.contains(Field.TIMESTAMP_FORMAT)) timestampFormat = HudTimestampFormat.ISO_UTC;
+            if (!explicit.contains(Field.TIMESTAMP_PATTERN)) timestampPattern = null;
             if (!explicit.contains(Field.TIMESTAMP_ZONE)) timestampZone = null;
             if (!explicit.contains(Field.SHOW_TEST_NAME)) showTestName = value != HudPreset.MINIMAL;
             if (!explicit.contains(Field.SHOW_CURRENT_STEP)) showCurrentStep = true;

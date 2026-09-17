@@ -14,6 +14,50 @@
   lens.state.hud = lens.state.hud || {};
   var SAFE_MARGIN_PX = 10;
 
+  function setSourceNavigationActive(active) {
+    var panel = overlayRoot() && overlayRoot().querySelector('#selenium-hud-panel');
+    lens.state.hud.sourceNavigationActive = !!active;
+    if (!panel) return;
+    if (active) panel.classList.add('source-navigation-active');
+    else panel.classList.remove('source-navigation-active');
+    panel.setAttribute('data-source-navigation-active', String(!!active));
+    var status = panel.querySelector('.stl-hud-source-status');
+    if (status) status.style.display = active ? 'block' : 'none';
+  }
+
+  function cleanupSourceNavigation() {
+    var state = lens.state.hud;
+    if (window.removeEventListener) {
+      if (state.sourceKeyDown) window.removeEventListener('keydown', state.sourceKeyDown, true);
+      if (state.sourceKeyUp) window.removeEventListener('keyup', state.sourceKeyUp, true);
+      if (state.sourceBlur) window.removeEventListener('blur', state.sourceBlur, true);
+    }
+    state.sourceKeyDown = state.sourceKeyUp = state.sourceBlur = null;
+    state.sourceCtrl = state.sourceAlt = false;
+    setSourceNavigationActive(false);
+  }
+
+  function installSourceNavigation(config) {
+    if (!option(config, 'sourceNavigationEnabled', false)) { cleanupSourceNavigation(); return; }
+    var state = lens.state.hud;
+    if (state.sourceKeyDown && state.sourceKeyUp && state.sourceBlur) return;
+    function updateFromEvent(event) {
+      var altGraph = !!(event && event.getModifierState && event.getModifierState('AltGraph'));
+      state.sourceCtrl = !!(event && event.ctrlKey);
+      state.sourceAlt = !!(event && event.altKey);
+      setSourceNavigationActive(state.sourceCtrl && state.sourceAlt && !altGraph);
+    }
+    state.sourceKeyDown = updateFromEvent;
+    state.sourceKeyUp = updateFromEvent;
+    state.sourceBlur = function() {
+      state.sourceCtrl = state.sourceAlt = false;
+      setSourceNavigationActive(false);
+    };
+    window.addEventListener('keydown', state.sourceKeyDown, true);
+    window.addEventListener('keyup', state.sourceKeyUp, true);
+    window.addEventListener('blur', state.sourceBlur, true);
+  }
+
   var HUD_PRESETS = {
     MINIMAL: {width:280,maxHeight:180,maxLogHeight:80,headerLayout:'AUTO',showTestName:false,showCurrentStep:true,showPipeline:false,showTimestamps:false,timestampFormat:'ISO_UTC',timestampZone:'SYSTEM',timestampZoneSource:'SYSTEM',showEventLog:false,showNetwork:false,showRetries:false,showWaits:true,showAssertions:true,fontPreset:'UI_SANS',baseFontSize:9,headerFontSize:10,scrollbarStyle:'SUBTLE',scrollbarWidth:6,scrollbarTrack:'#111827',scrollbarThumb:'#64748b',scrollbarThumbHover:'#94a3b8'},
     COMPACT: {width:420,maxHeight:280,maxLogHeight:180,headerLayout:'AUTO',showTestName:true,showCurrentStep:true,showPipeline:false,showTimestamps:false,timestampFormat:'ISO_UTC',timestampZone:'SYSTEM',timestampZoneSource:'SYSTEM',showEventLog:true,showNetwork:true,showRetries:true,showWaits:true,showAssertions:true,fontPreset:'UI_SANS',baseFontSize:10,headerFontSize:10,scrollbarStyle:'SUBTLE',scrollbarWidth:6,scrollbarTrack:'#111827',scrollbarThumb:'#64748b',scrollbarThumbHover:'#94a3b8'},
@@ -21,9 +65,11 @@
     DEBUG: {width:620,maxHeight:520,maxLogHeight:360,headerLayout:'AUTO',showTestName:true,showCurrentStep:true,showPipeline:true,showTimestamps:true,timestampFormat:'ISO_UTC',timestampZone:'SYSTEM',timestampZoneSource:'SYSTEM',showEventLog:true,showNetwork:true,showRetries:true,showWaits:true,showAssertions:true,fontPreset:'MONOSPACE',baseFontSize:10,headerFontSize:11,scrollbarStyle:'STANDARD',scrollbarWidth:10,scrollbarTrack:'#1e293b',scrollbarThumb:'#94a3b8',scrollbarThumbHover:'#cbd5e1'}
   };
   var HUD_PRESET_SHARED = {
-    position:'BOTTOM_RIGHT',offsetX:10,offsetY:10,railWidth:16,branding:'TEST_LENS',typography:{},
+    position:'BOTTOM_RIGHT',offsetX:10,offsetY:10,railWidth:16,branding:'TEST_LENS',typography:{timestampFontSize:9},
+    timestampPattern:"yyyy-MM-dd'T'HH:mm:ss.SSSXXX",timestampPatternSource:'PRESET',
     logoPlacement:'LEFT_RAIL',background:'#0f172a',backgroundOpacity:0.96,accent:'#38bdf8',
-    primaryText:'#f8fafc',mutedText:'#cbd5e1',success:'#22c55e',warning:'#f59e0b',failure:'#ef4444'
+    primaryText:'#f8fafc',mutedText:'#cbd5e1',success:'#22c55e',warning:'#f59e0b',failure:'#ef4444',
+    sourceNavigationEnabled:false,sourceNavigationModifier:'CTRL_ALT'
   };
 
   function overlayRoot() {
@@ -154,6 +200,10 @@
       + '.stl-hud-context-header[data-layout="STACKED"]>.stl-hud-header-item{flex:0 0 auto;width:100%;}'
       + '.stl-hud-meta-row{white-space:nowrap;}'
       + '.stl-hud-meta-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}';
+    style.textContent += '#selenium-hud-panel{pointer-events:none}.stl-hud-source-location{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:.9em;text-decoration:underline;text-underline-offset:2px;pointer-events:none;cursor:default}'
+      + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location{display:block}'
+      + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location[data-navigable="true"]{pointer-events:auto;cursor:pointer}'
+      + '.stl-hud-source-status{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:8px;letter-spacing:.12em;margin-top:2px}';
     shadow.appendChild(style);
   }
 
@@ -206,6 +256,7 @@
     setVar(panel, '--ui-test-lens-hud-step-font-family', fontFamilyForPreset(typography.currentStep || fontPreset));
     setVar(panel, '--ui-test-lens-hud-event-font-family', fontFamilyForPreset(typography.eventLog || fontPreset));
     setVar(panel, '--ui-test-lens-hud-meta-font-family', fontFamilyForPreset(typography.metadata || fontPreset));
+    setVar(panel, '--ui-test-lens-hud-timestamp-font-size', (typography.timestampFontSize || 9) + 'px');
     setVar(panel, '--ui-test-lens-hud-shadow', themeValue(theme, 'boxShadow'));
     setVar(panel, '--ui-test-lens-hud-opacity', themeValue(theme, 'opacity'));
     setVar(panel, '--ui-test-lens-hud-padding-y', padding + 'px');
@@ -593,7 +644,7 @@
       panel = document.createElement('div');
       panel.id = 'selenium-hud-panel';
       panel.style.position = 'fixed';
-      panel.style.pointerEvents = 'auto';
+      panel.style.pointerEvents = 'none';
       panel.style.lineHeight = '1.4';
       shadow.appendChild(panel);
     }
@@ -654,6 +705,14 @@
     } else if (step) { removeNode(step); }
 
     ensureLogs(panel, config);
+    var sourceStatus = panel.querySelector('.stl-hud-source-status');
+    if (option(config, 'sourceNavigationEnabled', false) && !sourceStatus) {
+      sourceStatus = document.createElement('div');
+      sourceStatus.className = 'stl-hud-source-status';
+      sourceStatus.textContent = 'SOURCE NAVIGATION';
+      structure.main.insertBefore(sourceStatus, structure.main.firstChild);
+    } else if (!option(config, 'sourceNavigationEnabled', false) && sourceStatus) removeNode(sourceStatus);
+    installSourceNavigation(config);
     updateScrollableRegions(panel);
     positionPanel(panel, config);
   }
@@ -688,39 +747,11 @@
     // Only unambiguous ISO-8601 instants with an explicit UTC/offset suffix are accepted.
     var explicitInstant = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/.test(raw);
     var millis = explicitInstant ? Date.parse(raw) : NaN;
-    return Number.isFinite(millis) ? new Date(millis) : new Date();
+    var date = Number.isFinite(millis) ? new Date(millis) : new Date();
+    return {date:date,canonical:Number.isFinite(millis) ? raw : date.toISOString()};
   }
 
-  function timestampZone(config) {
-    var configured = option(config, 'timestampZone', 'SYSTEM');
-    if (configured && configured !== 'SYSTEM') return configured;
-    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; }
-    catch (ignored) { return 'UTC'; }
-  }
-
-  function readableTimestamp(date, format, zone) {
-    var options = {timeZone:zone,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'};
-    if (format === 'DATE_TIME') {
-      options.day = '2-digit'; options.month = '2-digit'; options.year = '2-digit';
-    }
-    var parts;
-    try { parts = new Intl.DateTimeFormat('en-GB', options).formatToParts(date); }
-    catch (ignored) { options.timeZone = 'UTC'; parts = new Intl.DateTimeFormat('en-GB', options).formatToParts(date); }
-    var values = {};
-    parts.forEach(function(part) { if (part.type !== 'literal') values[part.type] = part.value; });
-    var time = values.hour + ':' + values.minute + ':' + values.second;
-    return format === 'DATE_TIME' ? values.day + '.' + values.month + '.' + values.year + ' ' + time : time;
-  }
-
-  function formatTimestamp(date, config) {
-    var format = option(config, 'timestampFormat', 'ISO_UTC');
-    if (format === 'TIME_ONLY' || format === 'DATE_TIME') {
-      return readableTimestamp(date, format, timestampZone(config));
-    }
-    return date.toISOString();
-  }
-
-  function log(message, level, timestamp, eventType) {
+  function log(message, level, timestamp, eventType, sourceLabel, navigationTarget, presentationTimestamp) {
     var config = lens.state.hud.lastConfig || {};
     if (!option(config, 'showEventLog', true) || !eventVisible(config, eventType)) return;
     var panel = ensurePanel(lens.state.hud.lastConfig || {});
@@ -733,6 +764,10 @@
     row.style.fontFamily = 'var(--ui-test-lens-hud-event-font-family, var(--ui-test-lens-hud-font-family))';
     row.style.fontSize = 'var(--ui-test-lens-hud-font-size, 10px)';
     row.style.marginBottom = '5px';
+    row.style.display = 'flex';
+    row.style.flexWrap = 'wrap';
+    row.style.columnGap = '3px';
+    row.style.alignItems = 'baseline';
     row.style.whiteSpace = 'pre-wrap';
     row.style.wordBreak = 'break-word';
     row.style.lineHeight = '1.32';
@@ -753,10 +788,50 @@
     }
     row.style.color = color;
 
-    var eventTimestamp = acceptedTimestamp(timestamp);
-    row.setAttribute('data-test-lens-timestamp', eventTimestamp.toISOString());
-    var timestampText = option(config, 'showTimestamps', false) ? '[' + formatTimestamp(eventTimestamp, config) + ']' : '';
-    row.textContent = timestampText + '[' + (level || '').toUpperCase() + '] ' + (message || '');
+    var accepted = acceptedTimestamp(timestamp);
+    var eventTimestamp = accepted.date;
+    row.setAttribute('data-test-lens-timestamp', accepted.canonical);
+    var showTimestamp = option(config, 'showTimestamps', false);
+    if (showTimestamp) {
+      var timestampNode = document.createElement('span');
+      timestampNode.className = 'stl-hud-timestamp';
+      timestampNode.textContent = '[' + (presentationTimestamp == null || String(presentationTimestamp).trim() === ''
+        ? eventTimestamp.toISOString() : String(presentationTimestamp)) + ']';
+      timestampNode.style.fontSize = 'var(--ui-test-lens-hud-timestamp-font-size, 9px)';
+      timestampNode.style.lineHeight = '1';
+      timestampNode.style.whiteSpace = 'normal';
+      timestampNode.style.overflowWrap = 'anywhere';
+      timestampNode.style.flex = '0 1 auto';
+      timestampNode.style.minWidth = '0';
+      timestampNode.style.color = 'var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,.78))';
+      row.appendChild(timestampNode);
+    }
+    var content = document.createElement('span');
+    content.className = 'stl-hud-log-content';
+    content.style.minWidth = '0';
+    content.style.flex = showTimestamp ? '1 1 55%' : '1 1 100%';
+    content.appendChild(document.createTextNode('[' + (level || '').toUpperCase() + '] ' + (message || '')));
+    if (option(config, 'sourceNavigationEnabled', false) && sourceLabel) {
+      var source = document.createElement('span');
+      source.className = 'stl-hud-source-location';
+      source.textContent = String(sourceLabel);
+      source.setAttribute('data-navigable', String(!!navigationTarget));
+      if (navigationTarget) {
+        source.setAttribute('role', 'link');
+        source.setAttribute('tabindex', '-1');
+        source.addEventListener('click', function(event) {
+          if (!lens.state.hud.sourceNavigationActive) { event.preventDefault(); return; }
+          event.preventDefault();
+          if (typeof window.__uiTestLensSourceNavigation === 'function') {
+            try { window.__uiTestLensSourceNavigation(String(navigationTarget)); } catch (ignored) {}
+          } else {
+            try { window.location.href = String(navigationTarget); } catch (ignored) {}
+          }
+        });
+      }
+      content.appendChild(source);
+    }
+    row.appendChild(content);
     logs.appendChild(row);
     updateScrollableRegions(panel);
     logs.scrollTop = logs.scrollHeight;
@@ -773,6 +848,7 @@
   }
 
   function remove() {
+    cleanupSourceNavigation();
     var root = overlayRoot();
     if (!root) {
       return;
