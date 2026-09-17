@@ -356,6 +356,8 @@ class FailureBundleCaptureTest {
                         }
                         case "executeScript" -> {
                             String script = String.valueOf(args[0]);
+                            if (script.contains("cloneNode(false)")) yield false;
+                            if (script.contains("state.snapshot && state.snapshot.isConnected")) yield true;
                             if (script.contains("window[key] =")) yield Map.of(
                                     "documentWidth", 4, "documentHeight", 6,
                                     "viewportWidth", 4, "viewportHeight", 3,
@@ -368,7 +370,13 @@ class FailureBundleCaptureTest {
                             yield null;
                         }
                         case "executeAsyncScript" -> {
+                            String script = String.valueOf(args[0]);
                             Object[] scriptArguments = (Object[]) args[1];
+                            if (script.contains("data-test-lens-screenshot-guard") || scriptArguments.length == 0) {
+                                yield Map.of("documentWidth", 4, "documentHeight", 6,
+                                        "viewportWidth", 4, "viewportHeight", 3,
+                                        "scrollX", 0, "scrollY", scrollY.get(), "topLevel", true);
+                            }
                             scrollY.set(Math.min(((Number) scriptArguments[1]).intValue(), 3));
                             yield Map.of("documentWidth", 4, "documentHeight", 6,
                                     "viewportWidth", 4, "viewportHeight", 3,
