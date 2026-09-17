@@ -78,19 +78,19 @@ HighlightOptions highlights = HighlightOptions.builder()
         .enabled(true)
         .automaticFeedback(true)
         .actionColor("#ffeb3b")
-        .waitingColor("#38bdf8")
-        .retryColor("#f59e0b")
-        .successColor("#22c55e")
-        .failureColor("#ef4444")
+        .waitingColor("#2196f3")
+        .retryColor("#ff9800")
+        .successColor("#4caf50")
+        .failureColor("#f44336")
         .durationMs(1500)
         .borderWidthPx(2)
         .showLabels(true)
         .build();
 
-TestLensOptions options = TestLensOptions.builder().hud(hud).highlight(highlights).build();
+TestLensOptions options = TestLensOptions.builder().hud(hud).highlights(highlights).build();
 ```
 
-`enabled(false)` disables both manual and automatic state borders. `automaticFeedback(false)` keeps manual `lens.highlight(...)` and `locator.highlight()` available. HUD visibility is independent. Legacy `OverlayConfig.highlightColor` and `decorationDurationMs` feed the action color and duration unless typed options are supplied; typed options win regardless of setter order.
+`enabled(false)` disables both manual and automatic state borders. `automaticFeedback(false)` keeps manual `lens.highlight(...)` and `locator.highlight()` available. HUD visibility is independent. A duration of zero renders the state and schedules its removal without an artificial visibility delay; border width accepts 1-16 px. Legacy `OverlayConfig.highlightColor` and `decorationDurationMs` feed only action color and highlight duration when those individual fields were not explicitly set. Explicit typed fields win regardless of setter order, while `decorationDurationMs` retains its separate legacy meaning for arrows and other decorations.
 
 For a consumer `LensTestBase`, create `TestLensOptions` once in its setup/option factory and attach the facade with those options. Use `lens.highlight(element, label)` instead of allocating an additional `JsOverlayDebug`; this keeps the active driver, session, redaction, logger, and cleanup ownership together.
 

@@ -812,7 +812,7 @@ public final class JsOverlayDebug {
 
     /** Common case: decoration + classic click(). */
     public void highlightThenClick(WebElement element, String label) {
-        highlightActions.highlightClick(element, label);
+        highlightActions.automaticAction(element, label);
         if (element != null) {
             element.click();
         }
@@ -844,7 +844,7 @@ public final class JsOverlayDebug {
     /** Smart typing and highlight with a custom label. */
     public void smartTypeWithHintHighlighted(WebElement element, String value, String label) {
         String effectiveLabel = (label == null || label.isBlank()) ? "SET" : label;
-        highlightActions.highlightClick(element, effectiveLabel);
+        highlightActions.automaticAction(element, effectiveLabel);
         smartInputActions.smartTypeWithHint(element, value, effectiveLabel);
     }
 
@@ -1598,7 +1598,7 @@ public final class JsOverlayDebug {
             }
             return;
         }
-        highlightActions.highlightClick(target, label);
+        highlightActions.automaticAction(target, label);
         smartClickActions.smartClick(target, label);
     }
 
@@ -1634,7 +1634,7 @@ public final class JsOverlayDebug {
             return;
         }
         try {
-            highlightActions.highlightClick(fileInput, "UPLOAD");
+            highlightActions.automaticAction(fileInput, "UPLOAD");
             fileInput.sendKeys(absoluteFilePath);
             if (config.isShowHudPanel()) {
                 hudPanel.updateStep("File sent to <input type='file'>");

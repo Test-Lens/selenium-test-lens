@@ -38,6 +38,14 @@ public class HighlightActions {
     /** Legacy manual highlight; it is a neutral visual event, never an assertion result. */
     public void highlightClick(WebElement element, String label) { highlight(element, label, HighlightState.ACTION, false); }
 
+    /**
+     * Internal-style ACTION feedback for a real operation; honors automatic feedback settings.
+     * @since 0.3.1
+     */
+    public void automaticAction(WebElement element, String label) {
+        highlight(element, label, HighlightState.ACTION, true);
+    }
+
     public void highlight(WebElement element, String label, HighlightState state, boolean automatic) {
         HighlightOptions options = config.getHighlightOptions();
         if (!config.isEnabled() || !options.enabled() || (automatic && !options.automaticFeedback()) || element == null) return;

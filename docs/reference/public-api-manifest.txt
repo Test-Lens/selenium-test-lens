@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
 # Types: 271
-# Public callable methods/constructors: 2091
+# Public callable methods/constructors: 2094
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -1240,6 +1240,7 @@ TYPE io.github.testlens.TestLensOptions$Builder
   public io.github.testlens.TestLensOptions$Builder failureBundleOptions(io.github.testlens.selenium.evidence.FailureBundleOptions)
   public io.github.testlens.TestLensOptions$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
   public io.github.testlens.TestLensOptions$Builder hud(io.github.testlens.hud.HudOptions)
+  public io.github.testlens.TestLensOptions$Builder highlights(io.github.testlens.HighlightOptions)
   public io.github.testlens.TestLensOptions$Builder highlight(io.github.testlens.HighlightOptions)
   public io.github.testlens.TestLensOptions$Builder visualRedaction(io.github.testlens.selenium.evidence.VisualRedactionOptions)
   public io.github.testlens.TestLensOptions build()
@@ -1256,6 +1257,7 @@ TYPE io.github.testlens.TestLensOptions
   public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOptions()
   public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
   public io.github.testlens.hud.HudOptions hud()
+  public io.github.testlens.HighlightOptions highlights()
   public io.github.testlens.HighlightOptions highlight()
   public io.github.testlens.selenium.evidence.VisualRedactionOptions visualRedaction()
 TYPE io.github.testlens.TestRunScope
@@ -1307,6 +1309,7 @@ TYPE io.github.testlens.actions.HighlightActions
   public io.github.testlens.actions.HighlightActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig)
   public io.github.testlens.actions.HighlightActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayLogger)
   public void highlightClick(org.openqa.selenium.WebElement, java.lang.String)
+  public void automaticAction(org.openqa.selenium.WebElement, java.lang.String)
   public void highlight(org.openqa.selenium.WebElement, java.lang.String, io.github.testlens.HighlightState, boolean)
   public void highlightParent(org.openqa.selenium.WebElement, int, java.lang.String)
   public void highlightClosest(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)

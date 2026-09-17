@@ -68,6 +68,7 @@ public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertFal
 public io.github.testlens.actions.HighlightActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig)
 public io.github.testlens.actions.HighlightActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayLogger)
 public void highlightClick(org.openqa.selenium.WebElement, java.lang.String)
+public void automaticAction(org.openqa.selenium.WebElement, java.lang.String)
 public void highlight(org.openqa.selenium.WebElement, java.lang.String, io.github.testlens.HighlightState, boolean)
 public void highlightParent(org.openqa.selenium.WebElement, int, java.lang.String)
 public void highlightClosest(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)

@@ -88,7 +88,7 @@ public final class UiLocator {
             ActionabilityReport report = safeActionability(element);
             overlay.smartClickWithOverlayHandler(element, description.displayName());
             return report;
-        });
+        }, null, false);
     }
 
     public UiLocator fill(String value) {
@@ -799,6 +799,11 @@ public final class UiLocator {
     }
 
     private UiLocator execute(String action, Function<WebElement, ActionabilityReport> operation, Integer valueLength) {
+        return execute(action, operation, valueLength, true);
+    }
+
+    private UiLocator execute(String action, Function<WebElement, ActionabilityReport> operation,
+                              Integer valueLength, boolean decorateAction) {
         Instant started = Instant.now();
         emit(UiTestLensEventType.LOCATOR_ACTION_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
                 "Locator action started", action, 0, valueLength, null);
@@ -811,7 +816,9 @@ public final class UiLocator {
             try {
                 WebElement element = resolve();
                 lastElement = element;
-                overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
+                if (decorateAction) {
+                    overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
+                }
                 attemptStarted = nanoTicker.getAsLong();
                 operationStarted = true;
                 ActionabilityReport report = operation.apply(element);

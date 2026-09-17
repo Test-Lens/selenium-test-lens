@@ -715,8 +715,8 @@ class RealBrowserContractsIT {
         open("/clicks");
         HighlightOptions highlights = HighlightOptions.builder().actionColor("#123456")
                 .waitingColor("#2468ac").retryColor("#c47a00").successColor("#16803a")
-                .failureColor("#b91c1c").durationMs(1000).borderWidthPx(5).showLabels(true).build();
-        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().highlight(highlights).build());
+                .failureColor("#b91c1c").durationMs(10000).borderWidthPx(5).showLabels(true).build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().highlights(highlights).build());
         WebElement button = driver.findElement(By.id("count-button"));
 
         lens.highlight(button, "Count control", HighlightState.SUCCESS);
@@ -727,6 +727,33 @@ class RealBrowserContractsIT {
                     && getComputedStyle(mark).borderColor==='rgb(22, 128, 58)'
                     && getComputedStyle(mark).borderWidth==='5px'
                     && mark.textContent==='Count control';
+                """)));
+
+        lens.locator(By.id("count-button"), "UiExpect control").expect().toBeVisible();
+        assertTrue(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='success'
+                    && getComputedStyle(mark).borderColor==='rgb(22, 128, 58)'
+                    && mark.textContent.includes('UiExpect control');
+                """).apply(driver), () -> "UiExpect highlight DOM: " + ((JavascriptExecutor) driver).executeScript("""
+                return Array.from(document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelectorAll('[data-uitestlens-highlight="1"]')).map(mark => ({
+                        state: mark.dataset.uitestlensHighlightState,
+                        color: getComputedStyle(mark).borderColor,
+                        label: mark.textContent
+                    }));
+                """));
+
+        JsOverlayDebug legacy = new JsOverlayDebug(driver, OverlayConfig.builder()
+                .highlightOptions(highlights).build());
+        assertTrue(legacy.assertVisible(button, true, "Legacy assertion control"));
+        assertTrue(await(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='success'
+                    && getComputedStyle(mark).borderColor==='rgb(22, 128, 58)'
+                    && mark.textContent.includes('Legacy assertion control');
                 """)));
 
         JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -765,6 +792,49 @@ class RealBrowserContractsIT {
                 return !document.getElementById('selenium-overlay-host').shadowRoot
                     .querySelector('[data-uitestlens-highlight="1"]');
                 """)));
+    }
+
+    @Test
+    void highlightSwitchesStayIndependentFromHudAndOverlayMasterSwitch() {
+        open("/clicks");
+        HighlightOptions manualOnly = HighlightOptions.builder()
+                .automaticFeedback(false).durationMs(1000).build();
+        TestLens hudOff = TestLens.attach(driver, TestLensOptions.builder()
+                .overlayConfig(OverlayConfig.builder().showHudPanel(false).build())
+                .highlights(manualOnly).build());
+        WebElement button = driver.findElement(By.id("count-button"));
+
+        hudOff.highlight(button, "Manual while HUD is off", HighlightState.ACTION);
+        assertTrue(await(scriptBoolean("""
+                const host=document.getElementById('selenium-overlay-host');
+                return host && host.shadowRoot.querySelector('[data-uitestlens-highlight="1"]')
+                    && !host.shadowRoot.querySelector('#selenium-hud-panel');
+                """)));
+        ((JavascriptExecutor) driver).executeScript("window.__uiTestLens.modules.highlight.clear()");
+
+        hudOff.locator(By.id("count-button"), "Automatic disabled").click();
+        assertClickCounts(1);
+        assertFalse(scriptBoolean("""
+                const host=document.getElementById('selenium-overlay-host');
+                return !!(host && host.shadowRoot.querySelector('[data-uitestlens-highlight="1"]'));
+                """).apply(driver));
+
+        TestLens highlightsOff = TestLens.attach(driver, TestLensOptions.builder()
+                .highlights(HighlightOptions.builder().enabled(false).build()).build());
+        highlightsOff.highlight(button, "Disabled highlight");
+        assertFalse(scriptBoolean("""
+                const host=document.getElementById('selenium-overlay-host');
+                return !!(host && host.shadowRoot.querySelector('[data-uitestlens-highlight="1"]'));
+                """).apply(driver));
+
+        TestLens overlayOff = TestLens.attach(driver, TestLensOptions.builder()
+                .overlayConfig(OverlayConfig.builder().enabled(false).build())
+                .highlights(HighlightOptions.defaults()).build());
+        overlayOff.highlight(button, "Master disabled");
+        assertFalse(scriptBoolean("""
+                const host=document.getElementById('selenium-overlay-host');
+                return !!(host && host.shadowRoot.querySelector('[data-uitestlens-highlight="1"]'));
+                """).apply(driver));
     }
 
     @Test

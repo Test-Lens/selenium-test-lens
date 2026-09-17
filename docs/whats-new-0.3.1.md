@@ -30,13 +30,15 @@ Every visible event-log row now receives one timestamp from the event itself. Mi
 
 Actions, waits, retries, `UiExpect`, and legacy element assertions use the same five typed visual states. A polling miss is WAITING/RETRY, never a terminal failure. SUCCESS and FAILURE come from the actual operation result; a neutral manual highlight never creates `ASSERTION_PASSED`.
 
+Automatic operation feedback is enabled by default when highlights and the master overlay are enabled. This is an intentional visual change from 0.3.0: successful and terminally failed element operations now receive the historical green/red assertion colors without changing their result, retry policy, or interaction count.
+
 ```java
 HighlightOptions highlights = HighlightOptions.builder()
         .actionColor("#ffeb3b")
-        .waitingColor("#38bdf8")
-        .retryColor("#f59e0b")
-        .successColor("#22c55e")
-        .failureColor("#ef4444")
+        .waitingColor("#2196f3")
+        .retryColor("#ff9800")
+        .successColor("#4caf50")
+        .failureColor("#f44336")
         .durationMs(1500)
         .borderWidthPx(2)
         .showLabels(true)
@@ -45,7 +47,7 @@ HighlightOptions highlights = HighlightOptions.builder()
 
 TestLensOptions options = TestLensOptions.builder()
         .hud(hud)
-        .highlight(highlights)
+        .highlights(highlights)
         .build();
 ```
 
@@ -59,4 +61,4 @@ lens.highlight(element, "Zapis zakończony", HighlightState.SUCCESS);
 
 These calls do not click, type, focus, or scroll. A manual `By` highlight resolves the locator once using its normal locator contract. Automatic feedback reuses the element already resolved by the operation, including scoped, `nth`, and Shadow DOM targets. Missing/detached targets simply omit decoration while HUD/trace keep the result.
 
-Migration: `OverlayConfig.highlightColor(...)` maps to `HighlightOptions.actionColor(...)`, and `decorationDurationMs(...)` maps to `durationMs(...)`. Explicit `HighlightOptions` wins in either setter order. Replace consumer-created `new JsOverlayDebug(driver)` instances with the facade calls above; legacy use remains supported and renders through the same mechanism.
+Migration: `OverlayConfig.highlightColor(...)` supplies `HighlightOptions.actionColor(...)`, and `decorationDurationMs(...)` supplies its `durationMs(...)` only when the corresponding typed field was not explicitly set. Explicit typed fields win in either setter order; the legacy duration still controls arrows and other historical decorations. Replace consumer-created `new JsOverlayDebug(driver)` instances with the facade calls above; legacy use remains supported and renders through the same mechanism.

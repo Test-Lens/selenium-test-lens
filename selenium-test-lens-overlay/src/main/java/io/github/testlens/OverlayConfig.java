@@ -37,8 +37,9 @@ public final class OverlayConfig {
         this.hudMaxWidthPx = builder.hudMaxWidthPx;
         this.hudTheme = builder.hudTheme;
         this.hudThemePreset = builder.hudThemePreset;
-        this.highlightColor = builder.highlightColor;
-        this.highlightOptions = builder.highlightOptions;
+        this.highlightOptions = builder.highlightOptions.withLegacyDefaults(
+                builder.highlightColor, builder.decorationDurationMs);
+        this.highlightColor = this.highlightOptions.actionColor();
         this.highlightOptionsAuthoritative = builder.highlightOptionsExplicit;
         this.hudOptions = builder.hudOptions;
         this.hudOptionsAuthoritative = builder.hudOptionsAuthoritative;
@@ -166,12 +167,10 @@ public final class OverlayConfig {
         }
 
         public Builder decorationDurationMs(long ms) {
-            if (highlightOptionsExplicit) return this;
             if (ms < 0) {
                 throw new IllegalArgumentException("decorationDurationMs must be >= 0");
             }
             this.decorationDurationMs = ms;
-            this.highlightOptions = highlightOptions.toBuilder().durationMs(ms).build();
             return this;
         }
 
@@ -267,10 +266,8 @@ public final class OverlayConfig {
         }
 
         public Builder highlightColor(String highlightColor) {
-            if (highlightOptionsExplicit) return this;
             if (highlightColor != null && !highlightColor.isBlank()) {
                 this.highlightColor = highlightColor;
-                this.highlightOptions = highlightOptions.toBuilder().actionColor(highlightColor).build();
             }
             return this;
         }
@@ -280,8 +277,6 @@ public final class OverlayConfig {
             if (value != null) {
                 highlightOptions = value;
                 highlightOptionsExplicit = true;
-                highlightColor = value.actionColor();
-                decorationDurationMs = value.durationMs();
             }
             return this;
         }

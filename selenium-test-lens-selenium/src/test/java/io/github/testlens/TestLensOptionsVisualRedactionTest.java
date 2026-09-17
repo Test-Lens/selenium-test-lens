@@ -37,4 +37,26 @@ class TestLensOptionsVisualRedactionTest {
         assertSame(hud, options.overlayConfig().getHudOptions());
         assertSame(visual, options.visualRedaction());
     }
+
+    @Test
+    void highlightsRemainIndependentFromHudRedactionAndScreenshotPolicy() {
+        HudOptions hud = HudOptions.builder().preset(HudPreset.DEBUG).build();
+        VisualRedactionOptions visual = VisualRedactionOptions.disabled();
+        HighlightOptions highlights = HighlightOptions.builder().automaticFeedback(false)
+                .successColor("rebeccapurple").build();
+
+        TestLensOptions options = TestLensOptions.builder()
+                .hud(hud)
+                .visualRedaction(visual)
+                .screenshotOnFailure(false)
+                .highlights(highlights)
+                .build();
+
+        assertSame(hud, options.hud());
+        assertSame(visual, options.visualRedaction());
+        assertFalse(options.screenshotOnFailure());
+        assertEquals("rebeccapurple", options.highlights().successColor());
+        assertFalse(options.highlights().automaticFeedback());
+        assertSame(options.highlights(), options.highlight());
+    }
 }

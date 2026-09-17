@@ -58,8 +58,19 @@ public final class TestLensOptions {
      * @since 0.3.0
      */
     public HudOptions hud() { return overlayConfig.getHudOptions(); }
-    /** Returns element-state decoration configuration. @since 0.3.1 */
-    public HighlightOptions highlight() { return highlightOptions; }
+    /**
+     * Returns the effective manual and automatic element-state decoration configuration.
+     * @return effective highlight options after applying compatible legacy defaults
+     * @since 0.3.1
+     */
+    public HighlightOptions highlights() { return highlightOptions; }
+    /**
+     * Returns element-state decoration configuration.
+     * @return effective highlight options
+     * @deprecated use {@link #highlights()}
+     */
+    @Deprecated(since = "0.3.1")
+    public HighlightOptions highlight() { return highlights(); }
     /**
      * Returns screenshot-pixel redaction configuration.
      * @return visual redaction options; defaults automatically mask password inputs with STRICT handling
@@ -110,11 +121,25 @@ public final class TestLensOptions {
          * @since 0.3.0
          */
         public Builder hud(HudOptions value) { hudOptions = value == null ? HudOptions.defaults() : value; return this; }
-        /** Configures manual and automatic state decoration. @since 0.3.1 */
-        public Builder highlight(HighlightOptions value) {
+        /**
+         * Configures manual and automatic state decoration without changing HUD, redaction,
+         * screenshot, or retry settings.
+         * @param value immutable options; null restores defaults
+         * @return this builder
+         * @since 0.3.1
+         */
+        public Builder highlights(HighlightOptions value) {
             highlightOptions = value == null ? HighlightOptions.defaults() : value;
             return this;
         }
+        /**
+         * Configures manual and automatic state decoration.
+         * @param value immutable options; null restores defaults
+         * @return this builder
+         * @deprecated use {@link #highlights(HighlightOptions)}
+         */
+        @Deprecated(since = "0.3.1")
+        public Builder highlight(HighlightOptions value) { return highlights(value); }
         /**
          * Configures temporary browser-side masks for Test Lens screenshot pixels.
          * @param value options; null restores {@link VisualRedactionOptions#defaults()}

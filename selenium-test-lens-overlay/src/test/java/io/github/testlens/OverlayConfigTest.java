@@ -100,8 +100,10 @@ class OverlayConfigTest {
 
         assertEquals("#112233", legacyFirst.getHighlightColor());
         assertEquals("#112233", legacyLast.getHighlightColor());
-        assertEquals(3210, legacyFirst.getDecorationDurationMs());
-        assertEquals(3210, legacyLast.getDecorationDurationMs());
+        assertEquals(12, legacyFirst.getDecorationDurationMs());
+        assertEquals(12, legacyLast.getDecorationDurationMs());
+        assertEquals(3210, legacyFirst.getHighlightOptions().durationMs());
+        assertEquals(3210, legacyLast.getHighlightOptions().durationMs());
         assertEquals(5, legacyFirst.getHighlightOptions().borderWidthPx());
         assertSame(typed, legacyLast.getHighlightOptions());
         assertTrue(legacyFirst.isHighlightOptionsAuthoritative());
@@ -115,6 +117,35 @@ class OverlayConfigTest {
         assertEquals("#abcdef", config.getHighlightOptions().actionColor());
         assertEquals(99, config.getHighlightOptions().durationMs());
         assertFalse(config.isHighlightOptionsAuthoritative());
+    }
+
+    @Test
+    void unsetTypedFieldsInheritLegacyValuesInEitherCallOrder() {
+        HighlightOptions partial = HighlightOptions.builder().successColor("tomato").showLabels(false).build();
+
+        OverlayConfig legacyFirst = OverlayConfig.builder().highlightColor("rebeccapurple")
+                .decorationDurationMs(0).highlightOptions(partial).build();
+        OverlayConfig legacyLast = OverlayConfig.builder().highlightOptions(partial)
+                .highlightColor("rebeccapurple").decorationDurationMs(0).build();
+
+        for (OverlayConfig config : new OverlayConfig[]{legacyFirst, legacyLast}) {
+            assertEquals("rebeccapurple", config.getHighlightOptions().actionColor());
+            assertEquals(0, config.getHighlightOptions().durationMs());
+            assertEquals("tomato", config.getHighlightOptions().successColor());
+            assertFalse(config.getHighlightOptions().showLabels());
+        }
+    }
+
+    @Test
+    void explicitTypedLegacyOverlapsWinButDoNotChangeOtherDecorationDuration() {
+        HighlightOptions explicit = HighlightOptions.builder().actionColor("color(display-p3 1 0 0)")
+                .durationMs(77).build();
+        OverlayConfig config = OverlayConfig.builder().highlightOptions(explicit)
+                .highlightColor("#000000").decorationDurationMs(222).build();
+
+        assertEquals("color(display-p3 1 0 0)", config.getHighlightColor());
+        assertEquals(77, config.getHighlightOptions().durationMs());
+        assertEquals(222, config.getDecorationDurationMs());
     }
 }
 
