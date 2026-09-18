@@ -15,13 +15,38 @@ The Source navigation section generates the opt-in `SourceNavigationOptions` blo
     The Highlights section configures independent action, waiting, retry, success, and failure colors plus duration, border width, labels, enablement, and automatic feedback. HUD preset changes do not reset these values, and generated Java includes `HighlightOptions` in `TestLensOptions`.
 
 <style>
-.tl-hud-studio-frame { display:block; width:100%; max-width:100%; height:900px; border:1px solid var(--md-default-fg-color--lightest); border-radius:.6rem; background:#e7edf4; }
-@media(max-width:760px){.tl-hud-studio-frame{height:1500px}}
+.tl-hud-studio-toolbar{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;margin:.75rem 0;padding:.6rem;border:1px solid var(--md-default-fg-color--lightest);border-radius:.5rem;background:var(--md-code-bg-color)}
+.tl-hud-studio-toolbar>[hidden]{display:none}
+.tl-hud-studio-toolbar a,.tl-hud-studio-toolbar button{display:inline-flex;align-items:center;min-height:2.1rem;padding:.35rem .65rem;border:1px solid var(--md-primary-fg-color);border-radius:.35rem;color:var(--md-primary-fg-color);background:transparent;font:inherit;font-weight:600;text-decoration:none;cursor:pointer}
+.tl-hud-studio-toolbar a:hover,.tl-hud-studio-toolbar button:hover{color:var(--md-primary-bg-color);background:var(--md-primary-fg-color)}
+.tl-hud-studio-toolbar span{color:var(--md-default-fg-color--light);font-size:.75rem}
+.tl-hud-studio-host{display:flex;flex-direction:column;min-width:0;width:100%;height:900px;border:1px solid var(--md-default-fg-color--lightest);border-radius:.6rem;overflow:hidden;background:#e7edf4}
+.tl-hud-studio-frame{display:block;flex:1;width:100%;min-height:0;border:0;background:#e7edf4}
+body.tl-hud-studio-page .md-main__inner{max-width:none}
+body.tl-hud-studio-page .md-sidebar--secondary{display:none}
+body.tl-hud-studio-page .md-content{min-width:0}
+body.tl-studio-focus-mode{overflow:hidden}
+body.tl-studio-focus-mode .md-header,body.tl-studio-focus-mode .md-tabs,body.tl-studio-focus-mode .md-sidebar{display:none}
+body.tl-studio-focus-mode .tl-hud-studio-host,body.tl-hud-studio-page .tl-hud-studio-host:fullscreen{position:fixed;inset:0;z-index:1000;width:100vw;height:100vh;border:0;border-radius:0}
+body.tl-studio-focus-mode .tl-hud-studio-frame{flex:1}
+@media(max-width:760px){.tl-hud-studio-host{height:1500px}.tl-hud-studio-toolbar span{flex-basis:100%}}
 </style>
 
-<iframe class="tl-hud-studio-frame" src="../../demo/hud-studio/" title="Interactive Test Lens HUD Studio" sandbox="allow-scripts">
-  HUD Studio could not be loaded. [Open the standalone configurator](../demo/hud-studio/index.html).
-</iframe>
+<div class="tl-hud-studio-toolbar">
+  <a data-studio-open href="../../demo/hud-studio/" target="_blank" rel="noopener noreferrer">Open Studio</a>
+  <button data-studio-expand type="button" aria-pressed="false">Expand in this page</button>
+  <button data-studio-fullscreen type="button" aria-pressed="false" aria-label="Open HUD Studio in browser fullscreen">Fullscreen</button>
+  <button data-studio-exit type="button" hidden>Exit expanded view</button>
+  <span>For the best editing experience, open Studio in a full-width view.</span>
+</div>
+
+<div class="tl-hud-studio-host" data-studio-host>
+  <iframe data-studio-frame class="tl-hud-studio-frame" src="../../demo/hud-studio/" title="Interactive Test Lens HUD Studio" sandbox="allow-scripts" allow="fullscreen" allowfullscreen>
+    HUD Studio could not be loaded. <a href="../../demo/hud-studio/">Open the standalone configurator</a>.
+  </iframe>
+</div>
+
+<script src="../../javascripts/hud-studio-host.js"></script>
 
 ## Public configuration
 
@@ -84,12 +109,14 @@ All presets use `HudHeaderLayout.AUTO`: TEST and STEP share a row while their at
 Visibility switches affect only presentation. Suppressed network, recovery, wait, or assertion rows still flow to trace, reports, and other configured sinks. `showTimestamps(false)` removes timestamps from HUD rows; it does not change event timestamps in the model.
 
 `ISO_UTC` is the compatibility default and renders in UTC unless an explicit timestamp zone overrides it. `TIME_ONLY` and `DATE_TIME`
-remain shortcuts, while **Timestamp pattern** accepts Java `DateTimeFormatter` syntax and takes
-precedence. One through nine `S` letters select fraction precision. **Timestamp zone** accepts
-`SYSTEM` or a standard IANA ID and validates it before updating the preview. Studio shows fixed
-winter and summer examples so DST differences are visible without a DST switch. Its **JVM system
-zone** choice is exported as system behavior rather than the concrete zone of the computer where
-Studio happened to run.
+remain shortcuts and show their effective pattern in a read-only field. Select `CUSTOM` to edit a
+Java `DateTimeFormatter` pattern; one through nine `S` letters select fraction precision directly.
+The zone modes are `SYSTEM`, `UTC`, and `CUSTOM`. `SYSTEM` emits no redundant builder call and means
+the JVM/test-runner system zone, never the browser zone. `UTC` emits `ZoneOffset.UTC`; `CUSTOM`
+accepts a validated IANA `ZoneId`, such as `Europe/Warsaw`, or a fixed offset. Studio shows fixed
+winter and summer instants so DST differences are visible without a DST switch. Because a static
+page cannot inspect the future test runner, its SYSTEM preview clearly labels the browser zone used
+only as a visual stand-in; generated Java retains JVM system-zone behavior.
 
 ## Source navigation controls and preview
 

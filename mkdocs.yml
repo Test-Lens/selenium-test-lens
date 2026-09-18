@@ -22,6 +22,7 @@ not_in_nav: |
 theme:
   name: material
   custom_dir: overrides
+  favicon: assets/images/favicon.png
   language: en
   palette:
     - media: "(prefers-color-scheme: light)"
