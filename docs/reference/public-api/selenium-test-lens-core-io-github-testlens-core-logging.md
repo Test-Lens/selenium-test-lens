@@ -67,6 +67,26 @@ public java.nio.file.Path exportHtmlReport()
 public java.nio.file.Path exportHtmlReport(io.github.testlens.core.trace.export.TraceHtmlExportOptions)
 ```
 
+## `io.github.testlens.core.logging.SourceLocation` {#io-github-testlens-core-logging-sourcelocation}
+
+- Artifact/module: `selenium-test-lens-core`
+- Package: `io.github.testlens.core.logging`
+- Classification: `USER_API`
+- Type kind: `record`
+- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+
+```java
+public io.github.testlens.core.logging.SourceLocation(java.lang.String, java.lang.String, java.lang.String, int)
+public java.lang.String displayName()
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String className()
+public java.lang.String methodName()
+public java.lang.String fileName()
+public int lineNumber()
+```
+
 ## `io.github.testlens.core.logging.TargetDescriptor` {#io-github-testlens-core-logging-targetdescriptor}
 
 - Artifact/module: `selenium-test-lens-core`
@@ -196,6 +216,7 @@ public io.github.testlens.core.logging.UiTestLensLogEntry$Builder action(java.la
 public io.github.testlens.core.logging.UiTestLensLogEntry$Builder target(io.github.testlens.core.logging.TargetDescriptor)
 public io.github.testlens.core.logging.UiTestLensLogEntry$Builder metadata(java.util.Map<java.lang.String, java.lang.String>)
 public io.github.testlens.core.logging.UiTestLensLogEntry$Builder metadata(java.lang.String, java.lang.String)
+public io.github.testlens.core.logging.UiTestLensLogEntry$Builder sourceLocation(io.github.testlens.core.logging.SourceLocation)
 public io.github.testlens.core.logging.UiTestLensLogEntry$Builder throwable(java.lang.Throwable)
 public io.github.testlens.core.logging.UiTestLensLogEntry build()
 ```
@@ -208,8 +229,13 @@ public io.github.testlens.core.logging.UiTestLensLogEntry build()
 - Type kind: `record`
 
 ```java
+public static final java.lang.String SOURCE_CLASS
+public static final java.lang.String SOURCE_METHOD
+public static final java.lang.String SOURCE_FILE
+public static final java.lang.String SOURCE_LINE
 public io.github.testlens.core.logging.UiTestLensLogEntry(java.time.Instant, io.github.testlens.core.logging.UiTestLensLogLevel, io.github.testlens.core.logging.UiTestLensEventType, io.github.testlens.core.logging.UiTestLensStatus, java.lang.String, java.lang.String, java.lang.String, io.github.testlens.core.logging.TargetDescriptor, java.util.Map<java.lang.String, java.lang.String>, java.lang.Throwable)
 public static io.github.testlens.core.logging.UiTestLensLogEntry$Builder builder()
+public java.util.Optional<io.github.testlens.core.logging.SourceLocation> sourceLocation()
 public static io.github.testlens.core.logging.UiTestLensLogEntry info(java.lang.String)
 public static io.github.testlens.core.logging.UiTestLensLogEntry warn(java.lang.String)
 public static io.github.testlens.core.logging.UiTestLensLogEntry error(java.lang.String, java.lang.Throwable)

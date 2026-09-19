@@ -35,6 +35,10 @@ HudOptions hud = HudOptions.builder()
         .position(HudPosition.TOP_RIGHT)
         .headerLayout(HudHeaderLayout.AUTO)
         .backgroundOpacity(0.9)
+        .showTimestamps(true)
+        .timestampPattern("yyyy-MM-dd HH:mm:ss.SSSSSS XXX")
+        .timestampZone(ZoneId.of("Europe/Warsaw"))
+        .typography(HudTypography.builder().timestampFontSizePx(10).build())
         .showNetwork(false)
         .build();
 
@@ -58,12 +62,42 @@ Explicit `HudOptions` is authoritative over overlapping legacy `OverlayConfig` p
 | Header | `AUTO`; also `INLINE`, `STACKED` | TEST/STEP are atomic single-line items with ellipsis; PIPE is separate metadata. |
 | Position | `BOTTOM_RIGHT`; four corners, offsets 0–500 px | Effective offsets and dimensions are clamped to the viewport; stored options are unchanged. |
 | Size | width 240–960, panel 120–1000, log 80–720 px | Effective log height is limited by configured log height, panel content, and viewport. |
-| Typography | local `UI_SANS` except Debug uses `MONOSPACE` | `SYSTEM`, `MONOSPACE`, and `UI_SANS` are local stacks; section overrides inherit from the global preset. No font URLs. |
+| Typography | local `UI_SANS` except Debug uses `MONOSPACE`; timestamp 9 px | `SYSTEM`, `MONOSPACE`, and `UI_SANS` are local stacks; section overrides inherit from the global preset. Timestamp size is independently bounded to 8–18 px. No font URLs. |
 | Scrollbar | `SUBTLE`; Debug uses `STANDARD`; `NATIVE` available | Chromium honors bounded 4–14 px width; Firefox maps to engine-supported widths while preserving colors. |
 | Colors | validated `#RRGGBB`; opacity 0–1 | No arbitrary CSS is accepted by `HudOptions`. |
+| Timestamps | `ISO_UTC`; JVM system zone; no custom pattern | Presets remain shortcuts. `timestampPattern(...)` accepts Java `DateTimeFormatter` patterns and overrides the preset. `S` supports 1–9 fraction digits. |
 | Branding | Test Lens mark in a 16 px rail | Custom logos are bounded, regular non-symlink PNG files; SVG, URLs, and HTML are rejected. |
 
 [Customize the same runtime renderer in HUD Studio](observability/hud-studio.md).
+
+Use `.systemTimestampZone()` to explicitly retain JVM-system behavior in a reusable builder. HUD
+timestamps use the test runner JVM timezone by default, not the browser machine timezone, so a
+remote BrowserStack browser cannot substitute its own system zone. Region `ZoneId` values apply
+DST automatically; a fixed `ZoneOffset` does not. Formatting affects only HUD presentation and
+never mutates the event `Instant`, trace/JSON/report data, ordering, durations, or evidence metadata.
+
+## Element feedback
+
+```java
+HighlightOptions highlights = HighlightOptions.builder()
+        .enabled(true)
+        .automaticFeedback(true)
+        .actionColor("#ffeb3b")
+        .waitingColor("#2196f3")
+        .retryColor("#ff9800")
+        .successColor("#4caf50")
+        .failureColor("#f44336")
+        .durationMs(1500)
+        .borderWidthPx(2)
+        .showLabels(true)
+        .build();
+
+TestLensOptions options = TestLensOptions.builder().hud(hud).highlights(highlights).build();
+```
+
+`enabled(false)` disables both manual and automatic state borders. `automaticFeedback(false)` keeps manual `lens.highlight(...)` and `locator.highlight()` available. HUD visibility is independent. A duration of zero renders the state and schedules its removal without an artificial visibility delay; border width accepts 1-16 px. Legacy `OverlayConfig.highlightColor` and `decorationDurationMs` feed only action color and highlight duration when those individual fields were not explicitly set. Explicit typed fields win regardless of setter order, while `decorationDurationMs` retains its separate legacy meaning for arrows and other decorations.
+
+For a consumer `LensTestBase`, create `TestLensOptions` once in its setup/option factory and attach the facade with those options. Use `lens.highlight(element, label)` instead of allocating an additional `JsOverlayDebug`; this keeps the active driver, session, redaction, logger, and cleanup ownership together.
 
 ## Evidence
 

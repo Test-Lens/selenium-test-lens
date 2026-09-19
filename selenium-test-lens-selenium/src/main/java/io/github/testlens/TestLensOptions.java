@@ -21,10 +21,13 @@ public final class TestLensOptions {
     private final FailureBundleOptions failureBundleOptions;
     private final RedactionPolicy redactionPolicy;
     private final VisualRedactionOptions visualRedaction;
+    private final HighlightOptions highlightOptions;
 
     private TestLensOptions(Builder builder) {
         OverlayConfig configuredOverlay = builder.overlayConfig == null ? OverlayConfig.builder().build() : builder.overlayConfig;
-        this.overlayConfig = builder.hudOptions == null ? configuredOverlay : configuredOverlay.withHudOptions(builder.hudOptions);
+        OverlayConfig withHud = builder.hudOptions == null ? configuredOverlay : configuredOverlay.withHudOptions(builder.hudOptions);
+        this.overlayConfig = builder.highlightOptions == null ? withHud : withHud.withHighlightOptions(builder.highlightOptions);
+        this.highlightOptions = this.overlayConfig.getHighlightOptions();
         this.locatorOptions = builder.locatorOptions == null ? UiLocatorOptions.defaults() : builder.locatorOptions;
         this.outputRoot = builder.outputRoot == null ? Path.of("target", "ui-test-lens") : builder.outputRoot;
         this.screenshotOnFailure = builder.screenshotOnFailure;
@@ -56,6 +59,19 @@ public final class TestLensOptions {
      */
     public HudOptions hud() { return overlayConfig.getHudOptions(); }
     /**
+     * Returns the effective manual and automatic element-state decoration configuration.
+     * @return effective highlight options after applying compatible legacy defaults
+     * @since 0.3.1
+     */
+    public HighlightOptions highlights() { return highlightOptions; }
+    /**
+     * Returns element-state decoration configuration.
+     * @return effective highlight options
+     * @deprecated use {@link #highlights()}
+     */
+    @Deprecated(since = "0.3.1")
+    public HighlightOptions highlight() { return highlights(); }
+    /**
      * Returns screenshot-pixel redaction configuration.
      * @return visual redaction options; defaults automatically mask password inputs with STRICT handling
      * @since 0.3.0
@@ -74,6 +90,7 @@ public final class TestLensOptions {
         private RedactionPolicy redactionPolicy = RedactionPolicy.defaults();
         private HudOptions hudOptions;
         private VisualRedactionOptions visualRedaction = VisualRedactionOptions.defaults();
+        private HighlightOptions highlightOptions;
         private Builder() {}
         public Builder overlayConfig(OverlayConfig value) { overlayConfig = value; return this; }
         public Builder locatorOptions(UiLocatorOptions value) { locatorOptions = value; return this; }
@@ -104,6 +121,25 @@ public final class TestLensOptions {
          * @since 0.3.0
          */
         public Builder hud(HudOptions value) { hudOptions = value == null ? HudOptions.defaults() : value; return this; }
+        /**
+         * Configures manual and automatic state decoration without changing HUD, redaction,
+         * screenshot, or retry settings.
+         * @param value immutable options; null restores defaults
+         * @return this builder
+         * @since 0.3.1
+         */
+        public Builder highlights(HighlightOptions value) {
+            highlightOptions = value == null ? HighlightOptions.defaults() : value;
+            return this;
+        }
+        /**
+         * Configures manual and automatic state decoration.
+         * @param value immutable options; null restores defaults
+         * @return this builder
+         * @deprecated use {@link #highlights(HighlightOptions)}
+         */
+        @Deprecated(since = "0.3.1")
+        public Builder highlight(HighlightOptions value) { return highlights(value); }
         /**
          * Configures temporary browser-side masks for Test Lens screenshot pixels.
          * @param value options; null restores {@link VisualRedactionOptions#defaults()}

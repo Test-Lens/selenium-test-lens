@@ -103,11 +103,16 @@ public io.github.testlens.hud.HudOptions$Builder showTestName(boolean)
 public io.github.testlens.hud.HudOptions$Builder showCurrentStep(boolean)
 public io.github.testlens.hud.HudOptions$Builder showPipeline(boolean)
 public io.github.testlens.hud.HudOptions$Builder showTimestamps(boolean)
+public io.github.testlens.hud.HudOptions$Builder timestampFormat(io.github.testlens.hud.HudTimestampFormat)
+public io.github.testlens.hud.HudOptions$Builder timestampPattern(java.lang.String)
+public io.github.testlens.hud.HudOptions$Builder timestampZone(java.time.ZoneId)
+public io.github.testlens.hud.HudOptions$Builder systemTimestampZone()
 public io.github.testlens.hud.HudOptions$Builder showEventLog(boolean)
 public io.github.testlens.hud.HudOptions$Builder showNetwork(boolean)
 public io.github.testlens.hud.HudOptions$Builder showRetries(boolean)
 public io.github.testlens.hud.HudOptions$Builder showWaits(boolean)
 public io.github.testlens.hud.HudOptions$Builder showAssertions(boolean)
+public io.github.testlens.hud.HudOptions$Builder sourceNavigation(io.github.testlens.hud.SourceNavigationOptions)
 public io.github.testlens.hud.HudOptions$Builder branding(io.github.testlens.hud.HudBranding)
 public io.github.testlens.hud.HudOptions$Builder logoPlacement(io.github.testlens.hud.HudLogoPlacement)
 public io.github.testlens.hud.HudOptions$Builder background(java.lang.String)
@@ -156,11 +161,18 @@ public boolean showTestName()
 public boolean showCurrentStep()
 public boolean showPipeline()
 public boolean showTimestamps()
+public io.github.testlens.hud.HudTimestampFormat timestampFormat()
+public java.util.Optional<java.lang.String> timestampPattern()
+public java.lang.String effectiveTimestampPattern()
+public java.util.Optional<java.time.ZoneId> timestampZone()
+public boolean usesSystemTimestampZone()
+public java.time.ZoneId effectiveTimestampZone()
 public boolean showEventLog()
 public boolean showNetwork()
 public boolean showRetries()
 public boolean showWaits()
 public boolean showAssertions()
+public io.github.testlens.hud.SourceNavigationOptions sourceNavigation()
 public io.github.testlens.hud.HudBranding branding()
 public io.github.testlens.hud.HudLogoPlacement logoPlacement()
 public java.lang.String background()
@@ -186,6 +198,7 @@ public io.github.testlens.hud.HudPanel(io.github.testlens.core.browser.BrowserSc
 public void init(java.lang.String, java.lang.String)
 public void updateStep(java.lang.String)
 public void appendLog(java.lang.String, java.lang.String, java.lang.String)
+public void appendLog(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
 ```
 
 ## `io.github.testlens.hud.HudPosition` {#io-github-testlens-hud-hudposition}
@@ -330,6 +343,22 @@ public static io.github.testlens.hud.HudThemePreset[] values()
 public static io.github.testlens.hud.HudThemePreset valueOf(java.lang.String)
 ```
 
+## `io.github.testlens.hud.HudTimestampFormat` {#io-github-testlens-hud-hudtimestampformat}
+
+- Artifact/module: `selenium-test-lens-overlay`
+- Package: `io.github.testlens.hud`
+- Classification: `USER_API`
+- Type kind: `enum`
+- Functional documentation: [docs/observability/hud-studio.md](../../observability/hud-studio.md)
+
+```java
+public static final io.github.testlens.hud.HudTimestampFormat ISO_UTC
+public static final io.github.testlens.hud.HudTimestampFormat TIME_ONLY
+public static final io.github.testlens.hud.HudTimestampFormat DATE_TIME
+public static io.github.testlens.hud.HudTimestampFormat[] values()
+public static io.github.testlens.hud.HudTimestampFormat valueOf(java.lang.String)
+```
+
 ## `io.github.testlens.hud.HudTypography$Builder` {#io-github-testlens-hud-hudtypography-builder}
 
 - Artifact/module: `selenium-test-lens-overlay`
@@ -343,6 +372,7 @@ public io.github.testlens.hud.HudTypography$Builder header(io.github.testlens.hu
 public io.github.testlens.hud.HudTypography$Builder currentStep(io.github.testlens.hud.HudFontPreset)
 public io.github.testlens.hud.HudTypography$Builder eventLog(io.github.testlens.hud.HudFontPreset)
 public io.github.testlens.hud.HudTypography$Builder metadata(io.github.testlens.hud.HudFontPreset)
+public io.github.testlens.hud.HudTypography$Builder timestampFontSizePx(int)
 public io.github.testlens.hud.HudTypography build()
 ```
 
@@ -357,8 +387,75 @@ public io.github.testlens.hud.HudTypography build()
 ```java
 public static io.github.testlens.hud.HudTypography inheritAll()
 public static io.github.testlens.hud.HudTypography$Builder builder()
+public io.github.testlens.hud.HudTypography$Builder toBuilder()
 public java.util.Optional<io.github.testlens.hud.HudFontPreset> header()
 public java.util.Optional<io.github.testlens.hud.HudFontPreset> currentStep()
 public java.util.Optional<io.github.testlens.hud.HudFontPreset> eventLog()
 public java.util.Optional<io.github.testlens.hud.HudFontPreset> metadata()
+public int timestampFontSizePx()
+```
+
+## `io.github.testlens.hud.SourceIde` {#io-github-testlens-hud-sourceide}
+
+- Artifact/module: `selenium-test-lens-overlay`
+- Package: `io.github.testlens.hud`
+- Classification: `USER_API`
+- Type kind: `enum`
+- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+
+```java
+public static final io.github.testlens.hud.SourceIde INTELLIJ
+public static final io.github.testlens.hud.SourceIde VSCODE
+public static final io.github.testlens.hud.SourceIde CUSTOM
+public static io.github.testlens.hud.SourceIde[] values()
+public static io.github.testlens.hud.SourceIde valueOf(java.lang.String)
+```
+
+## `io.github.testlens.hud.SourceNavigationModifier` {#io-github-testlens-hud-sourcenavigationmodifier}
+
+- Artifact/module: `selenium-test-lens-overlay`
+- Package: `io.github.testlens.hud`
+- Classification: `USER_API`
+- Type kind: `enum`
+- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+
+```java
+public static final io.github.testlens.hud.SourceNavigationModifier CTRL_ALT
+public static io.github.testlens.hud.SourceNavigationModifier[] values()
+public static io.github.testlens.hud.SourceNavigationModifier valueOf(java.lang.String)
+```
+
+## `io.github.testlens.hud.SourceNavigationOptions$Builder` {#io-github-testlens-hud-sourcenavigationoptions-builder}
+
+- Artifact/module: `selenium-test-lens-overlay`
+- Package: `io.github.testlens.hud`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+
+```java
+public io.github.testlens.hud.SourceNavigationOptions$Builder enabled(boolean)
+public io.github.testlens.hud.SourceNavigationOptions$Builder activationModifier(io.github.testlens.hud.SourceNavigationModifier)
+public io.github.testlens.hud.SourceNavigationOptions$Builder ide(io.github.testlens.hud.SourceIde)
+public io.github.testlens.hud.SourceNavigationOptions$Builder sourceRoots(java.nio.file.Path...)
+public io.github.testlens.hud.SourceNavigationOptions$Builder customUriTemplate(java.lang.String)
+public io.github.testlens.hud.SourceNavigationOptions build()
+```
+
+## `io.github.testlens.hud.SourceNavigationOptions` {#io-github-testlens-hud-sourcenavigationoptions}
+
+- Artifact/module: `selenium-test-lens-overlay`
+- Package: `io.github.testlens.hud`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
+
+```java
+public static io.github.testlens.hud.SourceNavigationOptions defaults()
+public static io.github.testlens.hud.SourceNavigationOptions$Builder builder()
+public boolean enabled()
+public io.github.testlens.hud.SourceNavigationModifier activationModifier()
+public io.github.testlens.hud.SourceIde ide()
+public java.util.List<java.nio.file.Path> sourceRoots()
+public java.lang.String customUriTemplate()
 ```

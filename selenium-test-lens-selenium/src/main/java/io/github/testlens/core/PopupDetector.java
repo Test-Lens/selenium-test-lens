@@ -210,7 +210,7 @@ public boolean highlightPopupIfPresent(String label) {
         WebElement popup = popupOpt.get();
         if (config.isEnabled()) {
             rootManager.ensureRootExists();
-            highlightActions.highlightClick(popup, label != null ? label : "POPUP");
+            highlightActions.automaticAction(popup, label != null ? label : "POPUP");
         }
         return true;
     }
@@ -244,10 +244,10 @@ public boolean highlightPopupIfPresent(String label) {
                 rootManager.ensureRootExists();
                 // opcjonalnie podświetlamy cały popup
                 if (overlayRoot != null && overlayLabel != null && !overlayLabel.isBlank()) {
-                    highlightActions.highlightClick(overlayRoot, overlayLabel);
+                    highlightActions.automaticAction(overlayRoot, overlayLabel);
                 }
                 // i sam przycisk zamknięcia
-                highlightActions.highlightClick(
+                highlightActions.automaticAction(
                         button,
                         (closeButtonLabel != null && !closeButtonLabel.isBlank()) ? closeButtonLabel : "CLOSE"
                 );

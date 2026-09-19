@@ -1,6 +1,7 @@
 package io.github.testlens.selenium.locator;
 
 import io.github.testlens.JsOverlayDebug;
+import io.github.testlens.HighlightState;
 import io.github.testlens.core.OverlayLogger;
 import io.github.testlens.core.logging.UiTestLensEventType;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
@@ -50,6 +51,8 @@ public final class UiLocator {
     private final UiLocatorResolver resolver;
     private final OverlayLogger logger;
     private final LongSupplier nanoTicker;
+    private volatile WebElement lastAssertionElement;
+    private volatile WebElement lastWaitElement;
 
     public UiLocator(WebDriver driver,
                      By by,
@@ -85,7 +88,7 @@ public final class UiLocator {
             ActionabilityReport report = safeActionability(element);
             overlay.smartClickWithOverlayHandler(element, description.displayName());
             return report;
-        });
+        }, null, false);
     }
 
     public UiLocator fill(String value) {
@@ -105,6 +108,15 @@ public final class UiLocator {
             element.clear();
             return report;
         });
+    }
+
+    /** Resolves this locator once and draws a neutral manual decoration only. @since 0.3.1 */
+    public UiLocator highlight() { return highlight(HighlightState.ACTION); }
+
+    /** Resolves this locator once and draws the requested manual state without interaction or scrolling. @since 0.3.1 */
+    public UiLocator highlight(HighlightState state) {
+        overlay.highlightElement(resolve(), description.displayName(), state);
+        return this;
     }
 
     public UiLocator pressEnter() {
@@ -362,7 +374,9 @@ public final class UiLocator {
     }
 
     public UiExpect expect(UiAssertionOptions assertionOptions) {
-        return new UiExpect(this, assertionOptions, logger, this::probeVisibilityForAssertion, this::probeElementForAssertion);
+        lastAssertionElement = null;
+        return new UiExpect(this, assertionOptions, logger, this::probeVisibilityForAssertion,
+                this::probeElementForAssertion, this::decorateAssertion, sourceNavigationEnabled());
     }
 
     public WebElement resolve() {
@@ -407,10 +421,15 @@ public final class UiLocator {
     }
 
     private WebElement currentElement(WebDriver webDriver) {
-        if (by() instanceof By.Remotable) return webDriver.findElement(by());
+        if (by() instanceof By.Remotable) {
+            WebElement element = webDriver.findElement(by());
+            lastWaitElement = element;
+            return element;
+        }
         List<WebElement> elements = by().findElements(webDriver);
         if (elements.isEmpty()) throw new NoSuchElementException("Composite locator matched no elements");
-        return elements.get(0);
+        lastWaitElement = elements.get(0);
+        return lastWaitElement;
     }
 
     private String collectionLabel(String suffix) {
@@ -420,9 +439,11 @@ public final class UiLocator {
 
     private UiLocator waitUntil(String conditionName, ExpectedCondition<?> condition) {
         Instant started = Instant.now();
+        lastWaitElement = null;
         emit(UiTestLensEventType.WAIT, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
                 "Waiting until " + conditionName, "wait", 0, null, null);
         AtomicInteger attempts = new AtomicInteger();
+        overlay.automaticHighlight(lastWaitElement, description.displayName(), HighlightState.WAITING);
         try {
             new WebDriverWait(driver, options.timeout())
                     .pollingEvery(options.pollInterval())
@@ -435,15 +456,18 @@ public final class UiLocator {
                         if (!satisfied) {
                             emit(UiTestLensEventType.LOCATOR_RETRY, UiTestLensStatus.WARN, UiTestLensLogLevel.INFO,
                                     "Wait retry: " + conditionName, "wait", attempt, null, null);
+                            overlay.automaticHighlight(lastWaitElement, description.displayName(), HighlightState.RETRY);
                         }
                         return satisfied;
                     });
             emit(UiTestLensEventType.WAIT, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
                     "Wait passed: " + conditionName, "wait", attempts.get(), null, null);
+            overlay.automaticHighlight(lastWaitElement, description.displayName(), HighlightState.SUCCESS);
             return this;
         } catch (RuntimeException failure) {
             emit(UiTestLensEventType.WAIT, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
                     "Wait failed: " + conditionName, "wait", attempts.get(), null, failure);
+            overlay.automaticHighlight(lastWaitElement, description.displayName(), HighlightState.FAILURE);
             throw locatorException("waitUntil(" + conditionName + ")", failure,
                     "elapsed=" + Duration.between(started, Instant.now()).toMillis() + "ms");
         }
@@ -510,11 +534,14 @@ public final class UiLocator {
         emitControl(UiTestLensEventType.LOCATOR_ACTION_STARTED, UiTestLensStatus.STARTED,
                 UiTestLensLogLevel.INFO, "Locator action started", action, 0, metadata, null);
         RuntimeException lastFailure = null;
+        WebElement lastElement = null;
         for (int attempt = 1; attempt <= options.maxRetries(); attempt++) {
             long attemptStarted = 0;
             boolean operationStarted = false;
             try {
                 WebElement element = resolve();
+                lastElement = element;
+                overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
                 attemptStarted = nanoTicker.getAsLong();
                 operationStarted = true;
                 SemanticControl control = resolveSemanticControl(element);
@@ -525,6 +552,7 @@ public final class UiLocator {
                     metadata.finalState = initial;
                     emitControl(UiTestLensEventType.LOCATOR_ACTION_PASSED, UiTestLensStatus.PASSED,
                             UiTestLensLogLevel.INFO, "Locator action passed", action, attempt, metadata, null);
+                    overlay.automaticHighlight(element, description.displayName(), HighlightState.SUCCESS);
                     return this;
                 }
                 requireEnabled(control);
@@ -536,15 +564,18 @@ public final class UiLocator {
                 metadata.finalState = confirmation.state();
                 emitControl(UiTestLensEventType.LOCATOR_ACTION_PASSED, UiTestLensStatus.PASSED,
                         UiTestLensLogLevel.INFO, "Locator action passed", action, attempt, metadata, null);
+                overlay.automaticHighlight(element, description.displayName(), HighlightState.SUCCESS);
                 return this;
             } catch (RuntimeException failure) {
                 lastFailure = failure;
                 if (!shouldRetry(failure) || attempt >= options.maxRetries()) {
                     emitControl(UiTestLensEventType.LOCATOR_ACTION_FAILED, UiTestLensStatus.FAILED,
                             UiTestLensLogLevel.ERROR, "Locator action failed", action, attempt, metadata, failure);
+                    overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.FAILURE);
                     throw locatorException(action, failure, "");
                 }
                 if (operationStarted) {
+                    overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.RETRY);
                     emitRecoveryRetry("action", action, attempt, attempt + 1,
                             elapsedNanos(attemptStarted), effectiveRetryCause(failure), null);
                 }
@@ -768,31 +799,44 @@ public final class UiLocator {
     }
 
     private UiLocator execute(String action, Function<WebElement, ActionabilityReport> operation, Integer valueLength) {
+        return execute(action, operation, valueLength, true);
+    }
+
+    private UiLocator execute(String action, Function<WebElement, ActionabilityReport> operation,
+                              Integer valueLength, boolean decorateAction) {
         Instant started = Instant.now();
         emit(UiTestLensEventType.LOCATOR_ACTION_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
                 "Locator action started", action, 0, valueLength, null);
         RuntimeException lastFailure = null;
         String lastActionabilitySummary = "";
+        WebElement lastElement = null;
         for (int attempt = 1; attempt <= options.maxRetries(); attempt++) {
             long attemptStarted = 0;
             boolean operationStarted = false;
             try {
                 WebElement element = resolve();
+                lastElement = element;
+                if (decorateAction) {
+                    overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
+                }
                 attemptStarted = nanoTicker.getAsLong();
                 operationStarted = true;
                 ActionabilityReport report = operation.apply(element);
                 lastActionabilitySummary = report == null ? "" : report.summary();
                 emit(UiTestLensEventType.LOCATOR_ACTION_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
                         "Locator action passed", action, attempt, valueLength, null);
+                overlay.automaticHighlight(element, description.displayName(), HighlightState.SUCCESS);
                 return this;
             } catch (RuntimeException e) {
                 lastFailure = e;
                 if (!shouldRetry(e) || attempt >= options.maxRetries()) {
                     emit(UiTestLensEventType.LOCATOR_ACTION_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
                             "Locator action failed", action, attempt, valueLength, e);
+                    overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.FAILURE);
                     throw locatorException(action, e, lastActionabilitySummary);
                 }
                 if (operationStarted) {
+                    overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.RETRY);
                     emitRecoveryRetry("action", action, attempt, attempt + 1,
                             elapsedNanos(attemptStarted), effectiveRetryCause(e), valueLength);
                 }
@@ -806,25 +850,31 @@ public final class UiLocator {
         emit(UiTestLensEventType.LOCATOR_ACTION_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
                 "Locator read started", action, 0, null, null);
         RuntimeException lastFailure = null;
+        WebElement lastElement = null;
         for (int attempt = 1; attempt <= options.maxRetries(); attempt++) {
             long attemptStarted = 0;
             boolean operationStarted = false;
             try {
                 WebElement element = resolve();
+                lastElement = element;
+                overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
                 attemptStarted = nanoTicker.getAsLong();
                 operationStarted = true;
                 T value = operation.apply(element);
                 emit(UiTestLensEventType.LOCATOR_ACTION_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
                         "Locator read passed", action, attempt, null, null);
+                overlay.automaticHighlight(element, description.displayName(), HighlightState.SUCCESS);
                 return value;
             } catch (RuntimeException e) {
                 lastFailure = e;
                 if (!shouldRetry(e) || attempt >= options.maxRetries()) {
                     emit(UiTestLensEventType.LOCATOR_ACTION_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
                             "Locator read failed", action, attempt, null, e);
+                    overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.FAILURE);
                     throw locatorException(action, e, "");
                 }
                 if (operationStarted) {
+                    overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.RETRY);
                     emitRecoveryRetry("read", action, attempt, attempt + 1,
                             elapsedNanos(attemptStarted), effectiveRetryCause(e), null);
                 }
@@ -836,6 +886,7 @@ public final class UiLocator {
     private UiExpect.VisibilityProbeResult probeVisibilityForAssertion() {
         try {
             WebElement element = currentElement(driver);
+            lastAssertionElement = element;
             try {
                 return element.isDisplayed()
                         ? UiExpect.VisibilityProbeResult.visibleElement()
@@ -859,6 +910,7 @@ public final class UiLocator {
                 }
             }
             WebElement element = currentElement(driver);
+            lastAssertionElement = element;
             try {
                 if ("test-lens-assertion:checkedState".equals(observation)) {
                     return UiExpect.ElementProbeResult.present(
@@ -871,6 +923,10 @@ public final class UiLocator {
         } catch (NoSuchElementException e) {
             return UiExpect.ElementProbeResult.missingElement();
         }
+    }
+
+    private void decorateAssertion(HighlightState state) {
+        overlay.automaticHighlight(lastAssertionElement, description.displayName(), state);
     }
 
     private boolean shouldRetry(RuntimeException e) {
@@ -949,12 +1005,15 @@ public final class UiLocator {
         }
 
         RuntimeException lastFailure = null;
+        WebElement lastElement = null;
         for (int attempt = 1; attempt <= options.maxRetries(); attempt++) {
             long attemptStarted = 0;
             boolean preflightStarted = false;
             boolean sendKeysStarted = false;
             try {
                 WebElement element = resolve();
+                lastElement = element;
+                overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
                 attemptStarted = nanoTicker.getAsLong();
                 preflightStarted = true;
                 requireFileInput(element, upload.fileCount());
@@ -963,6 +1022,7 @@ public final class UiLocator {
                 emit(UiTestLensEventType.LOCATOR_ACTION_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
                         "Locator action passed", "upload", attempt, null, null,
                         Map.of("fileCount", String.valueOf(upload.fileCount())));
+                overlay.automaticHighlight(element, description.displayName(), HighlightState.SUCCESS);
                 return this;
             } catch (RuntimeException failure) {
                 lastFailure = failure;
@@ -970,9 +1030,11 @@ public final class UiLocator {
                     emit(UiTestLensEventType.LOCATOR_ACTION_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
                             "Locator action failed", "upload", attempt, null, null,
                             Map.of("fileCount", String.valueOf(upload.fileCount())));
+                    overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.FAILURE);
                     throw locatorException("upload", failure, "");
                 }
                 if (preflightStarted) {
+                    overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.RETRY);
                     emitRecoveryRetry("action", "upload", attempt, attempt + 1,
                             elapsedNanos(attemptStarted), effectiveRetryCause(failure), null);
                 }
@@ -1039,6 +1101,7 @@ public final class UiLocator {
                     .metadata("exceptionType", cause == null ? "" : cause.getClass().getName())
                     .metadata("failedAttemptDurationNanos", String.valueOf(failedAttemptDurationNanos))
                     .throwable(cause);
+            if (sourceNavigationEnabled()) builder.metadata("testlens.internal.captureSourceLocation", "true");
             if (valueLength != null) builder.metadata("valueLength", String.valueOf(valueLength));
             logger.emit(builder.build());
         } catch (RuntimeException ignored) {
@@ -1085,6 +1148,7 @@ public final class UiLocator {
                     .metadata("description", description.displayName())
                     .metadata("attempt", String.valueOf(attempt))
                     .throwable(throwable);
+            if (sourceNavigationEnabled()) builder.metadata("testlens.internal.captureSourceLocation", "true");
             if (valueLength != null) {
                 builder.metadata("valueLength", String.valueOf(valueLength));
             }
@@ -1092,6 +1156,10 @@ public final class UiLocator {
             logger.emit(builder.build());
         } catch (Exception ignored) {
         }
+    }
+
+    private boolean sourceNavigationEnabled() {
+        return overlay.getConfig().getHudOptions().sourceNavigation().enabled();
     }
 
     private void emitControl(UiTestLensEventType eventType,

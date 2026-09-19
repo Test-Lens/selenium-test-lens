@@ -147,7 +147,7 @@ Report upload is a separate, explicit post-finalization boundary in the Selenium
 
 Core stores artifact metadata such as paths and URLs. Selenium integration creates browser-dependent evidence, including screenshots, and attaches it to the session. Exporters consume that session model; the producing feature writes the underlying file. Video support attaches existing files or URLs and does not record video.
 
-Screenshot evidence has one Selenium pipeline with two modes. `VIEWPORT` delegates once to `TakesScreenshot`; `FULL_PAGE` snapshots top-level geometry, scrolls the unchanged viewport, stitches bounded PNG tiles, restores browser state, and publishes atomically. Explicit screenshots, step evidence, and failure-bundle diagnostic/clean images share path validation, result metadata, trace attachment, and failure behavior. CDP is not part of this path.
+Screenshot evidence has one Selenium pipeline with two modes. `VIEWPORT` delegates once to `TakesScreenshot`; `FULL_PAGE` installs a temporary visual-stability guard and clones the complete Test Lens shadow tree into one frozen, document-positioned overlay snapshot. The live host is hidden as one unit while the snapshot remains visible across every tile and retry. Capture snapshots top-level geometry after a paint barrier, scrolls the unchanged viewport, stitches bounded PNG tiles, performs one whole-capture retry for changed geometry, restores browser state, and publishes atomically. Explicit screenshots, step evidence, and failure-bundle diagnostic/clean images share path validation, result metadata, trace attachment, and failure behavior. CDP is not part of this path.
 
 ## React boundary
 

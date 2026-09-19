@@ -1,6 +1,8 @@
 package io.github.testlens.selenium.locator;
 
 import io.github.testlens.JsOverlayDebug;
+import io.github.testlens.HighlightOptions;
+import io.github.testlens.OverlayConfig;
 import io.github.testlens.core.OverlayLogger;
 import io.github.testlens.core.logging.UiTestLensEventType;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
@@ -295,7 +297,8 @@ class UiLocatorFormActionsTest {
                 .sink(entries::add).sink(new TraceLogSink(session)).build());
         WebDriver webDriver = javascript ? driver.driver : driver.plainDriver;
         UiLocator locator = new UiLocator(webDriver, By.id("control"), "Control",
-                new JsOverlayDebug(driver.driver), options(), logger);
+                new JsOverlayDebug(driver.driver, OverlayConfig.builder().highlightOptions(
+                        HighlightOptions.builder().automaticFeedback(false).build()).build()), options(), logger);
         return new Harness(locator, driver, entries, session);
     }
 
@@ -338,6 +341,7 @@ class UiLocatorFormActionsTest {
                     case "findElements" -> { return List.of(); }
                     case "executeScript" -> {
                         String script = String.valueOf(args[0]);
+                        if (script.contains("modules.highlight.element")) return true;
                         if (script.contains(".labels")) return ((ElementModel) model(scriptArgument(args, 0))).labels;
                         if (script.contains("closest('label')")) {
                             ElementModel origin = (ElementModel) model(scriptArgument(args, 0));

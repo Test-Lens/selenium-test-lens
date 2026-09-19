@@ -13,16 +13,16 @@ hide:
 Test Lens shows actions, waits, assertions, retries, and network activity while a test runs. After finalization, the same structured session can become an HTML/JSON report, screenshots, a failure bundle, or an explicitly uploaded report package.
 
 [See the live diagnostics](#live-hud-and-element-highlights){ .md-button .md-button--primary }
-[What's new in 0.3.0](whats-new-0.3.0.md){ .md-button }
+[What's new in 0.3.1](whats-new-0.3.1.md){ .md-button }
 [Explore the capabilities](#signature-capabilities){ .md-button }
 [Get started](#quick-start){ .md-button }
-[Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.0){ .md-button }
+[Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1){ .md-button }
 
 | Documentation | Status | Library availability |
 |---|---|---|
-| [0.4.0-SNAPSHOT development](https://test-lens.github.io/selenium-test-lens/dev/) | Current source line | Source build only; not available from Maven Central |
-| [0.3.0 stable](https://test-lens.github.io/selenium-test-lens/0.3.0/) | Latest published release | Maven Central |
-| [0.2.0 historical](https://test-lens.github.io/selenium-test-lens/0.2.0/) | Previous release | Maven Central |
+| [0.3.1 stable](https://test-lens.github.io/selenium-test-lens/0.3.1/) | Latest published release | Maven Central |
+| [0.3.0 historical](https://test-lens.github.io/selenium-test-lens/0.3.0/) | Previous release | Maven Central |
+| [0.2.0 historical](https://test-lens.github.io/selenium-test-lens/0.2.0/) | Historical release | Maven Central |
 | [0.1.0 historical](https://test-lens.github.io/selenium-test-lens/0.1.0/) | Historical release | Maven Central |
 
 </div>
@@ -43,7 +43,39 @@ HTML/JSON reports · screenshots · failure bundle · optional HTTP upload
 
 It does not replace Selenium, Page Objects, JUnit, TestNG, or an existing reporting stack. Raw WebDriver remains available whenever it is the clearer or more complete API.
 
-## 0.3.0 at a glance
+## 0.3.1 at a glance
+
+Release 0.3.1 makes live diagnostics more expressive and the resulting evidence easier to investigate. These are focused additions to the same HUD, highlight, and report pipeline.
+
+<div class="grid cards" markdown>
+
+-   **NEW 0.3.1 · REACTIVE HIGHLIGHTS**
+
+    See ACTION, WAITING, RETRY, SUCCESS, and FAILURE on the actual target, with independent colors, labels, duration, and automatic-feedback control.
+
+    [Configure state-aware highlights](observability/visual-diagnostics.md#state-aware-highlights)
+
+-   **NEW 0.3.1 · HUD TIMESTAMPS**
+
+    Show or hide event times, choose ISO UTC, time-only, or date-time output, and use the test JVM zone or an explicit `ZoneId`.
+
+    [Configure HUD timestamps](observability/visual-diagnostics.md#hud-timestamps)
+
+-   **NEW 0.3.1 · SOURCE NAVIGATION**
+
+    During local debugging, hold Ctrl+Alt to reveal `File.java:line` call sites and open a resolved source location in IntelliJ, VS Code, or a custom protocol provider.
+
+    [Set up local source navigation](observability/visual-diagnostics.md#local-source-navigation)
+
+-   **IMPROVED 0.3.1 · REPORTS AND EVIDENCE**
+
+    Use wider, more readable standalone HTML reports with clearer failures and attributes, offline/file support, and diagnostic full-page evidence that renders the Test Lens overlay once.
+
+    [Inspect reports](observability/reports.md) · [Understand screenshot evidence](observability/screenshots-evidence.md)
+
+</div>
+
+## 0.3.0 foundations
 
 Release 0.3.0 adds configuration and lifecycle capabilities around the same Selenium session. These are public 0.3.0 APIs and were not features of release 0.2.0.
 
@@ -453,7 +485,7 @@ The latest stable release requires Java 17 or newer. Selenium remains an explici
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
 </dependency>
 ```
 

@@ -103,6 +103,7 @@ class TraceHtmlExporterTest {
                 .build());
 
         assertTrue(html.contains("@media (prefers-color-scheme: dark)"));
+        assertTrue(html.contains("@media (prefers-color-scheme: dark){:root{"));
         assertTrue(html.contains("--bg:#f5f7fb"));
         assertTrue(html.contains("--bg:#070b12"));
     }
@@ -152,8 +153,55 @@ class TraceHtmlExporterTest {
 
         assertTrue(html.contains("Locators"));
         assertTrue(html.contains("Network"));
-        assertTrue(html.contains("<details class=\"details\"><summary>Attributes</summary>"));
+        assertTrue(html.contains("class=\"details-toggle\""));
+        assertTrue(html.contains("class=\"event-details-row\""));
+        assertTrue(html.contains("<td colspan=\"10\"><div class=\"event-details-panel\">"));
+        assertTrue(html.contains("<summary>Attributes for Resolve save</summary>"));
         assertTrue(html.contains("selector"));
+    }
+
+    @Test
+    void reportUsesFluidLayoutReadableFailurePaletteAndOfflineScrollBehavior() {
+        UiTestLensSession session = sampleSession();
+
+        String html = new TraceHtmlExporter().export(session, TraceHtmlExportOptions.builder()
+                .theme(HtmlReportTheme.LIGHT)
+                .build());
+
+        assertFalse(html.contains("max-width:1240px"));
+        assertTrue(html.contains("body&gt;section") || html.contains("body>section"));
+        assertTrue(html.contains(".failure-box{min-width:0"));
+        assertTrue(html.contains("color:var(--code-text)"));
+        assertTrue(html.contains(".failure-box .details summary"));
+        assertTrue(html.contains("className = 'timeline-scroll-proxy'"));
+        assertTrue(html.contains("ResizeObserver"));
+        assertFalse(html.contains("fetch("));
+    }
+
+    @Test
+    void suiteTimelineIdsAndFailureLinksAreUniquePerSession() {
+        UiTestLensSession first = UiTestLensSession.start("First");
+        UiTestLensSession second = UiTestLensSession.start("Second");
+        TraceEvent sharedFirst = TraceEvent.builder(TraceEventType.ASSERTION_FAILED, TraceStatus.FAILED, "Shared")
+                .id("same-event")
+                .failure(TraceFailure.from(new AssertionError("first"), true))
+                .attribute("selector", "#first")
+                .build();
+        TraceEvent sharedSecond = sharedFirst.toBuilder()
+                .failure(TraceFailure.from(new AssertionError("second"), true))
+                .attribute("selector", "#second")
+                .build();
+        first.addEvent(sharedFirst);
+        second.addEvent(sharedSecond);
+
+        String html = new TraceHtmlExporter().exportSuite(List.of(first, second));
+
+        String firstAnchor = "session-" + first.id() + "-event-same-event";
+        String secondAnchor = "session-" + second.id() + "-event-same-event";
+        assertTrue(html.contains("id=\"" + firstAnchor + "\""));
+        assertTrue(html.contains("href=\"#" + firstAnchor + "\""));
+        assertTrue(html.contains("id=\"" + secondAnchor + "\""));
+        assertTrue(html.contains("href=\"#" + secondAnchor + "\""));
     }
 
     @Test

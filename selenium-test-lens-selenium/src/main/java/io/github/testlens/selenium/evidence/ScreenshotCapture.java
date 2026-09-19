@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Captures viewport or portable full-page PNG evidence without CDP or window resizing.
@@ -35,6 +37,9 @@ import java.util.UUID;
  */
 public final class ScreenshotCapture {
     private static final String STATE_KEY_PREFIX = "__testLensFullPage_";
+    private static final String OVERLAY_STATE_KEY_PREFIX = "__testLensOverlaySnapshot_";
+    private static final int FULL_PAGE_MAX_ATTEMPTS = 2;
+    private static final Logger LOGGER = Logger.getLogger(ScreenshotCapture.class.getName());
     private final WebDriver driver;
     private final VisualRedactionOptions visualRedaction;
 
@@ -142,6 +147,36 @@ public final class ScreenshotCapture {
 
     private CaptureData captureFullPage(TakesScreenshot screenshots, JavascriptExecutor javascript,
                                         ScreenshotCaptureOptions options, VisualRedactionController masks) throws IOException {
+        LOGGER.fine("Full-page screenshot capture");
+        String overlayKey = OVERLAY_STATE_KEY_PREFIX + UUID.randomUUID().toString().replace("-", "");
+        Throwable primary = null;
+        try {
+            installOverlaySnapshot(javascript, overlayKey);
+            for (int attempt = 1; attempt <= FULL_PAGE_MAX_ATTEMPTS; attempt++) {
+                try {
+                    CaptureData captured = captureFullPageAttempt(screenshots, javascript, options, masks, attempt);
+                    LOGGER.fine("Full-page screenshot captured");
+                    return captured;
+                } catch (PageDimensionsChangedException changed) {
+                    if (attempt == FULL_PAGE_MAX_ATTEMPTS) {
+                        throw new PageDimensionsChangedException(
+                                changed.getMessage() + " after " + attempt + " attempts", changed);
+                    }
+                    LOGGER.log(Level.FINE, "Full-page screenshot retry: document dimensions changed", changed);
+                }
+            }
+            throw new IllegalStateException("Full-page screenshot capture exhausted its retry limit");
+        } catch (IOException | RuntimeException failure) {
+            primary = failure;
+            throw failure;
+        } finally {
+            restoreOverlay(javascript, overlayKey, primary);
+        }
+    }
+
+    private CaptureData captureFullPageAttempt(TakesScreenshot screenshots, JavascriptExecutor javascript,
+                                                ScreenshotCaptureOptions options,
+                                                VisualRedactionController masks, int attempt) throws IOException {
         String stateKey = STATE_KEY_PREFIX + UUID.randomUUID().toString().replace("-", "");
         PageSnapshot page;
         try {
@@ -155,6 +190,7 @@ public final class ScreenshotCapture {
             throw new UnsupportedContextException(
                     "Full-page capture is supported only in the current top-level browsing context");
         }
+        LOGGER.fine(() -> "Full-page attempt " + attempt + " baseline=" + page);
         Throwable primary = null;
         try {
             validateCssDimensions(page, options);
@@ -173,13 +209,18 @@ public final class ScreenshotCapture {
             double scaleY = 0;
             BufferedImage stitched = null;
             int tileCount = 0;
+            int tileIndex = 0;
             long coveredBottom = 0;
             for (long y : ys) {
                 long rowCoveredRight = 0;
                 long rowBottom = coveredBottom;
                 for (long x : xs) {
                     PageSnapshot current = scrollAndObserve(javascript, x, y);
-                    requireStablePage(page, current);
+                    int observedTile = tileIndex;
+                    LOGGER.fine(() -> "Full-page attempt " + attempt + " tile=" + observedTile
+                            + " geometry=" + current);
+                    tileIndex++;
+                    requireStablePage(page, current, "attempt " + attempt + " tile " + observedTile);
                     Position actual = new Position(current.scrollX(), current.scrollY());
                     if (!capturedPositions.add(actual)) continue;
 
@@ -215,6 +256,9 @@ public final class ScreenshotCapture {
                 coveredBottom = rowBottom;
             }
             if (stitched == null || tileCount == 0) throw new IllegalStateException("No screenshot tiles were captured");
+            PageSnapshot finalSnapshot = observe(javascript);
+            LOGGER.fine(() -> "Full-page attempt " + attempt + " final=" + finalSnapshot);
+            requireStablePage(page, finalSnapshot, "attempt " + attempt + " final observation");
             return new CaptureData(ScreenshotCaptureMode.FULL_PAGE, stitched, tileCount);
         } catch (IOException | RuntimeException failure) {
             primary = failure;
@@ -225,27 +269,45 @@ public final class ScreenshotCapture {
     }
 
     private static PageSnapshot snapshotAndPrepare(JavascriptExecutor js, String key) {
-        Object result = js.executeScript("""
-                const key = arguments[0];
+        Object result = js.executeAsyncScript("""
+                const key = arguments[0], done = arguments[arguments.length - 1];
                 const root = document.documentElement;
-                const body = document.body;
-                const remember = (element, property) => ({element, property,
-                  value: element.style.getPropertyValue(property), priority: element.style.getPropertyPriority(property)});
-                const saved = [];
-                for (const element of [root, body]) {
-                  if (!element) continue;
-                  for (const property of ['scroll-behavior', 'scroll-snap-type']) saved.push(remember(element, property));
-                  element.style.setProperty('scroll-behavior', 'auto', 'important');
-                  element.style.setProperty('scroll-snap-type', 'none', 'important');
+                const css = `
+                  *, *::before, *::after {
+                    animation-play-state: paused !important;
+                    transition-property: none !important;
+                    transition-duration: 0s !important;
+                    transition-delay: 0s !important;
+                    caret-color: transparent !important;
+                    scroll-behavior: auto !important;
+                  }
+                  html, body { scroll-behavior: auto !important; scroll-snap-type: none !important; }
+                `;
+                const state = {token: key, hidden: [], scrollX: window.scrollX, scrollY: window.scrollY,
+                  sheet: null, style: null};
+                if (typeof CSSStyleSheet === 'function' && 'adoptedStyleSheets' in document) {
+                  const sheet = new CSSStyleSheet();
+                  sheet.replaceSync(css);
+                  document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+                  state.sheet = sheet;
+                } else {
+                  const style = document.createElement('style');
+                  style.setAttribute('data-test-lens-screenshot-guard', key);
+                  style.textContent = css;
+                  (document.head || root).appendChild(style);
+                  state.style = style;
                 }
-                window[key] = {token: key, saved, hidden: [], scrollX: window.scrollX, scrollY: window.scrollY};
-                const width = Math.max(root ? root.scrollWidth : 0, root ? root.offsetWidth : 0,
-                  body ? body.scrollWidth : 0, body ? body.offsetWidth : 0, window.innerWidth);
-                const height = Math.max(root ? root.scrollHeight : 0, root ? root.offsetHeight : 0,
-                  body ? body.scrollHeight : 0, body ? body.offsetHeight : 0, window.innerHeight);
-                return {documentWidth: width, documentHeight: height, viewportWidth: window.innerWidth,
-                  viewportHeight: window.innerHeight, scrollX: window.scrollX, scrollY: window.scrollY,
-                  topLevel: window.top === window};
+                window[key] = state;
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                  const body = document.body;
+                  const width = Math.max(root ? root.scrollWidth : 0, root ? root.offsetWidth : 0,
+                    body ? body.scrollWidth : 0, body ? body.offsetWidth : 0, window.innerWidth);
+                  const height = Math.max(root ? root.scrollHeight : 0, root ? root.offsetHeight : 0,
+                    body ? body.scrollHeight : 0, body ? body.offsetHeight : 0, window.innerHeight);
+                  done({documentWidth: width, documentHeight: height, viewportWidth: window.innerWidth,
+                    viewportHeight: window.innerHeight, scrollX: window.scrollX, scrollY: window.scrollY,
+                    devicePixelRatio: window.devicePixelRatio, topLevel: window.top === window});
+                }));
                 """, key);
         return pageSnapshot(result);
     }
@@ -256,14 +318,34 @@ public final class ScreenshotCapture {
                 window.scrollTo(x, y);
                 requestAnimationFrame(() => requestAnimationFrame(() => {
                   const root = document.documentElement, body = document.body;
-                  done({documentWidth: Math.max(root ? root.scrollWidth : 0, root ? root.offsetWidth : 0,
+                  const result = {documentWidth: Math.max(root ? root.scrollWidth : 0, root ? root.offsetWidth : 0,
                     body ? body.scrollWidth : 0, body ? body.offsetWidth : 0, window.innerWidth),
                     documentHeight: Math.max(root ? root.scrollHeight : 0, root ? root.offsetHeight : 0,
                     body ? body.scrollHeight : 0, body ? body.offsetHeight : 0, window.innerHeight),
                     viewportWidth: window.innerWidth, viewportHeight: window.innerHeight,
-                    scrollX: window.scrollX, scrollY: window.scrollY, topLevel: window.top === window});
+                    scrollX: window.scrollX, scrollY: window.scrollY,
+                    devicePixelRatio: window.devicePixelRatio, topLevel: window.top === window};
+                  done(result);
                 }));
                 """, x, y);
+        return pageSnapshot(result);
+    }
+
+    private static PageSnapshot observe(JavascriptExecutor js) {
+        Object result = js.executeAsyncScript("""
+                const done = arguments[arguments.length - 1];
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                  const root = document.documentElement, body = document.body;
+                  const result = {documentWidth: Math.max(root ? root.scrollWidth : 0, root ? root.offsetWidth : 0,
+                    body ? body.scrollWidth : 0, body ? body.offsetWidth : 0, window.innerWidth),
+                    documentHeight: Math.max(root ? root.scrollHeight : 0, root ? root.offsetHeight : 0,
+                    body ? body.scrollHeight : 0, body ? body.offsetHeight : 0, window.innerHeight),
+                    viewportWidth: window.innerWidth, viewportHeight: window.innerHeight,
+                    scrollX: window.scrollX, scrollY: window.scrollY,
+                    devicePixelRatio: window.devicePixelRatio, topLevel: window.top === window};
+                  done(result);
+                }));
+                """);
         return pageSnapshot(result);
     }
 
@@ -289,23 +371,95 @@ public final class ScreenshotCapture {
         try {
             Object restored = js.executeScript("""
                     const state = window[arguments[0]];
-                    if (!state || state.token !== arguments[0]) return false;
+                    if (!state) return true;
+                    if (state.token !== arguments[0]) return false;
                     for (let i = state.hidden.length - 1; i >= 0; i--) {
                       const item = state.hidden[i];
                       if (!item.element || !item.element.style) continue;
                       if (item.value) item.element.style.setProperty('visibility', item.value, item.priority || '');
                       else item.element.style.removeProperty('visibility');
                     }
-                    for (let i = state.saved.length - 1; i >= 0; i--) {
-                      const item = state.saved[i];
-                      if (item.value) item.element.style.setProperty(item.property, item.value, item.priority || '');
-                      else item.element.style.removeProperty(item.property);
+                    if (state.sheet && 'adoptedStyleSheets' in document) {
+                      document.adoptedStyleSheets = document.adoptedStyleSheets.filter(sheet => sheet !== state.sheet);
                     }
+                    if (state.style && state.style.isConnected) state.style.remove();
                     window.scrollTo(state.scrollX, state.scrollY);
                     delete window[arguments[0]];
                     return true;
                     """, key);
             if (!Boolean.TRUE.equals(restored)) throw new IllegalStateException("Full-page capture state could not be restored");
+        } catch (RuntimeException restorationFailure) {
+            if (primary != null) primary.addSuppressed(restorationFailure);
+            else throw restorationFailure;
+        }
+    }
+
+    private static void installOverlaySnapshot(JavascriptExecutor js, String key) {
+        js.executeScript("""
+                const key = arguments[0];
+                const host = document.getElementById('selenium-overlay-host');
+                const state = {token: key, host, snapshot: null, visibility: '', visibilityPriority: ''};
+                window[key] = state;
+                if (!host || !host.shadowRoot) return false;
+
+                state.visibility = host.style.getPropertyValue('visibility');
+                state.visibilityPriority = host.style.getPropertyPriority('visibility');
+                const hostRect = host.getBoundingClientRect();
+                const hostStyle = getComputedStyle(host);
+                const snapshot = host.cloneNode(false);
+                snapshot.removeAttribute('id');
+                snapshot.setAttribute('data-test-lens-overlay-snapshot', key);
+                snapshot.setAttribute('aria-hidden', 'true');
+                snapshot.setAttribute('inert', '');
+                const style = snapshot.style;
+                style.setProperty('position', 'absolute', 'important');
+                style.setProperty('left', `${window.scrollX + hostRect.left}px`, 'important');
+                style.setProperty('top', `${window.scrollY + hostRect.top}px`, 'important');
+                style.setProperty('width', `${window.innerWidth}px`, 'important');
+                style.setProperty('height', `${window.innerHeight}px`, 'important');
+                style.setProperty('box-sizing', 'border-box', 'important');
+                style.setProperty('transform', 'translateZ(0)', 'important');
+                style.setProperty('transform-origin', '0 0', 'important');
+                style.setProperty('pointer-events', 'none', 'important');
+                style.setProperty('overflow', 'hidden', 'important');
+                style.setProperty('contain', 'layout paint style', 'important');
+                style.setProperty('display', hostStyle.display, 'important');
+                style.setProperty('visibility', hostStyle.visibility, 'important');
+
+                const root = snapshot.attachShadow({mode: 'open'});
+                for (const child of host.shadowRoot.childNodes) root.appendChild(child.cloneNode(true));
+                const freeze = document.createElement('style');
+                freeze.setAttribute('data-test-lens-overlay-snapshot-freeze', key);
+                freeze.textContent = `*, *::before, *::after {
+                  animation-play-state: paused !important; transition: none !important;
+                  caret-color: transparent !important; scroll-behavior: auto !important;
+                }`;
+                root.appendChild(freeze);
+                (document.body || document.documentElement).appendChild(snapshot);
+                state.snapshot = snapshot;
+                host.style.setProperty('visibility', 'hidden', 'important');
+                return true;
+                """, key);
+    }
+
+    private static void restoreOverlay(JavascriptExecutor js, String key, Throwable primary) {
+        try {
+            Object restored = js.executeScript("""
+                    const state = window[arguments[0]];
+                    if (!state) return true;
+                    if (state.token !== arguments[0]) return false;
+                    if (state.snapshot && state.snapshot.isConnected) state.snapshot.remove();
+                    if (state.host && state.host.style) {
+                      if (state.visibility) state.host.style.setProperty(
+                        'visibility', state.visibility, state.visibilityPriority || '');
+                      else state.host.style.removeProperty('visibility');
+                    }
+                    delete window[arguments[0]];
+                    return true;
+                    """, key);
+            if (!Boolean.TRUE.equals(restored)) {
+                throw new IllegalStateException("Test Lens overlay snapshot state could not be restored");
+            }
         } catch (RuntimeException restorationFailure) {
             if (primary != null) primary.addSuppressed(restorationFailure);
             else throw restorationFailure;
@@ -364,11 +518,13 @@ public final class ScreenshotCapture {
         }
     }
 
-    private static void requireStablePage(PageSnapshot initial, PageSnapshot current) {
+    private static void requireStablePage(PageSnapshot initial, PageSnapshot current, String observation) {
         if (!current.topLevel()) throw new UnsupportedContextException("Browsing context changed during full-page capture");
         if (initial.documentWidth() != current.documentWidth() || initial.documentHeight() != current.documentHeight()
                 || initial.viewportWidth() != current.viewportWidth() || initial.viewportHeight() != current.viewportHeight()) {
-            throw new IllegalStateException("Document or viewport dimensions changed during full-page capture");
+            throw new PageDimensionsChangedException(
+                    "Document or viewport dimensions changed during full-page capture at " + observation
+                            + ": baseline=" + initial + ", current=" + current);
         }
     }
 
@@ -376,7 +532,8 @@ public final class ScreenshotCapture {
         if (!(value instanceof Map<?, ?> map)) throw new IllegalStateException("Invalid page geometry response");
         return new PageSnapshot(number(map, "documentWidth"), number(map, "documentHeight"),
                 number(map, "viewportWidth"), number(map, "viewportHeight"),
-                number(map, "scrollX"), number(map, "scrollY"), Boolean.TRUE.equals(map.get("topLevel")));
+                number(map, "scrollX"), number(map, "scrollY"), decimal(map, "devicePixelRatio"),
+                Boolean.TRUE.equals(map.get("topLevel")));
     }
 
     private static long number(Map<?, ?> map, String key) {
@@ -387,6 +544,14 @@ public final class ScreenshotCapture {
             throw new IllegalStateException("Invalid page geometry: " + key);
         }
         return Math.round(numeric);
+    }
+
+    private static double decimal(Map<?, ?> map, String key) {
+        Object value = map.get(key);
+        if (!(value instanceof Number number) || !Double.isFinite(number.doubleValue()) || number.doubleValue() <= 0) {
+            throw new IllegalStateException("Invalid page geometry: " + key);
+        }
+        return number.doubleValue();
     }
 
     private static int scaledDimension(long css, double scale, String label) {
@@ -436,9 +601,13 @@ public final class ScreenshotCapture {
 
     private record CaptureData(ScreenshotCaptureMode mode, BufferedImage image, int tileCount) { }
     private record PageSnapshot(long documentWidth, long documentHeight, long viewportWidth, long viewportHeight,
-                                long scrollX, long scrollY, boolean topLevel) { }
+                                long scrollX, long scrollY, double devicePixelRatio, boolean topLevel) { }
     private record Position(long x, long y) { }
     private static final class UnsupportedContextException extends RuntimeException {
         private UnsupportedContextException(String message) { super(message); }
+    }
+    private static final class PageDimensionsChangedException extends IllegalStateException {
+        private PageDimensionsChangedException(String message) { super(message); }
+        private PageDimensionsChangedException(String message, Throwable cause) { super(message, cause); }
     }
 }

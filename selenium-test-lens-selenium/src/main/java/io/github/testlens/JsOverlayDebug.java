@@ -66,6 +66,8 @@ import io.github.testlens.selenium.steps.UiStepStatus;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -179,7 +181,7 @@ public final class JsOverlayDebug {
                 this.locatorOptions.pollInterval(), this.logger);
         this.popupDetector = new PopupDetector(driver, config, rootManager, highlightActions);
         this.scrollActions = new ScrollActions(driver, config, rootManager, this.logger);
-        this.assertActions = new AssertActions(driver, rootManager, config, hudPanel, this.logger);
+        this.assertActions = new AssertActions(driver, rootManager, config, hudPanel, this.logger, highlightActions);
         this.targetResolverActions = new TargetResolverActions(driver, this.logger);
     }
 
@@ -454,7 +456,7 @@ public final class JsOverlayDebug {
         UiStepScope scope = new UiStepScope(
                 logger,
                 this::setStep,
-                message -> hudLog("info", message, "ui-test-lens")
+                message -> hudLog("info", message, null)
         );
         try {
             UiStepResult result = scope.run(name, options, body);
@@ -556,16 +558,30 @@ public final class JsOverlayDebug {
     }
 
     public void hudLog(String level, String message, String timestamp) {
-        hudPanel.appendLog(redact(level), redact(message), redact(timestamp));
+        Instant eventTimestamp = hudTimestamp(timestamp);
+        String canonicalTimestamp = eventTimestamp.toString();
+        hudPanel.appendLog(redact(level), redact(message), canonicalTimestamp);
         emit(UiTestLensLogEntry.builder()
+                .timestamp(eventTimestamp)
                 .level(toLogLevel(level))
                 .eventType(UiTestLensEventType.HUD)
                 .status(toStatus(level))
                 .message(message)
                 .action("hud.log")
                 .metadata("hudLevel", safeString(level))
-                .metadata("timestamp", safeString(timestamp))
+                .metadata("timestamp", canonicalTimestamp)
                 .build());
+    }
+
+    private static Instant hudTimestamp(String value) {
+        if (value != null && !value.isBlank()) {
+            try {
+                return Instant.parse(value.trim());
+            } catch (DateTimeParseException ignored) {
+                // Labels and local/ambiguous date strings are not timestamps. Assign one instant below.
+            }
+        }
+        return Instant.now();
     }
 
     private void emit(UiTestLensLogEntry entry) {
@@ -694,12 +710,17 @@ public final class JsOverlayDebug {
         private volatile HudPanel hud;
         private volatile WebDriver driver;
         private volatile io.github.testlens.hud.HudOptions options;
+        private volatile SourceFileResolver sourceResolver;
+        private volatile boolean localDriver;
         private final java.util.Queue<UiTestLensLogEntry> deferredDuringAlert = new java.util.concurrent.ConcurrentLinkedQueue<>();
 
         void attach(HudPanel hud, WebDriver driver, io.github.testlens.hud.HudOptions options) {
             this.hud = hud;
             this.driver = driver;
             this.options = options;
+            this.sourceResolver = options != null && options.sourceNavigation().enabled()
+                    ? new SourceFileResolver(Path.of(""), options.sourceNavigation().sourceRoots()) : null;
+            this.localDriver = LocalWebDriverDetector.isLocal(driver);
         }
 
         @Override
@@ -745,11 +766,23 @@ public final class JsOverlayDebug {
                     || name.startsWith("NETWORK_ASSERTION_")) || options.showAssertions();
         }
 
-        private static void append(HudPanel hud, UiTestLensLogEntry entry) {
+        private void append(HudPanel hud, UiTestLensLogEntry entry) {
             String description = entry.metadata().getOrDefault("description", "");
             String action = entry.action() == null ? "" : entry.action();
             String message = description.isBlank() ? entry.message() : action + ": " + description;
-            hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString());
+            String sourceLabel = entry.sourceLocation().map(io.github.testlens.core.logging.SourceLocation::displayName).orElse(null);
+            String navigationTarget = null;
+            if (localDriver && sourceResolver != null && options != null) {
+                navigationTarget = entry.sourceLocation().flatMap(sourceResolver::resolve)
+                        .flatMap(path -> IdeNavigationUriProvider.target(options.sourceNavigation(), path,
+                                entry.sourceLocation().orElseThrow().lineNumber(), null)).orElse(null);
+            }
+            if (sourceLabel == null && navigationTarget == null) {
+                hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString());
+            } else {
+                hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString(),
+                        entry.eventType().name(), sourceLabel, navigationTarget);
+            }
         }
     }
 
@@ -766,6 +799,17 @@ public final class JsOverlayDebug {
     public WebElement highlightElement(WebElement element, String label) {
         highlightActions.highlightClick(element, label);
         return element;
+    }
+
+    /** Draws a typed manual decoration without interacting with the element. @since 0.3.1 */
+    public WebElement highlightElement(WebElement element, String label, HighlightState state) {
+        highlightActions.highlight(element, label, state, false);
+        return element;
+    }
+
+    /** Internal operation feedback; failures are deliberately swallowed by the decorator. @since 0.3.1 */
+    public void automaticHighlight(WebElement element, String label, HighlightState state) {
+        highlightActions.highlight(element, label, state, true);
     }
 
     /** Draws a border around the direct parent of the given element. */
@@ -785,7 +829,7 @@ public final class JsOverlayDebug {
 
     /** Common case: decoration + classic click(). */
     public void highlightThenClick(WebElement element, String label) {
-        highlightActions.highlightClick(element, label);
+        highlightActions.automaticAction(element, label);
         if (element != null) {
             element.click();
         }
@@ -817,7 +861,7 @@ public final class JsOverlayDebug {
     /** Smart typing and highlight with a custom label. */
     public void smartTypeWithHintHighlighted(WebElement element, String value, String label) {
         String effectiveLabel = (label == null || label.isBlank()) ? "SET" : label;
-        highlightActions.highlightClick(element, effectiveLabel);
+        highlightActions.automaticAction(element, effectiveLabel);
         smartInputActions.smartTypeWithHint(element, value, effectiveLabel);
     }
 
@@ -1571,7 +1615,7 @@ public final class JsOverlayDebug {
             }
             return;
         }
-        highlightActions.highlightClick(target, label);
+        highlightActions.automaticAction(target, label);
         smartClickActions.smartClick(target, label);
     }
 
@@ -1607,7 +1651,7 @@ public final class JsOverlayDebug {
             return;
         }
         try {
-            highlightActions.highlightClick(fileInput, "UPLOAD");
+            highlightActions.automaticAction(fileInput, "UPLOAD");
             fileInput.sendKeys(absoluteFilePath);
             if (config.isShowHudPanel()) {
                 hudPanel.updateStep("File sent to <input type='file'>");

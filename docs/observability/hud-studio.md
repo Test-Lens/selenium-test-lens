@@ -2,31 +2,51 @@
 title: HUD Studio
 ---
 
-# HUD Studio
+# Test Lens HUD Studio
+
+HUD Studio configures the same browser-side renderer that Test Lens injects at runtime. Drag and resize the HUD in the preview or use the bounded product controls; both paths update one `HudOptions` model and the generated Java. The preview supplies synthetic events and never contacts an application or external service.
+
+The Source navigation section generates the opt-in `SourceNavigationOptions` block, IDE provider, and Ctrl+Alt activation modifier. Its preview uses synthetic file labels only and does not open an IDE.
+
+!!! info "0.3.1 timestamp API"
+    HUD timestamp format and zone controls are available in `0.3.1`. The configurable HUD and Studio introduced in `0.3.0` remain compatible.
+
+!!! info "0.3.1 highlight API"
+    The Highlights section configures independent action, waiting, retry, success, and failure colors plus duration, border width, labels, enablement, and automatic feedback. HUD preset changes do not reset these values, and generated Java includes `HighlightOptions` in `TestLensOptions`.
 
 <style>
-.tl-hud-studio-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:.75rem 0}.tl-hud-studio-toolbar a,.tl-hud-studio-toolbar button{display:inline-flex;align-items:center;justify-content:center;min-height:2.35rem;padding:.45rem .8rem;border:1px solid var(--md-default-fg-color--lightest);border-radius:.35rem;color:var(--md-typeset-color);background:var(--md-default-bg-color);font:inherit;font-weight:600;cursor:pointer}.tl-hud-studio-toolbar>[hidden]{display:none}.tl-hud-studio-toolbar .tl-hud-studio-open{border-color:var(--md-primary-fg-color);color:var(--md-primary-bg-color);background:var(--md-primary-fg-color)}.tl-hud-studio-toolbar a:focus-visible,.tl-hud-studio-toolbar button:focus-visible{outline:.15rem solid var(--md-accent-fg-color);outline-offset:.15rem}.tl-hud-studio-note{margin:.5rem 0 1rem;color:var(--md-default-fg-color--light);font-size:.85rem}.tl-hud-studio-frame{display:block;width:100%;max-width:100%;height:950px;border:1px solid var(--md-default-fg-color--lightest);border-radius:.6rem;background:#e7edf4}.tl-studio-focus-mode{overflow:hidden}.tl-studio-focus-mode .md-header,.tl-studio-focus-mode .md-tabs,.tl-studio-focus-mode .md-sidebar,.tl-studio-focus-mode .md-footer{display:none}.tl-studio-focus-mode .tl-hud-studio-host,.tl-hud-studio-host:fullscreen{position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;width:100vw;max-width:none;height:100vh;margin:0;padding:.5rem;background:var(--md-default-bg-color)}.tl-studio-focus-mode .tl-hud-studio-toolbar,.tl-hud-studio-host:fullscreen .tl-hud-studio-toolbar{flex:0 0 auto;margin:0 0 .5rem}.tl-studio-focus-mode .tl-hud-studio-frame,.tl-hud-studio-host:fullscreen .tl-hud-studio-frame{flex:1 1 auto;min-height:0;height:auto;border-radius:.35rem}.tl-studio-focus-mode .tl-hud-studio-note,.tl-studio-focus-mode .tl-hud-studio-description,.tl-hud-studio-host:fullscreen .tl-hud-studio-note,.tl-hud-studio-host:fullscreen .tl-hud-studio-description{display:none}body.tl-hud-studio-page .md-main__inner{max-width:none}body.tl-hud-studio-page .md-sidebar--secondary{display:none}body.tl-hud-studio-page .md-content{min-width:0}
-@media(max-width:760px){.tl-hud-studio-frame{height:1550px}.tl-hud-studio-toolbar a,.tl-hud-studio-toolbar button{flex:1 1 auto}}
+.tl-hud-studio-toolbar{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;margin:.75rem 0;padding:.6rem;border:1px solid var(--md-default-fg-color--lightest);border-radius:.5rem;background:var(--md-code-bg-color)}
+.tl-hud-studio-toolbar>[hidden]{display:none}
+.tl-hud-studio-toolbar a,.tl-hud-studio-toolbar button{display:inline-flex;align-items:center;min-height:2.1rem;padding:.35rem .65rem;border:1px solid var(--md-primary-fg-color);border-radius:.35rem;color:var(--md-primary-fg-color);background:transparent;font:inherit;font-weight:600;text-decoration:none;cursor:pointer}
+.tl-hud-studio-toolbar a:hover,.tl-hud-studio-toolbar button:hover{color:var(--md-primary-bg-color);background:var(--md-primary-fg-color)}
+.tl-hud-studio-toolbar span{color:var(--md-default-fg-color--light);font-size:.75rem}
+.tl-hud-studio-host{display:flex;flex-direction:column;min-width:0;width:100%;height:900px;border:1px solid var(--md-default-fg-color--lightest);border-radius:.6rem;overflow:hidden;background:#e7edf4}
+.tl-hud-studio-frame{display:block;flex:1;width:100%;min-height:0;border:0;background:#e7edf4}
+body.tl-hud-studio-page .md-main__inner{max-width:none}
+body.tl-hud-studio-page .md-sidebar--secondary{display:none}
+body.tl-hud-studio-page .md-content{min-width:0}
+body.tl-studio-focus-mode{overflow:hidden}
+body.tl-studio-focus-mode .md-header,body.tl-studio-focus-mode .md-tabs,body.tl-studio-focus-mode .md-sidebar{display:none}
+body.tl-studio-focus-mode .tl-hud-studio-host,body.tl-hud-studio-page .tl-hud-studio-host:fullscreen{position:fixed;inset:0;z-index:1000;width:100vw;height:100vh;border:0;border-radius:0}
+body.tl-studio-focus-mode .tl-hud-studio-frame{flex:1}
+@media(max-width:760px){.tl-hud-studio-host{height:1500px}.tl-hud-studio-toolbar span{flex-basis:100%}}
 </style>
 
+<div class="tl-hud-studio-toolbar">
+  <a data-studio-open href="../../demo/hud-studio/" target="_blank" rel="noopener noreferrer">Open Studio</a>
+  <button data-studio-expand type="button" aria-pressed="false">Expand in this page</button>
+  <button data-studio-fullscreen type="button" aria-pressed="false" aria-label="Open HUD Studio in browser fullscreen">Fullscreen</button>
+  <button data-studio-exit type="button" hidden>Exit expanded view</button>
+  <span>For the best editing experience, open Studio in a full-width view.</span>
+</div>
+
 <div class="tl-hud-studio-host" data-studio-host>
-  <div class="tl-hud-studio-toolbar" role="toolbar" aria-label="HUD Studio view options">
-    <a class="tl-hud-studio-open" data-studio-open href="../../demo/hud-studio/" target="_blank" rel="noopener noreferrer" aria-label="Open HUD Studio in a new full-width tab" title="Open HUD Studio in a new full-width tab">Open Studio ↗</a>
-    <button type="button" data-studio-expand aria-pressed="false" aria-label="Expand HUD Studio in this page" title="Expand HUD Studio in this page">Expand</button>
-    <button type="button" data-studio-fullscreen aria-pressed="false" aria-label="Open HUD Studio in browser fullscreen" title="Open HUD Studio in browser fullscreen">Fullscreen</button>
-    <button type="button" data-studio-exit aria-label="Exit expanded HUD Studio view" title="Exit expanded HUD Studio view" hidden>Exit expanded view</button>
-  </div>
-  <p class="tl-hud-studio-note">For the best editing experience, open Studio in a full-width view.</p>
-  <p class="tl-hud-studio-description">Drag and resize the HUD in the preview or use the bounded controls. Every mode below uses the same Studio application, <code>HudOptions</code> model, runtime renderer, and generated Java.</p>
-  <iframe class="tl-hud-studio-frame" data-studio-frame src="../../demo/hud-studio/" title="Interactive Test Lens HUD Studio" sandbox="allow-scripts" allow="fullscreen" allowfullscreen>
-    HUD Studio could not be loaded. <a href="../../demo/hud-studio/" target="_blank" rel="noopener noreferrer">Open the standalone configurator</a>.
+  <iframe data-studio-frame class="tl-hud-studio-frame" src="../../demo/hud-studio/" title="Interactive Test Lens HUD Studio" sandbox="allow-scripts" allow="fullscreen" allowfullscreen>
+    HUD Studio could not be loaded. <a href="../../demo/hud-studio/">Open the standalone configurator</a>.
   </iframe>
 </div>
 
 <script src="../../javascripts/hud-studio-host.js"></script>
-
-!!! info "Development API"
-    Configurable HUD presets and HUD Studio are part of `0.3.0`. The `0.2.0` renderer does not accept `HudOptions`.
 
 ## Public configuration
 
@@ -44,15 +64,34 @@ HudOptions hud = HudOptions.builder()
         .typography(HudTypography.builder()
                 .header(HudFontPreset.MONOSPACE)
                 .eventLog(HudFontPreset.UI_SANS)
+                .timestampFontSizePx(10)
                 .build())
         .scrollbarStyle(HudScrollbarStyle.SUBTLE)
         .scrollbarThumbColor("#526174")
         .backgroundOpacity(0.82)
+        .showTimestamps(true)
+        .timestampPattern("HH:mm:ss.SSS")
+        .timestampZone(ZoneId.of("Europe/Warsaw"))
         .showNetwork(false)
+        .build();
+
+HighlightOptions highlights = HighlightOptions.builder()
+        .enabled(true)
+        .automaticFeedback(true)
+        .actionColor("#ffeb3b")
+        .waitingColor("#2196f3")
+        .retryColor("#ff9800")
+        .successColor("#4caf50")
+        .failureColor("#f44336")
+        .durationMs(1500)
+        .borderWidthPx(2)
+        .showLabels(true)
         .build();
 
 TestLensOptions options = TestLensOptions.builder()
         .hud(hud)
+        .highlights(highlights)
+        .visualRedaction(VisualRedactionOptions.defaults())
         .build();
 
 TestLens lens = TestLens.attach(driver, options);
@@ -69,6 +108,28 @@ All presets use `HudHeaderLayout.AUTO`: TEST and STEP share a row while their at
 
 Visibility switches affect only presentation. Suppressed network, recovery, wait, or assertion rows still flow to trace, reports, and other configured sinks. `showTimestamps(false)` removes timestamps from HUD rows; it does not change event timestamps in the model.
 
+`ISO_UTC` is the compatibility default and renders in UTC unless an explicit timestamp zone overrides it. `TIME_ONLY` and `DATE_TIME`
+remain shortcuts and show their effective pattern in a read-only field. Select `CUSTOM` to edit a
+Java `DateTimeFormatter` pattern; one through nine `S` letters select fraction precision directly.
+The zone modes are `SYSTEM`, `UTC`, and `CUSTOM`. `SYSTEM` emits no redundant builder call and means
+the JVM/test-runner system zone, never the browser zone. `UTC` emits `ZoneOffset.UTC`; `CUSTOM`
+accepts a validated IANA `ZoneId`, such as `Europe/Warsaw`, or a fixed offset. Studio shows fixed
+winter and summer instants so DST differences are visible without a DST switch. Because a static
+page cannot inspect the future test runner, its SYSTEM preview clearly labels the browser zone used
+only as a visual stand-in; generated Java retains JVM system-zone behavior.
+
+## Source navigation controls and preview
+
+Source navigation is disabled by default. Enable it, choose `INTELLIJ`, `VSCODE`, or `CUSTOM`, and retain the currently supported `CTRL_ALT` modifier. **Preview Ctrl+Alt active** shows the same `File.java:line` reveal state used by the runtime; turning it off shows the passive state. The preview uses synthetic paths and never launches an IDE.
+
+`CUSTOM` remains partly programmatic: Studio generates `.ide(SourceIde.CUSTOM)`, while the required `customUriTemplate(...)` and any non-standard `sourceRoots(...)` must be added in Java. Reset returns to disabled, IntelliJ, Ctrl+Alt, and inactive preview. See [local source navigation](visual-diagnostics.md#local-source-navigation) for AltGr behavior, remote sessions, unresolved paths, providers, and the privacy boundary.
+
+## Highlight configurator and preview
+
+The Highlights section maps one-to-one to `HighlightOptions`: enabled, automatic feedback, five state colors, duration, 1–16 px border width, and labels. Duration zero is valid. **Replay** cycles over ACTION, WAITING, RETRY, SUCCESS, and final FAILURE using the selected colors. Turning automatic feedback off preserves manual highlights in the runtime; turning highlights off suppresses every state. Reset restores the public 0.3.1 defaults without changing the selected HUD preset.
+
+The generated code uses the plural `.highlights(highlights)` API, not its deprecated singular preview alias. It produces one `TestLensOptions` builder containing the HUD (including timestamps and source navigation), highlights, and explicit password-safe `VisualRedactionOptions.defaults()`. Advanced visual mask rules remain programmatic. See [state-aware highlights](visual-diagnostics.md#state-aware-highlights) for the semantic contract of each state.
+
 ## Visual editing and responsive preview
 
 Drag the panel to choose the nearest corner anchor and bounded X/Y offsets. The resize handle changes width and maximum panel height; in `AUTO`, the real runtime renderer immediately moves the complete STEP item between the first and second row as space changes. The event log keeps its own maximum height and scrolls internally. Desktop, laptop, and mobile buttons resize the isolated preview viewport without introducing viewport-specific configuration. After any manual change Studio shows **Custom**, while retaining the selected preset as the base for a minimal builder.
@@ -79,7 +140,7 @@ Clicking HUD context, branding, or log regions selects the related control group
 
 The four `HudPosition` values anchor the panel to a viewport corner. Offsets are limited to 0–500 px, width to 240–960 px, panel maximum height to 120–1000 px, and log maximum height to 80–720 px. At render time the dimensions and anchored offsets are clamped to a 10 px viewport margin without changing the stored options. The effective log height is the minimum of its configured limit, the panel content area, and the available viewport area.
 
-`HudFontPreset` selects a bundled local stack (`SYSTEM`, `MONOSPACE`, or `UI_SANS`), with bounded base and header sizes. The global preset is the baseline. Optional `HudTypography` overrides independently select the stack for the header, current step, event log, and metadata; any section without an override inherits the global preset. Timestamps belong to the event log, while labels, optional pipeline text, and branding belong to metadata. A section override is explicit builder state, so it wins over the selected HUD preset regardless of builder call order. Studio exposes the same four overrides with **Inherit** as the default and emits only the overrides that were selected. No font is downloaded.
+`HudFontPreset` selects a bundled local stack (`SYSTEM`, `MONOSPACE`, or `UI_SANS`), with bounded base and header sizes. The global preset is the baseline. Optional `HudTypography` overrides independently select the stack for the header, current step, event log, and metadata; any section without an override inherits the global preset. Timestamp size is independently configurable from 8–18 px and defaults to 9 px, so changing it never changes message text size. Timestamps belong to the event log, while labels, optional pipeline text, and branding belong to metadata. Explicit typography wins over the selected HUD preset regardless of builder call order. Studio exposes the same controls and emits only selected overrides. No font is downloaded.
 
 Colors accept six-digit hexadecimal values, and background opacity must be between `0` and `1`. Success, warning, and failure colors drive matching event rows. The API deliberately does not accept arbitrary CSS, font URLs, or `@font-face` declarations.
 

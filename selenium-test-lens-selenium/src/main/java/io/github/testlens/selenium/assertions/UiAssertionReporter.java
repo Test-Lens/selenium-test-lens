@@ -8,9 +8,15 @@ import io.github.testlens.core.logging.UiTestLensStatus;
 
 final class UiAssertionReporter {
     private final OverlayLogger logger;
+    private final boolean sourceNavigationEnabled;
 
     public UiAssertionReporter(OverlayLogger logger) {
+        this(logger, false);
+    }
+
+    UiAssertionReporter(OverlayLogger logger, boolean sourceNavigationEnabled) {
         this.logger = logger != null ? logger : OverlayLogger.noop();
+        this.sourceNavigationEnabled = sourceNavigationEnabled;
     }
 
     public static UiAssertionReporter noop() {
@@ -52,7 +58,7 @@ final class UiAssertionReporter {
                       String expectedPreview,
                       String actualPreview) {
         try {
-            logger.emit(UiTestLensLogEntry.builder()
+            UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder()
                     .level(level)
                     .eventType(eventType)
                     .status(status)
@@ -62,8 +68,9 @@ final class UiAssertionReporter {
                     .metadata("locator", safe(locatorDescription))
                     .metadata("attempt", String.valueOf(attempt))
                     .metadata("expectedPreview", safe(expectedPreview))
-                    .metadata("actualPreview", safe(actualPreview))
-                    .build());
+                    .metadata("actualPreview", safe(actualPreview));
+            if (sourceNavigationEnabled) builder.metadata("testlens.internal.captureSourceLocation", "true");
+            logger.emit(builder.build());
         } catch (Exception ignored) {
         }
     }

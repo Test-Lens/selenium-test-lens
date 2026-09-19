@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.time.ZoneId;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,9 +54,61 @@ class HudPanelTest {
         assertTrue(executor.scripts.stream().anyMatch(script -> script.contains("hud.log")));
         assertTrue(executor.args.stream().anyMatch(args ->
                 Arrays.asList(args).contains("info") &&
-                        Arrays.asList(args).contains("Checkout opened") &&
-                        Arrays.asList(args).contains("now")
+                        Arrays.asList(args).contains("Checkout opened") && args.length == 7 &&
+                        String.valueOf(args[2]).matches("\\d{4}-\\d{2}-\\d{2}T.*Z")
         ));
+    }
+
+    @Test void legacyMissingAndInvalidTimestampsAreAssignedOnceWhenAccepted() {
+        RecordingBrowserScriptExecutor executor = new RecordingBrowserScriptExecutor();
+        HudPanel panel = hudPanel(executor);
+
+        panel.appendLog("info", "missing", null);
+        panel.appendLog("warn", "invalid", "ui-test-lens");
+        Object[] missing = executor.args.stream().filter(args -> Arrays.asList(args).contains("missing"))
+                .findFirst().orElseThrow();
+        Object[] invalid = executor.args.stream().filter(args -> Arrays.asList(args).contains("invalid"))
+                .findFirst().orElseThrow();
+        String missingEventTime = String.valueOf(missing[2]);
+        String invalidEventTime = String.valueOf(invalid[2]);
+
+        panel.init("rerender", "pipeline");
+
+        assertEquals(1, executor.args.stream().filter(args -> Arrays.asList(args).contains("missing")).count());
+        assertEquals(1, executor.args.stream().filter(args -> Arrays.asList(args).contains("invalid")).count());
+        assertEquals(missingEventTime, missing[2]);
+        assertEquals(invalidEventTime, invalid[2]);
+        assertTrue(missingEventTime.matches("\\d{4}-\\d{2}-\\d{2}T.*Z"));
+        assertTrue(invalidEventTime.matches("\\d{4}-\\d{2}-\\d{2}T.*Z"));
+        assertTrue(String.valueOf(missing[6]).contains("T"));
+        assertTrue(String.valueOf(invalid[6]).contains("T"));
+    }
+
+    @Test void formatsTheOriginalEventInstantOnceInJavaWithCustomPatternAndZone() {
+        RecordingBrowserScriptExecutor executor = new RecordingBrowserScriptExecutor();
+        HudOptions hud = HudOptions.builder().showTimestamps(true)
+                .timestampPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSS XXX")
+                .timestampZone(ZoneId.of("Europe/Warsaw")).build();
+        OverlayConfig config = OverlayConfig.builder().hudOptions(hud).build();
+        HudPanel panel = new HudPanel(executor, new OverlayRootManager(executor, config), config);
+
+        panel.appendLog("info", "event", "2026-07-15T12:34:56.123456789Z");
+        panel.init("rerender", "pipeline");
+
+        Object[] call = executor.args.stream().filter(args -> Arrays.asList(args).contains("event"))
+                .findFirst().orElseThrow();
+        assertEquals("2026-07-15T12:34:56.123456789Z", call[2]);
+        assertEquals("2026-07-15 14:34:56.123456789 +02:00", call[6]);
+        assertEquals(1, executor.args.stream().filter(args -> Arrays.asList(args).contains("event")).count());
+    }
+
+    @Test void appendLogPassesSourceMetadataAsSeparateRuntimeArguments() {
+        RecordingBrowserScriptExecutor executor = new RecordingBrowserScriptExecutor();
+        HudPanel panel = hudPanel(executor);
+        panel.appendLog("info", "click: Login", "now", "LOCATOR_ACTION_PASSED",
+                "LoginPage.java:53", "idea://open?file=D%3A%5CLoginPage.java&line=53");
+        assertTrue(executor.args.stream().anyMatch(args -> Arrays.asList(args).contains("LoginPage.java:53")
+                && Arrays.asList(args).contains("idea://open?file=D%3A%5CLoginPage.java&line=53")));
     }
 
     @Test

@@ -35,27 +35,29 @@ const frame = target({ contentWindow: frameWindow });
 const expand = target();
 const exit = target({ hidden: true });
 const fullscreen = target();
-const elements = {
-  '[data-studio-frame]': frame,
+const hostElements = { '[data-studio-frame]': frame };
+const pageElements = {
+  '[data-studio-host]': null,
   '[data-studio-expand]': expand,
   '[data-studio-exit]': exit,
   '[data-studio-fullscreen]': fullscreen
 };
 const documentListeners = new Map();
 const host = target({
-  querySelector(selector) { return elements[selector]; },
+  querySelector(selector) { return hostElements[selector]; },
   requestFullscreen() {
     document.fullscreenElement = host;
     documentListeners.get('fullscreenchange')?.();
     return Promise.resolve();
   }
 });
+pageElements['[data-studio-host]'] = host;
 const document = {
   activeElement: null,
   fullscreenEnabled: true,
   fullscreenElement: null,
   body: { classList: classList() },
-  querySelector(selector) { return selector === '[data-studio-host]' ? host : null; },
+  querySelector(selector) { return pageElements[selector] ?? null; },
   addEventListener(type, listener) { documentListeners.set(type, listener); },
   exitFullscreen() {
     this.fullscreenElement = null;
@@ -95,4 +97,4 @@ assert.equal(document.body.classList.contains('tl-studio-focus-mode'), false);
 assert.equal(document.activeElement, expand);
 assert.ok(resizeEvents >= 5);
 
-console.log('HUD Studio host tests OK: expand/exit, Escape, fullscreen state, focus return, and resize signaling.');
+console.log('HUD Studio host tests OK: page width class, expand/exit, Escape, fullscreen state, focus return, and resize signaling.');

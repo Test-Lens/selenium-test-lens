@@ -121,6 +121,14 @@ public final class TestLens {
 
     public UiLocator locator(By by) { return delegate.locator(by); }
     public UiLocator locator(By by, String label) { return delegate.locator(by, label); }
+    /** Highlights an already resolved element without clicking, focusing, typing, or scrolling. @since 0.3.1 */
+    public WebElement highlight(WebElement element, String label) {
+        return delegate.highlightElement(element, label, HighlightState.ACTION);
+    }
+    /** Highlights an already resolved element with an explicit visual state. @since 0.3.1 */
+    public WebElement highlight(WebElement element, String label, HighlightState state) {
+        return delegate.highlightElement(element, label, state);
+    }
     public UiExpect expect(By by) { return locator(by).expect(); }
     public UiExpect expect(By by, String label) { return locator(by, label).expect(); }
     public UiPageExpect expectPage() { return delegate.expectPage(); }

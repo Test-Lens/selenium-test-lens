@@ -142,7 +142,7 @@ public class SmartClickActions {
 
     private void decorateClickTarget(WebElement target, String label) {
         if (config.isEnabled()) {
-            highlightActions.highlightClick(target, label);
+            highlightActions.automaticAction(target, label);
         }
     }
 

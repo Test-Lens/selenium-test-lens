@@ -44,13 +44,13 @@ public class BlockingOverlayHelper {
         // optional dekoracja overlaya
         if (config.isEnabled() && highlightActions != null) {
             rootManager.ensureRootExists();
-            highlightActions.highlightClick(btn,
+            highlightActions.automaticAction(btn,
                     overlayLabel != null ? overlayLabel : "OVERLAY");
         }
 
         // kliknięcie przycisku zamknięcia
         if (config.isEnabled() && highlightActions != null) {
-            highlightActions.highlightClick(btn,
+            highlightActions.automaticAction(btn,
                     closeButtonLabel != null ? closeButtonLabel : "CLOSE");
         }
         btn.click();
@@ -82,7 +82,7 @@ public class BlockingOverlayHelper {
 
         if (config.isEnabled()) {
             rootManager.ensureRootExists();
-            highlightActions.highlightClick(overlay,
+            highlightActions.automaticAction(overlay,
                     overlayLabel != null ? overlayLabel : "OVERLAY");
         }
 
@@ -92,7 +92,7 @@ public class BlockingOverlayHelper {
         }
 
         if (config.isEnabled()) {
-            highlightActions.highlightClick(closeButton,
+            highlightActions.automaticAction(closeButton,
                     closeButtonLabel != null ? closeButtonLabel : "CLOSE");
         }
         closeButton.click();

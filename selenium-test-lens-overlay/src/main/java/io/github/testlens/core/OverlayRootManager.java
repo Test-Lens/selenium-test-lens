@@ -72,6 +72,8 @@ public class OverlayRootManager {
                 "  window.__seleniumOverlayRoot = overlayState.root;" +
                 "}" +
                 "if (!shadow) { return; }" +
+                "var hud=window.__uiTestLens&&window.__uiTestLens.modules&&window.__uiTestLens.modules.hud;" +
+                "if(hud&&hud.remove){hud.remove();}" +
                 "while (shadow.firstChild) {" +
                 "  shadow.removeChild(shadow.firstChild);" +
                 "}";

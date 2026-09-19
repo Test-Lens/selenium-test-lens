@@ -21,6 +21,8 @@ public final class OverlayConfig {
     private final HudTheme hudTheme;
     private final HudThemePreset hudThemePreset;
     private final String highlightColor;
+    private final HighlightOptions highlightOptions;
+    private final boolean highlightOptionsAuthoritative;
     private final HudOptions hudOptions;
     private final boolean hudOptionsAuthoritative;
 
@@ -35,7 +37,10 @@ public final class OverlayConfig {
         this.hudMaxWidthPx = builder.hudMaxWidthPx;
         this.hudTheme = builder.hudTheme;
         this.hudThemePreset = builder.hudThemePreset;
-        this.highlightColor = builder.highlightColor;
+        this.highlightOptions = builder.highlightOptions.withLegacyDefaults(
+                builder.highlightColor, builder.decorationDurationMs);
+        this.highlightColor = this.highlightOptions.actionColor();
+        this.highlightOptionsAuthoritative = builder.highlightOptionsExplicit;
         this.hudOptions = builder.hudOptions;
         this.hudOptionsAuthoritative = builder.hudOptionsAuthoritative;
     }
@@ -85,8 +90,14 @@ public final class OverlayConfig {
     }
 
     public String getHighlightColor() {
-        return highlightColor;
+        return highlightOptions.actionColor();
     }
+
+    /** Returns the element-state decoration configuration. @since 0.3.1 */
+    public HighlightOptions getHighlightOptions() { return highlightOptions; }
+
+    /** Whether explicit typed options override overlapping legacy setters. @since 0.3.1 */
+    public boolean isHighlightOptionsAuthoritative() { return highlightOptionsAuthoritative; }
 
     /**
      * Returns the product-level HUD configuration.
@@ -112,8 +123,18 @@ public final class OverlayConfig {
                 .globalOverlayCloseButtonSelector(globalOverlayCloseButtonSelector)
                 .hudOffset(hudOffsetX, hudOffsetY)
                 .highlightColor(highlightColor)
+                .highlightOptions(highlightOptions)
                 .hudOptions(value)
                 .build();
+    }
+
+    OverlayConfig withHighlightOptions(HighlightOptions value) {
+        Builder copy = builder().enabled(enabled).showHudPanel(showHudPanel)
+                .decorationDurationMs(decorationDurationMs)
+                .globalOverlayCloseButtonSelector(globalOverlayCloseButtonSelector)
+                .hudOffset(hudOffsetX, hudOffsetY).highlightColor(highlightColor);
+        if (hudOptionsAuthoritative) copy.hudOptions(hudOptions); else copy.hudTheme(hudTheme);
+        return copy.highlightOptions(value).build();
     }
 
     public static final class Builder {
@@ -129,6 +150,8 @@ public final class OverlayConfig {
         private HudTheme hudTheme = HudTheme.defaultTheme();
         private HudThemePreset hudThemePreset = HudThemePreset.DEFAULT;
         private String highlightColor = "#ffeb3b";
+        private HighlightOptions highlightOptions = HighlightOptions.defaults();
+        private boolean highlightOptionsExplicit;
         private HudOptions hudOptions = HudOptions.defaults();
         private boolean hudOptionsExplicit;
         private boolean hudOptionsAuthoritative = true;
@@ -245,6 +268,15 @@ public final class OverlayConfig {
         public Builder highlightColor(String highlightColor) {
             if (highlightColor != null && !highlightColor.isBlank()) {
                 this.highlightColor = highlightColor;
+            }
+            return this;
+        }
+
+        /** Sets typed decoration options; these win over legacy setters in either call order. @since 0.3.1 */
+        public Builder highlightOptions(HighlightOptions value) {
+            if (value != null) {
+                highlightOptions = value;
+                highlightOptionsExplicit = true;
             }
             return this;
         }

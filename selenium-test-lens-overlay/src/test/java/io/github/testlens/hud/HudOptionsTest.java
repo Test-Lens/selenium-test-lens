@@ -5,6 +5,10 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.Instant;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,6 +20,11 @@ class HudOptionsTest {
         assertEquals(HudPreset.COMPACT, options.preset());
         assertFalse(options.showPipeline());
         assertFalse(options.showTimestamps());
+        assertEquals(HudTimestampFormat.ISO_UTC, options.timestampFormat());
+        assertTrue(options.timestampPattern().isEmpty());
+        assertEquals("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", options.effectiveTimestampPattern());
+        assertTrue(options.usesSystemTimestampZone());
+        assertTrue(options.timestampZone().isEmpty());
         assertTrue(options.showEventLog());
         assertEquals(HudBranding.TEST_LENS, options.branding());
         assertEquals(HudPosition.BOTTOM_RIGHT, options.position());
@@ -29,6 +38,7 @@ class HudOptionsTest {
         assertTrue(options.typography().currentStep().isEmpty());
         assertTrue(options.typography().eventLog().isEmpty());
         assertTrue(options.typography().metadata().isEmpty());
+        assertEquals(9, options.typography().timestampFontSizePx());
         assertEquals(HudScrollbarStyle.SUBTLE, options.scrollbarStyle());
         assertEquals(6, options.scrollbarWidthPx());
         assertEquals("#111827", options.scrollbarTrackColor());
@@ -70,6 +80,109 @@ class HudOptionsTest {
         assertEquals(280, options.widthPx());
     }
 
+    @Test void timestampFormatAndZoneAreIndependentOrderSafeAndRoundTripThroughBuilder() {
+        HudOptions beforePreset = HudOptions.builder()
+                .timestampFormat(HudTimestampFormat.DATE_TIME)
+                .timestampZone(ZoneId.of("Europe/Warsaw"))
+                .preset(HudPreset.MINIMAL)
+                .build();
+        HudOptions afterPreset = HudOptions.builder()
+                .preset(HudPreset.MINIMAL)
+                .timestampFormat(HudTimestampFormat.DATE_TIME)
+                .timestampZone(ZoneId.of("Europe/Warsaw"))
+                .build();
+
+        assertEquals(snapshot(beforePreset), snapshot(afterPreset));
+        assertEquals(HudTimestampFormat.DATE_TIME, beforePreset.timestampFormat());
+        assertEquals(ZoneId.of("Europe/Warsaw"), beforePreset.timestampZone().orElseThrow());
+        assertFalse(beforePreset.usesSystemTimestampZone());
+        assertEquals("EXPLICIT", beforePreset.toRuntimeMap().get("timestampZoneSource"));
+        assertEquals("Europe/Warsaw", beforePreset.toRuntimeMap().get("timestampZone"));
+
+        HudOptions copied = beforePreset.toBuilder().build();
+        assertEquals(snapshot(beforePreset), snapshot(copied));
+        HudOptions system = copied.toBuilder().systemTimestampZone().build();
+        assertTrue(system.usesSystemTimestampZone());
+        assertEquals(ZoneId.systemDefault(), system.effectiveTimestampZone());
+        assertEquals("SYSTEM", system.toRuntimeMap().get("timestampZoneSource"));
+        assertThrows(NullPointerException.class, () -> HudOptions.builder().timestampFormat(null));
+        assertThrows(NullPointerException.class, () -> HudOptions.builder().timestampZone(null));
+    }
+
+    @Test void customTimestampPatternSupportsFractionsZonesDstAndPresetOrder() {
+        Instant precise = Instant.parse("2026-07-15T12:34:56.123456789Z");
+        assertEquals("12:34:56.1", formatted("HH:mm:ss.S", ZoneOffset.UTC, precise));
+        assertEquals("12:34:56.123", formatted("HH:mm:ss.SSS", ZoneOffset.UTC, precise));
+        assertEquals("12:34:56.123456", formatted("HH:mm:ss.SSSSSS", ZoneOffset.UTC, precise));
+        assertEquals("12:34:56.123456789", formatted("HH:mm:ss.SSSSSSSSS", ZoneOffset.UTC, precise));
+        assertEquals("2026-07-15 12:34:56.123 Z",
+                formatted("yyyy-MM-dd HH:mm:ss.SSS XXX", ZoneOffset.UTC, precise));
+        assertTrue(formatted("yyyy-MM-dd HH:mm:ss z", ZoneId.of("Europe/Warsaw"), precise)
+                .endsWith("CEST"));
+
+        HudOptions before = HudOptions.builder().timestampPattern("HH:mm:ss.SSSSSS")
+                .timestampZone(ZoneId.of("America/New_York")).preset(HudPreset.MINIMAL).build();
+        HudOptions after = HudOptions.builder().preset(HudPreset.MINIMAL)
+                .timestampZone(ZoneId.of("America/New_York")).timestampPattern("HH:mm:ss.SSSSSS").build();
+        assertEquals(before.formatHudTimestamp(precise), after.formatHudTimestamp(precise));
+        assertEquals("08:34:56.123456", before.formatHudTimestamp(precise));
+        assertEquals("HH:mm:ss.SSSSSS", before.timestampPattern().orElseThrow());
+        assertEquals("EXPLICIT", before.toRuntimeMap().get("timestampPatternSource"));
+        assertEquals(before.timestampPattern(), before.toBuilder().build().timestampPattern());
+    }
+
+    @Test void warsawZoneUsesDstWhileFixedOffsetDoesNot() {
+        Instant winter = Instant.parse("2026-01-15T12:00:00Z");
+        Instant summer = Instant.parse("2026-07-15T12:00:00Z");
+        String pattern = "yyyy-MM-dd HH:mm:ss XXX";
+        assertEquals("2026-01-15 13:00:00 +01:00", formatted(pattern, ZoneId.of("Europe/Warsaw"), winter));
+        assertEquals("2026-07-15 14:00:00 +02:00", formatted(pattern, ZoneId.of("Europe/Warsaw"), summer));
+        assertEquals("2026-07-15 13:00:00 +01:00", formatted(pattern, ZoneOffset.ofHours(1), summer));
+    }
+
+    @Test void explicitZoneOverridesIsoUtcPresetRegardlessOfSetterOrder() {
+        Instant summer = Instant.parse("2026-07-15T12:34:56.123456789Z");
+        ZoneId warsaw = ZoneId.of("Europe/Warsaw");
+        HudOptions defaultIsoWithExplicitZone = HudOptions.builder()
+                .showTimestamps(true)
+                .timestampZone(warsaw)
+                .build();
+        HudOptions zoneBeforePreset = HudOptions.builder()
+                .showTimestamps(true)
+                .timestampZone(warsaw)
+                .timestampFormat(HudTimestampFormat.ISO_UTC)
+                .build();
+        HudOptions presetBeforeZone = HudOptions.builder()
+                .showTimestamps(true)
+                .timestampFormat(HudTimestampFormat.ISO_UTC)
+                .timestampZone(warsaw)
+                .build();
+        HudOptions zoneBeforeHudPreset = HudOptions.builder()
+                .timestampZone(warsaw)
+                .preset(HudPreset.STANDARD)
+                .build();
+        HudOptions hudPresetBeforeZone = HudOptions.builder()
+                .preset(HudPreset.STANDARD)
+                .timestampZone(warsaw)
+                .build();
+
+        assertEquals("2026-07-15T14:34:56.123+02:00", defaultIsoWithExplicitZone.formatHudTimestamp(summer));
+        assertEquals(defaultIsoWithExplicitZone.formatHudTimestamp(summer), zoneBeforePreset.formatHudTimestamp(summer));
+        assertEquals(zoneBeforePreset.formatHudTimestamp(summer), presetBeforeZone.formatHudTimestamp(summer));
+        assertEquals(zoneBeforePreset.formatHudTimestamp(summer), zoneBeforeHudPreset.formatHudTimestamp(summer));
+        assertEquals(zoneBeforePreset.formatHudTimestamp(summer), hudPresetBeforeZone.formatHudTimestamp(summer));
+    }
+
+    @Test void timestampPatternAndZoneAreValidatedEarlyAndDoNotMutateEvent() {
+        assertThrows(IllegalArgumentException.class, () -> HudOptions.builder().timestampPattern(""));
+        assertThrows(IllegalArgumentException.class, () -> HudOptions.builder().timestampPattern("HH:mm:ss{"));
+        assertThrows(java.time.DateTimeException.class, () -> ZoneId.of("Mars/Olympus"));
+        Instant event = Instant.parse("2026-07-15T12:34:56.123456789Z");
+        formatted("HH:mm:ss.SSS", ZoneId.of("Asia/Tokyo"), event);
+        formatted("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSSXXX", ZoneOffset.UTC, event);
+        assertEquals(Instant.parse("2026-07-15T12:34:56.123456789Z"), event);
+    }
+
     @Test void explicitOverridesAreIndependentOfBuilderCallOrderAcrossAllGroups() {
         HudOptions first = customized(true);
         HudOptions last = customized(false);
@@ -96,6 +209,10 @@ class HudOptionsTest {
         assertThrows(IllegalArgumentException.class, () -> HudOptions.builder().maxHeightPx(119));
         assertThrows(IllegalArgumentException.class, () -> HudOptions.builder().railWidthPx(15));
         assertThrows(IllegalArgumentException.class, () -> HudOptions.builder().baseFontSizePx(8));
+        assertThrows(IllegalArgumentException.class,
+                () -> HudTypography.builder().timestampFontSizePx(7));
+        assertThrows(IllegalArgumentException.class,
+                () -> HudTypography.builder().timestampFontSizePx(19));
         assertThrows(IllegalArgumentException.class, () -> HudOptions.builder().scrollbarWidthPx(3));
         assertThrows(IllegalArgumentException.class, () -> HudOptions.builder().scrollbarWidthPx(15));
         assertThrows(IllegalArgumentException.class, () -> HudOptions.builder().scrollbarThumbColor("rgba(0,0,0,.5)"));
@@ -103,10 +220,16 @@ class HudOptionsTest {
         assertThrows(NullPointerException.class, () -> HudOptions.builder().headerLayout(null));
     }
 
+    private static String formatted(String pattern, ZoneId zone, Instant instant) {
+        return HudOptions.builder().timestampPattern(pattern).timestampZone(zone).build()
+                .formatHudTimestamp(instant);
+    }
+
     @Test void sectionTypographyOverridesTheGlobalPresetAndIgnoresBuilderOrder() {
         HudTypography typography = HudTypography.builder()
                 .header(HudFontPreset.MONOSPACE)
                 .eventLog(HudFontPreset.SYSTEM)
+                .timestampFontSizePx(12)
                 .build();
 
         HudOptions beforePreset = HudOptions.builder()
@@ -125,7 +248,9 @@ class HudOptionsTest {
         assertEquals(HudFontPreset.SYSTEM, beforePreset.typography().eventLog().orElseThrow());
         assertTrue(beforePreset.typography().currentStep().isEmpty());
         assertTrue(beforePreset.typography().metadata().isEmpty());
-        assertEquals("{header=MONOSPACE, eventLog=SYSTEM}", beforePreset.typography().toRuntimeMap().toString());
+        assertEquals(12, beforePreset.typography().timestampFontSizePx());
+        assertEquals("{header=MONOSPACE, eventLog=SYSTEM, timestampFontSize=12}",
+                beforePreset.typography().toRuntimeMap().toString());
     }
 
     @Test void scrollbarOverridesWinRegardlessOfPresetCallOrderAndNativeRemainsAvailable() {
@@ -179,6 +304,19 @@ class HudOptionsTest {
         assertThrows(IllegalStateException.class, () -> HudOptions.builder().customLogo(png).build());
         assertThrows(IllegalStateException.class, () -> HudOptions.builder().customLogo(png)
                 .preset(HudPreset.COMPACT).build());
+    }
+
+    @Test void sourceNavigationIsOptInAndDoesNotExposeRootsToBrowserRuntime() {
+        assertFalse(HudOptions.defaults().sourceNavigation().enabled());
+        Path privateRoot = Path.of("D:\\Company Project\\src\\test\\java");
+        HudOptions options = HudOptions.builder().sourceNavigation(SourceNavigationOptions.builder()
+                .enabled(true).activationModifier(SourceNavigationModifier.CTRL_ALT)
+                .ide(SourceIde.VSCODE).sourceRoots(privateRoot).build()).build();
+        assertTrue(options.sourceNavigation().enabled());
+        assertEquals(SourceIde.VSCODE, options.sourceNavigation().ide());
+        assertEquals(List.of(privateRoot), options.sourceNavigation().sourceRoots());
+        assertTrue((Boolean) options.toRuntimeMap().get("sourceNavigationEnabled"));
+        assertFalse(options.toRuntimeMap().toString().contains("Company Project"));
     }
 
     private HudOptions customized(boolean presetFirst) {

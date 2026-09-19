@@ -39,6 +39,13 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("data-test-lens-font-status"));
         assertTrue(HudPanelJs.INIT.contains("data-test-lens-font-reflow"));
         assertTrue(HudPanelJs.INIT.contains("sharedTypography.subscribe"));
+        assertTrue(HudPanelJs.INIT.contains("source-navigation-active"));
+        assertTrue(HudPanelJs.INIT.contains("panel.style.pointerEvents = 'none'"));
+        assertTrue(HudPanelJs.INIT.contains("window.addEventListener('blur'"));
+        assertTrue(HudPanelJs.INIT.contains("cleanupSourceNavigation"));
+        assertTrue(HudPanelJs.INIT.contains("__uiTestLensSourceNavigation"));
+        assertTrue(HudPanelJs.INIT.contains("getModifierState('AltGraph')"));
+        assertFalse(HudPanelJs.INIT.contains("source.setAttribute('href'"));
     }
 
     @Test
@@ -179,7 +186,7 @@ class HudPanelJsTest {
                   this.attributes = {};
                   this.id = '';
                   this.className = '';
-                  this.textContent = '';
+                  this._textContent = '';
                   this.innerHTML = '';
                   this.offsetHeight = 20;
                   this.offsetTop = 0;
@@ -189,6 +196,14 @@ class HudPanelJsTest {
                     remove: function() { for (var i=0;i<arguments.length;i++) owner.className=(' '+owner.className+' ').replace(' '+arguments[i]+' ',' ').trim(); }
                   };
                 }
+                Object.defineProperty(Element.prototype, 'textContent', {
+                  get: function() {
+                    if (this.tagName === '#text') return this._textContent;
+                    if (this.children.length) return this.children.map(function(child){return child.textContent;}).join('');
+                    return this._textContent;
+                  },
+                  set: function(value) { this._textContent = String(value); this.children = []; }
+                });
                 Element.prototype.appendChild = function(child) {
                   if (child.parentNode) {
                     var oldIndex = child.parentNode.children.indexOf(child);
@@ -283,7 +298,10 @@ class HudPanelJsTest {
                   },
                   getComputedStyle: function() { return { paddingTop: '0', paddingBottom: '0' }; }
                 };
-                var document = { createElement: function(tag) { return new Element(tag); } };
+                var document = {
+                  createElement: function(tag) { return new Element(tag); },
+                  createTextNode: function(value) { var node=new Element('#text');node.textContent=value;return node; }
+                };
                 var runtime =\s""" + jsonString(HudPanelJs.INIT) + """
                 ;
 
@@ -374,6 +392,49 @@ class HudPanelJsTest {
                 window.__uiTestLens.modules.hud.log('hidden network', 'info', 'now', 'NETWORK_RESPONSE_RECORDED');
                 window.__uiTestLens.modules.hud.log('visible assertion', 'info', 'now', 'ASSERTION_PASSED');
                 assert(root.querySelector('#selenium-hud-logs').children.length === rowsBefore + 1, 'semantic event filter failed');
+
+                function lastLog() {
+                  var values = root.querySelector('#selenium-hud-logs').children;
+                  return values[values.length - 1];
+                }
+                function timestampConfig(format, zone, shown) {
+                  window.__uiTestLens.modules.hud.init({testName:'Timestamps',theme:{},hudOptions:{
+                    showEventLog:true,showTimestamps:shown,timestampFormat:format,timestampZone:zone,
+                    branding:'NONE',showNetwork:true,showRetries:true,showWaits:true,showAssertions:true}});
+                }
+                timestampConfig('ISO_UTC', 'UTC', true);
+                window.__uiTestLens.modules.hud.clear();
+                window.__uiTestLens.modules.hud.log('canonical','info','2026-01-15T12:34:56.123456789Z','GENERAL',null,null,'2026-01-15T12:34:56.123456789Z');
+                assert(lastLog().textContent === '[2026-01-15T12:34:56.123456789Z][INFO] canonical', 'ISO UTC rendering differs');
+                assert(lastLog().attributes['data-test-lens-timestamp'] === '2026-01-15T12:34:56.123456789Z', 'canonical timestamp precision was not retained');
+                timestampConfig('TIME_ONLY', 'Europe/Warsaw', true);
+                window.__uiTestLens.modules.hud.clear();
+                window.__uiTestLens.modules.hud.log('winter','info','2026-01-15T22:59:59Z','GENERAL',null,null,'23:59:59');
+                assert(lastLog().textContent === '[23:59:59][INFO] winter', 'Warsaw winter offset differs');
+                window.__uiTestLens.modules.hud.log('summer','info','2026-07-15T21:59:59Z','GENERAL',null,null,'23:59:59');
+                assert(lastLog().textContent === '[23:59:59][INFO] summer', 'Warsaw summer offset differs');
+                timestampConfig('DATE_TIME', 'Europe/Warsaw', true);
+                window.__uiTestLens.modules.hud.clear();
+                window.__uiTestLens.modules.hud.log('midnight','info','2026-07-15T22:00:00Z','GENERAL',null,null,'16.07.26 00:00:00');
+                assert(lastLog().textContent === '[16.07.26 00:00:00][INFO] midnight', 'date rollover differs');
+                var categories=['STEP','ACTION','HIGHLIGHT','WAIT','LOCATOR_RETRY','ASSERTION_PASSED','NETWORK_WAIT_STARTED','NETWORK_RESPONSE_RECORDED','AUTH_STATE_CREATED','SCREENSHOT_CAPTURE_PASSED','WARNING','ERROR','HUD'];
+                var categoryStart=root.querySelector('#selenium-hud-logs').children.length;
+                categories.forEach(function(type,index){window.__uiTestLens.modules.hud.log(type,'info','2026-07-15T22:00:00Z',type,null,null,'16.07.26 00:00:00');});
+                assert(root.querySelector('#selenium-hud-logs').children.length-categoryStart === categories.length, 'a visible category was lost or duplicated');
+                for(var categoryIndex=0;categoryIndex<categories.length;categoryIndex++) {
+                  assert(root.querySelector('#selenium-hud-logs').children[categoryStart+categoryIndex].textContent.indexOf('[16.07.26 00:00:00][INFO] ') === 0, 'category timestamp missing');
+                }
+                ['','not-a-date','ui-test-lens',null,undefined].forEach(function(value){
+                  window.__uiTestLens.modules.hud.log('fallback','info',value,'GENERAL');
+                  var text=lastLog().textContent;
+                  assert(/^\\[\\d{4}-\\d{2}-\\d{2}T.*Z\\]\\[INFO\\] fallback$/.test(text), 'invalid timestamp fallback missing');
+                  assert(text.indexOf('Invalid Date')<0&&text.indexOf('undefined')<0&&text.indexOf('null')<0&&text.indexOf('ui-test-lens')<0&&text.indexOf('[]')<0, 'invalid timestamp leaked');
+                });
+                timestampConfig('DATE_TIME', 'Europe/Warsaw', false);
+                window.__uiTestLens.modules.hud.clear();
+                window.__uiTestLens.modules.hud.log('hidden prefix','info',null,'GENERAL');
+                assert(lastLog().textContent === '[INFO] hidden prefix', 'hidden timestamp left spacing or brackets');
+                assert(/^\\d{4}-\\d{2}-\\d{2}T/.test(lastLog().attributes['data-test-lens-timestamp']), 'hidden timestamp was not assigned once');
 
                 [{w:1440,h:900},{w:1024,h:768},{w:768,h:700},{w:390,h:844}].forEach(function(viewport) {
                   ['TOP_LEFT', 'TOP_RIGHT', 'BOTTOM_LEFT', 'BOTTOM_RIGHT'].forEach(function(position) {

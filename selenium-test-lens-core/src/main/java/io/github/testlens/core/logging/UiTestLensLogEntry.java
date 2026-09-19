@@ -22,6 +22,10 @@ public record UiTestLensLogEntry(
         Map<String, String> metadata,
         Throwable throwable
 ) {
+    public static final String SOURCE_CLASS = "source.className";
+    public static final String SOURCE_METHOD = "source.methodName";
+    public static final String SOURCE_FILE = "source.fileName";
+    public static final String SOURCE_LINE = "source.lineNumber";
     public UiTestLensLogEntry {
         timestamp = timestamp != null ? timestamp : Instant.now();
         level = level != null ? level : UiTestLensLogLevel.INFO;
@@ -34,6 +38,16 @@ public record UiTestLensLogEntry(
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    /** Returns logical source metadata without resolving or exposing a local absolute path. @since 0.3.1 */
+    public java.util.Optional<SourceLocation> sourceLocation() {
+        String file = metadata.get(SOURCE_FILE);
+        if (file == null || file.isBlank()) return java.util.Optional.empty();
+        int line = 0;
+        try { line = Integer.parseInt(metadata.getOrDefault(SOURCE_LINE, "0")); }
+        catch (NumberFormatException ignored) { }
+        return java.util.Optional.of(new SourceLocation(metadata.get(SOURCE_CLASS), metadata.get(SOURCE_METHOD), file, line));
     }
 
     public static UiTestLensLogEntry info(String message) {
@@ -149,6 +163,15 @@ public record UiTestLensLogEntry(
             copy.put(key, value);
             this.metadata = Collections.unmodifiableMap(copy);
             return this;
+        }
+
+        /** Adds safe logical source metadata; no local path or IDE URI is retained. @since 0.3.1 */
+        public Builder sourceLocation(SourceLocation value) {
+            if (value == null) return this;
+            return metadata(SOURCE_CLASS, value.className())
+                    .metadata(SOURCE_METHOD, value.methodName())
+                    .metadata(SOURCE_FILE, value.fileName())
+                    .metadata(SOURCE_LINE, String.valueOf(value.lineNumber()));
         }
 
         public Builder throwable(Throwable throwable) {

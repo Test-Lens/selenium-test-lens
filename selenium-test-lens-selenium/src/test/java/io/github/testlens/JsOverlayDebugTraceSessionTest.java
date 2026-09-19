@@ -27,6 +27,7 @@ import javax.imageio.ImageIO;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +38,25 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsOverlayDebugTraceSessionTest {
+
+    @Test
+    void hudLogKeepsValidEventTimeAndReplacesPlaceholderWithOneCanonicalInstant() {
+        JsOverlayDebug overlay = new JsOverlayDebug(fakeDriver());
+        UiTestLensSession session = overlay.startSession("hud timestamps");
+        Instant supplied = Instant.parse("2026-01-15T10:20:30.123456789Z");
+        Instant beforeFallback = Instant.now();
+
+        overlay.hudLog("info", "supplied", supplied.toString());
+        overlay.hudLog("warn", "placeholder", "ui-test-lens");
+        Instant afterFallback = Instant.now();
+
+        var suppliedEvent = session.events().stream().filter(event -> "supplied".equals(event.message())).findFirst().orElseThrow();
+        var fallbackEvent = session.events().stream().filter(event -> "placeholder".equals(event.message())).findFirst().orElseThrow();
+        assertEquals(supplied, suppliedEvent.timestamp());
+        assertFalse(fallbackEvent.timestamp().isBefore(beforeFallback));
+        assertFalse(fallbackEvent.timestamp().isAfter(afterFallback));
+        assertEquals(fallbackEvent.timestamp().toString(), fallbackEvent.attributes().get("metadata.timestamp"));
+    }
 
     @Test
     void directlyCreatedFacadeUsesSafeDefaultRedaction() {

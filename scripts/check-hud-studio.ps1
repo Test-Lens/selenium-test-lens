@@ -4,6 +4,8 @@ $root = Split-Path -Parent $PSScriptRoot
 $source = Join-Path $root "docs/demo/hud-studio"
 $page = Join-Path $root "docs/observability/hud-studio.md"
 $hostScript = Join-Path $root "docs/javascripts/hud-studio-host.js"
+$favicon = Join-Path $root "docs/assets/images/favicon.png"
+$mkdocs = Join-Path $root "mkdocs.yml"
 $runtime = Join-Path $root "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"
 $runtimeManifest = Join-Path $root "docs-hooks/hud-demo-runtime-assets.txt"
 if (-not (Test-Path -LiteralPath $runtimeManifest -PathType Leaf)) { throw "HUD Studio runtime asset manifest is missing." }
@@ -16,9 +18,17 @@ foreach ($name in @("index.html", "studio.css", "studio.js", "preview.html", "pr
     if (-not (Test-Path -LiteralPath (Join-Path $source $name) -PathType Leaf)) { throw "HUD Studio asset is missing: $name" }
 }
 if (-not (Test-Path -LiteralPath $hostScript -PathType Leaf)) { throw "HUD Studio host script is missing." }
+if (-not (Test-Path -LiteralPath $favicon -PathType Leaf)) { throw "Documentation favicon is missing." }
+if (-not ([IO.File]::ReadAllText($mkdocs)).Contains('favicon: assets/images/favicon.png')) {
+    throw "MkDocs does not reference the version-relative Test Lens favicon."
+}
 $pageText = [IO.File]::ReadAllText($page)
-foreach ($contract in @('data-studio-host', 'data-studio-open', 'data-studio-expand', 'data-studio-fullscreen', 'data-studio-exit', '.tl-hud-studio-toolbar>[hidden]{display:none}', 'src="../../demo/hud-studio/"', 'href="../../demo/hud-studio/"', 'target="_blank"', 'rel="noopener noreferrer"', 'sandbox="allow-scripts"', 'allow="fullscreen"', 'allowfullscreen', 'For the best editing experience, open Studio in a full-width view.')) {
+foreach ($contract in @('data-studio-host', 'data-studio-open', 'data-studio-expand', 'data-studio-fullscreen', 'data-studio-exit', '.tl-hud-studio-toolbar>[hidden]{display:none}', 'src="../../demo/hud-studio/"', 'href="../../demo/hud-studio/"', 'target="_blank"', 'rel="noopener noreferrer"', 'sandbox="allow-scripts"', 'allow="fullscreen"', 'allowfullscreen', 'body.tl-hud-studio-page .md-main__inner{max-width:none}', 'body.tl-hud-studio-page .md-sidebar--secondary{display:none}', 'For the best editing experience, open Studio in a full-width view.')) {
     if (-not $pageText.Contains($contract)) { throw "HUD Studio documentation host is missing contract: $contract" }
+}
+if ($pageText -match '(?s)(?<!tl-hud-studio-page )\.md-grid\s*\{[^}]*max-width\s*:\s*none' -or
+    $pageText -match '(?s)(?<!tl-hud-studio-page )\.md-main__inner\s*\{[^}]*max-width\s*:\s*none') {
+    throw "HUD Studio full-width styling must remain scoped to the Studio page."
 }
 if ($pageText -notmatch '(?s)\.tl-studio-focus-mode\s+\.md-header.*?\.md-sidebar.*?display:none' -or
     $pageText -notmatch '(?s)\.tl-studio-focus-mode\s+\.tl-hud-studio-host.*?position:fixed.*?width:100vw.*?height:100vh' -or
@@ -26,16 +36,18 @@ if ($pageText -notmatch '(?s)\.tl-studio-focus-mode\s+\.md-header.*?\.md-sidebar
     throw "HUD Studio expanded mode must cover the viewport and hide documentation chrome."
 }
 $hostText = [IO.File]::ReadAllText($hostScript)
-foreach ($contract in @("requestFullscreen()", "fullscreenchange", "tl-studio-focus-mode", "studio-host-resize", "new Event('resize')", "event.key === 'Escape'", "expandTrigger.focus()")) {
+foreach ($contract in @("requestFullscreen()", "fullscreenchange", "tl-hud-studio-page", "tl-studio-focus-mode", "studio-host-resize", "new Event('resize')", "event.key === 'Escape'", "expandTrigger.focus()")) {
     if (-not $hostText.Contains($contract)) { throw "HUD Studio host behavior is missing contract: $contract" }
-}
-$studioScripts = @(Get-ChildItem -LiteralPath (Join-Path $root "docs") -Recurse -Filter "studio.js" -File)
-if ($studioScripts.Count -ne 1 -or $studioScripts[0].FullName -ne (Join-Path $source "studio.js")) {
-    throw "HUD Studio must have exactly one application implementation."
 }
 $html = [IO.File]::ReadAllText((Join-Path $source "index.html"))
 foreach ($asset in @("preview.html", "studio.js", "studio.css")) {
     if (-not $html.Contains($asset)) { throw "HUD Studio does not use required relative asset: $asset" }
+}
+foreach ($control in @('id="timestamp-format"', '<option>CUSTOM</option>', 'id="timestamp-pattern"', 'readonly',
+        'id="timestamp-zone-mode"', '<option>SYSTEM</option>', '<option>UTC</option>',
+        'id="timestamp-zone-custom"', 'id="timestamp-zone"', 'id="timestamp-winter-preview"',
+        'id="timestamp-summer-preview"', 'id="timestamp-font"')) {
+    if (-not $html.Contains($control)) { throw "HUD Studio timestamp UI is missing contract: $control" }
 }
 if ($html -match '(?i)(?:src|href)\s*=\s*["''](?:https?:)?//') { throw "HUD Studio must not load external assets." }
 if ($html -notmatch 'sandbox=["'']allow-scripts["'']') { throw "HUD Studio preview must use the minimal allow-scripts sandbox." }
@@ -47,7 +59,7 @@ foreach ($asset in @("runtime/visual-typography.js", "runtime/hud-panel.js", "ru
 
 $script = [IO.File]::ReadAllText((Join-Path $source "studio.js"))
 $styles = [IO.File]::ReadAllText((Join-Path $source "studio.css"))
-foreach ($contract in @("HudOptions.builder()", ".preset(HudPreset.", ".hud(hud)", "offsetXPx", "maxHeightPx", "headerLayout", "HudHeaderLayout", "data-header-layout", "fontPreset", "HudTypography.builder()", "data-typography", "scrollbarStyle", "scrollbarThumbColor", "scrollbar-style", "customLogo", "runtime-logo-path", "showNetwork", "showRetries", "import io.github.testlens.TestLens")) {
+foreach ($contract in @("HudOptions.builder()", ".preset(HudPreset.", ".hud(hud)", "offsetXPx", "maxHeightPx", "headerLayout", "HudHeaderLayout", "data-header-layout", "fontPreset", "HudTypography.builder()", "data-typography", "scrollbarStyle", "scrollbarThumbColor", "scrollbar-style", "customLogo", "runtime-logo-path", "showNetwork", "showRetries", "timestampFormat", "timestampZone", "timestampFormatMode", "timestampZoneMode", "HudTimestampFormat", "ZoneId.of", "ZoneOffset.UTC", "HighlightOptions.builder()", ".highlights(highlights)", "actionColor", "waitingColor", "retryColor", "successColor", "failureColor", "automaticFeedback", "borderWidthPx", "sourceNavigation(SourceNavigationOptions.builder()", "SourceNavigationModifier", "VisualRedactionOptions.defaults()", "import io.github.testlens.TestLens")) {
     if (-not $script.Contains($contract)) { throw "HUD Studio is missing contract: $contract" }
 }
 $allScripts = $script + [IO.File]::ReadAllText((Join-Path $source "preview.js"))
@@ -56,6 +68,9 @@ $previewScript = [IO.File]::ReadAllText((Join-Path $source "preview.js"))
 $previewStyles = [IO.File]::ReadAllText((Join-Path $source "preview.css"))
 foreach ($contract in @("function beginDrag", "function beginResize", "stl-studio-drag-handle", "position:vertical+'_'+horizontal", "Math.min(500", "offsetX", "maxHeight", "type:'hud-change'", "type:'hud-select'")) {
     if (-not $previewScript.Contains($contract)) { throw "HUD Studio preview is missing WYSIWYG contract: $contract" }
+}
+if ($previewScript -notmatch 'sourceNavigationPreviewActive' -or $previewScript -notmatch 'new KeyboardEvent') {
+    throw "HUD Studio preview must expose inactive and active source-navigation states through the runtime keyboard contract."
 }
 if ($script -match 'var presets\s*=\s*\{') { throw "HUD Studio must consume preset definitions from the runtime renderer." }
 if ($html -notmatch 'data-preset="STANDARD"' -or $html -match 'data-preset="DEFAULT"') { throw "HUD Studio preset names are stale." }
@@ -99,7 +114,8 @@ if (-not [string]::IsNullOrWhiteSpace($SiteDirectory)) {
     foreach ($builtPath in @(
         "observability/hud-studio/index.html",
         "demo/hud-studio/index.html",
-        "javascripts/hud-studio-host.js"
+        "javascripts/hud-studio-host.js",
+        "assets/images/favicon.png"
     )) {
         if (-not (Test-Path -LiteralPath (Join-Path $site $builtPath) -PathType Leaf)) {
             throw "Built HUD Studio host asset is missing: $builtPath"
@@ -107,17 +123,31 @@ if (-not [string]::IsNullOrWhiteSpace($SiteDirectory)) {
     }
     $builtPage = [IO.File]::ReadAllText((Join-Path $site "observability/hud-studio/index.html"))
     if (-not $builtPage.Contains('../../demo/hud-studio/') -or
-        -not $builtPage.Contains('../../javascripts/hud-studio-host.js')) {
-        throw "Built HUD Studio page does not retain the canonical standalone URL and host script."
+        -not $builtPage.Contains('../../javascripts/hud-studio-host.js') -or
+        -not $builtPage.Contains('<link rel="icon" href="../../assets/images/favicon.png">') -or
+        -not $builtPage.Contains('body.tl-hud-studio-page .md-main__inner{max-width:none}')) {
+        throw "Built HUD Studio page does not retain the canonical URLs and page-scoped full-width contract."
+    }
+    $builtHome = [IO.File]::ReadAllText((Join-Path $site "index.html"))
+    if (-not $builtHome.Contains('<link rel="icon" href="assets/images/favicon.png">')) {
+        throw "Built versioned landing page does not use a version-relative favicon URL."
+    }
+    if ((Get-FileHash (Join-Path $site "assets/images/favicon.png") -Algorithm SHA256).Hash -ne
+        (Get-FileHash $favicon -Algorithm SHA256).Hash) {
+        throw "Built versioned favicon differs from the canonical Test Lens asset."
+    }
+    foreach ($name in @("index.html", "studio.css", "studio.js", "preview.html", "preview.css", "preview.js")) {
+        $builtAsset = Join-Path $site "demo/hud-studio/$name"
+        if ((Get-FileHash $builtAsset -Algorithm SHA256).Hash -ne
+            (Get-FileHash (Join-Path $source $name) -Algorithm SHA256).Hash) {
+            throw "Built versioned HUD Studio asset is stale or transformed: $name"
+        }
     }
     foreach ($name in $runtimeFiles) {
-        $canonicalHash = (Get-FileHash (Join-Path $runtime $name) -Algorithm SHA256).Hash
-        foreach ($demo in @("hud", "hud-studio")) {
-            $built = Join-Path $site "demo/$demo/runtime/$name"
-            if (-not (Test-Path -LiteralPath $built -PathType Leaf)) { throw "Built $demo renderer is missing: $name" }
-            if ((Get-FileHash $built -Algorithm SHA256).Hash -ne $canonicalHash) {
-                throw "Built $demo renderer differs from runtime: $name"
-            }
+        $built = Join-Path $site "demo/hud-studio/runtime/$name"
+        if (-not (Test-Path -LiteralPath $built -PathType Leaf)) { throw "Built HUD Studio renderer is missing: $name" }
+        if ((Get-FileHash $built -Algorithm SHA256).Hash -ne (Get-FileHash (Join-Path $runtime $name) -Algorithm SHA256).Hash) {
+            throw "HUD Studio renderer differs from runtime: $name"
         }
     }
 }

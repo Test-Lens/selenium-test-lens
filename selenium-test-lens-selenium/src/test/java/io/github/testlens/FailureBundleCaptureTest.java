@@ -356,10 +356,13 @@ class FailureBundleCaptureTest {
                         }
                         case "executeScript" -> {
                             String script = String.valueOf(args[0]);
+                            if (script.contains("cloneNode(false)")) yield false;
+                            if (script.contains("state.snapshot && state.snapshot.isConnected")) yield true;
                             if (script.contains("window[key] =")) yield Map.of(
                                     "documentWidth", 4, "documentHeight", 6,
                                     "viewportWidth", 4, "viewportHeight", 3,
-                                    "scrollX", 0, "scrollY", scrollY.get(), "topLevel", true);
+                                    "scrollX", 0, "scrollY", scrollY.get(),
+                                    "devicePixelRatio", 1.0, "topLevel", true);
                             if (script.contains("querySelectorAll('*')")) yield null;
                             if (script.contains("state.hidden.length")) { scrollY.set(0); yield true; }
                             if (script.contains("style.visibility='hidden'")) { order.add("hide"); yield Map.of("present", true, "visibility", ""); }
@@ -368,11 +371,19 @@ class FailureBundleCaptureTest {
                             yield null;
                         }
                         case "executeAsyncScript" -> {
+                            String script = String.valueOf(args[0]);
                             Object[] scriptArguments = (Object[]) args[1];
+                            if (script.contains("data-test-lens-screenshot-guard") || scriptArguments.length == 0) {
+                                yield Map.of("documentWidth", 4, "documentHeight", 6,
+                                        "viewportWidth", 4, "viewportHeight", 3,
+                                        "scrollX", 0, "scrollY", scrollY.get(),
+                                        "devicePixelRatio", 1.0, "topLevel", true);
+                            }
                             scrollY.set(Math.min(((Number) scriptArguments[1]).intValue(), 3));
                             yield Map.of("documentWidth", 4, "documentHeight", 6,
                                     "viewportWidth", 4, "viewportHeight", 3,
-                                    "scrollX", 0, "scrollY", scrollY.get(), "topLevel", true);
+                                    "scrollX", 0, "scrollY", scrollY.get(),
+                                    "devicePixelRatio", 1.0, "topLevel", true);
                         }
                         case "getCurrentUrl" -> "http://127.0.0.1/test";
                         case "getTitle" -> "Bundle test";

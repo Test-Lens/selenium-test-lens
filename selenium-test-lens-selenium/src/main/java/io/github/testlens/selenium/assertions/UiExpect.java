@@ -1,5 +1,6 @@
 package io.github.testlens.selenium.assertions;
 
+import io.github.testlens.HighlightState;
 import io.github.testlens.core.OverlayLogger;
 import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.locator.UiLocator;
@@ -18,6 +19,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Supplier;
+import java.util.function.Consumer;
 
 public final class UiExpect {
     private static final String INTERNAL_OBSERVATION_PREFIX = "test-lens-assertion:";
@@ -31,22 +33,40 @@ public final class UiExpect {
     private final VisibilityProbe visibilityProbe;
     private final ElementProbe elementProbe;
     private final RedactionPolicy redactionPolicy;
+    private final Consumer<HighlightState> decoration;
+    private final boolean sourceNavigationEnabled;
 
     public UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger) {
-        this(locator, options, logger, null, null);
+        this(locator, options, logger, null, null, null, false);
     }
 
     public UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger, VisibilityProbe visibilityProbe) {
-        this(locator, options, logger, visibilityProbe, null);
+        this(locator, options, logger, visibilityProbe, null, null, false);
     }
 
     public UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger, VisibilityProbe visibilityProbe, ElementProbe elementProbe) {
+        this(locator, options, logger, visibilityProbe, elementProbe, null, false);
+    }
+
+    /** Internal integration constructor used by locator-backed assertions. @since 0.3.1 */
+    public UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger,
+                    VisibilityProbe visibilityProbe, ElementProbe elementProbe,
+                    Consumer<HighlightState> decoration) {
+        this(locator, options, logger, visibilityProbe, elementProbe, decoration, false);
+    }
+
+    /** Internal integration constructor used by source-aware locator assertions. @since 0.3.1 */
+    public UiExpect(UiLocator locator, UiAssertionOptions options, OverlayLogger logger,
+                    VisibilityProbe visibilityProbe, ElementProbe elementProbe,
+                    Consumer<HighlightState> decoration, boolean sourceNavigationEnabled) {
         this.locator = Objects.requireNonNull(locator, "locator must not be null");
         this.options = options != null ? options : UiAssertionOptions.defaults();
-        this.reporter = new UiAssertionReporter(logger);
+        this.reporter = new UiAssertionReporter(logger, sourceNavigationEnabled);
         this.redactionPolicy = logger == null ? RedactionPolicy.defaults() : logger.redactionPolicy();
         this.visibilityProbe = visibilityProbe;
         this.elementProbe = elementProbe;
+        this.decoration = decoration == null ? ignored -> { } : decoration;
+        this.sourceNavigationEnabled = sourceNavigationEnabled;
     }
 
     public UiAssertionResult toBeVisible() {
@@ -401,6 +421,7 @@ public final class UiExpect {
         Instant started = Instant.now();
         Instant deadline = started.plus(options.timeout());
         reporter.started(assertionName, locator.description());
+        decorate(HighlightState.WAITING);
         int attempts = 0;
         Evaluation lastEvaluation = Evaluation.notReady(UiAssertionFailureReason.UNKNOWN, "", "Assertion has not run yet");
         RuntimeException lastException = null;
@@ -415,6 +436,7 @@ public final class UiExpect {
                     UiAssertionResult result = safe(UiAssertionResult.passed(assertionName, locator.description(), expectedPreview,
                             evaluation.actualPreview(), attempts, Duration.between(started, Instant.now()), evaluation.message()));
                     reporter.passed(result);
+                    decorate(HighlightState.SUCCESS);
                     return result;
                 }
                 if (options.failFastOnMissingElement() && evaluation.missingElement()) {
@@ -439,6 +461,7 @@ public final class UiExpect {
                         locator.description(), expectedPreview, lastEvaluation.actualPreview(), attempts,
                         Duration.between(started, Instant.now()), timeoutMessage(lastEvaluation, lastException, valueAssertion)));
                 reporter.failed(result);
+                decorate(HighlightState.FAILURE);
                 UiAssertionError error = new UiAssertionError(result);
                 error.initCause(new TimeoutException(
                         timeoutMessage(lastEvaluation, lastException, valueAssertion), lastException));
@@ -446,6 +469,7 @@ public final class UiExpect {
             }
 
             reporter.retry(assertionName, locator.description(), attempts, expectedPreview, lastEvaluation.actualPreview());
+            decorate(HighlightState.RETRY);
             LockSupport.parkNanos(options.pollInterval().toNanos());
         }
     }
@@ -460,9 +484,14 @@ public final class UiExpect {
                 locator.description(), expectedPreview, evaluation.actualPreview(), attempts,
                 Duration.between(started, Instant.now()), evaluation.message()));
         reporter.failed(result);
+        decorate(HighlightState.FAILURE);
         UiAssertionError error = new UiAssertionError(result);
         if (cause != null) error.initCause(cause);
         return error;
+    }
+
+    private void decorate(HighlightState state) {
+        try { decoration.accept(state); } catch (RuntimeException ignored) { }
     }
 
     private UiAssertionResult safe(UiAssertionResult result) {

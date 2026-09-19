@@ -7,6 +7,7 @@ import io.github.testlens.core.browser.BrowserScriptExecutor;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.time.Instant;
 
 /**
  * Browser HUD panel configured by {@link HudOptions}. HUD rendering is best-effort.
@@ -54,17 +55,34 @@ public class HudPanel {
     }
 
     public void appendLog(String level, String message, String timestamp) {
+        appendLog(level, message, timestamp, "GENERAL", null, null);
+    }
+
+    /** Appends a row with optional logical source label and local-only navigation target. @since 0.3.1 */
+    public void appendLog(String level, String message, String timestamp, String eventType,
+                          String sourceLabel, String navigationTarget) {
         if (!config.isEnabled() || !config.isShowHudPanel()) {
             return;
         }
 
         safely(() -> {
         ensureHudPanelExists();
+        Instant eventTimestamp = eventTimestamp(timestamp);
+        HudOptions hudOptions = config.getHudOptions();
         scriptExecutor.execute(
                 HudPanelJs.bridgeScript() +
-                        "if (hud) { hud.log(arguments[1], arguments[0], arguments[2], arguments[3]); }",
-                level, message, timestamp, "GENERAL");
+                        "if (hud) { hud.log(arguments[1], arguments[0], arguments[2], arguments[3], arguments[4], arguments[5], arguments[6]); }",
+                level, message, eventTimestamp.toString(), eventType == null ? "GENERAL" : eventType,
+                sourceLabel, navigationTarget, hudOptions.formatHudTimestamp(eventTimestamp));
         });
+    }
+
+    private static Instant eventTimestamp(String value) {
+        if (value != null) {
+            try { return Instant.parse(value.trim()); }
+            catch (RuntimeException ignored) { /* assign once below */ }
+        }
+        return Instant.now();
     }
 
     private void ensureHudPanelExists() {
@@ -98,7 +116,7 @@ public class HudPanel {
                 config.getHudTheme().toMap(),
                 config.getHudThemePreset() == null ? "CUSTOM" : config.getHudThemePreset().name(),
                 config.isHudOptionsAuthoritative()
-                        ? config.getHudOptions().toRuntimeMap()
+                        ? config.getHudOptions().toBrowserRuntimeMap()
                         : Collections.emptyMap()
         );
     }

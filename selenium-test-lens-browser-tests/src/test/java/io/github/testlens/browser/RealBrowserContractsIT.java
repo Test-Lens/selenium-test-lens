@@ -1,8 +1,11 @@
 package io.github.testlens.browser;
 
+import consumer.pages.ConsumerSourcePage;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import io.github.testlens.JsOverlayDebug;
+import io.github.testlens.HighlightOptions;
+import io.github.testlens.HighlightState;
 import io.github.testlens.OverlayConfig;
 import io.github.testlens.TestLens;
 import io.github.testlens.TestLensFinalizationResult;
@@ -14,6 +17,9 @@ import io.github.testlens.hud.HudPosition;
 import io.github.testlens.hud.HudPreset;
 import io.github.testlens.hud.HudScrollbarStyle;
 import io.github.testlens.hud.HudTypography;
+import io.github.testlens.hud.HudTimestampFormat;
+import io.github.testlens.hud.SourceIde;
+import io.github.testlens.hud.SourceNavigationOptions;
 import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.RetryOutcomePolicy;
@@ -64,6 +70,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -127,6 +134,59 @@ class RealBrowserContractsIT {
         lens.highlightClick(driver.findElement(By.id("count-button")), "COUNT");
 
         assertClickCounts(0);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void hudTimestampContractIsRenderedInTheLocalFixtureDom() {
+        open("/clicks");
+        HudOptions hudOptions = HudOptions.builder()
+                .showTimestamps(true)
+                .timestampPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSS XXX")
+                .timestampZone(ZoneId.of("Europe/Warsaw"))
+                .typography(io.github.testlens.hud.HudTypography.builder().timestampFontSizePx(8).build())
+                .build();
+        JsOverlayDebug overlay = new JsOverlayDebug(driver, OverlayConfig.builder()
+                .hudOptions(hudOptions).build());
+        overlay.initHud("timestamp contract", "local");
+        overlay.hudLog("info", "winter", "2026-01-15T22:59:59Z");
+        overlay.hudLog("info", "summer midnight", "2026-07-15T22:00:00Z");
+        overlay.hudLog("warn", "placeholder", "ui-test-lens");
+
+        List<String> javaRows = (List<String>) ((JavascriptExecutor) driver).executeScript("""
+                return Array.from(window.__seleniumOverlayRoot.querySelectorAll('#selenium-hud-logs > div'))
+                  .map(row => row.textContent);
+                """);
+        assertEquals("[2026-01-15 23:59:59.000000000 +01:00][INFO] winter", javaRows.get(javaRows.size() - 3));
+        assertEquals("[2026-07-16 00:00:00.000000000 +02:00][INFO] summer midnight", javaRows.get(javaRows.size() - 2));
+        String fallback = javaRows.get(javaRows.size() - 1);
+        assertTrue(fallback.matches("\\[\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{9} [+-]\\d{2}:\\d{2}]\\[WARN] placeholder"), fallback);
+        assertFalse(fallback.contains("ui-test-lens"));
+        assertEquals("8px", ((JavascriptExecutor) driver).executeScript("""
+                return getComputedStyle(document.getElementById('selenium-overlay-host').shadowRoot
+                  .querySelector('.stl-hud-timestamp')).fontSize;
+                """));
+
+        Map<String, Object> direct = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const hud = window.__uiTestLens.modules.hud;
+                function render(format, zone, shown, timestamp, message, presentation) {
+                  hud.init({testName:'direct runtime',theme:{},hudOptions:{showEventLog:true,
+                    showTimestamps:shown,timestampFormat:format,timestampZone:zone,branding:'NONE'}});
+                  hud.clear();
+                  hud.log(message,'info',timestamp,'GENERAL',null,null,presentation);
+                  const row=window.__seleniumOverlayRoot.querySelector('#selenium-hud-logs > div');
+                  return {text:row.textContent,stored:row.getAttribute('data-test-lens-timestamp')};
+                }
+                return {
+                  iso:render('ISO_UTC','Europe/Warsaw',true,'2026-01-15T22:59:59Z','iso','2026-01-15T22:59:59.000Z'),
+                  utc:render('TIME_ONLY','UTC',true,'2026-01-15T22:59:59Z','utc','22:59:59'),
+                  hidden:render('DATE_TIME','Europe/Warsaw',false,null,'hidden')
+                };
+                """);
+        assertEquals("[2026-01-15T22:59:59.000Z][INFO] iso", ((Map<?, ?>) direct.get("iso")).get("text"));
+        assertEquals("[22:59:59][INFO] utc", ((Map<?, ?>) direct.get("utc")).get("text"));
+        assertEquals("[INFO] hidden", ((Map<?, ?>) direct.get("hidden")).get("text"));
+        assertTrue(String.valueOf(((Map<?, ?>) direct.get("hidden")).get("stored")).matches("\\d{4}-.*Z"));
     }
 
     @ParameterizedTest(name = "highlightElement is decoration only (overlay enabled={0})")
@@ -659,6 +719,133 @@ class RealBrowserContractsIT {
     }
 
     @Test
+    void typedHighlightUsesConfiguredStateAndOperationScopedLifecycle() {
+        open("/clicks");
+        HighlightOptions highlights = HighlightOptions.builder().actionColor("#123456")
+                .waitingColor("#2468ac").retryColor("#c47a00").successColor("#16803a")
+                .failureColor("#b91c1c").durationMs(10000).borderWidthPx(5).showLabels(true).build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().highlights(highlights).build());
+        WebElement button = driver.findElement(By.id("count-button"));
+
+        lens.highlight(button, "Count control", HighlightState.SUCCESS);
+        assertTrue(await(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='success'
+                    && getComputedStyle(mark).borderColor==='rgb(22, 128, 58)'
+                    && getComputedStyle(mark).borderWidth==='5px'
+                    && mark.textContent==='Count control';
+                """)));
+
+        lens.locator(By.id("count-button"), "UiExpect control").expect().toBeVisible();
+        assertTrue(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='success'
+                    && getComputedStyle(mark).borderColor==='rgb(22, 128, 58)'
+                    && mark.textContent.includes('UiExpect control');
+                """).apply(driver), () -> "UiExpect highlight DOM: " + ((JavascriptExecutor) driver).executeScript("""
+                return Array.from(document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelectorAll('[data-uitestlens-highlight="1"]')).map(mark => ({
+                        state: mark.dataset.uitestlensHighlightState,
+                        color: getComputedStyle(mark).borderColor,
+                        label: mark.textContent
+                    }));
+                """));
+
+        JsOverlayDebug legacy = new JsOverlayDebug(driver, OverlayConfig.builder()
+                .highlightOptions(highlights).build());
+        assertTrue(legacy.assertVisible(button, true, "Legacy assertion control"));
+        assertTrue(await(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='success'
+                    && getComputedStyle(mark).borderColor==='rgb(22, 128, 58)'
+                    && mark.textContent.includes('Legacy assertion control');
+                """)));
+
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("window.__highlightTimerCheck=performance.now()");
+        js.executeScript("""
+                window.__uiTestLens.modules.highlight.element(arguments[0], 'OLD',
+                    {duration:80,color:'#ef4444',borderWidth:2,state:'failure'});
+                """, button);
+        js.executeScript("""
+                window.__uiTestLens.modules.highlight.element(arguments[0], 'NEW',
+                    {duration:1000,color:'#22c55e',borderWidth:3,state:'success'});
+                """, button);
+        assertTrue(await(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return performance.now()-window.__highlightTimerCheck>180 && mark
+                    && mark.textContent==='NEW' && mark.dataset.uitestlensHighlightState==='success';
+                """)));
+        js.executeScript("window.__uiTestLens.modules.highlight.clear()");
+
+        WebElement shadowButton = (WebElement) js.executeScript("""
+                const host=document.createElement('div');document.body.appendChild(host);
+                const root=host.attachShadow({mode:'open'});const button=document.createElement('button');
+                button.textContent='Shadow action';root.appendChild(button);return button;
+                """);
+        lens.highlight(shadowButton, "Shadow control", HighlightState.RETRY);
+        assertTrue(await(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='retry'
+                    && getComputedStyle(mark).borderColor==='rgb(196, 122, 0)';
+                """)));
+        js.executeScript("arguments[0].remove()", shadowButton);
+        js.executeScript("window.dispatchEvent(new Event('resize'))");
+        assertTrue(await(scriptBoolean("""
+                return !document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                """)));
+    }
+
+    @Test
+    void highlightSwitchesStayIndependentFromHudAndOverlayMasterSwitch() {
+        open("/clicks");
+        HighlightOptions manualOnly = HighlightOptions.builder()
+                .automaticFeedback(false).durationMs(1000).build();
+        TestLens hudOff = TestLens.attach(driver, TestLensOptions.builder()
+                .overlayConfig(OverlayConfig.builder().showHudPanel(false).build())
+                .highlights(manualOnly).build());
+        WebElement button = driver.findElement(By.id("count-button"));
+
+        hudOff.highlight(button, "Manual while HUD is off", HighlightState.ACTION);
+        assertTrue(await(scriptBoolean("""
+                const host=document.getElementById('selenium-overlay-host');
+                return host && host.shadowRoot.querySelector('[data-uitestlens-highlight="1"]')
+                    && !host.shadowRoot.querySelector('#selenium-hud-panel');
+                """)));
+        ((JavascriptExecutor) driver).executeScript("window.__uiTestLens.modules.highlight.clear()");
+
+        hudOff.locator(By.id("count-button"), "Automatic disabled").click();
+        assertClickCounts(1);
+        assertFalse(scriptBoolean("""
+                const host=document.getElementById('selenium-overlay-host');
+                return !!(host && host.shadowRoot.querySelector('[data-uitestlens-highlight="1"]'));
+                """).apply(driver));
+
+        TestLens highlightsOff = TestLens.attach(driver, TestLensOptions.builder()
+                .highlights(HighlightOptions.builder().enabled(false).build()).build());
+        highlightsOff.highlight(button, "Disabled highlight");
+        assertFalse(scriptBoolean("""
+                const host=document.getElementById('selenium-overlay-host');
+                return !!(host && host.shadowRoot.querySelector('[data-uitestlens-highlight="1"]'));
+                """).apply(driver));
+
+        TestLens overlayOff = TestLens.attach(driver, TestLensOptions.builder()
+                .overlayConfig(OverlayConfig.builder().enabled(false).build())
+                .highlights(HighlightOptions.defaults()).build());
+        overlayOff.highlight(button, "Master disabled");
+        assertFalse(scriptBoolean("""
+                const host=document.getElementById('selenium-overlay-host');
+                return !!(host && host.shadowRoot.querySelector('[data-uitestlens-highlight="1"]'));
+                """).apply(driver));
+    }
+
+    @Test
     void hudIsInitializedAndReinjectedAfterNavigation() {
         open("/clicks");
         TestLens lens = configuredLens(true, true);
@@ -670,6 +857,174 @@ class RealBrowserContractsIT {
         lens.step("after navigation", () -> { });
 
         assertTrue(await(hudPresent()));
+    }
+
+    @Test
+    void hudSourceNavigationIsModifierScopedPassiveAndLifecycleSafe() {
+        open("/clicks");
+        HudOptions hud = HudOptions.builder().showTimestamps(true).timestampPattern("HH:mm:ss.SSS")
+                .timestampZone(java.time.ZoneOffset.UTC).sourceNavigation(SourceNavigationOptions.builder()
+                .enabled(true).ide(SourceIde.INTELLIJ).build()).build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(hud).build());
+        lens.startSession("source-navigation");
+        ConsumerSourcePage.clickCounter(lens);
+
+        assertTrue(await(scriptBoolean("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                return !!root.querySelector('.stl-hud-source-location');
+                """)));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> passive = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const panel=root.querySelector('#selenium-hud-panel');
+                const link=root.querySelector('.stl-hud-source-location');
+                const timestamp=link.closest('[data-test-lens-timestamp]').querySelector('.stl-hud-timestamp');
+                return {label:link.textContent, panelPointer:getComputedStyle(panel).pointerEvents,
+                  linkPointer:getComputedStyle(link).pointerEvents, display:getComputedStyle(link).display,
+                  active:panel.dataset.sourceNavigationActive,timestamp:timestamp.textContent,
+                  eventTime:timestamp.closest('[data-test-lens-timestamp]').dataset.testLensTimestamp,
+                  timestampRole:timestamp.getAttribute('role'),timestampTabIndex:timestamp.getAttribute('tabindex')};
+                """);
+        assertTrue(passive.get("label").toString().matches("ConsumerSourcePage\\.java:\\d+"), passive.toString());
+        assertEquals("none", passive.get("panelPointer"));
+        assertEquals("none", passive.get("linkPointer"));
+        assertEquals("none", passive.get("display"));
+        assertEquals(null, passive.get("timestampRole"));
+        assertEquals(null, passive.get("timestampTabIndex"));
+        assertTrue(scriptBoolean("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const link=root.querySelector('.stl-hud-source-location');
+                const attributes=Array.from(link.attributes).map(attribute=>attribute.value).join(' ');
+                return !root.innerHTML.includes('idea://') && !root.innerHTML.includes('vscode://')
+                  && !root.innerHTML.includes('Java%20Projects') && !root.innerHTML.includes('Java Projects')
+                  && !attributes.includes('idea://') && !attributes.includes('vscode://')
+                  && !link.hasAttribute('href');
+                """).apply(driver), "absolute source path or IDE URI leaked into Shadow DOM");
+
+        ((JavascriptExecutor) driver).executeScript("""
+                window.__uiTestLensSourceTargets=[];
+                window.__uiTestLensSourceNavigation=target=>window.__uiTestLensSourceTargets.push(target);
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Control',ctrlKey:true}));
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Alt',ctrlKey:true,altKey:true}));
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Shift',ctrlKey:true,altKey:true,shiftKey:true}));
+                window.dispatchEvent(new KeyboardEvent('keyup',{key:'Shift',ctrlKey:true,altKey:true,shiftKey:false}));
+                """);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> active = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const panel=root.querySelector('#selenium-hud-panel');
+                const link=root.querySelector('.stl-hud-source-location[data-navigable="true"]');
+                link.click();
+                return {panelPointer:getComputedStyle(panel).pointerEvents,
+                  linkPointer:getComputedStyle(link).pointerEvents, display:getComputedStyle(link).display,
+                  active:panel.dataset.sourceNavigationActive,status:getComputedStyle(root.querySelector('.stl-hud-source-status')).display,
+                  timestamp:link.closest('[data-test-lens-timestamp]').querySelector('.stl-hud-timestamp').textContent,
+                  eventTime:link.closest('[data-test-lens-timestamp]').dataset.testLensTimestamp,
+                  target:window.__uiTestLensSourceTargets[0]};
+                """);
+        assertEquals("none", active.get("panelPointer"));
+        assertEquals("auto", active.get("linkPointer"));
+        assertEquals("block", active.get("display"));
+        assertEquals("true", active.get("active"));
+        assertEquals("block", active.get("status"));
+        assertEquals(passive.get("timestamp"), active.get("timestamp"));
+        assertEquals(passive.get("eventTime"), active.get("eventTime"));
+        String navigationTarget = active.get("target").toString();
+        assertTrue(navigationTarget.startsWith("idea://open?file="), navigationTarget);
+        assertTrue(navigationTarget.contains("ConsumerSourcePage.java"), navigationTarget);
+
+        WebElement besideHud = (WebElement) ((JavascriptExecutor) driver).executeScript("""
+                const panel=document.getElementById('selenium-overlay-host').shadowRoot.querySelector('#selenium-hud-panel');
+                const rect=panel.getBoundingClientRect();
+                const button=document.createElement('button');
+                button.id='hud-click-through'; button.textContent='under HUD';
+                button.style.cssText=`position:fixed;left:${rect.left+4}px;top:${rect.top+4}px;width:24px;height:24px;z-index:2147483646`;
+                button.addEventListener('click',()=>button.dataset.clicks=String(Number(button.dataset.clicks||0)+1));
+                document.body.appendChild(button); return button;
+                """);
+        besideHud.click();
+        assertEquals("1", besideHud.getAttribute("data-clicks"), "active HUD intercepted click beside source link");
+
+        ((JavascriptExecutor) driver).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const rect=root.querySelector('.stl-hud-source-location[data-navigable="true"]').getBoundingClientRect();
+                const button=document.createElement('button');
+                button.id='under-source-link'; button.textContent='under source';
+                button.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${Math.max(1,rect.width)}px;height:${Math.max(1,rect.height)}px;z-index:2147483646`;
+                button.addEventListener('click',()=>button.dataset.clicks=String(Number(button.dataset.clicks||0)+1));
+                document.body.appendChild(button);
+                """);
+
+        ((JavascriptExecutor) driver).executeScript(
+                "window.dispatchEvent(new KeyboardEvent('keyup',{key:'Alt',ctrlKey:true,altKey:false}));");
+        assertTrue(scriptBoolean("""
+                const p=document.getElementById('selenium-overlay-host').shadowRoot.querySelector('#selenium-hud-panel');
+                return p.dataset.sourceNavigationActive==='false' && getComputedStyle(p.querySelector('.stl-hud-source-location')).display==='none';
+                """).apply(driver));
+        WebElement underSource = driver.findElement(By.id("under-source-link"));
+        underSource.click();
+        assertEquals("1", underSource.getAttribute("data-clicks"), "released source link remained a click target");
+
+        ((JavascriptExecutor) driver).executeScript("""
+                const altGraph=new KeyboardEvent('keydown',{key:'AltGraph',code:'AltRight',ctrlKey:true,altKey:true});
+                Object.defineProperty(altGraph,'getModifierState',{value:name=>name==='AltGraph'});
+                window.dispatchEvent(altGraph);
+                """);
+        assertTrue(scriptBoolean("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const panel=root.querySelector('#selenium-hud-panel');
+                const link=root.querySelector('.stl-hud-source-location');
+                return panel.dataset.sourceNavigationActive==='false' && getComputedStyle(link).pointerEvents==='none';
+                """).apply(driver), "AltGraph activated source navigation");
+        ((JavascriptExecutor) driver).executeScript("""
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Control',ctrlKey:true}));
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Alt',ctrlKey:true,altKey:true}));
+                window.dispatchEvent(new Event('blur'));
+                """);
+        assertTrue(scriptBoolean("""
+                return document.getElementById('selenium-overlay-host').shadowRoot
+                  .querySelector('#selenium-hud-panel').dataset.sourceNavigationActive==='false';
+                """).apply(driver));
+
+        lens.finishPassed();
+        TestLens next = TestLens.attach(driver, TestLensOptions.builder().hud(hud).build());
+        next.startSession("source-navigation-next-session");
+        ConsumerSourcePage.clickCounter(next);
+        ((JavascriptExecutor) driver).executeScript("""
+                window.__uiTestLensSourceTargets=[];
+                window.__uiTestLensSourceNavigation=target=>window.__uiTestLensSourceTargets.push(target);
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Control',ctrlKey:true}));
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Alt',ctrlKey:true,altKey:true}));
+                document.getElementById('selenium-overlay-host').shadowRoot
+                  .querySelector('.stl-hud-source-location[data-navigable="true"]').click();
+                """);
+        assertEquals(1L, ((Number) ((JavascriptExecutor) driver).executeScript(
+                "return window.__uiTestLensSourceTargets.length")).longValue());
+        next.finishPassed();
+    }
+
+    @Test
+    void disabledSourceNavigationInstallsNoKeyboardListeners() {
+        open("/clicks");
+        ((JavascriptExecutor) driver).executeScript("""
+                window.__sourceNavigationListenerTypes=[];
+                window.__originalAddEventListener=window.addEventListener;
+                window.addEventListener=function(type,listener,options){
+                  if(type==='keydown'||type==='keyup'||type==='blur') window.__sourceNavigationListenerTypes.push(type);
+                  return window.__originalAddEventListener.call(window,type,listener,options);
+                };
+                """);
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(HudOptions.defaults()).build());
+        lens.startSession("source-navigation-disabled");
+        ConsumerSourcePage.clickCounter(lens);
+
+        @SuppressWarnings("unchecked")
+        List<String> listenerTypes = (List<String>) ((JavascriptExecutor) driver).executeScript("""
+                window.addEventListener=window.__originalAddEventListener;
+                return window.__sourceNavigationListenerTypes;
+                """);
+        assertEquals(List.of(), listenerTypes);
+        lens.finishPassed();
     }
 
     @Test
@@ -1402,20 +1757,31 @@ class RealBrowserContractsIT {
     void portableFullPageScreenshotsPreserveLayoutContextAndFailureEvidence() throws Exception {
         open("/full-page");
         Path output = Path.of("target", "ui-test-lens", browserName(), "full-page-" + UUID.randomUUID());
+        TestLens overlaysOff = TestLens.attach(driver, TestLensOptions.builder()
+                .overlayConfig(OverlayConfig.builder().enabled(false).build())
+                .outputRoot(output)
+                .build());
+        ScreenshotCaptureResult overlaysOffResult = overlaysOff.captureScreenshot("full-page-overlays-off",
+                ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false)
+                        .captureMode(ScreenshotCaptureMode.FULL_PAGE).build());
+        assertTrue(overlaysOffResult.isCaptured(), overlaysOffResult.message());
+        assertTrue(overlaysOffResult.tileCount() > 2);
+        assertEquals(0L, number("return document.querySelectorAll('#selenium-overlay-host, "
+                + "[data-test-lens-overlay-snapshot]').length"),
+                "HUD/highlights OFF must remain off before and after capture");
+
         TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
-                .overlayConfig(OverlayConfig.builder().enabled(true).decorationDurationMs(60_000).build())
+                .overlayConfig(OverlayConfig.builder().enabled(true).decorationDurationMs(3_000).build())
                 .cleanupHudOnFinish(false)
                 .failureBundleOptions(FailureBundleOptions.builder()
                         .screenshotCaptureMode(ScreenshotCaptureMode.FULL_PAGE).build())
                 .outputRoot(output)
                 .build());
         lens.startSession("portable-full-page-" + UUID.randomUUID());
-        overlay(true).hudLog("info", "Full-page evidence", "browser-it");
+        overlay(true).hudLog("info", "click Login button", "browser-it");
+        overlay(true).hudLog("warn", "retry Login button", "browser-it");
+        overlay(true).hudLog("error", "failure Login button", "browser-it");
         assertTrue(await(hudPresent()));
-        ((JavascriptExecutor) driver).executeScript("""
-                const host = document.getElementById('selenium-overlay-host');
-                host.style.setProperty('border', '8px solid rgb(255, 0, 255)', 'important');
-                """);
 
         @SuppressWarnings("unchecked")
         Map<String, Number> geometry = (Map<String, Number>) ((JavascriptExecutor) driver).executeScript("""
@@ -1434,6 +1800,85 @@ class RealBrowserContractsIT {
         assertEquals(1, viewport.tileCount());
         assertTrue(viewport.height() < geometry.get("documentHeight").longValue());
 
+        overlay(true).highlightElement(driver.findElement(By.id("full-page-sticky")), "Login button");
+        ((JavascriptExecutor) driver).executeScript("""
+                const host = document.getElementById('selenium-overlay-host');
+                const root = host.shadowRoot;
+                const shell = root.querySelector('.stl-hud-shell');
+                const highlight = root.querySelector('[data-uitestlens-highlight]');
+                const badge = highlight && highlight.querySelector('.selenium-overlay-highlight-badge');
+                host.style.setProperty('visibility', 'visible', 'important');
+                if (shell) shell.style.setProperty('box-shadow', '0 0 0 6px rgb(201, 17, 91)', 'important');
+                highlight.style.setProperty('border-color', 'rgb(17, 201, 91)', 'important');
+                highlight.style.setProperty('background', 'rgb(17, 201, 91)', 'important');
+                badge.style.setProperty('background', 'rgb(91, 17, 201)', 'important');
+                const hostRect = host.getBoundingClientRect();
+                window.__fullPageSnapshotProbe = {
+                  beforeWidth: document.documentElement.scrollWidth,
+                  beforeHeight: document.documentElement.scrollHeight,
+                  initialScrollX: scrollX, initialScrollY: scrollY,
+                  hostLeft: hostRect.left, hostTop: hostRect.top, installed: null
+                };
+                window.__fullPageSnapshotObserver = new MutationObserver(() => {
+                  const snapshot = document.querySelector('[data-test-lens-overlay-snapshot]');
+                  if (!snapshot) return;
+                  window.__fullPageSnapshotStyleChanges = 0;
+                  window.__fullPageSnapshotStyleObserver = new MutationObserver(records => {
+                    window.__fullPageSnapshotStyleChanges += records.length;
+                  });
+                  window.__fullPageSnapshotStyleObserver.observe(snapshot,
+                    {attributes:true, attributeFilter:['style']});
+                  const snapshotRect = snapshot.getBoundingClientRect();
+                  const snapshotRoot = snapshot.shadowRoot;
+                  const snapshotHud = snapshotRoot && snapshotRoot.querySelector('#selenium-hud-panel');
+                  const snapshotHighlight = snapshotRoot && snapshotRoot.querySelector('[data-uitestlens-highlight]');
+                  window.__fullPageSnapshotProbe.installed = {
+                    width: document.documentElement.scrollWidth,
+                    height: document.documentElement.scrollHeight,
+                    left: parseFloat(snapshot.style.left), top: parseFloat(snapshot.style.top),
+                    rectLeft: snapshotRect.left, rectTop: snapshotRect.top,
+                    liveCount: document.querySelectorAll('#selenium-overlay-host').length,
+                    snapshotCount: document.querySelectorAll('[data-test-lens-overlay-snapshot]').length,
+                    duplicateHostId: snapshot.id === 'selenium-overlay-host',
+                    pointerEvents: getComputedStyle(snapshot).pointerEvents,
+                    inert: snapshot.hasAttribute('inert'), ariaHidden: snapshot.getAttribute('aria-hidden'),
+                    shadowChildren: snapshotRoot ? snapshotRoot.childNodes.length : 0,
+                    hudText: snapshotHud ? snapshotHud.textContent : '',
+                    highlightCount: snapshotRoot ? snapshotRoot.querySelectorAll('[data-uitestlens-highlight]').length : 0,
+                    label: snapshotHighlight && snapshotHighlight.querySelector('.selenium-overlay-highlight-badge')
+                      ? snapshotHighlight.querySelector('.selenium-overlay-highlight-badge').textContent : ''
+                  };
+                  window.__fullPageSnapshotObserver.disconnect();
+                });
+                window.__fullPageSnapshotObserver.observe(document.documentElement, {childList:true, subtree:true});
+                window.__fullPageGuardObservations = [];
+                window.__fullPageHeightChanges = 0;
+                window.__fullPageInitialSheets = document.adoptedStyleSheets ? document.adoptedStyleSheets.length : -1;
+                addEventListener('scroll', () => {
+                  if (scrollY > 0 && window.__fullPageHeightChanges === 0) {
+                    window.__fullPageHeightChanges++;
+                    document.getElementById('full-page-bottom').style.height = '760px';
+                  }
+                  const liveShell = host.shadowRoot.querySelector('.stl-hud-shell');
+                  if (liveShell) liveShell.style.setProperty('box-shadow', '0 0 0 6px rgb(91, 201, 17)', 'important');
+                  requestAnimationFrame(() => {
+                    const animated = getComputedStyle(document.getElementById('full-page-animated'));
+                    const transitioning = getComputedStyle(document.getElementById('full-page-transition'));
+                    const caret = getComputedStyle(document.getElementById('full-page-caret'));
+                    window.__fullPageGuardObservations.push({animation:animated.animationPlayState,
+                      transition:transitioning.transitionDuration, caret:caret.caretColor,
+                      liveOverlay:getComputedStyle(host).visibility,
+                      snapshot:document.querySelectorAll('[data-test-lens-overlay-snapshot]').length});
+                  });
+                }, {passive:true});
+                """);
+        assertEquals(1L, number("return document.getElementById('selenium-overlay-host').shadowRoot"
+                + ".querySelectorAll('[data-uitestlens-highlight]').length"));
+        ScreenshotCaptureResult overlayBaselineResult = lens.captureScreenshot("full-page-overlay-baseline",
+                ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false).build());
+        assertTrue(overlayBaselineResult.isCaptured(), overlayBaselineResult.message());
+        BufferedImage overlayBaseline = ImageIO.read(overlayBaselineResult.path().toFile());
+
         ScreenshotCaptureOptions fullPage = ScreenshotCaptureOptions.builder()
                 .outputDirectory(output)
                 .includeTimestamp(false)
@@ -1445,16 +1890,77 @@ class RealBrowserContractsIT {
         assertTrue(captured.tileCount() > 2);
         double scaleX = viewport.width() / geometry.get("viewportWidth").doubleValue();
         double scaleY = viewport.height() / geometry.get("viewportHeight").doubleValue();
-        assertEquals(Math.round(geometry.get("documentWidth").doubleValue() * scaleX), captured.width());
-        assertEquals(Math.round(geometry.get("documentHeight").doubleValue() * scaleY), captured.height());
+        assertEquals(Math.round(number("return document.documentElement.scrollWidth") * scaleX), captured.width());
+        assertEquals(Math.round(number("return document.documentElement.scrollHeight") * scaleY), captured.height());
         BufferedImage image = ImageIO.read(captured.path().toFile());
         assertTrue(containsRgb(image, 220, 40, 40), "top marker must be present");
         assertTrue(containsRgb(image, 40, 180, 70), "middle marker must be present");
         assertTrue(containsRgb(image, 35, 80, 220), "bottom marker must be present");
         assertTrue(containsRgb(image, 255, 165, 0), "right-side marker must be present");
         assertTrue(containsRgb(image, 0, 220, 220), "sticky marker must remain present");
-        assertTrue(countRgb(image, 255, 0, 255) > 0, "HUD must appear in diagnostic capture");
+        assertEquals(1, countColorClusters(overlayBaseline, 201, 17, 91, 100, 16));
+        assertEquals(1, countColorClusters(overlayBaseline, 17, 201, 91, 20, 16));
+        assertEquals(1, countColorClusters(overlayBaseline, 91, 17, 201, 20, 16));
+        assertEquals(1, countColorClusters(image, 201, 17, 91, 100, 16),
+                "the stitched image must contain exactly one HUD marker");
+        assertEquals(1, countColorClusters(image, 17, 201, 91, 20, 16),
+                "the stitched image must contain exactly one highlight marker");
+        assertEquals(1, countColorClusters(image, 91, 17, 201, 20, 16),
+                "the stitched image must contain exactly one label marker");
+        assertEquals(0, countRgb(image, 91, 201, 17),
+                "a live HUD rerender during stitching must not leak into the frozen evidence state");
         assertNoTransparentRow(image);
+        assertEquals(1L, number("return window.__fullPageHeightChanges"),
+                "the first-attempt application layout shift must be handled by one whole-capture retry");
+        assertEquals(0L, number("return window.__fullPageSnapshotStyleChanges"),
+                "the frozen overlay snapshot must not be restyled between geometry observations");
+        assertEquals(1L, number("return window.__fullPageGuardObservations.some(v => v.animation === 'paused') ? 1 : 0"));
+        assertEquals(1L, number("return window.__fullPageGuardObservations.some(v => v.transition === '0s') ? 1 : 0"));
+        assertEquals(1L, number("return window.__fullPageGuardObservations.some(v => v.caret === 'transparent' || v.caret === 'rgba(0, 0, 0, 0)') ? 1 : 0"));
+        assertEquals(1L, number("return window.__fullPageGuardObservations.some(v => v.liveOverlay === 'hidden' && v.snapshot === 1) ? 1 : 0"));
+        assertEquals(number("return window.__fullPageSnapshotProbe.beforeWidth"),
+                number("return window.__fullPageSnapshotProbe.installed.width"),
+                "installing the overlay snapshot must not change scrollWidth");
+        assertEquals(number("return window.__fullPageSnapshotProbe.beforeHeight"),
+                number("return window.__fullPageSnapshotProbe.installed.height"),
+                "installing the overlay snapshot must not change scrollHeight");
+        assertEquals(initialX, number("return Math.round(window.__fullPageSnapshotProbe.installed.left)"));
+        assertEquals(initialY, number("return Math.round(window.__fullPageSnapshotProbe.installed.top)"));
+        assertEquals(number("return Math.round(window.__fullPageSnapshotProbe.hostLeft)"),
+                number("return Math.round(window.__fullPageSnapshotProbe.installed.rectLeft)"));
+        assertEquals(number("return Math.round(window.__fullPageSnapshotProbe.hostTop)"),
+                number("return Math.round(window.__fullPageSnapshotProbe.installed.rectTop)"));
+        assertEquals(1L, number("return window.__fullPageSnapshotProbe.installed.liveCount"));
+        assertEquals(1L, number("return window.__fullPageSnapshotProbe.installed.snapshotCount"));
+        assertEquals(0L, number("return window.__fullPageSnapshotProbe.installed.duplicateHostId ? 1 : 0"));
+        assertEquals(1L, number("return window.__fullPageSnapshotProbe.installed.pointerEvents === 'none' ? 1 : 0"));
+        assertEquals(1L, number("return window.__fullPageSnapshotProbe.installed.inert"
+                + " && window.__fullPageSnapshotProbe.installed.ariaHidden === 'true' ? 1 : 0"));
+        assertEquals(1L, number("return window.__fullPageSnapshotProbe.installed.shadowChildren > 0"
+                + " && window.__fullPageSnapshotProbe.installed.hudText.includes('click Login button')"
+                + " && window.__fullPageSnapshotProbe.installed.hudText.includes('retry Login button')"
+                + " && window.__fullPageSnapshotProbe.installed.hudText.includes('failure Login button')"
+                + " && window.__fullPageSnapshotProbe.installed.highlightCount === 1"
+                + " && window.__fullPageSnapshotProbe.installed.label === 'Login button' ? 1 : 0"),
+                "the manually cloned shadow tree must contain the HUD, statuses, highlight and label");
+        assertEquals(0L, number("return document.querySelectorAll('[data-test-lens-screenshot-guard]').length"));
+        assertEquals(0L, number("return document.querySelectorAll('[data-test-lens-overlay-snapshot]').length"));
+        assertEquals(number("return window.__fullPageInitialSheets"),
+                number("return document.adoptedStyleSheets ? document.adoptedStyleSheets.length : -1"));
+        assertEquals(1L, number("return getComputedStyle(document.getElementById('full-page-animated')).animationPlayState === 'running' ? 1 : 0"));
+        assertEquals(1L, number("return getComputedStyle(document.getElementById('full-page-transition')).transitionDuration === '2s' ? 1 : 0"));
+        assertEquals(1L, number("return getComputedStyle(document.getElementById('selenium-overlay-host')).visibility === 'visible' ? 1 : 0"));
+        assertEquals(1L, number("return document.getElementById('selenium-overlay-host').style.visibility === 'visible'"
+                + " && document.getElementById('selenium-overlay-host').style.getPropertyPriority('visibility') === 'important' ? 1 : 0"),
+                "restore must preserve the prior inline visibility value and priority");
+        assertTrue(hudPresent().apply(driver), "HUD must be restored without reinjection after capture");
+        assertEquals(1L, number("return getComputedStyle(document.getElementById('selenium-overlay-host').shadowRoot"
+                + ".querySelector('.stl-hud-shell')).boxShadow.includes('rgb(91, 201, 17)') ? 1 : 0"),
+                "the live overlay must resume at its naturally updated post-capture state");
+        assertTrue(await(d -> ((Number) ((JavascriptExecutor) d).executeScript(
+                "return document.getElementById('selenium-overlay-host').shadowRoot"
+                        + ".querySelectorAll('[data-uitestlens-highlight]').length")).longValue() == 0),
+                "the live highlight cleanup timer must resume normally after capture");
         assertEquals(initialX, number("return Math.round(window.scrollX)"));
         assertEquals(initialY, number("return Math.round(window.scrollY)"));
 
@@ -1479,8 +1985,10 @@ class RealBrowserContractsIT {
         assertTrue(diagnostic.getHeight() > viewport.height());
         assertEquals(diagnostic.getWidth(), clean.getWidth());
         assertEquals(diagnostic.getHeight(), clean.getHeight());
-        assertTrue(countRgb(diagnostic, 255, 0, 255) > 0);
-        assertEquals(0, countRgb(clean, 255, 0, 255));
+        assertTrue(countRgb(diagnostic, 91, 201, 17) > 500,
+                "diagnostic full-page failure evidence must contain the current HUD");
+        assertEquals(0, countRgb(clean, 91, 201, 17),
+                "the separately requested clean failure artifact keeps its overlay-free contract");
         assertTrue(Files.readString(result.failureBundleManifest().orElseThrow()).contains("FULL_PAGE"));
         assertTrue(hudPresent().apply(driver), "clean capture must restore the HUD");
         assertFalse(driver.getTitle().isBlank(), "capture and finalization must leave the driver active");
@@ -2164,6 +2672,9 @@ class RealBrowserContractsIT {
                       <section id='full-page-top'><span class='marker'>Top</span></section>
                       <section id='full-page-middle'><aside id='full-page-sticky'>Sticky</aside><span class='marker'>Middle</span></section>
                       <section id='full-page-bottom'><span class='marker'>Bottom</span></section>
+                      <div id='full-page-animated'>Animated</div>
+                      <div id='full-page-transition'>Transition</div>
+                      <input id='full-page-caret' value='caret'>
                       <div id='full-page-right'>Right</div>
                       <iframe id='full-page-frame' src='/frame'></iframe>
                     </div>
@@ -2376,6 +2887,9 @@ class RealBrowserContractsIT {
             #full-page-top { background: rgb(220, 40, 40); }
             #full-page-middle { background: rgb(40, 180, 70); }
             #full-page-bottom { background: rgb(35, 80, 220); }
+            #full-page-animated { animation: full-page-pulse 1s linear infinite; }
+            #full-page-transition { width: 100px; transition: width 2s ease; }
+            @keyframes full-page-pulse { from { opacity: .35; } to { opacity: 1; } }
             #full-page-fixed { position: fixed; left: 10px; top: 10px; width: 220px; height: 44px;
               z-index: 8; background: rgb(230, 230, 0); }
             #full-page-sticky { position: sticky; top: 80px; width: 180px; height: 48px; background: rgb(0, 220, 220); }
@@ -2402,6 +2916,67 @@ class RealBrowserContractsIT {
             }
         }
         return count;
+    }
+
+    private static int countColorClusters(BufferedImage image, int red, int green, int blue,
+                                          int minimumPixels, int mergeGap) {
+        int width = image.getWidth(), height = image.getHeight();
+        int expected = (red << 16) | (green << 8) | blue;
+        boolean[] visited = new boolean[Math.multiplyExact(width, height)];
+        int[] queue = new int[visited.length];
+        List<int[]> bounds = new java.util.ArrayList<>();
+        for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
+            int start = y * width + x;
+            if (visited[start] || (image.getRGB(x, y) & 0x00ffffff) != expected) continue;
+            int head = 0, tail = 0, pixels = 0;
+            int minX = x, minY = y, maxX = x, maxY = y;
+            visited[start] = true;
+            queue[tail++] = start;
+            while (head < tail) {
+                int current = queue[head++];
+                int currentX = current % width, currentY = current / width;
+                pixels++;
+                minX = Math.min(minX, currentX);
+                minY = Math.min(minY, currentY);
+                maxX = Math.max(maxX, currentX);
+                maxY = Math.max(maxY, currentY);
+                if (currentX > 0) tail = enqueueMatching(image, expected, visited, queue, tail, current - 1);
+                if (currentX + 1 < width) tail = enqueueMatching(image, expected, visited, queue, tail, current + 1);
+                if (currentY > 0) tail = enqueueMatching(image, expected, visited, queue, tail, current - width);
+                if (currentY + 1 < height) tail = enqueueMatching(image, expected, visited, queue, tail, current + width);
+            }
+            if (pixels >= minimumPixels) bounds.add(new int[]{minX, minY, maxX, maxY});
+        }
+        int[] parents = new int[bounds.size()];
+        for (int i = 0; i < parents.length; i++) parents[i] = i;
+        for (int i = 0; i < bounds.size(); i++) for (int j = i + 1; j < bounds.size(); j++) {
+            int[] a = bounds.get(i), b = bounds.get(j);
+            int horizontalGap = Math.max(0, Math.max(a[0] - b[2], b[0] - a[2]));
+            int verticalGap = Math.max(0, Math.max(a[1] - b[3], b[1] - a[3]));
+            if (horizontalGap <= mergeGap && verticalGap <= mergeGap) {
+                parents[findRoot(parents, j)] = findRoot(parents, i);
+            }
+        }
+        int clusters = 0;
+        for (int i = 0; i < parents.length; i++) if (findRoot(parents, i) == i) clusters++;
+        return clusters;
+    }
+
+    private static int findRoot(int[] parents, int index) {
+        while (parents[index] != index) {
+            parents[index] = parents[parents[index]];
+            index = parents[index];
+        }
+        return index;
+    }
+
+    private static int enqueueMatching(BufferedImage image, int expected, boolean[] visited,
+                                       int[] queue, int tail, int index) {
+        if (visited[index]) return tail;
+        visited[index] = true;
+        int x = index % image.getWidth(), y = index / image.getWidth();
+        if ((image.getRGB(x, y) & 0x00ffffff) == expected) queue[tail++] = index;
+        return tail;
     }
 
     private long regionDifference(BufferedImage before, BufferedImage after, Map<String, Number> rect) {
