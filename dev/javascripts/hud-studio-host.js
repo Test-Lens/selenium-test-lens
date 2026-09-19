@@ -5,9 +5,9 @@
   if (!host) return;
 
   var frame = host.querySelector('[data-studio-frame]');
-  var expand = host.querySelector('[data-studio-expand]');
-  var exit = host.querySelector('[data-studio-exit]');
-  var fullscreen = host.querySelector('[data-studio-fullscreen]');
+  var expand = document.querySelector('[data-studio-expand]');
+  var exit = document.querySelector('[data-studio-exit]');
+  var fullscreen = document.querySelector('[data-studio-fullscreen]');
   var expandTrigger = null;
   var fullscreenTrigger = null;
 

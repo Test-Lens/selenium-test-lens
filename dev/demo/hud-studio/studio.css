@@ -9,7 +9,10 @@ html, body { max-width: 100%; overflow-x: hidden; }
 body { margin: 0; min-width: 280px; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
-.studio { display: grid; grid-template-columns: minmax(310px, 410px) minmax(0, 1fr); width: 100%; max-width: 100vw; height: 100vh; overflow: hidden; }
+.conditional-control[hidden] { display: none; }
+input[readonly] { color: #64748b; background: #f1f5f9; cursor: default; }
+.secondary-action { margin-top: .45rem; padding: .4rem .55rem; border: 1px solid #94a3b8; border-radius: .4rem; color: #334155; background: #f8fafc; }
+.studio { display: grid; grid-template-columns: minmax(310px, 410px) minmax(0, 1fr); width: 100%; max-width: 100vw; height: 100vh; min-height: 100vh; overflow: hidden; }
 .controls { min-width: 0; padding: 1rem; overflow: auto; background: #fff; border-right: 1px solid #cbd5e1; }
 .heading p { margin: 0; color: #0284c7; font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .heading h1 { margin: .1rem 0; font-size: 1.55rem; }
@@ -68,12 +71,9 @@ pre { max-width: 100%; max-height: 22rem; overflow: auto; padding: .7rem; border
 
 @media (max-width: 480px) {
   .controls { padding: .75rem; }
-  fieldset { padding: .55rem; }
-  label { flex-wrap: wrap; }
-  input[type=range] { width: 100%; }
-  .colors label span { margin-left: auto; }
-  .preview-toolbar { padding: .65rem .75rem; }
-  .preview-help { margin-inline: .75rem; }
+  .number-pair { grid-template-columns: 1fr; }
+  .section-typography select { min-width: 0; max-width: 55%; }
+  .preview-toolbar { padding: .6rem .75rem; }
   #preview-frame-wrap { width: calc(100% - 1rem); }
 }
 

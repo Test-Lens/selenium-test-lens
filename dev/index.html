@@ -592,10 +592,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#030-at-a-glance" class="md-nav__link">
+  <a href="#031-at-a-glance" class="md-nav__link">
     <span class="md-ellipsis">
       
-        0.3.0 at a glance
+        0.3.1 at a glance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#030-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.3.0 foundations
       
     </span>
   </a>
@@ -831,6 +842,34 @@
     
   
     Installation & first test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="whats-new-0.3.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.1
   
 
     
@@ -2952,7 +2991,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1" class="md-nav__link">
         
   
   
@@ -2980,7 +3019,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/" class="md-nav__link">
         
   
   
@@ -3048,10 +3087,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#030-at-a-glance" class="md-nav__link">
+  <a href="#031-at-a-glance" class="md-nav__link">
     <span class="md-ellipsis">
       
-        0.3.0 at a glance
+        0.3.1 at a glance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#030-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.3.0 foundations
       
     </span>
   </a>
@@ -3244,10 +3294,10 @@
 <p><strong>Keep Selenium and your existing WebDriver. Add observability, resilient browser interaction, scoped test lifecycle, and evidence with explicit security boundaries.</strong></p>
 <p>Test Lens shows actions, waits, assertions, retries, and network activity while a test runs. After finalization, the same structured session can become an HTML/JSON report, screenshots, a failure bundle, or an explicitly uploaded report package.</p>
 <p><a class="md-button md-button--primary" href="#live-hud-and-element-highlights">See the live diagnostics</a>
-<a class="md-button" href="whats-new-0.3.0/">What's new in 0.3.0</a>
+<a class="md-button" href="whats-new-0.3.1/">What's new in 0.3.1</a>
 <a class="md-button" href="#signature-capabilities">Explore the capabilities</a>
 <a class="md-button" href="#quick-start">Get started</a>
-<a class="md-button" href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.0">Maven Central</a></p>
+<a class="md-button" href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1">Maven Central</a></p>
 <table>
 <thead>
 <tr>
@@ -3258,18 +3308,18 @@
 </thead>
 <tbody>
 <tr>
-<td><a href="https://test-lens.github.io/selenium-test-lens/dev/">0.4.0-SNAPSHOT development</a></td>
-<td>Current source line</td>
-<td>Source build only; not available from Maven Central</td>
-</tr>
-<tr>
-<td><a href="https://test-lens.github.io/selenium-test-lens/0.3.0/">0.3.0 stable</a></td>
+<td><a href="https://test-lens.github.io/selenium-test-lens/0.3.1/">0.3.1 stable</a></td>
 <td>Latest published release</td>
 <td>Maven Central</td>
 </tr>
 <tr>
-<td><a href="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0 historical</a></td>
+<td><a href="https://test-lens.github.io/selenium-test-lens/0.3.0/">0.3.0 historical</a></td>
 <td>Previous release</td>
+<td>Maven Central</td>
+</tr>
+<tr>
+<td><a href="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0 historical</a></td>
+<td>Historical release</td>
 <td>Maven Central</td>
 </tr>
 <tr>
@@ -3291,7 +3341,33 @@
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>HTML/JSON reports · screenshots · failure bundle · optional HTTP upload
 </span></code></pre></div>
 <p>It does not replace Selenium, Page Objects, JUnit, TestNG, or an existing reporting stack. Raw WebDriver remains available whenever it is the clearer or more complete API.</p>
-<h2 id="030-at-a-glance">0.3.0 at a glance<a class="headerlink" href="#030-at-a-glance" title="Permanent link">&para;</a></h2>
+<h2 id="031-at-a-glance">0.3.1 at a glance<a class="headerlink" href="#031-at-a-glance" title="Permanent link">&para;</a></h2>
+<p>Release 0.3.1 makes live diagnostics more expressive and the resulting evidence easier to investigate. These are focused additions to the same HUD, highlight, and report pipeline.</p>
+<div class="grid cards">
+<ul>
+<li>
+<p><strong>NEW 0.3.1 · REACTIVE HIGHLIGHTS</strong></p>
+<p>See ACTION, WAITING, RETRY, SUCCESS, and FAILURE on the actual target, with independent colors, labels, duration, and automatic-feedback control.</p>
+<p><a href="observability/visual-diagnostics/#state-aware-highlights">Configure state-aware highlights</a></p>
+</li>
+<li>
+<p><strong>NEW 0.3.1 · HUD TIMESTAMPS</strong></p>
+<p>Show or hide event times, choose ISO UTC, time-only, or date-time output, and use the test JVM zone or an explicit <code>ZoneId</code>.</p>
+<p><a href="observability/visual-diagnostics/#hud-timestamps">Configure HUD timestamps</a></p>
+</li>
+<li>
+<p><strong>NEW 0.3.1 · SOURCE NAVIGATION</strong></p>
+<p>During local debugging, hold Ctrl+Alt to reveal <code>File.java:line</code> call sites and open a resolved source location in IntelliJ, VS Code, or a custom protocol provider.</p>
+<p><a href="observability/visual-diagnostics/#local-source-navigation">Set up local source navigation</a></p>
+</li>
+<li>
+<p><strong>IMPROVED 0.3.1 · REPORTS AND EVIDENCE</strong></p>
+<p>Use wider, more readable standalone HTML reports with clearer failures and attributes, offline/file support, and diagnostic full-page evidence that renders the Test Lens overlay once.</p>
+<p><a href="observability/reports/">Inspect reports</a> · <a href="observability/screenshots-evidence/">Understand screenshot evidence</a></p>
+</li>
+</ul>
+</div>
+<h2 id="030-foundations">0.3.0 foundations<a class="headerlink" href="#030-foundations" title="Permanent link">&para;</a></h2>
 <p>Release 0.3.0 adds configuration and lifecycle capabilities around the same Selenium session. These are public 0.3.0 APIs and were not features of release 0.2.0.</p>
 <div class="grid cards">
 <ul>
@@ -3671,7 +3747,7 @@
 <div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nt">&lt;dependency&gt;</span>
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="nt">&lt;groupId&gt;</span>io.github.test-lens<span class="nt">&lt;/groupId&gt;</span>
 </span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="nt">&lt;artifactId&gt;</span>selenium-test-lens<span class="nt">&lt;/artifactId&gt;</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.3.0<span class="nt">&lt;/version&gt;</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.3.1<span class="nt">&lt;/version&gt;</span>
 </span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="nt">&lt;/dependency&gt;</span>
 </span></code></pre></div>
 <p>Attach Lens to the driver your framework already owns, start one session, and finalize it before closing the driver:</p>

@@ -90,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#hud-studio" class="md-skip">
+        <a href="#test-lens-hud-studio" class="md-skip">
           Skip to content
         </a>
       
@@ -608,6 +608,34 @@
     
   
     Installation & first test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.3.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.1
   
 
     
@@ -1579,6 +1607,28 @@
     <span class="md-ellipsis">
       
         Public configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-navigation-controls-and-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source navigation controls and preview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#highlight-configurator-and-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Highlight configurator and preview
       
     </span>
   </a>
@@ -2825,7 +2875,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1" class="md-nav__link">
         
   
   
@@ -2853,7 +2903,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/" class="md-nav__link">
         
   
   
@@ -2919,6 +2969,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#source-navigation-controls-and-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source navigation controls and preview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#highlight-configurator-and-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Highlight configurator and preview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#visual-editing-and-responsive-preview" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2976,32 +3048,51 @@
   
 
 
-<h1 id="hud-studio">HUD Studio<a class="headerlink" href="#hud-studio" title="Permanent link">&para;</a></h1>
+<h1 id="test-lens-hud-studio">Test Lens HUD Studio<a class="headerlink" href="#test-lens-hud-studio" title="Permanent link">&para;</a></h1>
+<p>HUD Studio configures the same browser-side renderer that Test Lens injects at runtime. Drag and resize the HUD in the preview or use the bounded product controls; both paths update one <code>HudOptions</code> model and the generated Java. The preview supplies synthetic events and never contacts an application or external service.</p>
+<p>The Source navigation section generates the opt-in <code>SourceNavigationOptions</code> block, IDE provider, and Ctrl+Alt activation modifier. Its preview uses synthetic file labels only and does not open an IDE.</p>
+<div class="admonition info">
+<p class="admonition-title">0.3.1 timestamp API</p>
+<p>HUD timestamp format and zone controls are available in <code>0.3.1</code>. The configurable HUD and Studio introduced in <code>0.3.0</code> remain compatible.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">0.3.1 highlight API</p>
+<p>The Highlights section configures independent action, waiting, retry, success, and failure colors plus duration, border width, labels, enablement, and automatic feedback. HUD preset changes do not reset these values, and generated Java includes <code>HighlightOptions</code> in <code>TestLensOptions</code>.</p>
+</div>
 <style>
-.tl-hud-studio-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:.75rem 0}.tl-hud-studio-toolbar a,.tl-hud-studio-toolbar button{display:inline-flex;align-items:center;justify-content:center;min-height:2.35rem;padding:.45rem .8rem;border:1px solid var(--md-default-fg-color--lightest);border-radius:.35rem;color:var(--md-typeset-color);background:var(--md-default-bg-color);font:inherit;font-weight:600;cursor:pointer}.tl-hud-studio-toolbar>[hidden]{display:none}.tl-hud-studio-toolbar .tl-hud-studio-open{border-color:var(--md-primary-fg-color);color:var(--md-primary-bg-color);background:var(--md-primary-fg-color)}.tl-hud-studio-toolbar a:focus-visible,.tl-hud-studio-toolbar button:focus-visible{outline:.15rem solid var(--md-accent-fg-color);outline-offset:.15rem}.tl-hud-studio-note{margin:.5rem 0 1rem;color:var(--md-default-fg-color--light);font-size:.85rem}.tl-hud-studio-frame{display:block;width:100%;max-width:100%;height:950px;border:1px solid var(--md-default-fg-color--lightest);border-radius:.6rem;background:#e7edf4}.tl-studio-focus-mode{overflow:hidden}.tl-studio-focus-mode .md-header,.tl-studio-focus-mode .md-tabs,.tl-studio-focus-mode .md-sidebar,.tl-studio-focus-mode .md-footer{display:none}.tl-studio-focus-mode .tl-hud-studio-host,.tl-hud-studio-host:fullscreen{position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;width:100vw;max-width:none;height:100vh;margin:0;padding:.5rem;background:var(--md-default-bg-color)}.tl-studio-focus-mode .tl-hud-studio-toolbar,.tl-hud-studio-host:fullscreen .tl-hud-studio-toolbar{flex:0 0 auto;margin:0 0 .5rem}.tl-studio-focus-mode .tl-hud-studio-frame,.tl-hud-studio-host:fullscreen .tl-hud-studio-frame{flex:1 1 auto;min-height:0;height:auto;border-radius:.35rem}.tl-studio-focus-mode .tl-hud-studio-note,.tl-studio-focus-mode .tl-hud-studio-description,.tl-hud-studio-host:fullscreen .tl-hud-studio-note,.tl-hud-studio-host:fullscreen .tl-hud-studio-description{display:none}body.tl-hud-studio-page .md-main__inner{max-width:none}body.tl-hud-studio-page .md-sidebar--secondary{display:none}body.tl-hud-studio-page .md-content{min-width:0}
-@media(max-width:760px){.tl-hud-studio-frame{height:1550px}.tl-hud-studio-toolbar a,.tl-hud-studio-toolbar button{flex:1 1 auto}}
+.tl-hud-studio-toolbar{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;margin:.75rem 0;padding:.6rem;border:1px solid var(--md-default-fg-color--lightest);border-radius:.5rem;background:var(--md-code-bg-color)}
+.tl-hud-studio-toolbar>[hidden]{display:none}
+.tl-hud-studio-toolbar a,.tl-hud-studio-toolbar button{display:inline-flex;align-items:center;min-height:2.1rem;padding:.35rem .65rem;border:1px solid var(--md-primary-fg-color);border-radius:.35rem;color:var(--md-primary-fg-color);background:transparent;font:inherit;font-weight:600;text-decoration:none;cursor:pointer}
+.tl-hud-studio-toolbar a:hover,.tl-hud-studio-toolbar button:hover{color:var(--md-primary-bg-color);background:var(--md-primary-fg-color)}
+.tl-hud-studio-toolbar span{color:var(--md-default-fg-color--light);font-size:.75rem}
+.tl-hud-studio-host{display:flex;flex-direction:column;min-width:0;width:100%;height:900px;border:1px solid var(--md-default-fg-color--lightest);border-radius:.6rem;overflow:hidden;background:#e7edf4}
+.tl-hud-studio-frame{display:block;flex:1;width:100%;min-height:0;border:0;background:#e7edf4}
+body.tl-hud-studio-page .md-main__inner{max-width:none}
+body.tl-hud-studio-page .md-sidebar--secondary{display:none}
+body.tl-hud-studio-page .md-content{min-width:0}
+body.tl-studio-focus-mode{overflow:hidden}
+body.tl-studio-focus-mode .md-header,body.tl-studio-focus-mode .md-tabs,body.tl-studio-focus-mode .md-sidebar{display:none}
+body.tl-studio-focus-mode .tl-hud-studio-host,body.tl-hud-studio-page .tl-hud-studio-host:fullscreen{position:fixed;inset:0;z-index:1000;width:100vw;height:100vh;border:0;border-radius:0}
+body.tl-studio-focus-mode .tl-hud-studio-frame{flex:1}
+@media(max-width:760px){.tl-hud-studio-host{height:1500px}.tl-hud-studio-toolbar span{flex-basis:100%}}
 </style>
 
+<div class="tl-hud-studio-toolbar">
+  <a data-studio-open href="../../demo/hud-studio/" target="_blank" rel="noopener noreferrer">Open Studio</a>
+  <button data-studio-expand type="button" aria-pressed="false">Expand in this page</button>
+  <button data-studio-fullscreen type="button" aria-pressed="false" aria-label="Open HUD Studio in browser fullscreen">Fullscreen</button>
+  <button data-studio-exit type="button" hidden>Exit expanded view</button>
+  <span>For the best editing experience, open Studio in a full-width view.</span>
+</div>
+
 <div class="tl-hud-studio-host" data-studio-host>
-  <div class="tl-hud-studio-toolbar" role="toolbar" aria-label="HUD Studio view options">
-    <a class="tl-hud-studio-open" data-studio-open href="../../demo/hud-studio/" target="_blank" rel="noopener noreferrer" aria-label="Open HUD Studio in a new full-width tab" title="Open HUD Studio in a new full-width tab">Open Studio ↗</a>
-    <button type="button" data-studio-expand aria-pressed="false" aria-label="Expand HUD Studio in this page" title="Expand HUD Studio in this page">Expand</button>
-    <button type="button" data-studio-fullscreen aria-pressed="false" aria-label="Open HUD Studio in browser fullscreen" title="Open HUD Studio in browser fullscreen">Fullscreen</button>
-    <button type="button" data-studio-exit aria-label="Exit expanded HUD Studio view" title="Exit expanded HUD Studio view" hidden>Exit expanded view</button>
-  </div>
-  <p class="tl-hud-studio-note">For the best editing experience, open Studio in a full-width view.</p>
-  <p class="tl-hud-studio-description">Drag and resize the HUD in the preview or use the bounded controls. Every mode below uses the same Studio application, <code>HudOptions</code> model, runtime renderer, and generated Java.</p>
-  <iframe class="tl-hud-studio-frame" data-studio-frame src="../../demo/hud-studio/" title="Interactive Test Lens HUD Studio" sandbox="allow-scripts" allow="fullscreen" allowfullscreen>
-    HUD Studio could not be loaded. <a href="../../demo/hud-studio/" target="_blank" rel="noopener noreferrer">Open the standalone configurator</a>.
+  <iframe data-studio-frame class="tl-hud-studio-frame" src="../../demo/hud-studio/" title="Interactive Test Lens HUD Studio" sandbox="allow-scripts" allow="fullscreen" allowfullscreen>
+    HUD Studio could not be loaded. <a href="../../demo/hud-studio/">Open the standalone configurator</a>.
   </iframe>
 </div>
 
 <script src="../../javascripts/hud-studio-host.js"></script>
 
-<div class="admonition info">
-<p class="admonition-title">Development API</p>
-<p>Configurable HUD presets and HUD Studio are part of <code>0.3.0</code>. The <code>0.2.0</code> renderer does not accept <code>HudOptions</code>.</p>
-</div>
 <h2 id="public-configuration">Public configuration<a class="headerlink" href="#public-configuration" title="Permanent link">&para;</a></h2>
 <p><code>HudOptions</code> is immutable and defaults to <code>HudPreset.COMPACT</code>. A preset establishes base content and layout values; explicit builder overrides win whether they appear before or after <code>preset(...)</code>.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">HudOptions</span><span class="w"> </span><span class="n">hud</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HudOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
@@ -3015,18 +3106,37 @@
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">        </span><span class="p">.</span><span class="na">typography</span><span class="p">(</span><span class="n">HudTypography</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">                </span><span class="p">.</span><span class="na">header</span><span class="p">(</span><span class="n">HudFontPreset</span><span class="p">.</span><span class="na">MONOSPACE</span><span class="p">)</span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">                </span><span class="p">.</span><span class="na">eventLog</span><span class="p">(</span><span class="n">HudFontPreset</span><span class="p">.</span><span class="na">UI_SANS</span><span class="p">)</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">                </span><span class="p">.</span><span class="na">build</span><span class="p">())</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">        </span><span class="p">.</span><span class="na">scrollbarStyle</span><span class="p">(</span><span class="n">HudScrollbarStyle</span><span class="p">.</span><span class="na">SUBTLE</span><span class="p">)</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">        </span><span class="p">.</span><span class="na">scrollbarThumbColor</span><span class="p">(</span><span class="s">"#526174"</span><span class="p">)</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">        </span><span class="p">.</span><span class="na">backgroundOpacity</span><span class="p">(</span><span class="mf">0.82</span><span class="p">)</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="p">.</span><span class="na">showNetwork</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="n">TestLensOptions</span><span class="w"> </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">        </span><span class="p">.</span><span class="na">hud</span><span class="p">(</span><span class="n">hud</span><span class="p">)</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">                </span><span class="p">.</span><span class="na">timestampFontSizePx</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">                </span><span class="p">.</span><span class="na">build</span><span class="p">())</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">        </span><span class="p">.</span><span class="na">scrollbarStyle</span><span class="p">(</span><span class="n">HudScrollbarStyle</span><span class="p">.</span><span class="na">SUBTLE</span><span class="p">)</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">        </span><span class="p">.</span><span class="na">scrollbarThumbColor</span><span class="p">(</span><span class="s">"#526174"</span><span class="p">)</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="p">.</span><span class="na">backgroundOpacity</span><span class="p">(</span><span class="mf">0.82</span><span class="p">)</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">        </span><span class="p">.</span><span class="na">showTimestamps</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">        </span><span class="p">.</span><span class="na">timestampPattern</span><span class="p">(</span><span class="s">"HH:mm:ss.SSS"</span><span class="p">)</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">        </span><span class="p">.</span><span class="na">timestampZone</span><span class="p">(</span><span class="n">ZoneId</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">"Europe/Warsaw"</span><span class="p">))</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">        </span><span class="p">.</span><span class="na">showNetwork</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">,</span><span class="w"> </span><span class="n">options</span><span class="p">);</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="n">HighlightOptions</span><span class="w"> </span><span class="n">highlights</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HighlightOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">        </span><span class="p">.</span><span class="na">enabled</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">        </span><span class="p">.</span><span class="na">automaticFeedback</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">        </span><span class="p">.</span><span class="na">actionColor</span><span class="p">(</span><span class="s">"#ffeb3b"</span><span class="p">)</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">        </span><span class="p">.</span><span class="na">waitingColor</span><span class="p">(</span><span class="s">"#2196f3"</span><span class="p">)</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">        </span><span class="p">.</span><span class="na">retryColor</span><span class="p">(</span><span class="s">"#ff9800"</span><span class="p">)</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">        </span><span class="p">.</span><span class="na">successColor</span><span class="p">(</span><span class="s">"#4caf50"</span><span class="p">)</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">        </span><span class="p">.</span><span class="na">failureColor</span><span class="p">(</span><span class="s">"#f44336"</span><span class="p">)</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">        </span><span class="p">.</span><span class="na">durationMs</span><span class="p">(</span><span class="mi">1500</span><span class="p">)</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">        </span><span class="p">.</span><span class="na">borderWidthPx</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">        </span><span class="p">.</span><span class="na">showLabels</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="n">TestLensOptions</span><span class="w"> </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">        </span><span class="p">.</span><span class="na">hud</span><span class="p">(</span><span class="n">hud</span><span class="p">)</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">        </span><span class="p">.</span><span class="na">highlights</span><span class="p">(</span><span class="n">highlights</span><span class="p">)</span>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">        </span><span class="p">.</span><span class="na">visualRedaction</span><span class="p">(</span><span class="n">VisualRedactionOptions</span><span class="p">.</span><span class="na">defaults</span><span class="p">())</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">,</span><span class="w"> </span><span class="n">options</span><span class="p">);</span>
 </span></code></pre></div>
 <table>
 <thead>
@@ -3056,12 +3166,27 @@
 </table>
 <p>All presets use <code>HudHeaderLayout.AUTO</code>: TEST and STEP share a row while their atomic label/value pairs fit, then the complete STEP item moves to a second row. <code>INLINE</code> keeps both items on one row and truncates their values; <code>STACKED</code> always uses separate rows. Individual values remain single-line, expose their full text as a tooltip, and use ellipsis when constrained. The optional DEBUG/custom PIPE value is a separate metadata row, so it does not change the responsive TEST/STEP decision.</p>
 <p>Visibility switches affect only presentation. Suppressed network, recovery, wait, or assertion rows still flow to trace, reports, and other configured sinks. <code>showTimestamps(false)</code> removes timestamps from HUD rows; it does not change event timestamps in the model.</p>
+<p><code>ISO_UTC</code> is the compatibility default and renders in UTC unless an explicit timestamp zone overrides it. <code>TIME_ONLY</code> and <code>DATE_TIME</code>
+remain shortcuts and show their effective pattern in a read-only field. Select <code>CUSTOM</code> to edit a
+Java <code>DateTimeFormatter</code> pattern; one through nine <code>S</code> letters select fraction precision directly.
+The zone modes are <code>SYSTEM</code>, <code>UTC</code>, and <code>CUSTOM</code>. <code>SYSTEM</code> emits no redundant builder call and means
+the JVM/test-runner system zone, never the browser zone. <code>UTC</code> emits <code>ZoneOffset.UTC</code>; <code>CUSTOM</code>
+accepts a validated IANA <code>ZoneId</code>, such as <code>Europe/Warsaw</code>, or a fixed offset. Studio shows fixed
+winter and summer instants so DST differences are visible without a DST switch. Because a static
+page cannot inspect the future test runner, its SYSTEM preview clearly labels the browser zone used
+only as a visual stand-in; generated Java retains JVM system-zone behavior.</p>
+<h2 id="source-navigation-controls-and-preview">Source navigation controls and preview<a class="headerlink" href="#source-navigation-controls-and-preview" title="Permanent link">&para;</a></h2>
+<p>Source navigation is disabled by default. Enable it, choose <code>INTELLIJ</code>, <code>VSCODE</code>, or <code>CUSTOM</code>, and retain the currently supported <code>CTRL_ALT</code> modifier. <strong>Preview Ctrl+Alt active</strong> shows the same <code>File.java:line</code> reveal state used by the runtime; turning it off shows the passive state. The preview uses synthetic paths and never launches an IDE.</p>
+<p><code>CUSTOM</code> remains partly programmatic: Studio generates <code>.ide(SourceIde.CUSTOM)</code>, while the required <code>customUriTemplate(...)</code> and any non-standard <code>sourceRoots(...)</code> must be added in Java. Reset returns to disabled, IntelliJ, Ctrl+Alt, and inactive preview. See <a href="../visual-diagnostics/#local-source-navigation">local source navigation</a> for AltGr behavior, remote sessions, unresolved paths, providers, and the privacy boundary.</p>
+<h2 id="highlight-configurator-and-preview">Highlight configurator and preview<a class="headerlink" href="#highlight-configurator-and-preview" title="Permanent link">&para;</a></h2>
+<p>The Highlights section maps one-to-one to <code>HighlightOptions</code>: enabled, automatic feedback, five state colors, duration, 1–16 px border width, and labels. Duration zero is valid. <strong>Replay</strong> cycles over ACTION, WAITING, RETRY, SUCCESS, and final FAILURE using the selected colors. Turning automatic feedback off preserves manual highlights in the runtime; turning highlights off suppresses every state. Reset restores the public 0.3.1 defaults without changing the selected HUD preset.</p>
+<p>The generated code uses the plural <code>.highlights(highlights)</code> API, not its deprecated singular preview alias. It produces one <code>TestLensOptions</code> builder containing the HUD (including timestamps and source navigation), highlights, and explicit password-safe <code>VisualRedactionOptions.defaults()</code>. Advanced visual mask rules remain programmatic. See <a href="../visual-diagnostics/#state-aware-highlights">state-aware highlights</a> for the semantic contract of each state.</p>
 <h2 id="visual-editing-and-responsive-preview">Visual editing and responsive preview<a class="headerlink" href="#visual-editing-and-responsive-preview" title="Permanent link">&para;</a></h2>
 <p>Drag the panel to choose the nearest corner anchor and bounded X/Y offsets. The resize handle changes width and maximum panel height; in <code>AUTO</code>, the real runtime renderer immediately moves the complete STEP item between the first and second row as space changes. The event log keeps its own maximum height and scrolls internally. Desktop, laptop, and mobile buttons resize the isolated preview viewport without introducing viewport-specific configuration. After any manual change Studio shows <strong>Custom</strong>, while retaining the selected preset as the base for a minimal builder.</p>
 <p>Clicking HUD context, branding, or log regions selects the related control group. Color pickers and <code>#RRGGBB</code> fields remain synchronized. Every direct manipulation has a corresponding <code>HudOptions</code> builder method; Studio has no private presentation setting that is omitted from generated Java.</p>
 <h2 id="layout-typography-and-color-boundary">Layout, typography, and color boundary<a class="headerlink" href="#layout-typography-and-color-boundary" title="Permanent link">&para;</a></h2>
 <p>The four <code>HudPosition</code> values anchor the panel to a viewport corner. Offsets are limited to 0–500 px, width to 240–960 px, panel maximum height to 120–1000 px, and log maximum height to 80–720 px. At render time the dimensions and anchored offsets are clamped to a 10 px viewport margin without changing the stored options. The effective log height is the minimum of its configured limit, the panel content area, and the available viewport area.</p>
-<p><code>HudFontPreset</code> selects a bundled local stack (<code>SYSTEM</code>, <code>MONOSPACE</code>, or <code>UI_SANS</code>), with bounded base and header sizes. The global preset is the baseline. Optional <code>HudTypography</code> overrides independently select the stack for the header, current step, event log, and metadata; any section without an override inherits the global preset. Timestamps belong to the event log, while labels, optional pipeline text, and branding belong to metadata. A section override is explicit builder state, so it wins over the selected HUD preset regardless of builder call order. Studio exposes the same four overrides with <strong>Inherit</strong> as the default and emits only the overrides that were selected. No font is downloaded.</p>
+<p><code>HudFontPreset</code> selects a bundled local stack (<code>SYSTEM</code>, <code>MONOSPACE</code>, or <code>UI_SANS</code>), with bounded base and header sizes. The global preset is the baseline. Optional <code>HudTypography</code> overrides independently select the stack for the header, current step, event log, and metadata; any section without an override inherits the global preset. Timestamp size is independently configurable from 8–18 px and defaults to 9 px, so changing it never changes message text size. Timestamps belong to the event log, while labels, optional pipeline text, and branding belong to metadata. Explicit typography wins over the selected HUD preset regardless of builder call order. Studio exposes the same controls and emits only selected overrides. No font is downloaded.</p>
 <p>Colors accept six-digit hexadecimal values, and background opacity must be between <code>0</code> and <code>1</code>. Success, warning, and failure colors drive matching event rows. The API deliberately does not accept arbitrary CSS, font URLs, or <code>@font-face</code> declarations.</p>
 <p>The event log uses <code>HudScrollbarStyle.SUBTLE</code> by default: a 6 px rounded Chromium scrollbar with a dark track and a muted neutral thumb. Firefox uses its closest supported <code>thin</code> scrollbar with the same thumb and track colors. <code>STANDARD</code> is wider in Chromium and more visible; <code>DEBUG</code> selects it by default. <code>NATIVE</code> removes Test Lens scrollbar classes and color properties so the browser and operating system render the control. A builder can override the bounded 4–14 px Chromium width and the track, thumb, and hover colors. Firefox does not expose an exact pixel-width scrollbar API, so <code>SUBTLE</code> maps to <code>thin</code> and <code>STANDARD</code> maps to its native-width custom-color variant.</p>
 <h2 id="branding-and-custom-logos">Branding and custom logos<a class="headerlink" href="#branding-and-custom-logos" title="Permanent link">&para;</a></h2>

@@ -628,6 +628,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../whats-new-0.3.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../whats-new-0.3.0/" class="md-nav__link">
         
   
@@ -2990,7 +3018,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1" class="md-nav__link">
         
   
   
@@ -3018,7 +3046,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/" class="md-nav__link">
         
   
   
@@ -3331,6 +3359,12 @@
 <td><code>HudOptions</code></td>
 <td><code>HudOptions.defaults()</code></td>
 <td>Product-level HUD content, layout, palette, opacity, and branding. Added in <code>0.3.0</code>.</td>
+</tr>
+<tr>
+<td><code>highlights(value)</code></td>
+<td><code>HighlightOptions</code></td>
+<td><code>HighlightOptions.defaults()</code></td>
+<td>Manual and automatic ACTION/WAITING/RETRY/SUCCESS/FAILURE element decoration. The deprecated singular <code>highlight(value)</code> alias exists only for 0.3.1 preview compatibility.</td>
 </tr>
 <tr>
 <td><code>locatorOptions(value)</code></td>
@@ -3657,9 +3691,23 @@
 </table>
 <p>Accessors use JavaBean <code>is...</code>/<code>get...</code> names shown in the <a href="../public-api-catalog/">catalog</a>.</p>
 <h2 id="hudoptions">HudOptions<a class="headerlink" href="#hudoptions" title="Permanent link">&para;</a></h2>
-<p><code>HudOptions.defaults()</code> selects <code>HudPreset.COMPACT</code>; the fuller timestamped preset is <code>STANDARD</code>. Presets provide base values and explicit builder overrides win independently of call order. The builder exposes the corner anchor and bounded offsets, <code>HudHeaderLayout</code>, panel width and maximum height, internal log maximum height, controlled font presets and sizes, semantic visibility switches, branding placement and rail width, the validated palette, background opacity, and <code>customLogo(Path)</code>. Offsets are 0–500 px, width 240–960 px, panel height 120–1000 px, log height 80–720 px, rail width 16–80 px, opacity 0–1, and colors are six-digit hexadecimal values. Runtime rendering clamps effective dimensions and offsets to the current viewport.</p>
+<p><code>HudOptions.defaults()</code> selects <code>HudPreset.COMPACT</code>; the fuller timestamped preset is <code>STANDARD</code>. Presets provide base values and explicit builder overrides win independently of call order. The builder exposes the corner anchor and bounded offsets, <code>HudHeaderLayout</code>, panel width and maximum height, internal log maximum height, controlled font presets and sizes, semantic visibility switches, timestamp format and zone, branding placement and rail width, the validated palette, background opacity, and <code>customLogo(Path)</code>. Offsets are 0–500 px, width 240–960 px, panel height 120–1000 px, log height 80–720 px, rail width 16–80 px, opacity 0–1, and colors are six-digit hexadecimal values. Runtime rendering clamps effective dimensions and offsets to the current viewport.</p>
+<p><code>timestampFormat(...)</code> accepts the compatibility shortcuts <code>ISO_UTC</code> (default), <code>TIME_ONLY</code>, or
+<code>DATE_TIME</code>. <code>timestampPattern(String)</code> accepts and eagerly validates a Java <code>DateTimeFormatter</code>
+pattern; an explicit pattern wins over the shortcut independently of setter order. The default
+effective pattern is <code>yyyy-MM-dd'T'HH:mm:ss.SSSXXX</code>. Fraction width follows the number of <code>S</code>
+letters from 1 through 9, matching the nanosecond capacity of the stored event <code>Instant</code>.
+<code>timestampZone(ZoneId)</code> selects any standard region or fixed-offset zone;
+<code>systemTimestampZone()</code> restores test-runner JVM system-zone behavior. <code>timestampZone()</code> returns
+the optional explicit value, <code>usesSystemTimestampZone()</code> identifies system mode, and
+<code>effectiveTimestampZone()</code> resolves it in the JVM. An explicit zone overrides the zone implied by
+every format preset, including <code>ISO_UTC</code>. Region zones apply DST; fixed <code>ZoneOffset</code>
+values do not. These settings affect only HUD presentation, never trace/report data, ordering, or
+durations.</p>
+<p><code>sourceNavigation(...)</code> installs disabled-by-default <code>SourceNavigationOptions</code>. The current activation modifier is <code>CTRL_ALT</code>; providers are <code>INTELLIJ</code>, <code>VSCODE</code>, and <code>CUSTOM</code>. Additional <code>sourceRoots(Path...)</code> supplement lazy standard Maven/Gradle Java/Kotlin discovery, and <code>customUriTemplate(...)</code> accepts <code>{file}</code>, <code>{line}</code>, and <code>{column}</code> placeholders. Logical source metadata never contains the resolved absolute path. See <a href="../../observability/visual-diagnostics/#local-source-navigation">local source navigation</a> for local/remote and interaction behavior.</p>
+<p><code>HighlightOptions</code> defaults are: enabled and automatic feedback on; ACTION <code>#ffeb3b</code>, WAITING <code>#2196f3</code>, RETRY <code>#ff9800</code>, SUCCESS <code>#4caf50</code>, FAILURE <code>#f44336</code>; 1500 ms; 2 px border; labels on. <code>TestLensOptions.Builder.highlights(...)</code> installs the typed options; the singular 0.3.1 preview alias remains deprecated for source compatibility. Duration accepts zero and border width accepts 1-16 px. <code>OverlayConfig.highlightColor(...)</code> and <code>decorationDurationMs(...)</code> remain compatibility inputs for action color and highlight duration only when the corresponding typed field is unset. Explicit typed fields are authoritative in either call order, and the legacy duration continues to configure other decorations.</p>
 <p><code>HudHeaderLayout.AUTO</code> is the preset default. It places the atomic TEST and STEP label/value items on one row when their natural widths fit and moves the complete STEP item to row two otherwise. <code>INLINE</code> always uses one row with ellipsis as needed; <code>STACKED</code> always uses two. Values never wrap and retain their full tooltip. PIPE, when enabled, is rendered as a separate metadata row and does not participate in the TEST/STEP layout decision.</p>
-<p>The global <code>fontPreset(...)</code> is the baseline for every section. <code>typography(HudTypography)</code> can override the local font stack for the header, current step, event log, or metadata; omitted section values inherit the global preset. These typed presets use local font stacks only. Arbitrary CSS, remote fonts, and font URLs are not accepted.</p>
+<p>The global <code>fontPreset(...)</code> is the baseline for every section. <code>typography(HudTypography)</code> can override the local font stack for the header, current step, event log, or metadata; omitted section values inherit the global preset. <code>HudTypography.timestampFontSizePx(...)</code> independently configures timestamp text from 8 through 18 px and defaults to 9 px without changing message size. These typed presets use local font stacks only. Arbitrary CSS, remote fonts, and font URLs are not accepted.</p>
 <p><code>scrollbarStyle(...)</code> selects <code>SUBTLE</code>, <code>STANDARD</code>, or <code>NATIVE</code> for the event log. <code>SUBTLE</code> is the default except that <code>DEBUG</code> selects <code>STANDARD</code>. The custom styles accept a bounded 4–14 px Chromium width plus validated <code>#RRGGBB</code> track, thumb, and hover colors. Firefox applies the same colors but maps the styles to the engine's supported <code>thin</code> or native width rather than an exact pixel width. <code>NATIVE</code> leaves scrollbar rendering to the browser and operating system.</p>
 <p>See <a href="../../observability/hud-studio/">HUD Studio</a> for preset defaults, examples, and the PNG branding security boundary.</p>
 <h2 id="hudtheme">HudTheme<a class="headerlink" href="#hudtheme" title="Permanent link">&para;</a></h2>

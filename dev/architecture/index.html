@@ -628,6 +628,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../whats-new-0.3.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../whats-new-0.3.0/" class="md-nav__link">
         
   
@@ -2935,7 +2963,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1" class="md-nav__link">
         
   
   
@@ -2963,7 +2991,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/" class="md-nav__link">
         
   
   
@@ -3337,7 +3365,7 @@ remains authoritative for real Chrome and Firefox behavior.</p>
 <p>Report upload is a separate, explicit post-finalization boundary in the Selenium artifact. It consumes <code>TestLensFinalizationResult</code>, selects one completed ZIP, and uses the JDK HTTP client without accessing WebDriver or adding session events. The immutable uploader has no background executor or global transport state; retries reuse the same file checksum and idempotency key. Local finalization remains authoritative when transport fails. See <a href="../observability/report-upload/">Report upload</a>.</p>
 <h2 id="evidence-boundary">Evidence boundary<a class="headerlink" href="#evidence-boundary" title="Permanent link">&para;</a></h2>
 <p>Core stores artifact metadata such as paths and URLs. Selenium integration creates browser-dependent evidence, including screenshots, and attaches it to the session. Exporters consume that session model; the producing feature writes the underlying file. Video support attaches existing files or URLs and does not record video.</p>
-<p>Screenshot evidence has one Selenium pipeline with two modes. <code>VIEWPORT</code> delegates once to <code>TakesScreenshot</code>; <code>FULL_PAGE</code> snapshots top-level geometry, scrolls the unchanged viewport, stitches bounded PNG tiles, restores browser state, and publishes atomically. Explicit screenshots, step evidence, and failure-bundle diagnostic/clean images share path validation, result metadata, trace attachment, and failure behavior. CDP is not part of this path.</p>
+<p>Screenshot evidence has one Selenium pipeline with two modes. <code>VIEWPORT</code> delegates once to <code>TakesScreenshot</code>; <code>FULL_PAGE</code> installs a temporary visual-stability guard and clones the complete Test Lens shadow tree into one frozen, document-positioned overlay snapshot. The live host is hidden as one unit while the snapshot remains visible across every tile and retry. Capture snapshots top-level geometry after a paint barrier, scrolls the unchanged viewport, stitches bounded PNG tiles, performs one whole-capture retry for changed geometry, restores browser state, and publishes atomically. Explicit screenshots, step evidence, and failure-bundle diagnostic/clean images share path validation, result metadata, trace attachment, and failure behavior. CDP is not part of this path.</p>
 <h2 id="react-boundary">React boundary<a class="headerlink" href="#react-boundary" title="Permanent link">&para;</a></h2>
 <p>React support is isolated in <code>selenium-test-lens-react</code>, which depends on the main runtime, core, overlay, and Selenium. The main runtime does not depend on React. Normal DOM interactions continue to use <code>selenium-test-lens</code>.</p>
 <h2 id="junit-5-boundary">JUnit 5 boundary<a class="headerlink" href="#junit-5-boundary" title="Permanent link">&para;</a></h2>

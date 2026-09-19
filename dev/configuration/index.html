@@ -633,6 +633,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../whats-new-0.3.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../whats-new-0.3.0/" class="md-nav__link">
         
   
@@ -792,6 +820,17 @@
     <span class="md-ellipsis">
       
         HUD
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#element-feedback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element feedback
       
     </span>
   </a>
@@ -2902,7 +2941,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1" class="md-nav__link">
         
   
   
@@ -2930,7 +2969,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/" class="md-nav__link">
         
   
   
@@ -3000,6 +3039,17 @@
     <span class="md-ellipsis">
       
         HUD
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#element-feedback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Element feedback
       
     </span>
   </a>
@@ -3182,10 +3232,14 @@
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span><span class="p">.</span><span class="na">position</span><span class="p">(</span><span class="n">HudPosition</span><span class="p">.</span><span class="na">TOP_RIGHT</span><span class="p">)</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">        </span><span class="p">.</span><span class="na">headerLayout</span><span class="p">(</span><span class="n">HudHeaderLayout</span><span class="p">.</span><span class="na">AUTO</span><span class="p">)</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">        </span><span class="p">.</span><span class="na">backgroundOpacity</span><span class="p">(</span><span class="mf">0.9</span><span class="p">)</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">        </span><span class="p">.</span><span class="na">showNetwork</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">TestLensOptions</span><span class="w"> </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">().</span><span class="na">hud</span><span class="p">(</span><span class="n">hud</span><span class="p">).</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">        </span><span class="p">.</span><span class="na">showTimestamps</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">        </span><span class="p">.</span><span class="na">timestampPattern</span><span class="p">(</span><span class="s">"yyyy-MM-dd HH:mm:ss.SSSSSS XXX"</span><span class="p">)</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">        </span><span class="p">.</span><span class="na">timestampZone</span><span class="p">(</span><span class="n">ZoneId</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">"Europe/Warsaw"</span><span class="p">))</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">        </span><span class="p">.</span><span class="na">typography</span><span class="p">(</span><span class="n">HudTypography</span><span class="p">.</span><span class="na">builder</span><span class="p">().</span><span class="na">timestampFontSizePx</span><span class="p">(</span><span class="mi">10</span><span class="p">).</span><span class="na">build</span><span class="p">())</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">        </span><span class="p">.</span><span class="na">showNetwork</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">TestLensOptions</span><span class="w"> </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">().</span><span class="na">hud</span><span class="p">(</span><span class="n">hud</span><span class="p">).</span><span class="na">build</span><span class="p">();</span>
 </span></code></pre></div>
 <p>Precedence is deterministic:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>selected preset
@@ -3225,8 +3279,8 @@
 </tr>
 <tr>
 <td>Typography</td>
-<td>local <code>UI_SANS</code> except Debug uses <code>MONOSPACE</code></td>
-<td><code>SYSTEM</code>, <code>MONOSPACE</code>, and <code>UI_SANS</code> are local stacks; section overrides inherit from the global preset. No font URLs.</td>
+<td>local <code>UI_SANS</code> except Debug uses <code>MONOSPACE</code>; timestamp 9 px</td>
+<td><code>SYSTEM</code>, <code>MONOSPACE</code>, and <code>UI_SANS</code> are local stacks; section overrides inherit from the global preset. Timestamp size is independently bounded to 8–18 px. No font URLs.</td>
 </tr>
 <tr>
 <td>Scrollbar</td>
@@ -3239,6 +3293,11 @@
 <td>No arbitrary CSS is accepted by <code>HudOptions</code>.</td>
 </tr>
 <tr>
+<td>Timestamps</td>
+<td><code>ISO_UTC</code>; JVM system zone; no custom pattern</td>
+<td>Presets remain shortcuts. <code>timestampPattern(...)</code> accepts Java <code>DateTimeFormatter</code> patterns and overrides the preset. <code>S</code> supports 1–9 fraction digits.</td>
+</tr>
+<tr>
 <td>Branding</td>
 <td>Test Lens mark in a 16 px rail</td>
 <td>Custom logos are bounded, regular non-symlink PNG files; SVG, URLs, and HTML are rejected.</td>
@@ -3246,6 +3305,29 @@
 </tbody>
 </table>
 <p><a href="../observability/hud-studio/">Customize the same runtime renderer in HUD Studio</a>.</p>
+<p>Use <code>.systemTimestampZone()</code> to explicitly retain JVM-system behavior in a reusable builder. HUD
+timestamps use the test runner JVM timezone by default, not the browser machine timezone, so a
+remote BrowserStack browser cannot substitute its own system zone. Region <code>ZoneId</code> values apply
+DST automatically; a fixed <code>ZoneOffset</code> does not. Formatting affects only HUD presentation and
+never mutates the event <code>Instant</code>, trace/JSON/report data, ordering, durations, or evidence metadata.</p>
+<h2 id="element-feedback">Element feedback<a class="headerlink" href="#element-feedback" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">HighlightOptions</span><span class="w"> </span><span class="n">highlights</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HighlightOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">        </span><span class="p">.</span><span class="na">enabled</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">        </span><span class="p">.</span><span class="na">automaticFeedback</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">        </span><span class="p">.</span><span class="na">actionColor</span><span class="p">(</span><span class="s">"#ffeb3b"</span><span class="p">)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">        </span><span class="p">.</span><span class="na">waitingColor</span><span class="p">(</span><span class="s">"#2196f3"</span><span class="p">)</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">        </span><span class="p">.</span><span class="na">retryColor</span><span class="p">(</span><span class="s">"#ff9800"</span><span class="p">)</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">        </span><span class="p">.</span><span class="na">successColor</span><span class="p">(</span><span class="s">"#4caf50"</span><span class="p">)</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">        </span><span class="p">.</span><span class="na">failureColor</span><span class="p">(</span><span class="s">"#f44336"</span><span class="p">)</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">        </span><span class="p">.</span><span class="na">durationMs</span><span class="p">(</span><span class="mi">1500</span><span class="p">)</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">        </span><span class="p">.</span><span class="na">borderWidthPx</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">        </span><span class="p">.</span><span class="na">showLabels</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="n">TestLensOptions</span><span class="w"> </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">().</span><span class="na">hud</span><span class="p">(</span><span class="n">hud</span><span class="p">).</span><span class="na">highlights</span><span class="p">(</span><span class="n">highlights</span><span class="p">).</span><span class="na">build</span><span class="p">();</span>
+</span></code></pre></div>
+<p><code>enabled(false)</code> disables both manual and automatic state borders. <code>automaticFeedback(false)</code> keeps manual <code>lens.highlight(...)</code> and <code>locator.highlight()</code> available. HUD visibility is independent. A duration of zero renders the state and schedules its removal without an artificial visibility delay; border width accepts 1-16 px. Legacy <code>OverlayConfig.highlightColor</code> and <code>decorationDurationMs</code> feed only action color and highlight duration when those individual fields were not explicitly set. Explicit typed fields win regardless of setter order, while <code>decorationDurationMs</code> retains its separate legacy meaning for arrows and other decorations.</p>
+<p>For a consumer <code>LensTestBase</code>, create <code>TestLensOptions</code> once in its setup/option factory and attach the facade with those options. Use <code>lens.highlight(element, label)</code> instead of allocating an additional <code>JsOverlayDebug</code>; this keeps the active driver, session, redaction, logger, and cleanup ownership together.</p>
 <h2 id="evidence">Evidence<a class="headerlink" href="#evidence" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3280,10 +3362,10 @@
 </table>
 <p>See <a href="../observability/screenshots-evidence/">Screenshots &amp; evidence</a> and <a href="../observability/failure-bundles/">Failure bundles</a>.</p>
 <h2 id="visual-redaction">Visual Redaction<a class="headerlink" href="#visual-redaction" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">VisualRedactionOptions</span><span class="w"> </span><span class="n">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">VisualRedactionOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">        </span><span class="p">.</span><span class="na">mask</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"account-number"</span><span class="p">),</span><span class="w"> </span><span class="n">VisualMaskMode</span><span class="p">.</span><span class="na">SOLID</span><span class="p">)</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">        </span><span class="p">.</span><span class="na">failurePolicy</span><span class="p">(</span><span class="n">VisualRedactionFailurePolicy</span><span class="p">.</span><span class="na">STRICT</span><span class="p">)</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">VisualRedactionOptions</span><span class="w"> </span><span class="n">visual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">VisualRedactionOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">        </span><span class="p">.</span><span class="na">mask</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"account-number"</span><span class="p">),</span><span class="w"> </span><span class="n">VisualMaskMode</span><span class="p">.</span><span class="na">SOLID</span><span class="p">)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">        </span><span class="p">.</span><span class="na">failurePolicy</span><span class="p">(</span><span class="n">VisualRedactionFailurePolicy</span><span class="p">.</span><span class="na">STRICT</span><span class="p">)</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
 </span></code></pre></div>
 <p><code>TestLensOptions.visualRedaction(...)</code> defaults to automatic SOLID masking of password inputs and the fail-closed <code>STRICT</code> policy. Explicit masks are required targets. <code>BEST_EFFORT</code> is an opt-in that can publish a partially masked screenshot with diagnostics. <code>solidColor</code> accepts <code>#RRGGBB</code>, blur radius is 2–32 px, and padding is 0–32 px.</p>
 <p>This controls screenshot pixels only. Configure diagnostic text separately with <code>RedactionPolicy</code>. Review the <a href="../security/visual-redaction/">complete visual-redaction boundary</a> before publishing evidence.</p>
