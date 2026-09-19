@@ -300,14 +300,6 @@ try {
             throw "redeploy-release latest alias differs from repaired 0.2.0."
         }
 
-        $env:DOCS_RELEASE_VERSION = $futureReleaseVersion
-        $env:DOCS_RELEASE_EDIT_URI = "edit/v$futureReleaseVersion/docs/"
-        & ./scripts/publish-versioned-docs.ps1 -Operation release -Version $futureReleaseVersion
-        $stage3 = Join-Path $work "site-three"
-        New-Item -ItemType Directory -Path $stage3 | Out-Null
-        & git archive gh-pages -o (Join-Path $work "pages-three.tar")
-        & tar -xf (Join-Path $work "pages-three.tar") -C $stage3
-
         $requiredVersionedOutputs = @(
             "0.1.0/index.html", "0.1.0/search/search_index.json",
             "0.2.0/index.html", "0.2.0/search/search_index.json",
