@@ -3005,7 +3005,16 @@ versions: verify the symbol against the corresponding release tag before adding 
 <p>The bootstrap is complete. Its workflow operation deliberately refuses to overwrite an existing 0.1.0 version. The workflow declares <code>contents: write</code> only on its publication job. If organization policy disables write-capable <code>GITHUB_TOKEN</code>s despite job permissions, enable repository <strong>Read and write permissions</strong> for Actions; do not replace the token with a personal secret.</p>
 <h2 id="verification-and-recovery">Verification and recovery<a class="headerlink" href="#verification-and-recovery" title="Permanent link">&para;</a></h2>
 <p>Run <code>./scripts/validate-versioned-docs.ps1</code> locally in PowerShell 7. It creates a disposable Git repository, bootstraps stable and dev documentation, hashes 0.1.0 across a dev redeploy, rejects a duplicate stable deployment, simulates the next stable release, and removes the temporary repository. <code>mike list --branch gh-pages</code> in a read-only clone shows deployed metadata.</p>
-<p>To recover a Pages deployment without changing documentation, choose <code>redeploy-pages</code>; it uploads the existing complete <code>gh-pages</code> branch. If a <code>mike</code> push conflicts, let the serialized workflow fail, inspect the remote branch, and rerun the same operation. Never force-push or rebuild old versions from <code>main</code>.</p>
+<p>To redeploy the existing Pages artifact/tree without rebuilding documentation, choose <code>redeploy-pages</code>;
+it only uploads the complete current <code>gh-pages</code> branch.</p>
+<p>To repair the generated documentation of an already published release, use the exceptional manual
+<code>redeploy-release</code> operation. Supply the existing <code>MAJOR.MINOR.PATCH</code>, the exact
+<code>release/MAJOR.MINOR.PATCH</code> source ref, and confirmation <code>redeploy-docs-MAJOR.MINOR.PATCH</code>. This
+rebuilds only that version, moves <code>latest</code> to it, and sets the root default to <code>latest</code>. It does not
+move the release tag and must never be used to change the semantics of an already released API.
+Normal tag-driven <code>release</code> publication remains immutable and rejects an existing version.</p>
+<p>If a <code>mike</code> push conflicts, let the serialized workflow fail, inspect the remote branch, and rerun
+the same operation. Never force-push or rebuild old versions from <code>main</code>.</p>
 
 
 
