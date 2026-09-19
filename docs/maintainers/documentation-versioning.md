@@ -36,4 +36,15 @@ The bootstrap is complete. Its workflow operation deliberately refuses to overwr
 
 Run `./scripts/validate-versioned-docs.ps1` locally in PowerShell 7. It creates a disposable Git repository, bootstraps stable and dev documentation, hashes 0.1.0 across a dev redeploy, rejects a duplicate stable deployment, simulates the next stable release, and removes the temporary repository. `mike list --branch gh-pages` in a read-only clone shows deployed metadata.
 
-To recover a Pages deployment without changing documentation, choose `redeploy-pages`; it uploads the existing complete `gh-pages` branch. If a `mike` push conflicts, let the serialized workflow fail, inspect the remote branch, and rerun the same operation. Never force-push or rebuild old versions from `main`.
+To redeploy the existing Pages artifact/tree without rebuilding documentation, choose `redeploy-pages`;
+it only uploads the complete current `gh-pages` branch.
+
+To repair the generated documentation of an already published release, use the exceptional manual
+`redeploy-release` operation. Supply the existing `MAJOR.MINOR.PATCH`, the exact
+`release/MAJOR.MINOR.PATCH` source ref, and confirmation `redeploy-docs-MAJOR.MINOR.PATCH`. This
+rebuilds only that version, moves `latest` to it, and sets the root default to `latest`. It does not
+move the release tag and must never be used to change the semantics of an already released API.
+Normal tag-driven `release` publication remains immutable and rejects an existing version.
+
+If a `mike` push conflicts, let the serialized workflow fail, inspect the remote branch, and rerun
+the same operation. Never force-push or rebuild old versions from `main`.

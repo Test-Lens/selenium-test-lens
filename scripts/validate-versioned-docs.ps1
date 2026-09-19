@@ -50,6 +50,16 @@ function TreeHash([string]$Path) {
     $sha = [Security.Cryptography.SHA256]::Create()
     return ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace("-", "")
 }
+function Assert-Fails([scriptblock]$Action, [string]$ExpectedMessage) {
+    $failed = $false
+    try { & $Action | Out-Null } catch {
+        $failed = $true
+        if (-not $_.Exception.Message.Contains($ExpectedMessage)) {
+            throw "Expected failure containing '$ExpectedMessage', got: $($_.Exception.Message)"
+        }
+    }
+    if (-not $failed) { throw "Expected operation to fail: $ExpectedMessage" }
+}
 function Test-IsCompatibilityRedirectPage([string]$RelativePath) {
     $normalizedRelativePath = $RelativePath.Replace('\','/')
     return $compatibilityRedirects.Contains($normalizedRelativePath) -and
@@ -133,6 +143,19 @@ try {
     }
     foreach ($file in @("mkdocs.yml", "mkdocs-0.1.0.yml", "mkdocs-release.yml", "requirements-docs.txt", "README.md", "CHANGELOG.md")) {
         Copy-Item -LiteralPath (Join-Path $root $file) -Destination $repo
+    }
+    $workflow = [IO.File]::ReadAllText((Join-Path $root ".github/workflows/docs.yml"))
+    foreach ($requiredWorkflowContract in @(
+        "bootstrap-0.1.0, redeploy-release, redeploy-pages",
+        "github.event.inputs.operation == 'redeploy-release' && github.event.inputs.source_ref",
+        "github.event.inputs.operation != 'validate-only' && 'main'",
+        "./scripts/publish-versioned-docs.ps1 -Operation redeploy-release",
+        "edit/`$(`$env:DOCS_REDEPLOY_SOURCE_REF)/docs/",
+        "redeploy-pages does not rebuild docs"
+    )) {
+        if (-not $workflow.Contains($requiredWorkflowContract)) {
+            throw "Redeploy workflow contract missing: $requiredWorkflowContract"
+        }
     }
     Push-Location $repo
     try {
@@ -226,6 +249,64 @@ try {
         $duplicateFailed = $false
         try { & ./scripts/publish-versioned-docs.ps1 -Operation bootstrap-0.1.0 -Confirmation publish-immutable-0.1.0 -NoPush } catch { $duplicateFailed = $true }
         if (-not $duplicateFailed) { throw "Duplicate 0.1.0 publication was not rejected." }
+
+        Assert-Fails {
+            & ./scripts/publish-versioned-docs.ps1 -Operation release -Version 0.2.0 -NoPush
+        } "Immutable documentation version '0.2.0' already exists"
+        Assert-Fails {
+            & ./scripts/publish-versioned-docs.ps1 -Operation redeploy-release -Version 9.9.9 -Confirmation redeploy-docs-9.9.9 -NoPush
+        } "Documentation version '9.9.9' does not exist"
+        Assert-Fails {
+            & ./scripts/publish-versioned-docs.ps1 -Operation redeploy-release -Version 0.2.0 -NoPush
+        } "Exact redeploy confirmation 'redeploy-docs-0.2.0' is required"
+        Assert-Fails {
+            & ./scripts/publish-versioned-docs.ps1 -Operation redeploy-release -Version 0.2.0 -Confirmation wrong -NoPush
+        } "Exact redeploy confirmation 'redeploy-docs-0.2.0' is required"
+
+        $repairMarker = "validation-only repaired release documentation"
+        [IO.File]::AppendAllText($repoHomepage, "`n<!-- $repairMarker -->`n", [Text.UTF8Encoding]::new($false))
+        $env:DOCS_RELEASE_VERSION = "0.2.0"
+        $env:DOCS_RELEASE_EDIT_URI = "edit/release/0.2.0/docs/"
+        $redeployOutput = & ./scripts/publish-versioned-docs.ps1 -Operation redeploy-release -Version 0.2.0 `
+            -Confirmation redeploy-docs-0.2.0 -NoPush 6>&1
+        $redeployText = $redeployOutput | Out-String
+        foreach ($requiredArgument in @(
+            "mike arguments: deploy 0.2.0 latest",
+            "--update-aliases",
+            "mike arguments: set-default latest --branch gh-pages"
+        )) {
+            if (-not $redeployText.Contains($requiredArgument)) {
+                throw "Redeploy mike arguments missing: $requiredArgument"
+            }
+        }
+        $redeployStage = Join-Path $work "site-redeploy"
+        New-Item -ItemType Directory -Path $redeployStage | Out-Null
+        & git archive gh-pages -o (Join-Path $work "pages-redeploy.tar")
+        & tar -xf (Join-Path $work "pages-redeploy.tar") -C $redeployStage
+        if (-not [IO.File]::ReadAllText((Join-Path $redeployStage "0.2.0/index.html")).Contains($repairMarker)) {
+            throw "redeploy-release did not replace the existing 0.2.0 documentation."
+        }
+        if ((TreeHash (Join-Path $redeployStage "0.1.0")) -ne $stableHash) {
+            throw "redeploy-release changed historical 0.1.0 documentation."
+        }
+        $redeployedVersions = Get-Content (Join-Path $redeployStage "versions.json") -Raw | ConvertFrom-Json
+        $redeployedRelease = $redeployedVersions | Where-Object version -eq "0.2.0"
+        if ($null -eq $redeployedRelease -or $redeployedRelease.aliases -notcontains "latest") {
+            throw "redeploy-release did not retain latest on repaired 0.2.0."
+        }
+        $redeployedRoot = [IO.File]::ReadAllText((Join-Path $redeployStage "index.html"))
+        if (-not $redeployedRoot.Contains('url=latest/')) { throw "redeploy-release did not set root default to latest." }
+        if ((TreeHash (Join-Path $redeployStage "latest")) -ne (TreeHash (Join-Path $redeployStage "0.2.0"))) {
+            throw "redeploy-release latest alias differs from repaired 0.2.0."
+        }
+
+        $env:DOCS_RELEASE_VERSION = $futureReleaseVersion
+        $env:DOCS_RELEASE_EDIT_URI = "edit/v$futureReleaseVersion/docs/"
+        & ./scripts/publish-versioned-docs.ps1 -Operation release -Version $futureReleaseVersion
+        $stage3 = Join-Path $work "site-three"
+        New-Item -ItemType Directory -Path $stage3 | Out-Null
+        & git archive gh-pages -o (Join-Path $work "pages-three.tar")
+        & tar -xf (Join-Path $work "pages-three.tar") -C $stage3
 
         $requiredVersionedOutputs = @(
             "0.1.0/index.html", "0.1.0/search/search_index.json",
