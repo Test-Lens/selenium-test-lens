@@ -3034,7 +3034,7 @@
 
 
   
-    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/v0.3.1/docs/observability/hud-studio.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/release/0.3.1/docs/observability/hud-studio.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -3054,13 +3054,38 @@
 <p>The Highlights section configures independent action, waiting, retry, success, and failure colors plus duration, border width, labels, enablement, and automatic feedback. HUD preset changes do not reset these values, and generated Java includes <code>HighlightOptions</code> in <code>TestLensOptions</code>.</p>
 </div>
 <style>
-.tl-hud-studio-frame { display:block; width:100%; max-width:100%; height:900px; border:1px solid var(--md-default-fg-color--lightest); border-radius:.6rem; background:#e7edf4; }
-@media(max-width:760px){.tl-hud-studio-frame{height:1500px}}
+.tl-hud-studio-toolbar{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;margin:.75rem 0;padding:.6rem;border:1px solid var(--md-default-fg-color--lightest);border-radius:.5rem;background:var(--md-code-bg-color)}
+.tl-hud-studio-toolbar>[hidden]{display:none}
+.tl-hud-studio-toolbar a,.tl-hud-studio-toolbar button{display:inline-flex;align-items:center;min-height:2.1rem;padding:.35rem .65rem;border:1px solid var(--md-primary-fg-color);border-radius:.35rem;color:var(--md-primary-fg-color);background:transparent;font:inherit;font-weight:600;text-decoration:none;cursor:pointer}
+.tl-hud-studio-toolbar a:hover,.tl-hud-studio-toolbar button:hover{color:var(--md-primary-bg-color);background:var(--md-primary-fg-color)}
+.tl-hud-studio-toolbar span{color:var(--md-default-fg-color--light);font-size:.75rem}
+.tl-hud-studio-host{display:flex;flex-direction:column;min-width:0;width:100%;height:900px;border:1px solid var(--md-default-fg-color--lightest);border-radius:.6rem;overflow:hidden;background:#e7edf4}
+.tl-hud-studio-frame{display:block;flex:1;width:100%;min-height:0;border:0;background:#e7edf4}
+body.tl-hud-studio-page .md-main__inner{max-width:none}
+body.tl-hud-studio-page .md-sidebar--secondary{display:none}
+body.tl-hud-studio-page .md-content{min-width:0}
+body.tl-studio-focus-mode{overflow:hidden}
+body.tl-studio-focus-mode .md-header,body.tl-studio-focus-mode .md-tabs,body.tl-studio-focus-mode .md-sidebar{display:none}
+body.tl-studio-focus-mode .tl-hud-studio-host,body.tl-hud-studio-page .tl-hud-studio-host:fullscreen{position:fixed;inset:0;z-index:1000;width:100vw;height:100vh;border:0;border-radius:0}
+body.tl-studio-focus-mode .tl-hud-studio-frame{flex:1}
+@media(max-width:760px){.tl-hud-studio-host{height:1500px}.tl-hud-studio-toolbar span{flex-basis:100%}}
 </style>
 
-<iframe class="tl-hud-studio-frame" src="../../demo/hud-studio/" title="Interactive Test Lens HUD Studio" sandbox="allow-scripts">
-  HUD Studio could not be loaded. [Open the standalone configurator](../demo/hud-studio/index.html).
-</iframe>
+<div class="tl-hud-studio-toolbar">
+  <a data-studio-open href="../../demo/hud-studio/" target="_blank" rel="noopener noreferrer">Open Studio</a>
+  <button data-studio-expand type="button" aria-pressed="false">Expand in this page</button>
+  <button data-studio-fullscreen type="button" aria-pressed="false" aria-label="Open HUD Studio in browser fullscreen">Fullscreen</button>
+  <button data-studio-exit type="button" hidden>Exit expanded view</button>
+  <span>For the best editing experience, open Studio in a full-width view.</span>
+</div>
+
+<div class="tl-hud-studio-host" data-studio-host>
+  <iframe data-studio-frame class="tl-hud-studio-frame" src="../../demo/hud-studio/" title="Interactive Test Lens HUD Studio" sandbox="allow-scripts" allow="fullscreen" allowfullscreen>
+    HUD Studio could not be loaded. <a href="../../demo/hud-studio/">Open the standalone configurator</a>.
+  </iframe>
+</div>
+
+<script src="../../javascripts/hud-studio-host.js"></script>
 
 <h2 id="public-configuration">Public configuration<a class="headerlink" href="#public-configuration" title="Permanent link">&para;</a></h2>
 <p><code>HudOptions</code> is immutable and defaults to <code>HudPreset.COMPACT</code>. A preset establishes base content and layout values; explicit builder overrides win whether they appear before or after <code>preset(...)</code>.</p>
@@ -3136,12 +3161,14 @@
 <p>All presets use <code>HudHeaderLayout.AUTO</code>: TEST and STEP share a row while their atomic label/value pairs fit, then the complete STEP item moves to a second row. <code>INLINE</code> keeps both items on one row and truncates their values; <code>STACKED</code> always uses separate rows. Individual values remain single-line, expose their full text as a tooltip, and use ellipsis when constrained. The optional DEBUG/custom PIPE value is a separate metadata row, so it does not change the responsive TEST/STEP decision.</p>
 <p>Visibility switches affect only presentation. Suppressed network, recovery, wait, or assertion rows still flow to trace, reports, and other configured sinks. <code>showTimestamps(false)</code> removes timestamps from HUD rows; it does not change event timestamps in the model.</p>
 <p><code>ISO_UTC</code> is the compatibility default and renders in UTC unless an explicit timestamp zone overrides it. <code>TIME_ONLY</code> and <code>DATE_TIME</code>
-remain shortcuts, while <strong>Timestamp pattern</strong> accepts Java <code>DateTimeFormatter</code> syntax and takes
-precedence. One through nine <code>S</code> letters select fraction precision. <strong>Timestamp zone</strong> accepts
-<code>SYSTEM</code> or a standard IANA ID and validates it before updating the preview. Studio shows fixed
-winter and summer examples so DST differences are visible without a DST switch. Its <strong>JVM system
-zone</strong> choice is exported as system behavior rather than the concrete zone of the computer where
-Studio happened to run.</p>
+remain shortcuts and show their effective pattern in a read-only field. Select <code>CUSTOM</code> to edit a
+Java <code>DateTimeFormatter</code> pattern; one through nine <code>S</code> letters select fraction precision directly.
+The zone modes are <code>SYSTEM</code>, <code>UTC</code>, and <code>CUSTOM</code>. <code>SYSTEM</code> emits no redundant builder call and means
+the JVM/test-runner system zone, never the browser zone. <code>UTC</code> emits <code>ZoneOffset.UTC</code>; <code>CUSTOM</code>
+accepts a validated IANA <code>ZoneId</code>, such as <code>Europe/Warsaw</code>, or a fixed offset. Studio shows fixed
+winter and summer instants so DST differences are visible without a DST switch. Because a static
+page cannot inspect the future test runner, its SYSTEM preview clearly labels the browser zone used
+only as a visual stand-in; generated Java retains JVM system-zone behavior.</p>
 <h2 id="source-navigation-controls-and-preview">Source navigation controls and preview<a class="headerlink" href="#source-navigation-controls-and-preview" title="Permanent link">&para;</a></h2>
 <p>Source navigation is disabled by default. Enable it, choose <code>INTELLIJ</code>, <code>VSCODE</code>, or <code>CUSTOM</code>, and retain the currently supported <code>CTRL_ALT</code> modifier. <strong>Preview Ctrl+Alt active</strong> shows the same <code>File.java:line</code> reveal state used by the runtime; turning it off shows the passive state. The preview uses synthetic paths and never launches an IDE.</p>
 <p><code>CUSTOM</code> remains partly programmatic: Studio generates <code>.ide(SourceIde.CUSTOM)</code>, while the required <code>customUriTemplate(...)</code> and any non-standard <code>sourceRoots(...)</code> must be added in Java. Reset returns to disabled, IntelliJ, Ctrl+Alt, and inactive preview. See <a href="../visual-diagnostics/#local-source-navigation">local source navigation</a> for AltGr behavior, remote sessions, unresolved paths, providers, and the privacy boundary.</p>
