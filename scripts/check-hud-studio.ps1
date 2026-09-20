@@ -5,6 +5,7 @@ $source = Join-Path $root "docs/demo/hud-studio"
 $page = Join-Path $root "docs/observability/hud-studio.md"
 $hostScript = Join-Path $root "docs/javascripts/hud-studio-host.js"
 $favicon = Join-Path $root "docs/assets/images/favicon.png"
+$socialImage = Join-Path $root "docs/assets/brand/test-lens-logo-horizontal.png"
 $mkdocs = Join-Path $root "mkdocs.yml"
 $runtime = Join-Path $root "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"
 $runtimeManifest = Join-Path $root "docs-hooks/hud-demo-runtime-assets.txt"
@@ -19,8 +20,12 @@ foreach ($name in @("index.html", "studio.css", "studio.js", "preview.html", "pr
 }
 if (-not (Test-Path -LiteralPath $hostScript -PathType Leaf)) { throw "HUD Studio host script is missing." }
 if (-not (Test-Path -LiteralPath $favicon -PathType Leaf)) { throw "Documentation favicon is missing." }
+if (-not (Test-Path -LiteralPath $socialImage -PathType Leaf)) { throw "Documentation social preview image is missing." }
 if (-not ([IO.File]::ReadAllText($mkdocs)).Contains('favicon: assets/images/favicon.png')) {
     throw "MkDocs does not reference the version-relative Test Lens favicon."
+}
+if (-not ([IO.File]::ReadAllText($mkdocs)).Contains('redirect_template: overrides/mike-redirect.html')) {
+    throw "Mike does not use the branded root redirect template."
 }
 $pageText = [IO.File]::ReadAllText($page)
 foreach ($contract in @('data-studio-host', 'data-studio-open', 'data-studio-expand', 'data-studio-fullscreen', 'data-studio-exit', '.tl-hud-studio-toolbar>[hidden]{display:none}', 'src="../../demo/hud-studio/"', 'href="../../demo/hud-studio/"', 'target="_blank"', 'rel="noopener noreferrer"', 'sandbox="allow-scripts"', 'allow="fullscreen"', 'allowfullscreen', 'body.tl-hud-studio-page .md-main__inner{max-width:none}', 'body.tl-hud-studio-page .md-sidebar--secondary{display:none}', 'For the best editing experience, open Studio in a full-width view.')) {
@@ -131,6 +136,18 @@ if (-not [string]::IsNullOrWhiteSpace($SiteDirectory)) {
     $builtHome = [IO.File]::ReadAllText((Join-Path $site "index.html"))
     if (-not $builtHome.Contains('<link rel="icon" href="assets/images/favicon.png">')) {
         throw "Built versioned landing page does not use a version-relative favicon URL."
+    }
+    foreach ($metadata in @(
+        '<meta property="og:title" content="Selenium Test Lens">',
+        '<meta property="og:description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">',
+        '<meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/">',
+        '<meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">',
+        '<meta name="twitter:card" content="summary_large_image">'
+    )) {
+        if (-not $builtHome.Contains($metadata)) { throw "Built documentation branding metadata is missing: $metadata" }
+    }
+    if (-not (Test-Path -LiteralPath (Join-Path $site "assets/brand/test-lens-logo-horizontal.png") -PathType Leaf)) {
+        throw "Built documentation social preview image is missing."
     }
     if ((Get-FileHash (Join-Path $site "assets/images/favicon.png") -Algorithm SHA256).Hash -ne
         (Get-FileHash $favicon -Algorithm SHA256).Hash) {

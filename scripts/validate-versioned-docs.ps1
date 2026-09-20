@@ -387,6 +387,16 @@ try {
         if (-not $futureGuide.Contains("edit/v$futureReleaseVersion/docs/getting-started.md")) { throw "Tagged release edit link does not target its tag." }
         $rootRedirect = [IO.File]::ReadAllText((Join-Path $stage2 "index.html"))
         if (-not $rootRedirect.Contains('url=latest/')) { throw "Root default does not redirect to latest." }
+        foreach ($brandingContract in @(
+            '<link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/">',
+            '<link rel="icon" type="image/png" sizes="64x64" href="latest/assets/images/favicon.png">',
+            '<meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">',
+            '<meta name="twitter:card" content="summary_large_image">'
+        )) {
+            if (-not $rootRedirect.Contains($brandingContract)) {
+                throw "Root default is missing branding metadata: $brandingContract"
+            }
+        }
         if ((TreeHash (Join-Path $stage2 "latest")) -ne (TreeHash (Join-Path $stage2 "0.2.0"))) {
             throw "latest does not serve the published stable 0.2.0 documentation."
         }

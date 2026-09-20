@@ -9,6 +9,7 @@ plugins:
   - mike:
       alias_type: copy
       canonical_version: latest
+      redirect_template: overrides/mike-redirect.html
 hooks:
   - docs-hooks/copy-hud-demo-runtime.py
 exclude_docs: |
