@@ -8,20 +8,67 @@
     linear-gradient(145deg, color-mix(in srgb, var(--md-primary-fg-color) 12%, var(--md-default-bg-color)), var(--md-default-bg-color));
 }
 
-.lens-home-logo {
-  display: block;
-  width: min(100%, 26rem);
-  height: auto;
-  margin: 0 0 1rem;
-  padding: 0.35rem;
-  border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.96);
+.lens-home-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: var(--md-default-fg-color);
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.lens-home-brand img {
+  width: 2.8rem;
+  height: 2.8rem;
+  object-fit: contain;
+}
+
+@media screen and (min-width: 76.25em) {
+  .md-header__button.md-logo {
+    margin: 0.1rem 0.2rem;
+    padding: 0.3rem;
+  }
+
+  .md-header__button.md-logo img {
+    width: auto;
+    height: 1.6rem;
+  }
+}
+
+@media screen and (max-width: 76.234375em) {
+  .md-nav--primary .md-nav__title[for="__drawer"] {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 3.2rem;
+    padding: 0.4rem 0.8rem;
+    line-height: 1.2;
+  }
+
+  .md-nav--primary .md-nav__title[for="__drawer"] .md-logo {
+    position: static;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0;
+  }
+
+  .md-nav--primary .md-nav__title[for="__drawer"] .md-logo img {
+    width: 2.4rem;
+    height: 2.4rem;
+    object-fit: contain;
+  }
 }
 
 .lens-hero h1 {
   margin-bottom: 0.35rem;
   font-weight: 750;
   letter-spacing: -0.03em;
+}
+
+.lens-hero > h1 > .headerlink {
+  display: none;
 }
 
 .lens-hero > p:first-of-type {
