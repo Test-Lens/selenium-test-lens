@@ -12,8 +12,8 @@
 
     <artifactId>selenium-test-lens-junit5</artifactId>
     <packaging>jar</packaging>
-    <name>Selenium Test Lens JUnit 5</name>
-    <description>Optional JUnit 5 lifecycle and parameter injection integration for Selenium Test Lens.</description>
+    <name>Test Lens for Selenium — JUnit 5</name>
+    <description>Optional JUnit 5 lifecycle and parameter injection integration for Test Lens for Selenium.</description>
 
     <dependencies>
         <dependency>

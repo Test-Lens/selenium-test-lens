@@ -12,8 +12,8 @@
 
     <artifactId>selenium-test-lens-react</artifactId>
     <packaging>jar</packaging>
-    <name>Selenium Test Lens React</name>
-    <description>React and SPA-oriented actionability helpers for Selenium Test Lens Selenium/WebDriver tests.</description>
+    <name>Test Lens for Selenium — React</name>
+    <description>React and SPA-oriented actionability helpers for Test Lens for Selenium tests.</description>
 
     <dependencies>
         <dependency>

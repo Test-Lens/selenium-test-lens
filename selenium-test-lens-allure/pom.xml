@@ -9,8 +9,8 @@
         <version>0.4.0-SNAPSHOT</version>
     </parent>
     <artifactId>selenium-test-lens-allure</artifactId>
-    <name>Selenium Test Lens Allure</name>
-    <description>Optional Allure attachment integration for finalized Selenium Test Lens evidence.</description>
+    <name>Test Lens for Selenium — Allure</name>
+    <description>Optional Allure attachment integration for finalized Test Lens for Selenium evidence.</description>
 
     <dependencies>
         <dependency>

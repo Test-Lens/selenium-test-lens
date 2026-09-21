@@ -1,6 +1,6 @@
 # Locators
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 The main facade accepts ordinary Selenium locators and exposes the original convenience factories:
 

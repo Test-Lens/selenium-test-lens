@@ -1,6 +1,6 @@
 # Known limitations
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 This page records the historical boundary of the published release.
 

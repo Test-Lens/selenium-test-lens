@@ -12,8 +12,8 @@
 
     <artifactId>selenium-test-lens-testng</artifactId>
     <packaging>jar</packaging>
-    <name>Selenium Test Lens TestNG</name>
-    <description>Optional TestNG lifecycle integration for Selenium Test Lens.</description>
+    <name>Test Lens for Selenium — TestNG</name>
+    <description>Optional TestNG lifecycle integration for Test Lens for Selenium.</description>
 
     <dependencies>
         <dependency>

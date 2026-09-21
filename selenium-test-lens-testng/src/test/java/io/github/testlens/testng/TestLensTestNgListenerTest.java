@@ -173,7 +173,7 @@ class TestLensTestNgListenerTest {
         assertTrue(Harness.observations.isEmpty());
         assertEquals(1, Harness.passed().size());
         IllegalStateException failure = assertThrows(IllegalStateException.class, TestLensTestNgContext::current);
-        assertTrue(failure.getMessage().contains("No active Selenium Test Lens TestNG invocation"));
+        assertTrue(failure.getMessage().contains("No active Test Lens TestNG invocation"));
     }
 
     @Test

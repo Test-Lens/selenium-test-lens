@@ -1,6 +1,6 @@
 # HUD and overlay
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 The overlay module injects visual diagnostics into the current page: a HUD panel, step/wait messages, highlights, and arrows. It is attached to the existing browser document and is re-created when later operations run after navigation.
 

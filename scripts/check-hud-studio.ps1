@@ -115,7 +115,9 @@ if (-not [string]::IsNullOrWhiteSpace($SiteDirectory)) {
         "observability/hud-studio/index.html",
         "demo/hud-studio/index.html",
         "javascripts/hud-studio-host.js",
-        "assets/images/favicon.png"
+        "assets/images/favicon.png",
+        "assets/brand/test-lens-icon.png",
+        "assets/brand/test-lens-logo-horizontal.png"
     )) {
         if (-not (Test-Path -LiteralPath (Join-Path $site $builtPath) -PathType Leaf)) {
             throw "Built HUD Studio host asset is missing: $builtPath"
@@ -131,6 +133,21 @@ if (-not [string]::IsNullOrWhiteSpace($SiteDirectory)) {
     $builtHome = [IO.File]::ReadAllText((Join-Path $site "index.html"))
     if (-not $builtHome.Contains('<link rel="icon" href="assets/images/favicon.png">')) {
         throw "Built versioned landing page does not use a version-relative favicon URL."
+    }
+    foreach ($metadata in @(
+        '<meta property="og:title" content="Test Lens">',
+        '<meta property="og:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">',
+        '<meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/">',
+        '<meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">',
+        '<meta name="twitter:card" content="summary_large_image">'
+    )) {
+        if (-not $builtHome.Contains($metadata)) { throw "Built documentation branding metadata is missing: $metadata" }
+    }
+    foreach ($branding in @(
+        '<img src="assets/brand/test-lens-icon.png" alt="logo">',
+        '<img class="lens-home-logo" src="assets/brand/test-lens-logo-horizontal.png" alt="Test Lens">'
+    )) {
+        if (-not $builtHome.Contains($branding)) { throw "Built documentation branding image is missing: $branding" }
     }
     if ((Get-FileHash (Join-Path $site "assets/images/favicon.png") -Algorithm SHA256).Hash -ne
         (Get-FileHash $favicon -Algorithm SHA256).Hash) {
