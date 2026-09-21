@@ -12,8 +12,8 @@
 
     <artifactId>selenium-test-lens-examples</artifactId>
     <packaging>jar</packaging>
-    <name>Selenium Test Lens Examples</name>
-    <description>Documentation and compile-check examples for Selenium Test Lens.</description>
+    <name>Test Lens for Selenium — Examples</name>
+    <description>Documentation and compile-check examples for Test Lens for Selenium.</description>
 
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>

@@ -1,6 +1,6 @@
 # Screenshots and video evidence
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 Version 0.1.0 can capture the current browser viewport and attach the resulting PNG to the active trace session.
 

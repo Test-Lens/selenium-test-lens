@@ -1,6 +1,6 @@
 # Examples
 
-These examples cover common Selenium Test Lens usage. The first sections use the `TestLens` facade; lower-level reporting and implementation APIs are grouped near the end.
+These examples cover common Test Lens usage. The first sections use the `TestLens` facade; lower-level reporting and implementation APIs are grouped near the end.
 
 ## Start a Lens session
 

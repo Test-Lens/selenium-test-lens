@@ -38,7 +38,7 @@ public final class UiTestLensSession {
         this.allowedRetries = allowedRetries;
         this.redactionPolicy = redactionPolicy == null ? RedactionPolicy.defaults() : redactionPolicy;
         String id = UUID.randomUUID().toString();
-        String safeName = name == null || name.isBlank() ? "Selenium Test Lens session" : this.redactionPolicy.redact(name.trim());
+        String safeName = name == null || name.isBlank() ? "Test Lens session" : this.redactionPolicy.redact(name.trim());
         this.metadata = TraceMetadata.builder(id, safeName)
                 .status(TraceStatus.STARTED)
                 .build();

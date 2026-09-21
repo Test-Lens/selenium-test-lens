@@ -1,6 +1,6 @@
 # Published API boundary
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 Version 0.1.0 publishes the core, overlay, main Selenium, and React JARs. Its authoritative binary reference is the [0.1.0 Javadoc](https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.1.0/).
 

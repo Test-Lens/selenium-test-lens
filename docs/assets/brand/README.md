@@ -1,6 +1,6 @@
 # Test Lens Brand Assets
 
-This folder contains source PNG assets for Selenium Test Lens documentation and repository presentation.
+This folder contains source PNG assets for Test Lens for Selenium documentation and repository presentation.
 
 ## Files
 
@@ -14,7 +14,7 @@ This folder contains source PNG assets for Selenium Test Lens documentation and 
 ## Usage Notes
 
 - Keep source PNGs in this folder.
-- Do not use these files as runtime dependencies from Selenium Test Lens JavaScript or HUD code.
+- Do not use these files as runtime dependencies from Test Lens JavaScript or HUD code.
 - HUD runtime branding should use CSS, SVG, or inline assets rather than documentation image files.
 - Keep image paths relative and GitHub-renderable when referencing these assets from docs.
 - Verify transparent backgrounds before public release.

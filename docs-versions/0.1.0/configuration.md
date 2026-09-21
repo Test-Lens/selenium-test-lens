@@ -1,6 +1,6 @@
 # Configuration
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 Configure the main facade with immutable option objects:
 

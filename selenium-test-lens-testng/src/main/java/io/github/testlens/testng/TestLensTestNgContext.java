@@ -29,7 +29,7 @@ public final class TestLensTestNgContext {
         Object state = result == null ? null : result.getAttribute(TestLensTestNgListener.STATE_ATTRIBUTE);
         if (!(state instanceof TestLensTestNgListener.InvocationState invocation)) {
             throw new IllegalStateException(
-                    "No active Selenium Test Lens TestNG invocation; register TestLensTestNgListener "
+                    "No active Test Lens TestNG invocation; register TestLensTestNgListener "
                             + "and annotate the test class with @TestLensTestNg");
         }
         return invocation.context();

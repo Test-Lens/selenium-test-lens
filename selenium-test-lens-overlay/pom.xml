@@ -12,8 +12,8 @@
 
     <artifactId>selenium-test-lens-overlay</artifactId>
     <packaging>jar</packaging>
-    <name>Selenium Test Lens Overlay</name>
-    <description>Runtime overlay resources and visual debugging configuration for Selenium Test Lens.</description>
+    <name>Test Lens for Selenium — Overlay</name>
+    <description>Runtime overlay resources and visual debugging configuration for Test Lens for Selenium.</description>
 
     <dependencies>
         <dependency>

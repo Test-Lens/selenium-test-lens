@@ -1,8 +1,8 @@
 # Installation
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
-Selenium Test Lens 0.1.0 requires Java 17. The consuming project owns its Selenium dependency.
+Test Lens for Selenium 0.1.0 requires Java 17. The consuming project owns its Selenium dependency.
 
 ```xml
 <dependency>

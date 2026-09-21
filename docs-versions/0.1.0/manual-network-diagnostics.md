@@ -1,6 +1,6 @@
 # Manual network diagnostics
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 Version 0.1.0 provides a manual event collector. Your test or integration supplies request, response, and failure events; Test Lens can summarize, wait for, assert, export, and attach those events.
 

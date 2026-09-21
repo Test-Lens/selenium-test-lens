@@ -1,6 +1,6 @@
-# Selenium Test Lens 0.1.0
+# Test Lens
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 This is the documentation snapshot for the latest release currently available from Maven Central. Test Lens 0.1.0 attaches to an existing Selenium `WebDriver` and adds observable locator operations, a browser HUD, structured trace events, reports, manual network diagnostics, and optional React helpers.
 

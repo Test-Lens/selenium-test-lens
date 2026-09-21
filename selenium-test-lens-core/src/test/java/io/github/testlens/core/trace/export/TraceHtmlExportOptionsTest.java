@@ -13,7 +13,7 @@ class TraceHtmlExportOptionsTest {
     void defaultsMatchReportDefaults() {
         TraceHtmlExportOptions options = TraceHtmlExportOptions.defaults();
 
-        assertEquals("Selenium Test Lens Trace", options.title());
+        assertEquals("Test Lens Trace", options.title());
         assertTrue(options.includeJsonPayload());
         assertTrue(options.includeArtifacts());
         assertFalse(options.includeStackTraces());

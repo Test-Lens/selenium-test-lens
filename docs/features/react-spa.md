@@ -16,7 +16,7 @@ Add the version matching the main artifact:
 </dependency>
 ```
 
-The module depends on core, overlay, and Selenium Test Lens. Use it only for React/SPA rerender windows, React Select conventions, or DOM readiness conventions not covered by standard `UiLocator`.
+The module depends on core, overlay, and Test Lens for Selenium. Use it only for React/SPA rerender windows, React Select conventions, or DOM readiness conventions not covered by standard `UiLocator`.
 
 Gradle Kotlin DSL uses
 `implementation("io.github.test-lens:selenium-test-lens-react:0.3.0")`;

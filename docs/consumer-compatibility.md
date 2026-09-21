@@ -1,6 +1,6 @@
 # Consumer compatibility and release validation
 
-Selenium Test Lens supports consumption through Maven and Gradle. Java 17 is
+Test Lens for Selenium supports consumption through Maven and Gradle. Java 17 is
 the minimum source, bytecode, and runtime level; Java 11 is not supported. CI
 verifies consumers on JDK 17 and JDK 21 while keeping production bytecode
 targeted to Java 17.

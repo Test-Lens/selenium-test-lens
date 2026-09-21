@@ -1,6 +1,6 @@
 # Session lifecycle
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 The consuming test owns the `WebDriver`. Test Lens attaches diagnostics to it and owns only the session it starts.
 

@@ -26,7 +26,7 @@ class HtmlLogExporterTest {
         String html = new HtmlLogExporter().export(java.util.List.of());
 
         assertTrue(html.contains("<html"));
-        assertTrue(html.contains("Selenium Test Lens Log Report"));
+        assertTrue(html.contains("Test Lens Log Report"));
         assertTrue(html.contains("<table"));
         assertTrue(html.contains("timeline-scroll-proxy"));
         assertTrue(html.contains("body>section"));

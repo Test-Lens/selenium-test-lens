@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Selenium Test Lens will be documented in this file.
+All notable changes to Test Lens for Selenium will be documented in this file.
 
 ## [Unreleased]
 

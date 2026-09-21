@@ -230,8 +230,8 @@ See [Managed Test State & Resources](../features/managed-test-state.md) for runn
 ## Trace and report options
 
 - `TraceJsonExportOptions`: stack traces, artifact metadata, and missing artifacts default true; optional artifact base directory.
-- `TraceHtmlExportOptions`: title `Selenium Test Lens Trace`; JSON/artifacts/attributes/grouping/type summary/failure summary/artifact preview/duration summary true; stack traces/collapse-passed/compact false; theme `AUTO`; message max 1000 (non-negative).
-- `TraceBundleExportOptions`: stack traces/artifact metadata/missing artifacts/copy artifacts true; name `Selenium Test Lens Report`; output `target/ui-test-lens-report`; theme `AUTO`.
+- `TraceHtmlExportOptions`: title `Test Lens Trace`; JSON/artifacts/attributes/grouping/type summary/failure summary/artifact preview/duration summary true; stack traces/collapse-passed/compact false; theme `AUTO`; message max 1000 (non-negative).
+- `TraceBundleExportOptions`: stack traces/artifact metadata/missing artifacts/copy artifacts true; name `Test Lens Report`; output `target/ui-test-lens-report`; theme `AUTO`.
 - `LogExportOptions`: record fields are `includeMetadata`, `includeThrowable`, `prettyPrint`, and `maxFieldLength`. `defaults()` is true/true/true/500; `compact()` is false/false/false/500; non-positive maximum length normalizes to 500.
 
 ## ReactActionabilityOptions

@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>selenium-test-lens-browser-tests</artifactId>
-    <name>Selenium Test Lens Real Browser Integration Tests</name>
+    <name>Test Lens for Selenium — Real Browser Integration Tests</name>
     <description>Unpublished consumer-level Chrome and Firefox integration gate.</description>
 
     <properties>

@@ -1,6 +1,6 @@
 # What's new in 0.3.1
 
-Selenium Test Lens 0.3.1 unifies HUD, timestamp, source-navigation, highlight, and visual-redaction configuration under `TestLensOptions`, while improving reports and diagnostic evidence without changing canonical trace data or interaction policy. Each summary below links to the complete feature contract.
+Test Lens for Selenium 0.3.1 unifies HUD, timestamp, source-navigation, highlight, and visual-redaction configuration under `TestLensOptions`, while improving reports and diagnostic evidence without changing canonical trace data or interaction policy. Each summary below links to the complete feature contract.
 
 ## HUD source navigation
 

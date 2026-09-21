@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="docs/assets/brand/test-lens-logo-horizontal.png" alt="Selenium Test Lens" width="720">
+  <img src="docs/assets/brand/test-lens-logo-horizontal.png" alt="Test Lens" width="720">
 </p>
 
-# Selenium Test Lens
+# Test Lens
 
-**An observability and failure-evidence layer for Selenium WebDriver.** Test Lens works with the driver your test framework already owns: it makes interactions visible, records structured diagnostics, exposes recovery retries, and preserves useful evidence when a test fails.
+**Test Lens for Selenium is an observability and failure-evidence layer for Selenium WebDriver.** It works with the driver your test framework already owns: it makes interactions visible, records structured diagnostics, exposes recovery retries, and preserves useful evidence when a test fails.
 
 | Version | Status | Availability | Documentation |
 |---|---|---|---|

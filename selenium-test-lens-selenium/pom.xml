@@ -12,8 +12,8 @@
 
     <artifactId>selenium-test-lens</artifactId>
     <packaging>jar</packaging>
-    <name>Selenium Test Lens</name>
-    <description>Selenium/WebDriver integration for Selenium Test Lens locators, assertions, actions, evidence, auth, and diagnostics.</description>
+    <name>Test Lens for Selenium</name>
+    <description>Selenium/WebDriver integration for Test Lens locators, assertions, actions, evidence, auth, and diagnostics.</description>
 
     <dependencies>
         <dependency>

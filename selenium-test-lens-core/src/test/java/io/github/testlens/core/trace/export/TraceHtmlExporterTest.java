@@ -401,7 +401,7 @@ class TraceHtmlExporterTest {
     void emptySuiteReportDoesNotFail() {
         String html = new TraceHtmlExporter().exportSuite(List.of());
 
-        assertTrue(html.contains("No Selenium Test Lens sessions recorded."));
+        assertTrue(html.contains("No Test Lens sessions recorded."));
         assertTrue(html.contains("No session details available."));
     }
 
