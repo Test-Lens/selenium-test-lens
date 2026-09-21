@@ -7,6 +7,7 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 ### Fixed
 
 - Source Navigation now defaults to an F8/Escape toggle while preserving explicitly configured `CTRL_ALT` as deprecated legacy hold behavior. The HUD remains normally scrollable and interactive, source targets use direct links, and IntelliJ navigation validates an exact project mapping before generating an encoded JetBrains Toolbox URI.
+- Source Navigation now preflights IntelliJ version metadata, `jetbrains://` registration, `jetbrainsd`, and project/source mapping. Known incompatibilities disable misleading links and produce one actionable HUD/log diagnostic, while unverified environments remain usable with an explicit warning and an in-HUD retry.
 - Full-page screenshot stitching now treats document height as a bounded dynamic capture extent, extending or cropping the tile plan as scrolling changes page height while retaining strict viewport, document-width, DPR, browsing-context, pixel, tile, and stabilization safeguards.
 
 ## [0.3.1] - 2026-09-16

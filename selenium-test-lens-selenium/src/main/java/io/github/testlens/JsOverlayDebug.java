@@ -6,6 +6,7 @@ import io.github.testlens.actions.*;
 import io.github.testlens.api.ApiOverlayJs;
 import io.github.testlens.api.ApiOverlayPanel;
 import io.github.testlens.core.Guards;
+import io.github.testlens.core.HudPanelJs;
 import io.github.testlens.core.OverlayLogger;
 import io.github.testlens.core.OverlayRootManager;
 import io.github.testlens.core.PageWaits;
@@ -707,6 +708,7 @@ public final class JsOverlayDebug {
     }
 
     static final class HudLogSink implements UiTestLensLogSink {
+        private static final long COMPATIBILITY_REFRESH_NANOS = java.time.Duration.ofSeconds(5).toNanos();
         private volatile HudPanel hud;
         private volatile WebDriver driver;
         private volatile io.github.testlens.hud.HudOptions options;
@@ -714,9 +716,19 @@ public final class JsOverlayDebug {
         private volatile boolean localDriver;
         private volatile Path sourceNavigationExecutionRoot = Path.of("").toAbsolutePath().normalize();
         private volatile Optional<IntellijProjectContext> intellijProject = Optional.empty();
+        private final SourceNavigationCompatibilityProbe compatibilityProbe;
+        private volatile SourceNavigationCompatibility compatibility;
+        private volatile long compatibilityCheckedAt;
+        private volatile String publishedCompatibilityFingerprint;
         private static final java.util.logging.Logger SOURCE_NAVIGATION_LOGGER =
                 java.util.logging.Logger.getLogger("io.github.testlens.source-navigation");
         private final java.util.Queue<UiTestLensLogEntry> deferredDuringAlert = new java.util.concurrent.ConcurrentLinkedQueue<>();
+
+        HudLogSink() { this(SourceNavigationCompatibilityProbe.system()); }
+
+        HudLogSink(SourceNavigationCompatibilityProbe compatibilityProbe) {
+            this.compatibilityProbe = compatibilityProbe;
+        }
 
         void attach(HudPanel hud, WebDriver driver, io.github.testlens.hud.HudOptions options) {
             this.hud = hud;
@@ -730,6 +742,11 @@ public final class JsOverlayDebug {
             this.sourceResolver = options != null && options.sourceNavigation().enabled()
                     ? new SourceFileResolver(resolutionRoot, options.sourceNavigation().sourceRoots()) : null;
             this.localDriver = LocalWebDriverDetector.isLocal(driver);
+            this.compatibility = options == null || !options.sourceNavigation().enabled() ? null
+                    : compatibilityProbe.assess(options.sourceNavigation(), sourceNavigationExecutionRoot);
+            this.compatibilityCheckedAt = System.nanoTime();
+            this.publishedCompatibilityFingerprint = null;
+            logCompatibility(compatibility);
         }
 
         @Override
@@ -776,29 +793,104 @@ public final class JsOverlayDebug {
         }
 
         private void append(HudPanel hud, UiTestLensLogEntry entry) {
+            refreshCompatibilityIfNeeded();
             String description = entry.metadata().getOrDefault("description", "");
             String action = entry.action() == null ? "" : entry.action();
             String message = description.isBlank() ? entry.message() : action + ": " + description;
             String sourceLabel = entry.sourceLocation().map(io.github.testlens.core.logging.SourceLocation::displayName).orElse(null);
             String navigationTarget = null;
+            Optional<Path> resolved = Optional.empty();
             if (localDriver && sourceResolver != null && options != null) {
                 Optional<io.github.testlens.core.logging.SourceLocation> sourceLocation = entry.sourceLocation();
-                Optional<Path> resolved = sourceLocation.flatMap(sourceResolver::resolve);
+                resolved = sourceLocation.flatMap(sourceResolver::resolve);
                 navigationTarget = resolved.flatMap(path -> IdeNavigationUriProvider.target(
                         options.sourceNavigation(), path, sourceLocation.orElseThrow().lineNumber(), null,
                         sourceNavigationExecutionRoot)).orElse(null);
                 String requestedTarget = navigationTarget;
+                Path resolvedPath = resolved.orElse(null);
                 SOURCE_NAVIGATION_LOGGER.fine(() -> sourceNavigationDiagnostic(
-                        options.sourceNavigation().ide().name(), sourceLabel, resolved.orElse(null),
+                        options.sourceNavigation().ide().name(), sourceLabel, resolvedPath,
                         sourceLocation.map(io.github.testlens.core.logging.SourceLocation::lineNumber).orElse(0),
                         null, intellijProject.map(IntellijProjectContext::name).orElse("<unresolved>"),
                         requestedTarget));
+            }
+            SourceNavigationCompatibility effectiveCompatibility = compatibility;
+            if (sourceLabel != null && resolved.isEmpty() && effectiveCompatibility != null) {
+                effectiveCompatibility = effectiveCompatibility.sourceUnresolved(sourceLabel);
+            }
+            if (publishedCompatibilityFingerprint == null || sourceLabel != null) {
+                publishCompatibilityIfChanged(hud, effectiveCompatibility);
             }
             if (sourceLabel == null && navigationTarget == null) {
                 hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString());
             } else {
                 hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString(),
                         entry.eventType().name(), sourceLabel, navigationTarget);
+            }
+        }
+
+        private void refreshCompatibilityIfNeeded() {
+            if (options == null || !options.sourceNavigation().enabled()) return;
+            boolean requested = consumeCompatibilityRetryRequest();
+            long now = System.nanoTime();
+            if (!requested && now - compatibilityCheckedAt < COMPATIBILITY_REFRESH_NANOS) return;
+            SourceNavigationCompatibility refreshed = compatibilityProbe.assess(
+                    options.sourceNavigation(), sourceNavigationExecutionRoot);
+            compatibilityCheckedAt = now;
+            if (compatibility == null || !compatibility.fingerprint().equals(refreshed.fingerprint())) {
+                compatibility = refreshed;
+                publishedCompatibilityFingerprint = null;
+                logCompatibility(refreshed);
+            } else if (requested) {
+                publishedCompatibilityFingerprint = null;
+            }
+        }
+
+        private boolean consumeCompatibilityRetryRequest() {
+            if (!(driver instanceof JavascriptExecutor executor)) return false;
+            try {
+                Object value = executor.executeScript(HudPanelJs.bridgeScript()
+                        + "return !!(hud && hud.consumeSourceNavigationCompatibilityRetry"
+                        + " && hud.consumeSourceNavigationCompatibilityRetry());");
+                return Boolean.TRUE.equals(value);
+            } catch (RuntimeException ignored) {
+                return false;
+            }
+        }
+
+        private void publishCompatibilityIfChanged(HudPanel hud, SourceNavigationCompatibility value) {
+            if (value == null || options == null || !options.sourceNavigation().enabled()) return;
+            String fingerprint = value.fingerprint();
+            if (fingerprint.equals(publishedCompatibilityFingerprint)) return;
+            publishedCompatibilityFingerprint = fingerprint;
+            String level = value.readiness() == SourceNavigationCompatibility.Readiness.ACTION_REQUIRED ? "warn" : "info";
+            hud.appendLog(level, value.javaSummary(), java.time.Instant.now().toString(),
+                    value.hudEventType(), null, null);
+            if (driver instanceof JavascriptExecutor executor) {
+                try {
+                    JetBrainsEnvironment environment = value.environment();
+                    String ide = environment.ide().map(JetBrainsIdeInstallation::name).orElse("IntelliJ IDEA");
+                    String version = environment.ide().map(item -> item.version().display()).orElse("unknown");
+                    executor.executeScript(HudPanelJs.bridgeScript()
+                                    + "if(hud&&hud.setSourceNavigationCompatibility){hud.setSourceNavigationCompatibility("
+                                    + "arguments[0],arguments[1],arguments[2],arguments[3],arguments[4],arguments[5],"
+                                    + "arguments[6],arguments[7],arguments[8],arguments[9],arguments[10]);}",
+                            value.state().name(), value.readiness().name(), value.navigationAllowed(), value.summary(),
+                            value.detail(), value.recommendedAction(), ide, version,
+                            environment.protocolHandler().display(), environment.jetbrainsDaemon().display(),
+                            value.projectStatus());
+                } catch (RuntimeException ignored) {
+                    // Compatibility presentation is best-effort and cannot alter the browser operation.
+                }
+            }
+        }
+
+        private static void logCompatibility(SourceNavigationCompatibility value) {
+            if (value == null) return;
+            if (value.readiness() == SourceNavigationCompatibility.Readiness.ACTION_REQUIRED) {
+                SOURCE_NAVIGATION_LOGGER.warning(value.javaSummary());
+            } else {
+                SOURCE_NAVIGATION_LOGGER.info(value.javaSummary());
             }
         }
 

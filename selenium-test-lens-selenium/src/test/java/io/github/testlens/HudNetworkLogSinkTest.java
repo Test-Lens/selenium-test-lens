@@ -7,6 +7,7 @@ import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.hud.HudPanel;
 import io.github.testlens.hud.HudOptions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.NoAlertPresentException;
@@ -17,10 +18,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.nio.file.Path;
+import java.util.Optional;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class HudNetworkLogSinkTest {
+    @TempDir Path temp;
+
     @Test
     void disabledSourceNavigationDoesNotCreateOrInvokeResolutionPipeline() {
         SourceFileResolver.resetMetrics();
@@ -142,6 +151,39 @@ class HudNetworkLogSinkTest {
         assertEquals(List.of(original.toString(), original.plusSeconds(1).toString()), hud.timestamps);
     }
 
+    @Test
+    void actionableCompatibilityIsLoggedAndPublishedOnce() {
+        JetBrainsEnvironment environment = new JetBrainsEnvironment(Optional.of(new JetBrainsIdeInstallation(
+                "IntelliJ IDEA", SemanticVersion.parse("2025.2.5"), "252.28238.7",
+                Path.of("D:/JetBrains/idea64.exe"))), ProbeResult.ABSENT, ProbeResult.ABSENT,
+                ProbeResult.ABSENT, "test");
+        JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink(
+                new SourceNavigationCompatibilityProbe(() -> environment));
+        RecordingHud hud = new RecordingHud();
+        HudOptions options = HudOptions.builder().sourceNavigation(io.github.testlens.hud.SourceNavigationOptions
+                .builder().enabled(true).intellijProject("Test Project", temp).build()).build();
+        Logger logger = Logger.getLogger("io.github.testlens.source-navigation");
+        List<LogRecord> records = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override public void publish(LogRecord record) { records.add(record); }
+            @Override public void flush() { }
+            @Override public void close() { }
+        };
+        logger.addHandler(handler);
+        try {
+            sink.attach(hud, null, options);
+            sink.accept(entry(UiTestLensEventType.ACTION, "first", null));
+            sink.accept(entry(UiTestLensEventType.ACTION, "second", null));
+        } finally {
+            logger.removeHandler(handler);
+        }
+
+        assertEquals(1, records.stream().filter(record -> record.getLevel() == Level.WARNING).count());
+        assertEquals(1, hud.messages.stream().filter(message -> message.contains("Toolbox 3.3+")).count());
+        assertEquals(List.of("first", "second"), hud.messages.stream()
+                .filter(message -> !message.contains("Toolbox 3.3+")).toList());
+    }
+
     private static UiTestLensLogEntry entry(UiTestLensEventType type, String message, String hudVisible) {
         UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder().eventType(type).message(message);
         if (hudVisible != null) builder.metadata("hudVisible", hudVisible);
@@ -159,6 +201,13 @@ class HudNetworkLogSinkTest {
 
         @Override
         public void appendLog(String level, String message, String timestamp) {
+            messages.add(message);
+            timestamps.add(timestamp);
+        }
+
+        @Override
+        public void appendLog(String level, String message, String timestamp, String eventType,
+                              String sourceLabel, String navigationTarget) {
             messages.add(message);
             timestamps.add(timestamp);
         }

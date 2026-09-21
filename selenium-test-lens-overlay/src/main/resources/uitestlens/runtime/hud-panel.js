@@ -18,6 +18,89 @@
     return shortcut === 'CTRL_ALT' ? 'Ctrl+Alt' : 'F8';
   }
 
+  function sourceCompatibility() {
+    return lens.state.hud.sourceNavigationCompatibility || {
+      state:'UNKNOWN',readiness:'UNVERIFIED',navigationAllowed:true,
+      summary:'Source Navigation availability unverified',detail:'Local IDE compatibility has not been checked.',
+      action:'Navigation attempts are allowed; verify the local protocol if nothing opens.',
+      ide:'IntelliJ IDEA',version:'unknown',protocol:'unknown',daemon:'unknown',project:'unknown'
+    };
+  }
+
+  function renderSourceNavigationStatus(requested) {
+    var panel = overlayRoot() && overlayRoot().querySelector('#selenium-hud-panel');
+    if (!panel) return;
+    var status = panel.querySelector('.stl-hud-source-status');
+    if (!status) return;
+    var compatibility = sourceCompatibility();
+    var shortcut = lens.state.hud.sourceNavigationShortcut || 'F8';
+    var suffix = shortcut === 'CTRL_ALT' ? ' \u00b7 Ctrl+Alt' : ' \u00b7 F8 / Esc';
+    status.textContent = '';
+    var headline = document.createElement('div');
+    headline.className = 'stl-hud-source-status-headline';
+    if (!compatibility.navigationAllowed) headline.textContent = 'Source Navigation unavailable';
+    else if (requested && compatibility.readiness === 'UNVERIFIED') headline.textContent = 'Navigation requested; availability unverified';
+    else if (requested) headline.textContent = 'Source navigation requested';
+    else headline.textContent = compatibility.readiness === 'UNVERIFIED'
+      ? 'Source Navigation ON \u00b7 availability unverified' : 'Source Navigation ON';
+    headline.textContent += suffix;
+    status.appendChild(headline);
+    if (compatibility.readiness !== 'VERIFIED') {
+      var reason = document.createElement('div');
+      reason.className = 'stl-hud-source-status-reason';
+      reason.textContent = compatibility.detail;
+      status.appendChild(reason);
+      var details = document.createElement('details');
+      details.className = 'stl-hud-source-compatibility-details';
+      var detailsSummary = document.createElement('summary');
+      detailsSummary.textContent = 'Compatibility details'; details.appendChild(detailsSummary);
+      var body = document.createElement('div');
+      body.textContent = 'IDE: '+compatibility.ide+' '+compatibility.version+'\nProtocol: '+compatibility.protocol
+        +'\njetbrainsd: '+compatibility.daemon+'\nProject mapping: '+compatibility.project
+        +'\nStatus: '+compatibility.readiness+'\nRecommended action: '+compatibility.action;
+      details.appendChild(body);
+      var retry = document.createElement('button');
+      retry.type = 'button'; retry.className = 'stl-hud-source-compatibility-retry';
+      retry.textContent = 'Retry compatibility check';
+      retry.addEventListener('click', function(event) {
+        event.preventDefault(); event.stopPropagation();
+        lens.state.hud.sourceNavigationRetryRequested = true;
+        retry.textContent = 'Recheck requested'; retry.disabled = true;
+      });
+      details.appendChild(retry); status.appendChild(details);
+    }
+    status.style.display = lens.state.hud.sourceNavigationActive ? 'block' : 'none';
+  }
+
+  function configureSourceTarget(source) {
+    var target = source && source.getAttribute('data-navigation-target');
+    if (!source || !target) return;
+    var allowed = sourceCompatibility().navigationAllowed;
+    source.setAttribute('data-navigable', String(allowed));
+    source.setAttribute('tabindex', allowed ? '0' : '-1');
+    if (allowed) source.setAttribute('href', target); else source.removeAttribute('href');
+    source.setAttribute('title', allowed
+      ? 'Open source in the configured IDE. Right-click to copy link address.'
+      : sourceCompatibility().detail+' '+sourceCompatibility().action);
+  }
+
+  function setSourceNavigationCompatibility(state, readiness, navigationAllowed, summary, detail, action,
+                                               ide, version, protocol, daemon, project) {
+    lens.state.hud.sourceNavigationCompatibility = {state:String(state),readiness:String(readiness),
+      navigationAllowed:!!navigationAllowed,summary:String(summary||''),detail:String(detail||''),
+      action:String(action||''),ide:String(ide||'IntelliJ IDEA'),version:String(version||'unknown'),
+      protocol:String(protocol||'unknown'),daemon:String(daemon||'unknown'),project:String(project||'unknown')};
+    var panel = overlayRoot() && overlayRoot().querySelector('#selenium-hud-panel');
+    if (panel) panel.querySelectorAll('.stl-hud-source-location[data-navigation-target]').forEach(configureSourceTarget);
+    renderSourceNavigationStatus(false);
+  }
+
+  function consumeSourceNavigationCompatibilityRetry() {
+    var requested = !!lens.state.hud.sourceNavigationRetryRequested;
+    lens.state.hud.sourceNavigationRetryRequested = false;
+    return requested;
+  }
+
   function setSourceNavigationActive(active, requested) {
     var panel = overlayRoot() && overlayRoot().querySelector('#selenium-hud-panel');
     lens.state.hud.sourceNavigationActive = !!active;
@@ -25,13 +108,7 @@
     if (active) panel.classList.add('source-navigation-active');
     else panel.classList.remove('source-navigation-active');
     panel.setAttribute('data-source-navigation-active', String(!!active));
-    var status = panel.querySelector('.stl-hud-source-status');
-    if (status) {
-      var shortcut = lens.state.hud.sourceNavigationShortcut || 'F8';
-      status.textContent = requested ? 'Source navigation requested' : 'Source Navigation ON';
-      status.textContent += shortcut === 'CTRL_ALT' ? ' · Ctrl+Alt' : ' · F8 / Esc';
-      status.style.display = active ? 'block' : 'none';
-    }
+    renderSourceNavigationStatus(requested);
   }
 
   function cleanupSourceNavigation() {
@@ -234,7 +311,11 @@
     style.textContent += '#selenium-hud-panel{pointer-events:auto}.stl-hud-source-location{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:.9em;text-decoration:underline;text-underline-offset:2px;pointer-events:none;cursor:default}'
       + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location{display:block}'
       + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location[data-navigable="true"]{pointer-events:auto;cursor:pointer}'
-      + '.stl-hud-source-status{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:8px;letter-spacing:.12em;margin-top:2px}';
+      + '.stl-hud-source-status{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:9px;letter-spacing:.03em;margin:2px 0 4px}'
+      + '.stl-hud-source-status-reason{color:var(--ui-test-lens-hud-warning,#f59e0b);margin-top:2px}'
+      + '.stl-hud-source-compatibility-details{color:var(--ui-test-lens-hud-muted-fg,#cbd5e1);white-space:pre-wrap;margin-top:2px}'
+      + '.stl-hud-source-compatibility-details>summary{cursor:pointer;color:var(--ui-test-lens-hud-accent,#38bdf8)}'
+      + '.stl-hud-source-compatibility-retry{margin-top:3px;padding:2px 5px;border:1px solid currentColor;border-radius:3px;color:inherit;background:transparent;font:inherit;cursor:pointer}';
     shadow.appendChild(style);
   }
 
@@ -741,10 +822,10 @@
     if (option(config, 'sourceNavigationEnabled', false) && !sourceStatus) {
       sourceStatus = document.createElement('div');
       sourceStatus.className = 'stl-hud-source-status';
-      sourceStatus.textContent = 'Source Navigation ON · F8 / Esc';
       structure.main.insertBefore(sourceStatus, structure.main.firstChild);
     } else if (!option(config, 'sourceNavigationEnabled', false) && sourceStatus) removeNode(sourceStatus);
     installSourceNavigation(config);
+    renderSourceNavigationStatus(false);
     updateScrollableRegions(panel);
     positionPanel(panel, config);
   }
@@ -847,13 +928,18 @@
       var source = document.createElement(navigationTarget ? 'a' : 'span');
       source.className = 'stl-hud-source-location';
       source.textContent = String(sourceLabel);
-      source.setAttribute('data-navigable', String(!!navigationTarget));
+      source.setAttribute('data-navigable', 'false');
       if (navigationTarget) {
-        source.setAttribute('href', String(navigationTarget));
-        source.setAttribute('tabindex', '0');
-        source.setAttribute('title', 'Open source in the configured IDE. Right-click to copy link address.');
+        source.setAttribute('data-navigation-target', String(navigationTarget));
+        configureSourceTarget(source);
         source.addEventListener('click', function(event) {
           if (!lens.state.hud.sourceNavigationActive) { event.preventDefault(); return; }
+          if (!sourceCompatibility().navigationAllowed) {
+            event.preventDefault(); renderSourceNavigationStatus(false);
+            var details = panel.querySelector('.stl-hud-source-compatibility-details');
+            if (details) details.open = true;
+            return;
+          }
           setSourceNavigationActive(true, true);
           source.setAttribute('data-navigation-requested', 'true');
           if (typeof window.__uiTestLensSourceNavigation === 'function') {
@@ -924,6 +1010,8 @@
     log: log,
     clear: clear,
     remove: remove,
+    setSourceNavigationCompatibility: setSourceNavigationCompatibility,
+    consumeSourceNavigationCompatibilityRetry: consumeSourceNavigationCompatibilityRetry,
     preset: function (name) {
       var value = HUD_PRESETS[String(name || '').toUpperCase()];
       if (!value) return null;

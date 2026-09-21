@@ -51,6 +51,9 @@ foreach ($control in @('id="timestamp-format"', '<option>CUSTOM</option>', 'id="
 }
 if ($html -match '(?i)(?:src|href)\s*=\s*["''](?:https?:)?//') { throw "HUD Studio must not load external assets." }
 if ($html -notmatch 'sandbox=["'']allow-scripts["'']') { throw "HUD Studio preview must use the minimal allow-scripts sandbox." }
+foreach ($compatibilityHelp in @("IDEA 2026.1+", "Toolbox is not required", "Older IDEA versions require JetBrains Toolbox App 3.3+", "intellijProject(name, root)")) {
+    if (-not $html.Contains($compatibilityHelp)) { throw "HUD Studio is missing Source Navigation compatibility help: $compatibilityHelp" }
+}
 
 $previewHtml = [IO.File]::ReadAllText((Join-Path $source "preview.html"))
 foreach ($asset in @("runtime/visual-typography.js", "runtime/hud-panel.js", "runtime/highlight.js", "preview.js", "preview.css")) {

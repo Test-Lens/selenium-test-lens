@@ -880,6 +880,40 @@ class RealBrowserContractsIT {
                 return !!root.querySelector('.stl-hud-source-location');
                 """)));
         @SuppressWarnings("unchecked")
+        Map<String, Object> unavailable = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                window.__uiTestLensSourceTargets=[];
+                window.__uiTestLensSourceNavigation=target=>window.__uiTestLensSourceTargets.push(target);
+                const hud=window.__uiTestLens.modules.hud;
+                hud.setSourceNavigationCompatibility('TOOLBOX_OR_NEW_IDE_REQUIRED','ACTION_REQUIRED',false,
+                  'Source Navigation unavailable','JetBrains protocol handler not detected',
+                  'Install/run JetBrains Toolbox 3.3+ or update IntelliJ IDEA to 2026.1+.',
+                  'IntelliJ IDEA','2025.2.5','absent','absent','configured');
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'F8',code:'F8'}));
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const link=root.querySelector('.stl-hud-source-location');
+                link.click();
+                const details=root.querySelector('.stl-hud-source-compatibility-details');
+                const retry=details.querySelector('.stl-hud-source-compatibility-retry');
+                const blockedHref=link.getAttribute('href');
+                const blockedNavigable=link.dataset.navigable;
+                retry.click();
+                const retryRequested=hud.consumeSourceNavigationCompatibilityRetry();
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'F8',code:'F8'}));
+                hud.setSourceNavigationCompatibility('READY','VERIFIED',true,'Source Navigation ready',
+                  'The local protocol and project mapping are available.','',
+                  'IntelliJ IDEA','2026.1','present','present','configured');
+                return {href:blockedHref,navigable:blockedNavigable,
+                  dispatched:window.__uiTestLensSourceTargets.length,detailsOpen:details.open,
+                  retryRequested:retryRequested,detailText:details.textContent};
+                """);
+        assertEquals(null, unavailable.get("href"));
+        assertEquals("false", unavailable.get("navigable"));
+        assertEquals(0L, ((Number) unavailable.get("dispatched")).longValue());
+        assertEquals(true, unavailable.get("detailsOpen"));
+        assertEquals(true, unavailable.get("retryRequested"));
+        assertTrue(unavailable.get("detailText").toString().contains("IntelliJ IDEA 2025.2.5"));
+        assertTrue(unavailable.get("detailText").toString().contains("Toolbox 3.3+"));
+        @SuppressWarnings("unchecked")
         Map<String, Object> passive = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
                 const root=document.getElementById('selenium-overlay-host').shadowRoot;
                 const panel=root.querySelector('#selenium-hud-panel');
@@ -1068,6 +1102,10 @@ class RealBrowserContractsIT {
         ConsumerSourcePage.clickCounter(lens);
 
         ((JavascriptExecutor) driver).executeScript("""
+                window.__uiTestLens.modules.hud.setSourceNavigationCompatibility(
+                  'READY','VERIFIED',true,'Source Navigation ready',
+                  'The local protocol and project mapping are available.','',
+                  'IntelliJ IDEA','2026.1','present','present','configured');
                 window.dispatchEvent(new KeyboardEvent('keydown',{key:'Control',ctrlKey:true}));
                 window.dispatchEvent(new KeyboardEvent('keydown',{key:'Alt',ctrlKey:true,altKey:true}));
                 """);

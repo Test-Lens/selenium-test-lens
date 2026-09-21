@@ -51,6 +51,11 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("event.key === 'F8'"));
         assertTrue(HudPanelJs.INIT.contains("event.key === 'Escape'"));
         assertTrue(HudPanelJs.INIT.contains("source.setAttribute('href'"));
+        assertTrue(HudPanelJs.INIT.contains("setSourceNavigationCompatibility"));
+        assertTrue(HudPanelJs.INIT.contains("consumeSourceNavigationCompatibilityRetry"));
+        assertTrue(HudPanelJs.INIT.contains("Source Navigation unavailable"));
+        assertTrue(HudPanelJs.INIT.contains("Retry compatibility check"));
+        assertTrue(HudPanelJs.INIT.contains("source.removeAttribute('href')"));
         assertFalse(HudPanelJs.INIT.contains("addEventListener('wheel'"));
         assertFalse(HudPanelJs.INIT.contains("setTimeout(function()"));
     }

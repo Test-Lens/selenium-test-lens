@@ -124,20 +124,64 @@ SourceNavigationOptions sourceNavigation = SourceNavigationOptions.builder()
 
 | Provider | Behavior |
 | --- | --- |
-| `INTELLIJ` | Uses the JetBrains Toolbox `jetbrains://idea/navigate/reference` handler with an exact project identity and project-relative path. |
+| `INTELLIJ` | Uses the JetBrains `jetbrains://idea/navigate/reference` handler with an exact project identity and project-relative path. |
 | `VSCODE` | Uses the local `vscode://file` protocol handler. |
 | `CUSTOM` | Uses `customUriTemplate(...)` with `{file}`, `{line}`, and `{column}` placeholders. The template is configured programmatically; Studio selects the provider but does not edit the template. |
 
 For IntelliJ IDEA, configure the project identity IntelliJ expects, not the worktree directory name. `intellijProject(name, root)` is explicit and recommended for worktrees and multi-module builds. Without it, Test Lens walks upward for `.idea/.name`; it never guesses the project from a directory name. The resolved file must exist beneath the configured project root. The URI path is project-relative and includes `:line` and an optional `:column`, with query values URL-encoded for spaces, Windows paths, and non-ASCII characters.
 
-Local file resolution and protocol navigation are best-effort and never change the test result. If the project mapping, source path, line, or file is invalid, the `File.java:line` text remains visible but is not a link. Remote WebDriver sessions may likewise show the logical label without an active local IDE target. Clicking a valid link synchronously requests the custom protocol from the real user gesture; the HUD reports **Source navigation requested**, not success, because a webpage cannot confirm that the IDE accepted it.
+#### IntelliJ compatibility and preflight
+
+IntelliJ navigation requires JetBrains' `jetbrains://` protocol. Known supported setups are:
+
+- IntelliJ IDEA 2026.1 or newer bundles `jetbrainsd`; JetBrains Toolbox is **not required** for these versions;
+- IntelliJ IDEA older than 2026.1 requires JetBrains Toolbox App 3.3 or newer to provide and start `jetbrainsd` and register `jetbrains://` handling for supported installed IDEs.
+
+`jetbrainsd` receives the operating-system protocol request and forwards it to Toolbox or the IDE. IDEA 2026.1+ supplies this component itself, so installing Toolbox is unnecessary. Standalone IntelliJ releases before 2026.1 may not register the protocol themselves; for those releases, install or update Toolbox to 3.3+, keep Toolbox running, and retry the HUD compatibility check, or update IntelliJ IDEA to 2026.1+.
+
+On Windows, Test Lens performs a bounded, best-effort preflight when Source Navigation starts. It checks the `jetbrains` protocol registration, a running or installed `jetbrainsd`, and IntelliJ product metadata. An explicitly configured installation can be supplied to the test JVM with `-Dtestlens.intellij.home=<IDE home>` or `-Dtestlens.intellij.executable=<path to idea64.exe>`; otherwise the probe may inspect a running IDEA process. Product name, version, and build come from the installation's `product-info.json`, never from a guessed directory name. Other operating systems currently report the environment as unverified rather than blocking a potentially valid link.
+
+The HUD distinguishes three outcomes:
+
+- **Ready**: the protocol handler and project mapping were verified; links dispatch normally.
+- **Action required**: a required handler, daemon, mapping, root, or source file is known to be unavailable; links remain disabled and compatibility details provide the corrective action.
+- **Availability unverified**: local probing could not establish protocol availability; navigation remains available, but the HUD labels the request as unverified.
+
+The compatibility summary is emitted once per state change to the Java logger and HUD event stream. **Retry compatibility check** re-runs the lightweight probe on the next HUD update, so starting Toolbox or IntelliJ does not require restarting the browser session. Detailed executable paths, resolved source paths, and generated URIs remain at `FINE` logging only.
+
+For advanced Windows troubleshooting, compare the HUD result with:
+
+```powershell
+Get-Process | Where-Object {
+    $_.ProcessName -match "jetbrainsd|toolbox|idea"
+}
+
+Get-Item "Registry::HKEY_CLASSES_ROOT\jetbrains" -ErrorAction SilentlyContinue
+
+Get-ChildItem "$env:LOCALAPPDATA\JetBrains\Daemon\bundles\current" `
+    -ErrorAction SilentlyContinue
+```
+
+A running `jetbrainsd` or a populated daemon bundle plus a registered `HKEY_CLASSES_ROOT\jetbrains` protocol indicates that the local transport is available. For IDEA 2026.1+, Toolbox is not required: start or restart IDEA once and retry the compatibility check if registration is missing. If an older IDEA release such as 2025.2.5 is running but all three checks are absent, install/run Toolbox 3.3+ or update IDEA to 2026.1+.
+
+Local file resolution and protocol navigation are best-effort and never change the test result. If the project mapping, source path, line, or file is invalid, the `File.java:line` text remains visible but is not a link. Remote WebDriver sessions may likewise show the logical label without an active local IDE target. Clicking a valid link synchronously requests the custom protocol from the real user gesture; the HUD reports **Source navigation requested**, not success, because a webpage cannot confirm that the IDE accepted it. Browsers may show an external-protocol confirmation prompt.
 
 Enable `FINE` logging for `io.github.testlens.source-navigation` to inspect the provider, project, logical path, resolved IDE path, line, column, and final URI. You can also right-click a source link and copy its link address. Test that URI independently in the browser or Windows Run dialog:
 
-- If Windows reports that no application can open it, install or repair the JetBrains Toolbox protocol registration.
+- If Windows reports that no application can open it, install/run JetBrains Toolbox 3.3+ or update IntelliJ IDEA to 2026.1+, then use **Retry compatibility check**.
 - If IDEA opens but selects no project, correct `intellijProject(...)` or `.idea/.name`.
 - If the project opens but the file does not, correct the project root/source roots and inspect the resolved path diagnostic.
 - As a diagnostic only, compare with `idea64.exe --line <line> --column <column> <file>`; the browser never executes this command.
+
+#### Contributor headed-debug check
+
+To exercise the real HUD manually, run the existing Source Navigation browser contract in a headed Chrome session:
+
+```powershell
+mvn -f selenium-test-lens-browser-tests/pom.xml -Dbrowser=chrome -Dheaded=true "-Dit.test=RealBrowserContractsIT#hudSourceNavigationF8ToggleKeepsScrollingControlsAndDirectLinksUsable" test-compile failsafe:integration-test failsafe:verify
+```
+
+For an interactive debugging pass, launch the same Maven goal from the IDE debugger and place a breakpoint in `RealBrowserContractsIT#hudSourceNavigationF8ToggleKeepsScrollingControlsAndDirectLinksUsable` immediately before the source-location `.click()` that dispatches navigation. While execution is paused, use the headed browser to toggle Source Navigation, inspect compatibility details, scroll and drag the native HUD scrollbar, and exercise ordinary HUD controls; then resume to run the contract assertions. This is a contributor workflow only—production code contains no pause or debug behavior.
 
 IDE foreground activation remains subject to browser and Windows focus policy. Test Lens uses the supported JetBrains URI and does not use executable launching or focus hacks.
 
