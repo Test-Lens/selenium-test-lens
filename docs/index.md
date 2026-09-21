@@ -67,7 +67,7 @@ Release 0.3.1 makes live diagnostics more expressive and the resulting evidence 
 
 -   **NEW 0.3.1 · SOURCE NAVIGATION**
 
-    During local debugging, hold Ctrl+Alt to reveal `File.java:line` call sites and open a resolved source location in IntelliJ, VS Code, or a custom protocol provider.
+    During local debugging, press F8 to toggle actionable `File.java:line` call sites and open a resolved source location in IntelliJ, VS Code, or a custom protocol provider; Escape switches Source Navigation off.
 
     [Set up local source navigation](observability/visual-diagnostics.md#local-source-navigation)
 

@@ -66,14 +66,18 @@
     hud.setStep('WAIT checkout ready');
     var times=state.timestampPreview&&state.timestampPreview.events||[];
     hud.log('WAIT checkout ready — PASSED','success','2026-07-15T21:59:58.123456789Z','WAIT','CheckoutPage.java:41',null,times[0]);
-    hud.log('CLICK Place order — RETRY after overlay recovery','warn','2026-07-15T21:59:59.123456789Z','LOCATOR_RETRY','CheckoutPage.java:53','idea://open?file=CheckoutPage.java&line=53',times[1]);
+    hud.log('CLICK Place order — RETRY after overlay recovery','warn','2026-07-15T21:59:59.123456789Z','LOCATOR_RETRY','CheckoutPage.java:53','jetbrains://idea/navigate/reference?project=Test%20Lens%20Demo&path=src%2Ftest%2Fjava%2FCheckoutPage.java%3A53',times[1]);
     hud.log('POST /api/orders','royal','2026-07-15T22:00:00.123456789Z','NETWORK_REQUEST_RECORDED',null,null,times[2]);
     hud.log('Response recorded: 200 /api/orders','success','2026-07-15T22:00:01.123456789Z','NETWORK_RESPONSE_RECORDED',null,null,times[3]);
     hud.log('ASSERT confirmation visible — PASSED','success','2026-07-15T22:00:02.123456789Z','ASSERTION_PASSED',null,null,times[4]);
     enhancePanel();
     if (state.sourceNavigationEnabled) {
       var sourcePreviewActive=!!state.sourceNavigationPreviewActive;
-      window.dispatchEvent(new KeyboardEvent(sourcePreviewActive?'keydown':'keyup',{key:sourcePreviewActive?'Alt':'Shift',ctrlKey:sourcePreviewActive,altKey:sourcePreviewActive,bubbles:true}));
+      if (state.sourceNavigationModifier === 'CTRL_ALT') {
+        window.dispatchEvent(new KeyboardEvent(sourcePreviewActive?'keydown':'keyup',{key:sourcePreviewActive?'Alt':'Shift',ctrlKey:sourcePreviewActive,altKey:sourcePreviewActive,bubbles:true}));
+      } else if ((panel().dataset.sourceNavigationActive === 'true') !== sourcePreviewActive) {
+        window.dispatchEvent(new KeyboardEvent('keydown',{key:'F8',code:'F8',bubbles:true}));
+      }
     }
     if (panel()) window.parent.postMessage({type:'hud-rendered'},'*');
   }

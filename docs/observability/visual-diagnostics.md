@@ -94,25 +94,27 @@ font size, and deterministic winter/summer previews.
 Source navigation is opt-in and intended for local debugging:
 
 ```java
+Path ideRoot = Path.of("D:/Java Projects/selenium-test-lens");
+
 HudOptions hud = HudOptions.builder()
         .sourceNavigation(
                 SourceNavigationOptions.builder()
                         .enabled(true)
                         .ide(SourceIde.INTELLIJ)
+                        .intellijProject("selenium-test-lens", ideRoot)
                         .build())
         .build();
 ```
 
-Hold Ctrl+Alt to reveal source locations in the HUD. Click a source location to navigate to the corresponding line in your IDE. Outside that chord the HUD remains fully passive; while it is held, only the source link accepts pointer events. Releasing either key or moving focus away from the browser immediately restores the passive state.
+Press F8 to toggle Source Navigation on or off; Escape switches it off. Key auto-repeat is ignored, and focused text inputs retain F8. When enabled, source locations become links while wheel/touchpad scrolling, the native scrollbar, text selection, expand/collapse controls, and other HUD controls remain normal. No modifier needs to be held and Source Navigation does not install a wheel handler.
 
-The mode is active only while the real Ctrl and Alt modifier state remains set. Pressing and releasing another key, such as Shift, does not deactivate it; releasing Ctrl or Alt does. `window.blur` always deactivates it. AltGr/AltGraph never activates source navigation, even on Windows keyboards that report it as `ctrlKey && altKey`.
+`SourceNavigationModifier.CTRL_ALT` remains available for compatibility with explicit 0.3.1 configurations, but is deprecated. It preserves the original hold behavior exactly: the mode is active only while real Ctrl and Alt state remains set, releasing either key or moving focus away deactivates it, and AltGr/AltGraph never activates it. It does not become a toggle.
 
 The link displays only `File.java:line`. The source call site is captured when a user-facing action, wait, assertion, or manual highlight is emitted. Standard multi-module Maven/Gradle Java and Kotlin roots are detected lazily from `src/test/java`, `src/main/java`, `src/test/kotlin`, and `src/main/kotlin`. Add non-standard roots without publishing absolute paths in event metadata:
 
 ```java
 SourceNavigationOptions sourceNavigation = SourceNavigationOptions.builder()
         .enabled(true)
-        .activationModifier(SourceNavigationModifier.CTRL_ALT)
         .ide(SourceIde.VSCODE)
         .sourceRoots(
                 Path.of("acceptance/src/test/java"),
@@ -122,13 +124,24 @@ SourceNavigationOptions sourceNavigation = SourceNavigationOptions.builder()
 
 | Provider | Behavior |
 | --- | --- |
-| `INTELLIJ` | Uses the local `idea://open` protocol handler. The same provider can be used by compatible JetBrains IDE installations. |
+| `INTELLIJ` | Uses the JetBrains Toolbox `jetbrains://idea/navigate/reference` handler with an exact project identity and project-relative path. |
 | `VSCODE` | Uses the local `vscode://file` protocol handler. |
 | `CUSTOM` | Uses `customUriTemplate(...)` with `{file}`, `{line}`, and `{column}` placeholders. The template is configured programmatically; Studio selects the provider but does not edit the template. |
 
-Local file resolution and protocol navigation are best-effort and never change the test result. If the logical location cannot be resolved, the `File.java:line` text remains visible but is not a link. Remote WebDriver sessions may likewise show the logical label without an active local IDE target. A missing protocol handler or rejected navigation cannot fail the test.
+For IntelliJ IDEA, configure the project identity IntelliJ expects, not the worktree directory name. `intellijProject(name, root)` is explicit and recommended for worktrees and multi-module builds. Without it, Test Lens walks upward for `.idea/.name`; it never guesses the project from a directory name. The resolved file must exist beneath the configured project root. The URI path is project-relative and includes `:line` and an optional `:column`, with query values URL-encoded for spaces, Windows paths, and non-ASCII characters.
 
-The full local path and IDE URI stay in the Java/browser callback boundary and are not stored as `href`, `data-*`, hidden text, or serialized row data in the open Shadow DOM. Exported events retain only class, method, file name, and line number; absolute paths and IDE URIs are not written to reports, JSON traces, or evidence.
+Local file resolution and protocol navigation are best-effort and never change the test result. If the project mapping, source path, line, or file is invalid, the `File.java:line` text remains visible but is not a link. Remote WebDriver sessions may likewise show the logical label without an active local IDE target. Clicking a valid link synchronously requests the custom protocol from the real user gesture; the HUD reports **Source navigation requested**, not success, because a webpage cannot confirm that the IDE accepted it.
+
+Enable `FINE` logging for `io.github.testlens.source-navigation` to inspect the provider, project, logical path, resolved IDE path, line, column, and final URI. You can also right-click a source link and copy its link address. Test that URI independently in the browser or Windows Run dialog:
+
+- If Windows reports that no application can open it, install or repair the JetBrains Toolbox protocol registration.
+- If IDEA opens but selects no project, correct `intellijProject(...)` or `.idea/.name`.
+- If the project opens but the file does not, correct the project root/source roots and inspect the resolved path diagnostic.
+- As a diagnostic only, compare with `idea64.exe --line <line> --column <column> <file>`; the browser never executes this command.
+
+IDE foreground activation remains subject to browser and Windows focus policy. Test Lens uses the supported JetBrains URI and does not use executable launching or focus hacks.
+
+The actionable URI is rendered as the source anchor's `href` so dispatch remains synchronous and users can copy it for diagnostics. IntelliJ URIs contain only the project identity and project-relative target; exported events retain only class, method, file name, and line number. Absolute local paths and IDE URIs are not written to reports, JSON traces, or evidence.
 
 Use `OverlayConfig` for the master visual switch, HUD visibility, highlight behavior, and legacy compatibility. To hide only the HUD while retaining click decoration:
 

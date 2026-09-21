@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
 # Types: 276
-# Public callable methods/constructors: 2132
+# Public callable methods/constructors: 2135
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -991,6 +991,7 @@ TYPE io.github.testlens.hud.SourceIde
   public static io.github.testlens.hud.SourceIde[] values()
   public static io.github.testlens.hud.SourceIde valueOf(java.lang.String)
 TYPE io.github.testlens.hud.SourceNavigationModifier
+  public static final io.github.testlens.hud.SourceNavigationModifier F8
   public static final io.github.testlens.hud.SourceNavigationModifier CTRL_ALT
   public static io.github.testlens.hud.SourceNavigationModifier[] values()
   public static io.github.testlens.hud.SourceNavigationModifier valueOf(java.lang.String)
@@ -1000,6 +1001,7 @@ TYPE io.github.testlens.hud.SourceNavigationOptions$Builder
   public io.github.testlens.hud.SourceNavigationOptions$Builder ide(io.github.testlens.hud.SourceIde)
   public io.github.testlens.hud.SourceNavigationOptions$Builder sourceRoots(java.nio.file.Path...)
   public io.github.testlens.hud.SourceNavigationOptions$Builder customUriTemplate(java.lang.String)
+  public io.github.testlens.hud.SourceNavigationOptions$Builder intellijProject(java.lang.String, java.nio.file.Path)
   public io.github.testlens.hud.SourceNavigationOptions build()
 TYPE io.github.testlens.hud.SourceNavigationOptions
   public static io.github.testlens.hud.SourceNavigationOptions defaults()
@@ -1009,6 +1011,8 @@ TYPE io.github.testlens.hud.SourceNavigationOptions
   public io.github.testlens.hud.SourceIde ide()
   public java.util.List<java.nio.file.Path> sourceRoots()
   public java.lang.String customUriTemplate()
+  public java.lang.String intellijProjectName()
+  public java.nio.file.Path intellijProjectRoot()
 MODULE selenium-test-lens-selenium
 TYPE io.github.testlens.JsOverlayDebug$AssertionSummary$AssertionTextFormat
   public static final io.github.testlens.JsOverlayDebug$AssertionSummary$AssertionTextFormat MESSAGE

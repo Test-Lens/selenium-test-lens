@@ -19,6 +19,7 @@ import io.github.testlens.hud.HudScrollbarStyle;
 import io.github.testlens.hud.HudTypography;
 import io.github.testlens.hud.HudTimestampFormat;
 import io.github.testlens.hud.SourceIde;
+import io.github.testlens.hud.SourceNavigationModifier;
 import io.github.testlens.hud.SourceNavigationOptions;
 import io.github.testlens.core.trace.TraceEventType;
 import io.github.testlens.core.trace.TraceStatus;
@@ -59,6 +60,8 @@ import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.SearchContext;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.interactions.WheelInput;
 import org.openqa.selenium.json.Json;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -860,11 +863,14 @@ class RealBrowserContractsIT {
     }
 
     @Test
-    void hudSourceNavigationIsModifierScopedPassiveAndLifecycleSafe() {
+    void hudSourceNavigationF8ToggleKeepsScrollingControlsAndDirectLinksUsable() {
         open("/clicks");
+        Path projectRoot = Path.of("..").toAbsolutePath().normalize();
         HudOptions hud = HudOptions.builder().showTimestamps(true).timestampPattern("HH:mm:ss.SSS")
-                .timestampZone(java.time.ZoneOffset.UTC).sourceNavigation(SourceNavigationOptions.builder()
-                .enabled(true).ide(SourceIde.INTELLIJ).build()).build();
+                .timestampZone(java.time.ZoneOffset.UTC).maxLogHeightPx(150)
+                .scrollbarStyle(HudScrollbarStyle.NATIVE)
+                .sourceNavigation(SourceNavigationOptions.builder().enabled(true).ide(SourceIde.INTELLIJ)
+                        .intellijProject("Test Lens Project", projectRoot).build()).build();
         TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(hud).build());
         lens.startSession("source-navigation");
         ConsumerSourcePage.clickCounter(lens);
@@ -881,126 +887,215 @@ class RealBrowserContractsIT {
                 const timestamp=link.closest('[data-test-lens-timestamp]').querySelector('.stl-hud-timestamp');
                 return {label:link.textContent, panelPointer:getComputedStyle(panel).pointerEvents,
                   linkPointer:getComputedStyle(link).pointerEvents, display:getComputedStyle(link).display,
+                  tag:link.tagName,href:link.getAttribute('href'),tabIndex:link.getAttribute('tabindex'),
                   active:panel.dataset.sourceNavigationActive,timestamp:timestamp.textContent,
                   eventTime:timestamp.closest('[data-test-lens-timestamp]').dataset.testLensTimestamp,
                   timestampRole:timestamp.getAttribute('role'),timestampTabIndex:timestamp.getAttribute('tabindex')};
                 """);
         assertTrue(passive.get("label").toString().matches("ConsumerSourcePage\\.java:\\d+"), passive.toString());
-        assertEquals("none", passive.get("panelPointer"));
+        assertEquals("auto", passive.get("panelPointer"));
         assertEquals("none", passive.get("linkPointer"));
         assertEquals("none", passive.get("display"));
+        assertEquals("A", passive.get("tag"));
+        assertEquals("0", passive.get("tabIndex"));
         assertEquals(null, passive.get("timestampRole"));
         assertEquals(null, passive.get("timestampTabIndex"));
-        assertTrue(scriptBoolean("""
-                const root=document.getElementById('selenium-overlay-host').shadowRoot;
-                const link=root.querySelector('.stl-hud-source-location');
-                const attributes=Array.from(link.attributes).map(attribute=>attribute.value).join(' ');
-                return !root.innerHTML.includes('idea://') && !root.innerHTML.includes('vscode://')
-                  && !root.innerHTML.includes('Java%20Projects') && !root.innerHTML.includes('Java Projects')
-                  && !attributes.includes('idea://') && !attributes.includes('vscode://')
-                  && !link.hasAttribute('href');
-                """).apply(driver), "absolute source path or IDE URI leaked into Shadow DOM");
+        String preparedUri = passive.get("href").toString();
+        assertTrue(preparedUri.startsWith("jetbrains://idea/navigate/reference?project=Test%20Lens%20Project&path="),
+                preparedUri);
+        assertTrue(preparedUri.matches(".*selenium-test-lens-browser-tests%2Fsrc%2Ftest%2Fjava%2Fconsumer%2Fpages%2FConsumerSourcePage\\.java%3A\\d+$"), preparedUri);
+        assertFalse(preparedUri.contains(projectRoot.toString()), "the browser target must use an IDE-project-relative path");
 
         ((JavascriptExecutor) driver).executeScript("""
                 window.__uiTestLensSourceTargets=[];
                 window.__uiTestLensSourceNavigation=target=>window.__uiTestLensSourceTargets.push(target);
-                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Control',ctrlKey:true}));
-                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Alt',ctrlKey:true,altKey:true}));
-                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Shift',ctrlKey:true,altKey:true,shiftKey:true}));
-                window.dispatchEvent(new KeyboardEvent('keyup',{key:'Shift',ctrlKey:true,altKey:true,shiftKey:false}));
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                root.querySelector('.stl-hud-source-location[data-navigable="true"]').click();
+                const hud=window.__uiTestLens.modules.hud;
+                for(let i=0;i<50;i++) hud.log('overflow row '+i,'info',new Date().toISOString(),'GENERAL');
+                const logs=root.querySelector('#selenium-hud-logs');
+                const controls=document.createElement('div');
+                controls.innerHTML='<button id="source-normal-button" type="button">Normal control</button>'
+                  +'<details id="source-details"><summary>Expand</summary><span>Expanded content</span></details>'
+                  +'<span id="source-normal-text">Normal text</span>';
+                controls.querySelector('button').addEventListener('click',()=>window.__normalHudClicks=(window.__normalHudClicks||0)+1);
+                logs.insertBefore(controls,logs.firstChild);
+                const outside=document.createElement('div');
+                outside.id='outside-scroll';outside.style.cssText='position:fixed;left:0;top:0;width:100px;height:80px;overflow:auto;z-index:1';
+                outside.innerHTML='<div style="height:800px">outside</div>';document.body.appendChild(outside);
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'F8',code:'F8'}));
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'F8',code:'F8',repeat:true}));
                 """);
+        assertEquals(0L, number("return window.__uiTestLensSourceTargets.length"),
+                "inactive source target dispatched navigation");
         @SuppressWarnings("unchecked")
         Map<String, Object> active = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
                 const root=document.getElementById('selenium-overlay-host').shadowRoot;
                 const panel=root.querySelector('#selenium-hud-panel');
                 const link=root.querySelector('.stl-hud-source-location[data-navigable="true"]');
-                link.click();
                 return {panelPointer:getComputedStyle(panel).pointerEvents,
                   linkPointer:getComputedStyle(link).pointerEvents, display:getComputedStyle(link).display,
                   active:panel.dataset.sourceNavigationActive,status:getComputedStyle(root.querySelector('.stl-hud-source-status')).display,
+                  statusText:root.querySelector('.stl-hud-source-status').textContent,
+                  scrollHeight:root.querySelector('#selenium-hud-logs').scrollHeight,
+                  clientHeight:root.querySelector('#selenium-hud-logs').clientHeight,
                   timestamp:link.closest('[data-test-lens-timestamp]').querySelector('.stl-hud-timestamp').textContent,
-                  eventTime:link.closest('[data-test-lens-timestamp]').dataset.testLensTimestamp,
-                  target:window.__uiTestLensSourceTargets[0]};
+                  eventTime:link.closest('[data-test-lens-timestamp]').dataset.testLensTimestamp};
                 """);
-        assertEquals("none", active.get("panelPointer"));
+        assertEquals("auto", active.get("panelPointer"));
         assertEquals("auto", active.get("linkPointer"));
         assertEquals("block", active.get("display"));
         assertEquals("true", active.get("active"));
         assertEquals("block", active.get("status"));
+        assertEquals("Source Navigation ON · F8 / Esc", active.get("statusText"));
+        assertTrue(((Number) active.get("scrollHeight")).longValue() > ((Number) active.get("clientHeight")).longValue());
         assertEquals(passive.get("timestamp"), active.get("timestamp"));
         assertEquals(passive.get("eventTime"), active.get("eventTime"));
-        String navigationTarget = active.get("target").toString();
-        assertTrue(navigationTarget.startsWith("idea://open?file="), navigationTarget);
-        assertTrue(navigationTarget.contains("ConsumerSourcePage.java"), navigationTarget);
 
-        WebElement besideHud = (WebElement) ((JavascriptExecutor) driver).executeScript("""
-                const panel=document.getElementById('selenium-overlay-host').shadowRoot.querySelector('#selenium-hud-panel');
-                const rect=panel.getBoundingClientRect();
-                const button=document.createElement('button');
-                button.id='hud-click-through'; button.textContent='under HUD';
-                button.style.cssText=`position:fixed;left:${rect.left+4}px;top:${rect.top+4}px;width:24px;height:24px;z-index:2147483646`;
-                button.addEventListener('click',()=>button.dataset.clicks=String(Number(button.dataset.clicks||0)+1));
-                document.body.appendChild(button); return button;
+        WebElement logs = (WebElement) ((JavascriptExecutor) driver).executeScript("""
+                return document.getElementById('selenium-overlay-host').shadowRoot.querySelector('#selenium-hud-logs');
                 """);
-        besideHud.click();
-        assertEquals("1", besideHud.getAttribute("data-clicks"), "active HUD intercepted click beside source link");
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollTop=0", logs);
+        double zoomBefore = ((Number) ((JavascriptExecutor) driver).executeScript(
+                "return window.visualViewport ? window.visualViewport.scale : 1")).doubleValue();
+        new Actions(driver).scrollFromOrigin(WheelInput.ScrollOrigin.fromElement(logs), 0, 240).perform();
+        assertTrue(((Number) ((JavascriptExecutor) driver).executeScript("return arguments[0].scrollTop", logs)).longValue() > 0,
+                "wheel did not scroll the active HUD");
+        assertEquals(zoomBefore, ((Number) ((JavascriptExecutor) driver).executeScript(
+                "return window.visualViewport ? window.visualViewport.scale : 1")).doubleValue());
 
+        WebElement normalButton = (WebElement) ((JavascriptExecutor) driver).executeScript(
+                "return document.getElementById('selenium-overlay-host').shadowRoot.querySelector('#source-normal-button')");
+        normalButton.click();
+        assertEquals(1L, number("return window.__normalHudClicks"));
+        WebElement summary = (WebElement) ((JavascriptExecutor) driver).executeScript(
+                "return document.getElementById('selenium-overlay-host').shadowRoot.querySelector('#source-details summary')");
+        summary.click();
+        assertTrue(scriptBoolean("""
+                return document.getElementById('selenium-overlay-host').shadowRoot.querySelector('#source-details').open;
+                """).apply(driver));
         ((JavascriptExecutor) driver).executeScript("""
                 const root=document.getElementById('selenium-overlay-host').shadowRoot;
-                const rect=root.querySelector('.stl-hud-source-location[data-navigable="true"]').getBoundingClientRect();
-                const button=document.createElement('button');
-                button.id='under-source-link'; button.textContent='under source';
-                button.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${Math.max(1,rect.width)}px;height:${Math.max(1,rect.height)}px;z-index:2147483646`;
-                button.addEventListener('click',()=>button.dataset.clicks=String(Number(button.dataset.clicks||0)+1));
-                document.body.appendChild(button);
+                root.querySelector('#source-normal-text').dispatchEvent(new MouseEvent('click',{bubbles:true}));
+                root.querySelector('.stl-hud-main').dispatchEvent(new MouseEvent('click',{bubbles:true}));
                 """);
+        assertEquals(0L, number("return window.__uiTestLensSourceTargets.length"));
 
         ((JavascriptExecutor) driver).executeScript(
-                "window.dispatchEvent(new KeyboardEvent('keyup',{key:'Alt',ctrlKey:true,altKey:false}));");
-        assertTrue(scriptBoolean("""
-                const p=document.getElementById('selenium-overlay-host').shadowRoot.querySelector('#selenium-hud-panel');
-                return p.dataset.sourceNavigationActive==='false' && getComputedStyle(p.querySelector('.stl-hud-source-location')).display==='none';
-                """).apply(driver));
-        WebElement underSource = driver.findElement(By.id("under-source-link"));
-        underSource.click();
-        assertEquals("1", underSource.getAttribute("data-clicks"), "released source link remained a click target");
+                "document.getElementById('selenium-overlay-host').shadowRoot.querySelector('.stl-hud-source-location[data-navigable=\"true\"]').click()");
+        assertEquals(1L, number("return window.__uiTestLensSourceTargets.length"));
+        assertEquals(preparedUri, ((JavascriptExecutor) driver).executeScript(
+                "return window.__uiTestLensSourceTargets[0]"));
+        assertEquals("Source navigation requested · F8 / Esc", ((JavascriptExecutor) driver).executeScript("""
+                return document.getElementById('selenium-overlay-host').shadowRoot.querySelector('.stl-hud-source-status').textContent;
+                """));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> scrollbar = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                return {offsetWidth:arguments[0].offsetWidth,clientWidth:arguments[0].clientWidth,
+                  scrollHeight:arguments[0].scrollHeight,clientHeight:arguments[0].clientHeight,
+                  overflowY:getComputedStyle(arguments[0]).overflowY,
+                  scrollbarWidth:getComputedStyle(arguments[0]).scrollbarWidth};
+                """, logs);
+        assertEquals("auto", scrollbar.get("overflowY"));
+        assertTrue(((Number) scrollbar.get("scrollHeight")).longValue()
+                > ((Number) scrollbar.get("clientHeight")).longValue());
+        if ("firefox".equals(browserName())) {
+            assertEquals("auto", scrollbar.get("scrollbarWidth"),
+                    "NATIVE must leave Firefox scrollbar rendering to the browser");
+        } else {
+            assertTrue(((Number) scrollbar.get("offsetWidth")).longValue()
+                            > ((Number) scrollbar.get("clientWidth")).longValue(),
+                    "the NATIVE style must expose a browser-owned scrollbar gutter");
+        }
+        if (Boolean.getBoolean("headed") && "chrome".equals(browserName())) {
+            int gutterOffsetX = logs.getSize().getWidth() / 2 - 3;
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollTop=0", logs);
+            new Actions(driver).moveToElement(logs, gutterOffsetX, 0).click().perform();
+            assertTrue(((Number) ((JavascriptExecutor) driver).executeScript(
+                    "return arguments[0].scrollTop", logs)).longValue() > 0,
+                    "native scrollbar track click did not move the HUD");
+
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollTop=0", logs);
+            int thumbOffsetY = -logs.getSize().getHeight() / 2 + 8;
+            new Actions(driver).moveToElement(logs, gutterOffsetX, thumbOffsetY)
+                    .clickAndHold().moveByOffset(0, logs.getSize().getHeight() / 2).release().perform();
+            assertTrue(((Number) ((JavascriptExecutor) driver).executeScript(
+                    "return arguments[0].scrollTop", logs)).longValue() > 0,
+                    "native scrollbar thumb drag did not move the HUD");
+        }
+        // Native scrollbar chrome is not addressable reliably in headless W3C WebDriver. Headless runs verify
+        // ownership and wheel behavior; the headed Chrome contract above verifies track and thumb interaction.
+
+        WebElement outside = driver.findElement(By.id("outside-scroll"));
+        new Actions(driver).scrollFromOrigin(WheelInput.ScrollOrigin.fromElement(outside), 0, 160).perform();
+        assertTrue(((Number) ((JavascriptExecutor) driver).executeScript("return arguments[0].scrollTop", outside)).longValue() > 0,
+                "page scrolling outside the HUD was changed");
 
         ((JavascriptExecutor) driver).executeScript("""
-                const altGraph=new KeyboardEvent('keydown',{key:'AltGraph',code:'AltRight',ctrlKey:true,altKey:true});
-                Object.defineProperty(altGraph,'getModifierState',{value:name=>name==='AltGraph'});
-                window.dispatchEvent(altGraph);
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'F8',code:'F8'}));
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'F8',code:'F8',repeat:true}));
+                const input=document.createElement('input');document.body.appendChild(input);input.focus();
+                input.dispatchEvent(new KeyboardEvent('keydown',{key:'F8',code:'F8',bubbles:true}));
                 """);
         assertTrue(scriptBoolean("""
                 const root=document.getElementById('selenium-overlay-host').shadowRoot;
                 const panel=root.querySelector('#selenium-hud-panel');
                 const link=root.querySelector('.stl-hud-source-location');
-                return panel.dataset.sourceNavigationActive==='false' && getComputedStyle(link).pointerEvents==='none';
-                """).apply(driver), "AltGraph activated source navigation");
+                return panel.dataset.sourceNavigationActive==='false' && getComputedStyle(link).pointerEvents==='none'
+                  && getComputedStyle(link).display==='none';
+                """).apply(driver), "F8 repeat or editable target toggled source navigation");
         ((JavascriptExecutor) driver).executeScript("""
-                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Control',ctrlKey:true}));
-                window.dispatchEvent(new KeyboardEvent('keydown',{key:'Alt',ctrlKey:true,altKey:true}));
-                window.dispatchEvent(new Event('blur'));
+                window.dispatchEvent(new KeyboardEvent('keydown',{key:'F8',code:'F8'}));
+                document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',code:'Escape',bubbles:true}));
                 """);
         assertTrue(scriptBoolean("""
                 return document.getElementById('selenium-overlay-host').shadowRoot
                   .querySelector('#selenium-hud-panel').dataset.sourceNavigationActive==='false';
                 """).apply(driver));
-
         lens.finishPassed();
-        TestLens next = TestLens.attach(driver, TestLensOptions.builder().hud(hud).build());
-        next.startSession("source-navigation-next-session");
-        ConsumerSourcePage.clickCounter(next);
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void legacyCtrlAltConfigurationRetainsHoldAndAltGraphSemantics() {
+        open("/clicks");
+        HudOptions hud = HudOptions.builder().sourceNavigation(SourceNavigationOptions.builder()
+                .enabled(true).activationModifier(SourceNavigationModifier.CTRL_ALT).ide(SourceIde.INTELLIJ)
+                .intellijProject("Legacy Project", Path.of("..").toAbsolutePath().normalize()).build()).build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(hud).build());
+        lens.startSession("source-navigation-legacy");
+        ConsumerSourcePage.clickCounter(lens);
+
         ((JavascriptExecutor) driver).executeScript("""
-                window.__uiTestLensSourceTargets=[];
-                window.__uiTestLensSourceNavigation=target=>window.__uiTestLensSourceTargets.push(target);
                 window.dispatchEvent(new KeyboardEvent('keydown',{key:'Control',ctrlKey:true}));
                 window.dispatchEvent(new KeyboardEvent('keydown',{key:'Alt',ctrlKey:true,altKey:true}));
-                document.getElementById('selenium-overlay-host').shadowRoot
-                  .querySelector('.stl-hud-source-location[data-navigable="true"]').click();
                 """);
-        assertEquals(1L, ((Number) ((JavascriptExecutor) driver).executeScript(
-                "return window.__uiTestLensSourceTargets.length")).longValue());
-        next.finishPassed();
+        assertEquals("true", ((JavascriptExecutor) driver).executeScript("""
+                return document.getElementById('selenium-overlay-host').shadowRoot
+                  .querySelector('#selenium-hud-panel').dataset.sourceNavigationActive;
+                """));
+        assertEquals("Source Navigation ON · Ctrl+Alt", ((JavascriptExecutor) driver).executeScript("""
+                return document.getElementById('selenium-overlay-host').shadowRoot
+                  .querySelector('.stl-hud-source-status').textContent;
+                """));
+
+        ((JavascriptExecutor) driver).executeScript(
+                "window.dispatchEvent(new KeyboardEvent('keyup',{key:'Alt',ctrlKey:true,altKey:false}))");
+        assertEquals("false", ((JavascriptExecutor) driver).executeScript("""
+                return document.getElementById('selenium-overlay-host').shadowRoot
+                  .querySelector('#selenium-hud-panel').dataset.sourceNavigationActive;
+                """));
+        ((JavascriptExecutor) driver).executeScript("""
+                const altGraph=new KeyboardEvent('keydown',{key:'AltGraph',code:'AltRight',ctrlKey:true,altKey:true});
+                Object.defineProperty(altGraph,'getModifierState',{value:name=>name==='AltGraph'});
+                window.dispatchEvent(altGraph);
+                """);
+        assertEquals("false", ((JavascriptExecutor) driver).executeScript("""
+                return document.getElementById('selenium-overlay-host').shadowRoot
+                  .querySelector('#selenium-hud-panel').dataset.sourceNavigationActive;
+                """));
+        lens.finishPassed();
     }
 
     @Test

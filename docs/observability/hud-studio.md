@@ -6,7 +6,7 @@ title: HUD Studio
 
 HUD Studio configures the same browser-side renderer that Test Lens injects at runtime. Drag and resize the HUD in the preview or use the bounded product controls; both paths update one `HudOptions` model and the generated Java. The preview supplies synthetic events and never contacts an application or external service.
 
-The Source navigation section generates the opt-in `SourceNavigationOptions` block, IDE provider, and Ctrl+Alt activation modifier. Its preview uses synthetic file labels only and does not open an IDE.
+The Source navigation section generates the opt-in `SourceNavigationOptions` block, IDE provider, and activation shortcut. F8 is the default toggle; the legacy Ctrl+Alt hold option remains available. Its preview uses synthetic file labels only and does not open an IDE.
 
 !!! info "0.3.1 timestamp API"
     HUD timestamp format and zone controls are available in `0.3.1`. The configurable HUD and Studio introduced in `0.3.0` remain compatible.
@@ -120,9 +120,9 @@ only as a visual stand-in; generated Java retains JVM system-zone behavior.
 
 ## Source navigation controls and preview
 
-Source navigation is disabled by default. Enable it, choose `INTELLIJ`, `VSCODE`, or `CUSTOM`, and retain the currently supported `CTRL_ALT` modifier. **Preview Ctrl+Alt active** shows the same `File.java:line` reveal state used by the runtime; turning it off shows the passive state. The preview uses synthetic paths and never launches an IDE.
+Source navigation is disabled by default. Enable it and choose `INTELLIJ`, `VSCODE`, or `CUSTOM`. F8 is the default toggle and Escape switches the mode off; the deprecated `CTRL_ALT` choice preserves the legacy hold behavior for existing explicit configurations. **Preview Source Navigation ON** shows the same `File.java:line` active state used by the runtime. The preview uses synthetic paths and never launches an IDE.
 
-`CUSTOM` remains partly programmatic: Studio generates `.ide(SourceIde.CUSTOM)`, while the required `customUriTemplate(...)` and any non-standard `sourceRoots(...)` must be added in Java. Reset returns to disabled, IntelliJ, Ctrl+Alt, and inactive preview. See [local source navigation](visual-diagnostics.md#local-source-navigation) for AltGr behavior, remote sessions, unresolved paths, providers, and the privacy boundary.
+IntelliJ project identity/root mapping remains programmatic through `intellijProject(...)`. `CUSTOM` also requires `customUriTemplate(...)`, and non-standard roots use `sourceRoots(...)`. Reset returns to disabled, IntelliJ, F8, and inactive preview. See [local source navigation](visual-diagnostics.md#local-source-navigation) for legacy AltGr behavior, protocol diagnostics, remote sessions, unresolved paths, providers, and the privacy boundary.
 
 ## Highlight configurator and preview
 

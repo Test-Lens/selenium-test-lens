@@ -712,14 +712,23 @@ public final class JsOverlayDebug {
         private volatile io.github.testlens.hud.HudOptions options;
         private volatile SourceFileResolver sourceResolver;
         private volatile boolean localDriver;
+        private volatile Path sourceNavigationExecutionRoot = Path.of("").toAbsolutePath().normalize();
+        private volatile Optional<IntellijProjectContext> intellijProject = Optional.empty();
+        private static final java.util.logging.Logger SOURCE_NAVIGATION_LOGGER =
+                java.util.logging.Logger.getLogger("io.github.testlens.source-navigation");
         private final java.util.Queue<UiTestLensLogEntry> deferredDuringAlert = new java.util.concurrent.ConcurrentLinkedQueue<>();
 
         void attach(HudPanel hud, WebDriver driver, io.github.testlens.hud.HudOptions options) {
             this.hud = hud;
             this.driver = driver;
             this.options = options;
+            this.sourceNavigationExecutionRoot = Path.of("").toAbsolutePath().normalize();
+            this.intellijProject = options == null ? Optional.empty()
+                    : IntellijProjectContext.resolve(options.sourceNavigation(), sourceNavigationExecutionRoot);
+            Path resolutionRoot = intellijProject.map(IntellijProjectContext::root)
+                    .orElse(sourceNavigationExecutionRoot);
             this.sourceResolver = options != null && options.sourceNavigation().enabled()
-                    ? new SourceFileResolver(Path.of(""), options.sourceNavigation().sourceRoots()) : null;
+                    ? new SourceFileResolver(resolutionRoot, options.sourceNavigation().sourceRoots()) : null;
             this.localDriver = LocalWebDriverDetector.isLocal(driver);
         }
 
@@ -773,9 +782,17 @@ public final class JsOverlayDebug {
             String sourceLabel = entry.sourceLocation().map(io.github.testlens.core.logging.SourceLocation::displayName).orElse(null);
             String navigationTarget = null;
             if (localDriver && sourceResolver != null && options != null) {
-                navigationTarget = entry.sourceLocation().flatMap(sourceResolver::resolve)
-                        .flatMap(path -> IdeNavigationUriProvider.target(options.sourceNavigation(), path,
-                                entry.sourceLocation().orElseThrow().lineNumber(), null)).orElse(null);
+                Optional<io.github.testlens.core.logging.SourceLocation> sourceLocation = entry.sourceLocation();
+                Optional<Path> resolved = sourceLocation.flatMap(sourceResolver::resolve);
+                navigationTarget = resolved.flatMap(path -> IdeNavigationUriProvider.target(
+                        options.sourceNavigation(), path, sourceLocation.orElseThrow().lineNumber(), null,
+                        sourceNavigationExecutionRoot)).orElse(null);
+                String requestedTarget = navigationTarget;
+                SOURCE_NAVIGATION_LOGGER.fine(() -> sourceNavigationDiagnostic(
+                        options.sourceNavigation().ide().name(), sourceLabel, resolved.orElse(null),
+                        sourceLocation.map(io.github.testlens.core.logging.SourceLocation::lineNumber).orElse(0),
+                        null, intellijProject.map(IntellijProjectContext::name).orElse("<unresolved>"),
+                        requestedTarget));
             }
             if (sourceLabel == null && navigationTarget == null) {
                 hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString());
@@ -783,6 +800,19 @@ public final class JsOverlayDebug {
                 hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString(),
                         entry.eventType().name(), sourceLabel, navigationTarget);
             }
+        }
+
+        private static String sourceNavigationDiagnostic(String ide, String sourcePath, Path resolvedPath,
+                                                         int line, Integer column, String project, String uri) {
+            return "Source navigation " + (uri == null ? "unavailable" : "requested target prepared")
+                    + System.lineSeparator() + "IDE: " + ide
+                    + System.lineSeparator() + "project: " + project
+                    + System.lineSeparator() + "source path: " + (sourcePath == null ? "<missing>" : sourcePath)
+                    + System.lineSeparator() + "resolved IDE path: "
+                    + (resolvedPath == null ? "<unresolved>" : resolvedPath)
+                    + System.lineSeparator() + "line: " + line
+                    + System.lineSeparator() + "column: " + (column == null ? "<none>" : column)
+                    + System.lineSeparator() + "URI: " + (uri == null ? "<unavailable>" : uri);
         }
     }
 

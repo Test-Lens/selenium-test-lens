@@ -420,6 +420,7 @@ public static io.github.testlens.hud.SourceIde valueOf(java.lang.String)
 - Functional documentation: [docs/observability/visual-diagnostics.md](../../observability/visual-diagnostics.md)
 
 ```java
+public static final io.github.testlens.hud.SourceNavigationModifier F8
 public static final io.github.testlens.hud.SourceNavigationModifier CTRL_ALT
 public static io.github.testlens.hud.SourceNavigationModifier[] values()
 public static io.github.testlens.hud.SourceNavigationModifier valueOf(java.lang.String)
@@ -439,6 +440,7 @@ public io.github.testlens.hud.SourceNavigationOptions$Builder activationModifier
 public io.github.testlens.hud.SourceNavigationOptions$Builder ide(io.github.testlens.hud.SourceIde)
 public io.github.testlens.hud.SourceNavigationOptions$Builder sourceRoots(java.nio.file.Path...)
 public io.github.testlens.hud.SourceNavigationOptions$Builder customUriTemplate(java.lang.String)
+public io.github.testlens.hud.SourceNavigationOptions$Builder intellijProject(java.lang.String, java.nio.file.Path)
 public io.github.testlens.hud.SourceNavigationOptions build()
 ```
 
@@ -458,4 +460,6 @@ public io.github.testlens.hud.SourceNavigationModifier activationModifier()
 public io.github.testlens.hud.SourceIde ide()
 public java.util.List<java.nio.file.Path> sourceRoots()
 public java.lang.String customUriTemplate()
+public java.lang.String intellijProjectName()
+public java.nio.file.Path intellijProjectRoot()
 ```

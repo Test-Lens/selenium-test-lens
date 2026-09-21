@@ -106,9 +106,9 @@ class HudPanelTest {
         RecordingBrowserScriptExecutor executor = new RecordingBrowserScriptExecutor();
         HudPanel panel = hudPanel(executor);
         panel.appendLog("info", "click: Login", "now", "LOCATOR_ACTION_PASSED",
-                "LoginPage.java:53", "idea://open?file=D%3A%5CLoginPage.java&line=53");
+                "LoginPage.java:53", "jetbrains://idea/navigate/reference?project=Client&path=LoginPage.java%3A53");
         assertTrue(executor.args.stream().anyMatch(args -> Arrays.asList(args).contains("LoginPage.java:53")
-                && Arrays.asList(args).contains("idea://open?file=D%3A%5CLoginPage.java&line=53")));
+                && Arrays.asList(args).contains("jetbrains://idea/navigate/reference?project=Client&path=LoginPage.java%3A53")));
     }
 
     @Test

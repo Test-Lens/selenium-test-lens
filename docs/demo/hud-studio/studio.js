@@ -4,7 +4,7 @@
   var shared={};
   var state=Object.assign({},shared);
   var highlightDefaults={enabled:true,automaticFeedback:true,showLabels:true,actionColor:'#ffeb3b',waitingColor:'#2196f3',retryColor:'#ff9800',successColor:'#4caf50',failureColor:'#f44336',durationMs:1500,borderWidthPx:2};
-  var sourceNavigationDefaults={enabled:false,previewActive:false,ide:'INTELLIJ',activationModifier:'CTRL_ALT'};
+  var sourceNavigationDefaults={enabled:false,previewActive:false,ide:'INTELLIJ',activationModifier:'F8'};
   var highlightState=Object.assign({},highlightDefaults);
   var sourceNavigation=Object.assign({},sourceNavigationDefaults);
   var customTimestampZone='Europe/Warsaw';

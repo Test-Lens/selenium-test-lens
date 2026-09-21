@@ -306,17 +306,27 @@ class HudOptionsTest {
                 .preset(HudPreset.COMPACT).build());
     }
 
-    @Test void sourceNavigationIsOptInAndDoesNotExposeRootsToBrowserRuntime() {
+    @Test @SuppressWarnings("deprecation")
+    void sourceNavigationIsOptInAndDoesNotExposeRootsToBrowserRuntime() {
         assertFalse(HudOptions.defaults().sourceNavigation().enabled());
+        assertEquals(SourceNavigationModifier.F8,
+                SourceNavigationOptions.defaults().activationModifier());
         Path privateRoot = Path.of("D:\\Company Project\\src\\test\\java");
         HudOptions options = HudOptions.builder().sourceNavigation(SourceNavigationOptions.builder()
                 .enabled(true).activationModifier(SourceNavigationModifier.CTRL_ALT)
-                .ide(SourceIde.VSCODE).sourceRoots(privateRoot).build()).build();
+                .ide(SourceIde.VSCODE).sourceRoots(privateRoot)
+                .intellijProject("Private Project", Path.of("D:\\Company Project")).build()).build();
         assertTrue(options.sourceNavigation().enabled());
         assertEquals(SourceIde.VSCODE, options.sourceNavigation().ide());
         assertEquals(List.of(privateRoot), options.sourceNavigation().sourceRoots());
+        assertEquals("Private Project", options.sourceNavigation().intellijProjectName());
+        assertEquals(Path.of("D:\\Company Project"), options.sourceNavigation().intellijProjectRoot());
         assertTrue((Boolean) options.toRuntimeMap().get("sourceNavigationEnabled"));
         assertFalse(options.toRuntimeMap().toString().contains("Company Project"));
+        assertThrows(IllegalArgumentException.class, () -> SourceNavigationOptions.builder()
+                .intellijProject(" ", Path.of("project")));
+        assertThrows(NullPointerException.class, () -> SourceNavigationOptions.builder()
+                .intellijProject("Project", null));
     }
 
     private HudOptions customized(boolean presetFirst) {

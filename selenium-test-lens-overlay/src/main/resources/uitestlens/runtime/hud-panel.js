@@ -14,7 +14,11 @@
   lens.state.hud = lens.state.hud || {};
   var SAFE_MARGIN_PX = 10;
 
-  function setSourceNavigationActive(active) {
+  function sourceShortcutLabel(shortcut) {
+    return shortcut === 'CTRL_ALT' ? 'Ctrl+Alt' : 'F8';
+  }
+
+  function setSourceNavigationActive(active, requested) {
     var panel = overlayRoot() && overlayRoot().querySelector('#selenium-hud-panel');
     lens.state.hud.sourceNavigationActive = !!active;
     if (!panel) return;
@@ -22,7 +26,12 @@
     else panel.classList.remove('source-navigation-active');
     panel.setAttribute('data-source-navigation-active', String(!!active));
     var status = panel.querySelector('.stl-hud-source-status');
-    if (status) status.style.display = active ? 'block' : 'none';
+    if (status) {
+      var shortcut = lens.state.hud.sourceNavigationShortcut || 'F8';
+      status.textContent = requested ? 'Source navigation requested' : 'Source Navigation ON';
+      status.textContent += shortcut === 'CTRL_ALT' ? ' · Ctrl+Alt' : ' · F8 / Esc';
+      status.style.display = active ? 'block' : 'none';
+    }
   }
 
   function cleanupSourceNavigation() {
@@ -33,29 +42,51 @@
       if (state.sourceBlur) window.removeEventListener('blur', state.sourceBlur, true);
     }
     state.sourceKeyDown = state.sourceKeyUp = state.sourceBlur = null;
+    state.sourceNavigationShortcut = null;
     state.sourceCtrl = state.sourceAlt = false;
     setSourceNavigationActive(false);
+  }
+
+  function editableKeyTarget(target) {
+    if (!target) return false;
+    var name = String(target.tagName || '').toLowerCase();
+    return name === 'input' || name === 'textarea' || name === 'select' || !!target.isContentEditable;
   }
 
   function installSourceNavigation(config) {
     if (!option(config, 'sourceNavigationEnabled', false)) { cleanupSourceNavigation(); return; }
     var state = lens.state.hud;
-    if (state.sourceKeyDown && state.sourceKeyUp && state.sourceBlur) return;
+    var shortcut = String(option(config, 'sourceNavigationModifier', 'F8')).toUpperCase();
+    if (state.sourceKeyDown && state.sourceNavigationShortcut === shortcut) return;
+    cleanupSourceNavigation();
+    state.sourceNavigationShortcut = shortcut;
     function updateFromEvent(event) {
       var altGraph = !!(event && event.getModifierState && event.getModifierState('AltGraph'));
       state.sourceCtrl = !!(event && event.ctrlKey);
       state.sourceAlt = !!(event && event.altKey);
       setSourceNavigationActive(state.sourceCtrl && state.sourceAlt && !altGraph);
     }
-    state.sourceKeyDown = updateFromEvent;
-    state.sourceKeyUp = updateFromEvent;
-    state.sourceBlur = function() {
-      state.sourceCtrl = state.sourceAlt = false;
-      setSourceNavigationActive(false);
-    };
+    if (shortcut === 'CTRL_ALT') {
+      state.sourceKeyDown = updateFromEvent;
+      state.sourceKeyUp = updateFromEvent;
+      state.sourceBlur = function() {
+        state.sourceCtrl = state.sourceAlt = false;
+        setSourceNavigationActive(false);
+      };
+    } else {
+      state.sourceKeyDown = function(event) {
+        if (!event || event.repeat) return;
+        if (event.key === 'Escape' && state.sourceNavigationActive) {
+          setSourceNavigationActive(false);
+        } else if (!editableKeyTarget(event.target) && (event.key === 'F8' || event.code === 'F8')) {
+          event.preventDefault();
+          setSourceNavigationActive(!state.sourceNavigationActive);
+        }
+      };
+    }
     window.addEventListener('keydown', state.sourceKeyDown, true);
-    window.addEventListener('keyup', state.sourceKeyUp, true);
-    window.addEventListener('blur', state.sourceBlur, true);
+    if (state.sourceKeyUp) window.addEventListener('keyup', state.sourceKeyUp, true);
+    if (state.sourceBlur) window.addEventListener('blur', state.sourceBlur, true);
   }
 
   var HUD_PRESETS = {
@@ -69,7 +100,7 @@
     timestampPattern:"yyyy-MM-dd'T'HH:mm:ss.SSSXXX",timestampPatternSource:'PRESET',
     logoPlacement:'LEFT_RAIL',background:'#0f172a',backgroundOpacity:0.96,accent:'#38bdf8',
     primaryText:'#f8fafc',mutedText:'#cbd5e1',success:'#22c55e',warning:'#f59e0b',failure:'#ef4444',
-    sourceNavigationEnabled:false,sourceNavigationModifier:'CTRL_ALT'
+    sourceNavigationEnabled:false,sourceNavigationModifier:'F8'
   };
 
   function overlayRoot() {
@@ -200,7 +231,7 @@
       + '.stl-hud-context-header[data-layout="STACKED"]>.stl-hud-header-item{flex:0 0 auto;width:100%;}'
       + '.stl-hud-meta-row{white-space:nowrap;}'
       + '.stl-hud-meta-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}';
-    style.textContent += '#selenium-hud-panel{pointer-events:none}.stl-hud-source-location{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:.9em;text-decoration:underline;text-underline-offset:2px;pointer-events:none;cursor:default}'
+    style.textContent += '#selenium-hud-panel{pointer-events:auto}.stl-hud-source-location{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:.9em;text-decoration:underline;text-underline-offset:2px;pointer-events:none;cursor:default}'
       + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location{display:block}'
       + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location[data-navigable="true"]{pointer-events:auto;cursor:pointer}'
       + '.stl-hud-source-status{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:8px;letter-spacing:.12em;margin-top:2px}';
@@ -579,6 +610,7 @@
       logs.style.marginTop = '3px';
       logs.style.maxHeight = option(config, 'maxLogHeight', 160) + 'px';
       logs.style.overflowY = 'auto';
+      logs.style.overscrollBehavior = 'contain';
       logs.style.borderTop = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
       logs.style.paddingTop = '4px';
       structure.main.appendChild(logs);
@@ -644,7 +676,7 @@
       panel = document.createElement('div');
       panel.id = 'selenium-hud-panel';
       panel.style.position = 'fixed';
-      panel.style.pointerEvents = 'none';
+      panel.style.pointerEvents = 'auto';
       panel.style.lineHeight = '1.4';
       shadow.appendChild(panel);
     }
@@ -709,7 +741,7 @@
     if (option(config, 'sourceNavigationEnabled', false) && !sourceStatus) {
       sourceStatus = document.createElement('div');
       sourceStatus.className = 'stl-hud-source-status';
-      sourceStatus.textContent = 'SOURCE NAVIGATION';
+      sourceStatus.textContent = 'Source Navigation ON · F8 / Esc';
       structure.main.insertBefore(sourceStatus, structure.main.firstChild);
     } else if (!option(config, 'sourceNavigationEnabled', false) && sourceStatus) removeNode(sourceStatus);
     installSourceNavigation(config);
@@ -812,20 +844,21 @@
     content.style.flex = showTimestamp ? '1 1 55%' : '1 1 100%';
     content.appendChild(document.createTextNode('[' + (level || '').toUpperCase() + '] ' + (message || '')));
     if (option(config, 'sourceNavigationEnabled', false) && sourceLabel) {
-      var source = document.createElement('span');
+      var source = document.createElement(navigationTarget ? 'a' : 'span');
       source.className = 'stl-hud-source-location';
       source.textContent = String(sourceLabel);
       source.setAttribute('data-navigable', String(!!navigationTarget));
       if (navigationTarget) {
-        source.setAttribute('role', 'link');
-        source.setAttribute('tabindex', '-1');
+        source.setAttribute('href', String(navigationTarget));
+        source.setAttribute('tabindex', '0');
+        source.setAttribute('title', 'Open source in the configured IDE. Right-click to copy link address.');
         source.addEventListener('click', function(event) {
           if (!lens.state.hud.sourceNavigationActive) { event.preventDefault(); return; }
-          event.preventDefault();
+          setSourceNavigationActive(true, true);
+          source.setAttribute('data-navigation-requested', 'true');
           if (typeof window.__uiTestLensSourceNavigation === 'function') {
+            event.preventDefault();
             try { window.__uiTestLensSourceNavigation(String(navigationTarget)); } catch (ignored) {}
-          } else {
-            try { window.location.href = String(navigationTarget); } catch (ignored) {}
           }
         });
       }

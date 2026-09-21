@@ -40,12 +40,19 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("data-test-lens-font-reflow"));
         assertTrue(HudPanelJs.INIT.contains("sharedTypography.subscribe"));
         assertTrue(HudPanelJs.INIT.contains("source-navigation-active"));
-        assertTrue(HudPanelJs.INIT.contains("panel.style.pointerEvents = 'none'"));
+        assertTrue(HudPanelJs.INIT.contains("panel.style.pointerEvents = 'auto'"));
+        assertTrue(HudPanelJs.INIT.contains("logs.style.overscrollBehavior = 'contain'"));
         assertTrue(HudPanelJs.INIT.contains("window.addEventListener('blur'"));
         assertTrue(HudPanelJs.INIT.contains("cleanupSourceNavigation"));
         assertTrue(HudPanelJs.INIT.contains("__uiTestLensSourceNavigation"));
         assertTrue(HudPanelJs.INIT.contains("getModifierState('AltGraph')"));
-        assertFalse(HudPanelJs.INIT.contains("source.setAttribute('href'"));
+        assertTrue(HudPanelJs.INIT.contains("event.repeat"));
+        assertTrue(HudPanelJs.INIT.contains("editableKeyTarget"));
+        assertTrue(HudPanelJs.INIT.contains("event.key === 'F8'"));
+        assertTrue(HudPanelJs.INIT.contains("event.key === 'Escape'"));
+        assertTrue(HudPanelJs.INIT.contains("source.setAttribute('href'"));
+        assertFalse(HudPanelJs.INIT.contains("addEventListener('wheel'"));
+        assertFalse(HudPanelJs.INIT.contains("setTimeout(function()"));
     }
 
     @Test
