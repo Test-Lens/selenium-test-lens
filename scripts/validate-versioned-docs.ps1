@@ -328,9 +328,8 @@ try {
             $text = [IO.File]::ReadAllText($html.FullName)
             if (-not $text.Contains($banner)) { throw "Development banner missing: $($html.FullName)" }
             if (-not $text.Contains('class="tl-version-switcher"')) { throw "Version switcher missing from dev: $($html.FullName)" }
+            if ($text.Contains('class="md-content__button')) { throw "Reader content action present in dev: $($html.FullName)" }
         }
-        $devHome = [IO.File]::ReadAllText((Join-Path $stage2 "dev/index.html"))
-        if (-not $devHome.Contains("edit/main/docs/index.md")) { throw "dev homepage edit link does not target main." }
         foreach ($versionDirectory in @("dev", "0.2.0", "latest")) {
             $versionHome = [IO.File]::ReadAllText((Join-Path $stage2 "$versionDirectory/index.html"))
             if (-not $versionHome.Contains('src="demo/hud/"')) { throw "Homepage iframe is not relative under $versionDirectory." }
@@ -355,14 +354,12 @@ try {
         if (-not $demoCss.Contains("prefers-reduced-motion") -or -not $demoJs.Contains("prefers-reduced-motion")) {
             throw "HUD demo does not preserve reduced-motion behavior."
         }
-        $devGuide = [IO.File]::ReadAllText((Join-Path $stage2 "dev/getting-started/index.html"))
-        if (-not $devGuide.Contains("edit/main/docs/getting-started.md")) { throw "dev edit link does not target main." }
         foreach ($stableVersion in @("0.1.0", "0.2.0")) {
             foreach ($html in Get-ChildItem (Join-Path $stage2 $stableVersion) -Filter *.html -File -Recurse) {
                 if ($html.FullName.Replace('\','/').Contains('/demo/')) { continue }
                 $text = [IO.File]::ReadAllText($html.FullName)
                 if ($text.Contains($banner)) { throw "Development banner leaked into stable docs." }
-                if ($text.Contains("edit/main/docs/")) { throw "Stable edit link points to main." }
+                if ($text.Contains('class="md-content__button')) { throw "Reader content action present in stable docs." }
                 if (-not $text.Contains('class="tl-version-switcher"')) { throw "Version switcher missing from stable docs." }
             }
         }
@@ -384,7 +381,7 @@ try {
             Assert-CompatibilityRedirectPage $stage3 $futureReleaseVersion $relativePath $compatibilityRedirects[$relativePath].Target
         }
         $futureGuide = [IO.File]::ReadAllText((Join-Path $stage3 "$futureReleaseVersion/getting-started/index.html"))
-        if (-not $futureGuide.Contains("edit/v$futureReleaseVersion/docs/getting-started.md")) { throw "Tagged release edit link does not target its tag." }
+        if ($futureGuide.Contains('class="md-content__button')) { throw "Reader content action present in tagged release." }
         $rootRedirect = [IO.File]::ReadAllText((Join-Path $stage2 "index.html"))
         if (-not $rootRedirect.Contains('url=latest/')) { throw "Root default does not redirect to latest." }
         foreach ($brandingContract in @(

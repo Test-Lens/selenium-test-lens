@@ -6,11 +6,14 @@ hide:
 
 <div class="lens-hero" markdown>
 
-<img class="lens-home-logo" src="assets/brand/test-lens-logo-horizontal.png" alt="Test Lens">
+<div class="lens-home-brand">
+  <img src="assets/brand/test-lens-icon.png" alt="">
+  <span>Test Lens</span>
+</div>
 
 **Test Lens for Selenium**
 
-# Observe Selenium. Recover deliberately. Keep useful evidence.
+<h1>Observe Selenium. Recover deliberately. Keep useful evidence.</h1>
 
 **Keep Selenium and your existing WebDriver. Add observability, resilient browser interaction, scoped test lifecycle, and evidence with explicit security boundaries.**
 

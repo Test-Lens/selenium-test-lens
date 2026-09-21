@@ -51,7 +51,6 @@ theme:
     - search.highlight
     - content.code.copy
     - content.code.annotate
-    - content.action.edit
     - toc.follow
 
 nav:
