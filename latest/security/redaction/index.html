@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+        <meta name="description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>Sensitive-data redaction - Selenium Test Lens</title>
+        <title>Sensitive-data redaction - Test Lens</title>
       
     
     
@@ -78,15 +78,15 @@
   
   
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Selenium Test Lens">
-  <meta property="og:title" content="Sensitive-data redaction - Selenium Test Lens">
-  <meta property="og:description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+  <meta property="og:site_name" content="Test Lens">
+  <meta property="og:title" content="Sensitive-data redaction - Test Lens">
+  <meta property="og:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
   <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/security/redaction/">
   <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
   <meta property="og:image:alt" content="Test Lens">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Sensitive-data redaction - Selenium Test Lens">
-  <meta name="twitter:description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+  <meta name="twitter:title" content="Sensitive-data redaction - Test Lens">
+  <meta name="twitter:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
   <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
 
   </head>
@@ -173,10 +173,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Selenium Test Lens" class="md-header__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href="../.." title="Test Lens" class="md-header__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -187,7 +186,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Selenium Test Lens
+            Test Lens
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -503,13 +502,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Selenium Test Lens" class="md-nav__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href="../.." title="Test Lens" class="md-nav__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
-    Selenium Test Lens
+    Test Lens
   </label>
   
     <div class="md-nav__source">
@@ -2951,7 +2949,7 @@
 
 
 <h1 id="sensitive-data-redaction">Sensitive-data redaction<a class="headerlink" href="#sensitive-data-redaction" title="Permanent link">&para;</a></h1>
-<p>Selenium Test Lens applies <code>RedactionPolicy.defaults()</code> before a structured log entry is fanned out to the HUD, the session trace, or any built-in or caller-provided <code>UiTestLensLogSink</code>. The same policy is applied at direct trace, network, API-overlay, report, and failure-bundle boundaries that do not pass through the logger.</p>
+<p>Test Lens applies <code>RedactionPolicy.defaults()</code> before a structured log entry is fanned out to the HUD, the session trace, or any built-in or caller-provided <code>UiTestLensLogSink</code>. The same policy is applied at direct trace, network, API-overlay, report, and failure-bundle boundaries that do not pass through the logger.</p>
 <p>This is the safety boundary that makes richer observability practical: consumers receive redacted diagnostic copies, while matching and test control continue to use the original runtime values. It does not make every artifact intrinsically safe; review the explicit limits below before publishing evidence.</p>
 <p>Complete JSON documents are redacted structurally by a bounded, single-pass scanner. JSON apostrophes are ordinary string content, and escaped quotes, backslashes, control escapes, Unicode escapes, nested objects, arrays, duplicate keys, numbers, booleans, and null are parsed without treating them as delimiters. A sensitive key replaces its entire value—regardless of that value's JSON type—with one correctly escaped replacement string. Strings under non-sensitive keys still receive Bearer, Basic, JWT, structured-pair, and configured-literal redaction. Malformed or excessively nested JSON is never returned merely because structural parsing failed; it goes through the fail-closed plain-text and tolerant key/value fallback instead.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">RedactionPolicy</span><span class="w"> </span><span class="n">redaction</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">RedactionPolicy</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>

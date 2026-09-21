@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+        <meta name="description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>Installation & first test - Selenium Test Lens</title>
+        <title>Installation & first test - Test Lens</title>
       
     
     
@@ -78,15 +78,15 @@
   
   
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Selenium Test Lens">
-  <meta property="og:title" content="Installation &amp; first test - Selenium Test Lens">
-  <meta property="og:description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+  <meta property="og:site_name" content="Test Lens">
+  <meta property="og:title" content="Installation &amp; first test - Test Lens">
+  <meta property="og:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
   <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/getting-started/">
   <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
   <meta property="og:image:alt" content="Test Lens">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Installation &amp; first test - Selenium Test Lens">
-  <meta name="twitter:description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+  <meta name="twitter:title" content="Installation &amp; first test - Test Lens">
+  <meta name="twitter:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
   <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
 
   </head>
@@ -173,10 +173,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Selenium Test Lens" class="md-header__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href=".." title="Test Lens" class="md-header__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -187,7 +186,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Selenium Test Lens
+            Test Lens
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -503,13 +502,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Selenium Test Lens" class="md-nav__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href=".." title="Test Lens" class="md-nav__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
-    Selenium Test Lens
+    Test Lens
   </label>
   
     <div class="md-nav__source">
@@ -3061,7 +3059,7 @@
 
 
 <h1 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h1>
-<p>Selenium Test Lens works with the <code>WebDriver</code> your test framework already uses. You can add it to an existing Selenium project without changing how the driver is created or closed.</p>
+<p>Test Lens for Selenium works with the <code>WebDriver</code> your test framework already uses. You can add it to an existing Selenium project without changing how the driver is created or closed.</p>
 <p>This guide shows the shortest path from the Maven dependency to a working Lens session.</p>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
@@ -3069,9 +3067,9 @@
 <li>Maven 3.x or Gradle</li>
 <li>A Selenium <code>WebDriver</code> created by your test project</li>
 </ul>
-<p>The latest Selenium Test Lens release is <code>0.3.0</code>, verified with Selenium 4.39.0.</p>
+<p>The latest Test Lens for Selenium release is <code>0.3.0</code>, verified with Selenium 4.39.0.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<p>Add the main Selenium Test Lens runtime to your Maven project:</p>
+<p>Add the main Test Lens for Selenium runtime to your Maven project:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;dependency&gt;</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nt">&lt;groupId&gt;</span>io.github.test-lens<span class="nt">&lt;/groupId&gt;</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&lt;artifactId&gt;</span>selenium-test-lens<span class="nt">&lt;/artifactId&gt;</span>
