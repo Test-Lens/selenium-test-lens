@@ -31,14 +31,18 @@ import java.util.logging.Logger;
 
 /**
  * Captures viewport or portable full-page PNG evidence without CDP or window resizing.
- * Full-page capture snapshots the current top-level document dimensions, scrolls the existing viewport, and
- * stitches standard Selenium screenshots. It does not expand frames, shadow roots, or nested scroll containers,
- * and applies configured browser-side visual masks before pixels are captured.
+ * Full-page capture keeps viewport geometry fixed while adapting its bounded vertical extent to document-height
+ * changes, scrolls the existing viewport, and stitches standard Selenium screenshots. It does not expand frames,
+ * shadow roots, or nested scroll containers, and applies configured browser-side visual masks before pixels are
+ * captured.
  */
 public final class ScreenshotCapture {
     private static final String STATE_KEY_PREFIX = "__testLensFullPage_";
     private static final String OVERLAY_STATE_KEY_PREFIX = "__testLensOverlaySnapshot_";
     private static final int FULL_PAGE_MAX_ATTEMPTS = 2;
+    private static final int MAX_DOCUMENT_HEIGHT_EXPANSIONS = 8;
+    private static final int REQUIRED_STABLE_BOTTOM_SAMPLES = 2;
+    private static final int GEOMETRY_OBSERVATION_LIMIT_PADDING = 16;
     private static final Logger LOGGER = Logger.getLogger(ScreenshotCapture.class.getName());
     private final WebDriver driver;
     private final VisualRedactionOptions visualRedaction;
@@ -157,12 +161,12 @@ public final class ScreenshotCapture {
                     CaptureData captured = captureFullPageAttempt(screenshots, javascript, options, masks, attempt);
                     LOGGER.fine("Full-page screenshot captured");
                     return captured;
-                } catch (PageDimensionsChangedException changed) {
+                } catch (ViewportGeometryChangedException changed) {
                     if (attempt == FULL_PAGE_MAX_ATTEMPTS) {
-                        throw new PageDimensionsChangedException(
+                        throw new ViewportGeometryChangedException(
                                 changed.getMessage() + " after " + attempt + " attempts", changed);
                     }
-                    LOGGER.log(Level.FINE, "Full-page screenshot retry: document dimensions changed", changed);
+                    LOGGER.log(Level.FINE, "Full-page screenshot retry: hard viewport geometry changed", changed);
                 }
             }
             throw new IllegalStateException("Full-page screenshot capture exhausted its retry limit");
@@ -193,74 +197,106 @@ public final class ScreenshotCapture {
         LOGGER.fine(() -> "Full-page attempt " + attempt + " baseline=" + page);
         Throwable primary = null;
         try {
-            validateCssDimensions(page, options);
-            long horizontalTiles = tileCount(page.documentWidth(), page.viewportWidth());
-            long verticalTiles = tileCount(page.documentHeight(), page.viewportHeight());
-            long requestedTiles = Math.multiplyExact(horizontalTiles, verticalTiles);
-            if (requestedTiles > options.maxTileCount()) {
-                throw new IllegalArgumentException("Full-page capture requires " + requestedTiles
-                        + " tiles, exceeding maxTileCount=" + options.maxTileCount());
-            }
+            validateCssDimensions(page);
+            CaptureExtent extent = new CaptureExtent(page, geometryObservationLimit(options.maxTileCount()));
+            validateCaptureExtent(page, extent, options,
+                    tileCount(page.documentWidth(), page.viewportWidth()),
+                    0, 0, attempt, 0, new Position(0, 0), page);
             List<Long> xs = positions(page.documentWidth(), page.viewportWidth());
-            List<Long> ys = positions(page.documentHeight(), page.viewportHeight());
-
             Set<Position> capturedPositions = new LinkedHashSet<>();
             double scaleX = 0;
             double scaleY = 0;
             BufferedImage stitched = null;
-            int tileCount = 0;
+            int capturedTileCount = 0;
             int tileIndex = 0;
             long coveredBottom = 0;
-            for (long y : ys) {
+            long requestedY = 0;
+            boolean bottomStable = false;
+            while (!bottomStable) {
                 long rowCoveredRight = 0;
                 long rowBottom = coveredBottom;
                 for (long x : xs) {
-                    PageSnapshot current = scrollAndObserve(javascript, x, y);
+                    Position requested = new Position(x, requestedY);
+                    PageSnapshot current = scrollAndObserve(javascript, stateKey, x, requestedY);
                     int observedTile = tileIndex;
                     LOGGER.fine(() -> "Full-page attempt " + attempt + " tile=" + observedTile
                             + " geometry=" + current);
                     tileIndex++;
-                    requireStablePage(page, current, "attempt " + attempt + " tile " + observedTile);
+                    requireStableGeometry(page, current, attempt, observedTile, requested, extent);
+                    extent.observe(current.documentHeight(), attempt, observedTile, requested, current);
+                    validateCaptureExtent(page, extent, options, xs.size(), scaleX, scaleY,
+                            attempt, observedTile, requested, current);
                     Position actual = new Position(current.scrollX(), current.scrollY());
                     if (!capturedPositions.add(actual)) continue;
 
                     masks.refresh();
-                    BufferedImage tile = decode(screenshots.getScreenshotAs(OutputType.BYTES));
-                    tileCount++;
+                    BufferedImage tile;
+                    try {
+                        tile = decode(screenshots.getScreenshotAs(OutputType.BYTES));
+                    } catch (IOException | RuntimeException failure) {
+                        throw tileCaptureFailed(page, current, extent, attempt, observedTile, requested, failure);
+                    }
                     double currentScaleX = tile.getWidth() / (double) page.viewportWidth();
                     double currentScaleY = tile.getHeight() / (double) page.viewportHeight();
                     if (scaleX == 0) {
                         scaleX = currentScaleX;
                         scaleY = currentScaleY;
-                        int outputWidth = scaledDimension(page.documentWidth(), scaleX, "width");
-                        int outputHeight = scaledDimension(page.documentHeight(), scaleY, "height");
-                        long pixels = Math.multiplyExact((long) outputWidth, (long) outputHeight);
-                        if (pixels > options.maxPixelCount()) {
-                            throw new IllegalArgumentException("Full-page image " + outputWidth + "x" + outputHeight
-                                    + " exceeds maxPixelCount=" + options.maxPixelCount());
-                        }
-                        stitched = new BufferedImage(outputWidth, outputHeight, BufferedImage.TYPE_INT_ARGB);
+                        validateCaptureExtent(page, extent, options, xs.size(), scaleX, scaleY,
+                                attempt, observedTile, requested, current);
                     } else if (tile.getWidth() != Math.round(page.viewportWidth() * scaleX)
                             || tile.getHeight() != Math.round(page.viewportHeight() * scaleY)
                             || Math.abs(currentScaleX - scaleX) > 0.000001
                             || Math.abs(currentScaleY - scaleY) > 0.000001) {
-                        throw new IllegalStateException("Viewport screenshot dimensions or scale changed during capture");
+                        throw viewportGeometryChanged(page, current, extent, attempt, observedTile, requested,
+                                "viewport screenshot pixel dimensions or scale changed from "
+                                        + scaleX + "x" + scaleY + " to " + currentScaleX + "x" + currentScaleY);
+                    }
+                    int requiredWidth = scaledDimension(page.documentWidth(), scaleX, "width");
+                    int requiredHeight = scaledDimension(extent.currentHeight(), scaleY, "height");
+                    if (stitched == null) {
+                        stitched = new BufferedImage(requiredWidth, requiredHeight, BufferedImage.TYPE_INT_ARGB);
+                    } else if (requiredHeight > stitched.getHeight()) {
+                        stitched = resizeCanvas(stitched, requiredWidth, requiredHeight);
                     }
                     long overlapX = Math.max(0, rowCoveredRight - actual.x());
                     long overlapY = Math.max(0, coveredBottom - actual.y());
                     drawTile(stitched, tile, actual, overlapX, overlapY, scaleX, scaleY);
+                    capturedTileCount++;
                     rowCoveredRight = Math.max(rowCoveredRight, actual.x() + page.viewportWidth());
                     rowBottom = Math.max(rowBottom, actual.y() + page.viewportHeight());
                     hideRepeatedElements(javascript, stateKey);
                 }
                 coveredBottom = rowBottom;
+                int stableSamples = 0;
+                while (coveredBottom >= extent.currentHeight()
+                        && stableSamples < REQUIRED_STABLE_BOTTOM_SAMPLES) {
+                    PageSnapshot sample = observe(javascript, stateKey);
+                    LOGGER.fine(() -> "Full-page attempt " + attempt + " bottom-sample=" + sample);
+                    Position requested = new Position(0, requestedY);
+                    requireStableGeometry(page, sample, attempt, tileIndex, requested, extent);
+                    boolean changed = extent.observe(sample.documentHeight(), attempt, tileIndex, requested, sample);
+                    validateCaptureExtent(page, extent, options, xs.size(), scaleX, scaleY,
+                            attempt, tileIndex, requested, sample);
+                    if (coveredBottom < extent.currentHeight()) break;
+                    stableSamples = changed ? 0 : stableSamples + 1;
+                }
+                bottomStable = coveredBottom >= extent.currentHeight()
+                        && stableSamples >= REQUIRED_STABLE_BOTTOM_SAMPLES;
+                if (!bottomStable) {
+                    requestedY = Math.min(coveredBottom,
+                            Math.max(0, extent.currentHeight() - page.viewportHeight()));
+                }
             }
-            if (stitched == null || tileCount == 0) throw new IllegalStateException("No screenshot tiles were captured");
-            PageSnapshot finalSnapshot = observe(javascript);
-            LOGGER.fine(() -> "Full-page attempt " + attempt + " final=" + finalSnapshot);
-            requireStablePage(page, finalSnapshot, "attempt " + attempt + " final observation");
-            return new CaptureData(ScreenshotCaptureMode.FULL_PAGE, stitched, tileCount);
-        } catch (IOException | RuntimeException failure) {
+            if (stitched == null || capturedTileCount == 0) {
+                throw new IllegalStateException("No screenshot tiles were captured");
+            }
+            int outputWidth = scaledDimension(page.documentWidth(), scaleX, "width");
+            int outputHeight = scaledDimension(extent.currentHeight(), scaleY, "height");
+            if (stitched.getWidth() != outputWidth || stitched.getHeight() != outputHeight) {
+                stitched = resizeCanvas(stitched, outputWidth, outputHeight);
+            }
+            return new CaptureData(ScreenshotCaptureMode.FULL_PAGE, stitched, capturedTileCount);
+        } catch (RuntimeException failure) {
             primary = failure;
             throw failure;
         } finally {
@@ -306,15 +342,17 @@ public final class ScreenshotCapture {
                     body ? body.scrollHeight : 0, body ? body.offsetHeight : 0, window.innerHeight);
                   done({documentWidth: width, documentHeight: height, viewportWidth: window.innerWidth,
                     viewportHeight: window.innerHeight, scrollX: window.scrollX, scrollY: window.scrollY,
-                    devicePixelRatio: window.devicePixelRatio, topLevel: window.top === window});
+                    devicePixelRatio: window.devicePixelRatio, topLevel: window.top === window,
+                    contextToken: key});
                 }));
                 """, key);
         return pageSnapshot(result);
     }
 
-    private static PageSnapshot scrollAndObserve(JavascriptExecutor js, long x, long y) {
+    private static PageSnapshot scrollAndObserve(JavascriptExecutor js, String key, long x, long y) {
         Object result = js.executeAsyncScript("""
-                const x = arguments[0], y = arguments[1], done = arguments[arguments.length - 1];
+                const key = arguments[0], x = arguments[1], y = arguments[2];
+                const done = arguments[arguments.length - 1];
                 window.scrollTo(x, y);
                 requestAnimationFrame(() => requestAnimationFrame(() => {
                   const root = document.documentElement, body = document.body;
@@ -324,15 +362,17 @@ public final class ScreenshotCapture {
                     body ? body.scrollHeight : 0, body ? body.offsetHeight : 0, window.innerHeight),
                     viewportWidth: window.innerWidth, viewportHeight: window.innerHeight,
                     scrollX: window.scrollX, scrollY: window.scrollY,
-                    devicePixelRatio: window.devicePixelRatio, topLevel: window.top === window};
+                    devicePixelRatio: window.devicePixelRatio, topLevel: window.top === window,
+                    contextToken: window[key] && window[key].token === key ? key : ''};
                   done(result);
                 }));
-                """, x, y);
+                """, key, x, y);
         return pageSnapshot(result);
     }
 
-    private static PageSnapshot observe(JavascriptExecutor js) {
+    private static PageSnapshot observe(JavascriptExecutor js, String key) {
         Object result = js.executeAsyncScript("""
+                const key = arguments[0];
                 const done = arguments[arguments.length - 1];
                 requestAnimationFrame(() => requestAnimationFrame(() => {
                   const root = document.documentElement, body = document.body;
@@ -342,10 +382,11 @@ public final class ScreenshotCapture {
                     body ? body.scrollHeight : 0, body ? body.offsetHeight : 0, window.innerHeight),
                     viewportWidth: window.innerWidth, viewportHeight: window.innerHeight,
                     scrollX: window.scrollX, scrollY: window.scrollY,
-                    devicePixelRatio: window.devicePixelRatio, topLevel: window.top === window};
+                    devicePixelRatio: window.devicePixelRatio, topLevel: window.top === window,
+                    contextToken: window[key] && window[key].token === key ? key : ''};
                   done(result);
                 }));
-                """);
+                """, key);
         return pageSnapshot(result);
     }
 
@@ -506,26 +547,125 @@ public final class ScreenshotCapture {
         return Math.addExact(Math.floorDiv(document - 1, viewport), 1);
     }
 
-    private static void validateCssDimensions(PageSnapshot page, ScreenshotCaptureOptions options) {
+    private static int geometryObservationLimit(int maxTileCount) {
+        int largestSafe = (Integer.MAX_VALUE - GEOMETRY_OBSERVATION_LIMIT_PADDING) / 2;
+        return maxTileCount > largestSafe ? Integer.MAX_VALUE
+                : maxTileCount * 2 + GEOMETRY_OBSERVATION_LIMIT_PADDING;
+    }
+
+    private static void validateCssDimensions(PageSnapshot page) {
         if (page.documentWidth() < 1 || page.documentHeight() < 1
                 || page.viewportWidth() < 1 || page.viewportHeight() < 1) {
             throw new IllegalArgumentException("Document and viewport dimensions must be positive");
         }
-        long cssPixels = Math.multiplyExact(page.documentWidth(), page.documentHeight());
-        if (cssPixels > options.maxPixelCount()) {
-            throw new IllegalArgumentException("Full-page CSS dimensions " + page.documentWidth() + "x"
-                    + page.documentHeight() + " exceed maxPixelCount=" + options.maxPixelCount());
+    }
+
+    private static BufferedImage resizeCanvas(BufferedImage source, int width, int height) {
+        BufferedImage resized = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = resized.createGraphics();
+        try {
+            graphics.setComposite(AlphaComposite.Src);
+            int copyWidth = Math.min(source.getWidth(), width);
+            int copyHeight = Math.min(source.getHeight(), height);
+            graphics.drawImage(source, 0, 0, copyWidth, copyHeight,
+                    0, 0, copyWidth, copyHeight, null);
+        } finally {
+            graphics.dispose();
+        }
+        return resized;
+    }
+
+    private static void requireStableGeometry(PageSnapshot initial, PageSnapshot current, int attempt, int tile,
+                                              Position requested, CaptureExtent extent) {
+        List<String> changes = new ArrayList<>();
+        if (!current.topLevel() || !initial.contextToken().equals(current.contextToken())) {
+            changes.add("top-level browsing context identity");
+        }
+        if (initial.documentWidth() != current.documentWidth()) changes.add("documentWidth");
+        if (initial.viewportWidth() != current.viewportWidth()) changes.add("viewportWidth");
+        if (initial.viewportHeight() != current.viewportHeight()) changes.add("viewportHeight");
+        if (Math.abs(initial.devicePixelRatio() - current.devicePixelRatio()) > 0.000001) {
+            changes.add("devicePixelRatio");
+        }
+        if (!changes.isEmpty()) {
+            throw viewportGeometryChanged(initial, current, extent, attempt, tile, requested,
+                    "hard invariant(s) changed: " + String.join(", ", changes));
         }
     }
 
-    private static void requireStablePage(PageSnapshot initial, PageSnapshot current, String observation) {
-        if (!current.topLevel()) throw new UnsupportedContextException("Browsing context changed during full-page capture");
-        if (initial.documentWidth() != current.documentWidth() || initial.documentHeight() != current.documentHeight()
-                || initial.viewportWidth() != current.viewportWidth() || initial.viewportHeight() != current.viewportHeight()) {
-            throw new PageDimensionsChangedException(
-                    "Document or viewport dimensions changed during full-page capture at " + observation
-                            + ": baseline=" + initial + ", current=" + current);
+    private static void validateCaptureExtent(PageSnapshot initial, CaptureExtent extent,
+                                              ScreenshotCaptureOptions options, long horizontalTiles,
+                                              double scaleX, double scaleY, int attempt, int tile,
+                                              Position requested, PageSnapshot latest) {
+        long requestedTiles;
+        long cssPixels;
+        try {
+            requestedTiles = Math.multiplyExact((long) horizontalTiles,
+                    tileCount(extent.currentHeight(), initial.viewportHeight()));
+            cssPixels = Math.multiplyExact(initial.documentWidth(), extent.currentHeight());
+        } catch (ArithmeticException overflow) {
+            throw captureHeightLimitExceeded(initial, latest, extent, attempt, tile, requested,
+                    "geometry arithmetic overflow", overflow);
         }
+        if (requestedTiles > options.maxTileCount()) {
+            throw captureHeightLimitExceeded(initial, latest, extent, attempt, tile, requested,
+                    "requiredTileCount=" + requestedTiles + " exceeds maxTileCount=" + options.maxTileCount(), null);
+        }
+        if (cssPixels > options.maxPixelCount()) {
+            throw captureHeightLimitExceeded(initial, latest, extent, attempt, tile, requested,
+                    "CSS pixel count=" + cssPixels + " exceeds maxPixelCount=" + options.maxPixelCount(), null);
+        }
+        if (scaleX > 0 && scaleY > 0) {
+            int outputWidth = scaledDimension(initial.documentWidth(), scaleX, "width");
+            int outputHeight = scaledDimension(extent.currentHeight(), scaleY, "height");
+            long outputPixels = Math.multiplyExact((long) outputWidth, outputHeight);
+            if (outputPixels > options.maxPixelCount()) {
+                throw captureHeightLimitExceeded(initial, latest, extent, attempt, tile, requested,
+                        "stitched pixel count=" + outputPixels + " exceeds maxPixelCount="
+                                + options.maxPixelCount(), null);
+            }
+        }
+    }
+
+    private static ViewportGeometryChangedException viewportGeometryChanged(
+            PageSnapshot initial, PageSnapshot latest, CaptureExtent extent, int attempt, int tile,
+            Position requested, String reason) {
+        return new ViewportGeometryChangedException("VIEWPORT_GEOMETRY_CHANGED: " + reason + "; "
+                + diagnostics(initial, latest, extent, attempt, tile, requested));
+    }
+
+    private static DocumentHeightDidNotStabilizeException documentHeightDidNotStabilize(
+            PageSnapshot initial, PageSnapshot latest, CaptureExtent extent, int attempt, int tile,
+            Position requested, String reason) {
+        return new DocumentHeightDidNotStabilizeException("DOCUMENT_HEIGHT_DID_NOT_STABILIZE: " + reason
+                + "; maxDocumentHeightExpansions=" + MAX_DOCUMENT_HEIGHT_EXPANSIONS + "; "
+                + diagnostics(initial, latest, extent, attempt, tile, requested));
+    }
+
+    private static CaptureHeightLimitException captureHeightLimitExceeded(
+            PageSnapshot initial, PageSnapshot latest, CaptureExtent extent, int attempt, int tile,
+            Position requested, String reason, Throwable cause) {
+        return new CaptureHeightLimitException("CAPTURE_HEIGHT_LIMIT_EXCEEDED: " + reason + "; "
+                + diagnostics(initial, latest, extent, attempt, tile, requested), cause);
+    }
+
+    private static TileCaptureException tileCaptureFailed(
+            PageSnapshot initial, PageSnapshot latest, CaptureExtent extent, int attempt, int tile,
+            Position requested, Throwable cause) {
+        return new TileCaptureException("TILE_CAPTURE_FAILED: " + messageFor(cause) + "; "
+                + diagnostics(initial, latest, extent, attempt, tile, requested), cause);
+    }
+
+    private static String diagnostics(PageSnapshot initial, PageSnapshot latest, CaptureExtent extent,
+                                      int attempt, int tile, Position requested) {
+        return "attempt=" + attempt + ", tile=" + tile + ", requestedScroll=" + requested
+                + ", actualScroll=" + new Position(latest.scrollX(), latest.scrollY())
+                + ", documentHeightExpansions=" + extent.expansions()
+                + ", geometryObservations=" + extent.observations()
+                + ", initialDocumentHeight=" + extent.initialHeight()
+                + ", maxObservedDocumentHeight=" + extent.maxObservedHeight()
+                + ", initialGeometry=" + initial.geometryDescription()
+                + ", latestGeometry=" + latest.geometryDescription();
     }
 
     private static PageSnapshot pageSnapshot(Object value) {
@@ -533,7 +673,7 @@ public final class ScreenshotCapture {
         return new PageSnapshot(number(map, "documentWidth"), number(map, "documentHeight"),
                 number(map, "viewportWidth"), number(map, "viewportHeight"),
                 number(map, "scrollX"), number(map, "scrollY"), decimal(map, "devicePixelRatio"),
-                Boolean.TRUE.equals(map.get("topLevel")));
+                Boolean.TRUE.equals(map.get("topLevel")), string(map, "contextToken"));
     }
 
     private static long number(Map<?, ?> map, String key) {
@@ -552,6 +692,12 @@ public final class ScreenshotCapture {
             throw new IllegalStateException("Invalid page geometry: " + key);
         }
         return number.doubleValue();
+    }
+
+    private static String string(Map<?, ?> map, String key) {
+        Object value = map.get(key);
+        if (!(value instanceof String string)) throw new IllegalStateException("Missing page geometry: " + key);
+        return string;
     }
 
     private static int scaledDimension(long css, double scale, String label) {
@@ -601,13 +747,73 @@ public final class ScreenshotCapture {
 
     private record CaptureData(ScreenshotCaptureMode mode, BufferedImage image, int tileCount) { }
     private record PageSnapshot(long documentWidth, long documentHeight, long viewportWidth, long viewportHeight,
-                                long scrollX, long scrollY, double devicePixelRatio, boolean topLevel) { }
+                                long scrollX, long scrollY, double devicePixelRatio, boolean topLevel,
+                                String contextToken) {
+        private String geometryDescription() {
+            return "{documentWidth=" + documentWidth + ", documentHeight=" + documentHeight
+                    + ", viewportWidth=" + viewportWidth + ", viewportHeight=" + viewportHeight
+                    + ", scrollX=" + scrollX + ", scrollY=" + scrollY
+                    + ", devicePixelRatio=" + devicePixelRatio + ", topLevel=" + topLevel + "}";
+        }
+    }
     private record Position(long x, long y) { }
+    private static final class CaptureExtent {
+        private final PageSnapshot initialSnapshot;
+        private final long initialHeight;
+        private long currentHeight;
+        private long maxObservedHeight;
+        private int expansions;
+        private final int maxObservations;
+        private int observations;
+
+        private CaptureExtent(PageSnapshot initialSnapshot, int maxObservations) {
+            this.initialSnapshot = initialSnapshot;
+            this.initialHeight = initialSnapshot.documentHeight();
+            this.currentHeight = initialHeight;
+            this.maxObservedHeight = initialHeight;
+            this.maxObservations = maxObservations;
+        }
+
+        private boolean observe(long height, int attempt, int tile, Position requested, PageSnapshot latest) {
+            observations++;
+            if (observations > maxObservations) {
+                throw documentHeightDidNotStabilize(initialSnapshot, latest, this, attempt, tile, requested,
+                        "geometry did not stabilize within maxGeometryObservations=" + maxObservations);
+            }
+            boolean changed = height != currentHeight;
+            currentHeight = height;
+            if (height > maxObservedHeight) {
+                maxObservedHeight = height;
+                expansions++;
+                if (expansions > MAX_DOCUMENT_HEIGHT_EXPANSIONS) {
+                    throw documentHeightDidNotStabilize(initialSnapshot, latest, this, attempt, tile, requested,
+                            "document height kept growing from " + initialHeight + " to " + maxObservedHeight
+                                    + " across " + expansions + " expansions");
+                }
+            }
+            return changed;
+        }
+
+        private long initialHeight() { return initialHeight; }
+        private long currentHeight() { return currentHeight; }
+        private long maxObservedHeight() { return maxObservedHeight; }
+        private int expansions() { return expansions; }
+        private int observations() { return observations; }
+    }
     private static final class UnsupportedContextException extends RuntimeException {
         private UnsupportedContextException(String message) { super(message); }
     }
-    private static final class PageDimensionsChangedException extends IllegalStateException {
-        private PageDimensionsChangedException(String message) { super(message); }
-        private PageDimensionsChangedException(String message, Throwable cause) { super(message, cause); }
+    private static final class ViewportGeometryChangedException extends IllegalStateException {
+        private ViewportGeometryChangedException(String message) { super(message); }
+        private ViewportGeometryChangedException(String message, Throwable cause) { super(message, cause); }
+    }
+    private static final class DocumentHeightDidNotStabilizeException extends IllegalStateException {
+        private DocumentHeightDidNotStabilizeException(String message) { super(message); }
+    }
+    private static final class CaptureHeightLimitException extends IllegalArgumentException {
+        private CaptureHeightLimitException(String message, Throwable cause) { super(message, cause); }
+    }
+    private static final class TileCaptureException extends IllegalStateException {
+        private TileCaptureException(String message, Throwable cause) { super(message, cause); }
     }
 }

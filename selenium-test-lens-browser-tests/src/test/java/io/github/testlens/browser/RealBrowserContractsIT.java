@@ -1911,7 +1911,7 @@ class RealBrowserContractsIT {
                 "a live HUD rerender during stitching must not leak into the frozen evidence state");
         assertNoTransparentRow(image);
         assertEquals(1L, number("return window.__fullPageHeightChanges"),
-                "the first-attempt application layout shift must be handled by one whole-capture retry");
+                "the scroll-triggered application layout shift must be incorporated into the same capture attempt");
         assertEquals(0L, number("return window.__fullPageSnapshotStyleChanges"),
                 "the frozen overlay snapshot must not be restyled between geometry observations");
         assertEquals(1L, number("return window.__fullPageGuardObservations.some(v => v.animation === 'paused') ? 1 : 0"));
@@ -1992,6 +1992,57 @@ class RealBrowserContractsIT {
         assertTrue(Files.readString(result.failureBundleManifest().orElseThrow()).contains("FULL_PAGE"));
         assertTrue(hudPresent().apply(driver), "clean capture must restore the HUD");
         assertFalse(driver.getTitle().isBlank(), "capture and finalization must leave the driver active");
+    }
+
+    @Test
+    void fullPageCaptureExtendsToScrollTriggeredContentWithoutRetryFallback() throws Exception {
+        open("/full-page");
+        Path output = Path.of("target", "ui-test-lens", browserName(),
+                "dynamic-full-page-" + UUID.randomUUID());
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
+                .overlayConfig(OverlayConfig.builder().enabled(false).build())
+                .outputRoot(output)
+                .build());
+
+        @SuppressWarnings("unchecked")
+        Map<String, Number> initial = (Map<String, Number>) ((JavascriptExecutor) driver).executeScript("""
+                return {documentHeight: document.documentElement.scrollHeight,
+                  viewportHeight: innerHeight};
+                """);
+        ScreenshotCaptureResult viewport = lens.captureScreenshot("dynamic-height-viewport",
+                ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false).build());
+        assertTrue(viewport.isCaptured(), viewport.message());
+        long originalY = 123;
+        ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, arguments[0])", originalY);
+        ((JavascriptExecutor) driver).executeScript("""
+                window.__dynamicFullPageGrowths = 0;
+                addEventListener('scroll', function addDynamicScreenshotContent() {
+                  if (scrollY <= 123 || window.__dynamicFullPageGrowths > 0) return;
+                  window.__dynamicFullPageGrowths++;
+                  const added = document.createElement('div');
+                  added.id = 'dynamic-full-page-bottom';
+                  added.style.cssText = 'height:240px;background:rgb(123,45,210)';
+                  added.textContent = 'Dynamically added screenshot bottom';
+                  document.body.appendChild(added);
+                }, {passive:true});
+                """);
+
+        ScreenshotCaptureResult captured = lens.captureScreenshot("dynamic-height-full-page",
+                ScreenshotCaptureOptions.builder().outputDirectory(output).includeTimestamp(false)
+                        .captureMode(ScreenshotCaptureMode.FULL_PAGE).build());
+
+        assertTrue(captured.isCaptured(), captured.message());
+        long finalHeight = number("return document.documentElement.scrollHeight");
+        assertTrue(finalHeight > initial.get("documentHeight").longValue());
+        double scaleY = viewport.height() / initial.get("viewportHeight").doubleValue();
+        assertEquals(Math.round(finalHeight * scaleY), captured.height());
+        assertEquals(1L, number("return window.__dynamicFullPageGrowths"));
+        BufferedImage image = ImageIO.read(captured.path().toFile());
+        assertTrue(containsRgb(image, 123, 45, 210), "the dynamically appended bottom must be captured");
+        assertEquals(1, countColorClusters(image, 123, 45, 210, 100, 16),
+                "the dynamically appended bottom must not be duplicated");
+        assertNoTransparentRow(image);
+        assertEquals(originalY, number("return Math.round(window.scrollY)"));
     }
 
     @Test

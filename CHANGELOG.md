@@ -4,6 +4,10 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Full-page screenshot stitching now treats document height as a bounded dynamic capture extent, extending or cropping the tile plan as scrolling changes page height while retaining strict viewport, document-width, DPR, browsing-context, pixel, tile, and stabilization safeguards.
+
 ## [0.3.1] - 2026-09-16
 
 ### Added
