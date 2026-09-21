@@ -1,6 +1,6 @@
 # Authentication state
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 `AuthStateManager` can capture cookies plus `localStorage` and `sessionStorage` entries from the current application origin. The state can be saved as JSON and restored in another browser session.
 

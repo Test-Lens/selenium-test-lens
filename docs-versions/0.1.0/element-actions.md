@@ -1,6 +1,6 @@
 # Element actions
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 `UiLocator` combines resolution, trace/HUD reporting, actionability diagnostics, and selected retries.
 

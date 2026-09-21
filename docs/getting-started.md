@@ -1,6 +1,6 @@
 # Getting started
 
-Selenium Test Lens works with the `WebDriver` your test framework already uses. You can add it to an existing Selenium project without changing how the driver is created or closed.
+Test Lens for Selenium works with the `WebDriver` your test framework already uses. You can add it to an existing Selenium project without changing how the driver is created or closed.
 
 This guide shows the shortest path from the Maven dependency to a working Lens session.
 
@@ -10,11 +10,11 @@ This guide shows the shortest path from the Maven dependency to a working Lens s
 - Maven 3.x or Gradle
 - A Selenium `WebDriver` created by your test project
 
-The latest Selenium Test Lens release is `0.3.0`, verified with Selenium 4.39.0.
+The latest Test Lens for Selenium release is `0.3.0`, verified with Selenium 4.39.0.
 
 ## Installation
 
-Add the main Selenium Test Lens runtime to your Maven project:
+Add the main Test Lens for Selenium runtime to your Maven project:
 
 ```xml
 <dependency>

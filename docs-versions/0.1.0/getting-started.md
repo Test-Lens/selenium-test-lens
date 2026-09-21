@@ -1,6 +1,6 @@
 # Getting started
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 Attach Test Lens to a driver created and owned by the consuming test framework:
 

@@ -1,6 +1,6 @@
 # What's new in 0.3.0
 
-Selenium Test Lens 0.3.0 adds configuration, security, lifecycle, and reporting capabilities around the same consumer-owned Selenium `WebDriver`. The release does not replace Selenium or require a new test runner.
+Test Lens for Selenium 0.3.0 adds configuration, security, lifecycle, and reporting capabilities around the same consumer-owned Selenium `WebDriver`. The release does not replace Selenium or require a new test runner.
 
 ## Configurable runtime HUD
 

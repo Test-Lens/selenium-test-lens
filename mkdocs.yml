@@ -1,5 +1,5 @@
-site_name: Selenium Test Lens
-site_description: Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.
+site_name: Test Lens
+site_description: Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.
 site_url: https://test-lens.github.io/selenium-test-lens/
 repo_name: Test-Lens/selenium-test-lens
 repo_url: https://github.com/Test-Lens/selenium-test-lens
@@ -23,6 +23,7 @@ not_in_nav: |
 theme:
   name: material
   custom_dir: overrides
+  logo: assets/brand/test-lens-icon.png
   favicon: assets/images/favicon.png
   language: en
   palette:

@@ -1,6 +1,6 @@
 # Sensitive-data redaction
 
-Selenium Test Lens applies `RedactionPolicy.defaults()` before a structured log entry is fanned out to the HUD, the session trace, or any built-in or caller-provided `UiTestLensLogSink`. The same policy is applied at direct trace, network, API-overlay, report, and failure-bundle boundaries that do not pass through the logger.
+Test Lens applies `RedactionPolicy.defaults()` before a structured log entry is fanned out to the HUD, the session trace, or any built-in or caller-provided `UiTestLensLogSink`. The same policy is applied at direct trace, network, API-overlay, report, and failure-bundle boundaries that do not pass through the logger.
 
 This is the safety boundary that makes richer observability practical: consumers receive redacted diagnostic copies, while matching and test control continue to use the original runtime values. It does not make every artifact intrinsically safe; review the explicit limits below before publishing evidence.
 

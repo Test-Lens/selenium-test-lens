@@ -1,6 +1,6 @@
 # Trace and reports
 
-**Selenium Test Lens 0.1.0 — stable**
+**Test Lens for Selenium 0.1.0 — stable**
 
 Session actions, waits, assertions, screenshots, and custom logging can become structured `TraceEvent` and `TraceArtifact` entries.
 

@@ -1,6 +1,6 @@
 # Capabilities
 
-Selenium Test Lens is an observability and failure-evidence layer for a consumer-owned `WebDriver`. Its value is not the number of wrapped methods; it is the connection between native interaction, visible recovery, structured trace, policy, and post-failure evidence.
+Test Lens for Selenium is an observability and failure-evidence layer for a consumer-owned `WebDriver`. Its value is not the number of wrapped methods; it is the connection between native interaction, visible recovery, structured trace, policy, and post-failure evidence.
 
 ## 0.3.0 capability additions
 
