@@ -41,6 +41,11 @@ input[type=range] { width: 55%; }
 .colors label span { display: flex; align-items: center; gap: .35rem; }
 .colors input[type=color] { width: 2.2rem; height: 1.8rem; border: 0; background: none; }
 .hex { width: 6.2rem; padding: .25rem; font: 12px ui-monospace, monospace; text-transform: lowercase; }
+.highlight-durations { margin-top: .65rem; padding-top: .45rem; border-top: 1px solid #e2e8f0; }
+.highlight-durations label { display: grid; grid-template-columns: minmax(0, 1fr) 5.5rem; gap: .25rem .55rem; }
+.highlight-durations label > input[type=number] { width: 100%; }
+.highlight-durations label > span { display: flex; align-items: center; gap: .3rem; font-size: .75rem; }
+.highlight-durations output { grid-column: 2; color: #64748b; font-size: .7rem; }
 .logo-drop { display: block; padding: .7rem; border: 1px dashed #94a3b8; border-radius: .45rem; text-align: center; background: #f8fafc; }
 .logo-drop.dragover { border-color: #0284c7; background: #e0f2fe; }
 .logo-drop input { display: block; width: 100%; margin-top: .45rem; font-size: .75rem; }

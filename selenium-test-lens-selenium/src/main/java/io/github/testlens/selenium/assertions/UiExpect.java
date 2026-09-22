@@ -421,7 +421,6 @@ public final class UiExpect {
         Instant started = Instant.now();
         Instant deadline = started.plus(options.timeout());
         reporter.started(assertionName, locator.description());
-        decorate(HighlightState.WAITING);
         int attempts = 0;
         Evaluation lastEvaluation = Evaluation.notReady(UiAssertionFailureReason.UNKNOWN, "", "Assertion has not run yet");
         RuntimeException lastException = null;
@@ -453,6 +452,7 @@ public final class UiExpect {
                 }
             }
 
+            decorate(HighlightState.WAITING);
             if (!Instant.now().plus(options.pollInterval()).isBefore(deadline)) {
                 UiAssertionResult result = safe(UiAssertionResult.timedOut(assertionName,
                         lastEvaluation.failureReason() == UiAssertionFailureReason.UNKNOWN
@@ -469,7 +469,6 @@ public final class UiExpect {
             }
 
             reporter.retry(assertionName, locator.description(), attempts, expectedPreview, lastEvaluation.actualPreview());
-            decorate(HighlightState.RETRY);
             LockSupport.parkNanos(options.pollInterval().toNanos());
         }
     }

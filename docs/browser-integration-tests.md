@@ -42,6 +42,7 @@ The browser gate verifies:
 - `highlightThenClick()` and an unobstructed `UiLocator.click()` dispatch exactly one trusted application click in both overlay modes;
 - Smart Click fixtures cover both reported accordion targets, a separate full covering overlay, physical-only opt-out, and a partially exposed POINT target in Chrome and Firefox; successful fallback dispatches exactly one click and leaves application blockers intact;
 - highlight markup lives in the Test Lens shadow root and both its host and marker ignore pointer events;
+- ACTION and terminal states retain their complete independent durations in Chrome and Firefox; stale transitional callbacks cannot repaint SUCCESS, geometry refresh preserves the active revision/deadline, and timing never adds another click;
 - the HUD initializes, is injected again after navigation, and is retained or cleaned for `finishPassed()`, `finishFailed(...)`, and `finishSkipped(...)` according to `cleanupHudOnFinish`; skipped finalization retains `SKIPPED` metadata and never creates a failure screenshot;
 - a prepared blocking overlay is closed deterministically before exactly one target click;
 - frame switching, new-window waiting/switching, and `TestLensAlert` work through a real browser;

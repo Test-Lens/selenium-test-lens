@@ -88,8 +88,8 @@
     var target = document.getElementById('preview-order');
     document.getElementById('preview-result').hidden = true;
     render();
-    var configured=state.highlight||{},base={duration:configured.durationMs,borderWidth:configured.borderWidthPx,showLabel:configured.showLabels};
-    function show(label,visual,color,automatic){if(configured.enabled!==false&&(!automatic||configured.automaticFeedback!==false))highlight.element(target,label,Object.assign({},base,{state:visual,color:color}));}
+    var configured=state.highlight||{},base={borderWidth:configured.borderWidthPx,showLabel:configured.showLabels},previewOperation=0;
+    function show(label,visual,color,automatic){if(configured.enabled!==false&&(!automatic||configured.automaticFeedback!==false)){var key=visual+'DurationMs',explicit=Object.prototype.hasOwnProperty.call(configured,key),duration=explicit?configured[key]:configured.durationMs;highlight.element(target,label,Object.assign({},base,{state:visual,color:color,duration:duration,suppress:explicit&&duration===0,sessionId:'hud-studio',operationId:'preview-'+(++previewOperation),standalone:true}));}}
     show('ACTION Place order','action',configured.actionColor,false);
     later(function () { hud.setStep('WAIT checkout ready');show('WAIT checkout ready','waiting',configured.waitingColor,true); }, 350, run);
     later(function () { hud.setStep('RETRY checkout ready');show('RETRY checkout ready','retry',configured.retryColor,true); }, 800, run);

@@ -502,8 +502,9 @@ public final class UiLocator {
                         boolean satisfied = result instanceof Boolean value ? value : result != null;
                         if (!satisfied) {
                             emit(UiTestLensEventType.LOCATOR_RETRY, UiTestLensStatus.WARN, UiTestLensLogLevel.INFO,
-                                    "Wait retry: " + conditionName, "wait", attempt, null, null);
-                            overlay.automaticHighlight(lastWaitElement, description.displayName(), HighlightState.RETRY);
+                                    "Wait poll: " + conditionName, "wait", attempt, null, null,
+                                    Map.of("retryKind", "poll"));
+                            overlay.automaticHighlight(lastWaitElement, description.displayName(), HighlightState.WAITING);
                         }
                         return satisfied;
                     });
@@ -588,7 +589,9 @@ public final class UiLocator {
             try {
                 WebElement element = resolve();
                 lastElement = element;
-                overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
+                if (attempt == 1) {
+                    overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
+                }
                 attemptStarted = nanoTicker.getAsLong();
                 operationStarted = true;
                 SemanticControl control = resolveSemanticControl(element);
@@ -605,7 +608,7 @@ public final class UiLocator {
                 requireEnabled(control);
                 requireActivation(control);
                 metadata.clickPerformed = true;
-                overlay.smartClickWithOverlayHandler(control.activationElement(), description.displayName());
+                overlay.smartClickWithOverlayHandler(control.activationElement(), description.displayName(), false);
                 Confirmation confirmation = confirmCheckedState(target);
                 metadata.confirmationAttempts += confirmation.attempts();
                 metadata.finalState = confirmation.state();
@@ -863,7 +866,7 @@ public final class UiLocator {
             try {
                 WebElement element = resolve();
                 lastElement = element;
-                if (decorateAction) {
+                if (decorateAction && attempt == 1) {
                     overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
                 }
                 attemptStarted = nanoTicker.getAsLong();
@@ -904,7 +907,9 @@ public final class UiLocator {
             try {
                 WebElement element = resolve();
                 lastElement = element;
-                overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
+                if (attempt == 1) {
+                    overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
+                }
                 attemptStarted = nanoTicker.getAsLong();
                 operationStarted = true;
                 T value = operation.apply(element);
@@ -1060,7 +1065,9 @@ public final class UiLocator {
             try {
                 WebElement element = resolve();
                 lastElement = element;
-                overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
+                if (attempt == 1) {
+                    overlay.automaticHighlight(element, description.displayName(), HighlightState.ACTION);
+                }
                 attemptStarted = nanoTicker.getAsLong();
                 preflightStarted = true;
                 requireFileInput(element, upload.fileCount());

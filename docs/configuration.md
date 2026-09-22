@@ -89,6 +89,8 @@ HighlightOptions highlights = HighlightOptions.builder()
         .successColor("#4caf50")
         .failureColor("#f44336")
         .durationMs(1500)
+        .successDurationMs(2500)
+        .failureDurationMs(4000)
         .borderWidthPx(2)
         .showLabels(true)
         .build();
@@ -96,7 +98,7 @@ HighlightOptions highlights = HighlightOptions.builder()
 TestLensOptions options = TestLensOptions.builder().hud(hud).highlights(highlights).build();
 ```
 
-`enabled(false)` disables both manual and automatic state borders. `automaticFeedback(false)` keeps manual `lens.highlight(...)` and `locator.highlight()` available. HUD visibility is independent. A duration of zero renders the state and schedules its removal without an artificial visibility delay; border width accepts 1-16 px. Legacy `OverlayConfig.highlightColor` and `decorationDurationMs` feed only action color and highlight duration when those individual fields were not explicitly set. Explicit typed fields win regardless of setter order, while `decorationDurationMs` retains its separate legacy meaning for arrows and other decorations.
+`enabled(false)` disables both manual and automatic state borders. `automaticFeedback(false)` keeps manual `lens.highlight(...)` and `locator.highlight()` available. HUD visibility is independent. State-specific duration setters override the common duration; `clearDurationOverride(state)` restores inheritance. An explicit state override of zero suppresses that state. Common `durationMs(0)` preserves its historical zero-delay render/removal behavior, and border width accepts 1-16 px. Internal resolve, polling, actionability, and Smart Click probes remain trace diagnostics rather than independent visual states. Legacy `OverlayConfig.highlightColor` and `decorationDurationMs` feed only action color and highlight duration when those individual fields were not explicitly set. Explicit typed fields win regardless of setter order, while `decorationDurationMs` retains its separate legacy meaning for arrows and other decorations.
 
 For a consumer `LensTestBase`, create `TestLensOptions` once in its setup/option factory and attach the facade with those options. Use `lens.highlight(element, label)` instead of allocating an additional `JsOverlayDebug`; this keeps the active driver, session, redaction, logger, and cleanup ownership together.
 

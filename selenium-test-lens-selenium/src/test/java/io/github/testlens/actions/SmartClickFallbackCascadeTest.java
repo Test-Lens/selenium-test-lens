@@ -208,6 +208,12 @@ class SmartClickFallbackCascadeTest {
             public void automaticAction(WebElement target, String label) {
                 actionHighlights.incrementAndGet();
             }
+
+            @Override
+            boolean automaticActionIfAbsent(WebElement target, String label) {
+                actionHighlights.incrementAndGet();
+                return true;
+            }
         };
         ExposedSmartClickActions actions = new ExposedSmartClickActions(
                 driver, config, rootManager, highlights, OverlayLogger.noop());

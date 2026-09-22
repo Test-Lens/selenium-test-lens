@@ -39,6 +39,7 @@ public class SmartClickActions {
     private final OverlayConfig config;
     private final HighlightActions highlightActions;
     private final BlockingOverlayHelper blockingHelper;
+    private final BlockingOverlayHelper silentBlockingHelper;
     private final OverlayLogger logger;
     private OverlayPolicy overlayPolicy = OverlayPolicy.none();
 
@@ -61,6 +62,7 @@ public class SmartClickActions {
         this.config = config;
         this.highlightActions = highlightActions;
         this.blockingHelper = new BlockingOverlayHelper(driver, config, rootManager, highlightActions);
+        this.silentBlockingHelper = new BlockingOverlayHelper(driver, config, rootManager, null);
         this.logger = logger != null ? logger : OverlayLogger.noop();
     }
 
@@ -139,7 +141,7 @@ public class SmartClickActions {
         List<RuntimeException> deterministicFailures = new ArrayList<>();
         requireLogicalClickTarget(target);
         prepareConfiguredOverlays();
-        decorateClickTarget(target, label);
+        decorateClickTargetIfAbsent(target, label);
 
         try {
             target.click();
@@ -221,7 +223,7 @@ public class SmartClickActions {
     private void prepareConfiguredOverlays() {
         handleConfiguredOverlayPolicy();
         try {
-            blockingHelper.handleGlobalOverlayIfPresent("OVERLAY", "CLOSE");
+            silentBlockingHelper.handleGlobalOverlayIfPresent("OVERLAY", "CLOSE");
         } catch (RuntimeException observabilityFailure) {
             debugStrategy("PREPARE", "best-effort-overlay-probe-failed", observabilityFailure);
         }
@@ -231,7 +233,7 @@ public class SmartClickActions {
         try {
             boolean handled = handleConfiguredOverlayPolicy();
             if (!handled) {
-                blockingHelper.handleBlockingOverlayFor(target, "BLOCKING OVERLAY", "CLOSE");
+                silentBlockingHelper.handleBlockingOverlayFor(target, "BLOCKING OVERLAY", "CLOSE");
             }
         } catch (RuntimeException recoveryFailure) {
             debugStrategy("OVERLAY", "recovery-failed", recoveryFailure);
@@ -394,6 +396,12 @@ public class SmartClickActions {
     private void decorateClickTarget(WebElement target, String label) {
         if (config.isEnabled()) {
             highlightActions.automaticAction(target, label);
+        }
+    }
+
+    private void decorateClickTargetIfAbsent(WebElement target, String label) {
+        if (config.isEnabled()) {
+            highlightActions.automaticActionIfAbsent(target, label);
         }
     }
 

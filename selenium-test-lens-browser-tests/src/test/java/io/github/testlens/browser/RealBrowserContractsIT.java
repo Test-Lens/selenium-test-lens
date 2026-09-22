@@ -808,6 +808,7 @@ class RealBrowserContractsIT {
                     && getComputedStyle(mark).borderWidth==='5px'
                     && mark.textContent==='Count control';
                 """)));
+        ((JavascriptExecutor) driver).executeScript("window.__uiTestLens.modules.highlight.clear()");
 
         lens.locator(By.id("count-button"), "UiExpect control").expect().toBeVisible();
         assertTrue(scriptBoolean("""
@@ -824,6 +825,7 @@ class RealBrowserContractsIT {
                         label: mark.textContent
                     }));
                 """));
+        ((JavascriptExecutor) driver).executeScript("window.__uiTestLens.modules.highlight.clear()");
 
         JsOverlayDebug legacy = new JsOverlayDebug(driver, OverlayConfig.builder()
                 .highlightOptions(highlights).build());
@@ -835,6 +837,7 @@ class RealBrowserContractsIT {
                     && getComputedStyle(mark).borderColor==='rgb(22, 128, 58)'
                     && mark.textContent.includes('Legacy assertion control');
                 """)));
+        ((JavascriptExecutor) driver).executeScript("window.__uiTestLens.modules.highlight.clear()");
 
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("window.__highlightTimerCheck=performance.now()");
@@ -872,6 +875,92 @@ class RealBrowserContractsIT {
                 return !document.getElementById('selenium-overlay-host').shadowRoot
                     .querySelector('[data-uitestlens-highlight="1"]');
                 """)));
+    }
+
+    @Test
+    void automaticHighlightStatesReceiveFullDurationsAndIgnoreStaleTransitions() {
+        open("/clicks");
+        HighlightOptions highlights = HighlightOptions.builder()
+                .durationMs(900).actionDurationMs(350).successDurationMs(650).failureDurationMs(700).build();
+        TestLens lens = TestLens.attach(driver, TestLensOptions.builder().highlights(highlights).build());
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+
+        lens.locator(By.id("count-button"), "Timed click").click();
+        assertEquals(1L, ((Number) js.executeScript("return window.applicationClicks || 0")).longValue());
+        assertTrue(await(scriptBoolean("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const mark=root.querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='action';
+                """)), "a fast click must not shorten ACTION");
+
+        assertTrue(await(scriptBoolean("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const mark=root.querySelector('[data-uitestlens-highlight="1"]');
+                if(!mark || mark.dataset.uitestlensHighlightState!=='success') return false;
+                window.__timedSuccessRevision=mark.dataset.uitestlensHighlightRevision;
+                window.__timedSuccessShown=Number(mark.dataset.uitestlensHighlightShownAt);
+                window.__timedSuccessDeadline=Number(mark.dataset.uitestlensHighlightDeadline);
+                return window.__timedSuccessDeadline-window.__timedSuccessShown===650;
+                """)), "SUCCESS must begin after ACTION and own its complete duration");
+
+        js.executeScript("window.dispatchEvent(new Event('resize'))");
+        assertTrue(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='success'
+                    && mark.dataset.uitestlensHighlightRevision===window.__timedSuccessRevision
+                    && Number(mark.dataset.uitestlensHighlightShownAt)===window.__timedSuccessShown
+                    && Number(mark.dataset.uitestlensHighlightDeadline)===window.__timedSuccessDeadline;
+                """).apply(driver), "geometry refresh must preserve state, revision, and deadline");
+
+        js.executeScript("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                window.__uiTestLens.modules.highlight.element(arguments[0], 'LATE ACTION', {
+                  duration:50,state:'action',color:'#ffeb3b',sessionId:mark.dataset.uitestlensHighlightSession,
+                  operationId:mark.dataset.uitestlensHighlightOperation,standalone:false
+                });
+                """, driver.findElement(By.id("count-button")));
+        assertTrue(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='success'
+                    && mark.dataset.uitestlensHighlightRevision===window.__timedSuccessRevision;
+                """).apply(driver), "late transitional feedback cannot repaint a terminal state");
+
+        assertTrue(await(driverValue -> Boolean.TRUE.equals(((JavascriptExecutor) driverValue).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                return Date.now()>=window.__timedSuccessDeadline
+                    && !root.querySelector('[data-uitestlens-highlight="1"]');
+                """))), "SUCCESS must expire only after its own deadline");
+
+        WebElement button = driver.findElement(By.id("count-button"));
+        WebElement counter = driver.findElement(By.id("click-count"));
+        lens.highlight(button, "First target", HighlightState.SUCCESS);
+        lens.highlight(counter, "Second target", HighlightState.SUCCESS);
+        assertEquals(2L, ((Number) js.executeScript("""
+                return document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelectorAll('[data-uitestlens-highlight="1"]').length;
+                """)).longValue(), "different targets must keep independent terminal presentations");
+        js.executeScript("window.__uiTestLens.modules.highlight.clear()");
+
+        long started = System.nanoTime();
+        lens.locator(By.id("count-button"), "Rapid click A").click();
+        String firstOperation = String.valueOf(js.executeScript("""
+                return document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]').dataset.uitestlensHighlightOperation;
+                """));
+        lens.locator(By.id("count-button"), "Rapid click B").click();
+        long actionElapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
+        assertTrue(actionElapsedMs < 1500, "presentation timing must not block two actions: " + actionElapsedMs + " ms");
+        assertEquals(3L, ((Number) js.executeScript("return window.applicationClicks || 0")).longValue());
+        assertTrue(await(driverValue -> Boolean.TRUE.equals(((JavascriptExecutor) driverValue).executeScript("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='success'
+                    && mark.dataset.uitestlensHighlightOperation!==arguments[0]
+                    && Number(mark.dataset.uitestlensHighlightDeadline)-Number(mark.dataset.uitestlensHighlightShownAt)===650;
+                """, firstOperation))), "the second same-target operation must follow the first with its own full terminal duration");
     }
 
     @Test
@@ -1009,6 +1098,16 @@ class RealBrowserContractsIT {
         assertTrue(preparedUri.matches(".*selenium-test-lens-browser-tests%2Fsrc%2Ftest%2Fjava%2Fconsumer%2Fpages%2FConsumerSourcePage\\.java%3A\\d+$"), preparedUri);
         assertFalse(preparedUri.contains(projectRoot.toString()), "the browser target must use an IDE-project-relative path");
 
+        ((JavascriptExecutor) driver).executeScript("window.__uiTestLens.modules.highlight.clear()");
+        lens.highlight(driver.findElement(By.id("count-button")), "Source navigation repaint guard", HighlightState.SUCCESS);
+        assertTrue(await(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                if(!mark || mark.dataset.uitestlensHighlightState!=='success') return false;
+                window.__sourceNavigationHighlightRevision=mark.dataset.uitestlensHighlightRevision;
+                return true;
+                """)));
+
         ((JavascriptExecutor) driver).executeScript("""
                 window.__uiTestLensSourceTargets=[];
                 window.__uiTestLensSourceNavigation=target=>window.__uiTestLensSourceTargets.push(target);
@@ -1029,6 +1128,12 @@ class RealBrowserContractsIT {
                 window.dispatchEvent(new KeyboardEvent('keydown',{key:'F8',code:'F8'}));
                 window.dispatchEvent(new KeyboardEvent('keydown',{key:'F8',code:'F8',repeat:true}));
                 """);
+        assertTrue(scriptBoolean("""
+                const mark=document.getElementById('selenium-overlay-host').shadowRoot
+                    .querySelector('[data-uitestlens-highlight="1"]');
+                return mark && mark.dataset.uitestlensHighlightState==='success'
+                    && mark.dataset.uitestlensHighlightRevision===window.__sourceNavigationHighlightRevision;
+                """).apply(driver), "Source Navigation refresh/toggle must not repaint terminal feedback");
         assertEquals(0L, number("return window.__uiTestLensSourceTargets.length"),
                 "inactive source target dispatched navigation");
         @SuppressWarnings("unchecked")

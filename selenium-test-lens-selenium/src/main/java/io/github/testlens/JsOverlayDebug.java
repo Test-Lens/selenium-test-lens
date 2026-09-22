@@ -753,6 +753,7 @@ public final class JsOverlayDebug {
         public void accept(UiTestLensLogEntry entry) {
             HudPanel current = hud;
             if (current == null || entry == null || entry.eventType() == UiTestLensEventType.HUD) return;
+            if (isInternalHudEntry(entry)) return;
             if (!eventVisible(options, entry.eventType())) return;
             if (isRawNetworkEntry(entry.eventType())
                     && "false".equalsIgnoreCase(entry.metadata().get("hudVisible"))) return;
@@ -779,6 +780,26 @@ public final class JsOverlayDebug {
             return eventType == UiTestLensEventType.NETWORK_REQUEST_RECORDED
                     || eventType == UiTestLensEventType.NETWORK_RESPONSE_RECORDED
                     || eventType == UiTestLensEventType.NETWORK_FAILURE_RECORDED;
+        }
+
+        private static boolean isInternalHudEntry(UiTestLensLogEntry entry) {
+            UiTestLensEventType type = entry.eventType();
+            if (type == UiTestLensEventType.LOCATOR_RESOLVE_STARTED
+                    || type == UiTestLensEventType.LOCATOR_RESOLVE_PASSED
+                    || type == UiTestLensEventType.LOCATOR_RESOLVE_FAILED
+                    || type == UiTestLensEventType.ACTIONABILITY_CHECK_STARTED
+                    || type == UiTestLensEventType.ACTIONABILITY_CHECK_PASSED
+                    || type == UiTestLensEventType.ACTIONABILITY_CHECK_FAILED
+                    || type == UiTestLensEventType.ACTIONABILITY_READY
+                    || type == UiTestLensEventType.ACTIONABILITY_NOT_READY) {
+                return true;
+            }
+            if ((type == UiTestLensEventType.LOCATOR_RETRY || type == UiTestLensEventType.ASSERTION_RETRY)
+                    && "poll".equals(entry.metadata().get("retryKind"))) {
+                return true;
+            }
+            return type == UiTestLensEventType.HIGHLIGHT
+                    && "automatic".equals(entry.metadata().get("feedbackKind"));
         }
 
         private static boolean eventVisible(io.github.testlens.hud.HudOptions options, UiTestLensEventType type) {

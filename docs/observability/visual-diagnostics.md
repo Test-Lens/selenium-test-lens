@@ -223,6 +223,10 @@ HighlightOptions highlights = HighlightOptions.builder()
         .successColor("#4caf50")
         .failureColor("#f44336")
         .durationMs(1500)
+        .actionDurationMs(500)
+        .retryDurationMs(800)
+        .successDurationMs(1500)
+        .failureDurationMs(2500)
         .borderWidthPx(2)
         .showLabels(true)
         .build();
@@ -232,7 +236,7 @@ TestLensOptions options = TestLensOptions.builder()
         .build();
 ```
 
-The defaults are exactly the values shown above. `durationMs(0)` is valid, and border width accepts 1 through 16 CSS pixels.
+The five state-specific durations are optional overrides; the colors, common 1500 ms duration, 2 px border, and enabled switches shown above remain the defaults. Resolution is: explicit state override, then `durationMs(...)`, then the existing legacy/default duration. Setter order does not change that precedence. `durationOverrideMs(state)` reports whether a state is explicit, `effectiveDurationMs(state)` returns the resolved value, and `clearDurationOverride(state)` restores inheritance. An explicit state override of zero suppresses only that visual state. The historical common `durationMs(0)` contract is unchanged: it still renders and schedules removal with zero delay. Border width accepts 1 through 16 CSS pixels.
 
 | State | Default | Shown when | It does **not** mean |
 | --- | --- | --- | --- |
@@ -244,6 +248,12 @@ The defaults are exactly the values shown above. `durationMs(0)` is valid, and b
 
 `enabled(false)` disables both manual and automatic element decorations. `automaticFeedback(false)` leaves the manual API available but suppresses automatic ACTION/WAITING/RETRY/SUCCESS/FAILURE feedback. Hiding only the HUD with `OverlayConfig.showHudPanel(false)` does not disable highlights. The master `OverlayConfig.enabled(false)` disables all overlay visuals, including HUD and highlights.
 
+One public operation owns one feedback lifecycle. A click, fill, clear, select, explicit wait/assertion, or manual highlight may be user-visible; locator re-resolution, stale refresh, visibility/enabled probes, routine polling, hit-testing, Smart Click strategy transitions, and geometry refresh are diagnostic-only. For example, `NATIVE → ACTIONS → POINT → JS` remains one click with one ACTION and one terminal result. Its selected strategy is retained in operation details, but it does not create extra outlines or HUD action rows.
+
+Presentation is asynchronous and never extends the WebDriver operation timeout. If a 20 ms click completes while ACTION has 500 ms configured, ACTION finishes its own 500 ms display and the pending SUCCESS then receives its complete duration. Each decoration is revision-owned: an old timer or late transitional callback cannot remove or repaint a newer terminal state. Rapid independent operations execute immediately; their visuals are ordered locally for the same target, while different targets do not clear each other. Repeated pending transitions are collapsed and each target has a bounded visual backlog; under overload an unshown visual may be dropped at DEBUG level without dropping trace/log results or blocking the action.
+
+Geometry refresh preserves state, revision, and deadline. Explicit clear, disabled highlights/overlay, session finish, navigation/document loss, or target detach may end presentation early and cancel pending work. DEBUG/TRACE keeps internal probe details but does not re-enable internal visual noise.
+
 Manual decoration is interaction-free:
 
 ```java
@@ -254,7 +264,7 @@ lens.highlight(element, "Saved", HighlightState.SUCCESS);
 
 These calls do not click, type, focus, or scroll. Manual `ACTION` remains neutral. Manual `SUCCESS` chooses a visual state only: it emits a highlight diagnostic and never invents `ASSERTION_PASSED` or changes the test result.
 
-The highlight uses a pointer-transparent overlay. It does not click, receive the click, change the target's state, or make the element actionable. The subsequent activation contract remains native `WebElement.click()` with only explicit overlay recovery and configured locator retries.
+The highlight uses a pointer-transparent overlay. It does not click, receive the click, change the target's state, or make the element actionable. The standard activation contract is the bounded Smart Click cascade described above; highlight scheduling does not add or repeat a click.
 
 For compatibility, `OverlayConfig.highlightColor(...)` supplies `actionColor` and `decorationDurationMs(...)` supplies `durationMs` only when that typed field was not explicitly set. Explicit `HighlightOptions` fields win regardless of builder call order. The legacy duration continues to control arrows and other historical decorations. `UiLocatorOptions.highlightBeforeAction()` remains a retained option but is not consulted by the current locator implementation.
 

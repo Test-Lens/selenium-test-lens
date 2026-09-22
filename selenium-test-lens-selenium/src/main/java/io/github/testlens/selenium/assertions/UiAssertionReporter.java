@@ -69,6 +69,9 @@ final class UiAssertionReporter {
                     .metadata("attempt", String.valueOf(attempt))
                     .metadata("expectedPreview", safe(expectedPreview))
                     .metadata("actualPreview", safe(actualPreview));
+            if (eventType == UiTestLensEventType.ASSERTION_RETRY) {
+                builder.metadata("retryKind", "poll");
+            }
             if (sourceNavigationEnabled) builder.metadata("testlens.internal.captureSourceLocation", "true");
             logger.emit(builder.build());
         } catch (Exception ignored) {

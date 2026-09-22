@@ -80,7 +80,7 @@ public class BlockingOverlayHelper {
             return false;
         }
 
-        if (config.isEnabled()) {
+        if (config.isEnabled() && highlightActions != null) {
             rootManager.ensureRootExists();
             highlightActions.automaticAction(overlay,
                     overlayLabel != null ? overlayLabel : "OVERLAY");
@@ -91,7 +91,7 @@ public class BlockingOverlayHelper {
             return false;
         }
 
-        if (config.isEnabled()) {
+        if (config.isEnabled() && highlightActions != null) {
             highlightActions.automaticAction(closeButton,
                     closeButtonLabel != null ? closeButtonLabel : "CLOSE");
         }

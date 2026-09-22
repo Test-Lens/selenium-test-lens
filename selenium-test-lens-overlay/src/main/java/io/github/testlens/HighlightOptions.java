@@ -1,8 +1,10 @@
 package io.github.testlens;
 
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.OptionalLong;
 import java.util.Set;
 
 /** Immutable configuration of manual and automatic element-state decoration. @since 0.3.1 */
@@ -15,6 +17,7 @@ public final class HighlightOptions {
     private final String successColor;
     private final String failureColor;
     private final long durationMs;
+    private final Map<HighlightState, Long> durationOverrides;
     private final int borderWidthPx;
     private final boolean showLabels;
     private final Set<Field> explicit;
@@ -28,6 +31,7 @@ public final class HighlightOptions {
         successColor = builder.successColor;
         failureColor = builder.failureColor;
         durationMs = builder.durationMs;
+        durationOverrides = Map.copyOf(builder.durationOverrides);
         borderWidthPx = builder.borderWidthPx;
         showLabels = builder.showLabels;
         explicit = Set.copyOf(builder.explicit);
@@ -43,6 +47,19 @@ public final class HighlightOptions {
     public String successColor() { return successColor; }
     public String failureColor() { return failureColor; }
     public long durationMs() { return durationMs; }
+
+    /** Returns the effective presentation duration for a supported highlight state. @since 0.4.0 */
+    public long effectiveDurationMs(HighlightState state) {
+        HighlightState supported = requireSupportedState(state);
+        return durationOverrides.getOrDefault(supported, durationMs);
+    }
+
+    /** Returns the explicit state override, or empty when the state inherits the common duration. @since 0.4.0 */
+    public OptionalLong durationOverrideMs(HighlightState state) {
+        HighlightState supported = requireSupportedState(state);
+        Long value = durationOverrides.get(supported);
+        return value == null ? OptionalLong.empty() : OptionalLong.of(value);
+    }
     public int borderWidthPx() { return borderWidthPx; }
     public boolean showLabels() { return showLabels; }
 
@@ -72,7 +89,8 @@ public final class HighlightOptions {
     public Map<String, Object> toRuntimeMap(HighlightState state) {
         Map<String, Object> values = new LinkedHashMap<>();
         HighlightState effective = state == null ? HighlightState.ACTION : state;
-        values.put("duration", durationMs);
+        values.put("duration", effectiveDurationMs(effective));
+        values.put("suppress", durationOverrideMs(effective).orElse(-1L) == 0L);
         values.put("color", color(effective));
         values.put("borderWidth", borderWidthPx);
         values.put("showLabel", showLabels);
@@ -90,6 +108,7 @@ public final class HighlightOptions {
         private String successColor = "#4caf50";
         private String failureColor = "#f44336";
         private long durationMs = 1500L;
+        private final EnumMap<HighlightState, Long> durationOverrides = new EnumMap<>(HighlightState.class);
         private int borderWidthPx = 2;
         private boolean showLabels = true;
         private final EnumSet<Field> explicit = EnumSet.noneOf(Field.class);
@@ -99,6 +118,7 @@ public final class HighlightOptions {
             enabled = source.enabled; automaticFeedback = source.automaticFeedback;
             actionColor = source.actionColor; waitingColor = source.waitingColor; retryColor = source.retryColor;
             successColor = source.successColor; failureColor = source.failureColor; durationMs = source.durationMs;
+            durationOverrides.putAll(source.durationOverrides);
             borderWidthPx = source.borderWidthPx; showLabels = source.showLabels;
             explicit.addAll(source.explicit);
         }
@@ -113,6 +133,22 @@ public final class HighlightOptions {
             if (value < 0) throw new IllegalArgumentException("durationMs must be >= 0");
             durationMs = value; explicit.add(Field.DURATION_MS); return this;
         }
+        /** Sets an explicit ACTION duration override. @since 0.4.0 */
+        public Builder actionDurationMs(long value) { return duration(HighlightState.ACTION, value, "actionDurationMs"); }
+        /** Sets an explicit WAITING duration override. @since 0.4.0 */
+        public Builder waitingDurationMs(long value) { return duration(HighlightState.WAITING, value, "waitingDurationMs"); }
+        /** Sets an explicit RETRY duration override. @since 0.4.0 */
+        public Builder retryDurationMs(long value) { return duration(HighlightState.RETRY, value, "retryDurationMs"); }
+        /** Sets an explicit SUCCESS duration override. @since 0.4.0 */
+        public Builder successDurationMs(long value) { return duration(HighlightState.SUCCESS, value, "successDurationMs"); }
+        /** Sets an explicit FAILURE duration override. @since 0.4.0 */
+        public Builder failureDurationMs(long value) { return duration(HighlightState.FAILURE, value, "failureDurationMs"); }
+
+        /** Removes only the selected state override so that it inherits the common duration. @since 0.4.0 */
+        public Builder clearDurationOverride(HighlightState state) {
+            durationOverrides.remove(requireSupportedState(state));
+            return this;
+        }
         public Builder borderWidthPx(int value) {
             if (value < 1 || value > 16) throw new IllegalArgumentException("borderWidthPx must be between 1 and 16");
             borderWidthPx = value; explicit.add(Field.BORDER_WIDTH); return this;
@@ -120,10 +156,23 @@ public final class HighlightOptions {
         public Builder showLabels(boolean value) { showLabels = value; explicit.add(Field.SHOW_LABELS); return this; }
         public HighlightOptions build() { return new HighlightOptions(this); }
 
+        private Builder duration(HighlightState state, long value, String name) {
+            if (value < 0) throw new IllegalArgumentException(name + " must be >= 0");
+            durationOverrides.put(state, value);
+            return this;
+        }
+
         private static String color(String value, String field) {
             if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " must not be blank");
             return value;
         }
+    }
+
+    private static HighlightState requireSupportedState(HighlightState state) {
+        if (state == null) throw new IllegalArgumentException("highlight state must not be null");
+        return switch (state) {
+            case ACTION, WAITING, RETRY, SUCCESS, FAILURE -> state;
+        };
     }
 
     private enum Field {

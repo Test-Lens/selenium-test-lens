@@ -11,8 +11,8 @@ The Source navigation section generates the opt-in `SourceNavigationOptions` blo
 !!! info "0.3.1 timestamp API"
     HUD timestamp format and zone controls are available in `0.3.1`. The configurable HUD and Studio introduced in `0.3.0` remain compatible.
 
-!!! info "0.3.1 highlight API"
-    The Highlights section configures independent action, waiting, retry, success, and failure colors plus duration, border width, labels, enablement, and automatic feedback. HUD preset changes do not reset these values, and generated Java includes `HighlightOptions` in `TestLensOptions`.
+!!! info "0.4.0 highlight timing"
+    The Highlights section configures independent action, waiting, retry, success, and failure colors plus inherited or state-specific durations, border width, labels, enablement, and automatic feedback. HUD preset changes do not reset these values, and generated Java includes only explicit duration overrides in `HighlightOptions`.
 
 <style>
 .tl-hud-studio-toolbar{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;margin:.75rem 0;padding:.6rem;border:1px solid var(--md-default-fg-color--lightest);border-radius:.5rem;background:var(--md-code-bg-color)}
@@ -84,6 +84,8 @@ HighlightOptions highlights = HighlightOptions.builder()
         .successColor("#4caf50")
         .failureColor("#f44336")
         .durationMs(1500)
+        .successDurationMs(2500)
+        .failureDurationMs(4000)
         .borderWidthPx(2)
         .showLabels(true)
         .build();
@@ -126,9 +128,9 @@ IntelliJ IDEA 2026.1+ bundles `jetbrainsd`, so JetBrains Toolbox is **not requir
 
 ## Highlight configurator and preview
 
-The Highlights section maps one-to-one to `HighlightOptions`: enabled, automatic feedback, five state colors, duration, 1–16 px border width, and labels. Duration zero is valid. **Replay** cycles over ACTION, WAITING, RETRY, SUCCESS, and final FAILURE using the selected colors. Turning automatic feedback off preserves manual highlights in the runtime; turning highlights off suppresses every state. Reset restores the public 0.3.1 defaults without changing the selected HUD preset.
+The Highlights section maps one-to-one to `HighlightOptions`: enabled, automatic feedback, five state colors, a default duration, optional duration overrides per state, 1–16 px border width, and labels. **Use default** keeps an override absent and shows the effective inherited value; restoring it removes only that explicit override. Blank/inherited is not zero. Explicit state zero suppresses that state, while common duration zero retains legacy zero-delay presentation. **Replay** intentionally cycles through ACTION, WAITING, RETRY, SUCCESS, and FAILURE long enough to inspect their configured timing; it does not pretend that a successful click retried. Turning automatic feedback off preserves manual highlights in the runtime; turning highlights off suppresses every state. Reset restores defaults without changing the selected HUD preset.
 
-The generated code uses the plural `.highlights(highlights)` API, not its deprecated singular preview alias. It produces one `TestLensOptions` builder containing the HUD (including timestamps and source navigation), highlights, and explicit password-safe `VisualRedactionOptions.defaults()`. Advanced visual mask rules remain programmatic. See [state-aware highlights](visual-diagnostics.md#state-aware-highlights) for the semantic contract of each state.
+The generated code uses the plural `.highlights(highlights)` API, not its deprecated singular preview alias. It emits the common duration only after that control was explicitly changed and emits only state overrides that are explicit; inherited states are not materialized. It produces one `TestLensOptions` builder containing the HUD (including timestamps and source navigation), highlights, and explicit password-safe `VisualRedactionOptions.defaults()`. Advanced visual mask rules remain programmatic. See [state-aware highlights](visual-diagnostics.md#state-aware-highlights) for the lifecycle and timing contract.
 
 ## Visual editing and responsive preview
 
