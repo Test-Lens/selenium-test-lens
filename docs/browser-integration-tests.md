@@ -39,7 +39,8 @@ Each test invocation creates its own `WebDriver` and closes it in teardown. Cond
 The browser gate verifies:
 
 - decorative `highlightClick()` and `highlightElement()` never dispatch an application click with the overlay enabled or disabled;
-- `highlightThenClick()` and `UiLocator.click()` dispatch exactly one trusted application click in both overlay modes;
+- `highlightThenClick()` and an unobstructed `UiLocator.click()` dispatch exactly one trusted application click in both overlay modes;
+- Smart Click fixtures cover both reported accordion targets, a separate full covering overlay, physical-only opt-out, and a partially exposed POINT target in Chrome and Firefox; successful fallback dispatches exactly one click and leaves application blockers intact;
 - highlight markup lives in the Test Lens shadow root and both its host and marker ignore pointer events;
 - the HUD initializes, is injected again after navigation, and is retained or cleaned for `finishPassed()`, `finishFailed(...)`, and `finishSkipped(...)` according to `cleanupHudOnFinish`; skipped finalization retains `SKIPPED` metadata and never creates a failure screenshot;
 - a prepared blocking overlay is closed deterministically before exactly one target click;

@@ -11,6 +11,7 @@ TestLensOptions options = TestLensOptions.builder()
         .locatorOptions(UiLocatorOptions.builder()
                 .timeout(Duration.ofSeconds(5))
                 .pollInterval(Duration.ofMillis(100))
+                .javascriptClickFallback(true)
                 .build())
         .outputRoot(Path.of("target", "ui-test-lens"))
         .build();
@@ -20,7 +21,7 @@ TestLens lens = TestLens.attach(driver, options);
 
 | Configuration | Default | Contract |
 | --- | --- | --- |
-| `locatorOptions(...)` | `UiLocatorOptions.defaults()` | Instance-wide locator timeout, polling, operation retries, and actionability. The same options reach ordinary and semantic locator factories. |
+| `locatorOptions(...)` | `UiLocatorOptions.defaults()` | Instance-wide locator timeout, polling, operation retries, actionability, and Smart Click JS fallback. The same options reach ordinary and semantic locator factories. |
 | `outputRoot(...)` | `target/ui-test-lens` | Root for reports and diagnostics. Keep it outside tracked or public content. |
 | `cleanupHudOnFinish(...)` | `true` | Best-effort removal of Test Lens browser decorations during finalization. |
 | `retryOutcomePolicy(...)` | `REPORT_ONLY` | Controls an otherwise passed session that used recovery retries; does not redefine explicit failed/skipped outcomes. |

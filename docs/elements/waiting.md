@@ -50,7 +50,7 @@ Waits until `WebElement.getText().contains(expectedText)` using the configured p
 
 All four waits resolve against the current DOM on every poll, ignore missing/stale elements while polling, emit wait and retry events to the attached log/trace/HUD pipeline, and do not capture evidence automatically. They return the same locator. Timeout or a fatal condition error is wrapped in `UiLocatorException` with elapsed context.
 
-Related: [Assertions](assertions.md), [`UiLocatorOptions`](../reference/configuration.md#uilocatoroptions), [`click()`](actions.md#click-contract-native-activation-visible-recovery).
+Related: [Assertions](assertions.md), [`UiLocatorOptions`](../reference/configuration.md#uilocatoroptions), [`click()`](actions.md#click-contract-bounded-fallback-cascade).
 
 ## Retryable failures
 

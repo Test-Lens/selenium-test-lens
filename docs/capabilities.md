@@ -18,9 +18,9 @@ These APIs are additive. See [What's new in 0.3.0](whats-new-0.3.0.md) and the [
 
 ### 1. Native interactions with visible recovery
 
-The recommended `UiLocator.click()` resolves the current element, runs best-effort actionability diagnostics, decorates it when configured, and activates it with native `WebElement.click()`. Highlighting is pointer-transparent visual feedback. An intercepted click may be retried after an explicit overlay policy handles a blocker, and the locator policy may begin a fresh action attempt. There is no JavaScript-click, Actions-click, ancestor-click, or hidden mutation fallback.
+The recommended `UiLocator.click()` resolves the current element, runs best-effort actionability diagnostics, and uses the bounded `NATIVE → ACTIONS → POINT → JS` cascade. Physical fallback stages dispatch only through a hit-tested point owned by the target or its descendant; the default final `HTMLElement.click()` fallback handles logically enabled targets whose physical geometry remains blocked. Set `UiLocatorOptions.javascriptClickFallback(false)` for physical-only `NATIVE → ACTIONS → POINT` behavior. Highlighting remains pointer-transparent visual feedback, and no strategy substitutes an ancestor or mutates application DOM to expose the target.
 
-The HUD and session trace make that behavior observable. See [element actions](elements/actions.md#click-contract-native-activation-visible-recovery) and [visual diagnostics](observability/visual-diagnostics.md).
+The HUD and session trace make that behavior observable. See [element actions](elements/actions.md#click-contract-bounded-fallback-cascade) and [visual diagnostics](observability/visual-diagnostics.md).
 
 ### 2. Semantic and scoped queries
 

@@ -36,7 +36,7 @@ void smartClick(JsOverlayDebug overlay, By locator, String label)
 
 `ReactSupport.checkActionability(...)` resolves and checks the supplied `By`. For an already resolved element, obtain the checker and use its separate overload:
 
-`ReactSupport.smartClick(...)` is a specialized, legacy React helper with its own implementation and retry conventions. It is not an alternative name for the recommended `UiLocator.click()` contract. For normal element interaction, use [`UiLocator.click()`](../elements/actions.md#click-contract-native-activation-visible-recovery); choose the React helper only when a verified application-specific rerender convention requires it.
+`ReactSupport.smartClick(...)` is a specialized, legacy React helper with its own implementation and retry conventions. It is not an alternative name for the recommended `UiLocator.click()` contract. For normal element interaction, use [`UiLocator.click()`](../elements/actions.md#click-contract-bounded-fallback-cascade); choose the React helper only when a verified application-specific rerender convention requires it.
 
 <!-- API SIGNATURES: io.github.testlens.react.actionability.ReactActionabilityChecker -->
 ```java

@@ -39,6 +39,7 @@ import io.github.testlens.selenium.evidence.VisualMaskMode;
 import io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy;
 import io.github.testlens.selenium.evidence.VisualRedactionOptions;
 import io.github.testlens.selenium.locator.UiLocatorException;
+import io.github.testlens.selenium.locator.UiLocatorOptions;
 import io.github.testlens.allure.AllureAttachStatus;
 import io.github.testlens.allure.AllureTestLens;
 import io.qameta.allure.Allure;
@@ -225,6 +226,74 @@ class RealBrowserContractsIT {
 
         awaitClickCount(1);
         assertClickCounts(1);
+    }
+
+    @ParameterizedTest(name = "smart click opens covered accordion target {0} exactly once")
+    @ValueSource(strings = {
+            "a.accordion-link[href='#wniosek7']",
+            "a.accordion-link[href='#wniosek7'] > div"
+    })
+    void smartClickFallsBackToJavascriptForCoveredAccordionTargets(String selector) {
+        open("/smart-click");
+        assertThrows(org.openqa.selenium.ElementClickInterceptedException.class,
+                () -> driver.findElement(By.cssSelector(selector)).click());
+        assertEquals(0L, number("return window.accordionClicks"));
+
+        open("/smart-click");
+        TestLens.attach(driver, overlayConfig(true))
+                .locator(By.cssSelector(selector), "Akordeon: dodatkowe rozliczenie")
+                .click();
+
+        assertEquals(1L, number("return window.accordionClicks"));
+        assertTrue(scriptBoolean("return document.getElementById('wniosek7').classList.contains('open')").apply(driver));
+        assertEquals(0L, number("return window.accordionTrustedClicks"), "final dispatch must be HTMLElement.click()");
+    }
+
+    @Test
+    void smartClickFallsBackToJavascriptWithoutRemovingARealCoveringOverlay() {
+        open("/smart-click");
+        assertThrows(org.openqa.selenium.ElementClickInterceptedException.class,
+                () -> driver.findElement(By.id("smart-covered-target")).click());
+
+        open("/smart-click");
+        TestLens.attach(driver, overlayConfig(true))
+                .locator(By.id("smart-covered-target"), "Covered anchor")
+                .click();
+
+        assertEquals(1L, number("return window.coveredTargetClicks"));
+        assertEquals(0L, number("return window.coveredTargetTrustedClicks"));
+        assertTrue(driver.findElement(By.id("smart-covering-overlay")).isDisplayed());
+    }
+
+    @Test
+    void pointStrategyUsesAnActuallyExposedTargetPointAndStopsBeforeJavascript() {
+        open("/smart-click");
+
+        TestLens.attach(driver, overlayConfig(false))
+                .locator(By.id("smart-point-target"), "Partially covered anchor")
+                .click();
+
+        assertEquals(1L, number("return window.pointTargetClicks"));
+        assertEquals(1L, number("return window.pointTargetTrustedClicks"), "POINT must be a physical trusted click");
+    }
+
+    @Test
+    void disablingJavascriptFallbackLeavesCoveredTargetUnclicked() {
+        open("/smart-click");
+        TestLensOptions options = TestLensOptions.builder()
+                .overlayConfig(overlayConfig(false))
+                .locatorOptions(UiLocatorOptions.builder()
+                        .javascriptClickFallback(false)
+                        .maxRetries(1)
+                        .build())
+                .build();
+
+        assertThrows(UiLocatorException.class, () -> TestLens.attach(driver, options)
+                .locator(By.id("smart-covered-target"), "Covered anchor")
+                .click());
+
+        assertEquals(0L, number("return window.coveredTargetClicks"));
+        assertTrue(driver.findElement(By.id("smart-covering-overlay")).isDisplayed());
     }
 
     @ParameterizedTest(name = "form and element actions (overlay enabled={0})")
@@ -2760,6 +2829,30 @@ class RealBrowserContractsIT {
                     <button id='count-button'>Covered count</button><span id='click-count'>0</span>
                     <div id='blocker'><button id='blocker-close'>Close overlay</button></div>
                     """), false);
+            case "/smart-click" -> html(exchange, page("Smart click", """
+                    <section id='accordion-fixture'>
+                      <div class='accordion-item'>
+                        <div class='accordion-heading'><span class='accordion-wrapper'>
+                          <a href='#wniosek7' class='accordion-link'>
+                            Jak mogę dostać dodatkowe rozliczenie?
+                            <div class='accordion-icon icon-chevron_bold_down'></div>
+                          </a>
+                          <span id='accordion-cover' aria-hidden='true'></span>
+                        </span></div>
+                        <div id='wniosek7' class='accordion-content'>
+                          Jeśli chcesz otrzymać dodatkowe rozliczenie, wypełnij formularz.
+                        </div>
+                      </div>
+                    </section>
+                    <div id='smart-covered-wrap'>
+                      <a id='smart-covered-target' href='#covered-result'>Covered target</a>
+                      <div id='smart-covering-overlay'>Independent covering overlay</div>
+                    </div>
+                    <div id='smart-point-wrap'>
+                      <a id='smart-point-target' href='#point-result'>Partially covered target</a>
+                      <div id='smart-point-cover'>Center cover</div>
+                    </div>
+                    """), false);
             case "/contexts" -> html(exchange, page("Contexts", """
                     <iframe id='test-frame' src='/frame'></iframe>
                     <button id='popup-button'>Open popup</button>
@@ -2992,6 +3085,32 @@ class RealBrowserContractsIT {
             }
             const farTarget = document.getElementById('far-target');
             if (farTarget) farTarget.addEventListener('click', () => window.farClicks = (window.farClicks || 0) + 1);
+            const accordionLink = document.querySelector('.accordion-link[href="#wniosek7"]');
+            if (accordionLink) {
+              window.accordionClicks = 0; window.accordionTrustedClicks = 0;
+              accordionLink.addEventListener('click', event => {
+                event.preventDefault();
+                window.accordionClicks += 1;
+                if (event.isTrusted) window.accordionTrustedClicks += 1;
+                document.getElementById('wniosek7').classList.toggle('open');
+              });
+            }
+            const coveredTarget = document.getElementById('smart-covered-target');
+            if (coveredTarget) {
+              window.coveredTargetClicks = 0; window.coveredTargetTrustedClicks = 0;
+              coveredTarget.addEventListener('click', event => {
+                event.preventDefault(); window.coveredTargetClicks += 1;
+                if (event.isTrusted) window.coveredTargetTrustedClicks += 1;
+              });
+            }
+            const pointTarget = document.getElementById('smart-point-target');
+            if (pointTarget) {
+              window.pointTargetClicks = 0; window.pointTargetTrustedClicks = 0;
+              pointTarget.addEventListener('click', event => {
+                event.preventDefault(); window.pointTargetClicks += 1;
+                if (event.isTrusted) window.pointTargetTrustedClicks += 1;
+              });
+            }
             document.querySelectorAll('.product-card button').forEach(button => button.addEventListener('click', () => {
               window.buttonClicks = window.buttonClicks || {};
               window.buttonClicks[button.id] = (window.buttonClicks[button.id] || 0) + 1;
@@ -3066,6 +3185,20 @@ class RealBrowserContractsIT {
             #covered-wrap { position: relative; width: 80px; height: 40px; }
             #foreign-cover { display: none; position: absolute; inset: 0; z-index: 20; background: rgba(200,0,0,.5); }
             #spacer { height: 1800px; }
+            #accordion-fixture { width: 560px; margin-bottom: 32px; }
+            .accordion-wrapper, .accordion-link { position: relative; display: block; }
+            .accordion-link { box-sizing: border-box; min-height: 58px; padding: 16px 52px 16px 16px;
+              border: 1px solid #456; }
+            .accordion-icon { position: absolute; right: 16px; top: 17px; width: 24px; height: 24px; }
+            #accordion-cover { position: absolute; inset: 0; z-index: 20; background: rgba(120,120,120,.08); }
+            .accordion-content { display: none; padding: 16px; }
+            .accordion-content.open { display: block; }
+            #smart-covered-wrap, #smart-point-wrap { position: relative; width: 320px; height: 64px; margin: 32px 0; }
+            #smart-covered-target, #smart-point-target { display: block; box-sizing: border-box; width: 100%; height: 100%;
+              padding: 20px; border: 1px solid #456; }
+            #smart-covering-overlay { position: absolute; inset: 0; z-index: 20; background: rgba(180,30,30,.25); }
+            #smart-point-cover { position: absolute; left: 25%; right: 25%; top: 0; bottom: 0; z-index: 20;
+              background: rgba(180,30,30,.25); }
             #full-page-document { position: relative; width: 1800px; }
             #full-page-document section { height: 720px; }
             #full-page-top { background: rgb(220, 40, 40); }

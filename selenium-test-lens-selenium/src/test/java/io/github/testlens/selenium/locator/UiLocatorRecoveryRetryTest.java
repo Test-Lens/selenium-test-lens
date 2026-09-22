@@ -14,16 +14,111 @@ import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.ElementClickInterceptedException;
+import org.openqa.selenium.interactions.Interactive;
 
 import java.lang.reflect.Proxy;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.LongSupplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class UiLocatorRecoveryRetryTest {
+    @Test
+    void clickReresolvesAfterStaleBeforeFallbackAndNeverJavascriptClicksTheOldElement() {
+        AtomicBoolean firstStale = new AtomicBoolean();
+        AtomicInteger nativeClicks = new AtomicInteger();
+        AtomicInteger javascriptClicks = new AtomicInteger();
+        WebElement first = clickElement(firstStale, nativeClicks, true);
+        WebElement replacement = clickElement(new AtomicBoolean(), nativeClicks, false);
+        AtomicInteger resolutions = new AtomicInteger();
+        WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[]{WebDriver.class, JavascriptExecutor.class}, (proxy, method, args) -> {
+                    if (method.getName().equals("findElement")) {
+                        return resolutions.getAndIncrement() == 0 ? first : replacement;
+                    }
+                    if (method.getName().equals("findElements")) return List.of(replacement);
+                    if (method.getName().equals("executeScript")) {
+                        String script = String.valueOf(args[0]);
+                        if ("arguments[0].click();".equals(script)) javascriptClicks.incrementAndGet();
+                        if (script.contains("arguments[0].isConnected")) return true;
+                        return null;
+                    }
+                    if (method.getName().equals("toString")) return "rerender-driver";
+                    return defaultValue(method.getReturnType());
+                });
+        io.github.testlens.OverlayConfig config = io.github.testlens.OverlayConfig.builder()
+                .enabled(false).showHudPanel(false).globalOverlayCloseButtonSelector("").build();
+        UiLocator locator = new UiLocator(driver, By.id("rerender"), "Rerender",
+                new JsOverlayDebug(driver, config),
+                UiLocatorOptions.builder().timeout(Duration.ofSeconds(1)).pollInterval(Duration.ofMillis(1)).build(),
+                OverlayLogger.noop(), System::nanoTime);
+
+        locator.click();
+
+        assertEquals(2, nativeClicks.get());
+        assertEquals(2, resolutions.get());
+        assertEquals(0, javascriptClicks.get(), "a stale WebElement must never be carried into JS fallback");
+    }
+
+    @Test
+    void oneSharedDeadlineStopsWholeClickRetriesButDoesNotStarveJavascriptInCurrentCycle() {
+        AtomicInteger nativeClicks = new AtomicInteger();
+        AtomicInteger javascriptClicks = new AtomicInteger();
+        WebElement covered = (WebElement) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[]{WebElement.class}, (proxy, method, args) -> switch (method.getName()) {
+                    case "click" -> {
+                        nativeClicks.incrementAndGet();
+                        throw new ElementClickInterceptedException("covered");
+                    }
+                    case "isDisplayed", "isEnabled" -> true;
+                    case "getRect" -> new org.openqa.selenium.Rectangle(10, 10, 100, 30);
+                    case "getDomAttribute", "getAttribute", "getCssValue", "getText" -> null;
+                    case "toString" -> "covered-element";
+                    default -> defaultValue(method.getReturnType());
+                });
+        WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[]{WebDriver.class, JavascriptExecutor.class, Interactive.class},
+                (proxy, method, args) -> {
+                    if (method.getName().equals("findElement")) return covered;
+                    if (method.getName().equals("findElements")) return List.of(covered);
+                    if (method.getName().equals("perform") || method.getName().equals("resetInputState")) return null;
+                    if (method.getName().equals("executeScript")) {
+                        String script = String.valueOf(args[0]);
+                        Object[] scriptArgs = args.length > 1 && args[1] instanceof Object[] values
+                                ? values : new Object[0];
+                        if ("arguments[0].click();".equals(script)) {
+                            javascriptClicks.incrementAndGet();
+                            return null;
+                        }
+                        if (script.contains("arguments[0].isConnected")) return true;
+                        if (scriptArgs.length > 1 && "CENTER".equals(scriptArgs[1])) {
+                            return java.util.Map.of("x", 20D, "y", 20D, "owned", false,
+                                    "reason", "hit-test-mismatch:span");
+                        }
+                        if (scriptArgs.length > 1 && "POINTS".equals(scriptArgs[1])) return List.of();
+                        return null;
+                    }
+                    if (method.getName().equals("toString")) return "deadline-driver";
+                    return defaultValue(method.getReturnType());
+                });
+        io.github.testlens.OverlayConfig config = io.github.testlens.OverlayConfig.builder()
+                .enabled(false).showHudPanel(false).globalOverlayCloseButtonSelector("").build();
+        UiLocator locator = new UiLocator(driver, By.id("covered"), "Covered",
+                new JsOverlayDebug(driver, config),
+                UiLocatorOptions.builder().timeout(Duration.ofMillis(1)).pollInterval(Duration.ofMillis(1))
+                        .maxRetries(50).javascriptClickFallback(true).build(),
+                OverlayLogger.noop(), System::nanoTime);
+
+        locator.click();
+
+        assertEquals(1, nativeClicks.get(), "strategy transitions are not whole-cycle retries");
+        assertEquals(1, javascriptClicks.get(), "the current cascade must retain a real JS opportunity");
+    }
+
     @Test
     void firstAttemptSuccessAndTerminalFailureProduceNoRetry() {
         Harness success = harness(3, null, 0, 10);
@@ -118,6 +213,28 @@ class UiLocatorRecoveryRetryTest {
                     }
                     if (method.getName().equals("toString")) return "element";
                     return defaultValue(method.getReturnType());
+                });
+    }
+
+    private static WebElement clickElement(AtomicBoolean stale, AtomicInteger clicks, boolean becomesStale) {
+        return (WebElement) Proxy.newProxyInstance(UiLocatorRecoveryRetryTest.class.getClassLoader(),
+                new Class<?>[]{WebElement.class}, (proxy, method, args) -> switch (method.getName()) {
+                    case "click" -> {
+                        clicks.incrementAndGet();
+                        if (becomesStale) {
+                            stale.set(true);
+                            throw new StaleElementReferenceException("rerendered before dispatch");
+                        }
+                        yield null;
+                    }
+                    case "isDisplayed", "isEnabled" -> {
+                        if (stale.get()) throw new StaleElementReferenceException("old element");
+                        yield true;
+                    }
+                    case "getRect" -> new org.openqa.selenium.Rectangle(10, 10, 100, 30);
+                    case "getDomAttribute", "getAttribute", "getCssValue", "getText" -> null;
+                    case "toString" -> becomesStale ? "old-element" : "replacement-element";
+                    default -> defaultValue(method.getReturnType());
                 });
     }
 

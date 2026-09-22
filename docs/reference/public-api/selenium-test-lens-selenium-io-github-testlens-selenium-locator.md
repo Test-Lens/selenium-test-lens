@@ -121,6 +121,7 @@ public io.github.testlens.selenium.locator.UiLocatorOptions$Builder retryOnStale
 public io.github.testlens.selenium.locator.UiLocatorOptions$Builder retryOnClickIntercepted(boolean)
 public io.github.testlens.selenium.locator.UiLocatorOptions$Builder retryOnNotInteractable(boolean)
 public io.github.testlens.selenium.locator.UiLocatorOptions$Builder highlightBeforeAction(boolean)
+public io.github.testlens.selenium.locator.UiLocatorOptions$Builder javascriptClickFallback(boolean)
 public io.github.testlens.selenium.locator.UiLocatorOptions build()
 ```
 
@@ -143,6 +144,7 @@ public boolean retryOnStaleElement()
 public boolean retryOnClickIntercepted()
 public boolean retryOnNotInteractable()
 public boolean highlightBeforeAction()
+public boolean javascriptClickFallback()
 ```
 
 ## `io.github.testlens.selenium.locator.UiLocatorSelectors` {#io-github-testlens-selenium-locator-uilocatorselectors}

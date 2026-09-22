@@ -13,6 +13,7 @@ public final class UiLocatorOptions {
     private final boolean retryOnClickIntercepted;
     private final boolean retryOnNotInteractable;
     private final boolean highlightBeforeAction;
+    private final boolean javascriptClickFallback;
 
     private UiLocatorOptions(Builder builder) {
         this.actionabilityOptions = builder.actionabilityOptions != null
@@ -28,6 +29,7 @@ public final class UiLocatorOptions {
         this.retryOnClickIntercepted = builder.retryOnClickIntercepted;
         this.retryOnNotInteractable = builder.retryOnNotInteractable;
         this.highlightBeforeAction = builder.highlightBeforeAction;
+        this.javascriptClickFallback = builder.javascriptClickFallback;
     }
 
     public static UiLocatorOptions defaults() {
@@ -70,6 +72,31 @@ public final class UiLocatorOptions {
         return highlightBeforeAction;
     }
 
+    /**
+     * Whether the standard locator click may use {@code HTMLElement.click()} after all bounded physical
+     * strategies have proved that they did not dispatch a click.
+     *
+     * @return {@code true} by default
+     * @since 0.4.0
+     */
+    public boolean javascriptClickFallback() {
+        return javascriptClickFallback;
+    }
+
+    UiLocatorOptions withTimeout(Duration remainingTimeout) {
+        return builder()
+                .actionabilityOptions(actionabilityOptions)
+                .timeout(remainingTimeout)
+                .pollInterval(pollInterval.compareTo(remainingTimeout) > 0 ? remainingTimeout : pollInterval)
+                .maxRetries(maxRetries)
+                .retryOnStaleElement(retryOnStaleElement)
+                .retryOnClickIntercepted(retryOnClickIntercepted)
+                .retryOnNotInteractable(retryOnNotInteractable)
+                .highlightBeforeAction(highlightBeforeAction)
+                .javascriptClickFallback(javascriptClickFallback)
+                .build();
+    }
+
     private static Duration requirePositive(Duration value, String name) {
         if (value == null || value.isZero() || value.isNegative()) {
             throw new IllegalArgumentException(name + " must be positive");
@@ -86,6 +113,7 @@ public final class UiLocatorOptions {
         private boolean retryOnClickIntercepted = true;
         private boolean retryOnNotInteractable = true;
         private boolean highlightBeforeAction = true;
+        private boolean javascriptClickFallback = true;
 
         private Builder() {
         }
@@ -127,6 +155,17 @@ public final class UiLocatorOptions {
 
         public Builder highlightBeforeAction(boolean highlightBeforeAction) {
             this.highlightBeforeAction = highlightBeforeAction;
+            return this;
+        }
+
+        /**
+         * Enables or disables the final JavaScript stage of the standard click cascade.
+         * Physical strategies remain enabled when this is {@code false}.
+         *
+         * @since 0.4.0
+         */
+        public Builder javascriptClickFallback(boolean javascriptClickFallback) {
+            this.javascriptClickFallback = javascriptClickFallback;
             return this;
         }
 

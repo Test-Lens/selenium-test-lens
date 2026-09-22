@@ -90,7 +90,7 @@ public final class JsOverlayDebug {
     private final HudPanel hudPanel;
     private final PageWaits pageWaits;
     private final PopupDetector popupDetector;
-    private final SmartClickActions smartClickActions;
+    private final ConfiguredSmartClickActions smartClickActions;
     private final SmartInputActions smartInputActions;
     private final ScrollActions scrollActions;
     private final AssertActions assertActions;
@@ -174,7 +174,7 @@ public final class JsOverlayDebug {
         this.rootManager = new OverlayRootManager(scriptExecutor, config);
         this.highlightActions = new HighlightActions(driver, rootManager, config, this.logger);
         this.typingActions = new TypingActions(driver, rootManager, config, this.logger);
-        this.smartClickActions = new SmartClickActions(driver, config, rootManager, highlightActions, this.logger);
+        this.smartClickActions = new ConfiguredSmartClickActions(driver, config, rootManager, highlightActions, this.logger);
         this.smartInputActions = new SmartInputActions(driver, config, rootManager, typingActions, this.logger);
         this.hudPanel = new HudPanel(scriptExecutor, rootManager, config);
         this.hudLogSink.attach(this.hudPanel, driver, config.getHudOptions());
@@ -996,6 +996,30 @@ public final class JsOverlayDebug {
      */
     public void smartClickWithOverlayHandler(WebElement element, String label) {
         smartClickActions.clickWithOverlayHandling(element, label);
+    }
+
+    /**
+     * Runs the bounded physical click cascade and optionally its final JavaScript fallback.
+     * The policy is immutable for this invocation and does not alter the legacy two-argument method.
+     *
+     * @since 0.4.0
+     */
+    public void smartClickWithOverlayHandler(WebElement element, String label, boolean javascriptClickFallback) {
+        smartClickActions.clickWithFallbackCascade(element, label, javascriptClickFallback);
+    }
+
+    private static final class ConfiguredSmartClickActions extends SmartClickActions {
+        private ConfiguredSmartClickActions(WebDriver driver,
+                                            OverlayConfig config,
+                                            OverlayRootManager rootManager,
+                                            HighlightActions highlightActions,
+                                            OverlayLogger logger) {
+            super(driver, config, rootManager, highlightActions, logger);
+        }
+
+        private void clickWithFallbackCascade(WebElement element, String label, boolean javascriptClickFallback) {
+            clickWithOverlayHandling(element, label, javascriptClickFallback);
+        }
     }
 
     // ======================================================================

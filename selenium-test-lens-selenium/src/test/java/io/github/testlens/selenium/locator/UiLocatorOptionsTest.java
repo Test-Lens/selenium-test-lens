@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -21,6 +22,8 @@ class UiLocatorOptionsTest {
         assertTrue(options.retryOnClickIntercepted());
         assertTrue(options.retryOnNotInteractable());
         assertTrue(options.highlightBeforeAction());
+        assertTrue(options.javascriptClickFallback());
+        assertFalse(UiLocatorOptions.builder().javascriptClickFallback(false).build().javascriptClickFallback());
     }
 
     @Test

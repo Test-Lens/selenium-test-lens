@@ -191,9 +191,9 @@ lens.getByRole("button", "Place order")
         .click();
 ```
 
-For the standard `click()` path, Test Lens also draws a temporary, labeled highlight around the resolved target. The highlight is pointer-transparent visual decoration: it neither activates the element nor makes it actionable. Each activation attempt still uses native `WebElement.click()`. An intercepted click may be followed by another native click after an explicit overlay policy handles a blocker, and locator recovery may start a fresh action attempt. There is no hidden JavaScript-click, Actions-click, ancestor-click, or state-mutation fallback.
+For the standard `click()` path, Test Lens draws one temporary, labeled highlight around the resolved target and uses the bounded `NATIVE → ACTIONS → POINT → JS` cascade. `ACTIONS` and `POINT` require a current browser hit-test owned by the target or its descendant. The default final `HTMLElement.click()` fallback handles a logically enabled target that remains physically covered; configure `UiLocatorOptions.javascriptClickFallback(false)` for physical-only behavior. The pointer-transparent Test Lens decoration never activates or exposes the target, and the cascade never substitutes an ancestor or mutates application DOM.
 
-HUD injection, updates, and cleanup are best effort and cannot change the result of the Selenium operation. The persistent record is the session trace—not the transient panel. [See the visual diagnostics contract](observability/visual-diagnostics.md) and [the exact click contract](elements/actions.md#click-contract-native-activation-visible-recovery).
+HUD injection, updates, and cleanup are best effort and cannot change the result of the Selenium operation. The persistent record is the session trace—not the transient panel. [See the visual diagnostics contract](observability/visual-diagnostics.md) and [the exact click contract](elements/actions.md#click-contract-bounded-fallback-cascade).
 
 ## Signature capabilities
 

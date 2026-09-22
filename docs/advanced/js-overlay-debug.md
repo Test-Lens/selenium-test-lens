@@ -122,6 +122,7 @@ void smartTypeWithHint(WebElement element, String value)
 void smartTypeWithHintHighlighted(WebElement element, String value)
 void smartTypeWithHintHighlighted(WebElement element, String value, String label)
 void smartClickWithOverlayHandler(WebElement element, String label)
+void smartClickWithOverlayHandler(WebElement element, String label, boolean javascriptClickFallback)
 WebElement resolveClickTarget(WebElement element)
 WebElement resolveFileInputTarget(WebElement element)
 String resolveClickTargetCssSelector(WebElement element)
@@ -130,7 +131,7 @@ void smartClickResolved(WebElement containerOrLabel, String label)
 void smartUploadFile(WebElement containerOrLabel, String absoluteFilePath)
 ```
 
-Typing helpers operate on an already resolved element; their names distinguish plain clear/type, hint feedback, and an explicit pre-action highlight. The low-level smart-click helper executes configured overlay handling and is not a second recommended name for the [`UiLocator.click()` contract](../elements/actions.md#click-contract-native-activation-visible-recovery). Target resolvers heuristically find a clickable element or associated file input; file-input resolution can return null. `smartClickResolved(...)` and `smartUploadFile(...)` return without throwing when no target is found, after HUD/log feedback where enabled. Selenium failures from the eventual click or `sendKeys` still propagate.
+Typing helpers operate on an already resolved element; their names distinguish plain clear/type, hint feedback, and an explicit pre-action highlight. The existing two-argument low-level smart-click method preserves its historical physical-click and overlay-recovery semantics. The boolean overload is the LOW_LEVEL_API bridge used by [`UiLocator.click()`](../elements/actions.md#click-contract-bounded-fallback-cascade): `true` enables `NATIVE → ACTIONS → POINT → JS`, while `false` omits JS. Normal consumers should configure `UiLocatorOptions` instead of calling either helper directly. Target resolvers heuristically find a clickable element or associated file input; file-input resolution can return null. `smartClickResolved(...)` and `smartUploadFile(...)` return without throwing when no target is found, after HUD/log feedback where enabled. Selenium failures from the eventual click or `sendKeys` still propagate.
 
 ## Page readiness and wait feedback
 

@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
 # Types: 276
-# Public callable methods/constructors: 2135
+# Public callable methods/constructors: 2138
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -1119,6 +1119,7 @@ TYPE io.github.testlens.JsOverlayDebug
   public void smartTypeWithHintHighlighted(org.openqa.selenium.WebElement, java.lang.String)
   public void smartTypeWithHintHighlighted(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)
   public void smartClickWithOverlayHandler(org.openqa.selenium.WebElement, java.lang.String)
+  public void smartClickWithOverlayHandler(org.openqa.selenium.WebElement, java.lang.String, boolean)
   public void clearDebugArtifacts()
   public void waitForPageReady()
   public void waitForPageReady(java.time.Duration)
@@ -2204,6 +2205,7 @@ TYPE io.github.testlens.selenium.locator.UiLocatorOptions$Builder
   public io.github.testlens.selenium.locator.UiLocatorOptions$Builder retryOnClickIntercepted(boolean)
   public io.github.testlens.selenium.locator.UiLocatorOptions$Builder retryOnNotInteractable(boolean)
   public io.github.testlens.selenium.locator.UiLocatorOptions$Builder highlightBeforeAction(boolean)
+  public io.github.testlens.selenium.locator.UiLocatorOptions$Builder javascriptClickFallback(boolean)
   public io.github.testlens.selenium.locator.UiLocatorOptions build()
 TYPE io.github.testlens.selenium.locator.UiLocatorOptions
   public static io.github.testlens.selenium.locator.UiLocatorOptions defaults()
@@ -2216,6 +2218,7 @@ TYPE io.github.testlens.selenium.locator.UiLocatorOptions
   public boolean retryOnClickIntercepted()
   public boolean retryOnNotInteractable()
   public boolean highlightBeforeAction()
+  public boolean javascriptClickFallback()
 TYPE io.github.testlens.selenium.locator.UiLocatorSelectors
   public static java.lang.String xpathLiteral(java.lang.String)
   public static java.lang.String normalizeSpaceExpression(java.lang.String)

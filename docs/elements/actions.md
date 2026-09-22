@@ -4,7 +4,7 @@ Element actions use native Selenium operations and feed the same HUD, log, and t
 
 Actions resolve the current element and return the same `UiLocator` for chaining. Resolution/action retry is governed by [`UiLocatorOptions`](../reference/configuration.md#uilocatoroptions). A physical action/read failure that schedules another attempt emits a dedicated recovery `RETRY`; a terminal failure does not. Condition polling is separate and does not create recovery-retry evidence. A final failure is wrapped as `UiLocatorException`, with the underlying WebDriver failure retained as its cause.
 
-## Click contract: native activation, visible recovery
+## Click contract: bounded fallback cascade
 
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
 ```java
@@ -13,18 +13,35 @@ UiLocator click()
 
 `UiLocator.click()` is the recommended public click API. There is no separate `smartClick()` that normal users need to select.
 
-Each activation attempt uses native `WebElement.click()`. An intercepted click may be followed by another native click after explicit overlay recovery, and the locator retry policy may start a fresh action attempt.
+One logical activation uses the bounded strategy order `NATIVE → ACTIONS → POINT → JS`. The first strategy that dispatches a click ends the cascade; Test Lens does not inspect business effects and never clicks again merely because an accordion, URL, or form state did not change.
 
 The complete contract is:
 
 - the locator resolves the target and runs best-effort actionability diagnostics;
 - an enabled overlay may highlight the target, but the decoration is pointer-transparent and never activates it;
-- physical activation is `WebElement.click()`;
-- a configured overlay policy may identify and explicitly handle a blocker after `ElementClickInterceptedException`, then make another native click attempt;
-- configured stale, intercepted, or not-interactable failures may cause the outer locator retry policy to begin another complete action attempt;
+- `NATIVE` calls `WebElement.click()` after basic logical enabled/visible checks;
+- `ACTIONS` hovers, repeats the browser hit-test, and clicks only when the center belongs to the target or one of its descendants;
+- `POINT` checks a small deterministic set of visible points from `getClientRects()` and dispatches one CSS-pixel pointer click only at a target-owned point;
+- `JS` is the default final fallback and invokes `arguments[0].click()` with the current `WebElement` as an argument;
+- a configured overlay policy may identify and explicitly handle a known blocker without weakening target hit-testing;
+- stale-before-dispatch failures may cause the outer locator retry policy to resolve a fresh element and begin another bounded attempt;
 - start, retry, pass, and failure information is emitted to the HUD/log/trace pipeline.
 
-The implementation deliberately does **not** fall back to JavaScript click, Selenium `Actions` click, clicking an ancestor, or mutating page state to simulate activation. Actionability is diagnostic and best-effort; it cannot guarantee that the browser will accept the next click.
+`HTMLElement.click()` programmatically fires the element's click activation but does not emulate a complete physical mouse sequence. Tests that require a hover chain, drag, exact pointer coordinates, button state, or other trusted-pointer behavior should use the corresponding explicit physical action. Smart Click never substitutes a parent, sibling, or arbitrary nearby control and does not remove application overlays or alter their `pointer-events`.
+
+Disable only the final JS stage when a suite requires physical interaction exclusively:
+
+```java
+UiLocatorOptions physicalOnly = UiLocatorOptions.builder()
+        .javascriptClickFallback(false)
+        .build();
+
+TestLensOptions options = TestLensOptions.builder()
+        .locatorOptions(physicalOnly)
+        .build();
+```
+
+The resulting order is `NATIVE → ACTIONS → POINT`. Missing, detached, hidden, and disabled targets still fail without JS activation. A generic transport/session failure is treated as an ambiguous delivery result and does not trigger another click.
 
 ### Returns
 
@@ -32,11 +49,11 @@ The same locator.
 
 ### Failure behavior
 
-Throws `UiLocatorException` after the retry budget or on a non-retryable WebDriver failure. Overlay policy can also fail the click when a required blocker cannot be handled.
+Throws `UiLocatorException` after the shared locator deadline/retry budget or on a non-retryable or ambiguous WebDriver failure. Overlay policy can also fail the click when a required blocker cannot be handled.
 
 ### Trace, HUD, highlight, and evidence
 
-The locator and overlay-aware click layers emit structured start/pass/retry/failure events; an attached session records them and the HUD can display them. When overlays are enabled, the target is decorated using its diagnostic label. `click()` does not capture a screenshot by itself.
+The locator emits one logical start/pass/failure lifecycle; strategy transitions are debug details such as `NATIVE=intercepted`, `ACTIONS=hit-test mismatch`, `POINT=no-valid-point`, and `JS=dispatched`. When overlays are enabled, internal transitions reuse one ACTION decoration followed by the normal terminal SUCCESS or FAILURE decoration. `click()` does not capture a screenshot by itself.
 
 ```java
 lens.getByRole("button", "Save").waitUntilClickable().click();

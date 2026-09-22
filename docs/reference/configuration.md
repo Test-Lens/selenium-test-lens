@@ -39,6 +39,7 @@ Runner adapters consume the same immutable options per invocation. JUnit 5 confi
 | `retryOnClickIntercepted(value)` | `boolean` | `true` | Retry intercepted action. |
 | `retryOnNotInteractable(value)` | `boolean` | `true` | Retry not-interactable action. |
 | `highlightBeforeAction(value)` | `boolean` | `true` | Retained public option, but the current `UiLocator` implementation does not consult it. Click decoration is controlled by `OverlayConfig.enabled`; other locator actions currently do not highlight. No effect on waits. |
+| `javascriptClickFallback(value)` | `boolean` | `true` | Enables the final `HTMLElement.click()` stage after bounded `NATIVE`, `ACTIONS`, and `POINT` strategies prove they did not dispatch. Set false for physical-only clicks. |
 
 ## UiAssertionOptions
 

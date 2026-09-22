@@ -76,19 +76,62 @@ public final class UiLocator {
 
     /**
      * Activates the current element through the recommended Test Lens click path.
-     * Each activation attempt uses native {@link WebElement#click()}. Highlighting is visual decoration only.
-     * An intercepted click may be followed by another native click after explicit overlay recovery, and the
-     * locator recovery-retry policy may start a fresh action attempt. This method does not fall back to a
-     * JavaScript click, an Actions click, or an ancestor click; actionability reporting is best-effort diagnostics.
+     * Uses one bounded NATIVE, ACTIONS, POINT, then optional JavaScript fallback cascade. Physical stages dispatch
+     * only through a current hit point owned by this element or one of its descendants. The JavaScript stage is
+     * enabled by default and can be disabled through {@link UiLocatorOptions.Builder#javascriptClickFallback(boolean)}.
+     * Highlighting is visual decoration only and actionability reporting remains best-effort diagnostics.
      *
      * @return this locator
      */
     public UiLocator click() {
-        return execute("click", element -> {
-            ActionabilityReport report = safeActionability(element);
-            overlay.smartClickWithOverlayHandler(element, description.displayName());
-            return report;
-        }, null, false);
+        return executeClick();
+    }
+
+    private UiLocator executeClick() {
+        final String action = "click";
+        final long startedNanos = System.nanoTime();
+        final long timeoutNanos = options.timeout().toNanos();
+        final long deadlineNanos = startedNanos > Long.MAX_VALUE - timeoutNanos
+                ? Long.MAX_VALUE : startedNanos + timeoutNanos;
+        emit(UiTestLensEventType.LOCATOR_ACTION_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
+                "Locator action started", action, 0, null, null);
+        RuntimeException lastFailure = null;
+        String lastActionabilitySummary = "";
+        WebElement lastElement = null;
+        for (int attempt = 1; attempt <= options.maxRetries(); attempt++) {
+            long attemptStarted = 0;
+            boolean operationStarted = false;
+            try {
+                long remainingNanos = Math.max(1L, deadlineNanos - System.nanoTime());
+                WebElement element = resolve(options.withTimeout(Duration.ofNanos(remainingNanos)));
+                lastElement = element;
+                attemptStarted = nanoTicker.getAsLong();
+                operationStarted = true;
+                ActionabilityReport report = safeActionability(element);
+                lastActionabilitySummary = report == null ? "" : report.summary();
+                overlay.smartClickWithOverlayHandler(
+                        element, description.displayName(), options.javascriptClickFallback());
+                emit(UiTestLensEventType.LOCATOR_ACTION_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
+                        "Locator action passed", action, attempt, null, null);
+                overlay.automaticHighlight(element, description.displayName(), HighlightState.SUCCESS);
+                return this;
+            } catch (RuntimeException failure) {
+                lastFailure = failure;
+                boolean deadlineExhausted = System.nanoTime() >= deadlineNanos;
+                if (!shouldRetry(failure) || attempt >= options.maxRetries() || deadlineExhausted) {
+                    emit(UiTestLensEventType.LOCATOR_ACTION_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
+                            "Locator action failed", action, attempt, null, failure);
+                    overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.FAILURE);
+                    throw locatorException(action, failure, lastActionabilitySummary);
+                }
+                if (operationStarted) {
+                    overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.RETRY);
+                    emitRecoveryRetry("action", action, attempt, attempt + 1,
+                            elapsedNanos(attemptStarted), effectiveRetryCause(failure), null);
+                }
+            }
+        }
+        throw locatorException(action, lastFailure, lastActionabilitySummary);
     }
 
     public UiLocator fill(String value) {
@@ -380,10 +423,14 @@ public final class UiLocator {
     }
 
     public WebElement resolve() {
+        return resolve(options);
+    }
+
+    private WebElement resolve(UiLocatorOptions resolutionOptions) {
         emit(UiTestLensEventType.LOCATOR_RESOLVE_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
                 "Resolving locator", "resolve", 0, null, null);
         try {
-            WebElement element = resolver.resolve(by(), options);
+            WebElement element = resolver.resolve(by(), resolutionOptions);
             emit(UiTestLensEventType.LOCATOR_RESOLVE_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
                     "Locator resolved", "resolve", 1, null, null);
             return element;
