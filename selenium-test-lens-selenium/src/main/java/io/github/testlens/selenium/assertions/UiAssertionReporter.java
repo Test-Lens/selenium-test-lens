@@ -6,9 +6,15 @@ import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.logging.UiTestLensLogLevel;
 import io.github.testlens.core.logging.UiTestLensStatus;
 
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
+
 final class UiAssertionReporter {
     private final OverlayLogger logger;
     private final boolean sourceNavigationEnabled;
+    private final String operationSession = UUID.randomUUID().toString();
+    private final AtomicLong operationSequence = new AtomicLong();
+    private final ThreadLocal<OperationState> activeOperation = new ThreadLocal<>();
 
     public UiAssertionReporter(OverlayLogger logger) {
         this(logger, false);
@@ -25,12 +31,12 @@ final class UiAssertionReporter {
 
     public void started(String assertionName, String locatorDescription) {
         emit(UiTestLensEventType.ASSERTION_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
-                "Retryable assertion started", assertionName, locatorDescription, 0, "", "");
+                "Waiting for assertion condition", assertionName, locatorDescription, 0, "", "");
     }
 
     public void retry(String assertionName, String locatorDescription, int attempt, String expectedPreview, String actualPreview) {
         emit(UiTestLensEventType.ASSERTION_RETRY, UiTestLensStatus.WARN, UiTestLensLogLevel.WARN,
-                "Retryable assertion retry", assertionName, locatorDescription, attempt, expectedPreview, actualPreview);
+                "Condition not yet satisfied", assertionName, locatorDescription, attempt, expectedPreview, actualPreview);
     }
 
     public void passed(UiAssertionResult result) {
@@ -58,6 +64,7 @@ final class UiAssertionReporter {
                       String expectedPreview,
                       String actualPreview) {
         try {
+            OperationState operation = operationFor(status);
             UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder()
                     .level(level)
                     .eventType(eventType)
@@ -69,14 +76,31 @@ final class UiAssertionReporter {
                     .metadata("attempt", String.valueOf(attempt))
                     .metadata("expectedPreview", safe(expectedPreview))
                     .metadata("actualPreview", safe(actualPreview));
+            builder.metadata("operationId", operation.id());
+            if (status == UiTestLensStatus.PASSED || status == UiTestLensStatus.FAILED) {
+                builder.metadata("durationMs", String.valueOf(Math.max(0L,
+                        (System.nanoTime() - operation.startedNanos()) / 1_000_000L)));
+            }
             if (eventType == UiTestLensEventType.ASSERTION_RETRY) {
                 builder.metadata("retryKind", "poll");
             }
             if (sourceNavigationEnabled) builder.metadata("testlens.internal.captureSourceLocation", "true");
             logger.emit(builder.build());
+            if (status == UiTestLensStatus.PASSED || status == UiTestLensStatus.FAILED) activeOperation.remove();
         } catch (Exception ignored) {
         }
     }
+
+    private OperationState operationFor(UiTestLensStatus status) {
+        OperationState current = activeOperation.get();
+        if (status == UiTestLensStatus.STARTED || current == null) {
+            current = new OperationState(operationSession + ":" + operationSequence.incrementAndGet(), System.nanoTime());
+            activeOperation.set(current);
+        }
+        return current;
+    }
+
+    private record OperationState(String id, long startedNanos) {}
 
     private static String safe(String value) {
         return value == null ? "" : value;

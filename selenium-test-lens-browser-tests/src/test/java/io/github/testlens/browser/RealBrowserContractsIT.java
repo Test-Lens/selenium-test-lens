@@ -89,6 +89,7 @@ import java.util.zip.ZipFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -157,15 +158,29 @@ class RealBrowserContractsIT {
         overlay.hudLog("info", "summer midnight", "2026-07-15T22:00:00Z");
         overlay.hudLog("warn", "placeholder", "ui-test-lens");
 
-        List<String> javaRows = (List<String>) ((JavascriptExecutor) driver).executeScript("""
+        List<Map<String, Object>> javaRows = (List<Map<String, Object>>) ((JavascriptExecutor) driver).executeScript("""
                 return Array.from(window.__seleniumOverlayRoot.querySelectorAll('#selenium-hud-logs > div'))
-                  .map(row => row.textContent);
+                  .map(row => ({timestamp:row.querySelector('.stl-hud-timestamp')?.textContent,
+                    category:row.getAttribute('data-category'),phase:row.getAttribute('data-phase'),
+                    categoryIcon:row.querySelector('.stl-hud-event-category-icon')?.textContent,
+                    statusIcon:row.querySelector('.stl-hud-event-status-icon')?.textContent,
+                    message:row.querySelector('.stl-hud-event-message')?.textContent,
+                    stored:row.getAttribute('data-test-lens-timestamp')}));
                 """);
-        assertEquals("[2026-01-15 23:59:59.000000000 +01:00][INFO] winter", javaRows.get(javaRows.size() - 3));
-        assertEquals("[2026-07-16 00:00:00.000000000 +02:00][INFO] summer midnight", javaRows.get(javaRows.size() - 2));
-        String fallback = javaRows.get(javaRows.size() - 1);
-        assertTrue(fallback.matches("\\[\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{9} [+-]\\d{2}:\\d{2}]\\[WARN] placeholder"), fallback);
-        assertFalse(fallback.contains("ui-test-lens"));
+        assertSemanticHudRow(javaRows.get(javaRows.size() - 3),
+                "[2026-01-15 23:59:59.000000000 +01:00]", "USER", "INFO", "winter");
+        assertEquals("\uD83D\uDCAC", javaRows.get(javaRows.size() - 3).get("categoryIcon"));
+        assertEquals("\u2139\uFE0F", javaRows.get(javaRows.size() - 3).get("statusIcon"));
+        assertSemanticHudRow(javaRows.get(javaRows.size() - 2),
+                "[2026-07-16 00:00:00.000000000 +02:00]", "USER", "INFO", "summer midnight");
+        Map<String, Object> fallback = javaRows.get(javaRows.size() - 1);
+        assertTrue(String.valueOf(fallback.get("timestamp"))
+                .matches("\\[\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{9} [+-]\\d{2}:\\d{2}]"),
+                String.valueOf(fallback));
+        assertEquals("USER", fallback.get("category"));
+        assertEquals("WARNING", fallback.get("phase"));
+        assertEquals("placeholder", fallback.get("message"));
+        assertFalse(String.valueOf(fallback).contains("ui-test-lens"));
         assertEquals("8px", ((JavascriptExecutor) driver).executeScript("""
                 return getComputedStyle(document.getElementById('selenium-overlay-host').shadowRoot
                   .querySelector('.stl-hud-timestamp')).fontSize;
@@ -179,7 +194,10 @@ class RealBrowserContractsIT {
                   hud.clear();
                   hud.log(message,'info',timestamp,'GENERAL',null,null,presentation);
                   const row=window.__seleniumOverlayRoot.querySelector('#selenium-hud-logs > div');
-                  return {text:row.textContent,stored:row.getAttribute('data-test-lens-timestamp')};
+                  return {timestamp:row.querySelector('.stl-hud-timestamp')?.textContent || '',
+                    category:row.getAttribute('data-category'),phase:row.getAttribute('data-phase'),
+                    message:row.querySelector('.stl-hud-event-message')?.textContent,
+                    stored:row.getAttribute('data-test-lens-timestamp')};
                 }
                 return {
                   iso:render('ISO_UTC','Europe/Warsaw',true,'2026-01-15T22:59:59Z','iso','2026-01-15T22:59:59.000Z'),
@@ -187,10 +205,93 @@ class RealBrowserContractsIT {
                   hidden:render('DATE_TIME','Europe/Warsaw',false,null,'hidden')
                 };
                 """);
-        assertEquals("[2026-01-15T22:59:59.000Z][INFO] iso", ((Map<?, ?>) direct.get("iso")).get("text"));
-        assertEquals("[22:59:59][INFO] utc", ((Map<?, ?>) direct.get("utc")).get("text"));
-        assertEquals("[INFO] hidden", ((Map<?, ?>) direct.get("hidden")).get("text"));
+        assertSemanticHudRow((Map<String, Object>) direct.get("iso"),
+                "[2026-01-15T22:59:59.000Z]", "SYSTEM", "INFO", "iso");
+        assertSemanticHudRow((Map<String, Object>) direct.get("utc"),
+                "[22:59:59]", "SYSTEM", "INFO", "utc");
+        assertSemanticHudRow((Map<String, Object>) direct.get("hidden"),
+                "", "SYSTEM", "INFO", "hidden");
         assertTrue(String.valueOf(((Map<?, ?>) direct.get("hidden")).get("stored")).matches("\\d{4}-.*Z"));
+
+        Map<String, Object> semanticIcons = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const hud = window.__uiTestLens.modules.hud;
+                function render(category, phase, operationId) {
+                  hud.clear();
+                  hud.log('semantic icon','info',null,'GENERAL',null,null,null,
+                    {category:category,phase:phase,operationId:operationId,technical:false});
+                  const row=window.__seleniumOverlayRoot.querySelector('#selenium-hud-logs > div');
+                  return {categoryIcon:row.querySelector('.stl-hud-event-category-icon').textContent,
+                    statusIcon:row.querySelector('.stl-hud-event-status-icon').textContent,
+                    categoryText:row.querySelector('.stl-hud-event-category').textContent,
+                    statusText:row.querySelector('.stl-hud-event-phase').textContent};
+                }
+                return {assertion:render('ASSERTION','PASSED','assertion-icon'),
+                  locator:render('LOCATOR','DEBUG','locator-icon')};
+                """);
+        Map<String, Object> assertionIcon = (Map<String, Object>) semanticIcons.get("assertion");
+        assertEquals("\uD83E\uDDEA", assertionIcon.get("categoryIcon"));
+        assertNotEquals("\uD83D\uDD0E", assertionIcon.get("categoryIcon"));
+        assertEquals("\u2705", assertionIcon.get("statusIcon"));
+        assertEquals("[ASSERTION]", assertionIcon.get("categoryText"));
+        assertEquals("PASSED", assertionIcon.get("statusText"));
+        Map<String, Object> locatorIcon = (Map<String, Object>) semanticIcons.get("locator");
+        assertEquals("\uD83D\uDD0E", locatorIcon.get("categoryIcon"));
+        assertNotEquals("\uD83D\uDD0D", locatorIcon.get("categoryIcon"));
+        assertNotEquals("\uD83C\uDFAF", locatorIcon.get("categoryIcon"));
+        assertNotEquals("\uD83D\uDCCD", locatorIcon.get("categoryIcon"));
+        assertEquals("\u00B7", locatorIcon.get("statusIcon"));
+        assertEquals("[LOCATOR]", locatorIcon.get("categoryText"));
+        assertEquals("DEBUG", locatorIcon.get("statusText"));
+
+        String[] customIcons = {
+                "\uD83D\uDE00", "\uD83D\uDE80", "\u2764\uFE0F", "\uD83D\uDC69\u200D\uD83D\uDCBB",
+                "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66",
+                "\uD83C\uDDF5\uD83C\uDDF1", "\uD83D\uDC4D\uD83C\uDFFD", "1\uFE0F\u20E3"
+        };
+        for (int index = 0; index < customIcons.length; index++) {
+            overlay.hudLog("info", "custom icon " + index, null, customIcons[index]);
+        }
+        overlay.hudLog("info", "null custom icon", null, null);
+        overlay.hudLog("info", "empty custom icon", null, "");
+        overlay.hudLog("info", "blank custom icon", null, "  ");
+        overlay.hudLog("info", "unsafe custom icon", null, "<img src=x onerror=alert(1)>");
+
+        List<Map<String, Object>> customRows = (List<Map<String, Object>>) ((JavascriptExecutor) driver).executeScript("""
+                return Array.from(window.__seleniumOverlayRoot.querySelectorAll('#selenium-hud-logs > div'))
+                  .filter(row => row.querySelector('.stl-hud-event-message')?.textContent.includes('custom icon'))
+                  .map(row => ({message:row.querySelector('.stl-hud-event-message').textContent,
+                    categoryIcon:row.querySelector('.stl-hud-event-category-icon').textContent,
+                    statusIcon:row.querySelector('.stl-hud-event-status-icon').textContent,
+                    categoryText:row.querySelector('.stl-hud-event-category').textContent,
+                    statusText:row.querySelector('.stl-hud-event-phase').textContent,
+                    nestedImages:row.querySelectorAll('.stl-hud-event-category-icon img').length}));
+                """);
+        for (int index = 0; index < customIcons.length; index++) {
+            int iconIndex = index;
+            Map<String, Object> row = customRows.stream()
+                    .filter(value -> ("custom icon " + iconIndex).equals(value.get("message"))).findFirst().orElseThrow();
+            assertEquals(customIcons[iconIndex], row.get("categoryIcon"));
+            assertEquals("\u2139\uFE0F", row.get("statusIcon"));
+            assertEquals("[USER]", row.get("categoryText"));
+            assertEquals("INFO", row.get("statusText"));
+        }
+        for (String message : List.of("null custom icon", "empty custom icon", "blank custom icon")) {
+            Map<String, Object> row = customRows.stream()
+                    .filter(value -> message.equals(value.get("message"))).findFirst().orElseThrow();
+            assertEquals("\uD83D\uDCAC", row.get("categoryIcon"));
+        }
+        Map<String, Object> unsafeIcon = customRows.stream()
+                .filter(value -> "unsafe custom icon".equals(value.get("message"))).findFirst().orElseThrow();
+        assertEquals("<img src=x onerror=alert(1)>", unsafeIcon.get("categoryIcon"));
+        assertEquals(0L, unsafeIcon.get("nestedImages"));
+    }
+
+    private static void assertSemanticHudRow(Map<String, Object> row, String timestamp,
+                                             String category, String phase, String message) {
+        assertEquals(timestamp, row.get("timestamp"));
+        assertEquals(category, row.get("category"));
+        assertEquals(phase, row.get("phase"));
+        assertEquals(message, row.get("message"));
     }
 
     @ParameterizedTest(name = "highlightElement is decoration only (overlay enabled={0})")
@@ -961,6 +1062,63 @@ class RealBrowserContractsIT {
                     && mark.dataset.uitestlensHighlightOperation!==arguments[0]
                     && Number(mark.dataset.uitestlensHighlightDeadline)-Number(mark.dataset.uitestlensHighlightShownAt)===650;
                 """, firstOperation))), "the second same-target operation must follow the first with its own full terminal duration");
+    }
+
+    @Test
+    void hudUsesSemanticOperationRowsAndPresetFiltering() {
+        open("/clicks");
+        TestLens standard = TestLens.attach(driver, TestLensOptions.builder()
+                .hud(HudOptions.builder().preset(HudPreset.STANDARD).build()).build());
+        standard.startSession("semantic-standard");
+        ((JavascriptExecutor) driver).executeScript("window.__uiTestLens.modules.hud.clear()");
+
+        standard.locator(By.id("count-button"), "Count button").click();
+        standard.locator(By.id("count-button"), "Count button").expect().toBeVisible();
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> standardRows = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const rows=[...root.querySelectorAll('#selenium-hud-logs .stl-hud-event')];
+                const action=rows.find(row=>row.dataset.category==='ACTION');
+                const assertion=rows.find(row=>row.dataset.category==='ASSERTION');
+                return {count:rows.length,actionPhase:action&&action.dataset.phase,
+                  assertionPhase:assertion&&assertion.dataset.phase,
+                  actionRows:rows.filter(row=>row.dataset.category==='ACTION').length,
+                  assertionRows:rows.filter(row=>row.dataset.category==='ASSERTION').length,
+                  technical:rows.filter(row=>['LOCATOR','ACTIONABILITY','HIGHLIGHT'].includes(row.dataset.category)).length,
+                  actionText:action&&action.textContent,assertionText:assertion&&assertion.textContent,
+                  hiddenIcons:rows.every(row=>[...row.querySelectorAll('.stl-hud-event-icon')]
+                    .every(icon=>icon.getAttribute('aria-hidden')==='true'))};
+                """);
+        assertEquals("PASSED", standardRows.get("actionPhase"));
+        assertEquals("PASSED", standardRows.get("assertionPhase"));
+        assertEquals(1L, ((Number) standardRows.get("actionRows")).longValue(), "RUNNING must update the action row");
+        assertEquals(1L, ((Number) standardRows.get("assertionRows")).longValue(), "RUNNING must update the assertion row");
+        assertEquals(0L, ((Number) standardRows.get("technical")).longValue(), "STANDARD leaked successful technical rows");
+        assertTrue(standardRows.get("actionText").toString().contains("[ACTION]"));
+        assertTrue(standardRows.get("actionText").toString().contains("PASSED"));
+        assertTrue(standardRows.get("assertionText").toString().contains("[ASSERTION]"));
+        assertEquals(true, standardRows.get("hiddenIcons"));
+
+        TestLens debug = TestLens.attach(driver, TestLensOptions.builder()
+                .hud(HudOptions.builder().preset(HudPreset.DEBUG).build()).build());
+        debug.startSession("semantic-debug");
+        ((JavascriptExecutor) driver).executeScript("window.__uiTestLens.modules.hud.clear()");
+        debug.locator(By.id("count-button"), "Debug count button").click();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> debugRows = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                const rows=[...root.querySelectorAll('#selenium-hud-logs .stl-hud-event')];
+                return {rows:rows.map(row=>row.dataset.category+':'+row.dataset.phase),
+                  locator:rows.filter(row=>row.dataset.category==='LOCATOR'&&row.dataset.phase==='DEBUG').length,
+                  highlight:rows.filter(row=>row.dataset.category==='HIGHLIGHT'&&row.dataset.phase==='DEBUG').length,
+                  actions:rows.filter(row=>row.dataset.category==='ACTION').length,
+                  actionPhase:(rows.find(row=>row.dataset.category==='ACTION')||{}).dataset?.phase};
+                """);
+        assertTrue(((Number) debugRows.get("locator")).longValue() > 0, debugRows.toString());
+        assertTrue(((Number) debugRows.get("highlight")).longValue() > 0, debugRows.toString());
+        assertEquals(1L, ((Number) debugRows.get("actions")).longValue(), debugRows.toString());
+        assertEquals("PASSED", debugRows.get("actionPhase"), debugRows.toString());
     }
 
     @Test

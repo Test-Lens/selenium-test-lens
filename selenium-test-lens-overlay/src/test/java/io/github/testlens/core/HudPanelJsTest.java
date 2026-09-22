@@ -126,6 +126,28 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("showAssertions"));
         assertTrue(HudPanelJs.INIT.contains("showEventLog"));
         assertTrue(HudPanelJs.INIT.contains("showTimestamps"));
+        assertTrue(HudPanelJs.INIT.contains("SEMANTIC_CATEGORY_ICONS"));
+        assertTrue(HudPanelJs.INIT.contains("ACTION:'\\ud83d\\uddb1\\ufe0f'"));
+        assertTrue(HudPanelJs.INIT.contains("ASSERTION:'\\ud83e\\uddea'"));
+        assertTrue(HudPanelJs.INIT.contains("LOCATOR:'\\ud83d\\udd0e'"));
+        assertTrue(HudPanelJs.INIT.contains("ACTIONABILITY:'\\ud83d\\udee1\\ufe0f'"));
+        assertTrue(HudPanelJs.INIT.contains("HIGHLIGHT:'\\u2728'"));
+        assertTrue(HudPanelJs.INIT.contains("USER:'\\ud83d\\udcac'"));
+        assertTrue(HudPanelJs.INIT.contains("SYSTEM:'\\u2139\\ufe0f'"));
+        assertTrue(HudPanelJs.INIT.contains("RUNNING:'\\u23f3'"));
+        assertTrue(HudPanelJs.INIT.contains("PASSED:'\\u2705'"));
+        assertTrue(HudPanelJs.INIT.contains("RETRYING:'\\ud83d\\udd04'"));
+        assertTrue(HudPanelJs.INIT.contains("WARNING:'\\u26a0\\ufe0f'"));
+        assertTrue(HudPanelJs.INIT.contains("FAILED:'\\u274c'"));
+        assertTrue(HudPanelJs.INIT.contains("INFO:'\\u2139\\ufe0f'"));
+        assertFalse(HudPanelJs.INIT.contains("ASSERTION:'\\ud83d\\udd0e'"));
+        assertFalse(HudPanelJs.INIT.contains("LOCATOR:'\\ud83d\\udd0d'"));
+        assertFalse(HudPanelJs.INIT.contains("LOCATOR:'\\ud83c\\udfaf'"));
+        assertFalse(HudPanelJs.INIT.contains("LOCATOR:'\\ud83d\\udccd'"));
+        assertTrue(HudPanelJs.INIT.contains("data-operation-id"));
+        assertTrue(HudPanelJs.INIT.contains("prefers-reduced-motion:reduce"));
+        assertTrue(HudPanelJs.INIT.contains("aria-hidden"));
+        assertFalse(HudPanelJs.INIT.contains("message.indexOf"));
         assertTrue(HudPanelJs.INIT.contains("stl-hud-custom-logo"));
         assertTrue(HudPanelJs.INIT.contains("customLogo.style.width = 'auto'"));
         assertTrue(HudPanelJs.INIT.contains("customLogo.style.height = horizontal ? '14px'"));
@@ -417,36 +439,87 @@ class HudPanelJsTest {
                 timestampConfig('ISO_UTC', 'UTC', true);
                 window.__uiTestLens.modules.hud.clear();
                 window.__uiTestLens.modules.hud.log('canonical','info','2026-01-15T12:34:56.123456789Z','GENERAL',null,null,'2026-01-15T12:34:56.123456789Z');
-                assert(lastLog().textContent === '[2026-01-15T12:34:56.123456789Z][INFO] canonical', 'ISO UTC rendering differs');
+                assert(lastLog().querySelector('.stl-hud-timestamp').textContent === '[2026-01-15T12:34:56.123456789Z]', 'ISO UTC rendering differs');
+                assert(lastLog().querySelector('.stl-hud-event-message').textContent === 'canonical', 'semantic message differs');
+                assert(lastLog().attributes['data-category'] === 'SYSTEM' && lastLog().attributes['data-phase'] === 'INFO', 'legacy semantic fallback differs');
                 assert(lastLog().attributes['data-test-lens-timestamp'] === '2026-01-15T12:34:56.123456789Z', 'canonical timestamp precision was not retained');
                 timestampConfig('TIME_ONLY', 'Europe/Warsaw', true);
                 window.__uiTestLens.modules.hud.clear();
                 window.__uiTestLens.modules.hud.log('winter','info','2026-01-15T22:59:59Z','GENERAL',null,null,'23:59:59');
-                assert(lastLog().textContent === '[23:59:59][INFO] winter', 'Warsaw winter offset differs');
+                assert(lastLog().querySelector('.stl-hud-timestamp').textContent === '[23:59:59]', 'Warsaw winter offset differs');
                 window.__uiTestLens.modules.hud.log('summer','info','2026-07-15T21:59:59Z','GENERAL',null,null,'23:59:59');
-                assert(lastLog().textContent === '[23:59:59][INFO] summer', 'Warsaw summer offset differs');
+                assert(lastLog().querySelector('.stl-hud-timestamp').textContent === '[23:59:59]', 'Warsaw summer offset differs');
                 timestampConfig('DATE_TIME', 'Europe/Warsaw', true);
                 window.__uiTestLens.modules.hud.clear();
                 window.__uiTestLens.modules.hud.log('midnight','info','2026-07-15T22:00:00Z','GENERAL',null,null,'16.07.26 00:00:00');
-                assert(lastLog().textContent === '[16.07.26 00:00:00][INFO] midnight', 'date rollover differs');
+                assert(lastLog().querySelector('.stl-hud-timestamp').textContent === '[16.07.26 00:00:00]', 'date rollover differs');
                 var categories=['STEP','ACTION','HIGHLIGHT','WAIT','LOCATOR_RETRY','ASSERTION_PASSED','NETWORK_WAIT_STARTED','NETWORK_RESPONSE_RECORDED','AUTH_STATE_CREATED','SCREENSHOT_CAPTURE_PASSED','WARNING','ERROR','HUD'];
                 var categoryStart=root.querySelector('#selenium-hud-logs').children.length;
                 categories.forEach(function(type,index){window.__uiTestLens.modules.hud.log(type,'info','2026-07-15T22:00:00Z',type,null,null,'16.07.26 00:00:00');});
                 assert(root.querySelector('#selenium-hud-logs').children.length-categoryStart === categories.length, 'a visible category was lost or duplicated');
                 for(var categoryIndex=0;categoryIndex<categories.length;categoryIndex++) {
-                  assert(root.querySelector('#selenium-hud-logs').children[categoryStart+categoryIndex].textContent.indexOf('[16.07.26 00:00:00][INFO] ') === 0, 'category timestamp missing');
+                  assert(root.querySelector('#selenium-hud-logs').children[categoryStart+categoryIndex].querySelector('.stl-hud-timestamp').textContent === '[16.07.26 00:00:00]', 'category timestamp missing');
                 }
                 ['','not-a-date','ui-test-lens',null,undefined].forEach(function(value){
                   window.__uiTestLens.modules.hud.log('fallback','info',value,'GENERAL');
                   var text=lastLog().textContent;
-                  assert(/^\\[\\d{4}-\\d{2}-\\d{2}T.*Z\\]\\[INFO\\] fallback$/.test(text), 'invalid timestamp fallback missing');
+                  assert(/^\\[\\d{4}-\\d{2}-\\d{2}T.*Z\\]$/.test(lastLog().querySelector('.stl-hud-timestamp').textContent), 'invalid timestamp fallback missing');
                   assert(text.indexOf('Invalid Date')<0&&text.indexOf('undefined')<0&&text.indexOf('null')<0&&text.indexOf('ui-test-lens')<0&&text.indexOf('[]')<0, 'invalid timestamp leaked');
                 });
                 timestampConfig('DATE_TIME', 'Europe/Warsaw', false);
                 window.__uiTestLens.modules.hud.clear();
                 window.__uiTestLens.modules.hud.log('hidden prefix','info',null,'GENERAL');
-                assert(lastLog().textContent === '[INFO] hidden prefix', 'hidden timestamp left spacing or brackets');
+                assert(!lastLog().querySelector('.stl-hud-timestamp'), 'hidden timestamp was rendered');
+                assert(lastLog().querySelector('.stl-hud-event-message').textContent === 'hidden prefix', 'hidden timestamp changed message');
                 assert(/^\\d{4}-\\d{2}-\\d{2}T/.test(lastLog().attributes['data-test-lens-timestamp']), 'hidden timestamp was not assigned once');
+
+                window.__uiTestLens.modules.hud.clear();
+                window.__uiTestLens.modules.hud.log('Click Save','info',null,'LOCATOR_ACTION_STARTED',null,null,null,
+                  {category:'ACTION',phase:'RUNNING',operationId:'op-1',technical:false});
+                window.__uiTestLens.modules.hud.log('Save clicked','info',null,'LOCATOR_ACTION_PASSED',null,null,null,
+                  {category:'ACTION',phase:'PASSED',operationId:'op-1',durationMs:143,technical:false});
+                assert(root.querySelector('#selenium-hud-logs').children.length === 1, 'operation created an orphan row');
+                assert(lastLog().attributes['data-phase'] === 'PASSED', 'operation row did not become terminal');
+                assert(lastLog().querySelector('.stl-hud-event-duration').textContent === '\u00b7 143 ms', 'operation duration missing');
+
+                window.__uiTestLens.modules.hud.clear();
+                window.__uiTestLens.modules.hud.log('Value should match','info',null,'ASSERTION_STARTED',null,null,null,
+                  {category:'ASSERTION',phase:'RUNNING',operationId:'assert-icon',technical:false});
+                assert(lastLog().querySelector('.stl-hud-event-category-icon').textContent === '\ud83e\uddea', 'assertion category icon differs');
+                assert(lastLog().querySelector('.stl-hud-event-status-icon').textContent === '\u23f3', 'running status icon differs');
+                assert(lastLog().querySelector('.stl-hud-event-category').textContent === '[ASSERTION]', 'assertion category text missing');
+                assert(lastLog().querySelector('.stl-hud-event-phase').textContent === 'RUNNING', 'running phase text missing');
+                window.__uiTestLens.modules.hud.log('Resolved Save','debug',null,'LOCATOR_RESOLVE_PASSED',null,null,null,
+                  {category:'LOCATOR',phase:'DEBUG',operationId:'locator-icon',technical:false});
+                assert(lastLog().querySelector('.stl-hud-event-category-icon').textContent === '\ud83d\udd0e', 'locator category icon differs');
+                assert(lastLog().querySelector('.stl-hud-event-status-icon').textContent === '\u00b7', 'debug status marker differs');
+                assert(lastLog().querySelector('.stl-hud-event-category').textContent === '[LOCATOR]', 'locator category text missing');
+                assert(lastLog().querySelector('.stl-hud-event-phase').textContent === 'DEBUG', 'debug phase text missing');
+
+                window.__uiTestLens.modules.hud.log('Custom icon','info',null,'HUD',null,null,null,
+                  {category:'USER',phase:'PASSED',operationId:'custom-icon',technical:false,customIcon:'\ud83d\udc69\u200d\ud83d\udcbb'});
+                assert(lastLog().querySelector('.stl-hud-event-category-icon').textContent === '\ud83d\udc69\u200d\ud83d\udcbb', 'compound custom icon changed');
+                assert(lastLog().querySelector('.stl-hud-event-status-icon').textContent === '\u2705', 'custom icon replaced status icon');
+                assert(lastLog().querySelector('.stl-hud-event-category').textContent === '[USER]', 'custom icon changed category text');
+                assert(lastLog().querySelector('.stl-hud-event-phase').textContent === 'PASSED', 'custom icon changed status text');
+                window.__uiTestLens.modules.hud.log('Malicious icon','info',null,'HUD',null,null,null,
+                  {category:'USER',phase:'INFO',operationId:'unsafe-icon',technical:false,customIcon:'<img src=x onerror=alert(1)>'});
+                assert(lastLog().querySelector('.stl-hud-event-category-icon').textContent === '<img src=x onerror=alert(1)>', 'unsafe icon was not retained as text');
+                assert(!lastLog().querySelector('img'), 'unsafe icon created markup');
+                window.__uiTestLens.modules.hud.log('Blank icon','info',null,'HUD',null,null,null,
+                  {category:'USER',phase:'INFO',operationId:'blank-icon',technical:false,customIcon:'  '});
+                assert(lastLog().querySelector('.stl-hud-event-category-icon').textContent === '\ud83d\udcac', 'blank icon did not use USER default');
+
+                window.__uiTestLens.modules.hud.clear();
+                window.__uiTestLens.modules.hud.log('<img src=x onerror=alert(1)>','info',null,'HUD',null,null,null,
+                  {category:'USER',phase:'INFO',operationId:'user-1',technical:false});
+                assert(lastLog().querySelector('.stl-hud-event-message').textContent === '<img src=x onerror=alert(1)>', 'unsafe message was not retained as text');
+                assert(!lastLog().querySelector('img'), 'unsafe message created markup');
+                window.__uiTestLens.modules.hud.log('😀 🚀 ❤️ 👩‍💻 👨‍👩‍👧‍👦 🇵🇱 👍🏽 1️⃣ é','info',null,'HUD',null,null,null,
+                  {category:'<script>alert(1)</script>',phase:'INFO',operationId:'unicode-1',technical:false});
+                assert(lastLog().querySelector('.stl-hud-event-message').textContent === '😀 🚀 ❤️ 👩‍💻 👨‍👩‍👧‍👦 🇵🇱 👍🏽 1️⃣ é', 'Unicode message changed in DOM');
+                assert(lastLog().attributes['data-category'] === 'SYSTEM', 'unsafe category did not use neutral fallback');
+                assert(!lastLog().querySelector('script'), 'unsafe category created markup');
 
                 [{w:1440,h:900},{w:1024,h:768},{w:768,h:700},{w:390,h:844}].forEach(function(viewport) {
                   ['TOP_LEFT', 'TOP_RIGHT', 'BOTTOM_LEFT', 'BOTTOM_RIGHT'].forEach(function(position) {

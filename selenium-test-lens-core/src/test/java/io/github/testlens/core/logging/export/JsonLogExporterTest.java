@@ -33,6 +33,9 @@ class JsonLogExporterTest {
         assertTrue(json.contains("\"level\":\"INFO\""));
         assertTrue(json.contains("\"eventType\":\"ACTION\""));
         assertTrue(json.contains("\"status\":\"PASSED\""));
+        assertTrue(json.contains("\"semanticCategory\":\"ACTION\""));
+        assertTrue(json.contains("\"semanticPhase\":\"PASSED\""));
+        assertTrue(json.contains("\"operationId\":\"\""));
         assertTrue(json.contains("\"message\":\"Saved\""));
         assertTrue(json.contains("\"target\":{\"selector\":\"#save\""));
         assertTrue(json.contains("\"metadata\":{\"a\":\"1\",\"b\":\"2\"}"));
@@ -65,6 +68,24 @@ class JsonLogExporterTest {
 
         assertTrue(json.contains("\n  {"));
         assertTrue(json.contains("\n    \"level\""));
+    }
+
+    @Test
+    void preservesEmojiSequencesAndOperationIdentity() {
+        String unicode = "😀 🚀 ❤️ 👩‍💻 👨‍👩‍👧‍👦 🇵🇱 👍🏽 1️⃣ é";
+        UiTestLensLogEntry entry = UiTestLensLogEntry.builder()
+                .eventType(UiTestLensEventType.ASSERTION_PASSED)
+                .status(UiTestLensStatus.PASSED)
+                .message(unicode)
+                .metadata("operationId", "assertion-7")
+                .build();
+
+        String json = new JsonLogExporter(new LogExportOptions(false, true, false, 500)).export(java.util.List.of(entry));
+
+        assertTrue(json.contains(unicode));
+        assertTrue(json.contains("\"semanticCategory\":\"ASSERTION\""));
+        assertTrue(json.contains("\"semanticPhase\":\"PASSED\""));
+        assertTrue(json.contains("\"operationId\":\"assertion-7\""));
     }
 
     @Test

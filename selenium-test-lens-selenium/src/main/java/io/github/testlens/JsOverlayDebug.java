@@ -87,7 +87,7 @@ public final class JsOverlayDebug {
     private final OverlayRootManager rootManager;
     private final HighlightActions highlightActions;
     private final TypingActions typingActions;
-    private final HudPanel hudPanel;
+    private final SemanticHudPanel hudPanel;
     private final PageWaits pageWaits;
     private final PopupDetector popupDetector;
     private final ConfiguredSmartClickActions smartClickActions;
@@ -108,6 +108,9 @@ public final class JsOverlayDebug {
     private UiTestLensSession session;
     private NetworkDiagnostics networkDiagnostics;
     private AuthStateManager authStateManager;
+    private final String consumerOperationSession = java.util.UUID.randomUUID().toString();
+    private final java.util.concurrent.atomic.AtomicLong consumerOperationSequence = new java.util.concurrent.atomic.AtomicLong();
+    private final ThreadLocal<ConsumerOperationState> consumerOperation = new ThreadLocal<>();
 
     // ======================================================================
     //  CTOR
@@ -176,7 +179,7 @@ public final class JsOverlayDebug {
         this.typingActions = new TypingActions(driver, rootManager, config, this.logger);
         this.smartClickActions = new ConfiguredSmartClickActions(driver, config, rootManager, highlightActions, this.logger);
         this.smartInputActions = new SmartInputActions(driver, config, rootManager, typingActions, this.logger);
-        this.hudPanel = new HudPanel(scriptExecutor, rootManager, config);
+        this.hudPanel = new SemanticHudPanel(scriptExecutor, rootManager, config);
         this.hudLogSink.attach(this.hudPanel, driver, config.getHudOptions());
         this.pageWaits = new ConfiguredPageWaits(driver, config, this.locatorOptions.timeout(),
                 this.locatorOptions.pollInterval(), this.logger);
@@ -510,19 +513,33 @@ public final class JsOverlayDebug {
                                UiTestLensLogLevel level,
                                Throwable failure) {
         try {
-            logger.emit(UiTestLensLogEntry.builder()
+            ConsumerOperationState operation = consumerOperation.get();
+            if (status == UiTestLensStatus.STARTED || operation == null) {
+                operation = new ConsumerOperationState(consumerOperationSession + ":"
+                        + consumerOperationSequence.incrementAndGet(), System.nanoTime());
+                consumerOperation.set(operation);
+            }
+            UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder()
                     .level(level)
                     .eventType(UiTestLensEventType.ACTION)
                     .status(status)
                     .message(description == null ? action : description)
                     .action(action)
                     .metadata("description", description == null ? "" : description)
-                    .throwable(failure)
-                    .build());
+                    .metadata("operationId", operation.id())
+                    .throwable(failure);
+            if (status == UiTestLensStatus.PASSED || status == UiTestLensStatus.FAILED) {
+                builder.metadata("durationMs", String.valueOf(Math.max(0L,
+                        (System.nanoTime() - operation.startedNanos()) / 1_000_000L)));
+            }
+            logger.emit(builder.build());
+            if (status == UiTestLensStatus.PASSED || status == UiTestLensStatus.FAILED) consumerOperation.remove();
         } catch (RuntimeException ignored) {
             // Trace/HUD presentation is observability and cannot alter the browser operation.
         }
     }
+
+    private record ConsumerOperationState(String id, long startedNanos) {}
 
     private ActionabilityChecker actionabilityChecker() {
         OverlayPolicyExecutor policyExecutor = overlayPolicy == null || overlayPolicy.isEmpty()
@@ -559,10 +576,23 @@ public final class JsOverlayDebug {
     }
 
     public void hudLog(String level, String message, String timestamp) {
+        hudLogEntry(level, message, timestamp, null);
+    }
+
+    /**
+     * Adds a user-authored HUD message with an optional decorative category icon.
+     * Null, empty, and blank icons use the default USER icon.
+     *
+     * @since 0.4.0
+     */
+    public void hudLog(String level, String message, String timestamp, String icon) {
+        hudLogEntry(level, message, timestamp, icon);
+    }
+
+    private void hudLogEntry(String level, String message, String timestamp, String icon) {
         Instant eventTimestamp = hudTimestamp(timestamp);
         String canonicalTimestamp = eventTimestamp.toString();
-        hudPanel.appendLog(redact(level), redact(message), canonicalTimestamp);
-        emit(UiTestLensLogEntry.builder()
+        UiTestLensLogEntry.Builder entry = UiTestLensLogEntry.builder()
                 .timestamp(eventTimestamp)
                 .level(toLogLevel(level))
                 .eventType(UiTestLensEventType.HUD)
@@ -570,8 +600,11 @@ public final class JsOverlayDebug {
                 .message(message)
                 .action("hud.log")
                 .metadata("hudLevel", safeString(level))
-                .metadata("timestamp", canonicalTimestamp)
-                .build());
+                .metadata("timestamp", canonicalTimestamp);
+        if (icon != null && !icon.isBlank()) {
+            entry.metadata(HudEventSemantics.USER_ICON_METADATA, icon);
+        }
+        emit(entry.build());
     }
 
     private static Instant hudTimestamp(String value) {
@@ -752,8 +785,9 @@ public final class JsOverlayDebug {
         @Override
         public void accept(UiTestLensLogEntry entry) {
             HudPanel current = hud;
-            if (current == null || entry == null || entry.eventType() == UiTestLensEventType.HUD) return;
-            if (isInternalHudEntry(entry)) return;
+            if (current == null || entry == null) return;
+            HudEventSemantics semantics = HudEventSemantics.from(entry);
+            if (!semanticVisible(options, entry, semantics)) return;
             if (!eventVisible(options, entry.eventType())) return;
             if (isRawNetworkEntry(entry.eventType())
                     && "false".equalsIgnoreCase(entry.metadata().get("hudVisible"))) return;
@@ -772,8 +806,10 @@ public final class JsOverlayDebug {
                 }
             }
             UiTestLensLogEntry deferred;
-            while ((deferred = deferredDuringAlert.poll()) != null) append(current, deferred);
-            append(current, entry);
+            while ((deferred = deferredDuringAlert.poll()) != null) {
+                append(current, deferred, HudEventSemantics.from(deferred));
+            }
+            append(current, entry, semantics);
         }
 
         private static boolean isRawNetworkEntry(UiTestLensEventType eventType) {
@@ -782,24 +818,12 @@ public final class JsOverlayDebug {
                     || eventType == UiTestLensEventType.NETWORK_FAILURE_RECORDED;
         }
 
-        private static boolean isInternalHudEntry(UiTestLensLogEntry entry) {
-            UiTestLensEventType type = entry.eventType();
-            if (type == UiTestLensEventType.LOCATOR_RESOLVE_STARTED
-                    || type == UiTestLensEventType.LOCATOR_RESOLVE_PASSED
-                    || type == UiTestLensEventType.LOCATOR_RESOLVE_FAILED
-                    || type == UiTestLensEventType.ACTIONABILITY_CHECK_STARTED
-                    || type == UiTestLensEventType.ACTIONABILITY_CHECK_PASSED
-                    || type == UiTestLensEventType.ACTIONABILITY_CHECK_FAILED
-                    || type == UiTestLensEventType.ACTIONABILITY_READY
-                    || type == UiTestLensEventType.ACTIONABILITY_NOT_READY) {
-                return true;
-            }
-            if ((type == UiTestLensEventType.LOCATOR_RETRY || type == UiTestLensEventType.ASSERTION_RETRY)
-                    && "poll".equals(entry.metadata().get("retryKind"))) {
-                return true;
-            }
-            return type == UiTestLensEventType.HIGHLIGHT
-                    && "automatic".equals(entry.metadata().get("feedbackKind"));
+        private static boolean semanticVisible(io.github.testlens.hud.HudOptions options,
+                                               UiTestLensLogEntry entry,
+                                               HudEventSemantics semantics) {
+            if ("poll".equals(entry.metadata().get("retryKind"))) return false;
+            if (!semantics.technical() || "WARNING".equals(semantics.phase())) return true;
+            return options != null && options.preset() == io.github.testlens.hud.HudPreset.DEBUG;
         }
 
         private static boolean eventVisible(io.github.testlens.hud.HudOptions options, UiTestLensEventType type) {
@@ -813,11 +837,11 @@ public final class JsOverlayDebug {
                     || name.startsWith("NETWORK_ASSERTION_")) || options.showAssertions();
         }
 
-        private void append(HudPanel hud, UiTestLensLogEntry entry) {
+        private void append(HudPanel hud, UiTestLensLogEntry entry, HudEventSemantics semantics) {
             refreshCompatibilityIfNeeded();
             String description = entry.metadata().getOrDefault("description", "");
             String action = entry.action() == null ? "" : entry.action();
-            String message = description.isBlank() ? entry.message() : action + ": " + description;
+            String message = hudMessage(entry, semantics, action, description);
             String sourceLabel = entry.sourceLocation().map(io.github.testlens.core.logging.SourceLocation::displayName).orElse(null);
             String navigationTarget = null;
             Optional<Path> resolved = Optional.empty();
@@ -842,12 +866,27 @@ public final class JsOverlayDebug {
             if (publishedCompatibilityFingerprint == null || sourceLabel != null) {
                 publishCompatibilityIfChanged(hud, effectiveCompatibility);
             }
-            if (sourceLabel == null && navigationTarget == null) {
+            if (hud instanceof SemanticHudPanel semanticHud) {
+                semanticHud.appendSemantic(entry, message, sourceLabel, navigationTarget, semantics);
+            } else if (sourceLabel == null && navigationTarget == null) {
                 hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString());
             } else {
                 hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString(),
                         entry.eventType().name(), sourceLabel, navigationTarget);
             }
+        }
+
+        private static String hudMessage(UiTestLensLogEntry entry,
+                                         HudEventSemantics semantics,
+                                         String action,
+                                         String description) {
+            if ("ASSERTION".equals(semantics.category()) && "RUNNING".equals(semantics.phase())) {
+                String assertion = entry.metadata().getOrDefault("assertion", action);
+                String locator = entry.metadata().getOrDefault("locator", "");
+                return locator.isBlank() ? assertion : assertion + " · " + locator;
+            }
+            if (!description.isBlank()) return action.isBlank() ? description : action + ": " + description;
+            return entry.message();
         }
 
         private void refreshCompatibilityIfNeeded() {
@@ -885,8 +924,24 @@ public final class JsOverlayDebug {
             if (fingerprint.equals(publishedCompatibilityFingerprint)) return;
             publishedCompatibilityFingerprint = fingerprint;
             String level = value.readiness() == SourceNavigationCompatibility.Readiness.ACTION_REQUIRED ? "warn" : "info";
-            hud.appendLog(level, value.javaSummary(), java.time.Instant.now().toString(),
-                    value.hudEventType(), null, null);
+            UiTestLensLogEntry compatibilityEntry = UiTestLensLogEntry.builder()
+                    .timestamp(java.time.Instant.now())
+                    .level(value.readiness() == SourceNavigationCompatibility.Readiness.ACTION_REQUIRED
+                            ? UiTestLensLogLevel.WARN : UiTestLensLogLevel.INFO)
+                    .eventType(UiTestLensEventType.GENERAL)
+                    .status(value.readiness() == SourceNavigationCompatibility.Readiness.ACTION_REQUIRED
+                            ? UiTestLensStatus.WARN : UiTestLensStatus.INFO)
+                    .message(value.javaSummary())
+                    .action("source-navigation.compatibility")
+                    .metadata("sourceNavigationEventType", value.hudEventType())
+                    .build();
+            if (hud instanceof SemanticHudPanel semanticHud) {
+                semanticHud.appendSemantic(compatibilityEntry, value.javaSummary(), null, null,
+                        HudEventSemantics.from(compatibilityEntry));
+            } else {
+                hud.appendLog(level, value.javaSummary(), compatibilityEntry.timestamp().toString(),
+                        value.hudEventType(), null, null);
+            }
             if (driver instanceof JavascriptExecutor executor) {
                 try {
                     JetBrainsEnvironment environment = value.environment();

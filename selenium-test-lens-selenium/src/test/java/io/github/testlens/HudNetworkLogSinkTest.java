@@ -103,7 +103,7 @@ class HudNetworkLogSinkTest {
                 .showWaits(true).showAssertions(true).build());
         Instant eventTime = Instant.parse("2026-07-15T22:00:00.123456789Z");
         List<UiTestLensEventType> visibleFamilies = List.of(
-                UiTestLensEventType.STEP, UiTestLensEventType.ACTION, UiTestLensEventType.HIGHLIGHT,
+                UiTestLensEventType.STEP, UiTestLensEventType.ACTION,
                 UiTestLensEventType.WAIT, UiTestLensEventType.LOCATOR_RETRY,
                 UiTestLensEventType.ASSERTION_PASSED, UiTestLensEventType.NETWORK_WAIT_STARTED,
                 UiTestLensEventType.NETWORK_RESPONSE_RECORDED, UiTestLensEventType.AUTH_STATE_CREATED,
@@ -116,6 +116,33 @@ class HudNetworkLogSinkTest {
         assertEquals(visibleFamilies.size(), hud.messages.size());
         assertEquals(visibleFamilies.size(), hud.timestamps.size());
         hud.timestamps.forEach(value -> assertEquals(eventTime.toString(), value));
+    }
+
+    @Test
+    void standardHidesSuccessfulTechnicalNoiseAndDebugShowsIt() {
+        RecordingHud standardHud = new RecordingHud();
+        JsOverlayDebug.HudLogSink standard = new JsOverlayDebug.HudLogSink();
+        standard.attach(standardHud, null, HudOptions.builder().preset(io.github.testlens.hud.HudPreset.STANDARD).build());
+        standard.accept(UiTestLensLogEntry.builder().eventType(UiTestLensEventType.LOCATOR_RESOLVE_PASSED)
+                .status(io.github.testlens.core.logging.UiTestLensStatus.PASSED).message("resolved").build());
+        standard.accept(UiTestLensLogEntry.builder().eventType(UiTestLensEventType.HIGHLIGHT)
+                .status(io.github.testlens.core.logging.UiTestLensStatus.INFO).message("rendered").build());
+        standard.accept(UiTestLensLogEntry.builder().eventType(UiTestLensEventType.ASSERTION_RETRY)
+                .status(io.github.testlens.core.logging.UiTestLensStatus.WARN).message("poll mismatch")
+                .metadata("retryKind", "poll").build());
+        assertEquals(List.of(), standardHud.messages);
+
+        RecordingHud debugHud = new RecordingHud();
+        JsOverlayDebug.HudLogSink debug = new JsOverlayDebug.HudLogSink();
+        debug.attach(debugHud, null, HudOptions.builder().preset(io.github.testlens.hud.HudPreset.DEBUG).build());
+        debug.accept(UiTestLensLogEntry.builder().eventType(UiTestLensEventType.LOCATOR_RESOLVE_PASSED)
+                .status(io.github.testlens.core.logging.UiTestLensStatus.PASSED).message("resolved").build());
+        debug.accept(UiTestLensLogEntry.builder().eventType(UiTestLensEventType.HIGHLIGHT)
+                .status(io.github.testlens.core.logging.UiTestLensStatus.INFO).message("rendered").build());
+        debug.accept(UiTestLensLogEntry.builder().eventType(UiTestLensEventType.ASSERTION_RETRY)
+                .status(io.github.testlens.core.logging.UiTestLensStatus.WARN).message("poll mismatch")
+                .metadata("retryKind", "poll").build());
+        assertEquals(List.of("resolved", "rendered"), debugHud.messages);
     }
 
     @Test

@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
 # Types: 276
-# Public callable methods/constructors: 2146
+# Public callable methods/constructors: 2147
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -1113,6 +1113,7 @@ TYPE io.github.testlens.JsOverlayDebug
   public void initHud(java.lang.String, java.lang.String)
   public void setStep(java.lang.String)
   public void hudLog(java.lang.String, java.lang.String, java.lang.String)
+  public void hudLog(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
   public void highlightClick(org.openqa.selenium.WebElement, java.lang.String)
   public org.openqa.selenium.WebElement highlightElement(org.openqa.selenium.WebElement, java.lang.String)
   public org.openqa.selenium.WebElement highlightElement(org.openqa.selenium.WebElement, java.lang.String, io.github.testlens.HighlightState)

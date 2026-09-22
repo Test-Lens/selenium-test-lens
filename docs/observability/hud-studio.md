@@ -6,6 +6,8 @@ title: HUD Studio
 
 HUD Studio configures the same browser-side renderer that Test Lens injects at runtime. Drag and resize the HUD in the preview or use the bounded product controls; both paths update one `HudOptions` model and the generated Java. The preview supplies synthetic events and never contacts an application or external service.
 
+The preview uses the production semantic renderer and includes ACTION and ASSERTION running/terminal rows, assertion retry/failure, a SYSTEM warning, a USER message, and technical LOCATOR/HIGHLIGHT diagnostics. STANDARD/COMPACT suppress successful technical diagnostics before DOM insertion; DEBUG reveals them as muted DEBUG rows. Category/status icons never replace the visible textual labels, and preset switching uses the same filtering rules as the runtime.
+
 The Source navigation section generates the opt-in `SourceNavigationOptions` block, IDE provider, and activation shortcut. F8 is the default toggle; the legacy Ctrl+Alt hold option remains available. Its preview uses synthetic file labels only and does not open an IDE.
 
 !!! info "0.3.1 timestamp API"

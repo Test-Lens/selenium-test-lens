@@ -77,6 +77,7 @@ public final class HtmlLogExporter implements UiTestLensLogExporter {
     }
 
     private TraceEvent toTraceEvent(UiTestLensLogEntry entry) {
+        LogEventSemantics semantics = LogEventSemantics.from(entry);
         TraceEvent.Builder builder = TraceEvent.builder(
                         traceType(entry.eventType()),
                         traceStatus(entry.status()),
@@ -84,7 +85,10 @@ public final class HtmlLogExporter implements UiTestLensLogExporter {
                 .timestamp(entry.timestamp())
                 .message(limit(entry.message()))
                 .attribute("level", entry.level().name())
-                .attribute("eventType", entry.eventType().name());
+                .attribute("eventType", entry.eventType().name())
+                .attribute("semanticCategory", semantics.category())
+                .attribute("semanticPhase", semantics.phase())
+                .attribute("operationId", semantics.operationId());
 
         if (entry.step() != null && !entry.step().isBlank()) {
             builder.attribute("step", limit(entry.step()));
@@ -216,7 +220,7 @@ public final class HtmlLogExporter implements UiTestLensLogExporter {
             return "";
         }
         int max = options.maxFieldLength();
-        return value.length() <= max ? value : value.substring(0, max) + "...";
+        return UnicodeText.truncate(value, max);
     }
 }
 

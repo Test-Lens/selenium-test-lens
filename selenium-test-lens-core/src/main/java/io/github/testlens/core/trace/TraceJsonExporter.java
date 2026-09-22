@@ -67,7 +67,7 @@ public final class TraceJsonExporter {
                     .toBuilder()
                     .artifactBaseDirectory(parent)
                     .build();
-            Files.writeString(outputPath, export(session, effectiveOptions));
+            Files.writeString(outputPath, export(session, effectiveOptions), java.nio.charset.StandardCharsets.UTF_8);
             return outputPath;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -122,7 +122,7 @@ public final class TraceJsonExporter {
                     .toBuilder()
                     .artifactBaseDirectory(parent)
                     .build();
-            Files.writeString(outputPath, exportSuite(sessions, effectiveOptions));
+            Files.writeString(outputPath, exportSuite(sessions, effectiveOptions), java.nio.charset.StandardCharsets.UTF_8);
             return outputPath;
         } catch (IOException e) {
             throw new UncheckedIOException(e);

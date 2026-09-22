@@ -315,7 +315,19 @@
       + '.stl-hud-source-status-reason{color:var(--ui-test-lens-hud-warning,#f59e0b);margin-top:2px}'
       + '.stl-hud-source-compatibility-details{color:var(--ui-test-lens-hud-muted-fg,#cbd5e1);white-space:pre-wrap;margin-top:2px}'
       + '.stl-hud-source-compatibility-details>summary{cursor:pointer;color:var(--ui-test-lens-hud-accent,#38bdf8)}'
-      + '.stl-hud-source-compatibility-retry{margin-top:3px;padding:2px 5px;border:1px solid currentColor;border-radius:3px;color:inherit;background:transparent;font:inherit;cursor:pointer}';
+      + '.stl-hud-source-compatibility-retry{margin-top:3px;padding:2px 5px;border:1px solid currentColor;border-radius:3px;color:inherit;background:transparent;font:inherit;cursor:pointer}'
+      + '.stl-hud-event{border-left:2px solid var(--stl-event-color,var(--ui-test-lens-hud-muted-fg,#cbd5e1));padding-left:5px}'
+      + '.stl-hud-event-category,.stl-hud-event-phase{font-size:.82em;font-weight:700;letter-spacing:.045em;white-space:nowrap}'
+      + '.stl-hud-event-icon{font-family:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;white-space:nowrap}'
+      + '.stl-hud-event-message{min-width:0;overflow-wrap:anywhere}'
+      + '.stl-hud-event[data-phase="PASSED"]{--stl-event-color:var(--ui-test-lens-hud-success,#22c55e)}'
+      + '.stl-hud-event[data-phase="FAILED"]{--stl-event-color:var(--ui-test-lens-hud-danger,#ef4444)}'
+      + '.stl-hud-event[data-phase="WARNING"],.stl-hud-event[data-phase="RETRYING"]{--stl-event-color:var(--ui-test-lens-hud-warning,#f59e0b)}'
+      + '.stl-hud-event[data-phase="RUNNING"]{--stl-event-color:var(--ui-test-lens-hud-accent,#38bdf8)}'
+      + '.stl-hud-event[data-phase="DEBUG"]{opacity:.72}'
+      + '.stl-hud-event[data-phase="RUNNING"] .stl-hud-event-status-icon{animation:stl-hud-pulse 1.25s ease-in-out infinite}'
+      + '@keyframes stl-hud-pulse{50%{opacity:.45}}'
+      + '@media (prefers-reduced-motion:reduce){.stl-hud-event-status-icon{animation:none!important}}';
     shadow.appendChild(style);
   }
 
@@ -846,13 +858,82 @@
     positionPanel(panel, lens.state.hud.lastConfig || {});
   }
 
-  function eventVisible(config, eventType) {
+  var SEMANTIC_CATEGORY_ICONS = {
+    ACTION:'\ud83d\uddb1\ufe0f', ASSERTION:'\ud83e\uddea', LOCATOR:'\ud83d\udd0e', ACTIONABILITY:'\ud83d\udee1\ufe0f',
+    HIGHLIGHT:'\u2728', USER:'\ud83d\udcac', SYSTEM:'\u2139\ufe0f'
+  };
+  var SEMANTIC_PHASE_ICONS = {
+    RUNNING:'\u23f3', PASSED:'\u2705', RETRYING:'\ud83d\udd04', WARNING:'\u26a0\ufe0f',
+    FAILED:'\u274c', INFO:'\u2139\ufe0f', DEBUG:'\u00b7'
+  };
+
+  function fallbackCategory(eventType) {
+    var type = String(eventType || 'GENERAL');
+    if (type === 'HIGHLIGHT') return 'HIGHLIGHT';
+    if (type.indexOf('ACTIONABILITY_') === 0) return 'ACTIONABILITY';
+    if (type.indexOf('LOCATOR_RESOLVE_') === 0) return 'LOCATOR';
+    if (type.indexOf('ASSERTION_') === 0 || type.indexOf('BUSINESS_ASSERTION_') === 0 || type.indexOf('NETWORK_ASSERTION_') === 0) return 'ASSERTION';
+    if (type === 'HUD') return 'USER';
+    if (type === 'ACTION' || type === 'WAIT' || type.indexOf('LOCATOR_ACTION_') === 0 || type === 'LOCATOR_RETRY') return 'ACTION';
+    return 'SYSTEM';
+  }
+
+  function fallbackPhase(eventType, level) {
+    var type = String(eventType || 'GENERAL'), severity = String(level || 'info').toLowerCase();
+    if (type.indexOf('_STARTED') > 0 || type === 'WAIT') return 'RUNNING';
+    if (type.indexOf('_PASSED') > 0) return 'PASSED';
+    if (type.indexOf('_FAILED') > 0 || type.indexOf('_TIMED_OUT') > 0 || severity === 'error') return 'FAILED';
+    if (type.indexOf('_RETRY') > 0) return 'RETRYING';
+    if (severity === 'warn') return 'WARNING';
+    return 'INFO';
+  }
+
+  function normalizeSemantics(value, eventType, level) {
+    var semantic = value && typeof value === 'object' ? value : {};
+    var category = String(semantic.category || fallbackCategory(eventType)).toUpperCase();
+    var phase = String(semantic.phase || fallbackPhase(eventType, level)).toUpperCase();
+    var customIcon = semantic.customIcon == null ? '' : String(semantic.customIcon);
+    return {
+      category:SEMANTIC_CATEGORY_ICONS[category] ? category : 'SYSTEM',
+      phase:SEMANTIC_PHASE_ICONS[phase] ? phase : 'INFO',
+      operationId:String(semantic.operationId || ''),
+      attempt:Math.max(0, Number(semantic.attempt) || 0),
+      durationMs:Math.max(0, Number(semantic.durationMs) || 0),
+      technical:semantic.technical === true,
+      severity:String(semantic.severity || level || 'INFO').toUpperCase(),
+      customIcon:category === 'USER' && customIcon.trim() ? customIcon : ''
+    };
+  }
+
+  function semanticVisible(config, semantic) {
+    var preset = String(option(config, 'preset', 'STANDARD')).toUpperCase();
+    if (semantic.technical && semantic.phase !== 'WARNING' && preset !== 'DEBUG') return false;
+    if (preset === 'MINIMAL' && semantic.phase !== 'FAILED' && semantic.phase !== 'WARNING') return false;
+    return true;
+  }
+
+  function eventVisible(config, eventType, semantic) {
+    if (!semanticVisible(config, semantic)) return false;
     var type = String(eventType || 'GENERAL');
     if (type.indexOf('NETWORK_') === 0 && !option(config, 'showNetwork', true)) return false;
     if ((type === 'LOCATOR_RETRY' || type === 'ASSERTION_RETRY') && !option(config, 'showRetries', true)) return false;
     if ((type === 'WAIT' || type.indexOf('NETWORK_WAIT_') === 0) && !option(config, 'showWaits', true)) return false;
     if ((type === 'ASSERTION' || type.indexOf('ASSERTION_') === 0 || type.indexOf('BUSINESS_ASSERTION_') === 0 || type.indexOf('NETWORK_ASSERTION_') === 0) && !option(config, 'showAssertions', true)) return false;
     return true;
+  }
+
+  function operationRow(logs, operationId, category) {
+    if (!operationId) return null;
+    var children = logs.children || [];
+    for (var i=children.length-1;i>=0;i--) {
+      var candidate = children[i];
+      var candidateId = candidate.getAttribute ? candidate.getAttribute('data-operation-id')
+        : candidate.attributes && candidate.attributes['data-operation-id'];
+      var candidateCategory = candidate.getAttribute ? candidate.getAttribute('data-category')
+        : candidate.attributes && candidate.attributes['data-category'];
+      if (candidateId === operationId && candidateCategory === category) return candidate;
+    }
+    return null;
   }
 
   function acceptedTimestamp(value) {
@@ -864,45 +945,38 @@
     return {date:date,canonical:Number.isFinite(millis) ? raw : date.toISOString()};
   }
 
-  function log(message, level, timestamp, eventType, sourceLabel, navigationTarget, presentationTimestamp) {
+  function log(message, level, timestamp, eventType, sourceLabel, navigationTarget, presentationTimestamp, semanticValue) {
     var config = lens.state.hud.lastConfig || {};
-    if (!option(config, 'showEventLog', true) || !eventVisible(config, eventType)) return;
-    var panel = ensurePanel(lens.state.hud.lastConfig || {});
-    if (!panel) {
-      return;
-    }
+    var semantic = normalizeSemantics(semanticValue, eventType, level);
+    if (!option(config, 'showEventLog', true) || !eventVisible(config, eventType, semantic)) return;
+    var panel = ensurePanel(config);
+    if (!panel) return;
 
     var logs = ensureLogs(panel, config);
-    var row = document.createElement('div');
+    var row = operationRow(logs, semantic.operationId, semantic.category);
+    var newRow = !row;
+    if (!row) row = document.createElement('div');
+    else row.textContent = '';
+    row.className = 'stl-hud-event';
+    row.setAttribute('data-category', semantic.category);
+    row.setAttribute('data-phase', semantic.phase);
+    row.setAttribute('data-severity', semantic.severity);
+    if (semantic.operationId) row.setAttribute('data-operation-id', semantic.operationId);
+    row.setAttribute('role', semantic.phase === 'FAILED' || semantic.phase === 'WARNING' ? 'alert' : 'status');
+    row.setAttribute('aria-label', semantic.category + ' ' + semantic.phase + ': ' + String(message || ''));
     row.style.fontFamily = 'var(--ui-test-lens-hud-event-font-family, var(--ui-test-lens-hud-font-family))';
     row.style.fontSize = 'var(--ui-test-lens-hud-font-size, 10px)';
     row.style.marginBottom = '5px';
     row.style.display = 'flex';
     row.style.flexWrap = 'wrap';
-    row.style.columnGap = '3px';
+    row.style.columnGap = '4px';
     row.style.alignItems = 'baseline';
     row.style.whiteSpace = 'pre-wrap';
     row.style.wordBreak = 'break-word';
     row.style.lineHeight = '1.32';
+    row.style.color = 'var(--ui-test-lens-hud-fg, #ffffff)';
 
-    var lvl = (level || '').toLowerCase();
-    var color = 'var(--ui-test-lens-hud-fg, #ffffff)';
-    if (lvl === 'warn') {
-      color = 'var(--ui-test-lens-hud-warning, #ffd93b)';
-    }
-    if (lvl === 'error' || lvl === 'failed') {
-      color = 'var(--ui-test-lens-hud-danger, #ff4c4c)';
-    }
-    if (lvl === 'success') {
-      color = 'var(--ui-test-lens-hud-success, #00ff7f)';
-    }
-    if (lvl === 'royal') {
-      color = 'var(--ui-test-lens-hud-accent, #4ca3ff)';
-    }
-    row.style.color = color;
-
-    var accepted = acceptedTimestamp(timestamp);
-    var eventTimestamp = accepted.date;
+    var accepted = acceptedTimestamp(timestamp), eventTimestamp = accepted.date;
     row.setAttribute('data-test-lens-timestamp', accepted.canonical);
     var showTimestamp = option(config, 'showTimestamps', false);
     if (showTimestamp) {
@@ -911,19 +985,44 @@
       timestampNode.textContent = '[' + (presentationTimestamp == null || String(presentationTimestamp).trim() === ''
         ? eventTimestamp.toISOString() : String(presentationTimestamp)) + ']';
       timestampNode.style.fontSize = 'var(--ui-test-lens-hud-timestamp-font-size, 9px)';
-      timestampNode.style.lineHeight = '1';
-      timestampNode.style.whiteSpace = 'normal';
-      timestampNode.style.overflowWrap = 'anywhere';
-      timestampNode.style.flex = '0 1 auto';
-      timestampNode.style.minWidth = '0';
       timestampNode.style.color = 'var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,.78))';
       row.appendChild(timestampNode);
     }
+    var categoryIcon = document.createElement('span');
+    categoryIcon.className = 'stl-hud-event-icon stl-hud-event-category-icon';
+    categoryIcon.setAttribute('aria-hidden', 'true');
+    categoryIcon.textContent = semantic.customIcon || SEMANTIC_CATEGORY_ICONS[semantic.category] || SEMANTIC_CATEGORY_ICONS.SYSTEM;
+    row.appendChild(categoryIcon);
+    var category = document.createElement('span');
+    category.className = 'stl-hud-event-category';
+    category.textContent = '[' + semantic.category + ']';
+    row.appendChild(category);
+    var statusIcon = document.createElement('span');
+    statusIcon.className = 'stl-hud-event-icon stl-hud-event-status-icon';
+    statusIcon.setAttribute('aria-hidden', 'true');
+    statusIcon.textContent = SEMANTIC_PHASE_ICONS[semantic.phase];
+    row.appendChild(statusIcon);
+    var phase = document.createElement('span');
+    phase.className = 'stl-hud-event-phase';
+    phase.textContent = semantic.phase;
+    row.appendChild(phase);
+    if (semantic.attempt > 0 && semantic.phase === 'RETRYING') {
+      var attempt = document.createElement('span');
+      attempt.className = 'stl-hud-event-attempt';
+      attempt.textContent = 'Attempt ' + semantic.attempt;
+      row.appendChild(attempt);
+    }
+    if (semantic.durationMs > 0 && (semantic.phase === 'PASSED' || semantic.phase === 'FAILED')) {
+      var duration = document.createElement('span');
+      duration.className = 'stl-hud-event-duration';
+      duration.textContent = '\u00b7 ' + semantic.durationMs + ' ms';
+      row.appendChild(duration);
+    }
     var content = document.createElement('span');
-    content.className = 'stl-hud-log-content';
+    content.className = 'stl-hud-log-content stl-hud-event-message';
     content.style.minWidth = '0';
-    content.style.flex = showTimestamp ? '1 1 55%' : '1 1 100%';
-    content.appendChild(document.createTextNode('[' + (level || '').toUpperCase() + '] ' + (message || '')));
+    content.style.flex = '1 1 55%';
+    content.textContent = String(message || '');
     if (option(config, 'sourceNavigationEnabled', false) && sourceLabel) {
       var source = document.createElement(navigationTarget ? 'a' : 'span');
       source.className = 'stl-hud-source-location';
@@ -951,7 +1050,8 @@
       content.appendChild(source);
     }
     row.appendChild(content);
-    logs.appendChild(row);
+    if (newRow) logs.appendChild(row);
+    while (logs.children && logs.children.length > 250) logs.removeChild(logs.firstChild);
     updateScrollableRegions(panel);
     logs.scrollTop = logs.scrollHeight;
   }

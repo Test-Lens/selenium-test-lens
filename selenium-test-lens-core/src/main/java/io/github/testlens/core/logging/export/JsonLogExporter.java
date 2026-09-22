@@ -47,12 +47,16 @@ public final class JsonLogExporter implements UiTestLensLogExporter {
     }
 
     private void appendEntry(StringBuilder out, UiTestLensLogEntry entry, boolean pretty, int depth) {
+        LogEventSemantics semantics = LogEventSemantics.from(entry);
         out.append('{');
         newline(out, pretty);
         appendField(out, "timestamp", entry.timestamp() == null ? null : entry.timestamp().toString(), true, pretty, depth + 1);
         appendField(out, "level", entry.level() == null ? null : entry.level().name(), false, pretty, depth + 1);
         appendField(out, "eventType", entry.eventType() == null ? null : entry.eventType().name(), false, pretty, depth + 1);
         appendField(out, "status", entry.status() == null ? null : entry.status().name(), false, pretty, depth + 1);
+        appendField(out, "semanticCategory", semantics.category(), false, pretty, depth + 1);
+        appendField(out, "semanticPhase", semantics.phase(), false, pretty, depth + 1);
+        appendField(out, "operationId", semantics.operationId(), false, pretty, depth + 1);
         appendField(out, "message", limit(entry.message()), false, pretty, depth + 1);
         appendField(out, "step", limit(entry.step()), false, pretty, depth + 1);
         appendField(out, "action", limit(entry.action()), false, pretty, depth + 1);
@@ -184,7 +188,7 @@ public final class JsonLogExporter implements UiTestLensLogExporter {
             return null;
         }
         int max = options.maxFieldLength();
-        return value.length() <= max ? value : value.substring(0, max) + "...";
+        return UnicodeText.truncate(value, max);
     }
 
     static String escape(String value) {

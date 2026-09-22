@@ -74,6 +74,8 @@ class HtmlLogExporterTest {
         assertTrue(html.contains("Checkout"));
         assertTrue(html.contains("click"));
         assertTrue(html.contains("#save"));
+        assertTrue(html.contains("semanticCategory"));
+        assertTrue(html.contains("semanticPhase"));
     }
 
     @Test
@@ -129,6 +131,27 @@ class HtmlLogExporterTest {
         String html = Files.readString(output);
         assertTrue(html.contains("Saved"));
         assertFalse(html.contains("old"));
+    }
+
+    @Test
+    void writesUnicodeAsUtf8AndKeepsSemanticFields(@TempDir Path directory) throws Exception {
+        String unicode = "😀 🚀 ❤️ 👩‍💻 👨‍👩‍👧‍👦 🇵🇱 👍🏽 1️⃣ é";
+        UiTestLensLogEntry entry = UiTestLensLogEntry.builder()
+                .eventType(UiTestLensEventType.HUD)
+                .status(UiTestLensStatus.INFO)
+                .message(unicode)
+                .metadata("operationId", "user-emoji")
+                .build();
+        Path output = directory.resolve("unicode-report.html");
+
+        new HtmlLogExporter().exportTo(List.of(entry), output);
+        String html = Files.readString(output, java.nio.charset.StandardCharsets.UTF_8);
+
+        assertTrue(html.contains("charset=\"utf-8\""));
+        assertTrue(html.contains(unicode));
+        assertTrue(html.contains("semanticCategory"));
+        assertTrue(html.contains("USER"));
+        assertTrue(html.contains("user-emoji"));
     }
 }
 

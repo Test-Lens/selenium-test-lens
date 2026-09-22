@@ -3,6 +3,7 @@ package io.github.testlens;
 import io.github.testlens.core.trace.TraceArtifact;
 import io.github.testlens.core.trace.TraceArtifactType;
 import io.github.testlens.core.trace.TraceEventType;
+import io.github.testlens.core.trace.TraceJsonExporter;
 import io.github.testlens.core.trace.UiTestLensSession;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureOptions;
 import io.github.testlens.selenium.evidence.ScreenshotCaptureResult;
@@ -56,6 +57,47 @@ class JsOverlayDebugTraceSessionTest {
         assertFalse(fallbackEvent.timestamp().isBefore(beforeFallback));
         assertFalse(fallbackEvent.timestamp().isAfter(afterFallback));
         assertEquals(fallbackEvent.timestamp().toString(), fallbackEvent.attributes().get("metadata.timestamp"));
+    }
+
+    @Test
+    void hudLogCustomIconPreservesCompatibilityUnicodeAndSafeReportRendering() {
+        JsOverlayDebug overlay = new JsOverlayDebug(fakeDriver());
+        UiTestLensSession session = overlay.startSession("custom HUD icons");
+        String[] icons = {
+                "\uD83D\uDE00", "\uD83D\uDE80", "\u2764\uFE0F", "\uD83D\uDC69\u200D\uD83D\uDCBB",
+                "\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66",
+                "\uD83C\uDDF5\uD83C\uDDF1", "\uD83D\uDC4D\uD83C\uDFFD", "1\uFE0F\u20E3"
+        };
+
+        overlay.hudLog("info", "legacy", null);
+        overlay.hudLog("info", "null icon", null, null);
+        overlay.hudLog("info", "empty icon", null, "");
+        overlay.hudLog("info", "blank icon", null, "  \t");
+        for (int index = 0; index < icons.length; index++) {
+            overlay.hudLog("info", "unicode icon " + index, null, icons[index]);
+        }
+        String malicious = "<img src=x onerror=alert(1)>";
+        overlay.hudLog("info", "malicious icon", null, malicious);
+
+        for (String message : List.of("legacy", "null icon", "empty icon", "blank icon")) {
+            var event = session.events().stream().filter(value -> message.equals(value.message())).findFirst().orElseThrow();
+            assertFalse(event.attributes().containsKey("metadata." + HudEventSemantics.USER_ICON_METADATA));
+        }
+        for (int index = 0; index < icons.length; index++) {
+            String message = "unicode icon " + index;
+            var event = session.events().stream().filter(value -> message.equals(value.message())).findFirst().orElseThrow();
+            assertEquals(icons[index], event.attributes().get("metadata." + HudEventSemantics.USER_ICON_METADATA));
+        }
+
+        String json = new TraceJsonExporter().export(session);
+        String html = overlay.exportTraceHtml();
+        for (String icon : icons) {
+            assertTrue(json.contains(icon));
+            assertTrue(html.contains(icon));
+        }
+        assertTrue(json.contains(malicious));
+        assertTrue(html.contains("&lt;img src=x onerror=alert(1)&gt;"));
+        assertFalse(html.contains(malicious));
     }
 
     @Test

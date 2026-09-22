@@ -63,13 +63,22 @@
     if (!state) return;
     hud.remove();
     hud.init({testName:'Checkout creates an order',pipelineId:'studio-preview',offsetX:state.offsetX,offsetY:state.offsetY,maxWidth:state.width,themeName:'CUSTOM',hudOptions:state});
-    hud.setStep('WAIT checkout ready');
+    hud.setStep('Checkout semantic event preview');
     var times=state.timestampPreview&&state.timestampPreview.events||[];
-    hud.log('WAIT checkout ready — PASSED','success','2026-07-15T21:59:58.123456789Z','WAIT','CheckoutPage.java:41',null,times[0]);
-    hud.log('CLICK Place order — RETRY after overlay recovery','warn','2026-07-15T21:59:59.123456789Z','LOCATOR_RETRY','CheckoutPage.java:53','jetbrains://idea/navigate/reference?project=Test%20Lens%20Demo&path=src%2Ftest%2Fjava%2FCheckoutPage.java%3A53',times[1]);
-    hud.log('POST /api/orders','royal','2026-07-15T22:00:00.123456789Z','NETWORK_REQUEST_RECORDED',null,null,times[2]);
-    hud.log('Response recorded: 200 /api/orders','success','2026-07-15T22:00:01.123456789Z','NETWORK_RESPONSE_RECORDED',null,null,times[3]);
-    hud.log('ASSERT confirmation visible — PASSED','success','2026-07-15T22:00:02.123456789Z','ASSERTION_PASSED',null,null,times[4]);
+    function event(message,level,type,category,phase,id,index,technical,attempt,duration){
+      hud.log(message,level,'2026-07-15T22:00:0'+index+'.123456789Z',type,null,null,times.length ? times[index%times.length] : null,
+        {category:category,phase:phase,operationId:id,technical:!!technical,attempt:attempt||0,durationMs:duration||0,severity:String(level).toUpperCase()});
+    }
+    event('Place order','info','LOCATOR_ACTION_STARTED','ACTION','RUNNING','preview-action-running',0,false);
+    event('Place order','info','LOCATOR_ACTION_PASSED','ACTION','PASSED','preview-action-passed',1,false,0,143);
+    event('Confirmation should be visible','info','ASSERTION_STARTED','ASSERTION','RUNNING','preview-assert-running',2,false);
+    event('Previous value was hidden','warn','ASSERTION_RETRY','ASSERTION','RETRYING','preview-assert-retry',3,false,2);
+    event('Confirmation is visible','info','ASSERTION_PASSED','ASSERTION','PASSED','preview-assert-passed',4,false,0,281);
+    event('Order number should exist','error','ASSERTION_FAILED','ASSERTION','FAILED','preview-assert-failed',5,false,0,500);
+    event('JetBrains protocol handler is not registered','warn','GENERAL','SYSTEM','WARNING','preview-warning',6,false);
+    event('Checkpoint: payment fixture prepared','info','HUD','USER','INFO','preview-user',7,false);
+    event('Resolved Place order button','info','LOCATOR_RESOLVE_PASSED','LOCATOR','DEBUG','preview-locator',8,true);
+    event('Rendered success-state outline','info','HIGHLIGHT','HIGHLIGHT','DEBUG','preview-highlight',9,true);
     enhancePanel();
     if (state.sourceNavigationEnabled) {
       var sourcePreviewActive=!!state.sourceNavigationPreviewActive;

@@ -136,6 +136,7 @@ public io.github.testlens.selenium.steps.UiStepResult step(java.lang.String, io.
 public void initHud(java.lang.String, java.lang.String)
 public void setStep(java.lang.String)
 public void hudLog(java.lang.String, java.lang.String, java.lang.String)
+public void hudLog(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
 public void highlightClick(org.openqa.selenium.WebElement, java.lang.String)
 public org.openqa.selenium.WebElement highlightElement(org.openqa.selenium.WebElement, java.lang.String)
 public org.openqa.selenium.WebElement highlightElement(org.openqa.selenium.WebElement, java.lang.String, io.github.testlens.HighlightState)

@@ -111,7 +111,7 @@ public final class TraceHtmlExporter {
             if (parent != null) {
                 Files.createDirectories(parent);
             }
-            Files.writeString(outputPath, export(session, options, parent));
+            Files.writeString(outputPath, export(session, options, parent), java.nio.charset.StandardCharsets.UTF_8);
             return outputPath;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -181,7 +181,7 @@ public final class TraceHtmlExporter {
             if (parent != null) {
                 Files.createDirectories(parent);
             }
-            Files.writeString(outputPath, exportSuite(sessions, options, parent));
+            Files.writeString(outputPath, exportSuite(sessions, options, parent), java.nio.charset.StandardCharsets.UTF_8);
             return outputPath;
         } catch (IOException e) {
             throw new UncheckedIOException(e);

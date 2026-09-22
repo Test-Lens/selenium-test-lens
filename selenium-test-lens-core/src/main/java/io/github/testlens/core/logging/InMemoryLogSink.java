@@ -55,7 +55,7 @@ public final class InMemoryLogSink implements UiTestLensLogSink {
             if (parent != null) {
                 Files.createDirectories(parent);
             }
-            Files.writeString(outputPath, exportAsJson());
+            Files.writeString(outputPath, exportAsJson(), java.nio.charset.StandardCharsets.UTF_8);
             return outputPath;
         } catch (IOException e) {
             throw new UncheckedIOException(e);

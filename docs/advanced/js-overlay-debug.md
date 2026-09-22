@@ -101,6 +101,7 @@ These are convenience delegates to the advanced services documented under [Authe
 void initHud(String testName, String pipelineId)
 void setStep(String stepDescription)
 void hudLog(String level, String message, String timestamp)
+void hudLog(String level, String message, String timestamp, String icon)
 void highlightClick(WebElement element, String label)
 WebElement highlightElement(WebElement element, String label)
 void highlightParent(WebElement element, String label)
@@ -111,6 +112,8 @@ void clearDebugArtifacts()
 ```
 
 The `highlightClick(...)`, `highlightElement(...)`, `highlightParent(...)`, `highlightAncestor(...)`, and `highlightClosest(...)` methods only inject temporary DOM decoration; they never click or otherwise act on the application. `highlightElement(...)` returns the supplied element for chaining, while the parent/ancestor/closest variants change which DOM node is decorated. Use `highlightThenClick(...)` for decoration followed by exactly one Selenium `click()`, or `smartClickWithOverlayHandler(...)` when overlay handling and click retries are required. With the visual overlay disabled, decoration is skipped but `highlightThenClick(...)` still clicks once. HUD and cleanup operations are best-effort browser decoration and do not change test conditions.
+
+The four-argument `hudLog(...)` overload replaces only the decorative `USER` category icon for that message. Null, empty, and blank icons keep the default 💬 icon; the semantic category, status icon, and textual `[USER]` status remain unchanged. Existing three-argument calls retain their original behavior. Icons are arbitrary Unicode text and are escaped as data in JSON/HTML output and inserted into the HUD with `textContent`.
 
 ## Typing and click helpers
 

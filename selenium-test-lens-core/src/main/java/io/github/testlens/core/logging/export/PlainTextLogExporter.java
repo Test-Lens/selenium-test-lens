@@ -110,7 +110,7 @@ public final class PlainTextLogExporter implements UiTestLensLogExporter {
             return "";
         }
         int max = options.maxFieldLength();
-        return value.length() <= max ? value : value.substring(0, max) + "...";
+        return UnicodeText.truncate(value, max);
     }
 }
 

@@ -54,6 +54,12 @@ UiTestLensLogger withSink(UiTestLensLogSink sink)
 
 `UiTestLensLogLevel` supplies `TRACE`, `DEBUG`, `INFO`, `WARN`, and `ERROR`. `UiTestLensStatus` describes lifecycle outcome (`STARTED`, `PASSED`, `FAILED`, `SKIPPED`, `INFO`, or `WARN`). `UiTestLensEventType` is the detailed event taxonomy used by sinks and exporters, covering general, step, action, wait, assertion, HUD/overlay, actionability, locator, business assertion, evidence, auth, network, React, cleanup, and error events. Consumers normally select these values when building custom entries or filtering a sink; ordinary facade operations populate them automatically.
 
+In the 0.4.0 development line, the HUD and log-report exporters project those existing structured fields into two presentation dimensions: a semantic category (`ACTION`, `ASSERTION`, `LOCATOR`, `ACTIONABILITY`, `HIGHLIGHT`, `USER`, or `SYSTEM`) and a phase (`RUNNING`, `PASSED`, `RETRYING`, `FAILED`, `WARNING`, `INFO`, or `DEBUG`). Severity remains independent: an INFO log can represent `ASSERTION/PASSED`, while a successfully rendered outline is `HIGHLIGHT/DEBUG`, never a passed test assertion. Classification uses event type, status, and explicit metadata—not message text.
+
+Public action and assertion emitters attach an operation ID to their STARTED, retry, and terminal entries. The HUD uses that ID to update one logical row; it never correlates by label, selector, timestamp proximity, or message equality. Operation duration comes from execution timestamps and is independent from highlight display duration. Routine locator polling and Smart Click strategy transitions remain details of their owning operation rather than separate actions.
+
+JSON log output contains `semanticCategory`, `semanticPhase`, and `operationId` alongside the original `level`, `eventType`, `status`, and unchanged searchable message. HTML log reports retain the same values as trace attributes. Missing semantic metadata remains readable through neutral `SYSTEM/INFO` fallback behavior. Report writes use UTF-8 explicitly, preserving emoji, variation selectors, ZWJ sequences, modifiers, regional indicators, keycaps, and combining text.
+
 ## Exporters
 
 `PlainTextLogExporter`, `JsonLogExporter`, and `HtmlLogExporter` implement `UiTestLensLogExporter`. They export strings and/or explicit/default paths; HTML overloads can reuse trace HTML report options.

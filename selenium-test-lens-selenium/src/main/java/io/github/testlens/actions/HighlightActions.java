@@ -124,7 +124,8 @@ public class HighlightActions {
         try {
             UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder().level(failure == null ? UiTestLensLogLevel.INFO : UiTestLensLogLevel.WARN)
                     .eventType(UiTestLensEventType.HIGHLIGHT).status(failure == null ? UiTestLensStatus.INFO : UiTestLensStatus.WARN)
-                    .message("Highlight " + state + (rendered ? " rendered" : " skipped"))
+                    .message((rendered ? "Rendered " : "Skipped ")
+                            + state.name().toLowerCase(java.util.Locale.ROOT) + "-state outline")
                     .action(method).target(TargetDescriptor.label(label)).metadata("method", method)
                     .metadata("highlightState", state.name()).metadata("rendered", String.valueOf(rendered))
                     .metadata("label", label).metadata("feedbackKind", automatic ? "automatic" : "manual")

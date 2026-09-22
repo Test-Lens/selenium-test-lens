@@ -17,6 +17,20 @@ The HUD is especially useful when debugging a headed test, demonstrating a flow,
 
 The panel observes and presents Lens operations; it does not alter Selenium's success criteria. HUD injection or cleanup failure is decorative and cannot turn an otherwise successful or failed WebDriver operation into the opposite outcome.
 
+### Semantic event rows
+
+HUD rows distinguish event meaning from log severity. Each visible row includes a textual category and phase plus independent decorative icons. The default category mapping is: `ACTION` 🖱️, `ASSERTION` 🧪, `LOCATOR` 🔎, `ACTIONABILITY` 🛡️, `HIGHLIGHT` ✨, `USER` 💬, and `SYSTEM` ℹ️. Phases use RUNNING ⏳, PASSED ✅, RETRYING 🔄, WARNING ⚠️, FAILED ❌, INFO ℹ️, and a muted DEBUG marker. Emoji spans are decorative and hidden from assistive technology; textual `[CATEGORY] PHASE` labels and row roles remain available without color or emoji. Running animation is disabled under `prefers-reduced-motion`.
+
+User-authored HUD messages may replace only the decorative `USER` icon: `overlay.hudLog("info", "Starting custom step", null, "🚀")`. A null, empty, or blank icon inherits the default 💬 icon. The category remains `USER`, and its independent status icon and `[USER] INFO` text remain visible. Icons are arbitrary Unicode text, so compound emoji such as `❤️` and `👩‍💻` are preserved and safely inserted with `textContent`, never interpreted as HTML.
+
+`STANDARD` and `COMPACT` show public operations, assertions, terminal results, real retries, warnings, failures, user messages, and important recovery facts. Successful locator resolution, actionability probes, and highlight-renderer events are filtered before DOM rows are created. `DEBUG` adds those technical categories with muted DEBUG styling; it does not reinterpret them as functional success. `MINIMAL` retains its established compact contract and does not enable the event log by default.
+
+STARTED, retry, and terminal events from one public action/assertion carry the same operation ID, so the HUD updates one row from RUNNING through RETRYING to PASSED or FAILED. Two real clicks still have distinct IDs even when they target the same selector. Smart Click's `NATIVE → ACTIONS → POINT → JS` cascade therefore remains one ACTION; `finalStrategy=JS` stays diagnostic detail. A successful green outline is `HIGHLIGHT/DEBUG`, not `PASSED`.
+
+Source Navigation availability remains a SYSTEM warning/info presentation and never becomes a failed test result. Its F8/Escape interaction, links, compatibility refresh, wheel behavior, and native scrollbar remain independent of semantic row updates.
+
+Messages, labels, and icons are inserted as text rather than HTML. The runtime does not inspect message contents to determine category or phase. Unicode is carried unchanged through event metadata, JSON, reports, and the DOM, with emoji fallback fonts applied only to decorative icon spans.
+
 Raw network rows can be reduced independently with [`NetworkHudFilter`](../advanced/network.md#hud-only-filtering). Its default hides duplicate request rows and shows responses and failures. This affects only the HUD: capture, waits, counters, trace, JSON, reports, external sinks, and failure evidence remain complete.
 
 ### Configurable HUD

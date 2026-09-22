@@ -35,7 +35,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 
@@ -51,6 +53,9 @@ public final class UiLocator {
     private final UiLocatorResolver resolver;
     private final OverlayLogger logger;
     private final LongSupplier nanoTicker;
+    private final String operationSession = UUID.randomUUID().toString();
+    private final AtomicLong operationSequence = new AtomicLong();
+    private final ThreadLocal<OperationState> activeOperation = new ThreadLocal<>();
     private volatile WebElement lastAssertionElement;
     private volatile WebElement lastWaitElement;
 
@@ -1155,6 +1160,8 @@ public final class UiLocator {
                     .metadata("exceptionType", cause == null ? "" : cause.getClass().getName())
                     .metadata("failedAttemptDurationNanos", String.valueOf(failedAttemptDurationNanos))
                     .throwable(cause);
+            OperationState operation = activeOperation.get();
+            if (operation != null) builder.metadata("operationId", operation.id());
             if (sourceNavigationEnabled()) builder.metadata("testlens.internal.captureSourceLocation", "true");
             if (valueLength != null) builder.metadata("valueLength", String.valueOf(valueLength));
             logger.emit(builder.build());
@@ -1192,6 +1199,7 @@ public final class UiLocator {
                       Throwable throwable,
                       Map<String, String> extraMetadata) {
         try {
+            OperationState operation = operationFor(eventType, status);
             UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder()
                     .level(level)
                     .eventType(eventType)
@@ -1202,15 +1210,47 @@ public final class UiLocator {
                     .metadata("description", description.displayName())
                     .metadata("attempt", String.valueOf(attempt))
                     .throwable(throwable);
+            if (operation != null) {
+                builder.metadata("operationId", operation.id());
+                if (isOperationTerminal(eventType, status)) {
+                    builder.metadata("durationMs", String.valueOf(Math.max(0L,
+                            (System.nanoTime() - operation.startedNanos()) / 1_000_000L)));
+                }
+            }
             if (sourceNavigationEnabled()) builder.metadata("testlens.internal.captureSourceLocation", "true");
             if (valueLength != null) {
                 builder.metadata("valueLength", String.valueOf(valueLength));
             }
             extraMetadata.forEach(builder::metadata);
             logger.emit(builder.build());
+            if (operation != null && isOperationTerminal(eventType, status)) activeOperation.remove();
         } catch (Exception ignored) {
         }
     }
+
+    private OperationState operationFor(UiTestLensEventType eventType, UiTestLensStatus status) {
+        if (isOperationStart(eventType, status)) {
+            OperationState operation = new OperationState(
+                    operationSession + ":" + operationSequence.incrementAndGet(), System.nanoTime());
+            activeOperation.set(operation);
+            return operation;
+        }
+        return activeOperation.get();
+    }
+
+    private static boolean isOperationStart(UiTestLensEventType type, UiTestLensStatus status) {
+        return status == UiTestLensStatus.STARTED
+                && (type == UiTestLensEventType.LOCATOR_ACTION_STARTED || type == UiTestLensEventType.WAIT);
+    }
+
+    private static boolean isOperationTerminal(UiTestLensEventType type, UiTestLensStatus status) {
+        if (status != UiTestLensStatus.PASSED && status != UiTestLensStatus.FAILED) return false;
+        return type == UiTestLensEventType.LOCATOR_ACTION_PASSED
+                || type == UiTestLensEventType.LOCATOR_ACTION_FAILED
+                || type == UiTestLensEventType.WAIT;
+    }
+
+    private record OperationState(String id, long startedNanos) {}
 
     private boolean sourceNavigationEnabled() {
         return overlay.getConfig().getHudOptions().sourceNavigation().enabled();
