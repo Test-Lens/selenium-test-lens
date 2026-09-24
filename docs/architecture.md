@@ -159,7 +159,7 @@ JUnit lifecycle integration is isolated in the optional `selenium-test-lens-juni
 
 ## TestNG boundary
 
-TestNG lifecycle integration is isolated in `selenium-test-lens-testng`. `TestLensTestNgListener` starts only around a physical test-method invocation and stores state on that invocation's `ITestResult`. `TestLensTestNgContext` reads TestNG's official current result, so parallel methods, DataProviders, retries, and reused class instances do not share mutable driver state. Registration is explicit; the artifact contains no global listener service entry.
+TestNG lifecycle integration is isolated in `selenium-test-lens-testng`. The default `PER_METHOD` path starts only around a physical test-method invocation and stores state on that invocation's `ITestResult`. Opt-in `PER_CLASS` separates a suite/context/instance-owned driver from callback-local invocation state, so every sequential DataProvider row and retry receives a fresh Lens session/report while retaining the same browser. `TestLensTestNgContext` still reads TestNG's official current result attribute; no global current-driver exists. Registration is explicit, and the artifact contains no global listener service entry.
 
 ## Dependency rules
 

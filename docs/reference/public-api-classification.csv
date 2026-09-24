@@ -250,6 +250,7 @@
 "selenium-test-lens-selenium","io.github.testlens.ThrowingSupplier","USER_API","docs/features/managed-test-state.md"
 "selenium-test-lens-junit5","io.github.testlens.junit5.TestLensExtension$Builder","USER_API","docs/integrations/junit5.md"
 "selenium-test-lens-junit5","io.github.testlens.junit5.TestLensExtension","USER_API","docs/integrations/junit5.md"
+"selenium-test-lens-testng","io.github.testlens.testng.DriverScope","USER_API","docs/integrations/testng.md"
 "selenium-test-lens-testng","io.github.testlens.testng.TestLensTestNg","USER_API","docs/integrations/testng.md"
 "selenium-test-lens-testng","io.github.testlens.testng.TestLensTestNgContext","USER_API","docs/integrations/testng.md"
 "selenium-test-lens-testng","io.github.testlens.testng.TestLensTestNgFactory","USER_API","docs/integrations/testng.md"

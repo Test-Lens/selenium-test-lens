@@ -7,6 +7,21 @@ search:
 
 Generated binary-surface details. For behavior and examples, return to the [functional reference](../index.md) or follow the mapped documentation link.
 
+## `io.github.testlens.testng.DriverScope` {#io-github-testlens-testng-driverscope}
+
+- Artifact/module: `selenium-test-lens-testng`
+- Package: `io.github.testlens.testng`
+- Classification: `USER_API`
+- Type kind: `enum`
+- Functional documentation: [docs/integrations/testng.md](../../integrations/testng.md)
+
+```java
+public static final io.github.testlens.testng.DriverScope PER_METHOD
+public static final io.github.testlens.testng.DriverScope PER_CLASS
+public static io.github.testlens.testng.DriverScope[] values()
+public static io.github.testlens.testng.DriverScope valueOf(java.lang.String)
+```
+
 ## `io.github.testlens.testng.TestLensTestNg` {#io-github-testlens-testng-testlenstestng}
 
 - Artifact/module: `selenium-test-lens-testng`
@@ -17,6 +32,7 @@ Generated binary-surface details. For behavior and examples, return to the [func
 
 ```java
 public abstract java.lang.Class<? extends io.github.testlens.testng.TestLensTestNgFactory> factory()
+public abstract io.github.testlens.testng.DriverScope driverScope()
 ```
 
 ## `io.github.testlens.testng.TestLensTestNgContext` {#io-github-testlens-testng-testlenstestngcontext}
@@ -59,6 +75,7 @@ public default java.lang.String sessionName(org.testng.ITestResult)
 ```java
 public io.github.testlens.testng.TestLensTestNgListener()
 public void beforeInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
-public void onFinish(org.testng.ISuite)
 public void afterInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
+public void onAfterClass(org.testng.ITestClass)
+public void onFinish(org.testng.ISuite)
 ```

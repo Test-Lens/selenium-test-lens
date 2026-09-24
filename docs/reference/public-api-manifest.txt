@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 276
-# Public callable methods/constructors: 2147
+# Types: 277
+# Public callable methods/constructors: 2151
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -2686,8 +2686,14 @@ TYPE io.github.testlens.junit5.TestLensExtension
   public boolean supportsParameter(org.junit.jupiter.api.extension.ParameterContext, org.junit.jupiter.api.extension.ExtensionContext)
   public java.lang.Object resolveParameter(org.junit.jupiter.api.extension.ParameterContext, org.junit.jupiter.api.extension.ExtensionContext)
 MODULE selenium-test-lens-testng
+TYPE io.github.testlens.testng.DriverScope
+  public static final io.github.testlens.testng.DriverScope PER_METHOD
+  public static final io.github.testlens.testng.DriverScope PER_CLASS
+  public static io.github.testlens.testng.DriverScope[] values()
+  public static io.github.testlens.testng.DriverScope valueOf(java.lang.String)
 TYPE io.github.testlens.testng.TestLensTestNg
   public abstract java.lang.Class<? extends io.github.testlens.testng.TestLensTestNgFactory> factory()
+  public abstract io.github.testlens.testng.DriverScope driverScope()
 TYPE io.github.testlens.testng.TestLensTestNgContext
   public static io.github.testlens.testng.TestLensTestNgContext current()
   public org.openqa.selenium.WebDriver driver()
@@ -2700,8 +2706,9 @@ TYPE io.github.testlens.testng.TestLensTestNgFactory
 TYPE io.github.testlens.testng.TestLensTestNgListener
   public io.github.testlens.testng.TestLensTestNgListener()
   public void beforeInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
-  public void onFinish(org.testng.ISuite)
   public void afterInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
+  public void onAfterClass(org.testng.ITestClass)
+  public void onFinish(org.testng.ISuite)
 MODULE selenium-test-lens-allure
 TYPE io.github.testlens.allure.AllureAttachResult
   public io.github.testlens.allure.AllureAttachResult(io.github.testlens.allure.AllureAttachStatus, int, int, java.util.List<java.lang.String>, java.util.List<java.lang.String>)
