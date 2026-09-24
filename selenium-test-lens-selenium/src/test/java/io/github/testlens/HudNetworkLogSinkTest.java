@@ -80,6 +80,50 @@ class HudNetworkLogSinkTest {
     }
 
     @Test
+    void disabledHudRenderingDoesNotProbeTheBrowser() {
+        AtomicInteger calls = new AtomicInteger();
+        WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[]{WebDriver.class}, (proxy, method, args) -> {
+                    calls.incrementAndGet();
+                    return null;
+                });
+        RecordingHud hud = new RecordingHud();
+        JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();
+        sink.attach(hud, driver, HudOptions.defaults(), false);
+
+        sink.accept(entry(UiTestLensEventType.ACTION, "invisible", null));
+
+        assertEquals(0, calls.get());
+        assertEquals(List.of(), hud.messages);
+    }
+
+    @Test
+    void failedAlertProbeDoesNotBuildADeferredBacklog() {
+        AtomicBoolean probeFails = new AtomicBoolean(true);
+        WebDriver.TargetLocator target = (WebDriver.TargetLocator) Proxy.newProxyInstance(
+                getClass().getClassLoader(), new Class<?>[]{WebDriver.TargetLocator.class},
+                (proxy, method, args) -> {
+                    if (method.getName().equals("alert")) {
+                        if (probeFails.get()) throw new IllegalStateException("session unavailable");
+                        throw new NoAlertPresentException();
+                    }
+                    return null;
+                });
+        WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[]{WebDriver.class}, (proxy, method, args) ->
+                        method.getName().equals("switchTo") ? target : null);
+        RecordingHud hud = new RecordingHud();
+        JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();
+        sink.attach(hud, driver, HudOptions.defaults());
+
+        sink.accept(entry(UiTestLensEventType.ACTION, "unavailable", null));
+        probeFails.set(false);
+        sink.accept(entry(UiTestLensEventType.ACTION, "current", null));
+
+        assertEquals(List.of("current"), hud.messages);
+    }
+
+    @Test
     void productVisibilityFiltersAreAppliedBeforeTheInternalHudBridge() {
         RecordingHud hud = new RecordingHud();
         JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();

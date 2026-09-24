@@ -180,7 +180,8 @@ public final class JsOverlayDebug {
         this.smartClickActions = new ConfiguredSmartClickActions(driver, config, rootManager, highlightActions, this.logger);
         this.smartInputActions = new SmartInputActions(driver, config, rootManager, typingActions, this.logger);
         this.hudPanel = new SemanticHudPanel(scriptExecutor, rootManager, config);
-        this.hudLogSink.attach(this.hudPanel, driver, config.getHudOptions());
+        this.hudLogSink.attach(this.hudPanel, driver, config.getHudOptions(),
+                config.isEnabled() && config.isShowHudPanel());
         this.pageWaits = new ConfiguredPageWaits(driver, config, this.locatorOptions.timeout(),
                 this.locatorOptions.pollInterval(), this.logger);
         this.popupDetector = new PopupDetector(driver, config, rootManager, highlightActions);
@@ -745,6 +746,7 @@ public final class JsOverlayDebug {
         private volatile HudPanel hud;
         private volatile WebDriver driver;
         private volatile io.github.testlens.hud.HudOptions options;
+        private volatile boolean renderingEnabled;
         private volatile SourceFileResolver sourceResolver;
         private volatile boolean localDriver;
         private volatile Path sourceNavigationExecutionRoot = Path.of("").toAbsolutePath().normalize();
@@ -764,9 +766,15 @@ public final class JsOverlayDebug {
         }
 
         void attach(HudPanel hud, WebDriver driver, io.github.testlens.hud.HudOptions options) {
+            attach(hud, driver, options, true);
+        }
+
+        void attach(HudPanel hud, WebDriver driver, io.github.testlens.hud.HudOptions options,
+                    boolean renderingEnabled) {
             this.hud = hud;
             this.driver = driver;
             this.options = options;
+            this.renderingEnabled = renderingEnabled;
             this.sourceNavigationExecutionRoot = Path.of("").toAbsolutePath().normalize();
             this.intellijProject = options == null ? Optional.empty()
                     : IntellijProjectContext.resolve(options.sourceNavigation(), sourceNavigationExecutionRoot);
@@ -785,32 +793,47 @@ public final class JsOverlayDebug {
         @Override
         public void accept(UiTestLensLogEntry entry) {
             HudPanel current = hud;
-            if (current == null || entry == null) return;
+            if (current == null || entry == null || !renderingEnabled) return;
             HudEventSemantics semantics = HudEventSemantics.from(entry);
             if (!semanticVisible(options, entry, semantics)) return;
             if (!eventVisible(options, entry.eventType())) return;
             if (isRawNetworkEntry(entry.eventType())
                     && "false".equalsIgnoreCase(entry.metadata().get("hudVisible"))) return;
-            WebDriver currentDriver = driver;
-            if (currentDriver != null) {
-                try {
-                    WebDriver.TargetLocator target = currentDriver.switchTo();
-                    if (target != null && target.alert() != null) {
-                        deferredDuringAlert.add(entry);
-                        return; // Executing HUD JavaScript could dismiss an active browser dialog.
-                    }
-                } catch (org.openqa.selenium.NoAlertPresentException ignored) {
-                    // Normal document context: HUD updates are safe.
-                } catch (RuntimeException ignored) {
-                    return; // A diagnostic probe must never alter or fail the browser operation.
-                }
+            // Executing JavaScript while a modal prompt is open can apply the driver's
+            // unhandled-prompt policy (including dismissing the prompt). Probe first so HUD
+            // rendering remains observational and cannot change the browser operation.
+            AlertProbe alertProbe = probeAlert();
+            if (alertProbe == AlertProbe.OPEN) {
+                deferredDuringAlert.add(entry);
+                return;
             }
-            UiTestLensLogEntry deferred;
-            while ((deferred = deferredDuringAlert.poll()) != null) {
+            if (alertProbe == AlertProbe.UNAVAILABLE) return;
+            // Retry only the entries that were queued before this accept call. If a prompt
+            // appears concurrently and append requeues an entry, leave it for a later event
+            // instead of cycling forever in this call.
+            int deferredCount = deferredDuringAlert.size();
+            for (int index = 0; index < deferredCount; index++) {
+                UiTestLensLogEntry deferred = deferredDuringAlert.poll();
+                if (deferred == null) break;
                 append(current, deferred, HudEventSemantics.from(deferred));
             }
             append(current, entry, semantics);
         }
+
+        private AlertProbe probeAlert() {
+            WebDriver currentDriver = driver;
+            if (currentDriver == null) return AlertProbe.CLEAR;
+            try {
+                WebDriver.TargetLocator target = currentDriver.switchTo();
+                return target != null && target.alert() != null ? AlertProbe.OPEN : AlertProbe.CLEAR;
+            } catch (org.openqa.selenium.NoAlertPresentException ignored) {
+                return AlertProbe.CLEAR;
+            } catch (RuntimeException ignored) {
+                return AlertProbe.UNAVAILABLE;
+            }
+        }
+
+        private enum AlertProbe { CLEAR, OPEN, UNAVAILABLE }
 
         private static boolean isRawNetworkEntry(UiTestLensEventType eventType) {
             return eventType == UiTestLensEventType.NETWORK_REQUEST_RECORDED
@@ -867,7 +890,11 @@ public final class JsOverlayDebug {
                 publishCompatibilityIfChanged(hud, effectiveCompatibility);
             }
             if (hud instanceof SemanticHudPanel semanticHud) {
-                semanticHud.appendSemantic(entry, message, sourceLabel, navigationTarget, semantics);
+                SemanticHudPanel.AppendResult result = semanticHud.appendSemantic(
+                        entry, message, sourceLabel, navigationTarget, semantics);
+                if (result == SemanticHudPanel.AppendResult.DEFERRED_BY_ALERT) {
+                    deferredDuringAlert.add(entry);
+                }
             } else if (sourceLabel == null && navigationTarget == null) {
                 hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString());
             } else {

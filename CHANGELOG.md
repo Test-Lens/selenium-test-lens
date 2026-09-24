@@ -6,6 +6,8 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Fixed
 
+- Reduced semantic HUD transport overhead without dropping diagnostics: warm event updates now use one self-validating browser dispatch, document navigation triggers lazy reinjection, active alerts are detected and deferred without changing prompt state, and a disabled HUD no longer performs background browser checks. An opt-in Chrome/Firefox benchmark records reproducible CSV/JSON command counts and timings.
+
 - Added opt-in TestNG `PER_CLASS` WebDriver ownership for sequential methods of one concrete class instance. Each DataProvider row and retry remains an independent Test Lens invocation/report, method hooks receive the correct callback-local context, class teardown is honored for both TestNG 7.9 listener orders, conflicting method parallelism fails before driver creation, and adapter-owned drivers are quit once.
 
 - Hardened WebDriver BiDi startup for remote Selenium providers. Test Lens now initializes lazy `HasBiDi` connections with Selenium 4.39's `getBiDi()` contract, creates one temporary augmented view for capability-backed `RemoteWebDriver` sessions, bounds pre-listener initialization retry, and reports structured unsupported, endpoint, session, protocol, and capture-start diagnostics. This improves compatibility with remote providers, including BrowserStack configurations that expose Selenium BiDi.
