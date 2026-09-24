@@ -1,8 +1,7 @@
 package io.github.testlens.selenium.network;
 
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WrapsDriver;
-import org.openqa.selenium.bidi.HasBiDi;
+import org.openqa.selenium.bidi.BiDi;
 import org.openqa.selenium.bidi.module.Network;
 import org.openqa.selenium.bidi.network.BaseParameters;
 import org.openqa.selenium.bidi.network.BeforeRequestSent;
@@ -16,7 +15,6 @@ import org.openqa.selenium.bidi.network.ResponseDetails;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -25,23 +23,45 @@ import java.util.function.Consumer;
 
 /** Official Selenium 4.39 WebDriver BiDi network adapter. */
 final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
-    private static final int MAX_UNWRAP_DEPTH = 16;
     private final Module network;
+    private final Map<String, String> diagnostics;
     private boolean closed;
 
-    private SeleniumBiDiNetworkCaptureSource(Module network) {
+    private SeleniumBiDiNetworkCaptureSource(Module network, Map<String, String> diagnostics) {
         this.network = network;
+        this.diagnostics = diagnostics == null ? Map.of() : Map.copyOf(diagnostics);
     }
 
     static NetworkCaptureSource open(WebDriver driver, NetworkDiagnosticsOptions options, NetworkCaptureSink sink) {
-        WebDriver bidiDriver = findBiDiDriver(driver);
-        Module network = new OfficialModule(new Network(bidiDriver));
-        return subscribe(network, options, sink);
+        BiDiDriverResolver.ResolvedBiDiDriver resolved = BiDiDriverResolver.resolve(driver);
+        Module network;
+        try {
+            network = new OfficialModule(new Network(resolved.driver()), resolved.ownedConnection());
+        } catch (RuntimeException failure) {
+            closeOwned(resolved.ownedConnection(), failure);
+            throw captureFailure(BiDiFailureCategory.CAPTURE_START_FAILED,
+                    "Unable to create Selenium's BiDi Network module", resolved.diagnostics(),
+                    "CREATE_NETWORK_MODULE", failure);
+        }
+        try {
+            return subscribe(network, options, sink, resolved.diagnostics());
+        } catch (BiDiCaptureException failure) {
+            throw failure;
+        } catch (RuntimeException failure) {
+            throw captureFailure(BiDiFailureCategory.PROTOCOL_ERROR,
+                    "BiDi connection was created but network listener registration failed",
+                    resolved.diagnostics(), "REGISTER_LISTENERS", failure);
+        }
     }
 
     static NetworkCaptureSource subscribe(Module network, NetworkDiagnosticsOptions options, NetworkCaptureSink sink) {
+        return subscribe(network, options, sink, Map.of());
+    }
+
+    private static NetworkCaptureSource subscribe(Module network, NetworkDiagnosticsOptions options,
+                                                   NetworkCaptureSink sink, Map<String, String> diagnostics) {
         try {
-            NetworkCaptureSource source = new SeleniumBiDiNetworkCaptureSource(network);
+            NetworkCaptureSource source = new SeleniumBiDiNetworkCaptureSource(network, diagnostics);
             network.onBeforeRequestSent(event -> beforeRequest(event, options, sink));
             network.onResponseCompleted(event -> responseCompleted(event, options, sink));
             network.onFetchError(event -> fetchError(event, options, sink));
@@ -49,6 +69,26 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
         } catch (RuntimeException failure) {
             closeAfterFailure(network, failure);
             throw failure;
+        }
+    }
+
+    private static BiDiCaptureException captureFailure(BiDiFailureCategory category,
+                                                        String message,
+                                                        Map<String, String> sourceDiagnostics,
+                                                        String stage,
+                                                        RuntimeException cause) {
+        Map<String, String> diagnostics = new LinkedHashMap<>(sourceDiagnostics);
+        diagnostics.put("failureCategory", category.name());
+        diagnostics.put("initializationStage", stage);
+        return new BiDiCaptureException(category, message, diagnostics, cause);
+    }
+
+    private static void closeOwned(BiDi connection, RuntimeException failure) {
+        if (connection == null) return;
+        try {
+            connection.close();
+        } catch (RuntimeException closeFailure) {
+            failure.addSuppressed(closeFailure);
         }
     }
 
@@ -61,25 +101,9 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
         }
     }
 
-    private static WebDriver findBiDiDriver(WebDriver initial) {
-        IdentityHashMap<WebDriver, Boolean> seen = new IdentityHashMap<>();
-        WebDriver current = initial;
-        for (int depth = 0; current != null && depth < MAX_UNWRAP_DEPTH; depth++) {
-            if (seen.put(current, Boolean.TRUE) != null) {
-                throw new NetworkCaptureUnsupportedException("Cyclic WrapsDriver chain prevents BiDi discovery");
-            }
-            if (current instanceof HasBiDi hasBiDi && hasBiDi.maybeGetBiDi().isPresent()) {
-                return current;
-            }
-            if (!(current instanceof WrapsDriver wrapsDriver)) break;
-            WebDriver next = wrapsDriver.getWrappedDriver();
-            if (next == current) {
-                throw new NetworkCaptureUnsupportedException("Cyclic WrapsDriver chain prevents BiDi discovery");
-            }
-            current = next;
-        }
-        throw new NetworkCaptureUnsupportedException(
-                "WebDriver session has no active BiDi connection; enable BiDi when creating the session");
+    @Override
+    public Map<String, String> diagnostics() {
+        return diagnostics;
     }
 
     private static void beforeRequest(BeforeRequestSent event, NetworkDiagnosticsOptions options, NetworkCaptureSink sink) {
@@ -241,7 +265,7 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
         @Override void close();
     }
 
-    private record OfficialModule(Network delegate) implements Module {
+    private record OfficialModule(Network delegate, BiDi ownedConnection) implements Module {
         @Override public void onBeforeRequestSent(Consumer<BeforeRequestSent> consumer) {
             delegate.onBeforeRequestSent(consumer);
         }
@@ -251,6 +275,22 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
         @Override public void onFetchError(Consumer<FetchError> consumer) {
             delegate.onFetchError(consumer);
         }
-        @Override public void close() { delegate.close(); }
+        @Override public void close() {
+            RuntimeException failure = null;
+            try {
+                delegate.close();
+            } catch (RuntimeException closeFailure) {
+                failure = closeFailure;
+            }
+            if (ownedConnection != null) {
+                try {
+                    ownedConnection.close();
+                } catch (RuntimeException closeFailure) {
+                    if (failure == null) failure = closeFailure;
+                    else failure.addSuppressed(closeFailure);
+                }
+            }
+            if (failure != null) throw failure;
+        }
     }
 }

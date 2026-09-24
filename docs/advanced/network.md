@@ -27,7 +27,7 @@ String exportJson()
 
 BiDi capture observes traffic. It does not intercept, modify, block, mock, or replay requests, and it is not a CDP fallback.
 
-`captureMode()` is the requested mode. `activeCaptureMode()` is present only while a source is active: `MANUAL` for manual capture and `BIDI` for both successful `BIDI` and `AUTO`. A successful start registers one listener each for before-request, response-completed, and fetch-error; `stop()` removes the module subscriptions without closing the driver. `stop()` also invalidates an initialization that is still registering its source: a late success or failure cannot reactivate capture or overwrite `STOPPED`, and any source returned afterward is closed without holding the lifecycle lock. Repeated starts replace the prior generation, and late callbacks are discarded. Event snapshots are immutable and safe while BiDi callback threads are active.
+`captureMode()` is the requested mode. `activeCaptureMode()` is present only while a source is active: `MANUAL` for manual capture and `BIDI` for both successful `BIDI` and `AUTO`. A successful start registers one listener each for before-request, response-completed, and fetch-error; `stop()` removes the module subscriptions without closing the driver. `stop()` also invalidates an initialization that is still registering its source: a late success or failure cannot reactivate capture or overwrite `STOPPED`, and any source returned afterward is closed without holding the lifecycle lock. Repeated starts replace the prior generation, and late callbacks are discarded. Event snapshots are immutable and safe while BiDi callback threads are active. Connection initialization is attempted at most twice, without a fixed sleep, and only before any listener is registered; subscription failures are never retried because registration may be ambiguous.
 
 ## HUD-only filtering
 
@@ -103,7 +103,57 @@ FirefoxOptions browserOptions = new FirefoxOptions().enableBiDi();
 WebDriver driver = new FirefoxDriver(browserOptions);
 ```
 
-Lens does not retrofit BiDi after session creation. A local or wrapped driver is unwrapped through the official `WrapsDriver` contract with cycle/depth protection. A `RemoteWebDriver` can work only when its Grid/node exposes the WebSocket capability; Grid execution is not part of the current tested matrix.
+Lens cannot add BiDi to a browser session that was created without it. For an already BiDi-enabled local driver, Lens uses `HasBiDi.getBiDi()` so Selenium may initialize a lazy connection; an empty `maybeGetBiDi()` before first use is not treated as unsupported. Official `WrapsDriver` and Selenium `Decorated` chains are inspected with cycle/depth protection without replacing the consumer's driver reference.
+
+Selenium 4.39's raw `RemoteWebDriver` does not directly implement `HasBiDi`. When the remote session returns a valid `webSocketUrl`, Lens applies Selenium's `Augmenter` once to a private BiDi view of that same session, initializes the connection, and gives that view only to Selenium's Network module. Normal application commands continue through the original driver/decorator. Lens closes subscriptions and any connection it created, but never calls `quit()` during network finalization. The capability is diagnostic evidence, while the Selenium interface and successful connection remain the authority for activation.
+
+### BrowserStack prerequisite
+
+BrowserStack's current Selenium documentation requires `seleniumBidi: true` under `bstack:options`; BrowserStack then requests/returns the standard `webSocketUrl` needed by Selenium. The provider also recommends selecting a Selenium 4 version. This example uses the repository's supported Selenium version and contains no credentials:
+
+```java
+MutableCapabilities capabilities = new MutableCapabilities();
+capabilities.setCapability("browserName", "chrome");
+capabilities.setCapability("bstack:options", Map.of(
+        "os", "Windows",
+        "osVersion", "11",
+        "seleniumVersion", "4.39.0",
+        "seleniumBidi", true));
+
+WebDriver driver = new RemoteWebDriver(browserStackUrl, capabilities);
+TestLens lens = TestLens.attach(driver);
+NetworkDiagnostics network = lens.network().start(
+        NetworkDiagnosticsOptions.builder()
+                .captureMode(NetworkCaptureMode.BIDI)
+                .build());
+```
+
+See BrowserStack's [official Selenium BiDi instructions](https://www.browserstack.com/docs/automate/selenium/bidi-event-driven-testing). Do not log a hub URL containing credentials. A successful `start(...)` has `isStarted() == true`, `summary().status() == STARTED`, and `activeCaptureMode() == Optional.of(BIDI)`. Merely requesting `BIDI` does not prove activation.
+
+### Startup diagnostics and graceful degradation
+
+BiDi startup diagnostics distinguish `UNSUPPORTED`, `INITIALIZATION_FAILED`, `REMOTE_ENDPOINT_UNAVAILABLE`, `SESSION_CLOSED`, `PROTOCOL_ERROR`, and `CAPTURE_START_FAILED` internally. HUD/log lifecycle entries use the semantic `SYSTEM` category: successful activation is informational/running capture state, while unsupported or failed optional capture is a warning rather than a failed test action. Metadata records only safe facts such as driver type, local/remote shape, `HasBiDi` availability, whether `webSocketUrl` was present, lazy/initialized state, augmentation, bounded attempt count, category, and stage. Endpoint values, credentials, headers, cookies, and tokens are not logged.
+
+`BIDI` and `AUTO` startup remains non-throwing: inspect `isStarted()`, `summary()`, and `activeCaptureMode()` before relying on capture. An unavailable optional source does not fail the Selenium test, does not silently switch to manual capture, and cannot produce a valid network assertion snapshot. Existing network assertions still fail closed if the requested capture never became active.
+
+### Optional remote smoke test
+
+With provider credentials supplied through environment variables and never printed:
+
+1. Create a remote session with the provider's Selenium BiDi option enabled.
+2. Start `BIDI` capture and assert `network.isStarted()` plus active mode `BIDI`.
+3. Navigate to a page that performs one known request.
+4. Wait for that request and attach/export the network diagnostic.
+5. Stop capture, verify the driver can still read the page title, then finalize Lens and let the test owner quit the driver.
+
+To validate a local development build in a consumer without publishing it:
+
+```text
+mvn -DskipTests install
+mvn dependency:tree -Dincludes=io.github.test-lens
+```
+
+Configure the consumer for `0.4.0-SNAPSHOT`, confirm every Test Lens artifact resolves to that version, and run one remote BiDi test using the checks above.
 
 ## Assertions and waits
 

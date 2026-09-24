@@ -2,7 +2,9 @@ package io.github.testlens.selenium.network;
 
 import io.github.testlens.core.OverlayLogger;
 import io.github.testlens.core.logging.UiTestLensEventType;
+import io.github.testlens.core.logging.UiTestLensLogLevel;
 import io.github.testlens.core.logging.UiTestLensLogger;
+import io.github.testlens.core.logging.UiTestLensStatus;
 import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.trace.TraceLogSink;
@@ -10,6 +12,7 @@ import io.github.testlens.core.trace.UiTestLensSession;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WrapsDriver;
+import org.openqa.selenium.bidi.BiDiException;
 
 import java.lang.reflect.Proxy;
 import java.time.Duration;
@@ -207,6 +210,66 @@ class NetworkDiagnosticsBiDiTest {
         assertTrue(entries.stream().anyMatch(entry -> entry.eventType() == UiTestLensEventType.NETWORK_RESPONSE_RECORDED));
         assertTrue(entries.stream().anyMatch(entry -> entry.eventType() == UiTestLensEventType.NETWORK_FAILURE_RECORDED));
         assertTrue(entries.stream().anyMatch(entry -> entry.eventType() == UiTestLensEventType.NETWORK_DIAGNOSTICS_STOPPED));
+    }
+
+    @Test
+    void startupDiagnosticsAreStructuredAndOptionalFailuresRenderAsWarnings() {
+        List<UiTestLensLogEntry> successEntries = new ArrayList<>();
+        FakeFactory successFactory = new FakeFactory();
+        successFactory.diagnostics = Map.of(
+                "driverType", "remote-driver",
+                "remoteSession", "true",
+                "hasBiDi", "true",
+                "webSocketUrlCapability", "true",
+                "bidiInitiallyInitialized", "false",
+                "driverAugmented", "true",
+                "initializationAttempts", "1");
+        new NetworkDiagnostics(fakeDriver(), OverlayLogger.from(
+                UiTestLensLogger.builder().sink(successEntries::add).build()), successFactory)
+                .start(options(NetworkCaptureMode.BIDI));
+
+        UiTestLensLogEntry started = successEntries.stream()
+                .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED)
+                .findFirst().orElseThrow();
+        assertEquals("true", started.metadata().get("remoteSession"));
+        assertEquals("false", started.metadata().get("bidiInitiallyInitialized"));
+        assertEquals("true", started.metadata().get("driverAugmented"));
+
+        List<UiTestLensLogEntry> failedEntries = new ArrayList<>();
+        FakeFactory failedFactory = new FakeFactory();
+        failedFactory.failure = new BiDiCaptureException(BiDiFailureCategory.REMOTE_ENDPOINT_UNAVAILABLE,
+                "Unable to initialize the WebDriver BiDi connection", Map.of(
+                "failureCategory", "REMOTE_ENDPOINT_UNAVAILABLE",
+                "initializationStage", "INITIALIZE_CONNECTION",
+                "webSocketUrlCapability", "true"), new BiDiException("handshake failed"));
+        NetworkDiagnostics failed = new NetworkDiagnostics(fakeDriver(), OverlayLogger.from(
+                UiTestLensLogger.builder().sink(failedEntries::add).build()), failedFactory)
+                .start(options(NetworkCaptureMode.AUTO));
+
+        UiTestLensLogEntry warning = failedEntries.stream()
+                .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED)
+                .findFirst().orElseThrow();
+        assertEquals(NetworkDiagnosticsStatus.FAILED, failed.summary().status());
+        assertEquals(UiTestLensStatus.WARN, warning.status());
+        assertEquals(UiTestLensLogLevel.WARN, warning.level());
+        assertEquals("REMOTE_ENDPOINT_UNAVAILABLE", warning.metadata().get("failureCategory"));
+        assertEquals("INITIALIZE_CONNECTION", warning.metadata().get("initializationStage"));
+        assertTrue(warning.message().contains("REMOTE_ENDPOINT_UNAVAILABLE"));
+
+        List<UiTestLensLogEntry> unsupportedEntries = new ArrayList<>();
+        FakeFactory unsupportedFactory = new FakeFactory();
+        unsupportedFactory.unsupported = true;
+        NetworkDiagnostics unsupported = new NetworkDiagnostics(fakeDriver(), OverlayLogger.from(
+                UiTestLensLogger.builder().sink(unsupportedEntries::add).build()), unsupportedFactory)
+                .start(options(NetworkCaptureMode.AUTO));
+
+        UiTestLensLogEntry unsupportedWarning = unsupportedEntries.stream()
+                .filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED)
+                .findFirst().orElseThrow();
+        assertEquals(NetworkDiagnosticsStatus.UNSUPPORTED, unsupported.summary().status());
+        assertEquals(UiTestLensStatus.WARN, unsupportedWarning.status());
+        assertEquals(UiTestLensLogLevel.WARN, unsupportedWarning.level());
+        assertEquals("UNSUPPORTED", unsupportedWarning.metadata().get("failureCategory"));
     }
 
     @Test
@@ -958,6 +1021,7 @@ class NetworkDiagnosticsBiDiTest {
         private final List<FakeSource> sources = new ArrayList<>();
         private boolean unsupported;
         private RuntimeException failure;
+        private Map<String, String> diagnostics = Map.of();
         private boolean blockOpen;
         private final CountDownLatch openEntered = new CountDownLatch(1);
         private final CountDownLatch releaseOpen = new CountDownLatch(1);
@@ -970,7 +1034,7 @@ class NetworkDiagnosticsBiDiTest {
             if (blockOpen) await(releaseOpen);
             if (unsupported) throw new NetworkCaptureUnsupportedException("BiDi unavailable");
             if (failure != null) throw failure;
-            FakeSource source = new FakeSource(sink);
+            FakeSource source = new FakeSource(sink, diagnostics);
             sources.add(source);
             return source;
         }
@@ -980,10 +1044,16 @@ class NetworkDiagnosticsBiDiTest {
 
     private static final class FakeSource implements NetworkCaptureSource {
         private final NetworkCaptureSink sink;
+        private final Map<String, String> diagnostics;
         private final AtomicInteger closes = new AtomicInteger();
         private RuntimeException closeFailure;
-        private FakeSource(NetworkCaptureSink sink) { this.sink = sink; }
+        private FakeSource(NetworkCaptureSink sink) { this(sink, Map.of()); }
+        private FakeSource(NetworkCaptureSink sink, Map<String, String> diagnostics) {
+            this.sink = sink;
+            this.diagnostics = diagnostics;
+        }
         void fire(NetworkEvent event) { sink.recorded(event); }
+        @Override public Map<String, String> diagnostics() { return diagnostics; }
         @Override public void close() {
             closes.incrementAndGet();
             if (closeFailure != null) throw closeFailure;

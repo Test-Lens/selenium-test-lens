@@ -46,6 +46,7 @@ public final class NetworkDiagnostics {
     private NetworkCaptureMode activeMode;
     private NetworkCaptureSource captureSource;
     private Throwable startFailure;
+    private Map<String, String> startDiagnostics = Map.of();
     private String statusMessage = "Network diagnostics are not started";
     private boolean started;
     private boolean captureSnapshotValid;
@@ -92,6 +93,7 @@ public final class NetworkDiagnostics {
             activeMode = null;
             status = NetworkDiagnosticsStatus.STOPPED;
             startFailure = null;
+            startDiagnostics = Map.of();
             captureSnapshotValid = false;
             startInProgress = requestedMode == NetworkCaptureMode.BIDI
                     || requestedMode == NetworkCaptureMode.AUTO;
@@ -143,6 +145,7 @@ public final class NetworkDiagnostics {
             try {
                 accepted = generation == token && startInProgress && !started && captureSource == null;
                 if (accepted) {
+                    startDiagnostics = Map.copyOf(opened.diagnostics());
                     activate(token, NetworkCaptureMode.BIDI, opened);
                     statusMessage = "Network diagnostics started with WebDriver BiDi"
                             + (requestedMode == NetworkCaptureMode.AUTO ? " (AUTO selected BIDI)" : "");
@@ -415,6 +418,7 @@ public final class NetworkDiagnostics {
             markUnsupported("Network capture mode " + requestedMode.name() + " is unsupported: "
                     + messageFor(unsupported));
             startFailure = unsupported;
+            startDiagnostics = failureDiagnostics(unsupported);
             eventArrived.signalAll();
         } finally { lock.unlock(); }
         emitUnsupported();
@@ -431,13 +435,15 @@ public final class NetworkDiagnostics {
             startInProgress = false;
             status = NetworkDiagnosticsStatus.FAILED;
             startFailure = failure;
-            statusMessage = "WebDriver BiDi network capture failed to start for " + requestedMode.name()
-                    + ": " + messageFor(failure);
+            startDiagnostics = failureDiagnostics(failure);
+            String category = startDiagnostics.getOrDefault("failureCategory", "CAPTURE_START_FAILED");
+            statusMessage = "WebDriver BiDi network capture unavailable for " + requestedMode.name()
+                    + " (" + category + "): " + messageFor(failure);
             addInternal(NetworkEvent.warning(statusMessage));
             eventArrived.signalAll();
         } finally { lock.unlock(); }
-        emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED, UiTestLensStatus.FAILED,
-                UiTestLensLogLevel.ERROR, statusMessage(), null, failure);
+        emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED, UiTestLensStatus.WARN,
+                UiTestLensLogLevel.WARN, statusMessage(), null, failure, startDiagnostics());
     }
 
     private void markUnsupported(String message) {
@@ -682,12 +688,24 @@ public final class NetworkDiagnostics {
 
     private void emitStarted() {
         emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED, UiTestLensStatus.STARTED,
-                UiTestLensLogLevel.INFO, statusMessage(), null, null);
+                UiTestLensLogLevel.INFO, statusMessage(), null, null, startDiagnostics());
     }
 
     private void emitUnsupported() {
-        emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED, UiTestLensStatus.SKIPPED,
-                UiTestLensLogLevel.WARN, statusMessage(), null, startFailure());
+        emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED, UiTestLensStatus.WARN,
+                UiTestLensLogLevel.WARN, statusMessage(), null, startFailure(), startDiagnostics());
+    }
+
+    private Map<String, String> startDiagnostics() {
+        lock.lock();
+        try { return startDiagnostics; }
+        finally { lock.unlock(); }
+    }
+
+    private static Map<String, String> failureDiagnostics(Throwable failure) {
+        return failure instanceof BiDiCaptureException bidi ? bidi.diagnostics() : Map.of(
+                "failureCategory", BiDiFailureCategory.CAPTURE_START_FAILED.name(),
+                "initializationStage", "START_CAPTURE");
     }
 
     private void emitRecorded(RawLogEmission emission) {
