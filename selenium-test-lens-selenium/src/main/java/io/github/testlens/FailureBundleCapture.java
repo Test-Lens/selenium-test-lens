@@ -107,6 +107,10 @@ final class FailureBundleCapture {
                     "Disabled by failure bundle configuration");
             return;
         }
+        if (!delegate.visualRuntimeTouched()) {
+            captureScreenshot("cleanScreenshot", bundleDirectory.resolve("failure-clean.png"), true);
+            return;
+        }
         Object token;
         try {
             token = delegate.hideDebugArtifactsTemporarily();
@@ -294,6 +298,12 @@ final class FailureBundleCapture {
         data.put("pageSource", options.pageSource());
         data.put("browserConsole", options.browserConsole());
         data.put("cleanupHudOnFinish", lensOptions.cleanupHudOnFinish());
+        data.put("observabilityMode", lensOptions.observabilityMode().name());
+        TestLensOptions.EffectiveObservabilityPolicy observability = lensOptions.effectiveObservability();
+        data.put("liveHud", observability.liveHud());
+        data.put("automaticFeedback", observability.automaticFeedback());
+        data.put("sourceNavigation", observability.liveSourceNavigation());
+        data.put("passedTraceRetention", observability.traceRetention().passedSessionRetention().name());
         data.put("networkCaptureMode", delegate.networkDiagnosticsSnapshot()
                 .map(NetworkDiagnostics::captureMode).map(Enum::name).orElse("NOT_INITIALIZED"));
         data.put("redactionEnabled", redactionPolicy.enabled());

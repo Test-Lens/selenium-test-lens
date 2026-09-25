@@ -2,6 +2,59 @@
 
 The runtime audit is an opt-in real-browser harness. It is intentionally excluded from ordinary CI because wall-clock budgets are unreliable on shared runners. It records UTF-8 CSV and JSON rather than deciding pass/fail from elapsed time.
 
+## Stage 5 — FAST observability mode
+
+FAST is an observability policy, not a faster Selenium algorithm. The fixture performs the same click, clear,
+fill, assertion, controlled wait, and covered Smart Click in every Lens profile. FAST leaves action, wait,
+retry, fallback, redaction, and failure-evidence semantics intact while omitting default live HUD delivery,
+automatic highlights, and live Source Navigation. Its successful-session default is `SUMMARY_ONLY`; an explicit
+`RETAIN_TRACE` remains authoritative. RAW Selenium is shown only as a lower bound without equivalent diagnostics.
+
+The local run used source `bc5eca42+working-tree`, Microsoft OpenJDK 21.0.10, Maven 3.9.13, Selenium 4.39.0,
+Windows, headless Chrome 152.0.7977.83 / ChromeDriver 152.0.7977.82 and Firefox 156.0.1 / geckodriver 0.37.1.
+Two warmups preceded five interleaved measured repetitions. Raw CSV/JSON and reports are under
+`target/performance-audit/fast-s04b-final` (ignored build output).
+
+| Browser | Profile | Six-operation median (range) | Executor commands | `executeScript` | HUD batches | Trace events |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Chrome | DEFAULT | 2.859 s (2.694–2.873) | 138 | 80 | 14 | 46 |
+| Chrome | FAST | 2.372 s (2.323–2.372) | 77 | 33 | 0 | 35 |
+| Chrome | live STANDARD | 2.858 s (2.684–2.882) | 138 | 80 | 14 | 46 |
+| Chrome | live DEBUG | 2.939 s (2.791–3.000) | 150 | 86 | 20 | 46 |
+| Firefox | DEFAULT | 1.452 s (1.411–1.671) | 138 | 80 | 14 | 46 |
+| Firefox | FAST | 1.072 s (1.061–1.134) | 77 | 33 | 0 | 35 |
+| Firefox | live STANDARD | 1.486 s (1.409–1.605) | 138 | 80 | 14 | 46 |
+| Firefox | live DEBUG | 1.589 s (1.495–1.639) | 150 | 86 | 20 | 46 |
+
+FAST reduced this complete successful workload by 17.0% in Chrome and 26.1% in Firefox versus DEFAULT,
+while removing 61 logical executor commands (44.2%) and 47 JavaScript commands (58.8%). The command counter
+records calls accepted by `RemoteWebDriver.execute(CommandPayload)`, not physical HTTP retries. The lower event
+count is the absence of automatic presentation/highlight events; action, assertion, wait, retry/fallback, and
+terminal trace events remain. Successful FAST trace JSON had a 5,122-byte median (5,089–5,128) and HTML had a
+32,493-byte median (32,442–32,505), versus 104,859 and 284,430 bytes for DEFAULT, because PASS uses the approved
+bounded `SUMMARY_ONLY` retention policy.
+
+For the equivalent native-observation workload, FAST preserved exactly one business click. Chrome total time was
+137.50 ms RAW, 516.50 ms observed DEFAULT, 153.73 ms observed FAST, and 551.10 ms observed DEBUG; Firefox was
+91.29, 360.18, 116.44, and 427.75 ms respectively. FAST used 7 logical commands and one functional harness
+`executeScript`, matching RAW command counts for this fixture, with zero HUD batches; it still retained 11
+semantic events. Its total overhead over the non-equivalent RAW lower bound was 11.8% in Chrome and 27.5% in
+Firefox.
+
+Controlled failure remained deliberately more expensive than PASS and retained screenshot/evidence, bounded
+failure trace, and failure bundle. Chrome FAST finalization was 248 ms versus 374 ms DEFAULT; Firefox was 140 ms
+versus 275 ms. These are single controlled-failure observations, not distribution-based speed rankings. FAST
+failure JSON/HTML/ZIP sizes were 90.1/245.2/34.5 KiB in Chrome and 92.6/251.3/35.4 KiB in Firefox; DEFAULT was
+141.6/369.6/51.3 KiB and 141.6/369.6/53.4 KiB. Visual masking uses the existing evidence path.
+
+The real TestNG lifecycle retained two independent sessions/reports per cell. Chrome `PER_METHOD` created/quit
+2/2 drivers and took 4.944 s DEFAULT versus 4.006 s FAST; `PER_CLASS` created/quit 1/1 and took 3.371 s versus
+2.492 s. Firefox measured 6.574 s versus 5.623 s for `PER_METHOD` and 4.008 s versus 3.275 s for `PER_CLASS`.
+Each cell is one short lifecycle observation; driver-reuse savings are separate from FAST observability savings.
+
+A headed Chrome smoke using the same harness (`0` warmups, `1` measured repetition, `10` micro entries) passed
+all four integration tests. BrowserStack/Grid were **NOT RUN** because no authorized configuration was available.
+
 ## Reproduce the runtime audit
 
 From PowerShell:
@@ -19,7 +72,7 @@ The script first compiles the reactor, then runs the measured browser process se
 The script runs three deliberately separate workloads:
 
 - `RuntimePerformanceAuditIT`: stage 1 micro-workload for prepared HUD entry updates;
-- `RuntimeWorkloadPerformanceIT`: equivalent public click, clear/fill, assertion, controlled wait, Smart Click recovery, and failure-evidence workloads in STANDARD and DEBUG;
+- `RuntimeWorkloadPerformanceIT`: equivalent public click, clear/fill, assertion, controlled wait, Smart Click recovery, and failure-evidence workloads in DEFAULT, FAST, live STANDARD, and live DEBUG;
 - `RuntimeTestNgLifecyclePerformanceIT`: the real TestNG adapter matrix for `PER_METHOD`/`PER_CLASS` and STANDARD/DEBUG.
 
 The four stage 1 labels are not new product presets:
@@ -57,7 +110,7 @@ Every extra WebDriver command is especially expensive on a remote/Grid topology.
 
 `workload-operations.csv` records consumer-visible duration, trace-event delta, browser subtree mutations, logical commands accepted by `RemoteWebDriver.execute(CommandPayload)`, `executeScript` commands, HUD batch/event/payload-byte counts, outcome, business click count, and cumulative trace JSON size for every public operation. `workload-commands.csv` attributes command count and inclusive command duration to the measured public-operation interval without retaining arguments. These executor counts are not a claim about physical HTTP attempts. `workload-lifecycle.csv` separates direct attach, start-session, finish/export/evidence, new-session, and quit observations. `testng-lifecycle.csv` records the real adapter's suite wall time, driver creation time, action time, residual adapter setup/finalization/quit time, and create/quit/session/report counts.
 
-The same `RuntimeWorkloadPerformanceIT` also writes `native-observation-operations.csv` for an equivalent three-command native workload (`find+click`, `find+clear`, `find+sendKeys`) in `RAW`, `OBSERVED_STANDARD`, and `OBSERVED_DEBUG` profiles. It records consumer-visible action time, total time including Lens finalization, logical executor commands, `executeScript`, semantic events, HUD batches/events/bytes, and the business click count. RAW is a lower bound without diagnostics; observed rows retain native Selenium dispatch and do not use Smart Click. This opt-in comparison measures observation overhead without creating a second benchmark framework or treating decorated calls as physical HTTP retry counts.
+The same `RuntimeWorkloadPerformanceIT` also writes `native-observation-operations.csv` for an equivalent three-command native workload (`find+click`, `find+clear`, `find+sendKeys`) in `RAW`, `OBSERVED_DEFAULT`, `OBSERVED_FAST`, and `OBSERVED_DEBUG` profiles. It records consumer-visible action time, total time including Lens finalization, logical executor commands, `executeScript`, semantic events, HUD batches/events/bytes, and the business click count. RAW is a lower bound without diagnostics; observed rows retain native Selenium dispatch and do not use Smart Click. FAST retains semantic recording but removes default live presentation. This opt-in comparison measures observation overhead without creating a second benchmark framework or treating decorated calls as physical HTTP retry counts.
 
 ### Native observation local sample
 

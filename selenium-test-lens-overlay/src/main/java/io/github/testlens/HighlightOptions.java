@@ -85,6 +85,10 @@ public final class HighlightOptions {
         return copy.build();
     }
 
+    boolean isAutomaticFeedbackExplicit() {
+        return explicit.contains(Field.AUTOMATIC_FEEDBACK);
+    }
+
     /** Browser-runtime values; labels are supplied separately after redaction. */
     public Map<String, Object> toRuntimeMap(HighlightState state) {
         Map<String, Object> values = new LinkedHashMap<>();

@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpServer;
 import io.github.testlens.TestLens;
 import io.github.testlens.TestLensFinalizationResult;
 import io.github.testlens.TestLensOptions;
+import io.github.testlens.ObservabilityMode;
 import io.github.testlens.core.trace.UiTestLensSession;
 import io.github.testlens.hud.HudOptions;
 import io.github.testlens.hud.HudPreset;
@@ -54,8 +55,8 @@ class RuntimeWorkloadPerformanceIT {
         try {
             String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/";
             for (int repetition = -WARMUPS; repetition < REPETITIONS; repetition++) {
-                for (HudPreset preset : orderedPresets(repetition)) {
-                    RunResult run = runSuccessfulWorkload(driver, wire, url, preset, repetition, commands);
+                for (WorkloadProfile profile : orderedProfiles(repetition)) {
+                    RunResult run = runSuccessfulWorkload(driver, wire, url, profile, repetition, commands);
                     if (repetition >= 0) {
                         operations.addAll(run.operations());
                         lifecycle.add(run.lifecycle().withCreateNanos(createNanos));
@@ -63,8 +64,8 @@ class RuntimeWorkloadPerformanceIT {
                 }
             }
             // Evidence/finalization is deliberately separate from the successful action comparison.
-            for (HudPreset preset : List.of(HudPreset.STANDARD, HudPreset.DEBUG)) {
-                lifecycle.add(runFailureWorkload(driver, wire, url, preset));
+            for (WorkloadProfile profile : List.of(WorkloadProfile.DEFAULT, WorkloadProfile.FAST)) {
+                lifecycle.add(runFailureWorkload(driver, wire, url, profile));
             }
             environment = driverMetadata(driver, operations, lifecycle);
         } finally {
@@ -95,8 +96,8 @@ class RuntimeWorkloadPerformanceIT {
             String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/";
             for (int repetition = -WARMUPS; repetition < REPETITIONS; repetition++) {
                 List<String> profiles = Math.floorMod(repetition + WARMUPS, 2) == 0
-                        ? List.of("RAW", "OBSERVED_STANDARD", "OBSERVED_DEBUG")
-                        : List.of("OBSERVED_DEBUG", "OBSERVED_STANDARD", "RAW");
+                        ? List.of("RAW", "OBSERVED_DEFAULT", "OBSERVED_FAST", "OBSERVED_DEBUG")
+                        : List.of("OBSERVED_DEBUG", "OBSERVED_FAST", "OBSERVED_DEFAULT", "RAW");
                 for (String profile : profiles) {
                     NativeObservationResult result = runNativeObservationWorkload(driver, wire, url,
                             profile, repetition);
@@ -122,8 +123,10 @@ class RuntimeWorkloadPerformanceIT {
         UiTestLensSession session = null;
         WebDriver used = raw;
         if (!"RAW".equals(profile)) {
-            HudPreset preset = profile.endsWith("DEBUG") ? HudPreset.DEBUG : HudPreset.STANDARD;
-            lens = TestLens.attach(raw, options(preset,
+            HudPreset preset = profile.endsWith("DEBUG") ? HudPreset.DEBUG : HudPreset.COMPACT;
+            ObservabilityMode mode = profile.endsWith("FAST")
+                    ? ObservabilityMode.FAST : ObservabilityMode.DEFAULT;
+            lens = TestLens.attach(raw, options(preset, mode,
                     "native-" + profile.toLowerCase(Locale.ROOT) + "-" + repetition));
             session = lens.startSession("native observation " + profile + " " + repetition);
             used = lens.observeDriver();
@@ -153,34 +156,35 @@ class RuntimeWorkloadPerformanceIT {
     private static RunResult runSuccessfulWorkload(WebDriver driver,
                                                    BrowserTestHarness.ExecutorCommandMetrics wire,
                                                    String url,
-                                                   HudPreset preset,
+                                                   WorkloadProfile profile,
                                                    int repetition,
                                                    List<CommandResult> commands) {
         driver.get(url);
         wire.reset();
         JavascriptExecutor js = (JavascriptExecutor) driver;
-        TestLensOptions options = options(preset, "success-" + preset.name().toLowerCase(Locale.ROOT));
+        TestLensOptions options = options(profile.preset(), profile.mode(),
+                "success-" + profile.label().toLowerCase(Locale.ROOT));
         long attachStarted = System.nanoTime();
         TestLens lens = TestLens.attach(driver, options);
         long attachNanos = System.nanoTime() - attachStarted;
         long startStarted = System.nanoTime();
-        UiTestLensSession session = lens.startSession("runtime workload " + preset + " " + repetition);
+        UiTestLensSession session = lens.startSession("runtime workload " + profile.label() + " " + repetition);
         long startNanos = System.nanoTime() - startStarted;
-        installHudObserver(js);
+        if (profile.livePresentation()) installHudObserver(js);
         List<OperationResult> results = new ArrayList<>();
 
-        results.add(measure("click", preset, repetition, session, wire, js, commands,
+        results.add(measure("click", profile, repetition, session, wire, js, commands,
                 () -> lens.getByTestId("available").click()));
-        results.add(measure("clear", preset, repetition, session, wire, js, commands,
+        results.add(measure("clear", profile, repetition, session, wire, js, commands,
                 () -> lens.getByTestId("name").clear()));
-        results.add(measure("fill", preset, repetition, session, wire, js, commands,
+        results.add(measure("fill", profile, repetition, session, wire, js, commands,
                 () -> lens.getByTestId("name").fill("Test Lens")));
-        results.add(measure("assertion", preset, repetition, session, wire, js, commands,
+        results.add(measure("assertion", profile, repetition, session, wire, js, commands,
                 () -> lens.expect(By.cssSelector("[data-testid='name']")).toHaveValue("Test Lens")));
         js.executeScript("setTimeout(() => document.querySelector('[data-testid=delayed]').hidden=false, 80)");
-        results.add(measure("wait", preset, repetition, session, wire, js, commands,
+        results.add(measure("wait", profile, repetition, session, wire, js, commands,
                 () -> lens.getByTestId("delayed").waitUntilVisible()));
-        results.add(measure("smart-click-js-fallback", preset, repetition, session, wire, js, commands,
+        results.add(measure("smart-click-js-fallback", profile, repetition, session, wire, js, commands,
                 () -> lens.getByTestId("covered").click()));
 
         assertEquals(1L, number(js, "return window.availableClicks"));
@@ -190,7 +194,7 @@ class RuntimeWorkloadPerformanceIT {
         long finishNanos = System.nanoTime() - finishStarted;
         assertTrue(Files.isRegularFile(finalized.jsonReport()));
         assertTrue(Files.isRegularFile(finalized.htmlReport()));
-        return new RunResult(results, new LifecycleResult(preset.name(), repetition, "PASSED", 0L,
+        return new RunResult(results, new LifecycleResult(profile.label(), repetition, "PASSED", 0L,
                 attachNanos, startNanos, finishNanos, 0L, session.events().size(), 1, 1,
                 wire.total(), wire.count("executeScript"),
                 retentionLong(session, "retainedEvents"), retentionLong(session, "retainedEstimatedBytes"),
@@ -200,12 +204,13 @@ class RuntimeWorkloadPerformanceIT {
     private static LifecycleResult runFailureWorkload(WebDriver driver,
                                                       BrowserTestHarness.ExecutorCommandMetrics wire,
                                                       String url,
-                                                      HudPreset preset) {
+                                                      WorkloadProfile profile) {
         driver.get(url);
         wire.reset();
-        TestLens lens = TestLens.attach(driver, options(preset, "failure-" + preset.name().toLowerCase(Locale.ROOT)));
+        TestLens lens = TestLens.attach(driver, options(profile.preset(), profile.mode(),
+                "failure-" + profile.label().toLowerCase(Locale.ROOT)));
         long start = System.nanoTime();
-        UiTestLensSession session = lens.startSession("runtime controlled failure " + preset);
+        UiTestLensSession session = lens.startSession("runtime controlled failure " + profile.label());
         long startNanos = System.nanoTime() - start;
         AssertionError failure = assertThrows(AssertionError.class,
                 () -> lens.expect(By.cssSelector("[data-testid='name']")).toHaveValue("never"));
@@ -213,21 +218,21 @@ class RuntimeWorkloadPerformanceIT {
         TestLensFinalizationResult finalized = lens.finishFailed(failure);
         long finishNanos = System.nanoTime() - finishStarted;
         assertTrue(Files.isRegularFile(finalized.failureScreenshot()), "controlled failure must retain evidence");
-        return new LifecycleResult(preset.name(), 0, "CONTROLLED_FAILURE", 0L, 0L, startNanos,
+        return new LifecycleResult(profile.label(), 0, "CONTROLLED_FAILURE", 0L, 0L, startNanos,
                 finishNanos, 0L, session.events().size(), 1, 1, wire.total(), wire.count("executeScript"),
                 retentionLong(session, "retainedEvents"), retentionLong(session, "retainedEstimatedBytes"),
                 retentionLong(session, "evictedEvents"), retentionLong(session, "truncatedEvents"));
     }
 
     private static OperationResult measure(String operation,
-                                           HudPreset preset,
+                                           WorkloadProfile profile,
                                            int repetition,
                                            UiTestLensSession session,
                                            BrowserTestHarness.ExecutorCommandMetrics wire,
                                            JavascriptExecutor js,
                                            List<CommandResult> commands,
                                            Runnable body) {
-        resetHudObserver(js);
+        if (profile.livePresentation()) resetHudObserver(js);
         int eventsBefore = session.events().size();
         int wireBefore = wire.total();
         int scriptsBefore = wire.count("executeScript");
@@ -242,14 +247,14 @@ class RuntimeWorkloadPerformanceIT {
             int operationWire = wire.total() - wireBefore;
             int operationScripts = wire.count("executeScript") - scriptsBefore;
             commandDelta(commandsBefore, wire.snapshot()).forEach((command, measurement) -> commands.add(
-                    new CommandResult(preset.name(), repetition, operation, command,
+                    new CommandResult(profile.label(), repetition, operation, command,
                             measurement.count(), measurement.elapsedNanos())));
-            HudMutations mutations = readHudObserver(js);
+            HudMutations mutations = profile.livePresentation() ? readHudObserver(js) : new HudMutations(0, 0);
             BrowserTestHarness.ExecutorCommandMetrics.HudTransportMeasurement transport =
                     wire.hudTransportSnapshot().minus(hudTransportBefore);
             int events = session.events().size() - eventsBefore;
             long clickCount = number(js, "return window.availableClicks + window.coveredClicks");
-            RESULTS.get().add(new OperationResult(preset.name(), repetition, operation, elapsed, events,
+            RESULTS.get().add(new OperationResult(profile.label(), repetition, operation, elapsed, events,
                     mutations.inserts(), mutations.updates(), operationWire, operationScripts,
                     transport.batches(), transport.events(), transport.payloadBytes(), outcome, clickCount,
                     session.exportJson().getBytes(StandardCharsets.UTF_8).length));
@@ -296,18 +301,21 @@ class RuntimeWorkloadPerformanceIT {
         return Long.parseLong(value);
     }
 
-    private static TestLensOptions options(HudPreset preset, String directory) {
+    private static TestLensOptions options(HudPreset preset, ObservabilityMode mode, String directory) {
         return TestLensOptions.builder()
                 .hud(HudOptions.builder().preset(preset).build())
+                .observabilityMode(mode)
                 .outputRoot(Path.of(System.getProperty("perf.outputDir", "target/performance-audit"), directory))
                 .screenshotOnFailure(true)
                 .build();
     }
 
-    private static List<HudPreset> orderedPresets(int repetition) {
+    private static List<WorkloadProfile> orderedProfiles(int repetition) {
         return Math.floorMod(repetition + WARMUPS, 2) == 0
-                ? List.of(HudPreset.STANDARD, HudPreset.DEBUG)
-                : List.of(HudPreset.DEBUG, HudPreset.STANDARD);
+                ? List.of(WorkloadProfile.DEFAULT, WorkloadProfile.FAST,
+                        WorkloadProfile.STANDARD, WorkloadProfile.DEBUG)
+                : List.of(WorkloadProfile.DEBUG, WorkloadProfile.STANDARD,
+                        WorkloadProfile.FAST, WorkloadProfile.DEFAULT);
     }
 
     private static HttpServer server() throws IOException {
@@ -446,6 +454,17 @@ class RuntimeWorkloadPerformanceIT {
     }
 
     private record HudMutations(long inserts, long updates) { }
+    private record WorkloadProfile(String label, HudPreset preset, ObservabilityMode mode,
+                                   boolean livePresentation) {
+        private static final WorkloadProfile DEFAULT = new WorkloadProfile(
+                "DEFAULT", HudPreset.COMPACT, ObservabilityMode.DEFAULT, true);
+        private static final WorkloadProfile FAST = new WorkloadProfile(
+                "FAST", HudPreset.COMPACT, ObservabilityMode.FAST, false);
+        private static final WorkloadProfile STANDARD = new WorkloadProfile(
+                "STANDARD", HudPreset.STANDARD, ObservabilityMode.DEFAULT, true);
+        private static final WorkloadProfile DEBUG = new WorkloadProfile(
+                "DEBUG", HudPreset.DEBUG, ObservabilityMode.DEFAULT, true);
+    }
     private record CommandResult(String preset, int repetition, String origin, String command,
                                  int count, long elapsedNanos) { }
     private record OperationResult(String preset, int repetition, String operation, long elapsedNanos,

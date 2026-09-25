@@ -12,6 +12,7 @@ public final class OverlayConfig {
 
     private final boolean enabled;
     private final boolean showHudPanel;
+    private final boolean showHudPanelExplicit;
     private final long decorationDurationMs;
     private final String globalOverlayCloseButtonSelector;
     private final HudPosition hudPosition;
@@ -29,6 +30,7 @@ public final class OverlayConfig {
     private OverlayConfig(Builder builder) {
         this.enabled = builder.enabled;
         this.showHudPanel = builder.showHudPanel;
+        this.showHudPanelExplicit = builder.showHudPanelExplicit;
         this.decorationDurationMs = builder.decorationDurationMs;
         this.globalOverlayCloseButtonSelector = builder.globalOverlayCloseButtonSelector;
         this.hudPosition = builder.hudPosition;
@@ -56,6 +58,8 @@ public final class OverlayConfig {
     public boolean isShowHudPanel() {
         return showHudPanel;
     }
+
+    boolean isShowHudPanelExplicit() { return showHudPanelExplicit; }
 
     public long getDecorationDurationMs() {
         return decorationDurationMs;
@@ -118,7 +122,7 @@ public final class OverlayConfig {
     OverlayConfig withHudOptions(HudOptions value) {
         return builder()
                 .enabled(enabled)
-                .showHudPanel(showHudPanel)
+                .showHudPanel(showHudPanel, showHudPanelExplicit)
                 .decorationDurationMs(decorationDurationMs)
                 .globalOverlayCloseButtonSelector(globalOverlayCloseButtonSelector)
                 .hudOffset(hudOffsetX, hudOffsetY)
@@ -129,7 +133,7 @@ public final class OverlayConfig {
     }
 
     OverlayConfig withHighlightOptions(HighlightOptions value) {
-        Builder copy = builder().enabled(enabled).showHudPanel(showHudPanel)
+        Builder copy = builder().enabled(enabled).showHudPanel(showHudPanel, showHudPanelExplicit)
                 .decorationDurationMs(decorationDurationMs)
                 .globalOverlayCloseButtonSelector(globalOverlayCloseButtonSelector)
                 .hudOffset(hudOffsetX, hudOffsetY).highlightColor(highlightColor);
@@ -137,10 +141,23 @@ public final class OverlayConfig {
         return copy.highlightOptions(value).build();
     }
 
+    OverlayConfig withPresentationPolicy(boolean liveHud, boolean automaticFeedback) {
+        HighlightOptions effectiveHighlights = highlightOptions.toBuilder()
+                .automaticFeedback(automaticFeedback)
+                .build();
+        Builder copy = builder().enabled(enabled).showHudPanel(liveHud, showHudPanelExplicit)
+                .decorationDurationMs(decorationDurationMs)
+                .globalOverlayCloseButtonSelector(globalOverlayCloseButtonSelector)
+                .hudOffset(hudOffsetX, hudOffsetY).highlightColor(highlightColor);
+        if (hudOptionsAuthoritative) copy.hudOptions(hudOptions); else copy.hudTheme(hudTheme);
+        return copy.highlightOptions(effectiveHighlights).build();
+    }
+
     public static final class Builder {
 
         private boolean enabled = true;
         private boolean showHudPanel = true;
+        private boolean showHudPanelExplicit;
         private long decorationDurationMs = 1500L;
         private String globalOverlayCloseButtonSelector = null;
         private HudPosition hudPosition = HudPosition.BOTTOM_RIGHT;
@@ -162,7 +179,12 @@ public final class OverlayConfig {
         }
 
         public Builder showHudPanel(boolean showHudPanel) {
+            return showHudPanel(showHudPanel, true);
+        }
+
+        private Builder showHudPanel(boolean showHudPanel, boolean explicit) {
             this.showHudPanel = showHudPanel;
+            this.showHudPanelExplicit = explicit;
             return this;
         }
 

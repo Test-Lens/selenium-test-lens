@@ -41,6 +41,7 @@ import java.util.function.Function;
 public final class TestLens {
     private final JsOverlayDebug delegate;
     private final TestLensOptions options;
+    private final TestLensOptions.EffectiveObservabilityPolicy observability;
     private final Object finalizationLock = new Object();
     private UiTestLensSession finalizedSession;
     private FacadeFinalization finalization;
@@ -60,9 +61,13 @@ public final class TestLens {
     TestLens(WebDriver driver, TestLensOptions options, FinalizationObserver finalizationObserver,
              SuiteStateManager suiteState) {
         this.options = options == null ? TestLensOptions.defaults() : options;
+        this.observability = this.options.effectiveObservability();
         this.finalizationObserver = finalizationObserver == null ? ignored -> { } : finalizationObserver;
         this.suiteState = suiteState;
-        this.delegate = new JsOverlayDebug(driver, this.options.overlayConfig(), this.options.redactionPolicy(),
+        this.delegate = new JsOverlayDebug(driver,
+                this.options.overlayConfig().withPresentationPolicy(
+                        observability.liveHud(), observability.automaticFeedback()),
+                this.options.redactionPolicy(),
                 this.options.locatorOptions(), this.options.visualRedaction());
     }
 
@@ -107,14 +112,25 @@ public final class TestLens {
     public UiTestLensSession startSession(String name) {
         closeTerminalReplacedScenario();
         UiTestLensSession session = delegate.startSession(name, options.retryOutcomePolicy(), options.allowedRetries(),
-                options.redactionPolicy(), options.traceRetention());
+                options.redactionPolicy(), observability.traceRetention());
         synchronized (finalizationLock) {
             finalizedSession = null;
             finalization = null;
         }
-        // Safe even before the first document exists; subsequent native events lazily reinject it.
-        try { delegate.initHud(session.metadata().name(), ""); } catch (RuntimeException ignored) {
-            // The browser may not have a document yet. Native events will retry lazily.
+        session.addEvent(TraceEvent.builder(TraceEventType.CUSTOM, TraceStatus.INFO,
+                        "Effective observability configuration")
+                .attribute("observabilityMode", observability.mode().name())
+                .attribute("liveHud", String.valueOf(observability.liveHud()))
+                .attribute("automaticFeedback", String.valueOf(observability.automaticFeedback()))
+                .attribute("sourceNavigation", String.valueOf(observability.liveSourceNavigation()))
+                .attribute("passedTraceRetention",
+                        observability.traceRetention().passedSessionRetention().name())
+                .build());
+        if (observability.liveHud()) {
+            // Safe even before the first document exists; subsequent native events lazily reinject it.
+            try { delegate.initHud(session.metadata().name(), ""); } catch (RuntimeException ignored) {
+                // The browser may not have a document yet. Native events will retry lazily.
+            }
         }
         return session;
     }
@@ -426,7 +442,7 @@ public final class TestLens {
             observe(FinalizationStage.HTML_EXPORT);
             session.exportHtml(html);
         } catch (RuntimeException failure) { diagnostics.add(failure); html = null; }
-        if (options.cleanupHudOnFinish()) {
+        if (options.cleanupHudOnFinish() && delegate.visualRuntimeTouched()) {
             try {
                 observe(FinalizationStage.HUD_CLEANUP);
                 delegate.clearDebugArtifacts();

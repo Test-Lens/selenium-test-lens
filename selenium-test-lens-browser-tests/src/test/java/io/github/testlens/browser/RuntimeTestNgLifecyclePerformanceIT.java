@@ -3,6 +3,7 @@ package io.github.testlens.browser;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import io.github.testlens.TestLensOptions;
+import io.github.testlens.ObservabilityMode;
 import io.github.testlens.hud.HudOptions;
 import io.github.testlens.hud.HudPreset;
 import io.github.testlens.testng.DriverScope;
@@ -56,8 +57,8 @@ class RuntimeTestNgLifecyclePerformanceIT {
         List<Row> rows = new ArrayList<>();
         try {
             for (DriverScope scope : DriverScope.values()) {
-                for (HudPreset preset : List.of(HudPreset.STANDARD, HudPreset.DEBUG)) {
-                    reset(new Configuration(preset, output.resolve("testng-" + scope + "-" + preset)));
+                for (Configuration profile : profiles(output, scope)) {
+                    reset(profile);
                     TestNG runner = new TestNG(false);
                     runner.setUseDefaultListeners(false);
                     runner.setTestClasses(new Class<?>[]{scope == DriverScope.PER_METHOD
@@ -75,7 +76,7 @@ class RuntimeTestNgLifecyclePerformanceIT {
                     assertEquals(expectedDrivers, QUITS.get());
                     long reports = Files.walk(CONFIG.get().outputRoot()).filter(path -> path.getFileName().toString().equals("trace.json")).count();
                     assertEquals(2L, reports);
-                    rows.add(new Row(scope.name(), preset.name(), wall, CREATE_NANOS.get(), ACTION_NANOS.get(),
+                    rows.add(new Row(scope.name(), profile.label(), wall, CREATE_NANOS.get(), ACTION_NANOS.get(),
                             wall - CREATE_NANOS.get() - ACTION_NANOS.get(), CREATES.get(), QUITS.get(),
                             SESSION_IDS.size(), reports));
                 }
@@ -148,6 +149,7 @@ class RuntimeTestNgLifecyclePerformanceIT {
         @Override public TestLensOptions lensOptions() {
             Configuration value = CONFIG.get();
             return TestLensOptions.builder().hud(HudOptions.builder().preset(value.preset()).build())
+                    .observabilityMode(value.mode())
                     .outputRoot(value.outputRoot()).screenshotOnFailure(false).build();
         }
         @Override public String sessionName(ITestResult result) {
@@ -180,7 +182,20 @@ class RuntimeTestNgLifecyclePerformanceIT {
         @Override public void onTestSkipped(ITestResult result) { results.add(result); }
     }
 
-    private record Configuration(HudPreset preset, Path outputRoot) { }
+    private static List<Configuration> profiles(Path output, DriverScope scope) {
+        String prefix = "testng-" + scope + "-";
+        return List.of(
+                new Configuration("DEFAULT", HudPreset.COMPACT, ObservabilityMode.DEFAULT,
+                        output.resolve(prefix + "DEFAULT")),
+                new Configuration("FAST", HudPreset.COMPACT, ObservabilityMode.FAST,
+                        output.resolve(prefix + "FAST")),
+                new Configuration("STANDARD", HudPreset.STANDARD, ObservabilityMode.DEFAULT,
+                        output.resolve(prefix + "STANDARD")),
+                new Configuration("DEBUG", HudPreset.DEBUG, ObservabilityMode.DEFAULT,
+                        output.resolve(prefix + "DEBUG")));
+    }
+
+    private record Configuration(String label, HudPreset preset, ObservabilityMode mode, Path outputRoot) { }
     private record Row(String scope, String preset, long wallNanos, long createNanos, long actionNanos,
                        long adapterRemainderNanos, int createCount, int quitCount, int sessions, long reports) { }
 }

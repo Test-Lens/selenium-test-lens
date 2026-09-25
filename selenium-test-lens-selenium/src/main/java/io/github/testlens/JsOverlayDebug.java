@@ -75,6 +75,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 
@@ -112,6 +113,7 @@ public final class JsOverlayDebug {
     private final String consumerOperationSession = java.util.UUID.randomUUID().toString();
     private final java.util.concurrent.atomic.AtomicLong consumerOperationSequence = new java.util.concurrent.atomic.AtomicLong();
     private final ThreadLocal<ConsumerOperationState> consumerOperation = new ThreadLocal<>();
+    private final AtomicBoolean visualRuntimeTouched = new AtomicBoolean();
 
     // ======================================================================
     //  CTOR
@@ -175,7 +177,7 @@ public final class JsOverlayDebug {
 
         BrowserScriptExecutor scriptExecutor = SeleniumOverlayFactory.scriptExecutor(driver);
 
-        this.rootManager = new OverlayRootManager(scriptExecutor, config);
+        this.rootManager = new TrackingOverlayRootManager(scriptExecutor, config, visualRuntimeTouched);
         this.highlightActions = new HighlightActions(driver, rootManager, config, this.logger);
         this.typingActions = new TypingActions(driver, rootManager, config, this.logger);
         this.smartClickActions = new ConfiguredSmartClickActions(driver, config, rootManager, highlightActions, this.logger);
@@ -599,6 +601,7 @@ public final class JsOverlayDebug {
 
     /** Initializes the HUD with test name and pipeline ID. */
     public void initHud(String testName, String pipelineId) {
+        visualRuntimeTouched.set(true);
         hudPanel.init(redact(testName), redact(pipelineId));
     }
 
@@ -1323,6 +1326,10 @@ public final class JsOverlayDebug {
         rootManager.clearAll();
     }
 
+    boolean visualRuntimeTouched() {
+        return visualRuntimeTouched.get();
+    }
+
     Object hideDebugArtifactsTemporarily() {
         if (!(driver instanceof JavascriptExecutor executor)) {
             throw new UnsupportedOperationException("WebDriver does not implement JavascriptExecutor");
@@ -1341,6 +1348,22 @@ public final class JsOverlayDebug {
         executor.executeScript(
                 "var t=arguments[0],h=document.getElementById('selenium-overlay-host');"
                         + "if(t&&t.present&&h){h.style.visibility=t.visibility||'';}", token);
+    }
+
+    private static final class TrackingOverlayRootManager extends OverlayRootManager {
+        private final AtomicBoolean touched;
+
+        private TrackingOverlayRootManager(BrowserScriptExecutor executor, OverlayConfig config,
+                                           AtomicBoolean touched) {
+            super(executor, config);
+            this.touched = touched;
+        }
+
+        @Override
+        public void ensureRootExists() {
+            touched.set(true);
+            super.ensureRootExists();
+        }
     }
 
     // ======================================================================

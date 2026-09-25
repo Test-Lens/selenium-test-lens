@@ -28,11 +28,57 @@ driver, quits/recreates the session, changes capabilities, or retroactively chan
 
 ## TestLensOptions
 
+### FAST observability (0.4.0)
+
+`ObservabilityMode.FAST` is an opt-in observability policy for a cheap successful-test path. It does not change
+Selenium commands, waits, assertions, locator resolution, Smart Click strategy, retries, browser arguments, or
+headed/headless execution. Without explicit component overrides it keeps structured semantic events and the
+bounded recorder, but does not initialize or update the live HUD, does not show automatic highlights, does not
+probe live Source Navigation, and retains only the passed-session summary. A terminal failure still preserves
+the bounded failure-aware trace, source context, visually redacted screenshot, and enabled failure-bundle
+components.
+
+```java
+TestLensOptions options = TestLensOptions.builder()
+        .observabilityMode(ObservabilityMode.FAST)
+        .build();
+```
+
+Configuration is resolved once when immutable options are built. Precedence is an explicit Java call,
+`-DtestLens.observability=fast|default`, `TEST_LENS_OBSERVABILITY=FAST|DEFAULT`, then `DEFAULT`. Values are
+trimmed and case-insensitive; a blank or unknown effective value fails with `IllegalArgumentException`. An
+explicit Java `DEFAULT` suppresses property/environment parsing. FAST and `HeadlessMode` are independent, so
+headed or headless browsers can use either observability mode. `HudPreset.DEBUG` remains a presentation preset:
+FAST + DEBUG does not open a live HUD unless presentation is also explicitly enabled.
+
+Existing component settings override FAST defaults. For example:
+
+```java
+TestLensOptions fastWithLiveDebug = TestLensOptions.builder()
+        .observabilityMode(ObservabilityMode.FAST)
+        .overlayConfig(OverlayConfig.builder()
+                .showHudPanel(true)
+                .hudOptions(HudOptions.builder().preset(HudPreset.DEBUG).build())
+                .highlightOptions(HighlightOptions.builder()
+                        .automaticFeedback(true)
+                        .build())
+                .build())
+        .traceRetention(TraceRetentionOptions.builder()
+                .passedSessionRetention(PassedTraceRetention.RETAIN_TRACE)
+                .build())
+        .build();
+```
+
+Explicit manual highlights and screenshots still execute in FAST. User log events remain in trace/report; they
+reach the browser only when live HUD presentation was explicitly enabled. Explicit network capture remains lazy
+and fully functional. These overrides deliberately reduce FAST's performance benefit.
+
 `TestLensOptions.defaults()` or `builder()`; API level **Recommended**.
 
 | Builder method | Type | Default | Effect / validation |
 | --- | --- | --- | --- |
 | `overlayConfig(value)` | `OverlayConfig` | `OverlayConfig.builder().build()` | Visual runtime behavior; null is rejected when options are built/used. |
+| `observabilityMode(value)` | `ObservabilityMode` | resolved `DEFAULT` | `FAST` suppresses default live presentation and uses `SUMMARY_ONLY` for passed sessions. Null clears the Java override and restores property/environment resolution. Added in `0.4.0`. |
 | `hud(value)` | `HudOptions` | `HudOptions.defaults()` | Product-level HUD content, layout, palette, opacity, and branding. Added in `0.3.0`. |
 | `highlights(value)` | `HighlightOptions` | `HighlightOptions.defaults()` | Manual and automatic ACTION/WAITING/RETRY/SUCCESS/FAILURE element decoration. The deprecated singular `highlight(value)` alias exists only for 0.3.1 preview compatibility. |
 | `locatorOptions(value)` | `UiLocatorOptions` | `UiLocatorOptions.defaults()` | Locator wait, retry, actionability, and the default timeout/poll interval for `TestLens` page waits. The nested retained `highlightBeforeAction` value is currently not consulted by `UiLocator`. |

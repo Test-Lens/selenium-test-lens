@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 282
-# Public callable methods/constructors: 2179
+# Types: 283
+# Public callable methods/constructors: 2183
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -1208,6 +1208,11 @@ TYPE io.github.testlens.JsOverlayDebug
   public void apiHighlightJsonPathsAnimated(java.util.List<java.lang.String>, long)
   public org.openqa.selenium.WebDriver getDriver()
   public io.github.testlens.OverlayConfig getConfig()
+TYPE io.github.testlens.ObservabilityMode
+  public static final io.github.testlens.ObservabilityMode DEFAULT
+  public static final io.github.testlens.ObservabilityMode FAST
+  public static io.github.testlens.ObservabilityMode[] values()
+  public static io.github.testlens.ObservabilityMode valueOf(java.lang.String)
 TYPE io.github.testlens.OverlayWait
   public io.github.testlens.OverlayWait(org.openqa.selenium.WebDriver, java.time.Duration, io.github.testlens.JsOverlayDebug, io.github.testlens.core.OverlayLogger)
   public io.github.testlens.OverlayWait(org.openqa.selenium.WebDriver, java.time.Duration, io.github.testlens.JsOverlayDebug)
@@ -1326,6 +1331,7 @@ TYPE io.github.testlens.TestLensOptions$Builder
   public io.github.testlens.TestLensOptions$Builder failureBundleOptions(io.github.testlens.selenium.evidence.FailureBundleOptions)
   public io.github.testlens.TestLensOptions$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
   public io.github.testlens.TestLensOptions$Builder traceRetention(io.github.testlens.core.trace.TraceRetentionOptions)
+  public io.github.testlens.TestLensOptions$Builder observabilityMode(io.github.testlens.ObservabilityMode)
   public io.github.testlens.TestLensOptions$Builder hud(io.github.testlens.hud.HudOptions)
   public io.github.testlens.TestLensOptions$Builder highlights(io.github.testlens.HighlightOptions)
   public io.github.testlens.TestLensOptions$Builder highlight(io.github.testlens.HighlightOptions)
@@ -1344,6 +1350,7 @@ TYPE io.github.testlens.TestLensOptions
   public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOptions()
   public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
   public io.github.testlens.core.trace.TraceRetentionOptions traceRetention()
+  public io.github.testlens.ObservabilityMode observabilityMode()
   public io.github.testlens.hud.HudOptions hud()
   public io.github.testlens.HighlightOptions highlights()
   public io.github.testlens.HighlightOptions highlight()

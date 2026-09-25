@@ -244,6 +244,7 @@
 "selenium-test-lens-selenium","io.github.testlens.TestLens","USER_API","docs/reference/test-lens.md"
 "selenium-test-lens-selenium","io.github.testlens.TestLensAlert","USER_API","docs/browser-context/alerts.md"
 "selenium-test-lens-selenium","io.github.testlens.TestLensFinalizationResult","USER_API","docs/reference/result-types.md"
+"selenium-test-lens-selenium","io.github.testlens.ObservabilityMode","USER_API","docs/reference/configuration.md"
 "selenium-test-lens-selenium","io.github.testlens.TestLensOptions$Builder","USER_API","docs/reference/configuration.md"
 "selenium-test-lens-selenium","io.github.testlens.TestLensOptions","USER_API","docs/reference/configuration.md"
 "selenium-test-lens-selenium","io.github.testlens.ScenarioResourceManager","USER_API","docs/features/managed-test-state.md"

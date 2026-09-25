@@ -248,6 +248,24 @@ class TestLensTestNgListenerTest {
         assertReportsExist(observation);
     }
 
+    @Test
+    void invalidObservabilityPropertyAfterDriverCreationStillQuitsOwnedDriverExactlyOnce() {
+        String previous = System.getProperty("testLens.observability");
+        try {
+            System.setProperty("testLens.observability", "banana");
+            run(InvalidObservabilityFixture.class);
+
+            assertEquals(1, Harness.drivers.size());
+            assertEquals(1, Harness.drivers.get(0).quitCalls.get());
+            assertEquals(0, Harness.observations.size());
+            assertTrue(Harness.failed().stream().anyMatch(result -> result.getThrowable() != null
+                    && result.getThrowable().getMessage().contains("testLens.observability")));
+        } finally {
+            if (previous == null) System.clearProperty("testLens.observability");
+            else System.setProperty("testLens.observability", previous);
+        }
+    }
+
     private static void run(Class<?>... fixtures) {
         execute(testng -> testng.setTestClasses(fixtures));
     }
@@ -475,6 +493,24 @@ class TestLensTestNgListenerTest {
     public static class PolicyFactory extends HarnessFactory {
         public PolicyFactory() { }
         @Override public TestLensOptions lensOptions() { return Harness.policyOptions; }
+    }
+
+    public static class ResolvingOptionsFactory extends HarnessFactory {
+        public ResolvingOptionsFactory() { }
+        @Override public TestLensOptions lensOptions() {
+            return TestLensOptions.builder()
+                    .outputRoot(Harness.outputRoot)
+                    .screenshotOnFailure(false)
+                    .build();
+        }
+    }
+
+    @Listeners(TestLensTestNgListener.class)
+    @TestLensTestNg(factory = ResolvingOptionsFactory.class)
+    public static class InvalidObservabilityFixture {
+        @org.testng.annotations.Test public void neverRuns() {
+            throw new AssertionError("test body must not run");
+        }
     }
 
     private static final class ResultCollector implements org.testng.ITestListener {

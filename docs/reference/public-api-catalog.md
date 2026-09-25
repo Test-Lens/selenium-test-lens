@@ -7,7 +7,7 @@ search:
 
 This generated catalog is the optional binary-surface reference for every published public type, constructor, method, and field. Start with [Capabilities](../capabilities.md) and the functional navigation for behavior, workflows, and examples. Internal-style types appear only because Java consumers can currently access them.
 
-Inventory: **282 public types** and **2179 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
+Inventory: **283 public types** and **2183 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
 
 Classifications: USER_API is the normal consumer path; ADVANCED_API is supported specialized functionality; LOW_LEVEL_API exposes lower abstractions; INTERNAL_STYLE_PUBLIC is binary-public implementation surface and is not recommended for application code.
 
@@ -121,6 +121,7 @@ Signature details are split by published artifact and Java package to keep indiv
 | io.github.testlens.JsOverlayDebug$AssertionSummary | io.github.testlens | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-jsoverlaydebug-assertionsummary) |
 | io.github.testlens.JsOverlayDebug$SoftAssertions | io.github.testlens | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-jsoverlaydebug-softassertions) |
 | io.github.testlens.JsOverlayDebug | io.github.testlens | ADVANCED_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-jsoverlaydebug) |
+| io.github.testlens.ObservabilityMode | io.github.testlens | USER_API | enum | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-observabilitymode) |
 | io.github.testlens.OverlayWait | io.github.testlens | LOW_LEVEL_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-overlaywait) |
 | io.github.testlens.ScenarioResourceManager | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-scenarioresourcemanager) |
 | io.github.testlens.ScenarioStateManager | io.github.testlens | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens.md#io-github-testlens-scenariostatemanager) |

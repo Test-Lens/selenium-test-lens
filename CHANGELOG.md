@@ -4,6 +4,14 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Added opt-in `ObservabilityMode.FAST`, independently configurable through Java, `testLens.observability`, or
+  `TEST_LENS_OBSERVABILITY`. The successful-test path keeps Selenium/Smart Click/wait/retry semantics and bounded
+  trace correlation while skipping default live HUD, automatic highlight, Source Navigation presentation, and
+  retaining only the passed summary. Explicit presentation/retention overrides and full visually redacted failure
+  evidence remain available.
+
 ### Fixed
 
 - Added immutable pre-session headed/headless execution intent with Java API, `testLens.headless` system-property,

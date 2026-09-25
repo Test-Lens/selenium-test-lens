@@ -214,6 +214,21 @@ public org.openqa.selenium.WebDriver getDriver()
 public io.github.testlens.OverlayConfig getConfig()
 ```
 
+## `io.github.testlens.ObservabilityMode` {#io-github-testlens-observabilitymode}
+
+- Artifact/module: `selenium-test-lens-selenium`
+- Package: `io.github.testlens`
+- Classification: `USER_API`
+- Type kind: `enum`
+- Functional documentation: [docs/reference/configuration.md](../../reference/configuration.md)
+
+```java
+public static final io.github.testlens.ObservabilityMode DEFAULT
+public static final io.github.testlens.ObservabilityMode FAST
+public static io.github.testlens.ObservabilityMode[] values()
+public static io.github.testlens.ObservabilityMode valueOf(java.lang.String)
+```
+
 ## `io.github.testlens.OverlayWait` {#io-github-testlens-overlaywait}
 
 - Artifact/module: `selenium-test-lens-selenium`
@@ -409,6 +424,7 @@ public io.github.testlens.TestLensOptions$Builder allowedRetries(int)
 public io.github.testlens.TestLensOptions$Builder failureBundleOptions(io.github.testlens.selenium.evidence.FailureBundleOptions)
 public io.github.testlens.TestLensOptions$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
 public io.github.testlens.TestLensOptions$Builder traceRetention(io.github.testlens.core.trace.TraceRetentionOptions)
+public io.github.testlens.TestLensOptions$Builder observabilityMode(io.github.testlens.ObservabilityMode)
 public io.github.testlens.TestLensOptions$Builder hud(io.github.testlens.hud.HudOptions)
 public io.github.testlens.TestLensOptions$Builder highlights(io.github.testlens.HighlightOptions)
 public io.github.testlens.TestLensOptions$Builder highlight(io.github.testlens.HighlightOptions)
@@ -437,6 +453,7 @@ public int allowedRetries()
 public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOptions()
 public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
 public io.github.testlens.core.trace.TraceRetentionOptions traceRetention()
+public io.github.testlens.ObservabilityMode observabilityMode()
 public io.github.testlens.hud.HudOptions hud()
 public io.github.testlens.HighlightOptions highlights()
 public io.github.testlens.HighlightOptions highlight()

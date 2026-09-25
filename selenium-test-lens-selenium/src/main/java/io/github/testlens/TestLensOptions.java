@@ -2,6 +2,7 @@ package io.github.testlens;
 
 import io.github.testlens.core.trace.RetryOutcomePolicy;
 import io.github.testlens.core.trace.TraceRetentionOptions;
+import io.github.testlens.core.trace.PassedTraceRetention;
 import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.locator.UiLocatorOptions;
 import io.github.testlens.selenium.evidence.FailureBundleOptions;
@@ -24,6 +25,8 @@ public final class TestLensOptions {
     private final VisualRedactionOptions visualRedaction;
     private final HighlightOptions highlightOptions;
     private final TraceRetentionOptions traceRetention;
+    private final ObservabilityMode observabilityMode;
+    private final EffectiveObservabilityPolicy effectiveObservability;
 
     private TestLensOptions(Builder builder) {
         OverlayConfig configuredOverlay = builder.overlayConfig == null ? OverlayConfig.builder().build() : builder.overlayConfig;
@@ -43,6 +46,9 @@ public final class TestLensOptions {
                 ? VisualRedactionOptions.defaults() : builder.visualRedaction;
         this.traceRetention = builder.traceRetention == null
                 ? TraceRetentionOptions.defaults() : builder.traceRetention;
+        this.observabilityMode = ObservabilityModeResolver.resolve(builder.observabilityMode);
+        this.effectiveObservability = EffectiveObservabilityPolicy.resolve(
+                observabilityMode, overlayConfig, builder.traceRetentionExplicit, traceRetention);
     }
 
     public static TestLensOptions defaults() { return builder().build(); }
@@ -58,6 +64,9 @@ public final class TestLensOptions {
     public RedactionPolicy redactionPolicy() { return redactionPolicy; }
     /** Returns bounded trace-retention configuration. @since 0.4.0 */
     public TraceRetentionOptions traceRetention() { return traceRetention; }
+    /** Returns the effective observability policy selected for this immutable options instance. @since 0.4.0 */
+    public ObservabilityMode observabilityMode() { return observabilityMode; }
+    EffectiveObservabilityPolicy effectiveObservability() { return effectiveObservability; }
     /**
      * Returns the HUD configuration used by the overlay.
      * @return effective immutable HUD options
@@ -98,6 +107,8 @@ public final class TestLensOptions {
         private VisualRedactionOptions visualRedaction = VisualRedactionOptions.defaults();
         private HighlightOptions highlightOptions;
         private TraceRetentionOptions traceRetention = TraceRetentionOptions.defaults();
+        private boolean traceRetentionExplicit;
+        private ObservabilityMode observabilityMode;
         private Builder() {}
         public Builder overlayConfig(OverlayConfig value) { overlayConfig = value; return this; }
         public Builder locatorOptions(UiLocatorOptions value) { locatorOptions = value; return this; }
@@ -124,6 +135,16 @@ public final class TestLensOptions {
         /** Configures bounded trace retention; null restores defaults. @since 0.4.0 */
         public Builder traceRetention(TraceRetentionOptions value) {
             traceRetention = value == null ? TraceRetentionOptions.defaults() : value;
+            traceRetentionExplicit = value != null;
+            return this;
+        }
+        /**
+         * Selects the observability cost policy. A null value clears the Java override and
+         * restores property/environment resolution when {@link #build()} is called.
+         * @since 0.4.0
+         */
+        public Builder observabilityMode(ObservabilityMode value) {
+            observabilityMode = value;
             return this;
         }
         /**
@@ -163,5 +184,52 @@ public final class TestLensOptions {
             return this;
         }
         public TestLensOptions build() { return new TestLensOptions(this); }
+    }
+
+    static final class EffectiveObservabilityPolicy {
+        private final ObservabilityMode mode;
+        private final boolean liveHud;
+        private final boolean automaticFeedback;
+        private final boolean liveSourceNavigation;
+        private final TraceRetentionOptions traceRetention;
+
+        private EffectiveObservabilityPolicy(ObservabilityMode mode, boolean liveHud,
+                                             boolean automaticFeedback, boolean liveSourceNavigation,
+                                             TraceRetentionOptions traceRetention) {
+            this.mode = mode;
+            this.liveHud = liveHud;
+            this.automaticFeedback = automaticFeedback;
+            this.liveSourceNavigation = liveSourceNavigation;
+            this.traceRetention = traceRetention;
+        }
+
+        static EffectiveObservabilityPolicy resolve(ObservabilityMode mode, OverlayConfig overlay,
+                                                     boolean traceExplicit, TraceRetentionOptions retention) {
+            boolean source = overlay.getHudOptions().sourceNavigation().enabled();
+            boolean fast = mode == ObservabilityMode.FAST;
+            boolean liveHud = overlay.isEnabled() && (source
+                    || (!fast && overlay.isShowHudPanel())
+                    || (fast && overlay.isShowHudPanelExplicit() && overlay.isShowHudPanel()));
+            HighlightOptions highlights = overlay.getHighlightOptions();
+            boolean automatic = overlay.isEnabled() && highlights.enabled()
+                    && (!fast || highlights.isAutomaticFeedbackExplicit())
+                    && highlights.automaticFeedback();
+            TraceRetentionOptions effectiveRetention = retention;
+            if (fast && !traceExplicit) {
+                effectiveRetention = TraceRetentionOptions.builder()
+                        .maxEvents(retention.maxEvents())
+                        .maxBytes(retention.maxBytes())
+                        .maxEventBytes(retention.maxEventBytes())
+                        .passedSessionRetention(PassedTraceRetention.SUMMARY_ONLY)
+                        .build();
+            }
+            return new EffectiveObservabilityPolicy(mode, liveHud, automatic, source, effectiveRetention);
+        }
+
+        ObservabilityMode mode() { return mode; }
+        boolean liveHud() { return liveHud; }
+        boolean automaticFeedback() { return automaticFeedback; }
+        boolean liveSourceNavigation() { return liveSourceNavigation; }
+        TraceRetentionOptions traceRetention() { return traceRetention; }
     }
 }
