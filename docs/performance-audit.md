@@ -49,13 +49,13 @@ The Firefox post-change contract used the same repetitions and retained every ro
 
 ## Interpretation and limits
 
-Every extra WebDriver command is especially expensive on a remote/Grid topology. Stage 1's `totalClientCalls` is explicitly a count of decorated Java client method calls; it is not a count of HTTP requests or wire round trips. Stage 2 separately instruments `RemoteWebDriver.execute(CommandPayload)` and reports `wireCommands` and `wireExecuteScript`. The two metrics must not be substituted for each other. Browser BiDi/WebSocket events remain outside both counts.
+Every extra WebDriver command is especially expensive on a remote/Grid topology. Stage 1's `totalClientCalls` is explicitly a count of decorated Java client method calls; it is not a count of HTTP requests or wire round trips. Stage 2 separately instruments `RemoteWebDriver.execute(CommandPayload)` and reports `executorCommands` and `executeScript`. The two metrics must not be substituted for each other. Browser BiDi/WebSocket events remain outside both counts.
 
 `RAW_SELENIUM` and `LENS_LOW_DIAGNOSTICS` are diagnostic lower bounds, not functionally equivalent user-action benchmarks: they perform different work. Only STANDARD versus DEBUG rows from `workload-operations.csv` execute the same public Test Lens operations against the same reset fixture and action policies.
 
 ## Stage 2 output and interpretation
 
-`workload-operations.csv` records consumer-visible duration, trace-event delta, browser DOM row inserts/updates, actual WebDriver protocol commands, `executeScript` commands, outcome, business click count, and cumulative trace JSON size for every public operation. `workload-lifecycle.csv` separates direct attach, start-session, finish/export/evidence, new-session, and quit observations. `testng-lifecycle.csv` records the real adapter's suite wall time, driver creation time, action time, residual adapter setup/finalization/quit time, and create/quit/session/report counts.
+`workload-operations.csv` records consumer-visible duration, trace-event delta, browser subtree mutations, logical commands accepted by `RemoteWebDriver.execute(CommandPayload)`, `executeScript` commands, HUD batch/event/payload-byte counts, outcome, business click count, and cumulative trace JSON size for every public operation. `workload-commands.csv` attributes command count and inclusive command duration to the measured public-operation interval without retaining arguments. These executor counts are not a claim about physical HTTP attempts. `workload-lifecycle.csv` separates direct attach, start-session, finish/export/evidence, new-session, and quit observations. `testng-lifecycle.csv` records the real adapter's suite wall time, driver creation time, action time, residual adapter setup/finalization/quit time, and create/quit/session/report counts.
 
 The TestNG residual is intentionally labelled as a combined value. The public adapter does not expose internal attach/start/finish callbacks, and the audit does not add product API merely to manufacture precision. Direct lifecycle rows provide the separately measured attach/start/finish values. Likewise, HUD transport plus browser runtime remains one WebDriver command duration where Selenium does not expose a safe split.
 
@@ -65,20 +65,45 @@ The successful public workload and the controlled failure/evidence workload are 
 
 Source `c0f259087b2fe4f1f97f127b92b393bfdb432ede`, reactor test classes, headless Chrome 152.0.7977.83 / ChromeDriver 152.0.7977.82 and Firefox 156.0.1 / geckodriver 0.37.1 on Windows. One warmup preceded three interleaved measured repetitions. The six-operation median is the sum of click, clear, fill, assertion, controlled wait, and covered Smart Click for one repetition.
 
-| Browser | Preset | Six-operation median | Wire commands | `executeScript` | HUD inserts / updates |
+| Browser | Preset | Six-operation median | Executor commands | `executeScript` | HUD mutation adds / updates |
 | --- | --- | ---: | ---: | ---: | ---: |
 | Chrome | STANDARD | 3.932 s | 148 | 85 | 55 / 238 |
 | Chrome | DEBUG | 4.352 s | 200 | 111 | 131 / 578 |
 | Firefox | STANDARD | 2.995 s | 148 | 85 | 55 / 238 |
 | Firefox | DEBUG | 3.607 s | 200 | 111 | 131 / 578 |
 
-Thus DEBUG added 52 protocol commands (+35.1%) and 26 JavaScript commands (+30.6%) for this exact workload. Its measured wall-time overhead versus STANDARD was 10.7% in Chrome and 20.4% in Firefox. Trace event counts for the successful sessions were effectively equal (49); the difference was presentation visibility: DEBUG sent technical events that STANDARD retained diagnostically but did not render. This identifies browser transport and HUD DOM work as the dominant measured difference, not larger exported traces.
+Thus DEBUG added 52 logical executor commands (+35.1%) and 26 JavaScript commands (+30.6%) for this exact workload. Its measured wall-time overhead versus STANDARD was 10.7% in Chrome and 20.4% in Firefox. Trace event counts for the successful sessions were effectively equal (49); the difference was presentation visibility: DEBUG sent technical events that STANDARD retained diagnostically but did not render. This identifies browser transport and HUD DOM work as the dominant measured difference, not larger exported traces. The executor count does not prove an equal number of physical HTTP attempts.
 
 The real TestNG adapter used two invocations per cell. Chrome `PER_METHOD` created/quit 2/2 drivers and took 7.88 s STANDARD and 7.84 s DEBUG; `PER_CLASS` created/quit 1/1, produced two independent Lens sessions/reports, and took 4.92 s STANDARD and 5.65 s DEBUG. Firefox measured 14.13/10.11 s for `PER_METHOD` and 6.00/6.76 s for `PER_CLASS`; the three-sample action workload, rather than this single lifecycle observation, is the reliable STANDARD/DEBUG comparison. Driver reuse removes new-session/quit cost but does not remove per-invocation Lens reports.
 
 Controlled failure finalization with screenshot/evidence took 533 ms STANDARD / 453 ms DEBUG in Chrome and 617 ms / 408 ms in Firefox in this sample. These single observations establish the order of magnitude, not a preset speed ranking. A 40-second JFR of the Chrome workload contained 29 execution samples, 2,857 allocation samples and 3,939 thread parks; it supports an I/O/wait-heavy workload but is still too sparse for a method-level CPU hotspot claim. A headed Chrome Performance trace, Grid and BrowserStack were not run and must not be inferred from local numbers.
 
 Presentation duration remains asynchronous and is not included as action execution time. This change does not shorten highlight durations, discard DEBUG events, reduce the 250-row HUD bound, alter trace retention, or change finish/evidence behavior. A missing HUD runtime after navigation takes the cold reinstall path; later events return to one HUD dispatch plus the required non-mutating alert check.
+
+## Stage 3 — operation-scoped semantic HUD transport
+
+Stage 3 keeps the same semantic events and synchronous delivery contract while combining entries that are already ready at a safe operation boundary. A public `RUNNING` row is still dispatched before the operation. Technical diagnostics emitted synchronously inside that operation are retained in DEBUG and sent with the terminal result. `WARNING`, `RETRYING`, `FAILED`, and user-authored HUD messages force an immediate flush; a terminal result never waits for another test action. There is no background WebDriver thread or time-window scheduler.
+
+The alert probe remains mandatory. One ready batch uses one alert probe and one self-validating JavaScript dispatch. An open alert/confirm/prompt defers only HUD presentation into a bounded 250-entry/256-KiB UTF-8 queue; trace/report retention is unchanged. Once a later safe HUD delivery observes that the prompt is gone, it drains one bounded snapshot. A missing runtime returns `false` before applying the batch and permits one cold reinjection. An exception or lost response is ambiguous and is not replayed blindly.
+
+The browser renderer applies every event in order, preserves operation correlation, Unicode, custom icons, safe `textContent`, and the 250-row DOM limit, then performs layout normalization and auto-scroll once per batch rather than once per entry. The `hudMutationAddedNodes` and `hudMutationUpdates` columns count `MutationObserver` subtree mutations, not semantic rows or transport requests.
+
+### Local before/after result
+
+Environment: Windows, Microsoft OpenJDK 21.0.10, Maven 3.9.13, Selenium 4.39.0, headless Chrome 152.0.7977.83 / ChromeDriver 152.0.7977.82 and Firefox 156.0.1 / geckodriver 0.37.1. Both variants used two warmups and five interleaved measured repetitions of the same click, clear, fill, assertion, controlled wait, and covered Smart Click workload. Baseline is `ba8d973` plus measurement-only command timing; optimized is the working tree based on `ba8d973`. Raw artifacts are under `target/performance-audit/hud-batching-baseline` and `target/performance-audit/hud-batching-final`.
+
+| Browser | Preset | Six operations, before → after | Executor commands | Alert probes | `executeScript` | HUD deliveries/batches | Events delivered | Optimized payload bytes | DOM added/update mutations |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Chrome | STANDARD | 3.017 s → 2.989 s (-0.9%) | 148 → 138 | 19 → 14 | 85 → 80 | 19 → 14 | 19 → 19 | 10,483 | 55 / 238 → 55 / 238 |
+| Chrome | DEBUG | 3.604 s → 3.085 s (-14.4%) | 200 → 150 | 45 → 20 | 111 → 86 | 45 → 20 | 45 → 45 | 24,452 | 131 / 578 → 131 / 578 |
+| Firefox | STANDARD | 1.548 s → 1.535 s (-0.8%) | 148 → 138 | 19 → 14 | 85 → 80 | 19 → 14 | 19 → 19 | 10,479 | 55 / 238 → 55 / 238 |
+| Firefox | DEBUG | 1.867 s → 1.612 s (-13.7%) | 200 → 150 | 45 → 20 | 111 → 86 | 45 → 20 | 45 → 45 | 24,451 | 131 / 578 → 131 / 578 |
+
+The baseline transport sent one visible event per dispatch, so baseline deliveries equal alert probes. The enhanced payload-byte counter was added after that preserved baseline; baseline byte values are therefore unavailable and are not reconstructed from trace JSON. `executorCommands` counts calls accepted by `RemoteWebDriver.execute(CommandPayload)`, not decorated Java methods, physical HTTP retries, or BiDi frames. Command elapsed time includes transport plus browser execution because Selenium does not expose a reliable split.
+
+The command reduction is deterministic: STANDARD removes 10 executor commands (6.8%) and DEBUG removes 50 (25.0%) per six-operation run. STANDARD wall-time differences are smaller than normal run-to-run spread and are therefore inconclusive; DEBUG recovered 14.4% on Chrome and 13.7% on Firefox in this local workload. Native click interception, browser work, and application delay remain unchanged. DEBUG retains all 45 visible events and the same DOM mutation totals; it now uses 20 batches rather than 45 individual deliveries. DOM state is applied synchronously before the WebDriver script returns, but browser paint latency was not measured and no paint-time claim is made.
+
+The separate 300-entry USER-message burst intentionally remains synchronous rather than waiting for a batch window: both presets retained the newest 250 rows and reported 50 UI evictions. Median per-entry time was 14.628 ms STANDARD / 15.347 ms DEBUG in Chrome and 11.752 ms / 12.115 ms in Firefox (two warmups, five measured repetitions). Each run made 906 decorated client calls because a public USER message is an immediate flush; these are not protocol-command counts. The raw burst files are under `selenium-test-lens-browser-tests/target/performance-audit/hud-batching-final-burst300`.
 
 No BrowserStack credentials or Grid endpoint were available for this audit. BrowserStack and WAN performance are therefore **NOT RUN**, not inferred from localhost. To measure a remote consumer, use the same source SHA/artifact, expose a reachable fixture, retain the same operation count, and record provider new-session/quit separately from Test Lens event dispatch.
 

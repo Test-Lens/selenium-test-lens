@@ -26,6 +26,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HudNetworkLogSinkTest {
     @TempDir Path temp;
@@ -223,6 +224,125 @@ class HudNetworkLogSinkTest {
     }
 
     @Test
+    void operationDiagnosticsAndTerminalResultShareOneSafeDispatch() {
+        AtomicInteger probes = new AtomicInteger();
+        WebDriver.TargetLocator target = (WebDriver.TargetLocator) Proxy.newProxyInstance(
+                getClass().getClassLoader(), new Class<?>[]{WebDriver.TargetLocator.class},
+                (proxy, method, args) -> {
+                    if (method.getName().equals("alert")) {
+                        probes.incrementAndGet();
+                        throw new NoAlertPresentException();
+                    }
+                    return null;
+                });
+        WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[]{WebDriver.class}, (proxy, method, args) ->
+                        method.getName().equals("switchTo") ? target : null);
+        BatchRecordingExecutor executor = new BatchRecordingExecutor();
+        OverlayConfig config = OverlayConfig.builder().build();
+        SemanticHudPanel hud = new SemanticHudPanel(executor, new OverlayRootManager(executor, config), config);
+        hud.init("batch", "local");
+        executor.batches.clear();
+        JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();
+        sink.attach(hud, driver, HudOptions.builder().preset(io.github.testlens.hud.HudPreset.DEBUG).build());
+
+        sink.accept(operation(UiTestLensEventType.LOCATOR_ACTION_STARTED,
+                io.github.testlens.core.logging.UiTestLensStatus.STARTED, "start", "operation-1"));
+        sink.accept(operation(UiTestLensEventType.LOCATOR_RESOLVE_STARTED,
+                io.github.testlens.core.logging.UiTestLensStatus.STARTED, "resolve", "operation-1"));
+        sink.accept(operation(UiTestLensEventType.LOCATOR_RESOLVE_PASSED,
+                io.github.testlens.core.logging.UiTestLensStatus.PASSED, "resolved", "operation-1"));
+        sink.accept(operation(UiTestLensEventType.HIGHLIGHT,
+                io.github.testlens.core.logging.UiTestLensStatus.INFO, "outlined", "highlight-1"));
+        sink.accept(operation(UiTestLensEventType.LOCATOR_ACTION_PASSED,
+                io.github.testlens.core.logging.UiTestLensStatus.PASSED, "passed", "operation-1"));
+
+        assertEquals(2, probes.get(), "RUNNING and terminal flush each use one alert probe");
+        assertEquals(2, executor.batches.size());
+        assertEquals(List.of("start"), executor.batches.get(0));
+        assertEquals(List.of("resolve", "resolved", "outlined", "passed"), executor.batches.get(1));
+    }
+
+    @Test
+    void lastUserMessageFlushesImmediatelyAndIsNeverMergedByText() {
+        BatchRecordingExecutor executor = new BatchRecordingExecutor();
+        OverlayConfig config = OverlayConfig.builder().build();
+        SemanticHudPanel hud = new SemanticHudPanel(executor, new OverlayRootManager(executor, config), config);
+        hud.init("batch", "local");
+        executor.batches.clear();
+        JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();
+        sink.attach(hud, null, HudOptions.defaults());
+        UiTestLensLogEntry duplicate = UiTestLensLogEntry.builder().eventType(UiTestLensEventType.HUD)
+                .message("same \uD83D\uDE80 <script>alert(1)</script>").build();
+
+        sink.accept(duplicate);
+        sink.accept(duplicate);
+
+        assertEquals(2, executor.batches.size());
+        assertEquals(List.of(duplicate.message()), executor.batches.get(0));
+        assertEquals(List.of(duplicate.message()), executor.batches.get(1));
+    }
+
+    @Test
+    void newLensSessionCannotFlushThePreviousSessionsPendingDiagnostics() {
+        BatchRecordingExecutor executor = new BatchRecordingExecutor();
+        OverlayConfig config = OverlayConfig.builder().build();
+        SemanticHudPanel hud = new SemanticHudPanel(executor, new OverlayRootManager(executor, config), config);
+        hud.init("batch", "local");
+        executor.batches.clear();
+        JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();
+        sink.attach(hud, null, HudOptions.builder().preset(io.github.testlens.hud.HudPreset.DEBUG).build());
+        sink.beginSession();
+        sink.accept(operation(UiTestLensEventType.LOCATOR_ACTION_STARTED,
+                io.github.testlens.core.logging.UiTestLensStatus.STARTED, "old start", "old"));
+        sink.accept(operation(UiTestLensEventType.LOCATOR_RESOLVE_PASSED,
+                io.github.testlens.core.logging.UiTestLensStatus.PASSED, "old diagnostic", "old"));
+
+        sink.beginSession();
+        sink.accept(operation(UiTestLensEventType.LOCATOR_ACTION_STARTED,
+                io.github.testlens.core.logging.UiTestLensStatus.STARTED, "new start", "new"));
+        sink.accept(operation(UiTestLensEventType.LOCATOR_ACTION_PASSED,
+                io.github.testlens.core.logging.UiTestLensStatus.PASSED, "new passed", "new"));
+
+        assertTrue(executor.batches.stream().noneMatch(batch -> batch.contains("old diagnostic")));
+        assertEquals(List.of("new start"), executor.batches.get(1));
+        assertEquals(List.of("new passed"), executor.batches.get(2));
+    }
+
+    @Test
+    void alertBacklogIsBoundedByTheHudRetentionLimit() {
+        AtomicBoolean alertOpen = new AtomicBoolean(true);
+        Alert alert = (Alert) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{Alert.class},
+                (proxy, method, args) -> null);
+        WebDriver.TargetLocator target = (WebDriver.TargetLocator) Proxy.newProxyInstance(
+                getClass().getClassLoader(), new Class<?>[]{WebDriver.TargetLocator.class},
+                (proxy, method, args) -> {
+                    if (method.getName().equals("alert")) {
+                        if (alertOpen.get()) return alert;
+                        throw new NoAlertPresentException();
+                    }
+                    return null;
+                });
+        WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[]{WebDriver.class}, (proxy, method, args) ->
+                        method.getName().equals("switchTo") ? target : null);
+        RecordingHud hud = new RecordingHud();
+        JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();
+        sink.attach(hud, driver, HudOptions.defaults());
+        for (int index = 0; index < 300; index++) {
+            sink.accept(entry(UiTestLensEventType.ACTION, "deferred-" + index, null));
+        }
+
+        alertOpen.set(false);
+        sink.accept(entry(UiTestLensEventType.ACTION, "current", null));
+
+        assertTrue(hud.messages.size() <= 251);
+        assertEquals("current", hud.messages.get(hud.messages.size() - 1));
+        assertTrue(hud.messages.contains("deferred-299"));
+        assertTrue(!hud.messages.contains("deferred-0"));
+    }
+
+    @Test
     void actionableCompatibilityIsLoggedAndPublishedOnce() {
         JetBrainsEnvironment environment = new JetBrainsEnvironment(Optional.of(new JetBrainsIdeInstallation(
                 "IntelliJ IDEA", SemanticVersion.parse("2025.2.5"), "252.28238.7",
@@ -259,6 +379,27 @@ class HudNetworkLogSinkTest {
         UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder().eventType(type).message(message);
         if (hudVisible != null) builder.metadata("hudVisible", hudVisible);
         return builder.build();
+    }
+
+    private static UiTestLensLogEntry operation(UiTestLensEventType type,
+                                                io.github.testlens.core.logging.UiTestLensStatus status,
+                                                String message, String operationId) {
+        return UiTestLensLogEntry.builder().eventType(type).status(status).message(message)
+                .metadata("operationId", operationId).build();
+    }
+
+    private static final class BatchRecordingExecutor implements BrowserScriptExecutor {
+        private final List<List<String>> batches = new ArrayList<>();
+
+        @Override
+        public Object execute(String script, Object... arguments) {
+            if (!script.contains("test-lens:hud-semantic-batch")) return null;
+            @SuppressWarnings("unchecked")
+            List<java.util.Map<String, Object>> payload =
+                    (List<java.util.Map<String, Object>>) arguments[0];
+            batches.add(payload.stream().map(value -> String.valueOf(value.get("message"))).toList());
+            return true;
+        }
     }
 
     private static final class RecordingHud extends HudPanel {

@@ -9,6 +9,7 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.CommandPayload;
 import org.openqa.selenium.remote.Response;
+import org.openqa.selenium.json.Json;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -19,6 +20,7 @@ import java.lang.reflect.Proxy;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -32,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
 
 /** Owns real-browser processes and Chrome profiles created by this test JVM. */
 final class BrowserTestHarness {
@@ -44,7 +47,7 @@ final class BrowserTestHarness {
             .toAbsolutePath().normalize()
             .resolve("run-" + ProcessHandle.current().pid() + "-" + UUID.randomUUID().toString().substring(0, 8));
     private static final AtomicInteger SESSION_SEQUENCE = new AtomicInteger();
-    private static final ThreadLocal<WireCommandMetrics> CONSTRUCTING_METRICS = new ThreadLocal<>();
+    private static final ThreadLocal<ExecutorCommandMetrics> CONSTRUCTING_METRICS = new ThreadLocal<>();
     private static final Object CHROME_STARTUP_LOCK = new Object();
     private static final Set<OwnedChrome> ACTIVE_CHROME = ConcurrentHashMap.newKeySet();
     private static final Set<ProcessIdentity> OBSERVED_OWNED_PROCESSES = ConcurrentHashMap.newKeySet();
@@ -61,7 +64,7 @@ final class BrowserTestHarness {
         return createDriver(PageLoadStrategy.NORMAL);
     }
 
-    static WebDriver createDriver(WireCommandMetrics metrics) {
+    static WebDriver createDriver(ExecutorCommandMetrics metrics) {
         return createDriver(PageLoadStrategy.NORMAL, false, metrics);
     }
 
@@ -78,7 +81,7 @@ final class BrowserTestHarness {
     }
 
     private static WebDriver createDriver(PageLoadStrategy pageLoadStrategy, boolean bidi,
-                                          WireCommandMetrics metrics) {
+                                          ExecutorCommandMetrics metrics) {
         boolean headed = Boolean.parseBoolean(System.getProperty("headed", "false"));
         CONSTRUCTING_METRICS.set(metrics);
         try {
@@ -94,7 +97,7 @@ final class BrowserTestHarness {
     }
 
     private static WebDriver createChrome(PageLoadStrategy pageLoadStrategy, boolean bidi, boolean headed,
-                                          WireCommandMetrics metrics) {
+                                          ExecutorCommandMetrics metrics) {
         synchronized (CHROME_STARTUP_LOCK) {
             Set<ProcessIdentity> startupBaseline = currentDescendantIdentities();
             Path profile = createOwnedProfile();
@@ -120,7 +123,7 @@ final class BrowserTestHarness {
     }
 
     private static WebDriver createFirefox(PageLoadStrategy pageLoadStrategy, boolean bidi, boolean headed,
-                                           WireCommandMetrics metrics) {
+                                           ExecutorCommandMetrics metrics) {
         FirefoxOptions options = bidi ? new FirefoxOptions().enableBiDi() : new FirefoxOptions();
         options.setPageLoadStrategy(pageLoadStrategy);
         String binary = System.getProperty("test.firefox.binary", "").trim();
@@ -147,56 +150,114 @@ final class BrowserTestHarness {
         return System.getProperty("browser", "chrome").trim().toLowerCase(Locale.ROOT);
     }
 
-    static final class WireCommandMetrics {
-        private final ConcurrentHashMap<String, AtomicInteger> commands = new ConcurrentHashMap<>();
+    static final class ExecutorCommandMetrics {
+        private final ConcurrentHashMap<String, CommandMetric> commands = new ConcurrentHashMap<>();
+        private final LongAdder hudBatches = new LongAdder();
+        private final LongAdder hudEvents = new LongAdder();
+        private final LongAdder hudPayloadBytes = new LongAdder();
 
-        void record(String command) {
-            commands.computeIfAbsent(command, ignored -> new AtomicInteger()).incrementAndGet();
+        void record(CommandPayload payload, long elapsedNanos) {
+            String command = payload.getName();
+            CommandMetric metric = commands.computeIfAbsent(command, ignored -> new CommandMetric());
+            metric.count.increment();
+            metric.elapsedNanos.add(Math.max(0L, elapsedNanos));
+            recordHudBatch(payload);
         }
 
-        void reset() { commands.clear(); }
+        void reset() {
+            commands.clear();
+            hudBatches.reset();
+            hudEvents.reset();
+            hudPayloadBytes.reset();
+        }
 
-        int total() { return commands.values().stream().mapToInt(AtomicInteger::get).sum(); }
+        int total() { return commands.values().stream().mapToInt(value -> value.count.intValue()).sum(); }
 
         int count(String command) {
-            AtomicInteger value = commands.get(command);
-            return value == null ? 0 : value.get();
+            CommandMetric value = commands.get(command);
+            return value == null ? 0 : value.count.intValue();
         }
 
-        java.util.Map<String, Integer> snapshot() {
-            java.util.Map<String, Integer> result = new java.util.TreeMap<>();
-            commands.forEach((name, value) -> result.put(name, value.get()));
+        java.util.Map<String, CommandMeasurement> snapshot() {
+            java.util.Map<String, CommandMeasurement> result = new java.util.TreeMap<>();
+            commands.forEach((name, value) -> result.put(name,
+                    new CommandMeasurement(value.count.intValue(), value.elapsedNanos.sum())));
             return result;
+        }
+
+        HudTransportMeasurement hudTransportSnapshot() {
+            return new HudTransportMeasurement(hudBatches.intValue(), hudEvents.intValue(), hudPayloadBytes.sum());
+        }
+
+        private void recordHudBatch(CommandPayload payload) {
+            if (!"executeScript".equals(payload.getName())) return;
+            Object script = payload.getParameters().get("script");
+            if (!(script instanceof String value) || !value.contains("test-lens:hud-semantic-batch")) return;
+            Object arguments = payload.getParameters().get("args");
+            Object batch = arguments instanceof List<?> values && !values.isEmpty() ? values.get(0) : List.of();
+            int events = batch instanceof List<?> values ? values.size() : 0;
+            hudBatches.increment();
+            hudEvents.add(events);
+            hudPayloadBytes.add(new Json().toJson(batch).getBytes(StandardCharsets.UTF_8).length);
+        }
+
+        record CommandMeasurement(int count, long elapsedNanos) {
+            CommandMeasurement minus(CommandMeasurement before) {
+                CommandMeasurement baseline = before == null ? new CommandMeasurement(0, 0L) : before;
+                return new CommandMeasurement(Math.max(0, count - baseline.count),
+                        Math.max(0L, elapsedNanos - baseline.elapsedNanos));
+            }
+        }
+
+        record HudTransportMeasurement(int batches, int events, long payloadBytes) {
+            HudTransportMeasurement minus(HudTransportMeasurement before) {
+                HudTransportMeasurement baseline = before == null ? new HudTransportMeasurement(0, 0, 0L) : before;
+                return new HudTransportMeasurement(Math.max(0, batches - baseline.batches),
+                        Math.max(0, events - baseline.events), Math.max(0L, payloadBytes - baseline.payloadBytes));
+            }
+        }
+
+        private static final class CommandMetric {
+            private final LongAdder count = new LongAdder();
+            private final LongAdder elapsedNanos = new LongAdder();
         }
     }
 
     private static final class MeasuredChromeDriver extends ChromeDriver {
-        private WireCommandMetrics metrics;
+        private ExecutorCommandMetrics metrics;
 
-        private MeasuredChromeDriver(ChromeOptions options, WireCommandMetrics metrics) {
+        private MeasuredChromeDriver(ChromeOptions options, ExecutorCommandMetrics metrics) {
             super(options);
             this.metrics = metrics;
         }
 
         @Override protected Response execute(CommandPayload payload) {
-            WireCommandMetrics target = metrics == null ? CONSTRUCTING_METRICS.get() : metrics;
-            if (target != null) target.record(payload.getName());
-            return super.execute(payload);
+            ExecutorCommandMetrics target = metrics == null ? CONSTRUCTING_METRICS.get() : metrics;
+            long started = System.nanoTime();
+            try {
+                return super.execute(payload);
+            } finally {
+                if (target != null) target.record(payload, System.nanoTime() - started);
+            }
         }
     }
 
     private static final class MeasuredFirefoxDriver extends FirefoxDriver {
-        private WireCommandMetrics metrics;
+        private ExecutorCommandMetrics metrics;
 
-        private MeasuredFirefoxDriver(FirefoxOptions options, WireCommandMetrics metrics) {
+        private MeasuredFirefoxDriver(FirefoxOptions options, ExecutorCommandMetrics metrics) {
             super(options);
             this.metrics = metrics;
         }
 
         @Override protected Response execute(CommandPayload payload) {
-            WireCommandMetrics target = metrics == null ? CONSTRUCTING_METRICS.get() : metrics;
-            if (target != null) target.record(payload.getName());
-            return super.execute(payload);
+            ExecutorCommandMetrics target = metrics == null ? CONSTRUCTING_METRICS.get() : metrics;
+            long started = System.nanoTime();
+            try {
+                return super.execute(payload);
+            } finally {
+                if (target != null) target.record(payload, System.nanoTime() - started);
+            }
         }
     }
 

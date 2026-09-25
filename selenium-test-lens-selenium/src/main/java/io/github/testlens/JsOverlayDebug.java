@@ -354,6 +354,7 @@ public final class JsOverlayDebug {
     public void attachSession(UiTestLensSession session) {
         this.session = session;
         this.sessionTraceLogSink.attach(session);
+        this.hudLogSink.beginSession();
     }
 
     public Optional<UiTestLensSession> session() {
@@ -743,6 +744,9 @@ public final class JsOverlayDebug {
 
     static final class HudLogSink implements UiTestLensLogSink {
         private static final long COMPATIBILITY_REFRESH_NANOS = java.time.Duration.ofSeconds(5).toNanos();
+        private static final int MAX_OPERATION_BATCH_ENTRIES = 64;
+        private static final int MAX_DEFERRED_ENTRIES = 250;
+        private static final int MAX_BUFFERED_BYTES = 262_144;
         private volatile HudPanel hud;
         private volatile WebDriver driver;
         private volatile io.github.testlens.hud.HudOptions options;
@@ -758,6 +762,9 @@ public final class JsOverlayDebug {
         private static final java.util.logging.Logger SOURCE_NAVIGATION_LOGGER =
                 java.util.logging.Logger.getLogger("io.github.testlens.source-navigation");
         private final java.util.Queue<UiTestLensLogEntry> deferredDuringAlert = new java.util.concurrent.ConcurrentLinkedQueue<>();
+        private final java.util.concurrent.atomic.AtomicInteger deferredBytes = new java.util.concurrent.atomic.AtomicInteger();
+        private final java.util.concurrent.atomic.AtomicLong sessionGeneration = new java.util.concurrent.atomic.AtomicLong();
+        private final ThreadLocal<OperationBatch> operationBatch = ThreadLocal.withInitial(OperationBatch::new);
 
         HudLogSink() { this(SourceNavigationCompatibilityProbe.system()); }
 
@@ -790,6 +797,13 @@ public final class JsOverlayDebug {
             logCompatibility(compatibility);
         }
 
+        void beginSession() {
+            sessionGeneration.incrementAndGet();
+            operationBatch.remove();
+            deferredDuringAlert.clear();
+            deferredBytes.set(0);
+        }
+
         @Override
         public void accept(UiTestLensLogEntry entry) {
             HudPanel current = hud;
@@ -799,25 +813,105 @@ public final class JsOverlayDebug {
             if (!eventVisible(options, entry.eventType())) return;
             if (isRawNetworkEntry(entry.eventType())
                     && "false".equalsIgnoreCase(entry.metadata().get("hudVisible"))) return;
+            OperationBatch batch = currentBatch();
+            if (startsOperation(semantics)) {
+                flushPending(current, batch);
+                deliver(current, List.of(entry));
+                batch.start(semantics.operationId());
+                return;
+            }
+            if (batch.active()) {
+                if (endsOperation(batch, semantics)) {
+                    batch.add(entry);
+                    flushPending(current, batch);
+                    batch.clear();
+                    return;
+                }
+                if (requiresImmediateDelivery(semantics)) {
+                    batch.add(entry);
+                    flushPending(current, batch);
+                    return;
+                }
+                if (batch.canAdd(entry)) {
+                    batch.add(entry);
+                    return;
+                }
+                flushPending(current, batch);
+                if (estimatedBytes(entry) > MAX_BUFFERED_BYTES) deliver(current, List.of(entry));
+                else batch.add(entry);
+                return;
+            }
+            deliver(current, List.of(entry));
+        }
+
+        private OperationBatch currentBatch() {
+            OperationBatch current = operationBatch.get();
+            long generation = sessionGeneration.get();
+            if (current.generation != generation) current.reset(generation);
+            return current;
+        }
+
+        private static boolean startsOperation(HudEventSemantics semantics) {
+            return semantics != null && !semantics.operationId().isBlank()
+                    && "RUNNING".equals(semantics.phase())
+                    && ("ACTION".equals(semantics.category()) || "ASSERTION".equals(semantics.category()));
+        }
+
+        private static boolean endsOperation(OperationBatch batch, HudEventSemantics semantics) {
+            return semantics != null && batch.operationId.equals(semantics.operationId())
+                    && ("PASSED".equals(semantics.phase()) || "FAILED".equals(semantics.phase()));
+        }
+
+        private static boolean requiresImmediateDelivery(HudEventSemantics semantics) {
+            return semantics != null && ("USER".equals(semantics.category())
+                    || "WARNING".equals(semantics.phase()) || "FAILED".equals(semantics.phase())
+                    || "RETRYING".equals(semantics.phase()));
+        }
+
+        private void flushPending(HudPanel hud, OperationBatch batch) {
+            if (batch.entries.isEmpty()) return;
+            List<UiTestLensLogEntry> ready = List.copyOf(batch.entries);
+            batch.entries.clear();
+            batch.bytes = 0;
+            deliver(hud, ready);
+        }
+
+        private void deliver(HudPanel current, List<UiTestLensLogEntry> entries) {
+            if (entries == null || entries.isEmpty()) return;
             // Executing JavaScript while a modal prompt is open can apply the driver's
             // unhandled-prompt policy (including dismissing the prompt). Probe first so HUD
             // rendering remains observational and cannot change the browser operation.
             AlertProbe alertProbe = probeAlert();
             if (alertProbe == AlertProbe.OPEN) {
-                deferredDuringAlert.add(entry);
+                entries.forEach(this::deferDuringAlert);
                 return;
             }
             if (alertProbe == AlertProbe.UNAVAILABLE) return;
             // Retry only the entries that were queued before this accept call. If a prompt
             // appears concurrently and append requeues an entry, leave it for a later event
             // instead of cycling forever in this call.
-            int deferredCount = deferredDuringAlert.size();
+            int deferredCount = Math.min(MAX_DEFERRED_ENTRIES, deferredDuringAlert.size());
+            List<UiTestLensLogEntry> ready = new ArrayList<>(deferredCount + entries.size());
             for (int index = 0; index < deferredCount; index++) {
                 UiTestLensLogEntry deferred = deferredDuringAlert.poll();
                 if (deferred == null) break;
-                append(current, deferred, HudEventSemantics.from(deferred));
+                deferredBytes.updateAndGet(value -> Math.max(0, value - estimatedBytes(deferred)));
+                ready.add(deferred);
             }
-            append(current, entry, semantics);
+            ready.addAll(entries);
+            appendBatch(current, ready);
+        }
+
+        private void deferDuringAlert(UiTestLensLogEntry entry) {
+            int size = estimatedBytes(entry);
+            deferredDuringAlert.add(entry);
+            deferredBytes.addAndGet(size);
+            while (deferredDuringAlert.size() > MAX_DEFERRED_ENTRIES
+                    || deferredBytes.get() > MAX_BUFFERED_BYTES) {
+                UiTestLensLogEntry evicted = deferredDuringAlert.poll();
+                if (evicted == null) break;
+                deferredBytes.updateAndGet(value -> Math.max(0, value - estimatedBytes(evicted)));
+            }
         }
 
         private AlertProbe probeAlert() {
@@ -860,8 +954,34 @@ public final class JsOverlayDebug {
                     || name.startsWith("NETWORK_ASSERTION_")) || options.showAssertions();
         }
 
-        private void append(HudPanel hud, UiTestLensLogEntry entry, HudEventSemantics semantics) {
+        private void appendBatch(HudPanel hud, List<UiTestLensLogEntry> entries) {
+            if (entries == null || entries.isEmpty()) return;
             refreshCompatibilityIfNeeded();
+            List<SemanticHudPanel.SemanticEntry> prepared = new ArrayList<>(entries.size());
+            for (UiTestLensLogEntry entry : entries) {
+                HudEventSemantics semantics = HudEventSemantics.from(entry);
+                prepared.add(prepare(hud, entry, semantics));
+            }
+            if (hud instanceof SemanticHudPanel semanticHud) {
+                SemanticHudPanel.AppendResult result = semanticHud.appendSemanticBatch(prepared);
+                if (result == SemanticHudPanel.AppendResult.DEFERRED_BY_ALERT) {
+                    entries.forEach(this::deferDuringAlert);
+                }
+                return;
+            }
+            for (SemanticHudPanel.SemanticEntry item : prepared) {
+                UiTestLensLogEntry entry = item.entry();
+                if (item.sourceLabel() == null && item.navigationTarget() == null) {
+                    hud.appendLog(entry.level().name().toLowerCase(), item.message(), entry.timestamp().toString());
+                } else {
+                    hud.appendLog(entry.level().name().toLowerCase(), item.message(), entry.timestamp().toString(),
+                            entry.eventType().name(), item.sourceLabel(), item.navigationTarget());
+                }
+            }
+        }
+
+        private SemanticHudPanel.SemanticEntry prepare(HudPanel hud, UiTestLensLogEntry entry,
+                                                        HudEventSemantics semantics) {
             String description = entry.metadata().getOrDefault("description", "");
             String action = entry.action() == null ? "" : entry.action();
             String message = hudMessage(entry, semantics, action, description);
@@ -889,18 +1009,40 @@ public final class JsOverlayDebug {
             if (publishedCompatibilityFingerprint == null || sourceLabel != null) {
                 publishCompatibilityIfChanged(hud, effectiveCompatibility);
             }
-            if (hud instanceof SemanticHudPanel semanticHud) {
-                SemanticHudPanel.AppendResult result = semanticHud.appendSemantic(
-                        entry, message, sourceLabel, navigationTarget, semantics);
-                if (result == SemanticHudPanel.AppendResult.DEFERRED_BY_ALERT) {
-                    deferredDuringAlert.add(entry);
-                }
-            } else if (sourceLabel == null && navigationTarget == null) {
-                hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString());
-            } else {
-                hud.appendLog(entry.level().name().toLowerCase(), message, entry.timestamp().toString(),
-                        entry.eventType().name(), sourceLabel, navigationTarget);
+            return new SemanticHudPanel.SemanticEntry(entry, message, sourceLabel, navigationTarget, semantics);
+        }
+
+        private static int estimatedBytes(UiTestLensLogEntry entry) {
+            if (entry == null) return 0;
+            int total = utf8Length(entry.message()) + utf8Length(entry.action());
+            for (var item : entry.metadata().entrySet()) {
+                total += utf8Length(item.getKey()) + utf8Length(item.getValue());
             }
+            return Math.max(1, total);
+        }
+
+        private static int utf8Length(String value) {
+            return value == null ? 0 : value.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+        }
+
+        private final class OperationBatch {
+            private long generation = sessionGeneration.get();
+            private String operationId = "";
+            private final List<UiTestLensLogEntry> entries = new ArrayList<>();
+            private int bytes;
+
+            private boolean active() { return !operationId.isBlank(); }
+            private void start(String value) { operationId = value; entries.clear(); bytes = 0; }
+            private void add(UiTestLensLogEntry entry) {
+                entries.add(entry);
+                bytes += estimatedBytes(entry);
+            }
+            private boolean canAdd(UiTestLensLogEntry entry) {
+                return entries.size() < MAX_OPERATION_BATCH_ENTRIES
+                        && bytes + estimatedBytes(entry) <= MAX_BUFFERED_BYTES;
+            }
+            private void clear() { operationId = ""; entries.clear(); bytes = 0; }
+            private void reset(long value) { generation = value; clear(); }
         }
 
         private static String hudMessage(UiTestLensLogEntry entry,

@@ -43,18 +43,19 @@ class RuntimeWorkloadPerformanceIT {
                 .toAbsolutePath().normalize();
         Files.createDirectories(output);
         HttpServer server = server();
-        BrowserTestHarness.WireCommandMetrics wire = new BrowserTestHarness.WireCommandMetrics();
+        BrowserTestHarness.ExecutorCommandMetrics wire = new BrowserTestHarness.ExecutorCommandMetrics();
         long createStarted = System.nanoTime();
         WebDriver driver = BrowserTestHarness.createDriver(wire);
         long createNanos = System.nanoTime() - createStarted;
         List<OperationResult> operations = new ArrayList<>();
+        List<CommandResult> commands = new ArrayList<>();
         List<LifecycleResult> lifecycle = new ArrayList<>();
         Map<String, Object> environment;
         try {
             String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/";
             for (int repetition = -WARMUPS; repetition < REPETITIONS; repetition++) {
                 for (HudPreset preset : orderedPresets(repetition)) {
-                    RunResult run = runSuccessfulWorkload(driver, wire, url, preset, repetition);
+                    RunResult run = runSuccessfulWorkload(driver, wire, url, preset, repetition, commands);
                     if (repetition >= 0) {
                         operations.addAll(run.operations());
                         lifecycle.add(run.lifecycle().withCreateNanos(createNanos));
@@ -75,15 +76,17 @@ class RuntimeWorkloadPerformanceIT {
             }
         }
         writeOperations(output.resolve("workload-operations.csv"), operations);
+        writeCommands(output.resolve("workload-commands.csv"), commands);
         writeLifecycle(output.resolve("workload-lifecycle.csv"), lifecycle);
         writeMetadata(output.resolve("workload-metadata.json"), environment);
     }
 
     private static RunResult runSuccessfulWorkload(WebDriver driver,
-                                                   BrowserTestHarness.WireCommandMetrics wire,
+                                                   BrowserTestHarness.ExecutorCommandMetrics wire,
                                                    String url,
                                                    HudPreset preset,
-                                                   int repetition) {
+                                                   int repetition,
+                                                   List<CommandResult> commands) {
         driver.get(url);
         wire.reset();
         JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -97,18 +100,18 @@ class RuntimeWorkloadPerformanceIT {
         installHudObserver(js);
         List<OperationResult> results = new ArrayList<>();
 
-        results.add(measure("click", preset, repetition, session, wire, js,
+        results.add(measure("click", preset, repetition, session, wire, js, commands,
                 () -> lens.getByTestId("available").click()));
-        results.add(measure("clear", preset, repetition, session, wire, js,
+        results.add(measure("clear", preset, repetition, session, wire, js, commands,
                 () -> lens.getByTestId("name").clear()));
-        results.add(measure("fill", preset, repetition, session, wire, js,
+        results.add(measure("fill", preset, repetition, session, wire, js, commands,
                 () -> lens.getByTestId("name").fill("Test Lens")));
-        results.add(measure("assertion", preset, repetition, session, wire, js,
+        results.add(measure("assertion", preset, repetition, session, wire, js, commands,
                 () -> lens.expect(By.cssSelector("[data-testid='name']")).toHaveValue("Test Lens")));
         js.executeScript("setTimeout(() => document.querySelector('[data-testid=delayed]').hidden=false, 80)");
-        results.add(measure("wait", preset, repetition, session, wire, js,
+        results.add(measure("wait", preset, repetition, session, wire, js, commands,
                 () -> lens.getByTestId("delayed").waitUntilVisible()));
-        results.add(measure("smart-click-js-fallback", preset, repetition, session, wire, js,
+        results.add(measure("smart-click-js-fallback", preset, repetition, session, wire, js, commands,
                 () -> lens.getByTestId("covered").click()));
 
         assertEquals(1L, number(js, "return window.availableClicks"));
@@ -124,7 +127,7 @@ class RuntimeWorkloadPerformanceIT {
     }
 
     private static LifecycleResult runFailureWorkload(WebDriver driver,
-                                                      BrowserTestHarness.WireCommandMetrics wire,
+                                                      BrowserTestHarness.ExecutorCommandMetrics wire,
                                                       String url,
                                                       HudPreset preset) {
         driver.get(url);
@@ -147,13 +150,16 @@ class RuntimeWorkloadPerformanceIT {
                                            HudPreset preset,
                                            int repetition,
                                            UiTestLensSession session,
-                                           BrowserTestHarness.WireCommandMetrics wire,
+                                           BrowserTestHarness.ExecutorCommandMetrics wire,
                                            JavascriptExecutor js,
+                                           List<CommandResult> commands,
                                            Runnable body) {
         resetHudObserver(js);
         int eventsBefore = session.events().size();
         int wireBefore = wire.total();
         int scriptsBefore = wire.count("executeScript");
+        Map<String, BrowserTestHarness.ExecutorCommandMetrics.CommandMeasurement> commandsBefore = wire.snapshot();
+        BrowserTestHarness.ExecutorCommandMetrics.HudTransportMeasurement hudTransportBefore = wire.hudTransportSnapshot();
         long started = System.nanoTime();
         String outcome = "PASSED";
         try { body.run(); }
@@ -162,12 +168,18 @@ class RuntimeWorkloadPerformanceIT {
             long elapsed = System.nanoTime() - started;
             int operationWire = wire.total() - wireBefore;
             int operationScripts = wire.count("executeScript") - scriptsBefore;
+            commandDelta(commandsBefore, wire.snapshot()).forEach((command, measurement) -> commands.add(
+                    new CommandResult(preset.name(), repetition, operation, command,
+                            measurement.count(), measurement.elapsedNanos())));
             HudMutations mutations = readHudObserver(js);
+            BrowserTestHarness.ExecutorCommandMetrics.HudTransportMeasurement transport =
+                    wire.hudTransportSnapshot().minus(hudTransportBefore);
             int events = session.events().size() - eventsBefore;
             long clickCount = number(js, "return window.availableClicks + window.coveredClicks");
             RESULTS.get().add(new OperationResult(preset.name(), repetition, operation, elapsed, events,
                     mutations.inserts(), mutations.updates(), operationWire, operationScripts,
-                    outcome, clickCount, session.exportJson().getBytes(StandardCharsets.UTF_8).length));
+                    transport.batches(), transport.events(), transport.payloadBytes(), outcome, clickCount,
+                    session.exportJson().getBytes(StandardCharsets.UTF_8).length));
         }
         return RESULTS.get().remove(RESULTS.get().size() - 1);
     }
@@ -247,20 +259,22 @@ class RuntimeWorkloadPerformanceIT {
 
     private static void writeOperations(Path path, List<OperationResult> values) throws IOException {
         List<String> lines = new ArrayList<>();
-        lines.add("sourceSha,browser,headed,preset,repetition,operation,elapsedNanos,lensEvents,hudInserts,hudUpdates,wireCommands,wireExecuteScript,outcome,totalBusinessClicks,traceJsonBytes");
+        lines.add("sourceSha,browser,headed,preset,repetition,operation,elapsedNanos,lensEvents,hudMutationAddedNodes,hudMutationUpdates,executorCommands,executeScript,hudBatches,hudBatchEvents,hudPayloadBytes,outcome,totalBusinessClicks,traceJsonBytes");
         for (OperationResult value : values) lines.add(String.join(",",
                 System.getProperty("perf.sourceSha", "unknown"), BrowserTestHarness.browserName(),
                 System.getProperty("headed", "false"), value.preset(), String.valueOf(value.repetition()),
                 value.operation(), String.valueOf(value.elapsedNanos()), String.valueOf(value.lensEvents()),
                 String.valueOf(value.hudInserts()), String.valueOf(value.hudUpdates()),
-                String.valueOf(value.wireCommands()), String.valueOf(value.wireExecuteScript()), value.outcome(),
+                String.valueOf(value.executorCommands()), String.valueOf(value.executeScript()),
+                String.valueOf(value.hudBatches()), String.valueOf(value.hudBatchEvents()),
+                String.valueOf(value.hudPayloadBytes()), value.outcome(),
                 String.valueOf(value.totalBusinessClicks()), String.valueOf(value.traceJsonBytes())));
         Files.write(path, lines, StandardCharsets.UTF_8);
     }
 
     private static void writeLifecycle(Path path, List<LifecycleResult> values) throws IOException {
         List<String> lines = new ArrayList<>();
-        lines.add("sourceSha,browser,headed,preset,repetition,outcome,createDriverNanos,attachNanos,startSessionNanos,finishNanos,quitNanos,lensEvents,lensSessions,reports,wireCommands,wireExecuteScript");
+        lines.add("sourceSha,browser,headed,preset,repetition,outcome,createDriverNanos,attachNanos,startSessionNanos,finishNanos,quitNanos,lensEvents,lensSessions,reports,executorCommands,executeScript");
         for (LifecycleResult value : values) lines.add(String.join(",",
                 System.getProperty("perf.sourceSha", "unknown"), BrowserTestHarness.browserName(),
                 System.getProperty("headed", "false"), value.preset(), String.valueOf(value.repetition()), value.outcome(),
@@ -268,8 +282,29 @@ class RuntimeWorkloadPerformanceIT {
                 String.valueOf(value.startSessionNanos()), String.valueOf(value.finishNanos()),
                 String.valueOf(value.quitNanos()), String.valueOf(value.lensEvents()),
                 String.valueOf(value.lensSessions()), String.valueOf(value.reports()),
-                String.valueOf(value.wireCommands()), String.valueOf(value.wireExecuteScript())));
+                String.valueOf(value.executorCommands()), String.valueOf(value.executeScript())));
         Files.write(path, lines, StandardCharsets.UTF_8);
+    }
+
+    private static void writeCommands(Path path, List<CommandResult> values) throws IOException {
+        List<String> lines = new ArrayList<>();
+        lines.add("sourceSha,browser,headed,preset,repetition,origin,command,count,elapsedNanos");
+        for (CommandResult value : values) lines.add(String.join(",",
+                System.getProperty("perf.sourceSha", "unknown"), BrowserTestHarness.browserName(),
+                System.getProperty("headed", "false"), value.preset(), String.valueOf(value.repetition()),
+                value.origin(), value.command(), String.valueOf(value.count()), String.valueOf(value.elapsedNanos())));
+        Files.write(path, lines, StandardCharsets.UTF_8);
+    }
+
+    private static Map<String, BrowserTestHarness.ExecutorCommandMetrics.CommandMeasurement> commandDelta(
+            Map<String, BrowserTestHarness.ExecutorCommandMetrics.CommandMeasurement> before,
+            Map<String, BrowserTestHarness.ExecutorCommandMetrics.CommandMeasurement> after) {
+        Map<String, BrowserTestHarness.ExecutorCommandMetrics.CommandMeasurement> result = new java.util.TreeMap<>();
+        after.forEach((name, measurement) -> {
+            BrowserTestHarness.ExecutorCommandMetrics.CommandMeasurement delta = measurement.minus(before.get(name));
+            if (delta.count() > 0) result.put(name, delta);
+        });
+        return result;
     }
 
     private static Map<String, Object> driverMetadata(WebDriver driver, List<OperationResult> operations,
@@ -313,20 +348,23 @@ class RuntimeWorkloadPerformanceIT {
     }
 
     private record HudMutations(long inserts, long updates) { }
+    private record CommandResult(String preset, int repetition, String origin, String command,
+                                 int count, long elapsedNanos) { }
     private record OperationResult(String preset, int repetition, String operation, long elapsedNanos,
-                                   int lensEvents, long hudInserts, long hudUpdates, int wireCommands,
-                                   int wireExecuteScript, String outcome, long totalBusinessClicks,
+                                   int lensEvents, long hudInserts, long hudUpdates, int executorCommands,
+                                   int executeScript, int hudBatches, int hudBatchEvents, long hudPayloadBytes,
+                                   String outcome, long totalBusinessClicks,
                                    int traceJsonBytes) { }
     private record RunResult(List<OperationResult> operations, LifecycleResult lifecycle) { }
     private record LifecycleResult(String preset, int repetition, String outcome, long createDriverNanos,
                                    long attachNanos, long startSessionNanos, long finishNanos, long quitNanos,
-                                   int lensEvents, int lensSessions, int reports, int wireCommands,
-                                   int wireExecuteScript) {
+                                   int lensEvents, int lensSessions, int reports, int executorCommands,
+                                   int executeScript) {
         LifecycleResult withCreateNanos(long value) { return new LifecycleResult(preset, repetition, outcome, value,
                 attachNanos, startSessionNanos, finishNanos, quitNanos, lensEvents, lensSessions, reports,
-                wireCommands, wireExecuteScript); }
+                executorCommands, executeScript); }
         LifecycleResult withQuitNanos(long value) { return new LifecycleResult(preset, repetition, outcome,
                 createDriverNanos, attachNanos, startSessionNanos, finishNanos, value, lensEvents, lensSessions,
-                reports, wireCommands, wireExecuteScript); }
+                reports, executorCommands, executeScript); }
     }
 }

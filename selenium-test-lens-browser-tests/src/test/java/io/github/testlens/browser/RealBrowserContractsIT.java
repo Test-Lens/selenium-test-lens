@@ -2027,6 +2027,33 @@ class RealBrowserContractsIT {
     }
 
     @Test
+    void hudTransportDoesNotConsumeAlertConfirmOrPrompt() {
+        open("/contexts");
+        JsOverlayDebug overlay = overlay(true);
+
+        driver.findElement(By.id("alert-button")).click();
+        overlay.hudLog("info", "deferred while alert is open", null);
+        assertEquals("Test Lens alert", driver.switchTo().alert().getText());
+        driver.switchTo().alert().accept();
+        overlay.hudLog("info", "flush after alert", null);
+
+        driver.findElement(By.id("confirm-button")).click();
+        overlay.hudLog("warn", "deferred while confirm is open", null);
+        assertEquals("Test Lens confirm", driver.switchTo().alert().getText());
+        driver.switchTo().alert().dismiss();
+        overlay.hudLog("info", "flush after confirm", null);
+        assertEquals("dismissed", driver.findElement(By.id("confirm-result")).getText());
+
+        driver.findElement(By.id("prompt-button")).click();
+        overlay.hudLog("info", "deferred while prompt is open", null);
+        assertEquals("Test Lens prompt", driver.switchTo().alert().getText());
+        driver.switchTo().alert().sendKeys("unchanged by HUD");
+        driver.switchTo().alert().accept();
+        overlay.hudLog("info", "flush after prompt", null);
+        assertEquals("unchanged by HUD", driver.findElement(By.id("prompt-result")).getText());
+    }
+
+    @Test
     void strictCspDoesNotChangeTheSeleniumOperationOutcome() {
         open("/csp");
         JsOverlayDebug lens = overlay(true);
@@ -3121,6 +3148,10 @@ class RealBrowserContractsIT {
                     <button id='popup-button'>Open popup</button>
                     <button id='alert-button'>Open alert</button>
                     <span id='alert-result'>pending</span>
+                    <button id='confirm-button'>Open confirm</button>
+                    <span id='confirm-result'>pending</span>
+                    <button id='prompt-button'>Open prompt</button>
+                    <span id='prompt-result'>pending</span>
                     """), false);
             case "/frame" -> html(exchange, page("Frame", "<p id='frame-value'>inside frame</p>"), false);
             case "/popup-target" -> html(exchange, page("Popup", "<p id='popup-value'>popup ready</p>"), false);
@@ -3307,6 +3338,15 @@ class RealBrowserContractsIT {
             if (alertButton) alertButton.addEventListener('click', () => {
               alert('Test Lens alert');
               document.getElementById('alert-result').textContent = 'accepted';
+            });
+            const confirmButton = document.getElementById('confirm-button');
+            if (confirmButton) confirmButton.addEventListener('click', () => {
+              document.getElementById('confirm-result').textContent = confirm('Test Lens confirm') ? 'accepted' : 'dismissed';
+            });
+            const promptButton = document.getElementById('prompt-button');
+            if (promptButton) promptButton.addEventListener('click', () => {
+              const value = prompt('Test Lens prompt', 'original');
+              document.getElementById('prompt-result').textContent = value === null ? 'dismissed' : value;
             });
             const asyncContainer = document.getElementById('async-container');
             if (asyncContainer) setTimeout(() => {

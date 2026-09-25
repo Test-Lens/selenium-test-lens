@@ -945,7 +945,7 @@
     return {date:date,canonical:Number.isFinite(millis) ? raw : date.toISOString()};
   }
 
-  function log(message, level, timestamp, eventType, sourceLabel, navigationTarget, presentationTimestamp, semanticValue) {
+  function log(message, level, timestamp, eventType, sourceLabel, navigationTarget, presentationTimestamp, semanticValue, deferLayout) {
     var config = lens.state.hud.lastConfig || {};
     var semantic = normalizeSemantics(semanticValue, eventType, level);
     if (!option(config, 'showEventLog', true) || !eventVisible(config, eventType, semantic)) return;
@@ -1052,8 +1052,26 @@
     row.appendChild(content);
     if (newRow) logs.appendChild(row);
     while (logs.children && logs.children.length > 250) logs.removeChild(logs.firstChild);
-    updateScrollableRegions(panel);
-    logs.scrollTop = logs.scrollHeight;
+    if (!deferLayout) {
+      updateScrollableRegions(panel);
+      logs.scrollTop = logs.scrollHeight;
+    }
+    return {panel:panel,logs:logs};
+  }
+
+  function logBatch(entries) {
+    if (!Array.isArray(entries) || entries.length === 0) return;
+    var rendered = null;
+    entries.forEach(function (entry) {
+      if (!entry || typeof entry !== 'object') return;
+      var current = log(entry.message, entry.level, entry.timestamp, entry.eventType,
+        entry.sourceLabel, entry.navigationTarget, entry.presentationTimestamp, entry.semantics, true);
+      if (current) rendered = current;
+    });
+    if (rendered) {
+      updateScrollableRegions(rendered.panel);
+      rendered.logs.scrollTop = rendered.logs.scrollHeight;
+    }
   }
 
   function clear() {
@@ -1108,6 +1126,7 @@
     init: init,
     setStep: setStep,
     log: log,
+    logBatch: logBatch,
     clear: clear,
     remove: remove,
     setSourceNavigationCompatibility: setSourceNavigationCompatibility,

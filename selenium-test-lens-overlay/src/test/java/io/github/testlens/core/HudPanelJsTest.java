@@ -483,6 +483,21 @@ class HudPanelJsTest {
                 assert(lastLog().querySelector('.stl-hud-event-duration').textContent === '\u00b7 143 ms', 'operation duration missing');
 
                 window.__uiTestLens.modules.hud.clear();
+                window.__uiTestLens.modules.hud.logBatch([
+                  {message:'running',level:'info',timestamp:null,eventType:'LOCATOR_ACTION_STARTED',semantics:{category:'ACTION',phase:'RUNNING',operationId:'batch-1',technical:false}},
+                  {message:'resolved',level:'debug',timestamp:null,eventType:'LOCATOR_RESOLVE_PASSED',semantics:{category:'LOCATOR',phase:'DEBUG',operationId:'batch-1',technical:false}},
+                  {message:'<img src=x onerror=alert(1)>',level:'info',timestamp:null,eventType:'HUD',semantics:{category:'USER',phase:'INFO',operationId:'batch-user',technical:false,customIcon:'\ud83d\udc69\u200d\ud83d\udcbb'}},
+                  {message:'passed',level:'info',timestamp:null,eventType:'LOCATOR_ACTION_PASSED',semantics:{category:'ACTION',phase:'PASSED',operationId:'batch-1',technical:false}}
+                ]);
+                var batchLogs=root.querySelector('#selenium-hud-logs');
+                assert(batchLogs.children.length === 3, 'batch order/correlation changed row count');
+                assert(batchLogs.children[0].querySelector('.stl-hud-event-message').textContent === 'passed', 'batch did not update the correlated action in order');
+                assert(batchLogs.children[1].querySelector('.stl-hud-event-message').textContent === 'resolved', 'batch technical entry order changed');
+                assert(batchLogs.children[2].querySelector('.stl-hud-event-message').textContent === '<img src=x onerror=alert(1)>', 'batch user message changed');
+                assert(!batchLogs.children[2].querySelector('img'), 'batch rendered malicious message as markup');
+                assert(batchLogs.children[2].querySelector('.stl-hud-event-category-icon').textContent === '\ud83d\udc69\u200d\ud83d\udcbb', 'batch changed compound custom icon');
+
+                window.__uiTestLens.modules.hud.clear();
                 window.__uiTestLens.modules.hud.log('Value should match','info',null,'ASSERTION_STARTED',null,null,null,
                   {category:'ASSERTION',phase:'RUNNING',operationId:'assert-icon',technical:false});
                 assert(lastLog().querySelector('.stl-hud-event-category-icon').textContent === '\ud83e\uddea', 'assertion category icon differs');
