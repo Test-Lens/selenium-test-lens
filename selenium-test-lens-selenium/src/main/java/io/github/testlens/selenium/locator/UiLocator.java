@@ -277,14 +277,16 @@ public final class UiLocator {
             try {
                 List<WebElement> elements = List.copyOf(CompositeBy.find(driver, by()));
                 emit(UiTestLensEventType.LOCATOR_RESOLVE_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
-                        "Locator collection resolved", "resolveAll", elements.size(), null, null);
+                        "Locator collection resolved", "resolveAll", elements.size(), null, null,
+                        locatorObservation("FIND_MANY", "RESOLVED", elements.size(), elapsedNanos(started)));
                 return elements;
             } catch (RuntimeException failure) {
                 lastFailure = failure;
                 if (!(effectiveRetryCause(failure) instanceof StaleElementReferenceException)
                         || !options.retryOnStaleElement() || attempt >= options.maxRetries()) {
                     emit(UiTestLensEventType.LOCATOR_RESOLVE_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
-                            "Locator collection resolve failed", "resolveAll", attempt, null, failure);
+                            "Locator collection resolve failed", "resolveAll", attempt, null, failure,
+                            locatorObservation("FIND_MANY", outcome(failure), null, elapsedNanos(started)));
                     throw locatorException("resolveAll", failure, "");
                 }
                 emitRecoveryRetry("collection", "resolveAll", attempt, attempt + 1,
@@ -434,14 +436,17 @@ public final class UiLocator {
     private WebElement resolve(UiLocatorOptions resolutionOptions) {
         emit(UiTestLensEventType.LOCATOR_RESOLVE_STARTED, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO,
                 "Resolving locator", "resolve", 0, null, null);
+        long started = System.nanoTime();
         try {
             WebElement element = resolver.resolve(by(), resolutionOptions);
             emit(UiTestLensEventType.LOCATOR_RESOLVE_PASSED, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO,
-                    "Locator resolved", "resolve", 1, null, null);
+                    "Locator resolved", "resolve", 1, null, null,
+                    locatorObservation("FIND_ONE", "RESOLVED", null, systemElapsedNanos(started)));
             return element;
         } catch (RuntimeException e) {
             emit(UiTestLensEventType.LOCATOR_RESOLVE_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
-                    "Locator resolve failed", "resolve", 1, null, e);
+                    "Locator resolve failed", "resolve", 1, null, e,
+                    locatorObservation("FIND_ONE", outcome(e), null, systemElapsedNanos(started)));
             CollectionSelectionException selection = selectionFailure(e);
             if (selection != null) {
                 RuntimeException original = e.getCause() instanceof RuntimeException cause ? cause : e;
@@ -1141,6 +1146,10 @@ public final class UiLocator {
         return Math.max(0, nanoTicker.getAsLong() - started);
     }
 
+    private static long systemElapsedNanos(long started) {
+        return Math.max(0, System.nanoTime() - started);
+    }
+
     private void emitRecoveryRetry(String kind, String action, int attempt, int nextAttempt,
                                    long failedAttemptDurationNanos, Throwable cause, Integer valueLength) {
         try {
@@ -1150,11 +1159,11 @@ public final class UiLocator {
                     .status(UiTestLensStatus.WARN)
                     .message("Retrying locator " + kind + ": " + description.displayName())
                     .action("locator." + action)
-                    .metadata("locator", by().toString())
+                    .metadata("locator", description.locatorDisplay())
                     .metadata("description", description.displayName())
                     .metadata("retryKind", "recovery")
                     .metadata("retryAction", action)
-                    .metadata("retryLocator", by().toString())
+                    .metadata("retryLocator", description.locatorDisplay())
                     .metadata("attempt", String.valueOf(attempt))
                     .metadata("nextAttempt", String.valueOf(nextAttempt))
                     .metadata("exceptionType", cause == null ? "" : cause.getClass().getName())
@@ -1206,7 +1215,7 @@ public final class UiLocator {
                     .status(status)
                     .message(message + ": " + description.displayName())
                     .action("locator." + action)
-                    .metadata("locator", by().toString())
+                    .metadata("locator", description.locatorDisplay())
                     .metadata("description", description.displayName())
                     .metadata("attempt", String.valueOf(attempt))
                     .throwable(throwable);
@@ -1236,6 +1245,17 @@ public final class UiLocator {
             return operation;
         }
         return activeOperation.get();
+    }
+
+    private Map<String, String> locatorObservation(String intent, String outcome, Integer matchCount,
+                                                    long durationNanos) {
+        return LocatorObservationMetadata.observation(by(), description.label(), description.locatorDisplay(), intent, outcome,
+                matchCount, durationNanos);
+    }
+
+    private static String outcome(Throwable failure) {
+        Throwable effective = effectiveRetryCause(failure);
+        return effective instanceof NoSuchElementException ? "NOT_FOUND" : "ERROR";
     }
 
     private static boolean isOperationStart(UiTestLensEventType type, UiTestLensStatus status) {

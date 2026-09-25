@@ -73,6 +73,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -563,7 +564,8 @@ public final class JsOverlayDebug {
         }
     }
 
-    void emitNativeTechnical(String action, String description, TargetDescriptor target, Throwable failure) {
+    void emitNativeTechnical(String action, String description, TargetDescriptor target, Throwable failure,
+                             Map<String, String> observationMetadata) {
         if (!observationActive()) return;
         try {
             UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder()
@@ -575,6 +577,10 @@ public final class JsOverlayDebug {
                     .target(target == null ? TargetDescriptor.none() : target)
                     .metadata("observerOutcome", failure == null ? "returned" : "threw")
                     .metadata("exceptionType", failure == null ? "" : failure.getClass().getName());
+            if (observationMetadata != null && !observationMetadata.isEmpty()) {
+                builder.metadata("testlens.internal.captureSourceLocation", "true");
+                observationMetadata.forEach(builder::metadata);
+            }
             logger.emit(builder.build());
         } catch (RuntimeException ignored) {
             // Observation diagnostics are best effort and never change Selenium behavior.

@@ -17,6 +17,8 @@ import java.util.TreeMap;
  * Exports Test Lens trace sessions as machine-readable JSON reports.
  */
 public final class TraceJsonExporter {
+    private static final String SELECTOR_PREFIX = "metadata.testlens.selector.";
+    private static final String DIRECT_SELECTOR_PREFIX = "testlens.selector.";
     public static final Path DEFAULT_SUITE_OUTPUT_PATH = TraceReportSupport.DEFAULT_SUITE_JSON_PATH;
 
     public String export(UiTestLensSession session) {
@@ -263,10 +265,13 @@ public final class TraceJsonExporter {
         if (event.failure() != null) {
             out.put("failure", failureMap(event.failure(), options));
         }
-        if (!event.attributes().isEmpty()) {
-            out.put("attributes", sortedMap(event.attributes()));
-            out.put("metadata", sortedMap(event.attributes()));
+        Map<String, String> publicAttributes = publicAttributes(event.attributes());
+        if (!publicAttributes.isEmpty()) {
+            out.put("attributes", sortedMap(publicAttributes));
+            out.put("metadata", sortedMap(publicAttributes));
         }
+        Map<String, Object> locatorObservation = locatorObservation(event.attributes());
+        if (!locatorObservation.isEmpty()) out.put("locatorObservation", locatorObservation);
         if (!event.artifacts().isEmpty()) {
             out.put("artifacts", event.artifacts().stream()
                     .map(artifact -> artifactMap(artifact, options))
@@ -274,6 +279,97 @@ public final class TraceJsonExporter {
                     .toList());
         }
         return out;
+    }
+
+    private Map<String, String> publicAttributes(Map<String, String> attributes) {
+        Map<String, String> safe = new LinkedHashMap<>();
+        attributes.forEach((key, value) -> {
+            if (!selectorKey(key)) safe.put(key, value);
+        });
+        return safe;
+    }
+
+    private Map<String, Object> locatorObservation(Map<String, String> attributes) {
+        String version = selector(attributes, "schemaVersion");
+        if (version == null || version.isBlank()) return Map.of();
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("schemaVersion", number(version, 1));
+        out.put("locator", locatorMap(attributes, "locator."));
+        out.put("context", contextMap(attributes));
+        put(out, "usageIntent", selector(attributes, "usageIntent"));
+        put(out, "outcome", selector(attributes, "outcome"));
+        Map<String, Object> count = new LinkedHashMap<>();
+        put(count, "knowledge", selector(attributes, "matchCount.knowledge"));
+        String countValue = selector(attributes, "matchCount.value");
+        if (countValue != null && !countValue.isBlank()) count.put("value", number(countValue, 0));
+        out.put("matchCount", count);
+        put(out, "operationId", attributes.get("metadata.operationId"));
+        String duration = selector(attributes, "resolutionDurationNanos");
+        if (duration != null && !duration.isBlank()) out.put("resolutionDurationNanos", number(duration, 0));
+        out.put("usageSource", sourceMap(attributes));
+        out.put("declarationSource", Map.of("knowledge", "UNKNOWN"));
+        return out;
+    }
+
+    private Map<String, Object> locatorMap(Map<String, String> attributes, String prefix) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        put(out, "strategy", selector(attributes, prefix + "strategy"));
+        put(out, "value", selector(attributes, prefix + "value"));
+        put(out, "valueState", selector(attributes, prefix + "valueState"));
+        put(out, "display", selector(attributes, prefix + "display"));
+        put(out, "supportKind", selector(attributes, prefix + "supportKind"));
+        put(out, "label", selector(attributes, prefix + "label"));
+        put(out, "implementationClass", selector(attributes, prefix + "implementationClass"));
+        return out;
+    }
+
+    private Map<String, Object> contextMap(Map<String, String> attributes) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        put(out, "knowledge", selector(attributes, "context.knowledge"));
+        int count = (int) number(selector(attributes, "context.segmentCount"), 0);
+        List<Map<String, Object>> segments = new java.util.ArrayList<>();
+        for (int index = 0; index < count; index++) {
+            String prefix = "context.segment." + index + ".";
+            Map<String, Object> segment = new LinkedHashMap<>();
+            put(segment, "kind", selector(attributes, prefix + "kind"));
+            put(segment, "knowledge", selector(attributes, prefix + "knowledge"));
+            Map<String, Object> locator = locatorMap(attributes, prefix + "locator.");
+            if (!locator.isEmpty()) segment.put("locator", locator);
+            put(segment, "label", selector(attributes, prefix + "label"));
+            String referenceKind = selector(attributes, prefix + "reference.kind");
+            String referenceValue = selector(attributes, prefix + "reference.value");
+            if (referenceKind != null && !referenceKind.isBlank()) {
+                Map<String, Object> reference = new LinkedHashMap<>();
+                reference.put("kind", referenceKind);
+                reference.put("value", "INDEX".equals(referenceKind)
+                        ? number(referenceValue, 0) : referenceValue);
+                segment.put("reference", reference);
+            }
+            segments.add(segment);
+        }
+        out.put("segments", segments);
+        return out;
+    }
+
+    private Map<String, Object> sourceMap(Map<String, String> attributes) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        String file = attributes.get("metadata." + io.github.testlens.core.logging.UiTestLensLogEntry.SOURCE_FILE);
+        out.put("knowledge", file == null || file.isBlank() ? "UNKNOWN" : "KNOWN");
+        if (file == null || file.isBlank()) return out;
+        put(out, "className", attributes.get("metadata." + io.github.testlens.core.logging.UiTestLensLogEntry.SOURCE_CLASS));
+        put(out, "methodName", attributes.get("metadata." + io.github.testlens.core.logging.UiTestLensLogEntry.SOURCE_METHOD));
+        put(out, "fileName", file);
+        out.put("line", number(attributes.get("metadata." + io.github.testlens.core.logging.UiTestLensLogEntry.SOURCE_LINE), 0));
+        return out;
+    }
+
+    private static boolean selectorKey(String key) {
+        return key != null && (key.startsWith(SELECTOR_PREFIX) || key.startsWith(DIRECT_SELECTOR_PREFIX));
+    }
+
+    private static String selector(Map<String, String> attributes, String suffix) {
+        String value = attributes.get(SELECTOR_PREFIX + suffix);
+        return value != null ? value : attributes.get(DIRECT_SELECTOR_PREFIX + suffix);
     }
 
     private Map<String, Object> artifactMap(TraceArtifact artifact, TraceJsonExportOptions options) {

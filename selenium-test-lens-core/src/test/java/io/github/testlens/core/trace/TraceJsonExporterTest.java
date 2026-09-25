@@ -73,6 +73,45 @@ class TraceJsonExporterTest {
     }
 
     @Test
+    void structuredLocatorIsProjectedOnceWithoutLeakingInternalKeys() {
+        UiTestLensSession session = UiTestLensSession.start("locator");
+        session.addEvent(TraceEvent.builder(TraceEventType.LOCATOR_RESOLVE, TraceStatus.PASSED, "find")
+                .attribute("metadata.testlens.selector.schemaVersion", "1")
+                .attribute("metadata.testlens.selector.locator.strategy", "id")
+                .attribute("metadata.testlens.selector.locator.value", "save")
+                .attribute("metadata.testlens.selector.locator.valueState", "KNOWN")
+                .attribute("metadata.testlens.selector.locator.display", "By.id: save")
+                .attribute("metadata.testlens.selector.locator.supportKind", "STRUCTURED")
+                .attribute("metadata.testlens.selector.context.knowledge", "KNOWN")
+                .attribute("metadata.testlens.selector.context.segmentCount", "1")
+                .attribute("metadata.testlens.selector.context.segment.0.kind", "DRIVER_ROOT")
+                .attribute("metadata.testlens.selector.context.segment.0.knowledge", "KNOWN")
+                .attribute("metadata.testlens.selector.usageIntent", "FIND_ONE")
+                .attribute("metadata.testlens.selector.outcome", "RESOLVED")
+                .attribute("metadata.testlens.selector.matchCount.knowledge", "UNKNOWN")
+                .attribute("target.selector", "By.id: save")
+                .build());
+
+        String json = session.exportJson();
+
+        assertTrue(json.contains("\"schemaVersion\":\"1.0\""));
+        assertTrue(json.contains("\"locatorObservation\":{\"schemaVersion\":1"));
+        assertTrue(json.contains("\"strategy\":\"id\""));
+        assertTrue(json.contains("\"segments\":[{\"kind\":\"DRIVER_ROOT\",\"knowledge\":\"KNOWN\"}]"));
+        assertTrue(json.contains("\"declarationSource\":{\"knowledge\":\"UNKNOWN\"}"));
+        assertTrue(json.contains("\"target.selector\":\"By.id: save\""));
+        assertFalse(json.contains("metadata.testlens.selector"));
+        assertEquals(2, occurrences(json, "\"locatorObservation\""),
+                "session export intentionally mirrors its event list at the root and inside session");
+    }
+
+    private static int occurrences(String value, String needle) {
+        int count = 0;
+        for (int index = 0; (index = value.indexOf(needle, index)) >= 0; index += needle.length()) count++;
+        return count;
+    }
+
+    @Test
     void suiteJsonContainsMultipleSessionsAndSummaryCounts() {
         UiTestLensSession passed = UiTestLensSession.start("Passed");
         passed.finishPassed();

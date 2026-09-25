@@ -215,4 +215,37 @@ starts at a configured bound. `workload-lifecycle.csv` and `native-observation-o
 `retainedEvents`, `retainedEstimatedBytes`, `evictedEvents`, and `truncatedEvents` so future measurements do not
 infer in-memory retention from exported JSON size.
 
+## Stage 5 — structured runtime locator observations
+
+The locator-observation baseline is source `68c303f0807ab3eb4cedc3af224c54c3905d4be4`; the structured run is
+`68c303f+working-tree`. Both used headless Chrome 152 and Firefox 156, two warmups, and five interleaved measured
+repetitions of the same native `find+click`, `find+clear`, and `find+sendKeys` workload. Raw full-matrix files are
+under `target/performance-audit/selector-a1b-baseline` and `target/performance-audit/selector-a1b-structured`;
+the corrected focused locator/source counters are under
+`selenium-test-lens-browser-tests/target/performance-audit/selector-a1b-native-focused`.
+
+| Browser | Profile | Structured action median (range) | Logical commands / `executeScript` | Events | Locator/source observations | Retained estimated bytes | JSON bytes |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Chrome | RAW | 119.103 ms (114.886–122.256) | 7 / 1 | 0 | 0 / 0 | 0 | 0 |
+| Chrome | OBSERVED_DEFAULT | 426.423 ms (391.786–454.223) | 40 / 28 | 17 | 3 / 3 | 18,769 | 52,752 |
+| Chrome | OBSERVED_FAST | 131.247 ms (116.211–159.308) | 7 / 1 | 11 | 3 / 3 | 862 | 5,186 |
+| Chrome | OBSERVED_DEBUG | 491.074 ms (442.011–517.985) | 52 / 34 | 17 | 3 / 3 | 18,764 | 52,728 |
+| Firefox | RAW | 95.885 ms (88.686–105.022) | 7 / 1 | 0 | 0 / 0 | 0 | 0 |
+| Firefox | OBSERVED_DEFAULT | 333.580 ms (301.224–342.475) | 40 / 28 | 17 | 3 / 3 | 18,768 | 52,744 |
+| Firefox | OBSERVED_FAST | 101.115 ms (98.425–109.433) | 7 / 1 | 11 | 3 / 3 | 862 | 5,186 |
+| Firefox | OBSERVED_DEBUG | 402.047 ms (390.402–467.608) | 52 / 34 | 17 | 3 / 3 | 18,763 | 52,732 |
+
+The structural result is the acceptance signal: every profile retained exactly the baseline logical-command and
+`executeScript` counts, one business click, and the same event count. Three existing find events gained three
+locator observations and three reused call sites; no second find, geometry read, DOM query, or JavaScript command
+was introduced. In DEFAULT/DEBUG, deterministic retained size rose from about 14,970 to 18,768 bytes and median
+JSON from about 45,812 to 52,744 bytes. FAST still records the observations while running, then its accepted
+`SUMMARY_ONLY` PASS policy releases them: retained summary (862 bytes) and final JSON (5,186 bytes) are unchanged.
+
+Wall time is not a speedup claim. The separated Chrome baseline was unusually noisy and slower across RAW and all
+observed profiles; Firefox DEFAULT moved from 304.226 to 333.580 ms while DEBUG moved from 426.363 to 402.047 ms
+and FAST remained approximately 102 ms. These mixed directions show run-to-run/environment variance rather than
+a consistent locator-model latency effect. Source capture is performed once per eligible find occurrence and was
+not added to ordinary technical reads.
+
 JFR/browser traces are useful for CPU and allocation attribution but change the measured system. A separate 20-event, zero-warmup JFR using the JDK `profile` settings produced a four-second recording. It contained only four execution samples—too few for a CPU attribution claim—and showed the test spending its sampled time in framework startup/waiting/HTTP I/O rather than a demonstrated Java CPU hotspot. This result is supporting context, not the source of the reported speedup; the unprofiled repeated wall-time and command-count runs are the primary evidence. The installed Chrome 152 has no matching Selenium 4.39 CDP module in this repository, so a Chrome DevTools performance trace was **NOT RUN**; Selenium was not upgraded for the audit.

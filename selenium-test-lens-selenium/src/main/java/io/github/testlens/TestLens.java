@@ -111,6 +111,8 @@ public final class TestLens {
     }
     public UiTestLensSession startSession(String name) {
         closeTerminalReplacedScenario();
+        NativeSeleniumObserver observer = nativeObserver;
+        if (observer != null) observer.beginSession();
         UiTestLensSession session = delegate.startSession(name, options.retryOutcomePolicy(), options.allowedRetries(),
                 options.redactionPolicy(), observability.traceRetention());
         synchronized (finalizationLock) {

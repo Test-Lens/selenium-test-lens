@@ -9,6 +9,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.WrapsDriver;
+import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.support.events.EventFiringDecorator;
 import org.openqa.selenium.support.events.WebDriverListener;
 
@@ -121,6 +122,29 @@ class NativeSeleniumObservationTest {
                 .filter(event -> event.attributes().getOrDefault("action", "").matches("selenium\\.(click|clear|sendKeys)"))
                 .count());
         assertTrue(session.events().stream().allMatch(event -> !event.toString().contains("data-token='secret'")));
+        String json = session.exportJson();
+        assertTrue(json.contains("\"locatorObservation\""));
+        assertTrue(json.contains("\"strategy\":\"css selector\""));
+        assertTrue(json.contains("\"usageIntent\":\"FIND_ONE\""));
+        assertFalse(json.contains("metadata.testlens.selector"));
+    }
+
+    @Test void customLocatorWithThrowingDisplayCannotBreakOrRepeatFind() {
+        Fixture fixture = new Fixture();
+        TestLens lens = lens(fixture.driver);
+        UiTestLensSession session = lens.startSession("custom locator");
+        By throwing = new By() {
+            @Override public List<WebElement> findElements(SearchContext context) { return List.of(fixture.element); }
+            @Override public String toString() { throw new AssertionError("token=raw-secret"); }
+        };
+
+        WebElement found = lens.observeDriver().findElement(throwing);
+
+        assertNotNull(found);
+        assertEquals(1, fixture.finds.get());
+        String json = session.exportJson();
+        assertTrue(json.contains("\"supportKind\":\"CUSTOM_OPAQUE\""));
+        assertFalse(json.contains("raw-secret"));
     }
 
     @Test void childAndListResultsRemainObservedWithoutAdditionalFinds() {
@@ -135,6 +159,10 @@ class NativeSeleniumObservationTest {
 
         assertEquals(3, fixture.finds.get());
         assertEquals(2, fixture.clicks.get());
+        String json = lens.session().orElseThrow().exportJson();
+        assertTrue(json.contains("\"kind\":\"ELEMENT\""));
+        assertTrue(json.contains("\"usageIntent\":\"FIND_MANY\""));
+        assertTrue(json.contains("\"matchCount\":{\"knowledge\":\"KNOWN\",\"value\":1}"));
     }
 
     @Test void explicitJavascriptTargetProducesOneScriptOperationAndOneDispatch() {

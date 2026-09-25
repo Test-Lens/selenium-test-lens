@@ -19,6 +19,8 @@ import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.WindowType;
+import org.openqa.selenium.NoSuchFrameException;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.interactions.Interactive;
 import org.openqa.selenium.support.FindBy;
@@ -104,6 +106,23 @@ class NativeSeleniumObservationIT {
             assertEquals("1", driver.findElement(By.id("frame-count")).getText());
             driver.switchTo().defaultContent();
 
+            driver.switchTo().frame(0);
+            assertEquals("1", driver.findElement(By.id("frame-count")).getText());
+            driver.switchTo().parentFrame();
+            driver.switchTo().frame("checkout");
+            assertEquals("1", driver.findElement(By.id("frame-count")).getText());
+            driver.switchTo().defaultContent();
+            assertThrows(NoSuchFrameException.class, () -> driver.switchTo().frame("missing-frame"));
+            assertNotNull(driver.findElement(By.id("save")), "failed switch must leave context unchanged");
+
+            String originalWindow = driver.getWindowHandle();
+            driver.switchTo().newWindow(WindowType.TAB);
+            driver.get(baseUrl);
+            assertNotNull(driver.findElement(By.id("save")));
+            driver.close();
+            driver.switchTo().window(originalWindow);
+            assertNotNull(driver.findElement(By.id("save")));
+
             ElementClickInterceptedException intercepted = assertThrows(ElementClickInterceptedException.class,
                     () -> driver.findElement(By.id("covered")).click());
             assertNotNull(intercepted);
@@ -122,6 +141,17 @@ class NativeSeleniumObservationIT {
                     event.attributes().get("metadata.source.fileName"))),
                     "source navigation must resolve the consumer test rather than decorator internals");
             assertTrue(session.events().stream().noneMatch(event -> event.message().contains("person@example.test")));
+            String structured = session.exportJson();
+            assertTrue(structured.contains("\"locatorObservation\""));
+            assertTrue(structured.contains("\"kind\":\"ELEMENT\""));
+            assertTrue(structured.contains("\"kind\":\"SHADOW_ROOT\""));
+            assertTrue(structured.contains("\"kind\":\"FRAME\""));
+            assertTrue(structured.contains("\"kind\":\"WINDOW\""));
+            assertTrue(structured.contains("\"kind\":\"INDEX\",\"value\":0"));
+            assertTrue(structured.contains("\"kind\":\"NAME_OR_ID\",\"value\":\"checkout\""));
+            assertTrue(structured.contains("\"kind\":\"SESSION_LOCAL_HANDLE\""));
+            assertTrue(structured.contains("\"declarationSource\":{\"knowledge\":\"UNKNOWN\"}"));
+            assertFalse(structured.contains("metadata.testlens.selector"));
 
             lens.finishPassed();
         } finally {
@@ -157,7 +187,7 @@ class NativeSeleniumObservationIT {
               <div id='blocker' style='position:absolute;inset:0;z-index:2;background:#ddd'>Blocker</div>
             </div>
             <div id='dynamic-slot'></div><div id='shadow-host'></div>
-            <iframe id='fixture-frame' srcdoc="<button id='frame-button' style='margin:60px' onclick='document.getElementById(&quot;frame-count&quot;).textContent=1'>Frame</button><span id='frame-count'>0</span>"></iframe>
+            <iframe id='fixture-frame' name='checkout' srcdoc="<button id='frame-button' style='margin:60px' onclick='document.getElementById(&quot;frame-count&quot;).textContent=1'>Frame</button><span id='frame-count'>0</span>"></iframe>
             <script>
               window.counts={save:0,child:0,item:0,dynamic:0,js:0,shadow:0,covered:0};
               save.onclick=()=>counts.save++; document.querySelector('.child').onclick=()=>counts.child++;

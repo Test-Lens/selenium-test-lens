@@ -141,7 +141,21 @@ class RuntimeWorkloadPerformanceIT {
         long actionNanos = System.nanoTime() - actionStarted;
         long clicks = number((JavascriptExecutor) raw, "return window.availableClicks");
         int events = session == null ? 0 : session.events().size();
-        if (lens != null) lens.finishPassed();
+        long locatorObservations = session == null ? 0 : session.events().stream()
+                .filter(event -> event.attributes().containsKey("metadata.testlens.selector.schemaVersion")
+                        || event.attributes().containsKey("testlens.selector.schemaVersion"))
+                .count();
+        long sourceLocations = session == null ? 0 : session.events().stream()
+                .filter(event -> (event.attributes().containsKey("metadata.testlens.selector.schemaVersion")
+                        || event.attributes().containsKey("testlens.selector.schemaVersion"))
+                        && event.attributes().containsKey("metadata.source.fileName"))
+                .count();
+        long reportJsonBytes = 0;
+        if (lens != null) {
+            TestLensFinalizationResult finalized = lens.finishPassed();
+            try { reportJsonBytes = Files.size(finalized.jsonReport()); }
+            catch (IOException failure) { throw new IllegalStateException("Cannot size native observation report", failure); }
+        }
         long totalNanos = System.nanoTime() - totalStarted;
         BrowserTestHarness.ExecutorCommandMetrics.HudTransportMeasurement hud =
                 wire.hudTransportSnapshot().minus(hudBefore);
@@ -150,7 +164,8 @@ class RuntimeWorkloadPerformanceIT {
                 wire.total() - commandsBefore, wire.count("executeScript") - scriptsBefore,
                 events, hud.batches(), hud.events(), hud.payloadBytes(), clicks,
                 retentionLong(session, "retainedEvents"), retentionLong(session, "retainedEstimatedBytes"),
-                retentionLong(session, "evictedEvents"), retentionLong(session, "truncatedEvents"));
+                retentionLong(session, "evictedEvents"), retentionLong(session, "truncatedEvents"),
+                locatorObservations, sourceLocations, reportJsonBytes);
     }
 
     private static RunResult runSuccessfulWorkload(WebDriver driver,
@@ -439,7 +454,7 @@ class RuntimeWorkloadPerformanceIT {
 
     private static void writeNativeObservation(Path path, List<NativeObservationResult> values) throws IOException {
         List<String> lines = new ArrayList<>();
-        lines.add("sourceSha,browser,headed,profile,repetition,actionNanos,totalWithFinishNanos,executorCommands,executeScript,lensEvents,hudBatches,hudBatchEvents,hudPayloadBytes,businessClicks,retainedEvents,retainedEstimatedBytes,evictedEvents,truncatedEvents");
+        lines.add("sourceSha,browser,headed,profile,repetition,actionNanos,totalWithFinishNanos,executorCommands,executeScript,lensEvents,hudBatches,hudBatchEvents,hudPayloadBytes,businessClicks,retainedEvents,retainedEstimatedBytes,evictedEvents,truncatedEvents,locatorObservations,sourceLocations,reportJsonBytes");
         for (NativeObservationResult value : values) lines.add(String.join(",",
                 System.getProperty("perf.sourceSha", "unknown"), BrowserTestHarness.browserName(),
                 System.getProperty("headed", "false"), value.profile(), String.valueOf(value.repetition()),
@@ -449,7 +464,8 @@ class RuntimeWorkloadPerformanceIT {
                 String.valueOf(value.hudBatchEvents()), String.valueOf(value.hudPayloadBytes()),
                 String.valueOf(value.businessClicks()), String.valueOf(value.retainedEvents()),
                 String.valueOf(value.retainedEstimatedBytes()), String.valueOf(value.evictedEvents()),
-                String.valueOf(value.truncatedEvents())));
+                String.valueOf(value.truncatedEvents()), String.valueOf(value.locatorObservations()),
+                String.valueOf(value.sourceLocations()), String.valueOf(value.reportJsonBytes())));
         Files.write(path, lines, StandardCharsets.UTF_8);
     }
 
@@ -478,7 +494,8 @@ class RuntimeWorkloadPerformanceIT {
                                            int hudBatches, int hudBatchEvents, long hudPayloadBytes,
                                            long businessClicks, long retainedEvents,
                                            long retainedEstimatedBytes, long evictedEvents,
-                                           long truncatedEvents) { }
+                                           long truncatedEvents, long locatorObservations,
+                                           long sourceLocations, long reportJsonBytes) { }
     private record LifecycleResult(String preset, int repetition, String outcome, long createDriverNanos,
                                    long attachNanos, long startSessionNanos, long finishNanos, long quitNanos,
                                    int lensEvents, int lensSessions, int reports, int executorCommands,

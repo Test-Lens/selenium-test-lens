@@ -10,6 +10,29 @@ Release `0.1.0` includes `locator(...)` plus the original test-id, text, and rol
 
 The effective `TestLensOptions.locatorOptions()` belongs to the facade instance and is used uniformly by `locator(...)` and every public `getBy*` factory. Every derived locator (`nth`/`first`/`last`, filters, `locator(...)`, and `filterHas(...)`) retains its source locator's options. A lower-level `JsOverlayDebug` created directly uses the normal defaults unless an existing explicit-options `locator(...)` overload is selected.
 
+## Structured runtime observations (0.4.0)
+
+Native Selenium observation and `UiLocator` enrich their existing resolve events with a versioned locator
+observation. Standard Selenium locators are read through `By.Remotable.getRemoteParameters()`, so strategy and
+scalar value remain separate and preserve the caller's declared `id`, `name`, class-name, CSS, XPath, tag, or
+link-text intent. `By.toString()` is display-only. Custom locators are reported as opaque, while remote locators
+with object-shaped parameters (including relative locators) are marked complex without retaining their object
+graph, element IDs, or nested payload.
+
+The observation may include already-known parent-element, shadow-root, frame, or window context, the `FIND_ONE`
+or `FIND_MANY` intent, resolve outcome, a count already returned by `findElements`, and single-resolution time.
+Collection of this metadata performs no additional Selenium command, DOM query, or JavaScript call. Unknown and
+partial context is reported honestly; `NOT_FOUND` is a resolution outcome and is not by itself a selector defect
+or functional test failure.
+
+Runtime values are redacted before trace retention and remain subject to bounded trace limits. The JSON field is
+additive (`locatorObservation.schemaVersion = 1`); legacy target and locator fields remain compatible. Usage
+source can be present when the existing source-capture path supplies it, but declaration source remains unknown:
+PageFactory runtime use does not fabricate an `@FindBy` declaration. Static source discovery, stability analysis,
+ranking, policies, Audit, and Lab are deliberately outside this runtime foundation. In FAST mode no presentation
+or browser cost is reintroduced; a passed `SUMMARY_ONLY` session may release detailed observations, while retained
+failure-tail observations remain available.
+
 ## locator(By by)
 
 <!-- API SIGNATURES: io.github.testlens.TestLens -->

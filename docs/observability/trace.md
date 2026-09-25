@@ -64,6 +64,13 @@ Recovery retries use `TraceEventType.RETRY`; the summary and policy decision are
 
 Network diagnostics emit typed start/stop, request, response, fetch-error, wait, and assertion log events into the attached trace. Request/response/failure URLs, messages, attributes, and headers cross the effective central redaction policy before entering the bounded network buffer; exporters retain a defensive safe-data boundary. Lens-owned capture is stopped before `SESSION_FINISHED`.
 
+Eligible locator resolve events can also contain an additive `locatorObservation` object. Its nested schema version
+is independent of the root report schema and currently equals `1`. It separates structured strategy/value from a
+display fallback, describes known or partial search context without live Selenium objects, and records only
+outcomes/counts/timing already available from the real resolve. Internal transport keys are projected once and do
+not remain duplicated in generic event attributes. This is runtime diagnostic context, not a selector quality
+score, static declaration index, or cross-run identity.
+
 An invalid network capture generation emits `NETWORK_ASSERTION_FAILED` when `assertNoFailedRequests()` is attempted and never emits a corresponding success. Its summary retains the real lifecycle status (`STOPPED`, `UNSUPPORTED`, or `FAILED`). This failure is neither recovery retry nor a flaky-candidate signal.
 
 ## Direct session and log integration

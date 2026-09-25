@@ -6,6 +6,10 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added versioned structured runtime locator observations to existing native Selenium and `UiLocator` trace events.
+  Standard Selenium `By` values use official remote parameters, custom and relative locators remain explicitly
+  opaque/complex, and parent, shadow, frame, and window context is bounded without additional WebDriver commands.
+  JSON exposes the additive `locatorObservation` object while retaining legacy locator fields and redaction.
 - Added opt-in `ObservabilityMode.FAST`, independently configurable through Java, `testLens.observability`, or
   `TEST_LENS_OBSERVABILITY`. The successful-test path keeps Selenium/Smart Click/wait/retry semantics and bounded
   trace correlation while skipping default live HUD, automatic highlight, Source Navigation presentation, and

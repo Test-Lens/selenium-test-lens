@@ -7,6 +7,7 @@ import io.github.testlens.core.logging.UiTestLensLogLevel;
 import io.github.testlens.core.logging.UiTestLensStatus;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -24,12 +25,14 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
 /** Internal Selenium decorator. It observes calls but never changes their execution policy. */
 final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
     private final JsOverlayDebug lens;
     private final WebDriver attachedDriver;
     private final ThreadLocal<Invocation> invocation = new ThreadLocal<>();
+    private final ContextState contextState = new ContextState();
     private volatile WebDriver observedDriver;
 
     NativeSeleniumObserver(WebDriver driver, JsOverlayDebug lens) {
@@ -43,10 +46,14 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
         return observedDriver;
     }
 
+    void beginSession() {
+        contextState.beginSession();
+    }
+
     WebElement observe(WebElement element, String label) {
         if (element == null) throw new IllegalArgumentException("element must not be null");
         ObservedElement existing = observedByThis(element);
-        String effectiveLabel = label == null ? "" : label;
+        String effectiveLabel = lens.redactObservationLabel(label == null ? "" : label);
         if (existing != null && (effectiveLabel.isBlank() || effectiveLabel.equals(existing.metadata.label()))) {
             return element;
         }
@@ -97,7 +104,7 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
 
     @Override
     public void beforeCall(Decorated<?> target, Method method, Object[] args) {
-        Invocation current = Invocation.create(target, method, args, lens.observationActive());
+        Invocation current = Invocation.create(target, method, args, lens, contextState.snapshot(), System.nanoTime());
         invocation.set(current);
         if (!current.observed()) return;
         if (current.kind() == Kind.ACTION) {
@@ -111,13 +118,15 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
     public void afterCall(Decorated<?> target, Method method, Object[] args, Object result) {
         Invocation current = invocation.get();
         try {
+            contextState.afterSuccess(target.getOriginal(), method.getName(), args, current);
             if (current == null || !current.observed()) return;
             if (current.kind() == Kind.ACTION) {
                 lens.emitNativeOperation(current.action(), current.description(), UiTestLensStatus.PASSED,
                         UiTestLensLogLevel.INFO, current.target(), null);
                 current.targets().forEach(element -> highlight(element, HighlightState.SUCCESS));
             } else if (current.kind() == Kind.TECHNICAL) {
-                lens.emitNativeTechnical(current.action(), current.description(), current.target(), null);
+                lens.emitNativeTechnical(current.action(), current.description(), current.target(), null,
+                        current.locatorObservation(result, null));
             }
         } finally {
             invocation.remove();
@@ -137,7 +146,8 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
                     current.targets().forEach(element -> highlight(element, HighlightState.FAILURE));
                 } else if (current.kind() == Kind.TECHNICAL) {
                     // Polling/read failures remain technical diagnostics, never functional failures.
-                    lens.emitNativeTechnical(current.action(), current.description(), current.target(), original);
+                    lens.emitNativeTechnical(current.action(), current.description(), current.target(), original,
+                            current.locatorObservation(null, original));
                 }
             }
         } finally {
@@ -203,33 +213,87 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
 
         @Override
         public WebElement findElement(By by) {
-            return observeShadowResult(original.findElement(by), by);
+            long started = System.nanoTime();
+            LocatorObservationMetadata.Locator locator = safeLocator(by);
+            LocatorObservationMetadata.Context context = shadowContext();
+            try {
+                WebElement result = original.findElement(by);
+                emitShadowObservation(locator, context, "FIND_ONE", "RESOLVED", null, started, null);
+                return observeShadowResult(result, locator, context);
+            } catch (RuntimeException failure) {
+                emitShadowObservation(locator, context, "FIND_ONE",
+                        failure instanceof NoSuchElementException ? "NOT_FOUND" : "ERROR", null, started, failure);
+                throw failure;
+            }
         }
 
         @Override
         public List<WebElement> findElements(By by) {
-            return original.findElements(by).stream().map(element -> observeShadowResult(element, by)).toList();
+            long started = System.nanoTime();
+            LocatorObservationMetadata.Locator locator = safeLocator(by);
+            LocatorObservationMetadata.Context context = shadowContext();
+            try {
+                List<WebElement> result = original.findElements(by);
+                emitShadowObservation(locator, context, "FIND_MANY", "RESOLVED", result.size(), started, null);
+                return result.stream().map(element -> observeShadowResult(element, locator, context)).toList();
+            } catch (RuntimeException failure) {
+                emitShadowObservation(locator, context, "FIND_MANY", "ERROR", null, started, failure);
+                throw failure;
+            }
         }
 
-        private WebElement observeShadowResult(WebElement element, By by) {
+        private LocatorObservationMetadata.Locator safeLocator(By by) {
+            return LocatorObservationMetadata.locator(by, "").redacted(lens::redactObservationLabel);
+        }
+
+        private LocatorObservationMetadata.Context shadowContext() {
+            String scope = parent.displayLabel() + " shadow root";
+            return parent.context().append(
+                    new LocatorObservationMetadata.Segment("SHADOW_ROOT",
+                            parent.locatorKnown() ? "KNOWN" : "PARTIAL",
+                            parent.locatorKnown() ? parent.locator() : null,
+                            parent.label(), null, ""));
+        }
+
+        private void emitShadowObservation(LocatorObservationMetadata.Locator locator,
+                                           LocatorObservationMetadata.Context context, String intent,
+                                           String outcome, Integer matchCount, long started, Throwable failure) {
+            Map<String, String> observation = LocatorObservationMetadata.observation(locator, context, intent,
+                    outcome, matchCount, Math.max(0L, System.nanoTime() - started));
+            lens.emitNativeTechnical("selenium." + ("FIND_MANY".equals(intent) ? "findElements" : "findElement"),
+                    "shadow root " + ("FIND_MANY".equals(intent) ? "findElements" : "findElement"),
+                    new TargetDescriptor(locator.display(), null, null, null, Map.of("scope", "shadow root")),
+                    failure, observation);
+        }
+
+        private WebElement observeShadowResult(WebElement element, LocatorObservationMetadata.Locator locator,
+                                               LocatorObservationMetadata.Context context) {
             String scope = parent.displayLabel() + " shadow root";
             return createProxy(new ObservedElement(element,
-                    new ElementMetadata(by == null ? "" : by.toString(), "", scope)), WebElement.class);
+                    new ElementMetadata(locator, "", scope, context)),
+                    WebElement.class);
         }
     }
 
     private enum Kind { ACTION, TECHNICAL, NONE }
 
-    private record ElementMetadata(String selector, String label, String scope) {
-        private static ElementMetadata unknown() { return new ElementMetadata("", "", "element"); }
-        private ElementMetadata withLabel(String value) { return new ElementMetadata(selector, value, scope); }
+    private record ElementMetadata(LocatorObservationMetadata.Locator locator, String label, String scope,
+                                   LocatorObservationMetadata.Context context) {
+        private static ElementMetadata unknown() {
+            return new ElementMetadata(LocatorObservationMetadata.Locator.unknown(""), "", "element",
+                    LocatorObservationMetadata.unknown());
+        }
+        private ElementMetadata withLabel(String value) {
+            return new ElementMetadata(locator.withLabel(value), value, scope, context);
+        }
+        private boolean locatorKnown() { return locator != null && !locator.display().equals("Unknown locator"); }
         private String displayLabel() {
             if (!label.isBlank()) return label;
-            if (!selector.isBlank()) return selector;
+            if (locatorKnown()) return locator.display();
             return scope.isBlank() ? "element" : scope;
         }
         private TargetDescriptor target() {
-            return new TargetDescriptor(selector.isBlank() ? null : selector,
+            return new TargetDescriptor(locatorKnown() ? locator.display() : null,
                     label.isBlank() ? null : label, null, null,
                     scope.isBlank() ? java.util.Map.of() : java.util.Map.of("scope", scope));
         }
@@ -243,24 +307,49 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
                               TargetDescriptor target,
                               List<ElementTarget> targets,
                               ElementMetadata resultMetadata,
-                              boolean observed) {
+                              boolean observed,
+                              LocatorObservationMetadata.Locator locator,
+                              String usageIntent,
+                              LocatorObservationMetadata.Context locatorContext,
+                              long startedNanos,
+                              ElementMetadata argumentElement) {
         private boolean requiresOverlaySuppression() {
             return observed && "selenium.click".equals(action) && !targets.isEmpty();
         }
 
-        private static Invocation create(Decorated<?> decorated, Method method, Object[] args, boolean active) {
+        private static Invocation create(Decorated<?> decorated, Method method, Object[] args, JsOverlayDebug lens,
+                                         LocatorObservationMetadata.Context driverContext, long startedNanos) {
             String name = method.getName();
             Object original = decorated.getOriginal();
             ElementMetadata element = decorated instanceof NativeSeleniumObserver.ObservedElement observed
                     ? observed.metadata : null;
             Kind kind = classify(original, method);
-            ElementMetadata result = resultMetadata(original, name, args, element);
+            By locatorBy = findBy(original, name, args);
+            LocatorObservationMetadata.Locator locator = locatorBy == null ? null
+                    : LocatorObservationMetadata.locator(locatorBy, "").redacted(lens::redactObservationLabel);
+            ElementMetadata result = resultMetadata(original, name, element, driverContext, locator);
             List<ElementTarget> targets = targets(original, name, args, element, decorated.getDecorator());
             TargetDescriptor target = element == null ? TargetDescriptor.none() : element.target();
             if (element == null && !targets.isEmpty()) target = targets.get(0).metadata().target();
             String action = action(original, name);
             String description = description(action, element);
-            return new Invocation(kind, action, description, target, targets, result, active && kind != Kind.NONE);
+            String usageIntent = "findElements".equals(name) ? "FIND_MANY"
+                    : "findElement".equals(name) ? "FIND_ONE" : "UNKNOWN";
+            LocatorObservationMetadata.Context locatorContext = searchContext(original, element, driverContext);
+            return new Invocation(kind, action, description, target, targets, result,
+                    lens.observationActive() && kind != Kind.NONE, locator, usageIntent, locatorContext, startedNanos,
+                    argumentElement(args, decorated.getDecorator()));
+        }
+
+        private Map<String, String> locatorObservation(Object result, Throwable failure) {
+            if (locator == null) return Map.of();
+            String outcome = failure == null ? "RESOLVED"
+                    : failure instanceof NoSuchElementException ? "NOT_FOUND" : "ERROR";
+            Integer count = "FIND_MANY".equals(usageIntent) && result instanceof List<?> values
+                    ? values.size() : null;
+            return LocatorObservationMetadata.observation(
+                    locator, locatorContext, usageIntent,
+                    outcome, count, Math.max(0L, System.nanoTime() - startedNanos));
         }
 
         private static Kind classify(Object original, Method method) {
@@ -296,18 +385,44 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
             return metadata == null ? action : action + ": " + metadata.displayLabel();
         }
 
-        private static ElementMetadata resultMetadata(Object original, String name, Object[] args,
-                                                      ElementMetadata parent) {
+        private static ElementMetadata resultMetadata(Object original, String name, ElementMetadata parent,
+                                                      LocatorObservationMetadata.Context driverContext,
+                                                      LocatorObservationMetadata.Locator locator) {
             if ((original instanceof SearchContext) && ("findElement".equals(name) || "findElements".equals(name))
-                    && args != null && args.length > 0 && args[0] instanceof By by) {
-                String selector = by.toString();
+                    && locator != null) {
                 String scope = parent == null ? "driver" : parent.displayLabel();
-                return new ElementMetadata(selector, "", scope);
+                LocatorObservationMetadata.Context context = searchContext(original, parent, driverContext);
+                return new ElementMetadata(locator, "", scope, context);
             }
             if (original instanceof WebDriver.TargetLocator && "activeElement".equals(name)) {
-                return new ElementMetadata("", "", "active element");
+                return new ElementMetadata(LocatorObservationMetadata.Locator.unknown(""), "", "active element",
+                        driverContext);
             }
             return ElementMetadata.unknown();
+        }
+
+        private static By findBy(Object original, String name, Object[] args) {
+            return original instanceof SearchContext
+                    && ("findElement".equals(name) || "findElements".equals(name))
+                    && args != null && args.length > 0 && args[0] instanceof By by ? by : null;
+        }
+
+        private static LocatorObservationMetadata.Context searchContext(Object original, ElementMetadata parent,
+                                                                         LocatorObservationMetadata.Context driver) {
+            if (!(original instanceof WebElement) || parent == null) return driver;
+            return parent.context().append(new LocatorObservationMetadata.Segment("ELEMENT",
+                    parent.locatorKnown() ? "KNOWN" : "PARTIAL",
+                    parent.locatorKnown() ? parent.locator() : null, parent.label(), null, ""));
+        }
+
+        private static ElementMetadata argumentElement(Object[] args, WebDriverDecorator<?> decorator) {
+            if (args == null || args.length == 0 || !(args[0] instanceof WebDriverDecorator.HasTarget<?> holder)) {
+                return null;
+            }
+            Decorated<?> target = holder.getTarget();
+            if (target instanceof NativeSeleniumObserver.ObservedElement observed
+                    && target.getDecorator() == decorator) return observed.metadata;
+            return null;
         }
 
         private static List<ElementTarget> targets(Object original, String name, Object[] args,
@@ -331,5 +446,89 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
             return List.copyOf(found);
         }
 
+    }
+
+    private final class ContextState {
+        private LocatorObservationMetadata.Context context = LocatorObservationMetadata.root();
+        private final List<LocatorObservationMetadata.Segment> frames = new ArrayList<>();
+
+        synchronized void beginSession() {
+            context = LocatorObservationMetadata.unknown();
+            frames.clear();
+        }
+
+        synchronized LocatorObservationMetadata.Context snapshot() { return context; }
+
+        synchronized void afterSuccess(Object original, String name, Object[] args, Invocation invocation) {
+            if ((original instanceof WebDriver && "get".equals(name))
+                    || original instanceof WebDriver.Navigation) {
+                frames.clear();
+                context = rootForCurrentWindow(context);
+                return;
+            }
+            if (!(original instanceof WebDriver.TargetLocator)) return;
+            if ("defaultContent".equals(name)) {
+                frames.clear();
+                context = rootForCurrentWindow(context);
+                return;
+            }
+            if ("parentFrame".equals(name)) {
+                if (!frames.isEmpty()) frames.remove(frames.size() - 1);
+                else context = partial(context);
+                rebuild();
+                return;
+            }
+            if ("window".equals(name)) {
+                frames.clear();
+                String handle = args != null && args.length > 0 && args[0] != null
+                        ? lens.redactObservationLabel(String.valueOf(args[0])) : "";
+                context = LocatorObservationMetadata.root().append(new LocatorObservationMetadata.Segment(
+                        "WINDOW", handle.isBlank() ? "PARTIAL" : "KNOWN", null, "",
+                        handle.isBlank() ? null : "SESSION_LOCAL_HANDLE", handle));
+                return;
+            }
+            if ("newWindow".equals(name)) {
+                frames.clear();
+                context = LocatorObservationMetadata.root().append(new LocatorObservationMetadata.Segment(
+                        "WINDOW", "PARTIAL", null, "", null, ""));
+                return;
+            }
+            if (!"frame".equals(name)) return;
+            LocatorObservationMetadata.Segment frame = frameSegment(args, invocation);
+            frames.add(frame);
+            context = context.append(frame);
+        }
+
+        private LocatorObservationMetadata.Segment frameSegment(Object[] args, Invocation invocation) {
+            Object value = args == null || args.length == 0 ? null : args[0];
+            if (value instanceof Integer index) return new LocatorObservationMetadata.Segment(
+                    "FRAME", "KNOWN", null, "", "INDEX", String.valueOf(index));
+            if (value instanceof String name) return new LocatorObservationMetadata.Segment(
+                    "FRAME", "KNOWN", null, "", "NAME_OR_ID", lens.redactObservationLabel(name));
+            ElementMetadata element = invocation == null ? null : invocation.argumentElement();
+            return new LocatorObservationMetadata.Segment("FRAME",
+                    element != null && element.locatorKnown() ? "KNOWN" : "PARTIAL",
+                    element != null && element.locatorKnown() ? element.locator() : null,
+                    element == null ? "" : element.label(), null, "");
+        }
+
+        private void rebuild() {
+            LocatorObservationMetadata.Context base = rootForCurrentWindow(context);
+            context = base;
+            for (LocatorObservationMetadata.Segment frame : frames) context = context.append(frame);
+        }
+
+        private static LocatorObservationMetadata.Context rootForCurrentWindow(LocatorObservationMetadata.Context current) {
+            List<LocatorObservationMetadata.Segment> segments = current.segments();
+            LocatorObservationMetadata.Context base = LocatorObservationMetadata.root();
+            for (LocatorObservationMetadata.Segment segment : segments) {
+                if ("WINDOW".equals(segment.kind())) return base.append(segment);
+            }
+            return base;
+        }
+
+        private static LocatorObservationMetadata.Context partial(LocatorObservationMetadata.Context current) {
+            return new LocatorObservationMetadata.Context("PARTIAL", current.segments());
+        }
     }
 }

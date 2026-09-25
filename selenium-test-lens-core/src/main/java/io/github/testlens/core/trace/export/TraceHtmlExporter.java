@@ -34,6 +34,8 @@ import java.util.TreeMap;
  * and HTTP. Core content and native attribute details remain available when JavaScript is disabled.
  */
 public final class TraceHtmlExporter {
+    private static final String SELECTOR_PREFIX = "metadata.testlens.selector.";
+    private static final String DIRECT_SELECTOR_PREFIX = "testlens.selector.";
     public static final Path DEFAULT_OUTPUT_PATH = Path.of("target", "ui-test-lens-report", "index.html");
 
     private enum EventCategory {
@@ -576,7 +578,10 @@ public final class TraceHtmlExporter {
         for (TraceEvent event : events) {
             String eventAnchor = eventScope + "event-" + event.id();
             String detailsId = eventAnchor + "-attributes";
-            boolean hasAttributes = showAttributes && event.attributes() != null && !event.attributes().isEmpty();
+            Map<String, String> visibleAttributes = visibleAttributes(event.attributes());
+            boolean hasLocator = event.attributes().keySet().stream()
+                    .anyMatch(key -> key.startsWith(SELECTOR_PREFIX) || key.startsWith(DIRECT_SELECTOR_PREFIX));
+            boolean hasAttributes = showAttributes && (!visibleAttributes.isEmpty() || hasLocator);
             out.append("<tr class=\"timeline-event-row\" id=\"").append(escape(eventAnchor))
                     .append("\" data-event-id=\"").append(escape(event.id())).append("\"><td class=\"mono col-time\">")
                     .append(escape(shortInstant(event.timestamp()))).append("</td>")
@@ -604,7 +609,8 @@ public final class TraceHtmlExporter {
                         .append("\"><td colspan=\"10\"><div class=\"event-details-panel\">")
                         .append("<details class=\"details event-attributes\"><summary>Attributes for ")
                         .append(escape(event.name())).append("</summary>");
-                appendMap(out, event.attributes(), true);
+                if (hasLocator) appendLocatorObservation(out, event.attributes());
+                if (!visibleAttributes.isEmpty()) appendMap(out, visibleAttributes, true);
                 out.append("</details></div></td></tr>");
             }
         }
@@ -613,6 +619,32 @@ public final class TraceHtmlExporter {
             out.append("<tr><td colspan=\"").append(colspan).append("\" class=\"muted\">No timeline events recorded.</td></tr>");
         }
         out.append("</tbody></table></div>");
+    }
+
+    private Map<String, String> visibleAttributes(Map<String, String> attributes) {
+        Map<String, String> visible = new java.util.LinkedHashMap<>();
+        if (attributes != null) attributes.forEach((key, value) -> {
+            if (key == null || (!key.startsWith(SELECTOR_PREFIX) && !key.startsWith(DIRECT_SELECTOR_PREFIX))) {
+                visible.put(key, value);
+            }
+        });
+        return visible;
+    }
+
+    private void appendLocatorObservation(StringBuilder out, Map<String, String> attributes) {
+        String strategy = attributes.getOrDefault(SELECTOR_PREFIX + "locator.strategy", "unknown");
+        String value = attributes.get(SELECTOR_PREFIX + "locator.value");
+        String display = attributes.getOrDefault(SELECTOR_PREFIX + "locator.display", "locator");
+        String outcome = attributes.getOrDefault(SELECTOR_PREFIX + "outcome", "UNKNOWN");
+        String context = attributes.getOrDefault(SELECTOR_PREFIX + "context.knowledge", "UNKNOWN");
+        String count = attributes.get(SELECTOR_PREFIX + "matchCount.value");
+        out.append("<div class=\"locator-observation\"><strong>Locator observation</strong><p class=\"mono\">")
+                .append(escape(strategy)).append(": ")
+                .append(escape(value == null || value.isBlank() ? display : value))
+                .append("</p><p class=\"muted\">Outcome: ").append(escape(outcome))
+                .append("; context: ").append(escape(context));
+        if (count != null && !count.isBlank()) out.append("; matches: ").append(escape(count));
+        out.append("</p></div>");
     }
 
     private void appendSteps(StringBuilder out, List<TraceEvent> events, TraceHtmlExportOptions options) {
