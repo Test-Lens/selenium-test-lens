@@ -81,6 +81,73 @@ class RuntimeWorkloadPerformanceIT {
         writeMetadata(output.resolve("workload-metadata.json"), environment);
     }
 
+    @Test
+    void recordsRawAndObservedNativeSeleniumWorkloads() throws Exception {
+        Assumptions.assumeTrue(Boolean.getBoolean("perf.audit"), "opt-in performance audit");
+        Path output = Path.of(System.getProperty("perf.outputDir", "target/performance-audit"))
+                .toAbsolutePath().normalize();
+        Files.createDirectories(output);
+        HttpServer server = server();
+        BrowserTestHarness.ExecutorCommandMetrics wire = new BrowserTestHarness.ExecutorCommandMetrics();
+        WebDriver driver = BrowserTestHarness.createDriver(wire);
+        List<NativeObservationResult> results = new ArrayList<>();
+        try {
+            String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/";
+            for (int repetition = -WARMUPS; repetition < REPETITIONS; repetition++) {
+                List<String> profiles = Math.floorMod(repetition + WARMUPS, 2) == 0
+                        ? List.of("RAW", "OBSERVED_STANDARD", "OBSERVED_DEBUG")
+                        : List.of("OBSERVED_DEBUG", "OBSERVED_STANDARD", "RAW");
+                for (String profile : profiles) {
+                    NativeObservationResult result = runNativeObservationWorkload(driver, wire, url,
+                            profile, repetition);
+                    if (repetition >= 0) results.add(result);
+                }
+            }
+        } finally {
+            try { driver.quit(); } finally { server.stop(0); }
+        }
+        writeNativeObservation(output.resolve("native-observation-operations.csv"), results);
+    }
+
+    private static NativeObservationResult runNativeObservationWorkload(
+            WebDriver raw,
+            BrowserTestHarness.ExecutorCommandMetrics wire,
+            String url,
+            String profile,
+            int repetition) {
+        raw.get(url);
+        wire.reset();
+        long totalStarted = System.nanoTime();
+        TestLens lens = null;
+        UiTestLensSession session = null;
+        WebDriver used = raw;
+        if (!"RAW".equals(profile)) {
+            HudPreset preset = profile.endsWith("DEBUG") ? HudPreset.DEBUG : HudPreset.STANDARD;
+            lens = TestLens.attach(raw, options(preset,
+                    "native-" + profile.toLowerCase(Locale.ROOT) + "-" + repetition));
+            session = lens.startSession("native observation " + profile + " " + repetition);
+            used = lens.observeDriver();
+        }
+        BrowserTestHarness.ExecutorCommandMetrics.HudTransportMeasurement hudBefore = wire.hudTransportSnapshot();
+        int commandsBefore = wire.total();
+        int scriptsBefore = wire.count("executeScript");
+        long actionStarted = System.nanoTime();
+        used.findElement(By.cssSelector("[data-testid='available']")).click();
+        used.findElement(By.cssSelector("[data-testid='name']")).clear();
+        used.findElement(By.cssSelector("[data-testid='name']")).sendKeys("Test Lens");
+        long actionNanos = System.nanoTime() - actionStarted;
+        long clicks = number((JavascriptExecutor) raw, "return window.availableClicks");
+        int events = session == null ? 0 : session.events().size();
+        if (lens != null) lens.finishPassed();
+        long totalNanos = System.nanoTime() - totalStarted;
+        BrowserTestHarness.ExecutorCommandMetrics.HudTransportMeasurement hud =
+                wire.hudTransportSnapshot().minus(hudBefore);
+        assertEquals(1L, clicks, "native observation must not duplicate the business click");
+        return new NativeObservationResult(profile, repetition, actionNanos, totalNanos,
+                wire.total() - commandsBefore, wire.count("executeScript") - scriptsBefore,
+                events, hud.batches(), hud.events(), hud.payloadBytes(), clicks);
+    }
+
     private static RunResult runSuccessfulWorkload(WebDriver driver,
                                                    BrowserTestHarness.ExecutorCommandMetrics wire,
                                                    String url,
@@ -347,6 +414,20 @@ class RuntimeWorkloadPerformanceIT {
         Files.writeString(path, json, StandardCharsets.UTF_8);
     }
 
+    private static void writeNativeObservation(Path path, List<NativeObservationResult> values) throws IOException {
+        List<String> lines = new ArrayList<>();
+        lines.add("sourceSha,browser,headed,profile,repetition,actionNanos,totalWithFinishNanos,executorCommands,executeScript,lensEvents,hudBatches,hudBatchEvents,hudPayloadBytes,businessClicks");
+        for (NativeObservationResult value : values) lines.add(String.join(",",
+                System.getProperty("perf.sourceSha", "unknown"), BrowserTestHarness.browserName(),
+                System.getProperty("headed", "false"), value.profile(), String.valueOf(value.repetition()),
+                String.valueOf(value.actionNanos()), String.valueOf(value.totalNanos()),
+                String.valueOf(value.executorCommands()), String.valueOf(value.executeScript()),
+                String.valueOf(value.lensEvents()), String.valueOf(value.hudBatches()),
+                String.valueOf(value.hudBatchEvents()), String.valueOf(value.hudPayloadBytes()),
+                String.valueOf(value.businessClicks())));
+        Files.write(path, lines, StandardCharsets.UTF_8);
+    }
+
     private record HudMutations(long inserts, long updates) { }
     private record CommandResult(String preset, int repetition, String origin, String command,
                                  int count, long elapsedNanos) { }
@@ -356,6 +437,10 @@ class RuntimeWorkloadPerformanceIT {
                                    String outcome, long totalBusinessClicks,
                                    int traceJsonBytes) { }
     private record RunResult(List<OperationResult> operations, LifecycleResult lifecycle) { }
+    private record NativeObservationResult(String profile, int repetition, long actionNanos, long totalNanos,
+                                           int executorCommands, int executeScript, int lensEvents,
+                                           int hudBatches, int hudBatchEvents, long hudPayloadBytes,
+                                           long businessClicks) { }
     private record LifecycleResult(String preset, int repetition, String outcome, long createDriverNanos,
                                    long attachNanos, long startSessionNanos, long finishNanos, long quitNanos,
                                    int lensEvents, int lensSessions, int reports, int executorCommands,

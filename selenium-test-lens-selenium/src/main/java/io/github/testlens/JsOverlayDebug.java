@@ -21,6 +21,7 @@ import io.github.testlens.core.logging.UiTestLensLogSink;
 import io.github.testlens.core.logging.UiTestLensLogger;
 import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.core.logging.UiTestLensStatus;
+import io.github.testlens.core.logging.TargetDescriptor;
 import io.github.testlens.core.trace.TraceArtifact;
 import io.github.testlens.core.trace.TraceLogSink;
 import io.github.testlens.core.trace.UiTestLensSession;
@@ -514,6 +515,20 @@ public final class JsOverlayDebug {
                                UiTestLensStatus status,
                                UiTestLensLogLevel level,
                                Throwable failure) {
+        emitNativeOperation(action, description, status, level, TargetDescriptor.none(), failure);
+    }
+
+    boolean observationActive() {
+        UiTestLensSession current = session;
+        return current != null && current.metadata().status() == io.github.testlens.core.trace.TraceStatus.STARTED;
+    }
+
+    void emitNativeOperation(String action,
+                             String description,
+                             UiTestLensStatus status,
+                             UiTestLensLogLevel level,
+                             TargetDescriptor target,
+                             Throwable failure) {
         try {
             ConsumerOperationState operation = consumerOperation.get();
             if (status == UiTestLensStatus.STARTED || operation == null) {
@@ -527,8 +542,11 @@ public final class JsOverlayDebug {
                     .status(status)
                     .message(description == null ? action : description)
                     .action(action)
+                    .target(target == null ? TargetDescriptor.none() : target)
                     .metadata("description", description == null ? "" : description)
                     .metadata("operationId", operation.id())
+                    .metadata("mechanism", action != null && action.contains("execute") ? "JavaScript" : "Selenium")
+                    .metadata("testlens.internal.captureSourceLocation", "true")
                     .throwable(failure);
             if (status == UiTestLensStatus.PASSED || status == UiTestLensStatus.FAILED) {
                 builder.metadata("durationMs", String.valueOf(Math.max(0L,
@@ -538,6 +556,24 @@ public final class JsOverlayDebug {
             if (status == UiTestLensStatus.PASSED || status == UiTestLensStatus.FAILED) consumerOperation.remove();
         } catch (RuntimeException ignored) {
             // Trace/HUD presentation is observability and cannot alter the browser operation.
+        }
+    }
+
+    void emitNativeTechnical(String action, String description, TargetDescriptor target, Throwable failure) {
+        if (!observationActive()) return;
+        try {
+            UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder()
+                    .level(UiTestLensLogLevel.DEBUG)
+                    .eventType(UiTestLensEventType.LOCATOR_RESOLVE_PASSED)
+                    .status(UiTestLensStatus.INFO)
+                    .message(description == null ? action : description)
+                    .action(action)
+                    .target(target == null ? TargetDescriptor.none() : target)
+                    .metadata("observerOutcome", failure == null ? "returned" : "threw")
+                    .metadata("exceptionType", failure == null ? "" : failure.getClass().getName());
+            logger.emit(builder.build());
+        } catch (RuntimeException ignored) {
+            // Observation diagnostics are best effort and never change Selenium behavior.
         }
     }
 
@@ -1177,6 +1213,15 @@ public final class JsOverlayDebug {
     /** Internal operation feedback; failures are deliberately swallowed by the decorator. @since 0.3.1 */
     public void automaticHighlight(WebElement element, String label, HighlightState state) {
         highlightActions.highlight(element, label, state, true);
+    }
+
+    boolean automaticFeedbackEnabled() {
+        return config.isEnabled() && config.getHighlightOptions().enabled()
+                && config.getHighlightOptions().automaticFeedback();
+    }
+
+    String redactObservationLabel(String value) {
+        return redact(value == null ? "" : value);
     }
 
     /** Draws a border around the direct parent of the given element. */

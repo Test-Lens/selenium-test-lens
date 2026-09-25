@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
 # Types: 277
-# Public callable methods/constructors: 2151
+# Public callable methods/constructors: 2154
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -1217,6 +1217,9 @@ TYPE io.github.testlens.TestLens
   public static io.github.testlens.TestLens attach(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig)
   public static io.github.testlens.TestLens attach(org.openqa.selenium.WebDriver, io.github.testlens.TestLensOptions)
   public org.openqa.selenium.WebDriver driver()
+  public org.openqa.selenium.WebDriver observeDriver()
+  public org.openqa.selenium.WebElement observe(org.openqa.selenium.WebElement)
+  public org.openqa.selenium.WebElement observe(org.openqa.selenium.WebElement, java.lang.String)
   public io.github.testlens.core.trace.UiTestLensSession startSession(java.lang.String)
   public java.util.Optional<io.github.testlens.core.trace.UiTestLensSession> session()
   public io.github.testlens.ScenarioStateManager scenarioState()

@@ -57,6 +57,23 @@ Every extra WebDriver command is especially expensive on a remote/Grid topology.
 
 `workload-operations.csv` records consumer-visible duration, trace-event delta, browser subtree mutations, logical commands accepted by `RemoteWebDriver.execute(CommandPayload)`, `executeScript` commands, HUD batch/event/payload-byte counts, outcome, business click count, and cumulative trace JSON size for every public operation. `workload-commands.csv` attributes command count and inclusive command duration to the measured public-operation interval without retaining arguments. These executor counts are not a claim about physical HTTP attempts. `workload-lifecycle.csv` separates direct attach, start-session, finish/export/evidence, new-session, and quit observations. `testng-lifecycle.csv` records the real adapter's suite wall time, driver creation time, action time, residual adapter setup/finalization/quit time, and create/quit/session/report counts.
 
+The same `RuntimeWorkloadPerformanceIT` also writes `native-observation-operations.csv` for an equivalent three-command native workload (`find+click`, `find+clear`, `find+sendKeys`) in `RAW`, `OBSERVED_STANDARD`, and `OBSERVED_DEBUG` profiles. It records consumer-visible action time, total time including Lens finalization, logical executor commands, `executeScript`, semantic events, HUD batches/events/bytes, and the business click count. RAW is a lower bound without diagnostics; observed rows retain native Selenium dispatch and do not use Smart Click. This opt-in comparison measures observation overhead without creating a second benchmark framework or treating decorated calls as physical HTTP retry counts.
+
+### Native observation local sample
+
+Source `48ada87+native-observation-working-tree`, reactor test classes, headless Chrome 152.0.7977.83 / ChromeDriver 152.0.7977.82 and Firefox 156.0.1 / geckodriver 0.37.1 on Windows. Two warmups preceded five interleaved measured repetitions. `Action median` covers the three equivalent native operations; `total` also includes attach/start (for observed profiles) and synchronous Lens finalization. Command counts cover the measured profile through finalization and the one business-counter read. They are logical calls accepted by Selenium's command executor, not guaranteed physical HTTP attempts.
+
+| Browser | Profile | Action median (min-max) | Total median | Executor commands | `executeScript` | Lens events | HUD batches/events | Mean HUD bytes | Business clicks |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Chrome | RAW | 126.419 ms (117.641-137.784) | 133.212 ms | 7 | 1 | 0 | 0 / 0 | 0 | 1 |
+| Chrome | OBSERVED_STANDARD | 408.844 ms (337.967-457.022) | 495.508 ms | 40 | 28 | 16 | 6 / 6 | 3,646 | 1 |
+| Chrome | OBSERVED_DEBUG | 488.969 ms (468.159-585.712) | 571.033 ms | 52 | 34 | 16 | 12 / 15 | 8,333 | 1 |
+| Firefox | RAW | 94.374 ms (87.793-108.467) | 100.185 ms | 7 | 1 | 0 | 0 / 0 | 0 | 1 |
+| Firefox | OBSERVED_STANDARD | 347.071 ms (297.809-374.742) | 413.127 ms | 40 | 28 | 16 | 6 / 6 | 3,646 | 1 |
+| Firefox | OBSERVED_DEBUG | 421.941 ms (408.747-499.329) | 497.608 ms | 52 | 34 | 16 | 12 / 15 | 8,334 | 1 |
+
+The raw profile is not diagnostically equivalent; it is the native lower bound. Observation keeps exactly one business click in every repetition. DEBUG retains the same 16 trace events as STANDARD but presents additional technical locator/read diagnostics, explaining its extra six HUD batches and six JavaScript commands in this workload. The remaining observed overhead includes synchronous semantic HUD delivery and automatic ACTION/SUCCESS highlights; highlight presentation timers do not block the operation. No Smart Click, actionability wait, retry, or extra element lookup is part of these observed native actions.
+
 The TestNG residual is intentionally labelled as a combined value. The public adapter does not expose internal attach/start/finish callbacks, and the audit does not add product API merely to manufacture precision. Direct lifecycle rows provide the separately measured attach/start/finish values. Likewise, HUD transport plus browser runtime remains one WebDriver command duration where Selenium does not expose a safe split.
 
 The successful public workload and the controlled failure/evidence workload are separate rows. Smart Click recovery asserts one business click and keeps the covering element in place. Presentation timing is asynchronous and is not added to action latency.

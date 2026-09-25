@@ -105,6 +105,43 @@ Common form operations remain on the lazy locator abstraction: use `check()`/`un
 
 The main facade also exposes lazy semantic factories: `getByLabel`, `getByPlaceholder`, `getByAltText`, and named `getByRole`. Named roles and labels use the accessible name computed by WebDriver, so native labels, `aria-labelledby`, multiple references, and descendant image alt text follow the browser implementation rather than a partial `aria-label || text` approximation.
 
+## Observe existing Selenium Page Objects (0.4.0)
+
+The unreleased 0.4.0 line can observe ordinary Selenium calls without changing a Page Object to `UiLocator`. Attach Lens to the driver your project already owns, then pass the explicit observed facade to Page Objects **before** constructing them:
+
+```java
+WebDriver rawDriver = createDriver();
+TestLens lens = TestLens.attach(rawDriver, options);
+WebDriver driver = lens.observeDriver();
+
+LoginPage page = new LoginPage(driver);
+lens.startSession("native selenium");
+page.login();
+```
+
+Calls such as `driver.findElement(by).click()`, `element.clear()`, and `element.sendKeys(...)` keep native Selenium semantics. Observation adds the existing semantic HUD, trace/report correlation, source location, redaction, duration, and automatic highlight lifecycle. It does not add Smart Click, waits, actionability checks, retries, stale recovery, another lookup, or JavaScript fallback. A native command is delegated once and its original Selenium exception is returned unchanged. Use `UiLocator` when Test Lens interaction and recovery semantics are wanted.
+
+`lens.driver()` still returns the attached/raw driver. Calling `observeDriver()` does not instrument old references: the returned facade must be the reference used by the Page Object. Repeated calls return the stable facade for that Lens. Provider code that intentionally needs a concrete driver class can continue to use `lens.driver()`; the observed facade preserves Selenium interfaces such as `JavascriptExecutor`, `TakesScreenshot`, `Interactive`, and `HasCapabilities`, but is not promised to be a concrete `ChromeDriver` or `RemoteWebDriver`.
+
+An existing element can instead be observed selectively, without a lookup or any other browser command at wrapping time:
+
+```java
+lens.observe(rawDriver.findElement(By.id("save")), "Save").click();
+```
+
+Labels describe that particular observed view and are redacted before diagnostic presentation. `sendKeys` values, JavaScript source/arguments/results, and arbitrary returned application data are not collected.
+
+To observe an explicit JavaScript command, execute it through the observed driver. Direct observed-element arguments are visual targets; nested object graphs are deliberately not searched:
+
+```java
+WebElement button = lens.observe(rawDriver.findElement(By.id("save")), "Save");
+((JavascriptExecutor) driver).executeScript("arguments[0].click();", button);
+```
+
+Using the raw executor with an observed element remains valid Selenium serialization, but the raw command itself is not observed and Test Lens does not invent a PASSED/FAILED lifecycle for it. `executeAsyncScript` completes only when Selenium returns or throws. Script text, arguments, and result values are not recorded.
+
+`WebDriverWait` remains a Selenium wait: repeated finds and state reads are technical DEBUG diagnostics rather than Test Lens retries or functional failures. `PageFactory`, child searches, lists, active elements, frame/window navigation, Actions, and open Shadow DOM descendants retain observation where supported by Selenium 4.39. Locator provenance is captured from the real `findElement(s)(By)` call without a second find; a selectively wrapped raw element correctly has an unknown locator.
+
 Collections can be composed without leaving `UiLocator`: scope a descendant with `locator(...)`, keep parents with `filterHas(...)`, filter visible text or DOM attributes, then wait for a current count. The order of filters, positional selection, and descendant lookup is preserved.
 
 Collection and state assertions use the same fresh-DOM polling model:

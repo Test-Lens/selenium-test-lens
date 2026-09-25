@@ -87,6 +87,20 @@ class TestLensTestNgPerClassLifecycleTest {
     }
 
     @Test
+    void perClassNativeObservationIsBoundToEachFreshLensInvocation() {
+        run(NativeObservationFixture.class);
+
+        assertEquals(1, Harness.created.get());
+        assertEquals(1, Harness.drivers.get(0).quitCalls.get());
+        assertEquals(2, Harness.sessions.size());
+        assertEquals(2, Harness.observedDrivers.size());
+        org.junit.jupiter.api.Assertions.assertNotSame(
+                Harness.observedDrivers.get(0), Harness.observedDrivers.get(1));
+        assertTrue(Harness.sessions.stream().allMatch(session -> session.events().stream()
+                .filter(event -> "selenium.get".equals(event.attributes().get("action"))).count() == 2));
+    }
+
+    @Test
     void ownersDoNotLeakAcrossXmlTestsOrConsecutiveSuitesInOneJvm() {
         XmlSuite suite = new XmlSuite();
         suite.setName("two-xml-tests");
@@ -440,6 +454,31 @@ class TestLensTestNgPerClassLifecycleTest {
         @org.testng.annotations.Test public void second() { Harness.observeBody("default-2"); }
     }
 
+    @Listeners(TestLensTestNgListener.class)
+    @TestLensTestNg(factory = FactoryImpl.class, driverScope = DriverScope.PER_CLASS)
+    public static class NativeObservationFixture {
+        private static WebDriver firstInvocation;
+
+        @org.testng.annotations.Test
+        public void first() {
+            TestLensTestNgContext context = TestLensTestNgContext.current();
+            firstInvocation = context.lens().observeDriver();
+            Harness.observedDrivers.add(firstInvocation);
+            firstInvocation.get("https://example.test/first");
+            Harness.remember(context.session());
+        }
+
+        @org.testng.annotations.Test(priority = 1)
+        public void second() {
+            TestLensTestNgContext context = TestLensTestNgContext.current();
+            WebDriver current = context.lens().observeDriver();
+            Harness.observedDrivers.add(current);
+            firstInvocation.get("https://example.test/stale-view");
+            current.get("https://example.test/second");
+            Harness.remember(context.session());
+        }
+    }
+
     public static class FactoryImpl implements TestLensTestNgFactory {
         @Override public WebDriver createDriver() {
             TrackingDriver driver = new TrackingDriver();
@@ -477,6 +516,7 @@ class TestLensTestNgPerClassLifecycleTest {
         private static final List<String> bodySessions = new CopyOnWriteArrayList<>();
         private static final List<String> afterSessions = new CopyOnWriteArrayList<>();
         private static final List<WebDriver> bodyDrivers = new CopyOnWriteArrayList<>();
+        private static final List<WebDriver> observedDrivers = new CopyOnWriteArrayList<>();
         private static final List<String> events = new CopyOnWriteArrayList<>();
         private static final List<String> classTeardownEvents = new CopyOnWriteArrayList<>();
         private static final Map<String, WebDriver> instanceDrivers = new java.util.concurrent.ConcurrentHashMap<>();
@@ -524,6 +564,7 @@ class TestLensTestNgPerClassLifecycleTest {
         static void reset() {
             created.set(0); drivers.clear(); sessions.clear(); sessionNames.clear(); beforeSessions.clear();
             bodySessions.clear(); afterSessions.clear(); bodyDrivers.clear(); events.clear();
+            observedDrivers.clear();
             classTeardownEvents.clear(); instanceDrivers.clear(); failures.clear();
             DataAndRetryFixture.FIRST.set(true);
         }

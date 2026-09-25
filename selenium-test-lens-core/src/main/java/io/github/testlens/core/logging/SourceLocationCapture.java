@@ -20,7 +20,8 @@ final class SourceLocationCapture {
             "org.codehaus.groovy.runtime.", "net.bytebuddy.", "org.mockito.", "kotlin.");
     private static final Set<String> INTERNAL_ROOT_CLASSES = Set.of(
             "io.github.testlens.TestLens", "io.github.testlens.JsOverlayDebug",
-            "io.github.testlens.OverlayConfig", "io.github.testlens.TestLensOptions");
+            "io.github.testlens.NativeSeleniumObserver", "io.github.testlens.OverlayConfig",
+            "io.github.testlens.TestLensOptions");
     private static final java.util.concurrent.atomic.AtomicInteger CAPTURE_INVOCATIONS =
             new java.util.concurrent.atomic.AtomicInteger();
 

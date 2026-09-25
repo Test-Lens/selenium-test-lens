@@ -43,6 +43,7 @@ public final class TestLens {
     private final Map<UiTestLensSession, ScenarioScope> scenarioScopes = new IdentityHashMap<>();
     private final FinalizationObserver finalizationObserver;
     private final SuiteStateManager suiteState;
+    private volatile NativeSeleniumObserver nativeObserver;
 
     private TestLens(WebDriver driver, TestLensOptions options) {
         this(driver, options, ignored -> { }, null);
@@ -68,6 +69,37 @@ public final class TestLens {
     public static TestLens attach(WebDriver driver, TestLensOptions options) { return new TestLens(driver, options); }
 
     public WebDriver driver() { return delegate.getDriver(); }
+
+    /**
+     * Returns a stable observing facade over the attached driver. Native Selenium commands keep their original
+     * execution semantics; Test Lens adds only diagnostics and visual feedback while a Lens session is active.
+     *
+     * @since 0.4.0
+     */
+    public WebDriver observeDriver() { return nativeObserver().observeDriver(); }
+
+    /**
+     * Returns a lazy observing view of an existing element without issuing a Selenium command.
+     *
+     * @since 0.4.0
+     */
+    public WebElement observe(WebElement element) { return nativeObserver().observe(element, ""); }
+
+    /**
+     * Returns a lazy observing view with a per-view diagnostic label.
+     *
+     * @since 0.4.0
+     */
+    public WebElement observe(WebElement element, String label) { return nativeObserver().observe(element, label); }
+
+    private NativeSeleniumObserver nativeObserver() {
+        NativeSeleniumObserver current = nativeObserver;
+        if (current != null) return current;
+        synchronized (this) {
+            if (nativeObserver == null) nativeObserver = new NativeSeleniumObserver(driver(), delegate);
+            return nativeObserver;
+        }
+    }
     public UiTestLensSession startSession(String name) {
         closeTerminalReplacedScenario();
         UiTestLensSession session = delegate.startSession(name, options.retryOutcomePolicy(), options.allowedRetries(),

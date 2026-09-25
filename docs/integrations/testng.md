@@ -171,6 +171,18 @@ Disabled tests, configuration methods, dependency-skipped methods, and tests blo
 
 In `PER_METHOD`, state is stored on the physical `ITestResult`; parallel methods and parallel DataProviders cannot see one another's resources. Every RetryAnalyzer attempt gets its own factory, driver, Lens, session ID, scenario scope, report directory, and status. In `PER_CLASS`, the driver owner is separate from the callback-local invocation binding: retries and sequential DataProvider rows reuse the healthy driver but never reuse terminal Lens state. One `SuiteStateManager` remains stored on the owning `ISuite` and is cleared at suite end. See [Managed Test State & Resources](../features/managed-test-state.md).
 
+Native Selenium observation is opt-in per Lens invocation. In `PER_CLASS`, do not cache an observed facade created by invocation A and reuse it in invocation B: it remains owned by A and becomes diagnostic-only after A is finalized. Bind Page Objects to the current invocation in `@BeforeMethod` while preserving the shared raw browser:
+
+```java
+@BeforeMethod
+public void bindPage() {
+    TestLens lens = TestLensTestNgContext.current().lens();
+    page = new AccountPage(lens.observeDriver());
+}
+```
+
+The adapter still owns the one class-scoped driver and creates a fresh Lens/session/report for every DataProvider row and retry. Native observation does not change `PER_METHOD` defaults or TestNG lifecycle/quit ownership.
+
 The default name contains the class, method, public TestNG invocation counter, and an opaque per-attempt token. It deliberately excludes DataProvider values. A custom `sessionName(ITestResult)` may return a different name, but should not include credentials or other parameter secrets.
 
 ## Recovery-retry policy
