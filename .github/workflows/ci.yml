@@ -77,7 +77,7 @@ jobs:
 
       - name: Check public API since tags
         shell: pwsh
-        run: ./scripts/check-public-api-since.ps1
+        run: ./scripts/check-public-api-since.ps1 -BaselineTag v0.3.1 -ExpectedSince 0.4.0
 
       - name: Check documented Java signatures
         shell: pwsh
