@@ -30,13 +30,15 @@ try {
         & mvn -Pbrowser-it -pl selenium-test-lens-browser-tests -am verify `
             "-Dtest=NoUnitTestSelected" `
             "-Dsurefire.failIfNoSpecifiedTests=false" `
-            "-Dit.test=RuntimePerformanceAuditIT" `
+            "-Dit.test=RuntimePerformanceAuditIT,RuntimeWorkloadPerformanceIT,RuntimeTestNgLifecyclePerformanceIT" `
             "-Dperf.audit=true" `
             "-Dperf.sourceSha=$sha" `
             "-Dperf.outputDir=$output" `
             "-Dperf.warmups=$Warmups" `
             "-Dperf.repetitions=$Repetitions" `
             "-Dperf.operations=$Operations" `
+            "-Dperf.workloadWarmups=$Warmups" `
+            "-Dperf.workloadRepetitions=$Repetitions" `
             "-Dbrowser=$name" `
             "-Dheaded=$($Headed.IsPresent.ToString().ToLowerInvariant())"
         if ($LASTEXITCODE -ne 0) { throw "Performance audit failed for $name" }

@@ -7,6 +7,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.remote.CommandPayload;
+import org.openqa.selenium.remote.Response;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -42,6 +44,7 @@ final class BrowserTestHarness {
             .toAbsolutePath().normalize()
             .resolve("run-" + ProcessHandle.current().pid() + "-" + UUID.randomUUID().toString().substring(0, 8));
     private static final AtomicInteger SESSION_SEQUENCE = new AtomicInteger();
+    private static final ThreadLocal<WireCommandMetrics> CONSTRUCTING_METRICS = new ThreadLocal<>();
     private static final Object CHROME_STARTUP_LOCK = new Object();
     private static final Set<OwnedChrome> ACTIVE_CHROME = ConcurrentHashMap.newKeySet();
     private static final Set<ProcessIdentity> OBSERVED_OWNED_PROCESSES = ConcurrentHashMap.newKeySet();
@@ -58,6 +61,10 @@ final class BrowserTestHarness {
         return createDriver(PageLoadStrategy.NORMAL);
     }
 
+    static WebDriver createDriver(WireCommandMetrics metrics) {
+        return createDriver(PageLoadStrategy.NORMAL, false, metrics);
+    }
+
     static WebDriver createDriver(PageLoadStrategy pageLoadStrategy) {
         return createDriver(pageLoadStrategy, false);
     }
@@ -67,16 +74,27 @@ final class BrowserTestHarness {
     }
 
     private static WebDriver createDriver(PageLoadStrategy pageLoadStrategy, boolean bidi) {
+        return createDriver(pageLoadStrategy, bidi, null);
+    }
+
+    private static WebDriver createDriver(PageLoadStrategy pageLoadStrategy, boolean bidi,
+                                          WireCommandMetrics metrics) {
         boolean headed = Boolean.parseBoolean(System.getProperty("headed", "false"));
+        CONSTRUCTING_METRICS.set(metrics);
+        try {
         return switch (browserName()) {
-            case "chrome" -> createChrome(pageLoadStrategy, bidi, headed);
-            case "firefox" -> createFirefox(pageLoadStrategy, bidi, headed);
+            case "chrome" -> createChrome(pageLoadStrategy, bidi, headed, metrics);
+            case "firefox" -> createFirefox(pageLoadStrategy, bidi, headed, metrics);
             default -> throw new IllegalArgumentException(
                     "Unsupported -Dbrowser=" + browserName() + "; expected chrome or firefox");
         };
+        } finally {
+            CONSTRUCTING_METRICS.remove();
+        }
     }
 
-    private static WebDriver createChrome(PageLoadStrategy pageLoadStrategy, boolean bidi, boolean headed) {
+    private static WebDriver createChrome(PageLoadStrategy pageLoadStrategy, boolean bidi, boolean headed,
+                                          WireCommandMetrics metrics) {
         synchronized (CHROME_STARTUP_LOCK) {
             Set<ProcessIdentity> startupBaseline = currentDescendantIdentities();
             Path profile = createOwnedProfile();
@@ -90,7 +108,7 @@ final class BrowserTestHarness {
                 options.addArguments("--user-data-dir=" + profile,
                         "--window-size=1280,900", "--disable-dev-shm-usage", "--no-sandbox");
                 if (!headed) options.addArguments("--headless=new");
-                WebDriver driver = new ChromeDriver(options);
+                WebDriver driver = metrics == null ? new ChromeDriver(options) : new MeasuredChromeDriver(options, metrics);
                 owner.discoverOwnedProcesses();
                 owner.rememberChromeDriversStartedAfter(startupBaseline);
                 return owner.attach(driver);
@@ -101,7 +119,8 @@ final class BrowserTestHarness {
         }
     }
 
-    private static WebDriver createFirefox(PageLoadStrategy pageLoadStrategy, boolean bidi, boolean headed) {
+    private static WebDriver createFirefox(PageLoadStrategy pageLoadStrategy, boolean bidi, boolean headed,
+                                           WireCommandMetrics metrics) {
         FirefoxOptions options = bidi ? new FirefoxOptions().enableBiDi() : new FirefoxOptions();
         options.setPageLoadStrategy(pageLoadStrategy);
         String binary = System.getProperty("test.firefox.binary", "").trim();
@@ -109,7 +128,7 @@ final class BrowserTestHarness {
         if (!headed) options.addArguments("-headless");
         WebDriver firefox = null;
         try {
-            firefox = new FirefoxDriver(options);
+            firefox = metrics == null ? new FirefoxDriver(options) : new MeasuredFirefoxDriver(options, metrics);
             firefox.manage().window().setSize(new org.openqa.selenium.Dimension(1280, 900));
             return firefox;
         } catch (RuntimeException | Error startupFailure) {
@@ -126,6 +145,59 @@ final class BrowserTestHarness {
 
     static String browserName() {
         return System.getProperty("browser", "chrome").trim().toLowerCase(Locale.ROOT);
+    }
+
+    static final class WireCommandMetrics {
+        private final ConcurrentHashMap<String, AtomicInteger> commands = new ConcurrentHashMap<>();
+
+        void record(String command) {
+            commands.computeIfAbsent(command, ignored -> new AtomicInteger()).incrementAndGet();
+        }
+
+        void reset() { commands.clear(); }
+
+        int total() { return commands.values().stream().mapToInt(AtomicInteger::get).sum(); }
+
+        int count(String command) {
+            AtomicInteger value = commands.get(command);
+            return value == null ? 0 : value.get();
+        }
+
+        java.util.Map<String, Integer> snapshot() {
+            java.util.Map<String, Integer> result = new java.util.TreeMap<>();
+            commands.forEach((name, value) -> result.put(name, value.get()));
+            return result;
+        }
+    }
+
+    private static final class MeasuredChromeDriver extends ChromeDriver {
+        private WireCommandMetrics metrics;
+
+        private MeasuredChromeDriver(ChromeOptions options, WireCommandMetrics metrics) {
+            super(options);
+            this.metrics = metrics;
+        }
+
+        @Override protected Response execute(CommandPayload payload) {
+            WireCommandMetrics target = metrics == null ? CONSTRUCTING_METRICS.get() : metrics;
+            if (target != null) target.record(payload.getName());
+            return super.execute(payload);
+        }
+    }
+
+    private static final class MeasuredFirefoxDriver extends FirefoxDriver {
+        private WireCommandMetrics metrics;
+
+        private MeasuredFirefoxDriver(FirefoxOptions options, WireCommandMetrics metrics) {
+            super(options);
+            this.metrics = metrics;
+        }
+
+        @Override protected Response execute(CommandPayload payload) {
+            WireCommandMetrics target = metrics == null ? CONSTRUCTING_METRICS.get() : metrics;
+            if (target != null) target.record(payload.getName());
+            return super.execute(payload);
+        }
     }
 
     static Path runRoot() {
