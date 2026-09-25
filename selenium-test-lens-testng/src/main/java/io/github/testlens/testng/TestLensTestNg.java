@@ -1,5 +1,7 @@
 package io.github.testlens.testng;
 
+import io.github.testlens.selenium.execution.HeadlessMode;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -25,4 +27,10 @@ public @interface TestLensTestNg {
      * @since 0.4.0
      */
     DriverScope driverScope() default DriverScope.PER_METHOD;
+
+    /**
+     * @return explicit intent, or UNSET to resolve process configuration
+     * @since 0.4.0
+     */
+    HeadlessMode headless() default HeadlessMode.UNSET;
 }

@@ -7,7 +7,7 @@ search:
 
 This generated catalog is the optional binary-surface reference for every published public type, constructor, method, and field. Start with [Capabilities](../capabilities.md) and the functional navigation for behavior, workflows, and examples. Internal-style types appear only because Java consumers can currently access them.
 
-Inventory: **277 public types** and **2154 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
+Inventory: **279 public types** and **2163 public callable methods/constructors** (including public nested types and compiler-generated record/enum members).
 
 Classifications: USER_API is the normal consumer path; ADVANCED_API is supported specialized functionality; LOW_LEVEL_API exposes lower abstractions; INTERNAL_STYLE_PUBLIC is binary-public implementation surface and is not recommended for application code.
 
@@ -224,6 +224,8 @@ Signature details are split by published artifact and Java package to keep indiv
 | io.github.testlens.selenium.evidence.VisualRedactionFailurePolicy | io.github.testlens.selenium.evidence | USER_API | enum | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence.md#io-github-testlens-selenium-evidence-visualredactionfailurepolicy) |
 | io.github.testlens.selenium.evidence.VisualRedactionOptions$Builder | io.github.testlens.selenium.evidence | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence.md#io-github-testlens-selenium-evidence-visualredactionoptions-builder) |
 | io.github.testlens.selenium.evidence.VisualRedactionOptions | io.github.testlens.selenium.evidence | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-evidence.md#io-github-testlens-selenium-evidence-visualredactionoptions) |
+| io.github.testlens.selenium.execution.BrowserExecutionConfig | io.github.testlens.selenium.execution | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-execution.md#io-github-testlens-selenium-execution-browserexecutionconfig) |
+| io.github.testlens.selenium.execution.HeadlessMode | io.github.testlens.selenium.execution | USER_API | enum | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-execution.md#io-github-testlens-selenium-execution-headlessmode) |
 | io.github.testlens.selenium.locator.UiLocator | io.github.testlens.selenium.locator | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-locator.md#io-github-testlens-selenium-locator-uilocator) |
 | io.github.testlens.selenium.locator.UiLocatorDescription | io.github.testlens.selenium.locator | LOW_LEVEL_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-locator.md#io-github-testlens-selenium-locator-uilocatordescription) |
 | io.github.testlens.selenium.locator.UiLocatorException | io.github.testlens.selenium.locator | USER_API | class | [signatures](public-api/selenium-test-lens-selenium-io-github-testlens-selenium-locator.md#io-github-testlens-selenium-locator-uilocatorexception) |

@@ -4,6 +4,7 @@ import io.github.testlens.TestLens;
 import io.github.testlens.TestLensOptions;
 import io.github.testlens.TestRunScope;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.selenium.execution.BrowserExecutionConfig;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.NoSuchSessionException;
 import org.testng.IClassListener;
@@ -134,9 +135,10 @@ public final class TestLensTestNgListener extends TestLensTestNgConfigurationBri
                 || result.getAttribute(STATE_ATTRIBUTE) != null) return;
         WebDriver driver = null;
         try {
+            BrowserExecutionConfig executionConfig = BrowserExecutionConfig.resolve(annotation.headless());
             TestLensTestNgFactory factory = createFactory(annotation.factory());
-            driver = Objects.requireNonNull(factory.createDriver(),
-                    "TestLensTestNgFactory.createDriver() returned null");
+            driver = Objects.requireNonNull(factory.createDriver(executionConfig),
+                    "TestLensTestNgFactory.createDriver(BrowserExecutionConfig) returned null");
             TestLensOptions options = Objects.requireNonNull(factory.lensOptions(),
                     "TestLensTestNgFactory.lensOptions() returned null");
             TestLens lens = holder(result).scope.attach(driver, options);
@@ -452,9 +454,10 @@ public final class TestLensTestNgListener extends TestLensTestNgConfigurationBri
 
         private void ensureOpen() {
             synchronized (this) { if (driver != null) return; }
+            BrowserExecutionConfig executionConfig = BrowserExecutionConfig.resolve(annotation.headless());
             TestLensTestNgFactory createdFactory = createFactory(annotation.factory());
-            WebDriver createdDriver = Objects.requireNonNull(createdFactory.createDriver(),
-                    "TestLensTestNgFactory.createDriver() returned null");
+            WebDriver createdDriver = Objects.requireNonNull(createdFactory.createDriver(executionConfig),
+                    "TestLensTestNgFactory.createDriver(BrowserExecutionConfig) returned null");
             boolean registered = false;
             try {
                 holder.claimDriver(createdDriver, this);

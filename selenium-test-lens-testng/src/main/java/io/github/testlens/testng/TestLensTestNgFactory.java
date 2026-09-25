@@ -1,6 +1,8 @@
 package io.github.testlens.testng;
 
 import io.github.testlens.TestLensOptions;
+import io.github.testlens.selenium.execution.BrowserExecutionConfig;
+import io.github.testlens.selenium.execution.HeadlessMode;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestResult;
 
@@ -15,6 +17,23 @@ public interface TestLensTestNgFactory {
      * @return a new non-null driver
      */
     WebDriver createDriver();
+
+    /**
+     * Creates a driver after resolving pre-session execution intent.
+     *
+     * @param executionConfig immutable resolved execution configuration
+     * @return a new non-null driver
+     * @since 0.4.0
+     */
+    default WebDriver createDriver(BrowserExecutionConfig executionConfig) {
+        BrowserExecutionConfig resolved = Objects.requireNonNull(executionConfig, "executionConfig");
+        if (resolved.headless() != HeadlessMode.UNSET) {
+            throw new IllegalStateException("Headed/headless execution intent " + resolved.headless()
+                    + " is configured, but this TestLensTestNgFactory does not support BrowserExecutionConfig; "
+                    + "override createDriver(BrowserExecutionConfig)");
+        }
+        return createDriver();
+    }
 
     /**
      * Supplies immutable Lens options for this invocation.

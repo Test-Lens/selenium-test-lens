@@ -4,6 +4,8 @@ import io.github.testlens.TestLens;
 import io.github.testlens.TestLensOptions;
 import io.github.testlens.TestRunScope;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.selenium.execution.BrowserExecutionConfig;
+import io.github.testlens.selenium.execution.HeadlessMode;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -31,13 +33,17 @@ public final class TestLensExtension
     private static final ExtensionContext.Namespace RUN_SCOPE_NAMESPACE =
             ExtensionContext.Namespace.create(TestLensExtension.class, "run-scope");
 
-    private final Supplier<? extends WebDriver> driverFactory;
+    private final Supplier<? extends WebDriver> legacyDriverFactory;
+    private final Function<BrowserExecutionConfig, ? extends WebDriver> configuredDriverFactory;
+    private final HeadlessMode headless;
     private final TestLensOptions lensOptions;
     private final Function<ExtensionContext, String> sessionNameFactory;
     private final ExtensionContext.Namespace namespace;
 
     private TestLensExtension(Builder builder) {
-        this.driverFactory = builder.driverFactory;
+        this.legacyDriverFactory = builder.legacyDriverFactory;
+        this.configuredDriverFactory = builder.configuredDriverFactory;
+        this.headless = builder.headless;
         this.lensOptions = builder.lensOptions;
         this.sessionNameFactory = builder.sessionNameFactory;
         this.namespace = ExtensionContext.Namespace.create(TestLensExtension.class, this);
@@ -53,9 +59,19 @@ public final class TestLensExtension
         return new Builder(driverFactory);
     }
 
+    /**
+     * @param driverFactory execution-config-aware factory invoked once per test invocation
+     * @return a new extension builder
+     * @since 0.4.0
+     */
+    public static Builder builder(Function<BrowserExecutionConfig, ? extends WebDriver> driverFactory) {
+        return new Builder(driverFactory);
+    }
+
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        WebDriver driver = Objects.requireNonNull(driverFactory.get(),
+        BrowserExecutionConfig executionConfig = BrowserExecutionConfig.resolve(headless);
+        WebDriver driver = Objects.requireNonNull(createDriver(executionConfig),
                 "TestLensExtension driverFactory returned null");
         try {
             TestLens lens = runScope(context).attach(driver, lensOptions);
@@ -71,6 +87,15 @@ public final class TestLensExtension
             }
             rethrow(setupFailure);
         }
+    }
+
+    private WebDriver createDriver(BrowserExecutionConfig executionConfig) {
+        if (configuredDriverFactory != null) return configuredDriverFactory.apply(executionConfig);
+        if (executionConfig.headless() != HeadlessMode.UNSET) {
+            throw new IllegalStateException("Configured headed/headless execution requires a "
+                    + "BrowserExecutionConfig-aware driver factory; use TestLensExtension.builder(Function)");
+        }
+        return legacyDriverFactory.get();
     }
 
     @Override
@@ -187,12 +212,30 @@ public final class TestLensExtension
 
     /** Builds an immutable, parallel-safe extension configuration. */
     public static final class Builder {
-        private final Supplier<? extends WebDriver> driverFactory;
+        private final Supplier<? extends WebDriver> legacyDriverFactory;
+        private final Function<BrowserExecutionConfig, ? extends WebDriver> configuredDriverFactory;
+        private HeadlessMode headless = HeadlessMode.UNSET;
         private TestLensOptions lensOptions = TestLensOptions.defaults();
         private Function<ExtensionContext, String> sessionNameFactory = TestLensExtension::defaultSessionName;
 
         private Builder(Supplier<? extends WebDriver> driverFactory) {
-            this.driverFactory = Objects.requireNonNull(driverFactory, "driverFactory");
+            this.legacyDriverFactory = Objects.requireNonNull(driverFactory, "driverFactory");
+            this.configuredDriverFactory = null;
+        }
+
+        private Builder(Function<BrowserExecutionConfig, ? extends WebDriver> driverFactory) {
+            this.legacyDriverFactory = null;
+            this.configuredDriverFactory = Objects.requireNonNull(driverFactory, "driverFactory");
+        }
+
+        /**
+         * @param mode explicit intent; UNSET consults property/environment sources
+         * @return this builder
+         * @since 0.4.0
+         */
+        public Builder headless(HeadlessMode mode) {
+            this.headless = Objects.requireNonNull(mode, "mode");
+            return this;
         }
 
         /**

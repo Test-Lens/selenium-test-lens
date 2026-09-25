@@ -8,6 +8,8 @@ import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
 import io.github.testlens.core.trace.RetryOutcomePolicy;
 import io.github.testlens.core.trace.RetryPolicyViolationException;
+import io.github.testlens.selenium.execution.BrowserExecutionConfig;
+import io.github.testlens.selenium.execution.HeadlessMode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
@@ -235,6 +237,27 @@ class TestLensExtensionTest {
         assertEquals(reportsBefore, reportCount());
     }
 
+    @Test
+    void configuredFactoryReceivesExplicitExecutionConfigBeforeDriverCreation() {
+        execute(ConfiguredFactoryFixture.class).testEvents()
+                .assertStatistics(stats -> stats.started(1).succeeded(1));
+
+        assertEquals(List.of(HeadlessMode.TRUE), Harness.configuredModes);
+        assertEquals(1, Harness.drivers.size());
+        assertEquals(1, Harness.drivers.get(0).quitCalls.get());
+    }
+
+    @Test
+    void legacySupplierRejectsConfiguredExecutionBeforeSupplierCall() {
+        EngineExecutionResults results = execute(LegacyConfiguredFixture.class);
+        results.testEvents().assertStatistics(stats -> stats.started(1).failed(1));
+
+        assertEquals(0, Harness.legacySupplierCalls.get());
+        Throwable failure = results.testEvents().failed().list().get(0)
+                .getRequiredPayload(TestExecutionResult.class).getThrowable().orElseThrow();
+        assertTrue(failure.getMessage().contains("BrowserExecutionConfig-aware driver factory"));
+    }
+
     private static EngineExecutionResults execute(Class<?> fixture) {
         return EngineTestKit.engine("junit-jupiter")
                 .selectors(selectClass(fixture))
@@ -449,6 +472,34 @@ class TestLensExtensionTest {
         }
     }
 
+    static final class ConfiguredFactoryFixture {
+        @RegisterExtension
+        static final TestLensExtension LENS = TestLensExtension
+                .builder(Harness::newConfiguredDriver)
+                .headless(HeadlessMode.TRUE)
+                .lensOptions(Harness.options)
+                .build();
+
+        @Test
+        void runs(WebDriver driver, TestLens lens) {
+            Harness.observe("configured", driver, lens);
+        }
+    }
+
+    static final class LegacyConfiguredFixture {
+        @RegisterExtension
+        static final TestLensExtension LENS = TestLensExtension
+                .builder(Harness::newLegacyDriver)
+                .headless(HeadlessMode.FALSE)
+                .lensOptions(Harness.options)
+                .build();
+
+        @Test
+        void neverRuns() {
+            throw new AssertionError("test body must not run");
+        }
+    }
+
     static final class PolicyFixture {
         @RegisterExtension
         static final TestLensExtension LENS = TestLensExtension.builder(Harness::newDriver)
@@ -491,6 +542,8 @@ class TestLensExtensionTest {
                 .build();
         private static final List<TrackingDriver> drivers = new CopyOnWriteArrayList<>();
         private static final List<Observation> observations = new CopyOnWriteArrayList<>();
+        private static final List<HeadlessMode> configuredModes = new CopyOnWriteArrayList<>();
+        private static final AtomicInteger legacySupplierCalls = new AtomicInteger();
         private static final AtomicBoolean quitFailure = new AtomicBoolean();
         private static volatile AssertionError testFailure;
         private static volatile RuntimeException setupFailure;
@@ -505,6 +558,16 @@ class TestLensExtensionTest {
             TrackingDriver driver = new TrackingDriver(quitFailure.get());
             drivers.add(driver);
             return driver.proxy;
+        }
+
+        private static WebDriver newConfiguredDriver(BrowserExecutionConfig executionConfig) {
+            configuredModes.add(executionConfig.headless());
+            return newDriver();
+        }
+
+        private static WebDriver newLegacyDriver() {
+            legacySupplierCalls.incrementAndGet();
+            return newDriver();
         }
 
         private static void observe(String label, WebDriver driver, TestLens lens) {
@@ -533,6 +596,8 @@ class TestLensExtensionTest {
             setupFailure = null;
             abortedFailure = null;
             parallelBarrier = null;
+            configuredModes.clear();
+            legacySupplierCalls.set(0);
         }
     }
 

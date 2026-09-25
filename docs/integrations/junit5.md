@@ -47,10 +47,12 @@ dependencies {
 <!-- API SIGNATURES: io.github.testlens.junit5.TestLensExtension -->
 ```java
 public static TestLensExtension.Builder builder(java.util.function.Supplier<? extends org.openqa.selenium.WebDriver>)
+public static TestLensExtension.Builder builder(java.util.function.Function<io.github.testlens.selenium.execution.BrowserExecutionConfig, ? extends org.openqa.selenium.WebDriver>)
 ```
 
 <!-- API SIGNATURES: io.github.testlens.junit5.TestLensExtension$Builder -->
 ```java
+public TestLensExtension.Builder headless(io.github.testlens.selenium.execution.HeadlessMode)
 public TestLensExtension.Builder lensOptions(io.github.testlens.TestLensOptions)
 public TestLensExtension.Builder sessionName(java.util.function.Function<org.junit.jupiter.api.extension.ExtensionContext, java.lang.String>)
 public TestLensExtension build()
@@ -80,6 +82,21 @@ class OrderTest {
 The `driverFactory` is called exactly once for each invocation. `WebDriver` and `TestLens` parameters refer to that same invocation and the Lens is attached to that exact driver. Other parameter types are left to JUnit or other registered resolvers. The extension also owns one `SuiteStateManager` in the root extension context; invocations in that execution share it, and the root store clears it when the run closes.
 
 Do not call `driver.quit()` in `@AfterEach`: the extension owns the returned driver. It finalizes Lens and its JSON/HTML reports first, then calls `quit()` exactly once. `TestLens` itself still never closes the driver. A test may have already called a Lens finalizer; the extension then reuses that session's first terminal result without duplicating reports, evidence, or terminal events, and still performs its one owned driver cleanup.
+
+For one-time headed/headless adaptation, use the configured overload and apply the intent to the factory's existing
+browser options before construction:
+
+```java
+@RegisterExtension
+final TestLensExtension testLens = TestLensExtension
+        .builder((BrowserExecutionConfig execution) -> ExistingDriverFactory.create(execution))
+        .headless(HeadlessMode.UNSET)
+        .build();
+```
+
+After this adaptation, `-DtestLens.headless=true|false` or `TEST_LENS_HEADLESS=true|false` controls creation without
+changes to tests or Page Objects. A Java `headless(TRUE|FALSE)` override wins. The legacy `Supplier` overload remains
+unchanged for `UNSET`; a configured mode fails before `Supplier.get()` instead of being ignored.
 
 The extension does not upload reports. If a test deliberately finalizes and uploads before returning, the extension safely reuses that terminal result and performs its normal single driver cleanup. For centralized upload of every outcome, add an ordered project-owned extension around the explicit [report uploader](../observability/report-upload.md); do not place credentials in test names or Lens metadata.
 

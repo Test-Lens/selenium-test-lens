@@ -16,6 +16,7 @@ Generated binary-surface details. For behavior and examples, return to the [func
 - Functional documentation: [docs/integrations/junit5.md](../../integrations/junit5.md)
 
 ```java
+public io.github.testlens.junit5.TestLensExtension$Builder headless(io.github.testlens.selenium.execution.HeadlessMode)
 public io.github.testlens.junit5.TestLensExtension$Builder lensOptions(io.github.testlens.TestLensOptions)
 public io.github.testlens.junit5.TestLensExtension$Builder sessionName(java.util.function.Function<org.junit.jupiter.api.extension.ExtensionContext, java.lang.String>)
 public io.github.testlens.junit5.TestLensExtension build()
@@ -31,6 +32,7 @@ public io.github.testlens.junit5.TestLensExtension build()
 
 ```java
 public static io.github.testlens.junit5.TestLensExtension$Builder builder(java.util.function.Supplier<? extends org.openqa.selenium.WebDriver>)
+public static io.github.testlens.junit5.TestLensExtension$Builder builder(java.util.function.Function<io.github.testlens.selenium.execution.BrowserExecutionConfig, ? extends org.openqa.selenium.WebDriver>)
 public void beforeEach(org.junit.jupiter.api.extension.ExtensionContext) throws java.lang.Exception
 public void afterEach(org.junit.jupiter.api.extension.ExtensionContext) throws java.lang.Exception
 public boolean supportsParameter(org.junit.jupiter.api.extension.ParameterContext, org.junit.jupiter.api.extension.ExtensionContext)

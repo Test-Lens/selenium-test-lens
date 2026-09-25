@@ -1,5 +1,6 @@
 package io.github.testlens.browser;
 
+import io.github.testlens.selenium.execution.BrowserExecutionConfig;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
@@ -64,6 +65,15 @@ final class BrowserTestHarness {
         return createDriver(PageLoadStrategy.NORMAL);
     }
 
+    static WebDriver createDriver(BrowserExecutionConfig executionConfig) {
+        boolean headed = switch (executionConfig.headless()) {
+            case TRUE -> false;
+            case FALSE -> true;
+            case UNSET -> Boolean.parseBoolean(System.getProperty("headed", "false"));
+        };
+        return createDriver(PageLoadStrategy.NORMAL, false, null, headed);
+    }
+
     static WebDriver createDriver(ExecutorCommandMetrics metrics) {
         return createDriver(PageLoadStrategy.NORMAL, false, metrics);
     }
@@ -83,14 +93,19 @@ final class BrowserTestHarness {
     private static WebDriver createDriver(PageLoadStrategy pageLoadStrategy, boolean bidi,
                                           ExecutorCommandMetrics metrics) {
         boolean headed = Boolean.parseBoolean(System.getProperty("headed", "false"));
+        return createDriver(pageLoadStrategy, bidi, metrics, headed);
+    }
+
+    private static WebDriver createDriver(PageLoadStrategy pageLoadStrategy, boolean bidi,
+                                          ExecutorCommandMetrics metrics, boolean headed) {
         CONSTRUCTING_METRICS.set(metrics);
         try {
-        return switch (browserName()) {
-            case "chrome" -> createChrome(pageLoadStrategy, bidi, headed, metrics);
-            case "firefox" -> createFirefox(pageLoadStrategy, bidi, headed, metrics);
-            default -> throw new IllegalArgumentException(
-                    "Unsupported -Dbrowser=" + browserName() + "; expected chrome or firefox");
-        };
+            return switch (browserName()) {
+                case "chrome" -> createChrome(pageLoadStrategy, bidi, headed, metrics);
+                case "firefox" -> createFirefox(pageLoadStrategy, bidi, headed, metrics);
+                default -> throw new IllegalArgumentException(
+                        "Unsupported -Dbrowser=" + browserName() + "; expected chrome or firefox");
+            };
         } finally {
             CONSTRUCTING_METRICS.remove();
         }

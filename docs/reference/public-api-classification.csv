@@ -223,6 +223,8 @@
 "selenium-test-lens-selenium","io.github.testlens.selenium.steps.UiStepOptions$Builder","USER_API","docs/advanced/steps-business-assertions.md"
 "selenium-test-lens-selenium","io.github.testlens.selenium.steps.UiStepOptions","USER_API","docs/advanced/steps-business-assertions.md"
 "selenium-test-lens-selenium","io.github.testlens.selenium.steps.UiStepResult","USER_API","docs/advanced/steps-business-assertions.md"
+"selenium-test-lens-selenium","io.github.testlens.selenium.execution.BrowserExecutionConfig","USER_API","docs/reference/configuration.md"
+"selenium-test-lens-selenium","io.github.testlens.selenium.execution.HeadlessMode","USER_API","docs/reference/configuration.md"
 "selenium-test-lens-selenium","io.github.testlens.selenium.steps.UiStepScope","INTERNAL_STYLE_PUBLIC",""
 "selenium-test-lens-selenium","io.github.testlens.selenium.steps.UiStepStatus","USER_API","docs/advanced/steps-business-assertions.md"
 "selenium-test-lens-selenium","io.github.testlens.selenium.reporting.ReportArtifactKind","USER_API","docs/observability/report-upload.md"

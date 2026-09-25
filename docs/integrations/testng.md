@@ -45,6 +45,23 @@ public final class ChromeFactory implements TestLensTestNgFactory {
 }
 ```
 
+
+An adapted factory can receive resolved execution intent before creating Selenium's session:
+
+```java
+@Override
+public WebDriver createDriver(BrowserExecutionConfig execution) {
+    ChromeOptions options = existingChromeOptions();
+    if (execution.headless() == HeadlessMode.TRUE) options.addArguments("--headless=new");
+    if (execution.headless() == HeadlessMode.FALSE) removeProjectHeadlessDefault(options);
+    return new ChromeDriver(options);
+}
+```
+
+Browser-specific mapping remains factory-owned so existing capabilities are preserved. After this one-time
+adaptation, use `-DtestLens.headless=true|false`, `TEST_LENS_HEADLESS=true|false`, or the annotation's explicit
+`headless` member. `FALSE` means force headed; `UNSET` preserves the factory's current default. A legacy factory is
+still called exactly once for `UNSET`, while configured TRUE/FALSE fails before legacy `createDriver()`.
 Register the listener explicitly and configure its factory separately. `@Listeners` is not used as a meta-annotation, and there is no `META-INF/services` registration, so **both annotations are required**.
 
 ```java
@@ -68,11 +85,13 @@ class LoginTest {
 ```java
 public abstract Class<? extends TestLensTestNgFactory> factory()
 public abstract DriverScope driverScope()
+public abstract HeadlessMode headless()
 ```
 
 <!-- API SIGNATURES: io.github.testlens.testng.TestLensTestNgFactory -->
 ```java
 public abstract WebDriver createDriver()
+public WebDriver createDriver(BrowserExecutionConfig executionConfig)
 public TestLensOptions lensOptions()
 public String sessionName(ITestResult result)
 ```

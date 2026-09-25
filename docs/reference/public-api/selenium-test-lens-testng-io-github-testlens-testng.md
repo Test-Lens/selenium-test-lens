@@ -33,6 +33,7 @@ public static io.github.testlens.testng.DriverScope valueOf(java.lang.String)
 ```java
 public abstract java.lang.Class<? extends io.github.testlens.testng.TestLensTestNgFactory> factory()
 public abstract io.github.testlens.testng.DriverScope driverScope()
+public abstract io.github.testlens.selenium.execution.HeadlessMode headless()
 ```
 
 ## `io.github.testlens.testng.TestLensTestNgContext` {#io-github-testlens-testng-testlenstestngcontext}
@@ -60,6 +61,7 @@ public io.github.testlens.core.trace.UiTestLensSession session()
 
 ```java
 public abstract org.openqa.selenium.WebDriver createDriver()
+public default org.openqa.selenium.WebDriver createDriver(io.github.testlens.selenium.execution.BrowserExecutionConfig)
 public default io.github.testlens.TestLensOptions lensOptions()
 public default java.lang.String sessionName(org.testng.ITestResult)
 ```

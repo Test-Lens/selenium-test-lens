@@ -2,6 +2,30 @@
 
 All option objects are immutable after `build()` unless their API explicitly exposes a mutable collaborator. Durations described as positive reject null/zero/negative values. Defaults below come from the current Java field initializers and constructors.
 
+## Browser execution configuration
+
+`BrowserExecutionConfig` is resolved before an adapted factory creates a browser. `HeadlessMode` is `TRUE`
+(headless), `FALSE` (headed), or `UNSET` (keep the factory's existing decision). Precedence is explicit Java API,
+JVM property `-DtestLens.headless=true|false`, environment `TEST_LENS_HEADLESS=true|false`, then `UNSET`.
+Only trimmed, case-insensitive `true` and `false` are valid; invalid or blank values fail before factory invocation.
+A higher-precedence source prevents lower sources from being parsed.
+
+Manual integration resolves once at the driver-creation boundary:
+
+```java
+BrowserExecutionConfig execution = BrowserExecutionConfig.resolve();
+WebDriver driver = myBrowserFactory.create(execution);
+TestLens lens = TestLens.attach(driver, options);
+```
+
+The config carries browser-neutral intent. An adapted factory applies it to its existing `ChromeOptions`,
+`FirefoxOptions`, or provider capabilities, retaining profiles, preferences, proxy, BiDi, and custom settings.
+`FALSE` is an explicit headed request; `UNSET` preserves the factory default. Headless and HUD presets are
+independent.
+
+`TestLens.attach(existingDriver, ...)` receives an already-created Selenium session. It never creates another
+driver, quits/recreates the session, changes capabilities, or retroactively changes headed/headless mode.
+
 ## TestLensOptions
 
 `TestLensOptions.defaults()` or `builder()`; API level **Recommended**.

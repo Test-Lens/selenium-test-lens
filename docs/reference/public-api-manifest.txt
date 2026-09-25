@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 277
-# Public callable methods/constructors: 2154
+# Types: 279
+# Public callable methods/constructors: 2163
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -2140,6 +2140,16 @@ TYPE io.github.testlens.selenium.evidence.VisualRedactionOptions
   public int paddingPx()
   public java.lang.String maskLabel()
   public boolean hasMasks()
+TYPE io.github.testlens.selenium.execution.BrowserExecutionConfig
+  public static io.github.testlens.selenium.execution.BrowserExecutionConfig resolve()
+  public static io.github.testlens.selenium.execution.BrowserExecutionConfig resolve(io.github.testlens.selenium.execution.HeadlessMode)
+  public io.github.testlens.selenium.execution.HeadlessMode headless()
+TYPE io.github.testlens.selenium.execution.HeadlessMode
+  public static final io.github.testlens.selenium.execution.HeadlessMode UNSET
+  public static final io.github.testlens.selenium.execution.HeadlessMode TRUE
+  public static final io.github.testlens.selenium.execution.HeadlessMode FALSE
+  public static io.github.testlens.selenium.execution.HeadlessMode[] values()
+  public static io.github.testlens.selenium.execution.HeadlessMode valueOf(java.lang.String)
 TYPE io.github.testlens.selenium.locator.UiLocator
   public io.github.testlens.selenium.locator.UiLocator(org.openqa.selenium.WebDriver, org.openqa.selenium.By, java.lang.String, io.github.testlens.JsOverlayDebug, io.github.testlens.selenium.locator.UiLocatorOptions, io.github.testlens.core.OverlayLogger)
   public io.github.testlens.selenium.locator.UiLocator click()
@@ -2679,11 +2689,13 @@ TYPE io.github.testlens.selenium.steps.UiStepStatus
   public static io.github.testlens.selenium.steps.UiStepStatus valueOf(java.lang.String)
 MODULE selenium-test-lens-junit5
 TYPE io.github.testlens.junit5.TestLensExtension$Builder
+  public io.github.testlens.junit5.TestLensExtension$Builder headless(io.github.testlens.selenium.execution.HeadlessMode)
   public io.github.testlens.junit5.TestLensExtension$Builder lensOptions(io.github.testlens.TestLensOptions)
   public io.github.testlens.junit5.TestLensExtension$Builder sessionName(java.util.function.Function<org.junit.jupiter.api.extension.ExtensionContext, java.lang.String>)
   public io.github.testlens.junit5.TestLensExtension build()
 TYPE io.github.testlens.junit5.TestLensExtension
   public static io.github.testlens.junit5.TestLensExtension$Builder builder(java.util.function.Supplier<? extends org.openqa.selenium.WebDriver>)
+  public static io.github.testlens.junit5.TestLensExtension$Builder builder(java.util.function.Function<io.github.testlens.selenium.execution.BrowserExecutionConfig, ? extends org.openqa.selenium.WebDriver>)
   public void beforeEach(org.junit.jupiter.api.extension.ExtensionContext) throws java.lang.Exception
   public void afterEach(org.junit.jupiter.api.extension.ExtensionContext) throws java.lang.Exception
   public boolean supportsParameter(org.junit.jupiter.api.extension.ParameterContext, org.junit.jupiter.api.extension.ExtensionContext)
@@ -2697,6 +2709,7 @@ TYPE io.github.testlens.testng.DriverScope
 TYPE io.github.testlens.testng.TestLensTestNg
   public abstract java.lang.Class<? extends io.github.testlens.testng.TestLensTestNgFactory> factory()
   public abstract io.github.testlens.testng.DriverScope driverScope()
+  public abstract io.github.testlens.selenium.execution.HeadlessMode headless()
 TYPE io.github.testlens.testng.TestLensTestNgContext
   public static io.github.testlens.testng.TestLensTestNgContext current()
   public org.openqa.selenium.WebDriver driver()
@@ -2704,6 +2717,7 @@ TYPE io.github.testlens.testng.TestLensTestNgContext
   public io.github.testlens.core.trace.UiTestLensSession session()
 TYPE io.github.testlens.testng.TestLensTestNgFactory
   public abstract org.openqa.selenium.WebDriver createDriver()
+  public default org.openqa.selenium.WebDriver createDriver(io.github.testlens.selenium.execution.BrowserExecutionConfig)
   public default io.github.testlens.TestLensOptions lensOptions()
   public default java.lang.String sessionName(org.testng.ITestResult)
 TYPE io.github.testlens.testng.TestLensTestNgListener

@@ -6,6 +6,9 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Fixed
 
+- Added immutable pre-session headed/headless execution intent with Java API, `testLens.headless` system-property,
+  and `TEST_LENS_HEADLESS` environment resolution. Adapted TestNG/JUnit factories receive it before driver creation;
+  legacy factories remain unchanged for `UNSET`, and attaching an existing driver never recreates its session.
 - Added opt-in observation of native Selenium operations through `TestLens.observeDriver()` and selective `observe(WebElement[, label])` views. Existing Page Objects can contribute correlated semantic HUD, trace/report, source-navigation, redacted metadata, durations, and automatic highlights while retaining exactly-once native Selenium execution and original exceptions; no Smart Click, wait, retry, re-resolution, or JavaScript fallback is introduced.
 
 - Reduced semantic HUD transport overhead without dropping diagnostics: warm event updates use a self-validating browser dispatch, and ready operation diagnostics share the terminal flush while RUNNING, warnings, retries, failures, and user messages retain immediate delivery. Document navigation still triggers lazy reinjection, active alerts are detected and deferred in a bounded queue without changing prompt state, and the renderer preserves every semantic event while doing layout/auto-scroll once per batch. An opt-in Chrome/Firefox benchmark records reproducible CSV/JSON command counts and timings.

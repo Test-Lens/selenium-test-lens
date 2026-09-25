@@ -3,6 +3,8 @@ package io.github.testlens.testng;
 import io.github.testlens.TestLensOptions;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.selenium.execution.BrowserExecutionConfig;
+import io.github.testlens.selenium.execution.HeadlessMode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,6 +86,35 @@ class TestLensTestNgPerClassLifecycleTest {
         assertEquals(1, Harness.drivers.get(0).quitCalls.get());
         assertEquals(2, Harness.sessions.size());
         assertEquals(2, Harness.sessions.stream().map(UiTestLensSession::id).distinct().count());
+    }
+
+    @Test
+    void perMethodResolvesAndPassesExecutionConfigForEachPhysicalInvocation() {
+        run(PerMethodExecutionConfigFixture.class);
+
+        assertEquals(List.of(HeadlessMode.TRUE, HeadlessMode.TRUE), Harness.executionModes);
+        assertEquals(2, Harness.created.get());
+        assertTrue(Harness.drivers.stream().allMatch(driver -> driver.quitCalls.get() == 1));
+    }
+
+    @Test
+    void perClassResolvesAndPassesExecutionConfigOnceForTheOwner() {
+        run(PerClassExecutionConfigFixture.class);
+
+        assertEquals(List.of(HeadlessMode.FALSE), Harness.executionModes);
+        assertEquals(1, Harness.created.get());
+        assertEquals(1, Harness.drivers.get(0).quitCalls.get());
+        assertEquals(2, Harness.sessions.size());
+    }
+
+    @Test
+    void subclassesInheritHeadlessIntentAndMayReplaceTheWholeAnnotation() {
+        run(InheritedExecutionConfigFixture.class);
+        assertEquals(List.of(HeadlessMode.TRUE), Harness.executionModes);
+
+        Harness.reset();
+        run(OverriddenExecutionConfigFixture.class);
+        assertEquals(List.of(HeadlessMode.FALSE), Harness.executionModes);
     }
 
     @Test
@@ -480,6 +511,11 @@ class TestLensTestNgPerClassLifecycleTest {
     }
 
     public static class FactoryImpl implements TestLensTestNgFactory {
+        @Override public WebDriver createDriver(BrowserExecutionConfig executionConfig) {
+            Harness.executionModes.add(executionConfig.headless());
+            return createDriver();
+        }
+
         @Override public WebDriver createDriver() {
             TrackingDriver driver = new TrackingDriver();
             Harness.created.incrementAndGet();
@@ -496,6 +532,35 @@ class TestLensTestNgPerClassLifecycleTest {
             Harness.sessionNames.add(name);
             return name;
         }
+    }
+
+    @Listeners(TestLensTestNgListener.class)
+    @TestLensTestNg(factory = FactoryImpl.class, headless = HeadlessMode.TRUE)
+    public static class PerMethodExecutionConfigFixture {
+        @org.testng.annotations.Test public void first() { Harness.rememberCurrent(); }
+        @org.testng.annotations.Test public void second() { Harness.rememberCurrent(); }
+    }
+
+    @Listeners(TestLensTestNgListener.class)
+    @TestLensTestNg(factory = FactoryImpl.class, driverScope = DriverScope.PER_CLASS,
+            headless = HeadlessMode.FALSE)
+    public static class PerClassExecutionConfigFixture {
+        @org.testng.annotations.Test public void first() { Harness.rememberCurrent(); }
+        @org.testng.annotations.Test public void second() { Harness.rememberCurrent(); }
+    }
+
+    @Listeners(TestLensTestNgListener.class)
+    @TestLensTestNg(factory = FactoryImpl.class, headless = HeadlessMode.TRUE)
+    public abstract static class InheritedExecutionConfigBase {
+    }
+
+    public static class InheritedExecutionConfigFixture extends InheritedExecutionConfigBase {
+        @org.testng.annotations.Test public void test() { Harness.rememberCurrent(); }
+    }
+
+    @TestLensTestNg(factory = FactoryImpl.class, headless = HeadlessMode.FALSE)
+    public static class OverriddenExecutionConfigFixture extends InheritedExecutionConfigBase {
+        @org.testng.annotations.Test public void test() { Harness.rememberCurrent(); }
     }
 
     private static final class Collector implements org.testng.ITestListener {
@@ -521,6 +586,11 @@ class TestLensTestNgPerClassLifecycleTest {
         private static final List<String> classTeardownEvents = new CopyOnWriteArrayList<>();
         private static final Map<String, WebDriver> instanceDrivers = new java.util.concurrent.ConcurrentHashMap<>();
         private static final List<ITestResult> failures = new CopyOnWriteArrayList<>();
+        private static final List<HeadlessMode> executionModes = new CopyOnWriteArrayList<>();
+
+        static void rememberCurrent() {
+            remember(TestLensTestNgContext.current().session());
+        }
 
         static void observeBefore(String label) {
             TestLensTestNgContext context = TestLensTestNgContext.current();
@@ -566,6 +636,7 @@ class TestLensTestNgPerClassLifecycleTest {
             bodySessions.clear(); afterSessions.clear(); bodyDrivers.clear(); events.clear();
             observedDrivers.clear();
             classTeardownEvents.clear(); instanceDrivers.clear(); failures.clear();
+            executionModes.clear();
             DataAndRetryFixture.FIRST.set(true);
         }
     }
