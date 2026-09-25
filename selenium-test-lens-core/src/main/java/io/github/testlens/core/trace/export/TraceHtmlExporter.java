@@ -76,6 +76,7 @@ public final class TraceHtmlExporter {
                 .append("<title>").append(escape(effectiveOptions.title())).append("</title>")
                 .append("<style>").append(css(effectiveOptions.theme())).append("</style></head><body>");
         appendHeader(out, session, effectiveOptions);
+        appendRetention(out, session);
         appendSummary(out, session, effectiveOptions);
         appendFlakiness(out, session);
         appendFailureBundle(out, session.events());
@@ -349,6 +350,7 @@ public final class TraceHtmlExporter {
                 out.append("</details>");
             }
             appendFailureSummary(out, session.events(), options, eventScope);
+            appendRetention(out, session);
             appendFlakiness(out, session);
             appendFailureBundle(out, session.events());
             appendTimeline(out, session.events(), options, eventScope);
@@ -420,6 +422,24 @@ public final class TraceHtmlExporter {
             card(out, "Slowest event", slowestEvent(events));
         }
         out.append("</div></section>");
+    }
+
+    private void appendRetention(StringBuilder out, UiTestLensSession session) {
+        Map<String, String> labels = session.metadata().labels();
+        if (!labels.containsKey("testlens.retention.snapshotClosedAt")) return;
+        boolean complete = Boolean.parseBoolean(labels.getOrDefault("testlens.retention.complete", "true"));
+        out.append("<section aria-label=\"Trace completeness\"><h2>Trace completeness</h2><p class=\"")
+                .append(complete ? "ok-line" : "flaky-warning")
+                .append("\">");
+        if (complete) {
+            out.append("Trace complete as of ").append(escape(labels.get("testlens.retention.snapshotClosedAt")));
+        } else {
+            out.append("Partial trace &mdash; ")
+                    .append(escape(labels.getOrDefault("testlens.retention.evictedEvents", "0")))
+                    .append(" events evicted; issues: ")
+                    .append(escape(labels.getOrDefault("testlens.retention.issues", "unknown")));
+        }
+        out.append("</p></section>");
     }
 
     private void appendEventTypeSummary(StringBuilder out, List<TraceEvent> events) {

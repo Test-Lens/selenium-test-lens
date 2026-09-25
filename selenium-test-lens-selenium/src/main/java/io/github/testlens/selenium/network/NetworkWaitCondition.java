@@ -99,6 +99,24 @@ public final class NetworkWaitCondition {
         return builder.length() == 0 ? "any network response" : builder.toString();
     }
 
+    NetworkWaitCondition retainedMatchCopy(RedactionPolicy policy) {
+        RedactionPolicy effective = policy == null ? RedactionPolicy.defaults() : policy;
+        if (!effective.enabled()) return this;
+        Builder builder = builder()
+                .urlContains(redactCriterion(effective, urlContains))
+                .exactUrl(redactCriterion(effective, exactUrl))
+                .urlRegex(urlRegex)
+                .method(method)
+                .timeout(timeout)
+                .pollInterval(pollInterval)
+                .includeFailedResponses(includeFailedResponses)
+                .matchRequestOnly(matchRequestOnly);
+        if (status != null) builder.status(status);
+        if (minStatus != null) builder.minStatus(minStatus);
+        if (maxStatus != null) builder.maxStatus(maxStatus);
+        return builder.build();
+    }
+
     public String urlContains() { return urlContains; }
     public String urlRegex() { return urlRegex; }
     public String exactUrl() { return exactUrl; }
@@ -201,6 +219,13 @@ public final class NetworkWaitCondition {
         } catch (RuntimeException failure) {
             return "url[length=" + value.length() + "]";
         }
+    }
+
+    private static String redactCriterion(RedactionPolicy policy, String value) {
+        if (value == null || value.isBlank()) return "";
+        return value.regionMatches(true, 0, "http://", 0, 7)
+                || value.regionMatches(true, 0, "https://", 0, 8)
+                ? policy.redactUrl(value) : policy.redact(value);
     }
 
     private static void append(StringBuilder builder, String key, String value) {

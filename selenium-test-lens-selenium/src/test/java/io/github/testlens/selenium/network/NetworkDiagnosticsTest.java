@@ -9,6 +9,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.openqa.selenium.WebDriver;
 
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -249,6 +250,31 @@ class NetworkDiagnosticsTest {
         assertEquals(1, diagnostics.summary().totalRequests());
         assertEquals(1, diagnostics.summary().totalResponses());
         assertEquals(0, diagnostics.summary().droppedEvents());
+    }
+
+    @Test
+    void querySecretsAreRedactedBeforeInternalNetworkRetention() throws Exception {
+        String secret = "TL_PRE_RETENTION_QUERY_SECRET";
+        String url = "https://example.test/orders?token=" + secret + "&safe=visible";
+        RedactionPolicy policy = RedactionPolicy.builder().secret(secret).build();
+        OverlayLogger logger = OverlayLogger.from(io.github.testlens.core.logging.UiTestLensLogger.builder()
+                .redactionPolicy(policy).build());
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), logger)
+                .start(NetworkDiagnosticsOptions.builder().includeHeaders(true).build());
+
+        diagnostics.addManualEvent(NetworkEvent.request(new NetworkRequest(
+                "request", "GET", url, "fetch", Instant.now(), Map.of("X-Test", secret))));
+
+        Field eventsField = NetworkDiagnostics.class.getDeclaredField("events");
+        eventsField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        List<NetworkEvent> internallyRetained = (List<NetworkEvent>) eventsField.get(diagnostics);
+        String internalSnapshot = internallyRetained.toString()
+                + internallyRetained.stream().map(NetworkEvent::url).reduce("", String::concat)
+                + internallyRetained.stream().filter(event -> event.request() != null)
+                .map(event -> event.request().headers().toString()).reduce("", String::concat);
+        assertFalse(internalSnapshot.contains(secret));
+        assertTrue(internalSnapshot.contains("[REDACTED]") || internalSnapshot.contains("***"));
     }
 
     @Test

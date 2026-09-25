@@ -4,9 +4,14 @@ import io.github.testlens.TestLens;
 import io.github.testlens.TestLensOptions;
 import io.github.testlens.TestRunScope;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.trace.TraceEvent;
+import io.github.testlens.core.trace.TraceEventType;
+import io.github.testlens.core.trace.TraceFailure;
+import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.selenium.execution.BrowserExecutionConfig;
 import io.github.testlens.selenium.execution.HeadlessMode;
 import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -27,7 +32,7 @@ import java.util.function.Supplier;
  * driver and Lens through method parameters.
  */
 public final class TestLensExtension
-        implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
+        implements BeforeEachCallback, AfterEachCallback, ParameterResolver, FailureWatermarkCallback {
     private static final String STATE_KEY_PREFIX = "test-lens-invocation:";
     private static final String ABORTED_REASON_FALLBACK = "Test aborted by JUnit 5";
     private static final ExtensionContext.Namespace RUN_SCOPE_NAMESPACE =
@@ -145,6 +150,20 @@ public final class TestLensExtension
         if (quitFailure != null) {
             rethrow(quitFailure);
         }
+    }
+
+    void markFailureWatermark(ExtensionContext context) {
+        Throwable failure = context.getExecutionException().orElse(null);
+        if (failure == null || failure instanceof TestAbortedException) return;
+        InvocationState state = store(context).get(stateKey(context), InvocationState.class);
+        if (state == null) return;
+        state.session.addEvent(TraceEvent.builder(TraceEventType.CUSTOM, TraceStatus.FAILED,
+                        "Uncaught JUnit failure boundary")
+                .message(failure.getMessage())
+                .failure(TraceFailure.from(failure, false))
+                .attribute("testlens.recorder.failureWatermark", "true")
+                .attribute("runner", "junit5")
+                .build());
     }
 
     @Override
@@ -309,5 +328,12 @@ public final class TestLensExtension
         public void close() {
             scope.close();
         }
+    }
+}
+
+interface FailureWatermarkCallback extends AfterTestExecutionCallback {
+    @Override
+    default void afterTestExecution(ExtensionContext context) {
+        ((TestLensExtension) this).markFailureWatermark(context);
     }
 }

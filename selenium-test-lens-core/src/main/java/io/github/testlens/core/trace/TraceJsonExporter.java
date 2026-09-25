@@ -39,6 +39,7 @@ public final class TraceJsonExporter {
             root.put("session", sessionMap(session, effectiveOptions));
             root.put("metadata", metadataMap(session.metadata()));
             root.put("flakiness", flakinessMap(session.retrySummary()));
+            root.put("retention", retentionMap(session.metadata()));
             root.put("events", session.events().stream()
                     .map(event -> eventMap(event, effectiveOptions))
                     .toList());
@@ -154,6 +155,7 @@ public final class TraceJsonExporter {
         }
         out.put("summary", sessionSummary(session));
         out.put("flakiness", flakinessMap(session.retrySummary()));
+        out.put("retention", retentionMap(metadata));
         out.put("events", session.events().stream()
                 .map(event -> eventMap(event, options))
                 .toList());
@@ -221,6 +223,31 @@ public final class TraceJsonExporter {
         out.put("byLocator", new TreeMap<>(summary.byLocator()));
         out.put("byException", new TreeMap<>(summary.byException()));
         return out;
+    }
+
+    private Map<String, Object> retentionMap(TraceMetadata metadata) {
+        Map<String, String> labels = metadata.labels();
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("schemaVersion", number(labels.get("testlens.retention.schemaVersion"), 1));
+        out.put("complete", Boolean.parseBoolean(labels.getOrDefault("testlens.retention.complete", "true")));
+        out.put("retainedEvents", number(labels.get("testlens.retention.retainedEvents"), 0));
+        out.put("retainedEstimatedBytes", number(labels.get("testlens.retention.retainedEstimatedBytes"), 0));
+        out.put("evictedEvents", number(labels.get("testlens.retention.evictedEvents"), 0));
+        out.put("evictedEstimatedBytes", number(labels.get("testlens.retention.evictedEstimatedBytes"), 0));
+        out.put("oversizedEvents", number(labels.get("testlens.retention.oversizedEvents"), 0));
+        out.put("truncatedEvents", number(labels.get("testlens.retention.truncatedEvents"), 0));
+        out.put("lateEventsDropped", number(labels.get("testlens.retention.lateEventsDropped"), 0));
+        put(out, "snapshotClosedAt", labels.get("testlens.retention.snapshotClosedAt"));
+        String issues = labels.getOrDefault("testlens.retention.issues", "");
+        out.put("issues", issues.isBlank() ? List.of() : List.of(issues.split(",")));
+        put(out, "passedSessionRetention", labels.get("testlens.retention.passedSessionRetention"));
+        return out;
+    }
+
+    private static long number(String value, long fallback) {
+        if (value == null || value.isBlank()) return fallback;
+        try { return Long.parseLong(value); }
+        catch (NumberFormatException ignored) { return fallback; }
     }
 
     private Map<String, Object> eventMap(TraceEvent event, TraceJsonExportOptions options) {

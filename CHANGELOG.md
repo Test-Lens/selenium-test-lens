@@ -27,6 +27,8 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added bounded, failure-aware trace retention with count, estimated-byte, and single-event limits; immutable final snapshots shared by JSON/HTML/failure bundles; explicit completeness telemetry; optional passed-session summary-only retention; pre-retention network redaction; and bounded failure context that reuses existing visually redacted screenshot evidence.
+
 - Added opt-in Ctrl+Alt HUD source navigation for user-facing locator actions, waits, assertions, and manual highlights, with logical call-site metadata, lazy cached Maven/Gradle source resolution, IntelliJ/VS Code/custom protocol providers, remote-session safeguards, and HUD Studio generation. Absolute local paths remain local-only and are not exported.
 - Added independent HUD timestamp presentation options: `HudTimestampFormat.ISO_UTC`, `TIME_ONLY`, and `DATE_TIME`, plus either the test JVM system zone or an explicit `ZoneId`. HUD Studio previews and generates the same configuration without freezing the author's local zone when SYSTEM is selected.
 - Added immutable `HighlightOptions`, typed `HighlightState` values, and facade/locator entry points (`TestLens.highlight(...)`, `UiLocator.highlight(...)`) for interaction-free manual decoration. HUD Studio now previews and exports all five state colors, duration, border width, labels, enablement, and automatic feedback.

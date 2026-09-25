@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 279
-# Public callable methods/constructors: 2163
+# Types: 282
+# Public callable methods/constructors: 2179
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -255,6 +255,11 @@ TYPE io.github.testlens.core.redaction.RedactionPolicy
   public java.lang.String redact(java.lang.String)
   public java.lang.String redact(java.lang.String, java.lang.String)
   public java.lang.String redactUrl(java.lang.String)
+TYPE io.github.testlens.core.trace.PassedTraceRetention
+  public static final io.github.testlens.core.trace.PassedTraceRetention RETAIN_TRACE
+  public static final io.github.testlens.core.trace.PassedTraceRetention SUMMARY_ONLY
+  public static io.github.testlens.core.trace.PassedTraceRetention[] values()
+  public static io.github.testlens.core.trace.PassedTraceRetention valueOf(java.lang.String)
 TYPE io.github.testlens.core.trace.RetryOutcomePolicy
   public static final io.github.testlens.core.trace.RetryOutcomePolicy REPORT_ONLY
   public static final io.github.testlens.core.trace.RetryOutcomePolicy WARN
@@ -429,6 +434,19 @@ TYPE io.github.testlens.core.trace.TraceMetadata
   public io.github.testlens.core.trace.TraceStatus status()
   public java.lang.String environment()
   public java.util.Map<java.lang.String, java.lang.String> labels()
+TYPE io.github.testlens.core.trace.TraceRetentionOptions$Builder
+  public io.github.testlens.core.trace.TraceRetentionOptions$Builder maxEvents(int)
+  public io.github.testlens.core.trace.TraceRetentionOptions$Builder maxBytes(long)
+  public io.github.testlens.core.trace.TraceRetentionOptions$Builder maxEventBytes(long)
+  public io.github.testlens.core.trace.TraceRetentionOptions$Builder passedSessionRetention(io.github.testlens.core.trace.PassedTraceRetention)
+  public io.github.testlens.core.trace.TraceRetentionOptions build()
+TYPE io.github.testlens.core.trace.TraceRetentionOptions
+  public static io.github.testlens.core.trace.TraceRetentionOptions defaults()
+  public static io.github.testlens.core.trace.TraceRetentionOptions$Builder builder()
+  public int maxEvents()
+  public long maxBytes()
+  public long maxEventBytes()
+  public io.github.testlens.core.trace.PassedTraceRetention passedSessionRetention()
 TYPE io.github.testlens.core.trace.TraceStatus
   public static final io.github.testlens.core.trace.TraceStatus STARTED
   public static final io.github.testlens.core.trace.TraceStatus PASSED
@@ -459,6 +477,7 @@ TYPE io.github.testlens.core.trace.UiTestLensSession
   public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String)
   public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int)
   public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int, io.github.testlens.core.redaction.RedactionPolicy)
+  public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int, io.github.testlens.core.redaction.RedactionPolicy, io.github.testlens.core.trace.TraceRetentionOptions)
   public java.lang.String id()
   public synchronized io.github.testlens.core.trace.TraceMetadata metadata()
   public synchronized java.util.List<io.github.testlens.core.trace.TraceEvent> events()
@@ -1306,6 +1325,7 @@ TYPE io.github.testlens.TestLensOptions$Builder
   public io.github.testlens.TestLensOptions$Builder allowedRetries(int)
   public io.github.testlens.TestLensOptions$Builder failureBundleOptions(io.github.testlens.selenium.evidence.FailureBundleOptions)
   public io.github.testlens.TestLensOptions$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
+  public io.github.testlens.TestLensOptions$Builder traceRetention(io.github.testlens.core.trace.TraceRetentionOptions)
   public io.github.testlens.TestLensOptions$Builder hud(io.github.testlens.hud.HudOptions)
   public io.github.testlens.TestLensOptions$Builder highlights(io.github.testlens.HighlightOptions)
   public io.github.testlens.TestLensOptions$Builder highlight(io.github.testlens.HighlightOptions)
@@ -1323,6 +1343,7 @@ TYPE io.github.testlens.TestLensOptions
   public int allowedRetries()
   public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOptions()
   public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
+  public io.github.testlens.core.trace.TraceRetentionOptions traceRetention()
   public io.github.testlens.hud.HudOptions hud()
   public io.github.testlens.HighlightOptions highlights()
   public io.github.testlens.HighlightOptions highlight()

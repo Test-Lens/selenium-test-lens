@@ -145,7 +145,9 @@ class RuntimeWorkloadPerformanceIT {
         assertEquals(1L, clicks, "native observation must not duplicate the business click");
         return new NativeObservationResult(profile, repetition, actionNanos, totalNanos,
                 wire.total() - commandsBefore, wire.count("executeScript") - scriptsBefore,
-                events, hud.batches(), hud.events(), hud.payloadBytes(), clicks);
+                events, hud.batches(), hud.events(), hud.payloadBytes(), clicks,
+                retentionLong(session, "retainedEvents"), retentionLong(session, "retainedEstimatedBytes"),
+                retentionLong(session, "evictedEvents"), retentionLong(session, "truncatedEvents"));
     }
 
     private static RunResult runSuccessfulWorkload(WebDriver driver,
@@ -190,7 +192,9 @@ class RuntimeWorkloadPerformanceIT {
         assertTrue(Files.isRegularFile(finalized.htmlReport()));
         return new RunResult(results, new LifecycleResult(preset.name(), repetition, "PASSED", 0L,
                 attachNanos, startNanos, finishNanos, 0L, session.events().size(), 1, 1,
-                wire.total(), wire.count("executeScript")));
+                wire.total(), wire.count("executeScript"),
+                retentionLong(session, "retainedEvents"), retentionLong(session, "retainedEstimatedBytes"),
+                retentionLong(session, "evictedEvents"), retentionLong(session, "truncatedEvents")));
     }
 
     private static LifecycleResult runFailureWorkload(WebDriver driver,
@@ -210,7 +214,9 @@ class RuntimeWorkloadPerformanceIT {
         long finishNanos = System.nanoTime() - finishStarted;
         assertTrue(Files.isRegularFile(finalized.failureScreenshot()), "controlled failure must retain evidence");
         return new LifecycleResult(preset.name(), 0, "CONTROLLED_FAILURE", 0L, 0L, startNanos,
-                finishNanos, 0L, session.events().size(), 1, 1, wire.total(), wire.count("executeScript"));
+                finishNanos, 0L, session.events().size(), 1, 1, wire.total(), wire.count("executeScript"),
+                retentionLong(session, "retainedEvents"), retentionLong(session, "retainedEstimatedBytes"),
+                retentionLong(session, "evictedEvents"), retentionLong(session, "truncatedEvents"));
     }
 
     private static OperationResult measure(String operation,
@@ -283,6 +289,13 @@ class RuntimeWorkloadPerformanceIT {
 
     private static long asLong(Object value) { return value instanceof Number number ? number.longValue() : 0L; }
 
+    private static long retentionLong(UiTestLensSession session, String key) {
+        if (session == null) return 0L;
+        String value = session.metadata().labels().get("testlens.retention." + key);
+        if (value == null || value.isBlank()) return 0L;
+        return Long.parseLong(value);
+    }
+
     private static TestLensOptions options(HudPreset preset, String directory) {
         return TestLensOptions.builder()
                 .hud(HudOptions.builder().preset(preset).build())
@@ -341,7 +354,7 @@ class RuntimeWorkloadPerformanceIT {
 
     private static void writeLifecycle(Path path, List<LifecycleResult> values) throws IOException {
         List<String> lines = new ArrayList<>();
-        lines.add("sourceSha,browser,headed,preset,repetition,outcome,createDriverNanos,attachNanos,startSessionNanos,finishNanos,quitNanos,lensEvents,lensSessions,reports,executorCommands,executeScript");
+        lines.add("sourceSha,browser,headed,preset,repetition,outcome,createDriverNanos,attachNanos,startSessionNanos,finishNanos,quitNanos,lensEvents,lensSessions,reports,executorCommands,executeScript,retainedEvents,retainedEstimatedBytes,evictedEvents,truncatedEvents");
         for (LifecycleResult value : values) lines.add(String.join(",",
                 System.getProperty("perf.sourceSha", "unknown"), BrowserTestHarness.browserName(),
                 System.getProperty("headed", "false"), value.preset(), String.valueOf(value.repetition()), value.outcome(),
@@ -349,7 +362,9 @@ class RuntimeWorkloadPerformanceIT {
                 String.valueOf(value.startSessionNanos()), String.valueOf(value.finishNanos()),
                 String.valueOf(value.quitNanos()), String.valueOf(value.lensEvents()),
                 String.valueOf(value.lensSessions()), String.valueOf(value.reports()),
-                String.valueOf(value.executorCommands()), String.valueOf(value.executeScript())));
+                String.valueOf(value.executorCommands()), String.valueOf(value.executeScript()),
+                String.valueOf(value.retainedEvents()), String.valueOf(value.retainedEstimatedBytes()),
+                String.valueOf(value.evictedEvents()), String.valueOf(value.truncatedEvents())));
         Files.write(path, lines, StandardCharsets.UTF_8);
     }
 
@@ -416,7 +431,7 @@ class RuntimeWorkloadPerformanceIT {
 
     private static void writeNativeObservation(Path path, List<NativeObservationResult> values) throws IOException {
         List<String> lines = new ArrayList<>();
-        lines.add("sourceSha,browser,headed,profile,repetition,actionNanos,totalWithFinishNanos,executorCommands,executeScript,lensEvents,hudBatches,hudBatchEvents,hudPayloadBytes,businessClicks");
+        lines.add("sourceSha,browser,headed,profile,repetition,actionNanos,totalWithFinishNanos,executorCommands,executeScript,lensEvents,hudBatches,hudBatchEvents,hudPayloadBytes,businessClicks,retainedEvents,retainedEstimatedBytes,evictedEvents,truncatedEvents");
         for (NativeObservationResult value : values) lines.add(String.join(",",
                 System.getProperty("perf.sourceSha", "unknown"), BrowserTestHarness.browserName(),
                 System.getProperty("headed", "false"), value.profile(), String.valueOf(value.repetition()),
@@ -424,7 +439,9 @@ class RuntimeWorkloadPerformanceIT {
                 String.valueOf(value.executorCommands()), String.valueOf(value.executeScript()),
                 String.valueOf(value.lensEvents()), String.valueOf(value.hudBatches()),
                 String.valueOf(value.hudBatchEvents()), String.valueOf(value.hudPayloadBytes()),
-                String.valueOf(value.businessClicks())));
+                String.valueOf(value.businessClicks()), String.valueOf(value.retainedEvents()),
+                String.valueOf(value.retainedEstimatedBytes()), String.valueOf(value.evictedEvents()),
+                String.valueOf(value.truncatedEvents())));
         Files.write(path, lines, StandardCharsets.UTF_8);
     }
 
@@ -440,16 +457,21 @@ class RuntimeWorkloadPerformanceIT {
     private record NativeObservationResult(String profile, int repetition, long actionNanos, long totalNanos,
                                            int executorCommands, int executeScript, int lensEvents,
                                            int hudBatches, int hudBatchEvents, long hudPayloadBytes,
-                                           long businessClicks) { }
+                                           long businessClicks, long retainedEvents,
+                                           long retainedEstimatedBytes, long evictedEvents,
+                                           long truncatedEvents) { }
     private record LifecycleResult(String preset, int repetition, String outcome, long createDriverNanos,
                                    long attachNanos, long startSessionNanos, long finishNanos, long quitNanos,
                                    int lensEvents, int lensSessions, int reports, int executorCommands,
-                                   int executeScript) {
+                                   int executeScript, long retainedEvents, long retainedEstimatedBytes,
+                                   long evictedEvents, long truncatedEvents) {
         LifecycleResult withCreateNanos(long value) { return new LifecycleResult(preset, repetition, outcome, value,
                 attachNanos, startSessionNanos, finishNanos, quitNanos, lensEvents, lensSessions, reports,
-                executorCommands, executeScript); }
+                executorCommands, executeScript, retainedEvents, retainedEstimatedBytes, evictedEvents,
+                truncatedEvents); }
         LifecycleResult withQuitNanos(long value) { return new LifecycleResult(preset, repetition, outcome,
                 createDriverNanos, attachNanos, startSessionNanos, finishNanos, value, lensEvents, lensSessions,
-                reports, executorCommands, executeScript); }
+                reports, executorCommands, executeScript, retainedEvents, retainedEstimatedBytes, evictedEvents,
+                truncatedEvents); }
     }
 }

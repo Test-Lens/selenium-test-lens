@@ -12,6 +12,38 @@ A trace is the structured history of a Test Lens session: steps, browser actions
 
 The trace is the spine of the observability workflow: operations append events, finalization fixes the terminal session outcome, HTML/JSON exporters present the timeline, and failure bundles collect the resulting reports with other evidence. Trace and reports themselves are available in stable `0.1.0`.
 
+## Bounded retention (0.4.0)
+
+Every session uses one bounded store behind the existing trace pipeline. The default limits are 4,096 retained
+event/artifact references, 8 MiB of deterministically estimated retained diagnostic data, and 256 KiB for one
+event. These values were selected after the repository's Chrome/Firefox fixtures produced 18–65 events,
+approximately 42–141 KiB JSON reports, and a largest observed event of about 1.8 KiB. The defaults leave a
+large margin for ordinary tests while imposing a real upper bound; binary PNG/ZIP/network artifacts keep their
+own limits and only their inline metadata counts here.
+
+```java
+TestLensOptions options = TestLensOptions.builder()
+        .traceRetention(TraceRetentionOptions.builder()
+                .maxEvents(2_000)
+                .maxBytes(4L * 1024 * 1024)
+                .maxEventBytes(128L * 1024)
+                .passedSessionRetention(PassedTraceRetention.RETAIN_TRACE)
+                .build())
+        .build();
+```
+
+`RETAIN_TRACE` retains the bounded trace after a passed session; it does **not** mean unlimited history.
+`SUMMARY_ONLY` releases passed-session detail after the immutable terminal summary is formed. Failed sessions
+preserve a bounded tail before the accepted terminal failure, a compact root-failure record, and bounded
+post-failure diagnostics. A caught action error does not freeze the test: the freeze occurs only when the runner
+or `finishFailed(...)` accepts the terminal outcome.
+
+JSON contains an additive `retention` object, and HTML contains a Trace completeness section. Count/byte
+evictions, oversized truncation/drop, late callbacks, and partial artifact capture are explicit. Normal bounded
+eviction never changes the functional test status. Strings are truncated only after central redaction and at
+Unicode grapheme boundaries. Finalization closes one immutable snapshot used by JSON, HTML, and the failure
+bundle; later callbacks are dropped rather than reopening a completed report.
+
 Trace recording is automatic after a normal session starts. You do not need to create a trace recorder or call a record method for each operation:
 
 ```java
@@ -30,7 +62,7 @@ The facade maps the first finalization directly to trace status: `finishPassed()
 
 Recovery retries use `TraceEventType.RETRY`; the summary and policy decision are recorded before `SESSION_FINISHED`. Polling events retain their timeline visibility but never become retry events or make `flakyCandidate` true. The default policy observes without changing outcomes; configured fail policies act only during `finishPassed()`. Names, messages, paths, and attached metadata are persisted, so avoid putting credentials or tokens in them.
 
-Network diagnostics emit typed start/stop, request, response, fetch-error, wait, and assertion log events into the attached trace. General log metadata removes query strings from its URL preview; explicit network event exports retain their normal URL value, so query parameters still require secret-aware handling. Lens-owned capture is stopped before `SESSION_FINISHED`.
+Network diagnostics emit typed start/stop, request, response, fetch-error, wait, and assertion log events into the attached trace. Request/response/failure URLs, messages, attributes, and headers cross the effective central redaction policy before entering the bounded network buffer; exporters retain a defensive safe-data boundary. Lens-owned capture is stopped before `SESSION_FINISHED`.
 
 An invalid network capture generation emits `NETWORK_ASSERTION_FAILED` when `assertNoFailedRequests()` is attempted and never emits a corresponding success. Its summary retains the real lifecycle status (`STOPPED`, `UNSUPPORTED`, or `FAILED`). This failure is neither recovery retry nor a flaky-candidate signal.
 

@@ -7,6 +7,21 @@ search:
 
 Generated binary-surface details. For behavior and examples, return to the [functional reference](../index.md) or follow the mapped documentation link.
 
+## `io.github.testlens.core.trace.PassedTraceRetention` {#io-github-testlens-core-trace-passedtraceretention}
+
+- Artifact/module: `selenium-test-lens-core`
+- Package: `io.github.testlens.core.trace`
+- Classification: `USER_API`
+- Type kind: `enum`
+- Functional documentation: [docs/observability/trace.md](../../observability/trace.md)
+
+```java
+public static final io.github.testlens.core.trace.PassedTraceRetention RETAIN_TRACE
+public static final io.github.testlens.core.trace.PassedTraceRetention SUMMARY_ONLY
+public static io.github.testlens.core.trace.PassedTraceRetention[] values()
+public static io.github.testlens.core.trace.PassedTraceRetention valueOf(java.lang.String)
+```
+
 ## `io.github.testlens.core.trace.RetryOutcomePolicy` {#io-github-testlens-core-trace-retryoutcomepolicy}
 
 - Artifact/module: `selenium-test-lens-core`
@@ -319,6 +334,39 @@ public java.lang.String environment()
 public java.util.Map<java.lang.String, java.lang.String> labels()
 ```
 
+## `io.github.testlens.core.trace.TraceRetentionOptions$Builder` {#io-github-testlens-core-trace-traceretentionoptions-builder}
+
+- Artifact/module: `selenium-test-lens-core`
+- Package: `io.github.testlens.core.trace`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/observability/trace.md](../../observability/trace.md)
+
+```java
+public io.github.testlens.core.trace.TraceRetentionOptions$Builder maxEvents(int)
+public io.github.testlens.core.trace.TraceRetentionOptions$Builder maxBytes(long)
+public io.github.testlens.core.trace.TraceRetentionOptions$Builder maxEventBytes(long)
+public io.github.testlens.core.trace.TraceRetentionOptions$Builder passedSessionRetention(io.github.testlens.core.trace.PassedTraceRetention)
+public io.github.testlens.core.trace.TraceRetentionOptions build()
+```
+
+## `io.github.testlens.core.trace.TraceRetentionOptions` {#io-github-testlens-core-trace-traceretentionoptions}
+
+- Artifact/module: `selenium-test-lens-core`
+- Package: `io.github.testlens.core.trace`
+- Classification: `USER_API`
+- Type kind: `class`
+- Functional documentation: [docs/observability/trace.md](../../observability/trace.md)
+
+```java
+public static io.github.testlens.core.trace.TraceRetentionOptions defaults()
+public static io.github.testlens.core.trace.TraceRetentionOptions$Builder builder()
+public int maxEvents()
+public long maxBytes()
+public long maxEventBytes()
+public io.github.testlens.core.trace.PassedTraceRetention passedSessionRetention()
+```
+
 ## `io.github.testlens.core.trace.TraceStatus` {#io-github-testlens-core-trace-tracestatus}
 
 - Artifact/module: `selenium-test-lens-core`
@@ -383,6 +431,7 @@ public synchronized java.util.List<io.github.testlens.core.trace.TraceEvent> eve
 public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String)
 public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int)
 public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int, io.github.testlens.core.redaction.RedactionPolicy)
+public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int, io.github.testlens.core.redaction.RedactionPolicy, io.github.testlens.core.trace.TraceRetentionOptions)
 public java.lang.String id()
 public synchronized io.github.testlens.core.trace.TraceMetadata metadata()
 public synchronized java.util.List<io.github.testlens.core.trace.TraceEvent> events()

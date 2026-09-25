@@ -103,6 +103,22 @@ public final class NetworkWaitResult {
                 failureReason, NetworkDiagnosticThrowable.copy(exception, policy));
     }
 
+    NetworkWaitResult retainedRedacted(RedactionPolicy policy, NetworkEvent event, NetworkRequest request,
+                                       String safeConditionSummary) {
+        if (policy == null || !policy.enabled()) return this;
+        String safeMessage;
+        if (status == NetworkWaitStatus.MATCHED && event != null) {
+            safeMessage = "Matched network event: " + event.url();
+        } else if (!conditionSummary.isBlank()) {
+            safeMessage = policy.redact(message.replace(conditionSummary, safeConditionSummary));
+        } else {
+            safeMessage = policy.redact(message);
+        }
+        return new NetworkWaitResult(status, safeConditionSummary, event, request,
+                event == null ? null : event.response(), attempts, elapsed, safeMessage,
+                failureReason, NetworkDiagnosticThrowable.copy(exception, policy));
+    }
+
     private static String timeoutMessage(NetworkWaitCondition condition, Duration elapsed, NetworkSummary summary) {
         String unit = condition != null && condition.matchRequestOnly() ? "request" : "response";
         StringBuilder builder = new StringBuilder("Timed out waiting for ")

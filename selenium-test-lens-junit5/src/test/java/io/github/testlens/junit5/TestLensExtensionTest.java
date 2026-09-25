@@ -8,6 +8,7 @@ import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
 import io.github.testlens.core.trace.RetryOutcomePolicy;
 import io.github.testlens.core.trace.RetryPolicyViolationException;
+import io.github.testlens.core.trace.TraceRetentionOptions;
 import io.github.testlens.selenium.execution.BrowserExecutionConfig;
 import io.github.testlens.selenium.execution.HeadlessMode;
 import org.junit.jupiter.api.AfterEach;
@@ -114,6 +115,19 @@ class TestLensExtensionTest {
         assertEquals(Harness.testFailure.getClass().getName(), finished.failure().exceptionType());
         assertEquals(Harness.testFailure.getMessage(), finished.failure().message());
         assertEquals(0, Harness.testFailure.getSuppressed().length);
+    }
+
+    @Test
+    void uncaughtFailureWatermarkPrecedesAndSurvivesNoisyAfterEach() {
+        Harness.testFailure = new AssertionError("watermarked failure");
+        execute(FailureWatermarkFixture.class).testEvents()
+                .assertStatistics(stats -> stats.started(1).failed(1));
+
+        UiTestLensSession session = Harness.onlyObservation().session;
+        assertTrue(session.events().stream().anyMatch(event ->
+                "true".equals(event.attributes().get("testlens.recorder.failureWatermark"))));
+        assertTrue(session.events().size() <= 12);
+        assertEquals(TraceStatus.FAILED, session.metadata().status());
     }
 
     @Test
@@ -346,6 +360,30 @@ class TestLensExtensionTest {
         void fails(WebDriver driver, TestLens lens) {
             Harness.observe("failed", driver, lens);
             throw Harness.testFailure;
+        }
+    }
+
+    static final class FailureWatermarkFixture {
+        @RegisterExtension
+        static final TestLensExtension LENS = TestLensExtension.builder(Harness::newDriver)
+                .lensOptions(TestLensOptions.builder().outputRoot(Harness.outputRoot).screenshotOnFailure(false)
+                        .traceRetention(TraceRetentionOptions.builder()
+                                .maxEvents(12).maxBytes(24_000).maxEventBytes(4_000).build())
+                        .build())
+                .build();
+
+        @Test
+        void fails(WebDriver driver, TestLens lens) {
+            Harness.observe("watermark", driver, lens);
+            throw Harness.testFailure;
+        }
+
+        @AfterEach
+        void noisyAfterEach(TestLens lens) {
+            UiTestLensSession session = lens.session().orElseThrow();
+            for (int index = 0; index < 100; index++) {
+                session.addEvent(TraceEvent.info("after-each-" + index, "bounded diagnostic"));
+            }
         }
     }
 

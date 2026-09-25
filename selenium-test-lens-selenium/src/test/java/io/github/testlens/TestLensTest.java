@@ -78,6 +78,34 @@ class TestLensTest {
     }
 
     @Test
+    void manySequentialSessionsDoNotAccumulateFullFinalizationMap() throws Exception {
+        TestLens lens = TestLens.attach(driver(false), TestLensOptions.builder().outputRoot(temp).build());
+        for (int index = 0; index < 40; index++) {
+            lens.startSession("sequential-" + index);
+            lens.finishPassed();
+        }
+
+        assertFalse(java.util.Arrays.stream(TestLens.class.getDeclaredFields())
+                .anyMatch(field -> field.getName().equals("finalizations")));
+        assertEquals(TraceStatus.PASSED, lens.session().orElseThrow().metadata().status());
+    }
+
+    @Test
+    void jsonAndHtmlUseTheClosedSessionSnapshot() throws Exception {
+        TestLens lens = TestLens.attach(driver(false), TestLensOptions.builder().outputRoot(temp).build());
+        UiTestLensSession session = lens.startSession("same snapshot");
+        TestLensFinalizationResult result = lens.finishPassed();
+        String terminalId = finishedEvents(session).get(0).id();
+
+        String json = Files.readString(result.jsonReport());
+        String html = Files.readString(result.htmlReport());
+        assertTrue(json.contains(terminalId));
+        assertTrue(html.contains(terminalId));
+        assertTrue(json.contains(session.metadata().labels().get("testlens.retention.snapshotClosedAt")));
+        assertTrue(html.contains(session.metadata().labels().get("testlens.retention.snapshotClosedAt")));
+    }
+
+    @Test
     void attachesExistingDriverAndFinalizesIntoUniqueSessionDirectory() {
         WebDriver driver = driver(false);
         TestLens first = TestLens.attach(driver, TestLensOptions.builder().outputRoot(temp).build());

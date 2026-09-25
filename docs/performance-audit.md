@@ -124,4 +124,42 @@ The separate 300-entry USER-message burst intentionally remains synchronous rath
 
 No BrowserStack credentials or Grid endpoint were available for this audit. BrowserStack and WAN performance are therefore **NOT RUN**, not inferred from localhost. To measure a remote consumer, use the same source SHA/artifact, expose a reachable fixture, retain the same operation count, and record provider new-session/quit separately from Test Lens event dispatch.
 
+## Stage 4 — bounded trace recorder
+
+The bounded-recorder baseline was captured from `22d3fe7` before changing runtime retention. The optimized run
+used the same harness and fixture from `22d3fe7+working-tree`: two warmups, five interleaved measured repetitions,
+100 prepared HUD entries, and the same six-action, native-observation, failure-evidence, and TestNG lifecycle
+workloads. Raw files are under `target/performance-audit/bounded-recorder-baseline` and
+`target/performance-audit/bounded-recorder-optimized`.
+
+Baseline reports contained 18 events / 42.7–42.8 KiB JSON for native observation, 23 events / 47.2–47.3 KiB
+for the TestNG lifecycle, 49 events / 101.8–101.9 KiB for successful six-action sessions, and 59–65 events /
+125.6–140.7 KiB for controlled failures. The largest serialized event was approximately 1.8 KiB. Those
+distributions support defaults of 4,096 event/artifact references, 8 MiB estimated retained safe data, and
+256 KiB per event: ordinary fixtures remain well below every bound while pathological sessions have a real cap.
+
+| Browser | Workload | Baseline median (range) | Bounded median (range) | Interpretation |
+| --- | --- | ---: | ---: | --- |
+| Chrome | 100 prepared STANDARD entries | 15.623 ms/entry (14.008–16.004) | 16.122 ms (15.093–16.863) | overlap |
+| Chrome | 100 prepared DEBUG entries | 15.546 ms/entry (14.349–19.437) | 16.414 ms (15.444–19.835) | overlap |
+| Firefox | 100 prepared STANDARD entries | 12.863 ms/entry (12.524–13.659) | 13.092 ms (13.037–14.252) | overlap |
+| Firefox | 100 prepared DEBUG entries | 12.424 ms/entry (12.069–12.588) | 13.344 ms (12.100–13.352) | overlap |
+| Chrome | six real STANDARD actions | 2.864 s (2.764–2.951) | 2.849 s (2.834–2.934) | no measured regression |
+| Chrome | six real DEBUG actions | 2.942 s (2.893–3.060) | 2.988 s (2.937–3.016) | overlap |
+| Firefox | six real STANDARD actions | 1.498 s (1.415–1.576) | 1.469 s (1.452–1.514) | no measured regression |
+| Firefox | six real DEBUG actions | 1.598 s (1.497–1.668) | 1.593 s (1.499–1.654) | no measured regression |
+
+The optimized successful sessions retained 49 events and about 36.2 KiB by the deterministic in-memory
+estimator. Controlled failures retained 61 Chrome events (about 46.5 KiB) and 63–65 Firefox events
+(48.2–50.0 KiB). No normal fixture evicted or truncated an event. Finalization medians stayed in the existing
+noise band (Chrome 11.4–14.3 ms; Firefox 10.6–11.2 ms depending on preset). Native-observation total medians
+and the one-sample TestNG lifecycle cells also overlapped their baseline variability; they are not evidence of
+a speedup or a demonstrated regression.
+
+The structural cost is one redacted-data UTF-8 estimate per append and bookkeeping proportional to the event
+payload, with no JSON serialization, filesystem access, WebDriver command, or global lock. Eviction work only
+starts at a configured bound. `workload-lifecycle.csv` and `native-observation-operations.csv` now include
+`retainedEvents`, `retainedEstimatedBytes`, `evictedEvents`, and `truncatedEvents` so future measurements do not
+infer in-memory retention from exported JSON size.
+
 JFR/browser traces are useful for CPU and allocation attribution but change the measured system. A separate 20-event, zero-warmup JFR using the JDK `profile` settings produced a four-second recording. It contained only four execution samples—too few for a CPU attribution claim—and showed the test spending its sampled time in framework startup/waiting/HTTP I/O rather than a demonstrated Java CPU hotspot. This result is supporting context, not the source of the reported speedup; the unprofiled repeated wall-time and command-count runs are the primary evidence. The installed Chrome 152 has no matching Selenium 4.39 CDP module in this repository, so a Chrome DevTools performance trace was **NOT RUN**; Selenium was not upgraded for the audit.

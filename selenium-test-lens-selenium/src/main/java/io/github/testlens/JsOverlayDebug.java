@@ -382,8 +382,10 @@ public final class JsOverlayDebug {
     UiTestLensSession startSession(String name,
                                    io.github.testlens.core.trace.RetryOutcomePolicy policy,
                                    int allowedRetries,
-                                   RedactionPolicy redactionPolicy) {
-        UiTestLensSession started = UiTestLensSession.start(name, policy, allowedRetries, redactionPolicy);
+                                   RedactionPolicy redactionPolicy,
+                                   io.github.testlens.core.trace.TraceRetentionOptions traceRetention) {
+        UiTestLensSession started = UiTestLensSession.start(
+                name, policy, allowedRetries, redactionPolicy, traceRetention);
         attachSession(started);
         return started;
     }

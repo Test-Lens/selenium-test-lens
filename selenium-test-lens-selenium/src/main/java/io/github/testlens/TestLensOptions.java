@@ -1,6 +1,7 @@
 package io.github.testlens;
 
 import io.github.testlens.core.trace.RetryOutcomePolicy;
+import io.github.testlens.core.trace.TraceRetentionOptions;
 import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selenium.locator.UiLocatorOptions;
 import io.github.testlens.selenium.evidence.FailureBundleOptions;
@@ -22,6 +23,7 @@ public final class TestLensOptions {
     private final RedactionPolicy redactionPolicy;
     private final VisualRedactionOptions visualRedaction;
     private final HighlightOptions highlightOptions;
+    private final TraceRetentionOptions traceRetention;
 
     private TestLensOptions(Builder builder) {
         OverlayConfig configuredOverlay = builder.overlayConfig == null ? OverlayConfig.builder().build() : builder.overlayConfig;
@@ -39,6 +41,8 @@ public final class TestLensOptions {
         this.redactionPolicy = builder.redactionPolicy == null ? RedactionPolicy.defaults() : builder.redactionPolicy;
         this.visualRedaction = builder.visualRedaction == null
                 ? VisualRedactionOptions.defaults() : builder.visualRedaction;
+        this.traceRetention = builder.traceRetention == null
+                ? TraceRetentionOptions.defaults() : builder.traceRetention;
     }
 
     public static TestLensOptions defaults() { return builder().build(); }
@@ -52,6 +56,8 @@ public final class TestLensOptions {
     public int allowedRetries() { return allowedRetries; }
     public FailureBundleOptions failureBundleOptions() { return failureBundleOptions; }
     public RedactionPolicy redactionPolicy() { return redactionPolicy; }
+    /** Returns bounded trace-retention configuration. @since 0.4.0 */
+    public TraceRetentionOptions traceRetention() { return traceRetention; }
     /**
      * Returns the HUD configuration used by the overlay.
      * @return effective immutable HUD options
@@ -91,6 +97,7 @@ public final class TestLensOptions {
         private HudOptions hudOptions;
         private VisualRedactionOptions visualRedaction = VisualRedactionOptions.defaults();
         private HighlightOptions highlightOptions;
+        private TraceRetentionOptions traceRetention = TraceRetentionOptions.defaults();
         private Builder() {}
         public Builder overlayConfig(OverlayConfig value) { overlayConfig = value; return this; }
         public Builder locatorOptions(UiLocatorOptions value) { locatorOptions = value; return this; }
@@ -112,6 +119,11 @@ public final class TestLensOptions {
         }
         public Builder redactionPolicy(RedactionPolicy value) {
             redactionPolicy = value == null ? RedactionPolicy.defaults() : value;
+            return this;
+        }
+        /** Configures bounded trace retention; null restores defaults. @since 0.4.0 */
+        public Builder traceRetention(TraceRetentionOptions value) {
+            traceRetention = value == null ? TraceRetentionOptions.defaults() : value;
             return this;
         }
         /**

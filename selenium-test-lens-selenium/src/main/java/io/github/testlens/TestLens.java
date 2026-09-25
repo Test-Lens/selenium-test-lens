@@ -5,6 +5,9 @@ import io.github.testlens.core.trace.RetryPolicyViolationException;
 import io.github.testlens.core.trace.RetrySummary;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.RetryOutcomePolicy;
+import io.github.testlens.core.trace.TraceEvent;
+import io.github.testlens.core.trace.TraceEventType;
+import io.github.testlens.core.trace.TraceFailure;
 import io.github.testlens.selenium.assertions.UiExpect;
 import io.github.testlens.selenium.assertions.UiPageExpect;
 import io.github.testlens.selenium.assertions.UiAssertionOptions;
@@ -39,7 +42,8 @@ public final class TestLens {
     private final JsOverlayDebug delegate;
     private final TestLensOptions options;
     private final Object finalizationLock = new Object();
-    private final Map<UiTestLensSession, FacadeFinalization> finalizations = new IdentityHashMap<>();
+    private UiTestLensSession finalizedSession;
+    private FacadeFinalization finalization;
     private final Map<UiTestLensSession, ScenarioScope> scenarioScopes = new IdentityHashMap<>();
     private final FinalizationObserver finalizationObserver;
     private final SuiteStateManager suiteState;
@@ -103,7 +107,11 @@ public final class TestLens {
     public UiTestLensSession startSession(String name) {
         closeTerminalReplacedScenario();
         UiTestLensSession session = delegate.startSession(name, options.retryOutcomePolicy(), options.allowedRetries(),
-                options.redactionPolicy());
+                options.redactionPolicy(), options.traceRetention());
+        synchronized (finalizationLock) {
+            finalizedSession = null;
+            finalization = null;
+        }
         // Safe even before the first document exists; subsequent native events lazily reinject it.
         try { delegate.initHud(session.metadata().name(), ""); } catch (RuntimeException ignored) {
             // The browser may not have a document yet. Native events will retry lazily.
@@ -301,7 +309,11 @@ public final class TestLens {
         FacadeFinalization finalization;
         boolean owner;
         synchronized (finalizationLock) {
-            finalization = finalizations.computeIfAbsent(session, ignored -> new FacadeFinalization(request));
+            if (finalizedSession != session || this.finalization == null) {
+                finalizedSession = session;
+                this.finalization = new FacadeFinalization(request);
+            }
+            finalization = this.finalization;
             owner = finalization.claim();
         }
         if (owner) {
@@ -340,6 +352,8 @@ public final class TestLens {
         RetryPolicyViolationException predictedPolicyViolation = request.finishSession()
                 ? policyViolationFor(outcome, session) : null;
         boolean failedOutcome = outcome == FinalizationOutcome.FAILED || predictedPolicyViolation != null;
+        if (failedOutcome) markFailureFreeze(session,
+                outcome == FinalizationOutcome.FAILED ? originalFailure : predictedPolicyViolation);
         FailureBundleCapture bundle = failedOutcome && options.failureBundleOptions().enabled()
                 ? new FailureBundleCapture(driver(), delegate, session, options, directory) : null;
         Path screenshotPath = null;
@@ -368,6 +382,7 @@ public final class TestLens {
                 outcome = FinalizationOutcome.FAILED;
                 originalFailure = cleanupFailure;
                 failedOutcome = true;
+                markFailureFreeze(session, cleanupFailure);
                 if (options.failureBundleOptions().enabled()) {
                     bundle = new FailureBundleCapture(driver(), delegate, session, options, directory);
                     screenshotPath = bundle.captureDiagnosticScreenshot(options.screenshotOnFailure());
@@ -475,6 +490,15 @@ public final class TestLens {
         if (primary == secondary) return;
         for (Throwable existing : primary.getSuppressed()) if (existing == secondary) return;
         primary.addSuppressed(secondary);
+    }
+
+    private static void markFailureFreeze(UiTestLensSession session, Throwable failure) {
+        session.addEvent(TraceEvent.builder(TraceEventType.CUSTOM, TraceStatus.FAILED,
+                        "Terminal failure accepted")
+                .message(failure == null ? "Terminal failure" : failure.getMessage())
+                .failure(failure == null ? null : TraceFailure.from(failure, false))
+                .attribute("testlens.recorder.failureFreeze", "true")
+                .build());
     }
 
     private void observe(FinalizationStage stage) {

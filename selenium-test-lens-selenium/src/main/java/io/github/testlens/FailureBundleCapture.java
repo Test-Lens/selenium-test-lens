@@ -62,7 +62,6 @@ final class FailureBundleCapture {
     private final Path bundleDirectory;
     private final Path archive;
     private final Instant capturedAt = Instant.now();
-    private final List<TraceEvent> traceSnapshot;
     private final Map<String, Component> components = new TreeMap<>();
     private final List<Throwable> failures = new ArrayList<>();
 
@@ -77,7 +76,6 @@ final class FailureBundleCapture {
         this.sessionDirectory = sessionDirectory.toAbsolutePath().normalize();
         this.bundleDirectory = this.sessionDirectory.resolve("failure-bundle");
         this.archive = this.sessionDirectory.resolve("failure-bundle.zip");
-        this.traceSnapshot = session.events();
     }
 
     List<Throwable> failures() { return List.copyOf(failures); }
@@ -541,7 +539,7 @@ final class FailureBundleCapture {
     private void skippedSensitive(String name) { component(name, "SKIPPED", null, null, "Disabled by default because the data may contain secrets"); }
 
     private Map<String, Object> lastEvent(Set<TraceEventType> types) {
-        return traceSnapshot.stream().filter(event -> types.contains(event.type()))
+        return session.events().stream().filter(event -> types.contains(event.type()))
                 .max(Comparator.comparing(TraceEvent::timestamp)).map(this::eventMap)
                 .orElseGet(() -> unavailable("No matching trace event"));
     }
@@ -578,8 +576,9 @@ final class FailureBundleCapture {
     }
 
     private Map<String, Object> frameContext() {
-        for (int index = traceSnapshot.size() - 1; index >= 0; index--) {
-            TraceEvent event = traceSnapshot.get(index);
+        List<TraceEvent> traceEvents = session.events();
+        for (int index = traceEvents.size() - 1; index >= 0; index--) {
+            TraceEvent event = traceEvents.get(index);
             String action = event.attributes().get("action");
             if (event.status() != TraceStatus.PASSED || action == null) continue;
             if (action.equals("context.frame")) return available("FRAME");

@@ -4,6 +4,10 @@ import io.github.testlens.TestLens;
 import io.github.testlens.TestLensOptions;
 import io.github.testlens.TestRunScope;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.trace.TraceEvent;
+import io.github.testlens.core.trace.TraceEventType;
+import io.github.testlens.core.trace.TraceFailure;
+import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.selenium.execution.BrowserExecutionConfig;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.NoSuchSessionException;
@@ -169,6 +173,7 @@ public final class TestLensTestNgListener extends TestLensTestNgConfigurationBri
         InvocationState invocation = state(result);
         try {
             if (invocation != null) {
+                if (isTerminalFailureCandidate(invoked, result)) markFailureWatermark(invocation, result);
                 invocation.observe(result, invoked);
                 if (invoked.isTestMethod() && invocation.expectedAfterMethods().isEmpty()) {
                     owner.finish(invocation, result);
@@ -257,6 +262,24 @@ public final class TestLensTestNgListener extends TestLensTestNgConfigurationBri
             case ITestResult.FAILURE, ITestResult.SUCCESS_PERCENTAGE_FAILURE -> lens.finishFailed(original);
             default -> lens.finishFailed(original);
         }
+    }
+
+    private static boolean isTerminalFailureCandidate(IInvokedMethod invoked, ITestResult result) {
+        if (result.getStatus() != ITestResult.FAILURE
+                && result.getStatus() != ITestResult.SUCCESS_PERCENTAGE_FAILURE) return false;
+        return invoked.isTestMethod() || invoked.isConfigurationMethod()
+                && result.getMethod().isBeforeMethodConfiguration();
+    }
+
+    private static void markFailureWatermark(InvocationState invocation, ITestResult result) {
+        Throwable failure = result.getThrowable();
+        invocation.session.addEvent(TraceEvent.builder(TraceEventType.CUSTOM, TraceStatus.FAILED,
+                        "Uncaught TestNG failure boundary")
+                .message(failure == null ? "TestNG reported an uncaught failure" : failure.getMessage())
+                .failure(failure == null ? null : TraceFailure.from(failure, false))
+                .attribute("testlens.recorder.failureWatermark", "true")
+                .attribute("runner", "testng")
+                .build());
     }
 
     private static String skippedReason(Throwable skipped) {

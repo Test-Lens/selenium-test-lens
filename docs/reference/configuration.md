@@ -41,6 +41,7 @@ driver, quits/recreates the session, changes capabilities, or retroactively chan
 | `failureBundleOptions(value)` | `FailureBundleOptions` | safe defaults | Configures automatic bundle collectors and limits for final `FAILED`; raw page source and browser console default to disabled. |
 | `visualRedaction(value)` | `VisualRedactionOptions` | password-safe defaults | Configures temporary browser-side masks for screenshot pixels. |
 | `redactionPolicy(value)` | `RedactionPolicy` | `RedactionPolicy.defaults()` | Central diagnostic redaction used by logger fan-out, trace, network/API overlays, reports, and failure-bundle text; null restores the safe default. |
+| `traceRetention(value)` | `TraceRetentionOptions` | 4,096 events / 8 MiB / 256 KiB per event, `RETAIN_TRACE` | Hard per-session count and estimated-byte bounds. Null restores defaults. `SUMMARY_ONLY` releases passed detail after terminal summary creation. Added in `0.4.0`. |
 | `cleanupHudOnFinish(value)` | `boolean` | `true` | Best-effort removal of injected visual artifacts. |
 | `retryOutcomePolicy(value)` | `RetryOutcomePolicy` | `REPORT_ONLY` | Policy evaluated only by `finishPassed()` when the session contains recovery retries. |
 | `allowedRetries(value)` | `int` | `0` | Non-negative number allowed by `FAIL_AFTER_N`; failure occurs when `totalRetries > allowedRetries`. |

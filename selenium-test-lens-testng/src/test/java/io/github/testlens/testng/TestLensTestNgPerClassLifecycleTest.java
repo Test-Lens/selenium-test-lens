@@ -3,6 +3,8 @@ package io.github.testlens.testng;
 import io.github.testlens.TestLensOptions;
 import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
+import io.github.testlens.core.trace.TraceEvent;
+import io.github.testlens.core.trace.TraceRetentionOptions;
 import io.github.testlens.selenium.execution.BrowserExecutionConfig;
 import io.github.testlens.selenium.execution.HeadlessMode;
 import org.junit.jupiter.api.AfterEach;
@@ -173,6 +175,20 @@ class TestLensTestNgPerClassLifecycleTest {
         assertTrue(Harness.sessions.stream().anyMatch(s -> s.metadata().status() == TraceStatus.FAILED),
                 Harness.sessions.stream().map(s -> s.metadata().status()).toList().toString());
         assertTrue(Harness.sessions.stream().anyMatch(s -> s.metadata().status() == TraceStatus.PASSED));
+    }
+
+    @Test
+    void uncaughtBodyFailureWatermarkSurvivesLargeAfterMethodTrace() {
+        run(FailureWatermarkFixture.class);
+
+        UiTestLensSession failed = Harness.sessions.stream()
+                .filter(session -> session.metadata().status() == TraceStatus.FAILED)
+                .findFirst().orElseThrow();
+        assertTrue(failed.events().stream().anyMatch(event ->
+                "true".equals(event.attributes().get("testlens.recorder.failureWatermark"))));
+        assertTrue(failed.events().stream().anyMatch(event ->
+                event.type() == io.github.testlens.core.trace.TraceEventType.SESSION_FINISHED));
+        assertTrue(failed.events().size() <= 12);
     }
 
     @Test
@@ -378,6 +394,21 @@ class TestLensTestNgPerClassLifecycleTest {
     }
 
     @Listeners(TestLensTestNgListener.class)
+    @TestLensTestNg(factory = BoundedFactory.class, driverScope = DriverScope.PER_CLASS)
+    public static class FailureWatermarkFixture {
+        @org.testng.annotations.Test public void fails() {
+            Harness.observeBody("watermark-failure");
+            throw new AssertionError("uncaught body failure");
+        }
+        @AfterMethod(alwaysRun = true) public void noisyTeardown() {
+            UiTestLensSession session = TestLensTestNgContext.current().session();
+            for (int index = 0; index < 100; index++) {
+                session.addEvent(TraceEvent.info("teardown-" + index, "bounded diagnostic"));
+            }
+        }
+    }
+
+    @Listeners(TestLensTestNgListener.class)
     @TestLensTestNg(factory = FactoryImpl.class, driverScope = DriverScope.PER_CLASS)
     public static class SetupFailureAndSkipFixture {
         private int setupCalls;
@@ -531,6 +562,15 @@ class TestLensTestNgPerClassLifecycleTest {
             String name = result.getMethod().getMethodName() + "-" + UUID.randomUUID().toString().substring(0, 8);
             Harness.sessionNames.add(name);
             return name;
+        }
+    }
+
+    public static class BoundedFactory extends FactoryImpl {
+        @Override public TestLensOptions lensOptions() {
+            return TestLensOptions.builder().outputRoot(Harness.output).screenshotOnFailure(false)
+                    .traceRetention(TraceRetentionOptions.builder()
+                            .maxEvents(12).maxBytes(24_000).maxEventBytes(4_000).build())
+                    .build();
         }
     }
 

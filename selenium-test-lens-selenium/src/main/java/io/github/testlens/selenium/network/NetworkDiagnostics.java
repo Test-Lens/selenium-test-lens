@@ -223,15 +223,14 @@ public final class NetworkDiagnostics {
 
     public List<NetworkEvent> events() {
         lock.lock();
-        try { return events.stream().map(this::redactEvent).toList(); } finally { lock.unlock(); }
+        try { return List.copyOf(events); } finally { lock.unlock(); }
     }
 
     public NetworkSummary summary() {
         lock.lock();
         try {
-            NetworkSummary raw = NetworkSummary.from(events, ignoredEvents, droppedEvents,
+            return NetworkSummary.from(events, ignoredEvents, droppedEvents,
                     options.failedStatusThreshold(), status);
-            return redactSummary(raw);
         } finally { lock.unlock(); }
     }
 
@@ -260,7 +259,7 @@ public final class NetworkDiagnostics {
                 ignoredEvents++;
                 return redactEvent(event);
             }
-            NetworkEvent sanitized = sanitize(event);
+            NetworkEvent sanitized = retainable(event);
             AddResult result = addCaptured(sanitized);
             recorded = result == AddResult.ADDED ? sanitized : null;
             if (recorded != null) emission = prepareRawLog(recorded);
@@ -268,7 +267,7 @@ public final class NetworkDiagnostics {
         } finally { lock.unlock(); }
         if (emission != null) emitRecorded(emission);
         if (warnLimit) emitLimitWarning();
-        return redactEvent(recorded == null ? event : recorded);
+        return recorded == null ? redactEvent(event) : recorded;
     }
 
     /**
@@ -279,8 +278,8 @@ public final class NetworkDiagnostics {
     public NetworkDiagnosticsResult assertNoFailedRequests() {
         Instant startedAt = Instant.now();
         AssertionCaptureSnapshot snapshot = assertionCaptureSnapshot();
-        NetworkSummary current = redactSummary(NetworkSummary.from(snapshot.events(), snapshot.ignoredEvents(),
-                snapshot.droppedEvents(), snapshot.failedStatusThreshold(), snapshot.status()));
+        NetworkSummary current = NetworkSummary.from(snapshot.events(), snapshot.ignoredEvents(),
+                snapshot.droppedEvents(), snapshot.failedStatusThreshold(), snapshot.status());
         if (!snapshot.valid()) {
             String message = invalidCaptureAssertionMessage(snapshot);
             NetworkDiagnosticsResult result = NetworkDiagnosticsResult.of(
@@ -315,14 +314,15 @@ public final class NetworkDiagnostics {
         emit(UiTestLensEventType.NETWORK_WAIT_STARTED, UiTestLensStatus.STARTED,
                 UiTestLensLogLevel.INFO, "Network wait started: " + effective.summary(), null, null);
         NetworkWaitResult result;
+        NetworkWaitCondition retainedCondition = effective.retainedMatchCopy(redactionPolicy);
         lock.lock();
         try {
             result = immediateWaitFailure(effective, startedAt);
-            if (result == null) result = awaitMatch(effective, startedAt);
+            if (result == null) result = awaitMatch(retainedCondition, startedAt);
         } finally { lock.unlock(); }
-        NetworkEvent safeEvent = redactEvent(result.matchedEvent());
-        NetworkRequest safeRequest = result.matchedRequest() == null ? null : redactRequest(result.matchedRequest());
-        NetworkWaitResult safeResult = result.redacted(redactionPolicy, safeEvent, safeRequest,
+        NetworkEvent safeEvent = result.matchedEvent();
+        NetworkRequest safeRequest = result.matchedRequest();
+        NetworkWaitResult safeResult = result.retainedRedacted(redactionPolicy, safeEvent, safeRequest,
                 effective.diagnosticSummary(redactionPolicy));
         // The logger creates the redacted diagnostic copy. Keep the original Throwable here so
         // its structural type provenance is captured before any public network wrapper is made.
@@ -342,7 +342,8 @@ public final class NetworkDiagnostics {
         lock.lock();
         try {
             List<NetworkEvent> snapshot = List.copyOf(events);
-            return snapshot.stream().filter(event -> effective.matches(event, snapshot)).findFirst().map(this::redactEvent);
+            NetworkWaitCondition retained = effective.retainedMatchCopy(redactionPolicy);
+            return snapshot.stream().filter(event -> retained.matches(event, snapshot)).findFirst();
         } finally { lock.unlock(); }
     }
 
@@ -495,9 +496,10 @@ public final class NetworkDiagnostics {
         lock.lock();
         try {
             if (!started || activeMode != NetworkCaptureMode.BIDI || generation != token) return;
-            AddResult result = addCaptured(event);
+            NetworkEvent retained = retainable(event);
+            AddResult result = addCaptured(retained);
             recorded = result == AddResult.ADDED;
-            if (recorded) emission = prepareRawLog(event);
+            if (recorded) emission = prepareRawLog(retained);
             warnLimit = result == AddResult.DROPPED_WITH_WARNING;
         } finally { lock.unlock(); }
         if (recorded) emitRecorded(emission);
@@ -561,8 +563,8 @@ public final class NetworkDiagnostics {
                     NetworkWaitFailureReason.CAPTURE_NOT_STARTED, attempts, elapsedSince(startedAt));
             long remaining = deadline - System.nanoTime();
             if (remaining <= 0) return NetworkWaitResult.timedOut(condition, attempts,
-                    elapsedSince(startedAt), redactSummary(NetworkSummary.from(events, ignoredEvents, droppedEvents,
-                            options.failedStatusThreshold(), status)));
+                    elapsedSince(startedAt), NetworkSummary.from(events, ignoredEvents, droppedEvents,
+                            options.failedStatusThreshold(), status));
             try {
                 eventArrived.awaitNanos(Math.min(remaining, condition.pollInterval().toNanos()));
             } catch (InterruptedException interrupted) {
@@ -592,6 +594,10 @@ public final class NetworkDiagnostics {
         if (!options.includeHeaders()) return removeHeaders(event);
         if (options.maskSensitiveHeaders()) return maskHeaders(event);
         return event;
+    }
+
+    private NetworkEvent retainable(NetworkEvent event) {
+        return redactEvent(sanitize(event));
     }
 
     private NetworkEvent redactEvent(NetworkEvent event) {
@@ -648,14 +654,19 @@ public final class NetworkDiagnostics {
     private NetworkEvent removeHeaders(NetworkEvent event) {
         if (event.request() != null) {
             NetworkRequest request = event.request();
-            return NetworkEvent.request(new NetworkRequest(request.id(), request.method(), request.url(),
-                    request.resourceType(), request.timestamp(), Map.of()), event.timestamp(), event.attributes());
+            return NetworkEvent.redacted(event.id(), event.type(), new NetworkRequest(request.id(), request.method(),
+                    request.url(), request.resourceType(), request.timestamp(), Map.of()), null, null, null,
+                    event.message(), event.timestamp(), event.attributes());
         }
         if (event.response() != null) {
             NetworkResponse response = event.response();
-            return NetworkEvent.response(new NetworkResponse(response.requestId(), response.url(), response.status(),
-                    response.statusText(), response.mimeType(), response.duration(), response.timestamp(), Map.of()),
-                    event.timestamp(), event.attributes());
+            NetworkRequest correlated = event.correlatedRequest();
+            if (correlated != null) correlated = new NetworkRequest(correlated.id(), correlated.method(),
+                    correlated.url(), correlated.resourceType(), correlated.timestamp(), Map.of());
+            return NetworkEvent.redacted(event.id(), event.type(), null,
+                    new NetworkResponse(response.requestId(), response.url(), response.status(), response.statusText(),
+                            response.mimeType(), response.duration(), response.timestamp(), Map.of()), correlated, null,
+                    event.message(), event.timestamp(), event.attributes());
         }
         return event;
     }
@@ -663,14 +674,19 @@ public final class NetworkDiagnostics {
     private NetworkEvent maskHeaders(NetworkEvent event) {
         if (event.request() != null) {
             NetworkRequest request = event.request();
-            return NetworkEvent.request(new NetworkRequest(request.id(), request.method(), request.url(),
-                    request.resourceType(), request.timestamp(), mask(request.headers())), event.timestamp(), event.attributes());
+            return NetworkEvent.redacted(event.id(), event.type(), new NetworkRequest(request.id(), request.method(),
+                    request.url(), request.resourceType(), request.timestamp(), mask(request.headers())), null, null,
+                    null, event.message(), event.timestamp(), event.attributes());
         }
         if (event.response() != null) {
             NetworkResponse response = event.response();
-            return NetworkEvent.response(new NetworkResponse(response.requestId(), response.url(), response.status(),
-                    response.statusText(), response.mimeType(), response.duration(), response.timestamp(),
-                    mask(response.headers())), event.timestamp(), event.attributes());
+            NetworkRequest correlated = event.correlatedRequest();
+            if (correlated != null) correlated = new NetworkRequest(correlated.id(), correlated.method(),
+                    correlated.url(), correlated.resourceType(), correlated.timestamp(), mask(correlated.headers()));
+            return NetworkEvent.redacted(event.id(), event.type(), null,
+                    new NetworkResponse(response.requestId(), response.url(), response.status(), response.statusText(),
+                            response.mimeType(), response.duration(), response.timestamp(), mask(response.headers())),
+                    correlated, null, event.message(), event.timestamp(), event.attributes());
         }
         return event;
     }
@@ -684,7 +700,7 @@ public final class NetworkDiagnostics {
         return masked;
     }
 
-    private void addInternal(NetworkEvent event) { events.add(event); }
+    private void addInternal(NetworkEvent event) { events.add(redactEvent(event)); }
 
     private void emitStarted() {
         emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED, UiTestLensStatus.STARTED,

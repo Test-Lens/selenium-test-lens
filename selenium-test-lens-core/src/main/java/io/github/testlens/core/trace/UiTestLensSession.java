@@ -6,9 +6,8 @@ import io.github.testlens.core.trace.export.TraceHtmlExporter;
 
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -22,21 +21,26 @@ import java.util.UUID;
  * failure information, skip reason, or the recorded retry-policy decision.
  */
 public final class UiTestLensSession {
-    private final List<TraceEvent> events = new ArrayList<>();
-    private final List<TraceArtifact> artifacts = new ArrayList<>();
+    private final BoundedTraceStore traceStore;
     private final RetryOutcomePolicy retryOutcomePolicy;
     private final int allowedRetries;
     private final RedactionPolicy redactionPolicy;
     private TraceMetadata metadata;
     private boolean retryDecisionRecorded;
     private boolean retryPolicyTriggered;
+    private long retryCount;
+    private final DurationAccumulator retryTime = new DurationAccumulator();
+    private final Map<String, Long> retriesByAction = new TreeMap<>();
+    private final Map<String, Long> retriesByLocator = new TreeMap<>();
+    private final Map<String, Long> retriesByException = new TreeMap<>();
 
     private UiTestLensSession(String name, RetryOutcomePolicy retryOutcomePolicy, int allowedRetries,
-                              RedactionPolicy redactionPolicy) {
+                              RedactionPolicy redactionPolicy, TraceRetentionOptions traceRetention) {
         if (allowedRetries < 0) throw new IllegalArgumentException("allowedRetries must not be negative");
         this.retryOutcomePolicy = retryOutcomePolicy == null ? RetryOutcomePolicy.REPORT_ONLY : retryOutcomePolicy;
         this.allowedRetries = allowedRetries;
         this.redactionPolicy = redactionPolicy == null ? RedactionPolicy.defaults() : redactionPolicy;
+        this.traceStore = new BoundedTraceStore(traceRetention);
         String id = UUID.randomUUID().toString();
         String safeName = name == null || name.isBlank() ? "Test Lens session" : this.redactionPolicy.redact(name.trim());
         this.metadata = TraceMetadata.builder(id, safeName)
@@ -49,16 +53,25 @@ public final class UiTestLensSession {
     }
 
     public static UiTestLensSession start(String name) {
-        return new UiTestLensSession(name, RetryOutcomePolicy.REPORT_ONLY, 0, RedactionPolicy.defaults());
+        return new UiTestLensSession(name, RetryOutcomePolicy.REPORT_ONLY, 0, RedactionPolicy.defaults(),
+                TraceRetentionOptions.defaults());
     }
 
     public static UiTestLensSession start(String name, RetryOutcomePolicy policy, int allowedRetries) {
-        return new UiTestLensSession(name, policy, allowedRetries, RedactionPolicy.defaults());
+        return new UiTestLensSession(name, policy, allowedRetries, RedactionPolicy.defaults(),
+                TraceRetentionOptions.defaults());
     }
 
     public static UiTestLensSession start(String name, RetryOutcomePolicy policy, int allowedRetries,
                                           RedactionPolicy redactionPolicy) {
-        return new UiTestLensSession(name, policy, allowedRetries, redactionPolicy);
+        return new UiTestLensSession(name, policy, allowedRetries, redactionPolicy, TraceRetentionOptions.defaults());
+    }
+
+    /** Starts a session with explicit bounded trace retention. @since 0.4.0 */
+    public static UiTestLensSession start(String name, RetryOutcomePolicy policy, int allowedRetries,
+                                          RedactionPolicy redactionPolicy, TraceRetentionOptions traceRetention) {
+        return new UiTestLensSession(name, policy, allowedRetries, redactionPolicy,
+                traceRetention == null ? TraceRetentionOptions.defaults() : traceRetention);
     }
 
     public String id() {
@@ -70,29 +83,16 @@ public final class UiTestLensSession {
     }
 
     public synchronized List<TraceEvent> events() {
-        return Collections.unmodifiableList(new ArrayList<>(events));
+        return traceStore.events();
     }
 
     public synchronized List<TraceArtifact> artifacts() {
-        return Collections.unmodifiableList(new ArrayList<>(artifacts));
+        return traceStore.artifacts();
     }
 
     public synchronized RetrySummary retrySummary() {
-        Map<String, Long> byAction = new TreeMap<>();
-        Map<String, Long> byLocator = new TreeMap<>();
-        Map<String, Long> byException = new TreeMap<>();
-        long total = 0;
-        DurationAccumulator timeLost = new DurationAccumulator();
-        for (TraceEvent event : events) {
-            if (event.type() != TraceEventType.RETRY) continue;
-            total++;
-            timeLost.add(event.duration());
-            increment(byAction, event.attributes().get("retry.action"));
-            increment(byLocator, event.attributes().get("retry.locator"));
-            increment(byException, event.attributes().get("retry.exceptionType"));
-        }
-        return new RetrySummary(total, timeLost.value(), total > 0, retryOutcomePolicy,
-                retryPolicyTriggered, byAction, byLocator, byException);
+        return new RetrySummary(retryCount, retryTime.value(), retryCount > 0, retryOutcomePolicy,
+                retryPolicyTriggered, retriesByAction, retriesByLocator, retriesByException);
     }
 
     public synchronized TraceEvent addEvent(TraceEvent event) {
@@ -100,8 +100,8 @@ public final class UiTestLensSession {
             return null;
         }
         TraceEvent safe = redactEvent(event);
-        events.add(safe);
-        return safe;
+        if (safe.type() == TraceEventType.RETRY) recordRetry(safe);
+        return traceStore.add(safe);
     }
 
     public synchronized TraceArtifact attachArtifact(TraceArtifact artifact) {
@@ -109,7 +109,8 @@ public final class UiTestLensSession {
             throw new IllegalArgumentException("artifact must not be null");
         }
         TraceArtifact safe = redactArtifact(artifact);
-        artifacts.add(safe);
+        TraceArtifact retained = traceStore.addArtifact(safe);
+        if (retained == null) return safe;
         addEvent(TraceEvent.builder(TraceEventType.ARTIFACT_ATTACHED, TraceStatus.INFO, safe.name())
                 .message("Artifact attached")
                 .attribute("artifactType", safe.type().name())
@@ -219,6 +220,13 @@ public final class UiTestLensSession {
 
     private void finish(TraceStatus status, Throwable throwable, String message) {
         Instant finishedAt = Instant.now();
+        if (status == TraceStatus.FAILED) {
+            addEvent(TraceEvent.builder(TraceEventType.CUSTOM, TraceStatus.FAILED, "Failure freeze")
+                    .message(throwable == null ? "Terminal failure" : throwable.getMessage())
+                    .failure(throwable == null ? null : TraceFailure.from(throwable, false))
+                    .attribute(BoundedTraceStore.FREEZE, "true")
+                    .build());
+        }
         metadata = metadata.toBuilder()
                 .status(status)
                 .finishedAt(finishedAt)
@@ -231,6 +239,12 @@ public final class UiTestLensSession {
             event.failure(TraceFailure.from(throwable, false)).message(throwable.getMessage());
         }
         addEvent(event.build());
+        BoundedTraceStore.Snapshot snapshot = traceStore.close(status);
+        Map<String, String> labels = new LinkedHashMap<>(metadata.labels());
+        labels.putAll(snapshot.labels());
+        labels.put("testlens.retention.retryPolicy", retryOutcomePolicy.name());
+        labels.put("testlens.retention.allowedRetries", String.valueOf(allowedRetries));
+        metadata = metadata.toBuilder().labels(labels).build();
     }
 
     private boolean isFinished() {
@@ -264,6 +278,14 @@ public final class UiTestLensSession {
 
     private static void increment(Map<String, Long> target, String key) {
         if (key != null && !key.isBlank()) target.merge(key, 1L, Long::sum);
+    }
+
+    private void recordRetry(TraceEvent event) {
+        retryCount++;
+        retryTime.add(event.duration());
+        increment(retriesByAction, event.attributes().get("retry.action"));
+        increment(retriesByLocator, event.attributes().get("retry.locator"));
+        increment(retriesByException, event.attributes().get("retry.exceptionType"));
     }
 
     private TraceEvent redactEvent(TraceEvent event) {
