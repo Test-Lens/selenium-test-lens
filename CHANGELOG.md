@@ -6,6 +6,9 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added an internal, non-published read-only Selector Lab foundation with an element picker, synchronous live
+  candidate-analysis presentation, diagnostic match highlighting, Find Similar, and pattern preview. It does not
+  edit policies or source, execute application actions, or expose a public Lab API.
 - Added an internal offline Selector Audit foundation with declaration-level findings, explicit coverage, and
   deterministic sanitized JSON and standalone HTML reports. It does not invoke a browser, change source, save
   policy, or provide an automatic fix or CI failure gate.

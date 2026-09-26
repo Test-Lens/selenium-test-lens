@@ -25,7 +25,17 @@ public final class LiveCandidateAnalysisService {
     private final CandidateGenerator generator=new CandidateGenerator();
     private final CandidateRanker ranker=new CandidateRanker();
 
-    public CandidateAnalysis analyze(LiveCandidateRequest request){
+    public CandidateAnalysis analyze(LiveCandidateRequest request){return analyzeInternal(request,null);}
+
+    /** Internal Lab entry point retaining bounded, request-local match handles for diagnostics. */
+    public LiveCandidateAnalysis analyzeRetainingMatches(LiveCandidateRequest request,String analysisId,String documentGeneration){
+        MatchRetention retention=new MatchRetention();
+        CandidateAnalysis analysis=analyzeInternal(request,retention);
+        return new LiveCandidateAnalysis(analysis,analysisId,request.target(),documentGeneration,retention.matches,
+                retention.notRetained,retention.retained);
+    }
+
+    private CandidateAnalysis analyzeInternal(LiveCandidateRequest request,MatchRetention retention){
         Objects.requireNonNull(request,"request");
         if(request.target()==null)return empty(request,Recommendation.TARGET_REQUIRED,"TARGET_REQUIRED","A trustworthy live target is required");
         if(request.searchContext()==null)return empty(request,Recommendation.NO_VALID_CANDIDATE,"CONTEXT_UNAVAILABLE","A live SearchContext is required");
@@ -50,6 +60,7 @@ public final class LiveCandidateAnalysisService {
                 commands++;List<WebElement> matches=request.searchContext().findElements(executable.get(candidate.candidateId()));
                 List<WebElement> application=new ArrayList<>();for(WebElement match:matches){if(contains(captured.instrumentationNodes,match))excluded++;else application.add(match);}
                 validated.add(candidate.withValidation(validate(application,request.target(),request.usageIntent())));
+                if(retention!=null)retention.retain(candidate.candidateId(),application,request.target());
             }catch(InvalidSelectorException invalid){validated.add(candidate.withValidation(new Validation(ValidationState.INVALID_SELECTOR,-1,TargetComparison.UNKNOWN,List.of(invalid.getClass().getSimpleName()))));}
             catch(NoSuchSessionException lost){sessionLost=true;validated.add(candidate.withValidation(new Validation(ValidationState.SESSION_LOST,-1,TargetComparison.UNKNOWN,List.of("SESSION_LOST"))));issues.add(new Issue("SESSION_LOST",lost.getClass().getSimpleName(),true));}
             catch(StaleElementReferenceException stale){validated.add(candidate.withValidation(new Validation(ValidationState.STALE_TARGET,-1,TargetComparison.STALE_TARGET,List.of("STALE_TARGET"))));}
@@ -90,5 +101,21 @@ public final class LiveCandidateAnalysisService {
     private static int estimate(Collection<?> values){int size=0;for(Object value:values)size+=estimate(String.valueOf(value));return size;}
     private static int estimate(Map<String,String> values){int size=0;for(Map.Entry<String,String> value:values.entrySet())size+=estimate(value.getKey(),value.getValue());return size;}
     private record SnapshotCapture(TargetSnapshot snapshot,List<WebElement> instrumentationNodes) { }
+    private static final class MatchRetention{
+        private final Map<String,List<WebElement>>matches=new LinkedHashMap<>();
+        private final Set<String>notRetained=new LinkedHashSet<>();
+        private int retained;
+        private void retain(String candidateId,List<WebElement> values,WebElement target){
+            int room=Math.max(0,LiveCandidateAnalysis.MAX_TOTAL_RETAINED-retained);
+            int limit=Math.min(LiveCandidateAnalysis.MAX_RETAINED_PER_CANDIDATE,room);
+            List<WebElement>kept=new ArrayList<>();
+            for(WebElement value:values){if(kept.size()>=limit)break;kept.add(value);}
+            if(target!=null&&contains(values,target)&&!contains(kept,target)&&limit>0){
+                if(kept.size()==limit)kept.set(limit-1,target);else kept.add(target);
+            }
+            if(kept.size()<values.size())notRetained.add(candidateId);
+            retained+=kept.size();matches.put(candidateId,List.copyOf(kept));
+        }
+    }
     @FunctionalInterface private interface Call{String get();}
 }

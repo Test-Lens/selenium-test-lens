@@ -91,15 +91,24 @@ class LiveCandidateAnalysisServiceTest {
         assertTrue(new LiveCandidateAnalysisService().analyze(shadow).candidates().stream().filter(c->c.origins().contains(Origin.TEXT_XPATH)).allMatch(c->c.validation().state()==ValidationState.UNSUPPORTED));
     }
 
+    @Test void retainedMatchesAreEphemeralAndBounded(){
+        Fixture f=new Fixture();f.manyCount=100;
+        LiveCandidateAnalysis result=new LiveCandidateAnalysisService().analyzeRetainingMatches(f.request(By.id("save"),UsageIntent.FIND_ONE,List.of("data-qa")),"analysis-1","document-1");
+        assertTrue(result.retainedCount()<=LiveCandidateAnalysis.MAX_TOTAL_RETAINED);
+        assertTrue(result.analysis().candidates().stream().allMatch(c->result.retainedMatches(c.candidateId()).size()<=LiveCandidateAnalysis.MAX_RETAINED_PER_CANDIDATE));
+        assertTrue(result.analysis().candidates().stream().anyMatch(c->result.matchesNotRetainedForHighlight(c.candidateId())));
+        result.close();assertTrue(result.closed());assertTrue(result.analysis().candidates().stream().allMatch(c->result.retainedMatches(c.candidateId()).isEmpty()));
+    }
+
     private static final class Fixture {
         final AtomicInteger scripts=new AtomicInteger(),findElements=new AtomicInteger(),text=new AtomicInteger(),accessible=new AtomicInteger(),role=new AtomicInteger(),actions=new AtomicInteger();
         final WebElement target=element("target"),other=element("other"),lookalike=element("lookalike"),instrumentation=element("instrumentation");
-        boolean multiple,wrongTag,includeInstrumentation,invalid,sessionLost,wrapped,oversized;
+        boolean multiple,wrongTag,includeInstrumentation,invalid,sessionLost,wrapped,oversized;int manyCount;
         final WebDriver driver=(WebDriver)Proxy.newProxyInstance(getClass().getClassLoader(),new Class[]{WebDriver.class,JavascriptExecutor.class},(proxy,method,args)->{
             if(method.getName().equals("executeScript")){scripts.incrementAndGet();return snapshot();}
             return defaultValue(method.getReturnType());});
         final SearchContext context=new SearchContext(){
-            @Override public List<WebElement> findElements(By by){findElements.incrementAndGet();if(sessionLost)throw new NoSuchSessionException("gone");String strategy=strategy(by),value=value(by);if(invalid&&"xpath".equals(strategy))throw new InvalidSelectorException("bad candidate");if("tag name".equals(strategy)&&"button".equals(value)&&wrongTag)return List.of(other);List<WebElement> out=new ArrayList<>();out.add(wrapped?wrapped(target):target);if(multiple)out.add(other);if(includeInstrumentation){out.add(lookalike);out.add(instrumentation);}return out;}
+            @Override public List<WebElement> findElements(By by){findElements.incrementAndGet();if(sessionLost)throw new NoSuchSessionException("gone");String strategy=strategy(by),value=value(by);if(invalid&&"xpath".equals(strategy))throw new InvalidSelectorException("bad candidate");if("tag name".equals(strategy)&&"button".equals(value)&&wrongTag)return List.of(other);List<WebElement> out=new ArrayList<>();out.add(wrapped?wrapped(target):target);if(multiple)out.add(other);for(int i=0;i<manyCount;i++)out.add(element("many-"+i));if(includeInstrumentation){out.add(lookalike);out.add(instrumentation);}return out;}
             @Override public WebElement findElement(By by){throw new AssertionError("findElement must not be called");}
         };
         LiveCandidateRequest request(By original,UsageIntent intent,List<String> attrs){return new LiveCandidateRequest(driver,context,target,intent,original,null,false,null,null,null,null,null,null,CompiledPolicySet.empty(),ObservationEvidence.unavailable(),attrs);}
