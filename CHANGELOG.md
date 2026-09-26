@@ -6,6 +6,10 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added an offline, Java-only locator declaration discovery foundation that builds a deterministic local source
+  index for standard Selenium `By`, constants, dynamic templates, and PageFactory annotations. The non-published
+  tooling module never executes project code or modifies sources, remains outside runtime dependencies, and reports
+  explicit coverage and incomplete-resolution states rather than claiming a full selector audit.
 - Action rows now combine an explicit or best-effort accessible target label with a compact locator, for example
   `Click :: Save :: #save`. The initial locator-only RUNNING row and its enriched/terminal revisions share one
   operation ID; explicit labels win, FAST performs no automatic lookup, and native Selenium actions still execute

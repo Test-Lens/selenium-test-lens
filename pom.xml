@@ -50,6 +50,7 @@
         <module>selenium-test-lens-testng</module>
         <module>selenium-test-lens-allure</module>
         <module>selenium-test-lens-react</module>
+        <module>selenium-test-lens-selector-tooling</module>
         <module>selenium-test-lens-examples</module>
     </modules>
 
@@ -305,7 +306,7 @@
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>${central.publishing.serverId}</publishingServerId>
-                            <excludeArtifacts>selenium-test-lens-examples,selenium-test-lens-browser-tests</excludeArtifacts>
+                            <excludeArtifacts>selenium-test-lens-examples,selenium-test-lens-browser-tests,selenium-test-lens-selector-tooling</excludeArtifacts>
                             <autoPublish>false</autoPublish>
                             <waitUntil>validated</waitUntil>
                         </configuration>

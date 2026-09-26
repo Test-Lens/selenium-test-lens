@@ -124,6 +124,7 @@ nav:
       - Publishing versioned docs: maintainers/documentation-versioning.md
       - Real-browser integration tests: browser-integration-tests.md
       - Runtime performance audit: performance-audit.md
+      - Static locator declaration index: maintainers/selector-declaration-index.md
       - Changelog: https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md
       - Maven Central: https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1
       - Javadoc: https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/
