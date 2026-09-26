@@ -17,7 +17,19 @@ public record SelectorLabRequest(WebDriver driver,SearchContext searchContext,Ca
                                  CompiledPolicySet policies,ObservationEvidence evidence,List<String>preferredTestAttributes,
                                  RedactionPolicy redactionPolicy,DisplayMode displayMode,SelectorAuditProjection auditProjection,
                                  List<SimilaritySubject>similarityCatalog,Map<String,ObservationEvidence>similarityEvidence,
-                                 SimilarityResult.QueryScope similarityScope,boolean incompleteHistory,String preparedSourceNavigationTarget){
+                                 SimilarityResult.QueryScope similarityScope,boolean incompleteHistory,String preparedSourceNavigationTarget,
+                                 PolicyWorkspaceSnapshot policyWorkspace){
+    public SelectorLabRequest(WebDriver driver,SearchContext searchContext,CandidateAnalysis.UsageIntent usageIntent,
+                              By originalBy,String contextFingerprint,String declarationRef,String modulePath,
+                              String logicalPath,String declaringSymbol,String usageClass,String usageMethod,
+                              CompiledPolicySet policies,ObservationEvidence evidence,List<String>preferredTestAttributes,
+                              RedactionPolicy redactionPolicy,DisplayMode displayMode,SelectorAuditProjection auditProjection,
+                              List<SimilaritySubject>similarityCatalog,Map<String,ObservationEvidence>similarityEvidence,
+                              SimilarityResult.QueryScope similarityScope,boolean incompleteHistory,String preparedSourceNavigationTarget){
+        this(driver,searchContext,usageIntent,originalBy,contextFingerprint,declarationRef,modulePath,logicalPath,declaringSymbol,
+                usageClass,usageMethod,policies,evidence,preferredTestAttributes,redactionPolicy,displayMode,auditProjection,
+                similarityCatalog,similarityEvidence,similarityScope,incompleteHistory,preparedSourceNavigationTarget,null);
+    }
     public SelectorLabRequest{
         Objects.requireNonNull(driver,"driver");searchContext=searchContext==null?driver:searchContext;
         usageIntent=usageIntent==null?CandidateAnalysis.UsageIntent.UNKNOWN:usageIntent;

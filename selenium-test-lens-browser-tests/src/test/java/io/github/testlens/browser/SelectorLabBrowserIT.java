@@ -4,6 +4,7 @@ import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.selector.engine.CandidateAnalysis;
 import io.github.testlens.selector.engine.CompiledPolicySet;
 import io.github.testlens.selector.engine.ObservationEvidence;
+import io.github.testlens.selector.engine.PolicyWorkspaceSnapshot;
 import io.github.testlens.selector.engine.SimilarityResult;
 import io.github.testlens.selector.lab.SelectorLabRequest;
 import io.github.testlens.selector.lab.SelectorLabResult;
@@ -76,6 +77,28 @@ class SelectorLabBrowserIT {
             SelectorLabResult result=new SelectorLabSession(request(driver,null)).run();
             assertFalse(result.issues().contains("INVALID_TARGET_SELECTION"));
             assertEquals(0L,number(driver,"shadowClicks"));
+        } finally {driver.quit();}
+    }
+
+    @Test void browserCanOnlyTransferPreparedPolicyDraft() {
+        WebDriver driver=BrowserTestHarness.createDriver();
+        try {
+            open(driver,"""
+                    <button id='target'>Save</button><script>window.labStage=0;window.labAutomation=setInterval(()=>{const h=document.getElementById('selenium-overlay-host'),r=h&&h.shadowRoot;if(!r)return;
+                    const click=t=>t&&t.dispatchEvent(new MouseEvent('click',{bubbles:true,composed:true,cancelable:true}));
+                    if(window.labStage===0){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Pick element');if(b){click(b);window.labStage=1;}}
+                    else if(window.labStage===1){const p=r.querySelector('#stl-selector-lab-picker'),t=document.getElementById('target');if(p){const q=t.getBoundingClientRect();p.dispatchEvent(new MouseEvent('click',{bubbles:true,composed:true,cancelable:true,clientX:q.left+2,clientY:q.top+2}));window.labStage=2;}}
+                    else if(window.labStage===2){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Local-only policy');if(b){click(b);window.labStage=3;}}
+                    else if(window.labStage===3){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Prepare exact stable');if(b){click(b);window.labStage=4;}}
+                    else if(window.labStage===4){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Transfer pending change to trusted host');if(b){clearInterval(window.labAutomation);click(b);}}
+                    },25);</script>
+                    """);
+            PolicyWorkspaceSnapshot workspace=PolicyWorkspaceSnapshot.create(PolicyWorkspaceSnapshot.OriginDocument.absent(PolicyWorkspaceSnapshot.Origin.TRACKED),PolicyWorkspaceSnapshot.OriginDocument.absent(PolicyWorkspaceSnapshot.Origin.LOCAL),null);
+            SelectorLabRequest base=request(driver,By.id("target"));
+            SelectorLabRequest request=new SelectorLabRequest(base.driver(),base.searchContext(),base.usageIntent(),base.originalBy(),base.contextFingerprint(),"decl",base.modulePath(),"src/Test.java",base.declaringSymbol(),base.usageClass(),base.usageMethod(),base.policies(),base.evidence(),base.preferredTestAttributes(),base.redactionPolicy(),base.displayMode(),base.auditProjection(),base.similarityCatalog(),base.similarityEvidence(),base.similarityScope(),base.incompleteHistory(),base.preparedSourceNavigationTarget(),workspace);
+            SelectorLabResult result=new SelectorLabSession(request).run();
+            assertNotNull(result.pendingPolicyChange());assertTrue(result.pendingPolicyChange().hostApprovalRequired());
+            assertEquals(PolicyWorkspaceSnapshot.Origin.LOCAL,result.pendingPolicyChange().draft().destination());
         } finally {driver.quit();}
     }
 

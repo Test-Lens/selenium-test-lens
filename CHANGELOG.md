@@ -6,6 +6,9 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added the internal Selector Lab policy-feedback and draft foundation with session-only Use once, whole-workspace
+  optimistic checks, typed host acknowledgements, and a separate trusted host-side atomic policy applier. Browser
+  commands can prepare/preview/transfer a pending change but cannot write policy files or modify source.
 - Added an internal, non-published read-only Selector Lab foundation with an element picker, synchronous live
   candidate-analysis presentation, diagnostic match highlighting, Find Similar, and pattern preview. It does not
   edit policies or source, execute application actions, or expose a public Lab API.

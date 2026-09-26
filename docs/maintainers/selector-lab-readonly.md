@@ -50,5 +50,38 @@ remote element IDs, window handles, and test arguments are not rendered. Dynamic
 `textContent`; the Lab uses no `eval`, `Function`, local storage, or session storage. Copy is offered only for an
 approved non-redacted standard Selenium locator. Opaque or redacted candidates cannot be copied.
 
-The module is excluded from Central publishing in 0.4.0. It is not a public Selector Lab API, does not add
-`TestLens.openLab()`, and does not enable policy editing, Apply/Fix, or source rewriting.
+The module is excluded from Central publishing in 0.4.0. It is not a public Selector Lab API and does not add
+`TestLens.openLab()`, Apply/Fix, or source rewriting.
+
+## Policy feedback and trusted apply
+
+Policy feedback uses a strict two-phase boundary. Browser UI may choose **Use once**, preview an exact or
+detector-backed pattern rule, prepare ADD/REMOVE/REPLACE, and transfer one immutable `PendingPolicyChange`. It never
+writes either policy file. A transferred draft says PREPARED/PENDING APPROVAL, never SAVED or APPLIED. Same-world
+application JavaScript can forge an allowed preparation request, so a browser gesture is explicitly not write
+authorization.
+
+Use once is scoped to the current Lab analysis and candidate. It does not change engine rank, appearance facts,
+history, or policy evaluation, and cannot override wrong-target, no-match, invalid-selector, stale, unavailable, or
+lost-session validation. Its wording is “Chosen for this Lab session.”
+
+The trusted host separately invokes the tooling applier after the Lab session returns. The applier receives the
+trusted project root outside the browser protocol, re-reads both tracked and local policy documents, and checks raw
+file digests, semantic rule-set digests, the effective workspace digest, rule membership, and project identity.
+A change to the non-target origin invalidates the draft because merged precedence may have changed. Fixed
+destinations are `.test-lens/selector-policies.json` and
+`target/test-lens/selector-policies.local.json`; neither an absolute path nor project root crosses the browser
+boundary.
+
+Incomplete previews, comparable evidence conflicts, and ambiguous live validation require typed host-side
+acknowledgements. Browser payloads cannot provide them. A new equal-precedence opposite policy conflict blocks the
+draft. An identical rule in either origin is `ALREADY_EXISTS`; local rules do not automatically outrank tracked
+rules. Cross-origin replacement is not presented as atomic.
+
+Exact rules retain only a domain-separated digest and no display hint. SHA-256 is not encryption and low-entropy
+values remain susceptible to dictionary guessing. Structural patterns may retain literal fragments, so the Lab
+marks their content for review and recommends local storage where appropriate. No free-form notes, arbitrary
+priority, arbitrary regex, wildcard editor, filesystem path, raw selector value, or browser-authored rule JSON is
+accepted. Marking stable suppresses a generated-looking penalty within scope; it does not prove correctness,
+uniqueness, or future stability. Marking unstable means only that the project does not treat the contract as
+stable; it does not mean broken or invalid.

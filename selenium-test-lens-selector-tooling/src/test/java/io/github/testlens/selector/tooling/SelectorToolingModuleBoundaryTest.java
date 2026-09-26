@@ -43,5 +43,8 @@ class SelectorToolingModuleBoundaryTest {
                     module + " must not depend on selector live analysis");
             assertFalse(pom.contains("tools.jackson.core"), module + " must not depend on Jackson 3");
         }
+
+        String applier=Files.readString(root.resolve("selenium-test-lens-selector-tooling/src/main/java/io/github/testlens/selector/tooling/SelectorPolicyDraftApplier.java"));
+        assertFalse(applier.contains("org.openqa.selenium"));assertFalse(applier.contains("SelectorLabSession"));
     }
 }
