@@ -6,6 +6,10 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added an internal, non-published selector live-analysis foundation with bounded passive candidate generation,
+  one Selenium `findElements` validation per candidate, same-target verification, stability-policy integration,
+  deterministic score-free ranking, and advisory recommendations. It is invoked explicitly and adds no work to
+  normal or FAST runtime execution.
 - Added a lightweight, offline selector stability engine with explainable generated-looking appearance signals,
   supplied observation evidence, deterministic project stability policies, explicit policy/evidence conflicts, and
   a strict local policy-file codec. Classification and policies remain outside the Selenium runtime and do not

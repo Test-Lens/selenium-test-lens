@@ -39,6 +39,8 @@ class SelectorToolingModuleBoundaryTest {
                     module + " must not depend on selector tooling");
             assertFalse(pom.contains("selenium-test-lens-selector-engine"),
                     module + " must not depend on selector engine");
+            assertFalse(pom.contains("selenium-test-lens-selector-live"),
+                    module + " must not depend on selector live analysis");
             assertFalse(pom.contains("tools.jackson.core"), module + " must not depend on Jackson 3");
         }
     }
