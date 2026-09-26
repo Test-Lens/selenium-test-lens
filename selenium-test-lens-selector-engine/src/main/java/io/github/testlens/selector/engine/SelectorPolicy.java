@@ -150,7 +150,7 @@ public final class SelectorPolicy {
             fields.add(segment.kind().name());fields.add(n(segment.literal()));fields.add(Integer.toString(segment.minLength()));
             fields.add(Integer.toString(segment.maxLength()));fields.add(n(segment.alphabet()));
         }
-        return "selector-policy-v1:sha256:"+CanonicalDigests.sha256(CanonicalDigests.lengthPrefixed(fields.toArray(String[]::new)));
+        return "selector-policy-v1:sha256:"+CanonicalDigests.digest("selector-policy-v1",fields.toArray(String[]::new));
     }
     private static String n(String value){return value==null?"":value;}
     private static void validateOptionalText(String v,int max,String name){if(v!=null&&v.codePointCount(0,v.length())>max)throw new IllegalArgumentException(name+" too long");}

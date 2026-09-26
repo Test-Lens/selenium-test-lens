@@ -6,6 +6,9 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added an internal Find Similar and compact selector-history tooling foundation with deterministic structural
+  relations, detector-backed pattern preview, explicit cross-run comparability, redacted-report limitations, and
+  bounded local evidence aggregation. It performs no runtime collection, automatic policy save, or source change.
 - Added an internal, non-published selector live-analysis foundation with bounded passive candidate generation,
   one Selenium `findElements` validation per candidate, same-target verification, stability-policy integration,
   deterministic score-free ranking, and advisory recommendations. It is invoked explicitly and adds no work to

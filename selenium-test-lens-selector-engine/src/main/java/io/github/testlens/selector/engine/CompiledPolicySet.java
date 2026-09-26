@@ -30,8 +30,11 @@ public final class CompiledPolicySet {
     }
     public static CompiledPolicySet empty(){return compile(SelectorPolicy.Document.empty());}
     List<SelectorPolicy.Rule> candidates(SelectorSubject subject){
+        return candidates(subject,subject.hasTrustedExactValue()?CanonicalDigests.exactValueDigest(subject):null);
+    }
+    List<SelectorPolicy.Rule> candidates(SelectorSubject subject,String exactDigest){
         List<SelectorPolicy.Rule> out=new ArrayList<>();
-        if(subject.hasTrustedExactValue())out.addAll(exact.getOrDefault(key(subject.strategy(),CanonicalDigests.exactValueDigest(subject)),List.of()));
+        if(exactDigest!=null)out.addAll(exact.getOrDefault(key(subject.strategy(),exactDigest),List.of()));
         out.addAll(patterns.getOrDefault(subject.strategy(),List.of()));
         return out;
     }

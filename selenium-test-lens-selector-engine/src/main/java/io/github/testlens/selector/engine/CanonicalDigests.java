@@ -14,7 +14,28 @@ public final class CanonicalDigests {
 
     public static String exactValueDigest(SelectorSubject subject) {
         if (!subject.hasTrustedExactValue()) throw new IllegalArgumentException("Exact-value digest requires a trusted canonical value");
-        return sha256(lengthPrefixed(Integer.toString(CANONICALIZATION_VERSION), subject.strategy(), subject.canonicalValue()));
+        return digest("selector-exact-value-v1", Integer.toString(CANONICALIZATION_VERSION), subject.strategy(), subject.canonicalValue());
+    }
+
+    /** Domain-separated, ambiguity-safe SHA-256 for internal selector artifacts. */
+    public static String digest(String domain, String... fields) {
+        if (domain == null || domain.isBlank()) throw new IllegalArgumentException("digest domain is required");
+        String[] canonical = new String[fields.length + 1];
+        canonical[0] = domain;
+        System.arraycopy(fields, 0, canonical, 1, fields.length);
+        return sha256(lengthPrefixed(canonical));
+    }
+
+    /** Raw-byte variant used for exact report provenance without base64/string copies. */
+    public static String digestBytes(String domain, byte[] bytes) {
+        if (domain == null || domain.isBlank()) throw new IllegalArgumentException("digest domain is required");
+        try {
+            MessageDigest digest=MessageDigest.getInstance("SHA-256");
+            byte[] tag=domain.getBytes(StandardCharsets.UTF_8);
+            digest.update(ByteBuffer.allocate(Integer.BYTES).putInt(tag.length).array());digest.update(tag);
+            digest.update(ByteBuffer.allocate(Integer.BYTES).putInt(bytes.length).array());digest.update(bytes);
+            return java.util.HexFormat.of().formatHex(digest.digest());
+        } catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException("SHA-256 unavailable", impossible); }
     }
 
     public static String contextFingerprint(ContextKnowledge knowledge,List<ContextSegment> segments) {
@@ -24,7 +45,7 @@ public final class CanonicalDigests {
         List<String> fields=new ArrayList<>();fields.add("context-v1");
         for(ContextSegment segment:segments){fields.add(segment.kind());fields.add(value(segment.locatorStrategy()));
             fields.add(value(segment.locatorValueDigest()));fields.add(segment.referenceKind().name());fields.add(value(segment.referenceValue()));}
-        return "context-v1:sha256:" + sha256(lengthPrefixed(fields.toArray(String[]::new)));
+        return "context-v1:sha256:" + digest("selector-context-v1", fields.toArray(String[]::new));
     }
 
     public enum ContextKnowledge { KNOWN, PARTIAL, UNKNOWN }

@@ -18,7 +18,20 @@ public final class SelectorStabilityEngine {
     public StabilityAssessment analyze(SelectorSubject subject, ObservationEvidence evidence, CompiledPolicySet policies){
         Objects.requireNonNull(subject);evidence=evidence==null?ObservationEvidence.unavailable():evidence;policies=policies==null?CompiledPolicySet.empty():policies;
         List<AppearanceSignal> signals=classifier.classify(subject);
-        List<SelectorPolicy.Rule> matches=policies.candidates(subject).stream().filter(r->r.scope().matches(subject)&&r.matcher().matches(subject)).toList();
+        return assess(subject,signals,subject.hasTrustedExactValue()?CanonicalDigests.exactValueDigest(subject):null,null,evidence,policies);
+    }
+
+    /** Evaluates privacy-preserving, precomputed trusted history metadata without reconstructing a raw value. */
+    public StabilityAssessment analyzeIndexed(SelectorSubject subject,List<AppearanceSignal> signals,String exactDigest,
+                                              StructuralFamily structuralFamily,ObservationEvidence evidence,CompiledPolicySet policies){
+        Objects.requireNonNull(subject);signals=signals==null?List.of():List.copyOf(signals);evidence=evidence==null?ObservationEvidence.unavailable():evidence;policies=policies==null?CompiledPolicySet.empty():policies;
+        if(exactDigest!=null&&!exactDigest.matches("[0-9a-f]{64}"))throw new IllegalArgumentException("exactDigest must be 64 lowercase hex characters");
+        return assess(subject,signals,exactDigest,structuralFamily,evidence,policies);
+    }
+
+    private StabilityAssessment assess(SelectorSubject subject,List<AppearanceSignal> signals,String exactDigest,
+                                       StructuralFamily structuralFamily,ObservationEvidence evidence,CompiledPolicySet policies){
+        List<SelectorPolicy.Rule> matches=policies.candidates(subject,exactDigest).stream().filter(r->r.scope().matches(subject)&&matches(r.matcher(),subject,exactDigest,structuralFamily)).toList();
         StabilityAssessment.PolicyEvaluation policy=evaluatePolicies(matches);
         StabilityAssessment.EffectiveDisposition disposition=disposition(subject,signals,evidence,policy);
         List<StabilityAssessment.Explanation> explanations=new ArrayList<>();
@@ -26,6 +39,11 @@ public final class SelectorStabilityEngine {
                 evidence.comparisons().stream().map(ObservationEvidence.Comparison::evidenceRef).toList(),message(disposition)));
         return new StabilityAssessment(ANALYSIS_SCHEMA_VERSION,new StabilityAssessment.EngineMetadata(ENGINE_NAME,ENGINE_VERSION,AppearanceClassifier.DETECTOR_CATALOG_VERSION,CanonicalDigests.CANONICALIZATION_VERSION),
                 subject,signals,evidence,policy,StabilityAssessment.Validation.NOT_EVALUATED,disposition,List.of(),explanations);
+    }
+    private static boolean matches(SelectorPolicy.Matcher matcher,SelectorSubject subject,String exactDigest,StructuralFamily family){
+        if(matcher instanceof SelectorPolicy.ExactMatcher exact)return exactDigest!=null&&exact.strategy().equals(subject.strategy())&&exact.valueDigest().equals(exactDigest);
+        if(subject.hasTrustedExactValue())return matcher.matches(subject);
+        return family!=null&&family.matchDigestOnly((SelectorPolicy.StructuralPattern)matcher)==StructuralFamily.Match.MATCH;
     }
 
     public Preview preview(List<SelectorSubject> subjects, ObservationEvidence evidence, CompiledPolicySet policies){

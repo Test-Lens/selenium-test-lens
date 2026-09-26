@@ -1,6 +1,5 @@
 package io.github.testlens.selector.engine;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -68,7 +67,7 @@ public final class AppearanceClassifier {
     private static void add(List<AppearanceSignal> out, String v, int start, int end, AppearanceSignal.Family f,
                             AppearanceSignal.Confidence c, String d, String r, String e) {
         int cpStart=v.codePointCount(0,start), cpEnd=v.codePointCount(0,end);
-        String digest="sha256:"+CanonicalDigests.sha256(v.substring(start,end).getBytes(StandardCharsets.UTF_8));
+        String digest="sha256:"+CanonicalDigests.digest("selector-fragment-v1",v.substring(start,end));
         out.add(new AppearanceSignal(f,c,d,1,"VALUE",cpStart,cpEnd,digest,r,e));
     }
 }
