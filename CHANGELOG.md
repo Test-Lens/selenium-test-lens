@@ -6,6 +6,10 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added a lightweight, offline selector stability engine with explainable generated-looking appearance signals,
+  supplied observation evidence, deterministic project stability policies, explicit policy/evidence conflicts, and
+  a strict local policy-file codec. Classification and policies remain outside the Selenium runtime and do not
+  perform ranking, selector generation, validation, or automatic fixes.
 - Added an offline, Java-only locator declaration discovery foundation that builds a deterministic local source
   index for standard Selenium `By`, constants, dynamic templates, and PageFactory annotations. The non-published
   tooling module never executes project code or modifies sources, remains outside runtime dependencies, and reports
