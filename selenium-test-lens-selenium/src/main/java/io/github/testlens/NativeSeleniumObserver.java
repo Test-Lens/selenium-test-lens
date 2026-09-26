@@ -121,8 +121,8 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
             contextState.afterSuccess(target.getOriginal(), method.getName(), args, current);
             if (current == null || !current.observed()) return;
             if (current.kind() == Kind.ACTION) {
-                lens.emitNativeOperation(current.action(), current.description(), UiTestLensStatus.PASSED,
-                        UiTestLensLogLevel.INFO, current.target(), null);
+                lens.emitNativeOperation(current.action(), current.currentDescription(), UiTestLensStatus.PASSED,
+                        UiTestLensLogLevel.INFO, current.currentTarget(), null);
                 current.targets().forEach(element -> highlight(element, HighlightState.SUCCESS));
             } else if (current.kind() == Kind.TECHNICAL) {
                 lens.emitNativeTechnical(current.action(), current.description(), current.target(), null,
@@ -141,8 +141,8 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
         try {
             if (current != null && current.observed()) {
                 if (current.kind() == Kind.ACTION) {
-                    lens.emitNativeOperation(current.action(), current.description(), UiTestLensStatus.FAILED,
-                            UiTestLensLogLevel.ERROR, current.target(), original);
+                    lens.emitNativeOperation(current.action(), current.currentDescription(), UiTestLensStatus.FAILED,
+                            UiTestLensLogLevel.ERROR, current.currentTarget(), original);
                     current.targets().forEach(element -> highlight(element, HighlightState.FAILURE));
                 } else if (current.kind() == Kind.TECHNICAL) {
                     // Polling/read failures remain technical diagnostics, never functional failures.
@@ -277,8 +277,20 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
 
     private enum Kind { ACTION, TECHNICAL, NONE }
 
-    private record ElementMetadata(LocatorObservationMetadata.Locator locator, String label, String scope,
-                                   LocatorObservationMetadata.Context context) {
+    private static final class ElementMetadata {
+        private final LocatorObservationMetadata.Locator locator;
+        private final String label;
+        private final String scope;
+        private final LocatorObservationMetadata.Context context;
+
+        private ElementMetadata(LocatorObservationMetadata.Locator locator, String label, String scope,
+                                LocatorObservationMetadata.Context context) {
+            this.locator = locator;
+            this.label = label == null ? "" : label;
+            this.scope = scope == null ? "" : scope;
+            this.context = context == null ? LocatorObservationMetadata.unknown() : context;
+        }
+
         private static ElementMetadata unknown() {
             return new ElementMetadata(LocatorObservationMetadata.Locator.unknown(""), "", "element",
                     LocatorObservationMetadata.unknown());
@@ -286,16 +298,26 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
         private ElementMetadata withLabel(String value) {
             return new ElementMetadata(locator.withLabel(value), value, scope, context);
         }
+        private LocatorObservationMetadata.Locator locator() { return locator; }
+        private String label() { return label; }
+        private LocatorObservationMetadata.Context context() { return context; }
         private boolean locatorKnown() { return locator != null && !locator.display().equals("Unknown locator"); }
+        private String compactLocator() { return locatorKnown() ? LocatorObservationMetadata.compact(locator) : ""; }
+        private String humanLabel() { return label; }
+        private String labelProvenance() {
+            return !label.isBlank() ? "EXPLICIT_USER" : "NONE";
+        }
         private String displayLabel() {
-            if (!label.isBlank()) return label;
-            if (locatorKnown()) return locator.display();
+            if (!humanLabel().isBlank()) return humanLabel();
+            if (locatorKnown()) return compactLocator();
             return scope.isBlank() ? "element" : scope;
         }
         private TargetDescriptor target() {
-            return new TargetDescriptor(locatorKnown() ? locator.display() : null,
-                    label.isBlank() ? null : label, null, null,
-                    scope.isBlank() ? java.util.Map.of() : java.util.Map.of("scope", scope));
+            Map<String, String> metadata = new java.util.LinkedHashMap<>();
+            if (!scope.isBlank()) metadata.put("scope", scope);
+            metadata.put("labelProvenance", labelProvenance());
+            return new TargetDescriptor(compactLocator().isBlank() ? null : compactLocator(),
+                    humanLabel().isBlank() ? null : humanLabel(), null, null, metadata);
         }
     }
 
@@ -339,6 +361,20 @@ final class NativeSeleniumObserver extends WebDriverDecorator<WebDriver> {
             return new Invocation(kind, action, description, target, targets, result,
                     lens.observationActive() && kind != Kind.NONE, locator, usageIntent, locatorContext, startedNanos,
                     argumentElement(args, decorated.getDecorator()));
+        }
+
+        private ElementMetadata primaryMetadata() {
+            return targets.isEmpty() ? null : targets.get(0).metadata();
+        }
+
+        private String currentDescription() {
+            ElementMetadata metadata = primaryMetadata();
+            return metadata == null ? description : description(action, metadata);
+        }
+
+        private TargetDescriptor currentTarget() {
+            ElementMetadata metadata = primaryMetadata();
+            return metadata == null ? target : metadata.target();
         }
 
         private Map<String, String> locatorObservation(Object result, Throwable failure) {

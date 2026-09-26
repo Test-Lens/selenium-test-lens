@@ -7,6 +7,7 @@ import io.github.testlens.core.logging.UiTestLensEventType;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.logging.UiTestLensLogLevel;
 import io.github.testlens.core.logging.UiTestLensStatus;
+import io.github.testlens.core.logging.TargetDescriptor;
 import io.github.testlens.selenium.actionability.ActionabilityReport;
 import io.github.testlens.selenium.assertions.UiAssertionOptions;
 import io.github.testlens.selenium.assertions.UiExpect;
@@ -1215,6 +1216,7 @@ public final class UiLocator {
                     .status(status)
                     .message(message + ": " + description.displayName())
                     .action("locator." + action)
+                    .target(targetDescriptor())
                     .metadata("locator", description.locatorDisplay())
                     .metadata("description", description.displayName())
                     .metadata("attempt", String.valueOf(attempt))
@@ -1251,6 +1253,13 @@ public final class UiLocator {
                                                     long durationNanos) {
         return LocatorObservationMetadata.observation(by(), description.label(), description.locatorDisplay(), intent, outcome,
                 matchCount, durationNanos);
+    }
+
+    private TargetDescriptor targetDescriptor() {
+        String human = description.label();
+        String provenance = human.isBlank() ? "NONE" : "EXPLICIT_USER";
+        return new TargetDescriptor(description.compactLocator(), human.isBlank() ? null : human,
+                null, null, Map.of("labelProvenance", provenance));
     }
 
     private static String outcome(Throwable failure) {

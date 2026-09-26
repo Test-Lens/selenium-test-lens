@@ -115,6 +115,7 @@ public final class JsOverlayDebug {
     private final java.util.concurrent.atomic.AtomicLong consumerOperationSequence = new java.util.concurrent.atomic.AtomicLong();
     private final ThreadLocal<ConsumerOperationState> consumerOperation = new ThreadLocal<>();
     private final AtomicBoolean visualRuntimeTouched = new AtomicBoolean();
+    private volatile boolean automaticTargetLabels = true;
 
     // ======================================================================
     //  CTOR
@@ -185,7 +186,8 @@ public final class JsOverlayDebug {
         this.smartInputActions = new SmartInputActions(driver, config, rootManager, typingActions, this.logger);
         this.hudPanel = new SemanticHudPanel(scriptExecutor, rootManager, config);
         this.hudLogSink.attach(this.hudPanel, driver, config.getHudOptions(),
-                config.isEnabled() && config.isShowHudPanel());
+                config.isEnabled() && config.isShowHudPanel(),
+                this::automaticTargetLabelEnabled, this::redactObservationLabel);
         this.pageWaits = new ConfiguredPageWaits(driver, config, this.locatorOptions.timeout(),
                 this.locatorOptions.pollInterval(), this.logger);
         this.popupDetector = new PopupDetector(driver, config, rootManager, highlightActions);
@@ -528,6 +530,14 @@ public final class JsOverlayDebug {
         return current != null && current.metadata().status() == io.github.testlens.core.trace.TraceStatus.STARTED;
     }
 
+    void configureAutomaticTargetLabels(boolean enabled) {
+        automaticTargetLabels = enabled;
+    }
+
+    boolean automaticTargetLabelEnabled() {
+        return automaticTargetLabels && observationActive() && config.isEnabled() && config.isShowHudPanel();
+    }
+
     void emitNativeOperation(String action,
                              String description,
                              UiTestLensStatus status,
@@ -798,6 +808,8 @@ public final class JsOverlayDebug {
         private volatile WebDriver driver;
         private volatile io.github.testlens.hud.HudOptions options;
         private volatile boolean renderingEnabled;
+        private java.util.function.BooleanSupplier automaticTargetLabelEnabled = () -> false;
+        private java.util.function.UnaryOperator<String> labelRedactor = value -> value;
         private volatile SourceFileResolver sourceResolver;
         private volatile boolean localDriver;
         private volatile Path sourceNavigationExecutionRoot = Path.of("").toAbsolutePath().normalize();
@@ -825,10 +837,18 @@ public final class JsOverlayDebug {
 
         void attach(HudPanel hud, WebDriver driver, io.github.testlens.hud.HudOptions options,
                     boolean renderingEnabled) {
+            attach(hud, driver, options, renderingEnabled, () -> false, value -> value);
+        }
+
+        void attach(HudPanel hud, WebDriver driver, io.github.testlens.hud.HudOptions options,
+                    boolean renderingEnabled, java.util.function.BooleanSupplier labelEnabled,
+                    java.util.function.UnaryOperator<String> redactor) {
             this.hud = hud;
             this.driver = driver;
             this.options = options;
             this.renderingEnabled = renderingEnabled;
+            this.automaticTargetLabelEnabled = labelEnabled == null ? () -> false : labelEnabled;
+            this.labelRedactor = redactor == null ? value -> value : redactor;
             this.sourceNavigationExecutionRoot = Path.of("").toAbsolutePath().normalize();
             this.intellijProject = options == null ? Optional.empty()
                     : IntellijProjectContext.resolve(options.sourceNavigation(), sourceNavigationExecutionRoot);
@@ -861,10 +881,16 @@ public final class JsOverlayDebug {
             if (isRawNetworkEntry(entry.eventType())
                     && "false".equalsIgnoreCase(entry.metadata().get("hudVisible"))) return;
             OperationBatch batch = currentBatch();
+            if (operationTargetUpdate(entry)) {
+                batch.updateTarget(entry.target());
+                flushPending(current, batch);
+                deliver(current, List.of(entry));
+                return;
+            }
             if (startsOperation(semantics)) {
                 flushPending(current, batch);
                 deliver(current, List.of(entry));
-                batch.start(semantics.operationId());
+                batch.start(semantics.operationId(), entry.action(), entry.target());
                 return;
             }
             if (batch.active()) {
@@ -902,6 +928,11 @@ public final class JsOverlayDebug {
             return semantics != null && !semantics.operationId().isBlank()
                     && "RUNNING".equals(semantics.phase())
                     && ("ACTION".equals(semantics.category()) || "ASSERTION".equals(semantics.category()));
+        }
+
+        private static boolean operationTargetUpdate(UiTestLensLogEntry entry) {
+            return entry != null && "true".equals(entry.metadata()
+                    .get("testlens.internal.hud.operationTargetUpdate"));
         }
 
         private static boolean endsOperation(OperationBatch batch, HudEventSemantics semantics) {
@@ -1031,7 +1062,8 @@ public final class JsOverlayDebug {
                                                         HudEventSemantics semantics) {
             String description = entry.metadata().getOrDefault("description", "");
             String action = entry.action() == null ? "" : entry.action();
-            String message = hudMessage(entry, semantics, action, description);
+            TargetDescriptor presentationTarget = currentBatch().target(semantics.operationId(), entry.target());
+            String message = hudMessage(entry, semantics, action, description, presentationTarget);
             String sourceLabel = entry.sourceLocation().map(io.github.testlens.core.logging.SourceLocation::displayName).orElse(null);
             String navigationTarget = null;
             Optional<Path> resolved = Optional.empty();
@@ -1077,9 +1109,19 @@ public final class JsOverlayDebug {
             private String operationId = "";
             private final List<UiTestLensLogEntry> entries = new ArrayList<>();
             private int bytes;
+            private String action = "";
+            private TargetDescriptor presentationTarget = TargetDescriptor.none();
+            private boolean automaticLabelAttempted;
 
             private boolean active() { return !operationId.isBlank(); }
-            private void start(String value) { operationId = value; entries.clear(); bytes = 0; }
+            private void start(String value, String operationAction, TargetDescriptor target) {
+                operationId = value;
+                action = operationAction == null ? "" : operationAction;
+                presentationTarget = target == null ? TargetDescriptor.none() : target;
+                automaticLabelAttempted = false;
+                entries.clear();
+                bytes = 0;
+            }
             private void add(UiTestLensLogEntry entry) {
                 entries.add(entry);
                 bytes += estimatedBytes(entry);
@@ -1088,21 +1130,96 @@ public final class JsOverlayDebug {
                 return entries.size() < MAX_OPERATION_BATCH_ENTRIES
                         && bytes + estimatedBytes(entry) <= MAX_BUFFERED_BYTES;
             }
-            private void clear() { operationId = ""; entries.clear(); bytes = 0; }
+            private void updateTarget(TargetDescriptor target) {
+                if (target != null) presentationTarget = target;
+            }
+            private TargetDescriptor target(String candidateOperation, TargetDescriptor fallback) {
+                return active() && operationId.equals(candidateOperation) ? presentationTarget : fallback;
+            }
+            private void clear() {
+                operationId = "";
+                action = "";
+                presentationTarget = TargetDescriptor.none();
+                automaticLabelAttempted = false;
+                entries.clear();
+                bytes = 0;
+            }
             private void reset(long value) { generation = value; clear(); }
         }
 
         private static String hudMessage(UiTestLensLogEntry entry,
                                          HudEventSemantics semantics,
                                          String action,
-                                         String description) {
+                                         String description,
+                                         TargetDescriptor presentationTarget) {
             if ("ASSERTION".equals(semantics.category()) && "RUNNING".equals(semantics.phase())) {
                 String assertion = entry.metadata().getOrDefault("assertion", action);
                 String locator = entry.metadata().getOrDefault("locator", "");
                 return locator.isBlank() ? assertion : assertion + " · " + locator;
             }
+            if ("ACTION".equals(semantics.category())) {
+                String actionLabel = actionLabel(action);
+                TargetDescriptor target = presentationTarget == null ? entry.target() : presentationTarget;
+                String human = safe(target.label());
+                String locator = safe(target.selector());
+                String targetPresentation = joinTarget(human, locator);
+                if (safe(action).isBlank() && targetPresentation.isBlank()) return entry.message();
+                return targetPresentation.isBlank() ? actionLabel : actionLabel + " :: " + targetPresentation;
+            }
             if (!description.isBlank()) return action.isBlank() ? description : action + ": " + description;
             return entry.message();
+        }
+
+        private static String joinTarget(String human, String locator) {
+            if (human.isBlank()) return locator;
+            if (locator.isBlank() || human.equals(locator)) return human;
+            return human + " :: " + locator;
+        }
+
+        private static String safe(String value) { return value == null ? "" : value.trim(); }
+
+        private static String actionLabel(String action) {
+            String value = safe(action);
+            int separator = value.lastIndexOf('.');
+            if (separator >= 0) value = value.substring(separator + 1);
+            return switch (value) {
+                case "click" -> "Click";
+                case "fill", "sendKeys" -> "Fill";
+                case "clear" -> "Clear";
+                case "submit" -> "Submit";
+                case "executeScript" -> "Execute script";
+                case "executeAsyncScript" -> "Execute async script";
+                default -> value.isBlank() ? "Action"
+                        : Character.toUpperCase(value.charAt(0)) + value.substring(1);
+            };
+        }
+
+        private void enrichCurrentOperationTarget(WebElement element) {
+            if (element == null || !automaticTargetLabelEnabled.getAsBoolean()) return;
+            OperationBatch batch = currentBatch();
+            if (!batch.active() || batch.automaticLabelAttempted
+                    || (batch.presentationTarget.label() != null && !batch.presentationTarget.label().isBlank())) return;
+            batch.automaticLabelAttempted = true;
+            String label;
+            try {
+                label = labelRedactor.apply(element.getAccessibleName());
+            } catch (RuntimeException ignored) {
+                return;
+            }
+            if (label == null || label.isBlank()) return;
+            TargetDescriptor updated = new TargetDescriptor(batch.presentationTarget.selector(), label.trim(),
+                    batch.presentationTarget.tagName(), batch.presentationTarget.text(),
+                    Map.of("labelProvenance", "AUTO_ACCESSIBLE_NAME"));
+            accept(UiTestLensLogEntry.builder()
+                    .level(UiTestLensLogLevel.INFO)
+                    .eventType(UiTestLensEventType.ACTION)
+                    .status(UiTestLensStatus.STARTED)
+                    .message(batch.action)
+                    .action(batch.action)
+                    .target(updated)
+                    .metadata("operationId", batch.operationId)
+                    .metadata("testlens.internal.hud.operationTargetUpdate", "true")
+                    .build());
         }
 
         private void refreshCompatibilityIfNeeded() {
@@ -1223,6 +1340,7 @@ public final class JsOverlayDebug {
 
     /** Internal operation feedback; failures are deliberately swallowed by the decorator. @since 0.3.1 */
     public void automaticHighlight(WebElement element, String label, HighlightState state) {
+        hudLogSink.enrichCurrentOperationTarget(element);
         highlightActions.highlight(element, label, state, true);
     }
 
@@ -1296,6 +1414,7 @@ public final class JsOverlayDebug {
      * Smart click – tries to close global overlays/popups first and then clicks.
      */
     public void smartClickWithOverlayHandler(WebElement element, String label) {
+        hudLogSink.enrichCurrentOperationTarget(element);
         smartClickActions.clickWithOverlayHandling(element, label);
     }
 
@@ -1306,6 +1425,7 @@ public final class JsOverlayDebug {
      * @since 0.4.0
      */
     public void smartClickWithOverlayHandler(WebElement element, String label, boolean javascriptClickFallback) {
+        hudLogSink.enrichCurrentOperationTarget(element);
         smartClickActions.clickWithFallbackCascade(element, label, javascriptClickFallback);
     }
 

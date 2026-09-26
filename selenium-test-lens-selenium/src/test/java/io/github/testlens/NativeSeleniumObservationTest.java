@@ -129,6 +129,54 @@ class NativeSeleniumObservationTest {
         assertFalse(json.contains("metadata.testlens.selector"));
     }
 
+    @Test void liveNativeActionUsesOneBestEffortAccessibleNameLookupAndKeepsOneOperation() {
+        Fixture fixture = new Fixture();
+        fixture.accessibleName = "Zapisz zmiany ✅";
+        TestLens lens = TestLens.attach(fixture.driver);
+        UiTestLensSession session = lens.startSession("native label");
+
+        lens.observeDriver().findElement(By.id("save")).click();
+
+        assertEquals(1, fixture.accessibleNames.get());
+        assertEquals(1, fixture.clicks.get());
+        List<String> actionOperationIds = session.events().stream()
+                .filter(event -> "selenium.click".equals(event.attributes().get("action")))
+                .map(event -> event.attributes().get("metadata.operationId")).toList();
+        assertEquals(2, actionOperationIds.size(), "only RUNNING and terminal action events are retained");
+        assertEquals(1, actionOperationIds.stream().distinct().count());
+    }
+
+    @Test void explicitNativeLabelWinsAndFastPerformsNoAutomaticLookup() {
+        Fixture explicit = new Fixture();
+        explicit.accessibleName = "Browser label";
+        TestLens explicitLens = TestLens.attach(explicit.driver);
+        explicitLens.startSession("explicit");
+        explicitLens.observe(explicit.element, "Zapisz formularz").click();
+        assertEquals(0, explicit.accessibleNames.get());
+        assertTrue(explicitLens.session().orElseThrow().exportJson().contains("Zapisz formularz"));
+
+        Fixture fast = new Fixture();
+        fast.accessibleName = "Browser label";
+        TestLens fastLens = TestLens.attach(fast.driver, TestLensOptions.builder()
+                .observabilityMode(ObservabilityMode.FAST).build());
+        fastLens.startSession("fast");
+        fastLens.observeDriver().findElement(By.id("save")).click();
+        assertEquals(0, fast.accessibleNames.get());
+        assertEquals(1, fast.clicks.get());
+    }
+
+    @Test void accessibleNameFailureDoesNotReplaceOrRepeatNativeClick() {
+        Fixture fixture = new Fixture();
+        fixture.accessibleNameFailure = new org.openqa.selenium.WebDriverException("name unavailable");
+        TestLens lens = TestLens.attach(fixture.driver);
+        lens.startSession("label failure");
+
+        lens.observeDriver().findElement(By.id("save")).click();
+
+        assertEquals(1, fixture.accessibleNames.get());
+        assertEquals(1, fixture.clicks.get());
+    }
+
     @Test void customLocatorWithThrowingDisplayCannotBreakOrRepeatFind() {
         Fixture fixture = new Fixture();
         TestLens lens = lens(fixture.driver);
@@ -280,9 +328,12 @@ class NativeSeleniumObservationTest {
         final AtomicInteger clears = new AtomicInteger();
         final AtomicInteger sendKeys = new AtomicInteger();
         final AtomicInteger userScripts = new AtomicInteger();
+        final AtomicInteger accessibleNames = new AtomicInteger();
         final AtomicInteger quits = new AtomicInteger();
         RuntimeException clickFailure;
         RuntimeException scriptFailure;
+        RuntimeException accessibleNameFailure;
+        String accessibleName = "";
         final WebDriver driver;
         final WebElement element;
 
@@ -300,6 +351,11 @@ class NativeSeleniumObservationTest {
                         case "findElement" -> { finds.incrementAndGet(); yield proxy; }
                         case "findElements" -> { finds.incrementAndGet(); yield List.of(proxy); }
                         case "getText" -> "Save";
+                        case "getAccessibleName" -> {
+                            accessibleNames.incrementAndGet();
+                            if (accessibleNameFailure != null) throw accessibleNameFailure;
+                            yield accessibleName;
+                        }
                         case "isDisplayed", "isEnabled" -> true;
                         case "getWrappedDriver" -> driverRef[0];
                         case "toString" -> "fixture-element";

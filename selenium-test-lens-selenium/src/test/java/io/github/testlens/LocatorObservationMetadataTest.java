@@ -79,6 +79,33 @@ class LocatorObservationMetadataTest {
         assertEquals("39", context.segments().get(context.segments().size() - 1).referenceValue());
     }
 
+    @Test void compactPresentationCoversStandardStrategiesWithoutChangingCanonicalValues() {
+        Map<By, String> values = Map.of(
+                By.id("save"), "#save",
+                By.cssSelector("button.next-step"), "button.next-step",
+                By.xpath("//button[@type='submit']"), "xpath: //button[@type='submit']",
+                By.name("email"), "[name=\"email\"]",
+                By.className("primary"), ".primary",
+                By.tagName("button"), "button",
+                By.linkText("Dalej"), "link: \"Dalej\"",
+                By.partialLinkText("Dal"), "link~: \"Dal\"");
+
+        values.forEach((by, expected) ->
+                assertEquals(expected, LocatorObservationMetadata.compact(
+                        LocatorObservationMetadata.locator(by, ""))));
+        assertEquals("#\\31 23\\ save", LocatorObservationMetadata.compact(
+                LocatorObservationMetadata.locator(By.id("123 save"), "")));
+        assertEquals("#-\\31 start", LocatorObservationMetadata.compact(
+                LocatorObservationMetadata.locator(By.id("-1start"), "")));
+    }
+
+    @Test void unsafeMultiClassUsesExplicitFallbackInsteadOfInvalidCss() {
+        var locator = new LocatorObservationMetadata.Locator("class name", "one two", "KNOWN",
+                "By.className: one two", "STRUCTURED", "", "");
+
+        assertEquals("class: \"one two\"", LocatorObservationMetadata.compact(locator));
+    }
+
     private static final class FutureBy extends By implements By.Remotable {
         private final String value;
         private FutureBy(String value) { this.value = value; }

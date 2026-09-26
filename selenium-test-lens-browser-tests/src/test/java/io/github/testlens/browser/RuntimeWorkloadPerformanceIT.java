@@ -134,6 +134,7 @@ class RuntimeWorkloadPerformanceIT {
         BrowserTestHarness.ExecutorCommandMetrics.HudTransportMeasurement hudBefore = wire.hudTransportSnapshot();
         int commandsBefore = wire.total();
         int scriptsBefore = wire.count("executeScript");
+        int accessibleNamesBefore = wire.count("getElementAccessibleName");
         long actionStarted = System.nanoTime();
         used.findElement(By.cssSelector("[data-testid='available']")).click();
         used.findElement(By.cssSelector("[data-testid='name']")).clear();
@@ -162,6 +163,7 @@ class RuntimeWorkloadPerformanceIT {
         assertEquals(1L, clicks, "native observation must not duplicate the business click");
         return new NativeObservationResult(profile, repetition, actionNanos, totalNanos,
                 wire.total() - commandsBefore, wire.count("executeScript") - scriptsBefore,
+                wire.count("getElementAccessibleName") - accessibleNamesBefore,
                 events, hud.batches(), hud.events(), hud.payloadBytes(), clicks,
                 retentionLong(session, "retainedEvents"), retentionLong(session, "retainedEstimatedBytes"),
                 retentionLong(session, "evictedEvents"), retentionLong(session, "truncatedEvents"),
@@ -454,12 +456,13 @@ class RuntimeWorkloadPerformanceIT {
 
     private static void writeNativeObservation(Path path, List<NativeObservationResult> values) throws IOException {
         List<String> lines = new ArrayList<>();
-        lines.add("sourceSha,browser,headed,profile,repetition,actionNanos,totalWithFinishNanos,executorCommands,executeScript,lensEvents,hudBatches,hudBatchEvents,hudPayloadBytes,businessClicks,retainedEvents,retainedEstimatedBytes,evictedEvents,truncatedEvents,locatorObservations,sourceLocations,reportJsonBytes");
+        lines.add("sourceSha,browser,headed,profile,repetition,actionNanos,totalWithFinishNanos,executorCommands,executeScript,accessibleNameCalls,lensEvents,hudBatches,hudBatchEvents,hudPayloadBytes,businessClicks,retainedEvents,retainedEstimatedBytes,evictedEvents,truncatedEvents,locatorObservations,sourceLocations,reportJsonBytes");
         for (NativeObservationResult value : values) lines.add(String.join(",",
                 System.getProperty("perf.sourceSha", "unknown"), BrowserTestHarness.browserName(),
                 System.getProperty("headed", "false"), value.profile(), String.valueOf(value.repetition()),
                 String.valueOf(value.actionNanos()), String.valueOf(value.totalNanos()),
                 String.valueOf(value.executorCommands()), String.valueOf(value.executeScript()),
+                String.valueOf(value.accessibleNameCalls()),
                 String.valueOf(value.lensEvents()), String.valueOf(value.hudBatches()),
                 String.valueOf(value.hudBatchEvents()), String.valueOf(value.hudPayloadBytes()),
                 String.valueOf(value.businessClicks()), String.valueOf(value.retainedEvents()),
@@ -490,7 +493,8 @@ class RuntimeWorkloadPerformanceIT {
                                    int traceJsonBytes) { }
     private record RunResult(List<OperationResult> operations, LifecycleResult lifecycle) { }
     private record NativeObservationResult(String profile, int repetition, long actionNanos, long totalNanos,
-                                           int executorCommands, int executeScript, int lensEvents,
+                                           int executorCommands, int executeScript, int accessibleNameCalls,
+                                           int lensEvents,
                                            int hudBatches, int hudBatchEvents, long hudPayloadBytes,
                                            long businessClicks, long retainedEvents,
                                            long retainedEstimatedBytes, long evictedEvents,

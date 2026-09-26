@@ -4,6 +4,8 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import io.github.testlens.TestLens;
 import io.github.testlens.TestLensOptions;
+import io.github.testlens.ObservabilityMode;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.core.trace.UiTestLensSession;
 import io.github.testlens.hud.HudOptions;
 import io.github.testlens.hud.HudPreset;
@@ -31,6 +33,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.List;
 
@@ -159,8 +162,100 @@ class NativeSeleniumObservationIT {
         }
     }
 
+    @Test void actionRowsUseAccessibleLabelsCompactLocatorsAndExplicitPrecedence() {
+        WebDriver raw = BrowserTestHarness.createDriver();
+        try {
+            TestLens lens = TestLens.attach(raw);
+            WebDriver driver = lens.observeDriver();
+            lens.startSession("HUD target labels");
+            driver.get(baseUrl);
+
+            driver.findElement(By.id("save")).click();
+            assertEquals("Click :: Save :: #save", latestActionMessage(raw));
+            lens.observe(driver.findElement(By.id("save")), "Zapisz formularz").click();
+            assertEquals("Click :: Zapisz formularz :: #save", latestActionMessage(raw));
+            driver.findElement(By.id("aria-save")).click();
+            assertEquals("Click :: Accessible save :: #aria-save", latestActionMessage(raw));
+            driver.findElement(By.id("blank-name")).click();
+            assertEquals("Click :: #blank-name", latestActionMessage(raw));
+            driver.findElement(By.id("email")).clear();
+            assertEquals("Clear :: Email address :: #email", latestActionMessage(raw));
+            lens.locator(By.cssSelector("button#aria-save")).click();
+            assertEquals("Click :: Accessible save :: button#aria-save", latestActionMessage(raw));
+            lens.locator(By.id("save"), "Explicit UiLocator label").click();
+            assertEquals("Click :: Explicit UiLocator label :: #save", latestActionMessage(raw));
+            assertEquals(3L, number(driver, "return window.counts.save"));
+            lens.finishPassed();
+        } finally {
+            raw.quit();
+        }
+    }
+
+    @Test void fastObservationKeepsBusinessActionWithoutCreatingPresentation() {
+        WebDriver raw = BrowserTestHarness.createDriver();
+        try {
+            TestLens lens = TestLens.attach(raw, TestLensOptions.builder()
+                    .observabilityMode(ObservabilityMode.FAST).build());
+            WebDriver driver = lens.observeDriver();
+            lens.startSession("FAST target labels");
+            driver.get(baseUrl);
+
+            driver.findElement(By.id("save")).click();
+
+            assertEquals(1L, number(driver, "return window.counts.save"));
+            assertEquals(0L, number(driver, """
+                    const host=document.getElementById('selenium-overlay-host');
+                    return host?.shadowRoot?.querySelectorAll('.stl-hud-event').length || 0;
+                    """));
+            lens.finishPassed();
+        } finally {
+            raw.quit();
+        }
+    }
+
+    @Test void automaticLabelsAreRedactedAndRenderedAsTextWithoutUsingInputValues() throws IOException {
+        WebDriver raw = BrowserTestHarness.createDriver();
+        try {
+            TestLens lens = TestLens.attach(raw, TestLensOptions.builder()
+                    .redactionPolicy(RedactionPolicy.builder().secret("super-secret-token").build())
+                    .build());
+            WebDriver driver = lens.observeDriver();
+            lens.startSession("safe HUD target labels");
+            driver.get(baseUrl);
+
+            driver.findElement(By.id("secret-label")).click();
+            assertFalse(latestActionMessage(raw).contains("super-secret-token"));
+            driver.findElement(By.id("password")).click();
+            assertEquals("Click :: Password :: #password", latestActionMessage(raw));
+            assertFalse(latestActionMessage(raw).contains("secret-current-value"));
+            driver.findElement(By.id("html-label")).click();
+            assertTrue(latestActionMessage(raw).contains("<img src=x onerror=alert(1)>"));
+            assertEquals(0L, number(raw, """
+                    const host=document.getElementById('selenium-overlay-host');
+                    return host?.shadowRoot?.querySelectorAll('.stl-hud-event-message img').length || 0;
+                    """));
+            driver.findElement(By.id("unicode-label")).click();
+            assertEquals("Click :: Zapisz zmiany ✅ :: #unicode-label", latestActionMessage(raw));
+
+            String json = Files.readString(lens.finishPassed().jsonReport(), StandardCharsets.UTF_8);
+            assertFalse(json.contains("super-secret-token"));
+            assertFalse(json.contains("secret-current-value"));
+        } finally {
+            raw.quit();
+        }
+    }
+
     private static long number(WebDriver driver, String script) {
         return ((Number) ((JavascriptExecutor) driver).executeScript(script)).longValue();
+    }
+
+    private static String latestActionMessage(WebDriver driver) {
+        return String.valueOf(((JavascriptExecutor) driver).executeScript("""
+                const host=document.getElementById('selenium-overlay-host');
+                const rows=[...(host?.shadowRoot?.querySelectorAll('.stl-hud-event[data-category="ACTION"]') || [])];
+                const message=rows.at(-1)?.querySelector('.stl-hud-event-message');
+                return message ? message.textContent : '';
+                """));
     }
 
     private static void serve(HttpExchange exchange) throws IOException {
@@ -179,7 +274,13 @@ class NativeSeleniumObservationIT {
 
     private static final String HTML = """
             <!doctype html><html><body>
-            <input id='email'><button id='save'>Save</button><button id='js-button'>JS</button>
+            <label for='email'>Email address</label><input id='email'>
+            <button id='save'>Save</button><button id='aria-save' aria-label='Accessible save'>Icon</button>
+            <button id='blank-name' aria-label=''></button><button id='js-button'>JS</button>
+            <button id='secret-label' aria-label='Account super-secret-token'>Secret</button>
+            <input id='password' type='password' aria-label='Password' value='secret-current-value'>
+            <button id='html-label' aria-label='&lt;img src=x onerror=alert(1)&gt;'>HTML</button>
+            <button id='unicode-label' aria-label='Zapisz zmiany ✅'>Unicode</button>
             <div id='parent'><button class='child'>Child</button></div>
             <button class='item'>One</button><button class='item'>Two</button>
             <div style='position:relative;width:140px;height:40px'>

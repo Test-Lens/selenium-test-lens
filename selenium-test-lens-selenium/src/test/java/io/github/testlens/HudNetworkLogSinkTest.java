@@ -4,6 +4,7 @@ import io.github.testlens.core.OverlayRootManager;
 import io.github.testlens.core.browser.BrowserScriptExecutor;
 import io.github.testlens.core.logging.UiTestLensEventType;
 import io.github.testlens.core.logging.UiTestLensLogEntry;
+import io.github.testlens.core.logging.UiTestLensStatus;
 import io.github.testlens.hud.HudPanel;
 import io.github.testlens.hud.HudOptions;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import java.time.Instant;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.nio.file.Path;
@@ -264,6 +266,27 @@ class HudNetworkLogSinkTest {
     }
 
     @Test
+    void targetEnrichmentRevisesTheSameActionRowWithoutEmptySegments() {
+        BatchRecordingExecutor executor = new BatchRecordingExecutor();
+        OverlayConfig config = OverlayConfig.builder().build();
+        SemanticHudPanel hud = new SemanticHudPanel(executor, new OverlayRootManager(executor, config), config);
+        hud.init("labels", "local");
+        executor.batches.clear();
+        executor.operationIds.clear();
+        JsOverlayDebug.HudLogSink sink = new JsOverlayDebug.HudLogSink();
+        sink.attach(hud, null, HudOptions.defaults());
+
+        sink.accept(actionTarget(UiTestLensStatus.STARTED, "operation-label", null, "#save", false));
+        sink.accept(actionTarget(UiTestLensStatus.STARTED, "operation-label", "Zapisz", "#save", true));
+        sink.accept(actionTarget(UiTestLensStatus.PASSED, "operation-label", null, "#save", false));
+
+        assertEquals(List.of(List.of("Click :: #save"), List.of("Click :: Zapisz :: #save"),
+                List.of("Click :: Zapisz :: #save")), executor.batches);
+        assertEquals(List.of("operation-label", "operation-label", "operation-label"),
+                executor.operationIds.stream().flatMap(List::stream).toList());
+    }
+
+    @Test
     void lastUserMessageFlushesImmediatelyAndIsNeverMergedByText() {
         BatchRecordingExecutor executor = new BatchRecordingExecutor();
         OverlayConfig config = OverlayConfig.builder().build();
@@ -388,8 +411,22 @@ class HudNetworkLogSinkTest {
                 .metadata("operationId", operationId).build();
     }
 
+    private static UiTestLensLogEntry actionTarget(UiTestLensStatus status, String operationId,
+                                                    String label, String selector, boolean update) {
+        UiTestLensLogEntry.Builder builder = UiTestLensLogEntry.builder()
+                .eventType(UiTestLensEventType.LOCATOR_ACTION_STARTED)
+                .status(status)
+                .action("locator.click")
+                .message("click")
+                .target(new io.github.testlens.core.logging.TargetDescriptor(selector, label, null, null, Map.of()))
+                .metadata("operationId", operationId);
+        if (update) builder.metadata("testlens.internal.hud.operationTargetUpdate", "true");
+        return builder.build();
+    }
+
     private static final class BatchRecordingExecutor implements BrowserScriptExecutor {
         private final List<List<String>> batches = new ArrayList<>();
+        private final List<List<String>> operationIds = new ArrayList<>();
 
         @Override
         public Object execute(String script, Object... arguments) {
@@ -398,6 +435,11 @@ class HudNetworkLogSinkTest {
             List<java.util.Map<String, Object>> payload =
                     (List<java.util.Map<String, Object>>) arguments[0];
             batches.add(payload.stream().map(value -> String.valueOf(value.get("message"))).toList());
+            operationIds.add(payload.stream().map(value -> {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> semantics = (Map<String, Object>) value.get("semantics");
+                return String.valueOf(semantics.get("operationId"));
+            }).toList());
             return true;
         }
     }

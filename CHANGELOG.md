@@ -6,6 +6,10 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Action rows now combine an explicit or best-effort accessible target label with a compact locator, for example
+  `Click :: Save :: #save`. The initial locator-only RUNNING row and its enriched/terminal revisions share one
+  operation ID; explicit labels win, FAST performs no automatic lookup, and native Selenium actions still execute
+  exactly once.
 - Added versioned structured runtime locator observations to existing native Selenium and `UiLocator` trace events.
   Standard Selenium `By` values use official remote parameters, custom and relative locators remain explicitly
   opaque/complex, and parent, shadow, frame, and window context is bounded without additional WebDriver commands.

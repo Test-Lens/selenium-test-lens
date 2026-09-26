@@ -69,6 +69,7 @@ public final class TestLens {
                         observability.liveHud(), observability.automaticFeedback()),
                 this.options.redactionPolicy(),
                 this.options.locatorOptions(), this.options.visualRedaction());
+        this.delegate.configureAutomaticTargetLabels(observability.mode() != ObservabilityMode.FAST);
     }
 
     public static TestLens attach(WebDriver driver) { return new TestLens(driver, TestLensOptions.defaults()); }

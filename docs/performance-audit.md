@@ -249,3 +249,30 @@ a consistent locator-model latency effect. Source capture is performed once per 
 not added to ordinary technical reads.
 
 JFR/browser traces are useful for CPU and allocation attribution but change the measured system. A separate 20-event, zero-warmup JFR using the JDK `profile` settings produced a four-second recording. It contained only four execution samples—too few for a CPU attribution claim—and showed the test spending its sampled time in framework startup/waiting/HTTP I/O rather than a demonstrated Java CPU hotspot. This result is supporting context, not the source of the reported speedup; the unprofiled repeated wall-time and command-count runs are the primary evidence. The installed Chrome 152 has no matching Selenium 4.39 CDP module in this repository, so a Chrome DevTools performance trace was **NOT RUN**; Selenium was not upgraded for the audit.
+
+### Automatic action-label follow-up
+
+The accepted `b8304b5` measurements above are the before baseline. The follow-up used the same three-command
+native workload, two warmups, and five interleaved measured repetitions on local headless Chrome 152 and Firefox
+156. The focused artifact is
+`selenium-test-lens-browser-tests/target/performance-audit/selector-labels-focused`. The harness now records
+Selenium 4.39's logical `getElementAccessibleName` command separately; it does not infer it from arguments or
+script text.
+
+| Browser | Profile | Before action median | Label follow-up median (range) | Commands before → after | `executeScript` before → after | Accessible-name calls | HUD batches after | Business clicks |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Chrome | RAW | 119.103 ms | 386.905 ms (200.265–613.846) | 7 → 7 | 1 → 1 | 0 | 0 | 1 |
+| Chrome | OBSERVED_DEFAULT | 426.423 ms | 1,071.513 ms (913.757–2,221.488) | 40 → 45 | 28 → 29 | 3 | 7 | 1 |
+| Chrome | OBSERVED_FAST | 131.247 ms | 303.638 ms (241.596–690.942) | 7 → 7 | 1 → 1 | 0 | 0 | 1 |
+| Chrome | OBSERVED_DEBUG | 491.074 ms | 1,241.856 ms (1,229.594–2,726.181) | 52 → 57 | 34 → 35 | 3 | 13 | 1 |
+| Firefox | RAW | 95.885 ms | 109.627 ms (105.674–128.584) | 7 → 7 | 1 → 1 | 0 | 0 | 1 |
+| Firefox | OBSERVED_DEFAULT | 333.580 ms | 422.094 ms (405.568–480.521) | 40 → 45 | 28 → 29 | 3 | 7 | 1 |
+| Firefox | OBSERVED_FAST | 101.115 ms | 116.273 ms (112.064–117.413) | 7 → 7 | 1 → 1 | 0 | 0 | 1 |
+| Firefox | OBSERVED_DEBUG | 402.047 ms | 523.047 ms (508.393–559.453) | 52 → 57 | 34 → 35 | 3 | 13 | 1 |
+
+The structural delta is intentional and bounded. DEFAULT/DEBUG perform one accessible-name lookup for each of the
+three unlabeled actions and one additional HUD revision batch; the remaining two logical commands are that
+revision's existing alert probe and self-validating dispatch. FAST remains identical to its baseline command,
+script, HUD-batch, and business-click counts. Wall-time samples, especially Chrome, moved with the whole browser
+baseline and are too noisy to attribute as a stable latency regression; the extra DEFAULT round trips are therefore
+reported explicitly rather than hidden behind a percentage claim.

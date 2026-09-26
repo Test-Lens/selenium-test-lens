@@ -108,6 +108,72 @@ final class LocatorObservationMetadata {
         return genericDisplay(by);
     }
 
+    static String compact(Locator locator) {
+        if (locator == null) return "";
+        if (!"STRUCTURED".equals(locator.supportKind()) || !"KNOWN".equals(locator.valueState())) {
+            return locator.display();
+        }
+        String value = locator.value();
+        return switch (locator.strategy()) {
+            case "id" -> "#" + cssIdentifier(value);
+            case "css selector" -> value;
+            case "name" -> "[name=\"" + cssString(value) + "\"]";
+            case "class name" -> singleCssClass(value) ? "." + cssIdentifier(value) : quoted("class", value);
+            case "tag name" -> singleCssClass(value) ? cssIdentifier(value) : quoted("tag", value);
+            case "xpath" -> "xpath: " + value;
+            case "link text" -> quoted("link", value);
+            case "partial link text" -> quoted("link~", value);
+            default -> locator.strategy() + ": " + value;
+        };
+    }
+
+    private static String quoted(String prefix, String value) {
+        return prefix + ": \"" + cssString(value) + "\"";
+    }
+
+    private static boolean singleCssClass(String value) {
+        return value != null && !value.isBlank() && value.codePoints().noneMatch(Character::isWhitespace);
+    }
+
+    private static String cssString(String value) {
+        if (value == null) return "";
+        StringBuilder out = new StringBuilder(value.length());
+        value.codePoints().forEach(codePoint -> {
+            if (codePoint == '\\' || codePoint == '"') out.append('\\').appendCodePoint(codePoint);
+            else if (codePoint == 0 || codePoint < 0x20 || codePoint == 0x7f) {
+                out.append('\\').append(Integer.toHexString(codePoint == 0 ? 0xfffd : codePoint)).append(' ');
+            } else out.appendCodePoint(codePoint);
+        });
+        return out.toString();
+    }
+
+    private static String cssIdentifier(String value) {
+        if (value == null || value.isEmpty()) return "\\fffd ";
+        StringBuilder out = new StringBuilder(value.length());
+        int position = 0;
+        int first = value.codePointAt(0);
+        int codePointCount = value.codePointCount(0, value.length());
+        for (int offset = 0; offset < value.length();) {
+            int codePoint = value.codePointAt(offset);
+            boolean escapeAsCodePoint = codePoint == 0 || codePoint < 0x20 || codePoint == 0x7f
+                    || (position == 0 && Character.isDigit(codePoint))
+                    || (position == 1 && first == '-' && Character.isDigit(codePoint));
+            if (escapeAsCodePoint) {
+                out.append('\\').append(Integer.toHexString(codePoint == 0 ? 0xfffd : codePoint)).append(' ');
+            } else if (position == 0 && codePoint == '-' && codePointCount == 1) {
+                out.append("\\-");
+            } else if (codePoint >= 0x80 || codePoint == '-' || codePoint == '_'
+                    || Character.isLetterOrDigit(codePoint)) {
+                out.appendCodePoint(codePoint);
+            } else {
+                out.append('\\').appendCodePoint(codePoint);
+            }
+            offset += Character.charCount(codePoint);
+            position++;
+        }
+        return out.toString();
+    }
+
     private static String genericDisplay(By by) {
         return by == null ? "Unknown locator" : "Locator " + by.getClass().getName();
     }

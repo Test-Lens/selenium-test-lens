@@ -27,6 +27,19 @@ User-authored HUD messages may replace only the decorative `USER` icon: `overlay
 
 STARTED, retry, and terminal events from one public action/assertion carry the same operation ID, so the HUD updates one row from RUNNING through RETRYING to PASSED or FAILED. Two real clicks still have distinct IDs even when they target the same selector. Smart Click's `NATIVE → ACTIONS → POINT → JS` cascade therefore remains one ACTION; `finalStrategy=JS` stays diagnostic detail. A successful green outline is `HIGHLIGHT/DEBUG`, not `PASSED`.
 
+Action targets use `Action :: label :: compact locator` without empty segments. An explicit Test Lens label always
+wins. Otherwise, live DEFAULT observability may make one best-effort Selenium `getAccessibleName()` call after
+resolution and revise the same operation row, for example `Click :: #save` to
+`Click :: Save :: #save`. Blank, stale, or failed lookups keep the locator-only form and never affect the Selenium
+action result. FAST performs no automatic label command; explicit or already-known labels remain usable. Values
+are redacted before HUD delivery and rendered as text. Input values, including password values, are never queried
+as label fallbacks.
+
+Compact locators are presentation only: IDs use `#id`, CSS stays CSS, names use `[name="value"]`, safe single
+classes use `.class`, tags stay tags, XPath uses `xpath: ...`, and link text uses `link: "..."` or
+`link~: "..."`. Custom, complex, and unsafe-to-compact locators retain a bounded safe display. The canonical
+structured `locatorObservation` strategy/value and its schema are unchanged.
+
 Source Navigation availability remains a SYSTEM warning/info presentation and never becomes a failed test result. Its F8/Escape interaction, links, compatibility refresh, wheel behavior, and native scrollbar remain independent of semantic row updates.
 
 Messages, labels, and icons are inserted as text rather than HTML. The runtime does not inspect message contents to determine category or phase. Unicode is carried unchanged through event metadata, JSON, reports, and the DOM, with emoji fallback fonts applied only to decorative icon spans.

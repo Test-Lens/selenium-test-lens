@@ -21,6 +21,10 @@ record HudEventSemantics(String category,
         UiTestLensEventType type = entry == null || entry.eventType() == null
                 ? UiTestLensEventType.GENERAL : entry.eventType();
         Map<String, String> metadata = entry == null ? Map.of() : entry.metadata();
+        if ("true".equals(metadata.get("testlens.internal.hud.operationTargetUpdate"))) {
+            return new HudEventSemantics("ACTION", "RUNNING",
+                    metadata.getOrDefault("operationId", ""), 0, 0, false, "");
+        }
         String category = category(type);
         boolean technical = isTechnical(category);
         String phase = phase(type, entry == null ? UiTestLensStatus.INFO : entry.status(), metadata, technical);
