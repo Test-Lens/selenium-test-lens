@@ -128,6 +128,7 @@ nav:
       - Selector stability policies: maintainers/selector-stability-policies.md
       - Selector candidate live analysis: maintainers/selector-candidate-live-analysis.md
       - Selector similarity and cross-run history: maintainers/selector-find-similar-history.md
+      - Offline Selector Audit: maintainers/selector-audit.md
       - Changelog: https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md
       - Maven Central: https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1
       - Javadoc: https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/

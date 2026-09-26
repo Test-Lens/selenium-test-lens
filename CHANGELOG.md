@@ -6,6 +6,9 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added an internal offline Selector Audit foundation with declaration-level findings, explicit coverage, and
+  deterministic sanitized JSON and standalone HTML reports. It does not invoke a browser, change source, save
+  policy, or provide an automatic fix or CI failure gate.
 - Added an internal Find Similar and compact selector-history tooling foundation with deterministic structural
   relations, detector-backed pattern preview, explicit cross-run comparability, redacted-report limitations, and
   bounded local evidence aggregation. It performs no runtime collection, automatic policy save, or source change.
