@@ -15,7 +15,7 @@ class SelectorToolingModuleBoundaryTest {
         Path root = Path.of(System.getProperty("maven.multiModuleProjectDirectory", ".."))
                 .toAbsolutePath().normalize();
         String tooling = Files.readString(root.resolve("selenium-test-lens-selector-tooling/pom.xml"));
-        assertTrue(tooling.contains("<groupId>io.github.testlens</groupId>"));
+        assertTrue(tooling.contains("<groupId>io.github.test-lens</groupId>"));
         assertTrue(tooling.contains("javaparser-symbol-solver-core"));
         assertTrue(tooling.contains("<version>3.28.2</version>"));
         assertTrue(tooling.contains("selenium-test-lens-selector-engine"));
