@@ -1,8 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$BaselineTag = "v0.3.0",
-    [string]$ExpectedSince = "0.3.1"
+    [string]$BaselineTag = "v0.3.1",
+    [string]$ExpectedSince = "0.4.0"
 )
 
 $ErrorActionPreference = "Stop"
@@ -25,6 +25,23 @@ function Read-ManifestSummary([string[]]$Lines, [string]$Label) {
 
 function Read-PublicTypes([string[]]$Lines) {
     @($Lines | Where-Object { $_ -like 'TYPE *' } | ForEach-Object { $_.Substring(5) })
+}
+
+function Get-RepositoryRelativePath([string]$Root, [string]$Path) {
+    $separator = [IO.Path]::DirectorySeparatorChar
+    $alternate = [IO.Path]::AltDirectorySeparatorChar
+    $rootPath = [IO.Path]::GetFullPath($Root).Replace($alternate, $separator).TrimEnd($separator)
+    $sourcePath = [IO.Path]::GetFullPath($Path).Replace($alternate, $separator)
+    $prefix = $rootPath + $separator
+    $comparison = if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) {
+        [StringComparison]::OrdinalIgnoreCase
+    } else {
+        [StringComparison]::Ordinal
+    }
+    if ($sourcePath.StartsWith($prefix, $comparison)) {
+        return $sourcePath.Substring($prefix.Length)
+    }
+    return $sourcePath
 }
 
 $currentLines = @(Get-Content -LiteralPath $manifestPath -Encoding utf8)
@@ -91,7 +108,7 @@ foreach ($type in $newTypes) {
     }
     $javadoc = ($lines[$start..$end] -join "`n")
     if ($javadoc -notmatch "(?m)@since\s+$([regex]::Escape($ExpectedSince))(?:\s|\*/|$)") {
-        $relative = [IO.Path]::GetRelativePath($RepositoryRoot, $source)
+        $relative = Get-RepositoryRelativePath $RepositoryRoot $source
         $violations.Add("${type}: expected @since $ExpectedSince in $relative")
     }
 }
