@@ -6,6 +6,9 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added an internal, non-published compatibility run-manifest foundation with explicit headed/headless metadata
+  capture, logical-invocation retry attempts, bounded behavior summaries, and deterministic sanitized local JSON
+  artifacts. It does not yet compare runs, issue compatibility verdicts, or perform static source analysis.
 - Added the internal Selector Lab policy-feedback and draft foundation with session-only Use once, whole-workspace
   optimistic checks, typed host acknowledgements, and a separate trusted host-side atomic policy applier. Browser
   commands can prepare/preview/transfer a pending change but cannot write policy files or modify source.

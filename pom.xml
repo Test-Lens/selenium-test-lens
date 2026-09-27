@@ -54,6 +54,8 @@
         <module>selenium-test-lens-selector-live</module>
         <module>selenium-test-lens-selector-lab</module>
         <module>selenium-test-lens-selector-tooling</module>
+        <module>selenium-test-lens-compatibility-engine</module>
+        <module>selenium-test-lens-compatibility-tooling</module>
         <module>selenium-test-lens-examples</module>
     </modules>
 
