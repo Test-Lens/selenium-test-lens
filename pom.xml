@@ -56,6 +56,7 @@
         <module>selenium-test-lens-selector-tooling</module>
         <module>selenium-test-lens-compatibility-engine</module>
         <module>selenium-test-lens-compatibility-tooling</module>
+        <module>selenium-test-lens-migration-tooling</module>
         <module>selenium-test-lens-examples</module>
     </modules>
 
@@ -312,7 +313,7 @@
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>${central.publishing.serverId}</publishingServerId>
-                            <excludeArtifacts>selenium-test-lens-examples,selenium-test-lens-browser-tests,selenium-test-lens-selector-engine,selenium-test-lens-selector-live,selenium-test-lens-selector-lab,selenium-test-lens-selector-tooling</excludeArtifacts>
+                            <excludeArtifacts>selenium-test-lens-examples,selenium-test-lens-browser-tests,selenium-test-lens-selector-engine,selenium-test-lens-selector-live,selenium-test-lens-selector-lab,selenium-test-lens-selector-tooling,selenium-test-lens-compatibility-engine,selenium-test-lens-compatibility-tooling,selenium-test-lens-migration-tooling</excludeArtifacts>
                             <autoPublish>false</autoPublish>
                             <waitUntil>validated</waitUntil>
                         </configuration>

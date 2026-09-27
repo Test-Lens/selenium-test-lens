@@ -6,6 +6,10 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added the internal Migration Assistant foundation for read-only Git preflight, bounded dirty source-state
+  fingerprints, persistent deterministic checkpoints, resume validation, and pure workspace-isolation plans. It
+  does not create branches or worktrees, stash changes, run tests, propose or apply source changes, or contact Git
+  remotes.
 - Added explicit offline static compatibility risk analysis with symbol-aware native desktop, screen/headless,
   browser JavaScript, viewport, window-handle, and profile evidence plus deterministic sanitized JSON/HTML reports.
   Source findings remain hypotheses and do not prove incompatibility or propose automatic fixes.
