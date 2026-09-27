@@ -210,3 +210,96 @@ There is still no source apply, patch apply, post-patch compile/test, automatic 
 network behavior. S11 receives content-addressed checkpoints, exact source preconditions and patch bytes, proposal and
 decision ledgers, run/baseline evidence, and isolation-action records; S11 alone may implement guarded source apply,
 verification, and precondition-aware rollback.
+
+## S11B1 guarded source Apply
+
+S11B1 adds source mutation only inside the non-published migration-tooling module. It does not add a runtime API,
+compile or run tests, perform headed/headless/FAST verification, invoke a shell, mutate source through Git, or commit.
+Its successful terminal state is `VERIFICATION_PENDING`, never `VERIFIED`.
+
+An `APPROVE_FOR_S11` decision makes a proposal eligible for consideration; it is not source-write authority. The host
+selects exact proposal IDs and separately supplies `APPLY_APPROVED_SOURCE_CHANGES` bound to the resulting apply-plan
+ID and repository/worktree bindings. Decisions are active only through explicit decision-ref supersession. Array
+order and timestamps have no precedence. Missing superseded decisions, cross-proposal links, cycles, or multiple
+non-superseded decisions invalidate the ledger. A superseding reject or defer prevents Apply.
+
+Proposal dependencies use typed, content-addressed `MigrationDependencyResolution` artifacts. New evidence,
+configuration alignment, prerequisite proposals, and trusted manual decisions are distinct resolution types bound to
+an exact proposal, dependency semantic ref, checkpoint, and evidence digests. Approval never bypasses an unresolved
+or stale dependency.
+
+Preparation reruns read-only Git preflight and source fingerprinting, writes a fresh checkpoint, and validates every
+selected proposal before any source write. Only `READY_FOR_REVIEW` proposals with exact source edits are accepted.
+All files are contained below the trusted worktree, regular and non-symlink, outside `.git`, strictly UTF-8 or UTF-8
+BOM, and LF or CRLF. The current full-file digest, AST node, declaration, range, old construct, and locator semantics
+must still match. There is no nearby search, fuzzy relocation, or automatic patch rebase.
+
+Executable proposal edits are rebuilt in memory rather than executed directly. The immutable
+`MigrationApplyPlan` binds the selected proposals, effective decisions, dependency resolutions, evidence,
+repository/worktree/checkpoints, approved UTF-16 ranges, exact original and proposed file SHA-256 values,
+content-addressed byte artifacts, merged verification-requirement digest, and exact owned-diff digest. The strict
+Jackson Core codec rejects duplicates, unknown fields, unsupported versions, invalid enums, semantic-ID mismatch,
+and bounds violations. The persisted plan is reloaded and must equal the plan whose ID the host authorized.
+
+Hard V1 bounds are 32 proposals, 64 files, 512 edits, 64 MiB per source artifact, 512 MiB aggregate originals,
+512 MiB aggregate targets, 64 MiB exact final diff, 16 MiB per plan/journal document, and 1,024 issues. Existing-file
+modification is the only supported source operation; file creation and deletion remain unsupported.
+
+### Lock, journal, and replacement
+
+A repository-binding-specific `FileChannel.tryLock()` is acquired before last-moment validation and held through
+replacement, immediate compensation, and transaction finalization. It prevents concurrent Test Lens Apply calls but
+does not lock an IDE or arbitrary process, so every target SHA is checked again before the first write and immediately
+before its own replacement. Any pre-write mismatch aborts the entire batch with zero writes. A mid-transaction
+external edit stops remaining files and produces a partial transaction without overwriting that edit.
+
+Before mutation, all original and target artifacts must exist and match their exact digest and size; an ownership
+registry and `PREPARED` journal event must be durable. Source backups are the bytes observed before migration, so a
+pre-existing user edit is preserved in both the backup and the rollback target rather than replaced with Git `HEAD`.
+Backups, targets, plans, journals, and diffs are `LOCAL_SENSITIVE_ARTIFACT` data below the already-safe B1 state root.
+
+The journal is an append-only sequence of individually atomic event files. Each event binds its sequence,
+transaction, semantic payload, previous-event digest, and own digest. Missing, reordered, corrupted, or cross-
+transaction events fail integrity validation. Operational timestamps are provenance and do not affect event identity.
+The transaction ID is derived from the exact plan and preparation checkpoint plus a fixed V1 attempt identity; it is
+not a random UUID.
+
+Each file uses a transaction-owned sibling temp created with `CREATE_NEW`, exact bytes written through `FileChannel`,
+`force(true)`, digest verification, and `ATOMIC_MOVE` with replacement when supported. The explicit fallback is a
+same-filesystem replacement move and is not described as atomic. POSIX permissions are retained when available;
+DOS read-only files are blocked rather than made writable. Windows ACL ownership and arbitrary extended attributes
+are not promised. The resulting target digest is checked immediately. Multi-file Apply is deliberately not called
+atomic: replacements occur one at a time and a failure at file N leaves an exact `PARTIAL_APPLY` record and never
+attempts N+1.
+
+Immediate compensation is available only in the same uninterrupted Apply call after an internal write failure and
+only when the host supplied a separate `ROLLBACK_TOOL_CHANGES` authorization in advance. Each target must still equal
+the exact tool-written digest. Apply authority alone does not imply rollback authority, and later verification failure
+will never trigger automatic rollback.
+
+### Rollback and recovery
+
+Explicit rollback is transaction-scoped and requires `ROLLBACK_TOOL_CHANGES` bound to the exact transaction and local
+bindings. A file is restored only when its current digest equals the transaction's proposed digest. An original digest
+is idempotently `ALREADY_ORIGINAL`; any other digest is `USER_MODIFIED` and is never overwritten; missing files remain
+missing. Rollback uses the same guarded exact-byte replacement boundary and never invokes `git reset`, `checkout`, or
+`restore`. It affects no unrelated file and retains the append-only history.
+
+Crash recovery reads the typed plan, ownership registry, journal chain, backups, and current target digests. Each file
+is classified as `ORIGINAL`, `TOOL_APPLIED`, `UNKNOWN_MODIFIED`, or `MISSING`. A prepared transaction with only original
+bytes is safe to abandon. A mixture of original and proposed bytes offers guarded rollback but never continues pending
+writes automatically. All proposed bytes with a missing final event require reconciliation, not a second Apply. An
+unknown modification, missing backup, or corrupt journal requires manual recovery. Only an exact transaction-owned
+temp name and target digest may be cleaned; arbitrary `.tmp` files are outside tool ownership.
+
+The final diff is generated from transaction-owned original and proposed artifacts, with logical `a/` and `b/` paths,
+not from the whole worktree. Pre-existing unrelated dirt is excluded and pre-existing edits in a touched file remain
+part of the original side. The sanitized apply-plan summary exposes only paths, counts, digests, budgets, dependency
+state, required capabilities, rollback availability, and verification-requirement digest; exact bytes and diff remain
+separate local-sensitive artifacts.
+
+After all target digests pass, S11B1 records a fresh source checkpoint and appends `VERIFICATION_PENDING`. Failure to
+record post-apply state is `RECOVERY_REQUIRED` and does not cause an unsafe automatic rollback. S11B2 must execute at
+least the verification requirements whose digest is bound into the ApplyPlan; it may add stricter checks but cannot
+silently remove reviewed requirements. Compile, affected tests, headed/headless/FAST runs, post-change compatibility
+comparison, and the final verification verdict belong exclusively to S11B2.
