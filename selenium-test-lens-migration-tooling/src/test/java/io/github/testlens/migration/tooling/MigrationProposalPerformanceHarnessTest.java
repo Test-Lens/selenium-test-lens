@@ -1,0 +1,10 @@
+package io.github.testlens.migration.tooling;
+
+import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
+import java.util.List;
+
+class MigrationProposalPerformanceHarnessTest {
+ @Test void offlineGraphAndProposalScales(){for(int count:new int[]{100,1_000,10_000}){long memoryBefore=used(),start=System.nanoTime();List<String>refs=new ArrayList<>(count);for(int i=0;i<count;i++)refs.add("selector-use-v1:sha256:"+String.format("%064x",i));refs.sort(String::compareTo);long graph=System.nanoTime()-start;System.out.printf("MIGRATION_B2_GRAPH entries=%d graphMs=%.1f memoryDelta=%d%n",count,graph/1_000_000d,Math.max(0,used()-memoryBefore));}var engine=new MigrationProposalEngine();for(int count:new int[]{10,100,1_000}){long memoryBefore=used(),start=System.nanoTime();List<MigrationProposal>proposals=new ArrayList<>();for(int i=0;i<count;i++)proposals.add(engine.configurationProposal("ALIGN_VIEWPORT_"+i,"current","proposed",List.of()));long eligibility=System.nanoTime()-start;start=System.nanoTime();var set=MigrationProposalSet.create("checkpoint",null,proposals,List.of(),MigrationProposalSet.Completeness.COMPLETE,List.of());long conflicts=System.nanoTime()-start;start=System.nanoTime();byte[]json=new MigrationArtifactJson().write(set);long serialization=System.nanoTime()-start;start=System.nanoTime();new MigrationArtifactJson().read(json,MigrationArtifactJson.Kind.PROPOSAL_SET);long read=System.nanoTime()-start;start=System.nanoTime();var dry=MigrationDryRunReport.create("checkpoint","clean",List.of(),set,null);byte[]dryJson=new MigrationArtifactJson().write(dry);long report=System.nanoTime()-start;System.out.printf("MIGRATION_B2_PROPOSALS count=%d eligibilityMs=%.1f conflictMs=%.1f writeMs=%.1f readMs=%.1f dryRunMs=%.1f memoryDelta=%d proposalBytes=%d dryRunBytes=%d%n",count,eligibility/1e6,conflicts/1e6,serialization/1e6,read/1e6,report/1e6,Math.max(0,used()-memoryBefore),json.length,dryJson.length);}}
+ private static long used(){Runtime r=Runtime.getRuntime();return r.totalMemory()-r.freeMemory();}
+}

@@ -7,9 +7,13 @@
     <artifactId>selenium-test-lens-migration-tooling</artifactId>
     <packaging>jar</packaging>
     <name>Test Lens for Selenium — Migration Tooling</name>
-    <description>Read-only Git preflight and persistent migration checkpoint tooling.</description>
+    <description>Read-only Git checkpoints, evidence import, and migration proposal preview tooling.</description>
     <properties><maven.deploy.skip>true</maven.deploy.skip></properties>
     <dependencies>
+        <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-selector-engine</artifactId><version>${project.version}</version></dependency>
+        <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-selector-tooling</artifactId><version>${project.version}</version></dependency>
+        <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-compatibility-engine</artifactId><version>${project.version}</version></dependency>
+        <dependency><groupId>com.github.javaparser</groupId><artifactId>javaparser-symbol-solver-core</artifactId><version>3.28.2</version></dependency>
         <dependency><groupId>tools.jackson.core</groupId><artifactId>jackson-core</artifactId><version>${jackson-core.version}</version></dependency>
         <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
     </dependencies>

@@ -288,6 +288,7 @@ final class JavaLocatorScanner {
                     .onMalformedInput(CodingErrorAction.REPORT)
                     .onUnmappableCharacter(CodingErrorAction.REPORT)
                     .decode(ByteBuffer.wrap(bytes)).toString();
+            if (source.startsWith("\uFEFF")) source = source.substring(1);
         } catch (CharacterCodingException e) {
             issues.add(new Issue("INVALID_ENCODING", "Source bytes are invalid for " + request.encoding().name(),
                     file.logicalPath()));
@@ -595,7 +596,10 @@ final class JavaLocatorScanner {
     private boolean unambiguousByImport(CompilationUnit unit) {
         boolean selenium = unit.getImports().stream().anyMatch(value -> !value.isStatic()
                 && (value.getNameAsString().equals("org.openqa.selenium.By")
-                || value.isAsterisk() && value.getNameAsString().equals("org.openqa.selenium")));
+                || value.isAsterisk() && value.getNameAsString().equals("org.openqa.selenium")))
+                || unit.getImports().stream().anyMatch(value -> value.isStatic()
+                && (value.getNameAsString().startsWith("org.openqa.selenium.By.")
+                || value.isAsterisk() && value.getNameAsString().equals("org.openqa.selenium.By")));
         boolean conflicting = unit.getImports().stream().anyMatch(value -> !value.isStatic()
                 && value.getNameAsString().endsWith(".By") && !value.getNameAsString().equals("org.openqa.selenium.By"));
         boolean local = unit.getTypes().stream().anyMatch(value -> value.getNameAsString().equals("By"));

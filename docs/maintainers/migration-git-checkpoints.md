@@ -55,3 +55,49 @@ proposal-target relevance knowledge yet.
 `USE_CURRENT_WORKTREE`, `CREATE_DEDICATED_BRANCH`, `CREATE_DEDICATED_WORKTREE`, `STASH_EXPLICITLY`, and
 `MANUAL_RESOLUTION_REQUIRED` are immutable plans. B1 never executes them. Exact-OID stash handling is reserved for
 S10B3. Source apply, verify, rollback, and commit remain S11 responsibilities.
+
+## S10B2 proposal and review boundary
+
+S10B2 adds offline proposal planning, not migration execution. Compatibility comparison, static compatibility, and
+Selector Audit JSON enter as untrusted bytes. Bounded duplicate-rejecting readers validate V1 schemas and project
+only structured codes into `SANITIZED_EVIDENCE`. Exact file-byte SHA-256 is retained. Human explanations, HTML,
+safe display text, candidate labels, and `By.toString()` are never promoted to patch material. In particular,
+Selector Audit's `ALTERNATIVE_AVAILABLE` can request review but cannot supply a locator value.
+
+Exact locator proposals require a current `TRUSTED_LOCAL_PATCH_MATERIAL` projection and an explicitly supplied,
+live-validated trusted candidate. The narrow selector-tooling bridge exposes declaration and component references,
+project-relative path, exact file digest, UTF-16 source range, declaration and expression shape, resolved standard
+strategy/scalar when available, construct digest, declaring symbol, freshness, and limitations. It exposes neither
+source text nor an AST. A bounded symbol-resolved use graph retains at most 100,000 uses, samples at most 256 per
+proposal, and carries unresolved-symbol and source-root coverage rather than claiming unknown uses are complete.
+
+The V1 Java transformer supports an exact standard Selenium `By.<factory>(compile-time scalar)` expression. It
+re-reads the current file, verifies its full digest, strictly decodes UTF-8 or UTF-8 BOM, rejects mixed newlines,
+reparses Java 17, and verifies the exact AST node and old locator semantics before computing an in-memory edit.
+LF and CRLF are preserved. Java literal escaping does not reinterpret CSS or XPath. Parameterized/concatenated
+locators, helper-generated/custom locators, PageFactory annotations, and a strategy-changing static-import call that
+would need an import edit remain manual-only. A runtime observation such as `row-123` can never replace
+`"row-" + rowId`.
+
+Patch previews replace only approved UTF-16 ranges and use deterministic three-line unified-diff context with
+`a/<logical-path>` and `b/<logical-path>` labels, no timestamps or absolute paths. Full-file SHA, node kind, construct
+and semantic digests, encoding, newline convention, bindings, and already-applied semantics form the S11
+precondition. Any later edit to a touched file stales the V1 proposal; there is no fuzzy relocation or silent rebase.
+Exact diffs are `LOCAL_SENSITIVE_ARTIFACT` data and are in-memory by default. Explicit persistence can only use the
+existing B1 state store under `patches/`, `proposals/`, `decisions/`, or `reports/`.
+
+Proposal eligibility is `READY_FOR_REVIEW`, `REVIEW_REQUIRED`, `MANUAL_ONLY`, `BLOCKED_INSUFFICIENT_EVIDENCE`,
+`BLOCKED_STALE_INPUT`, or `NO_CHANGE_RECOMMENDED`; there is no auto-apply state. Static findings remain hypotheses.
+Non-comparable viewport, dataset, or browser evidence produces configuration/rerun guidance without a locator patch.
+Policy stability, rank, Audit recommendation, and Use once are evidence or preferences, never source authorization.
+Blast radius reports exact declaration targets, bounded known uses and correlated test refs, plus `COMPLETE`, `PARTIAL`,
+or `UNKNOWN` coverage. Same-node/different-semantics and overlapping-range conflicts have no automatic winner;
+configuration alignment and new-evidence dependencies are explicit.
+
+The decision ledger records approve-for-S11, reject, defer, and manual-only acknowledgement against the proposal ID,
+semantic digest, checkpoint, source preconditions, and evidence digests. Notes are bounded inert local text. Any
+proposal, checkpoint, source, or evidence change invalidates approval rather than inheriting a decision by display
+wording. The deterministic dry-run JSON summarizes evidence, eligibility/category counts, targets, blast radius,
+conflicts, dependencies, verification steps, and decisions but omits exact diffs. S10B2 has no Apply button, source
+writer, Git action, test command runner, or verification executor. S10B3 may add explicitly authorized orchestration;
+S11 remains the sole owner of source apply, post-patch verification, and guarded rollback.
