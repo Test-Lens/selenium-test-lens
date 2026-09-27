@@ -264,7 +264,7 @@ class UiExpectStateAssertionsTest {
         UiLocator filtered = locator(browser).filterByText("match");
 
         UiAssertionError result = assertThrows(UiAssertionError.class,
-                () -> filtered.expect(shortOptions()).toBeDetached());
+                () -> filtered.expect(options(false)).toBeDetached());
 
         assertEquals(UiAssertionFailureReason.ELEMENT_STILL_ATTACHED, result.result().failureReason());
         assertTrue(result.result().attempts() >= 2);
