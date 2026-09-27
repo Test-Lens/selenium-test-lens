@@ -6,6 +6,9 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added explicit offline static compatibility risk analysis with symbol-aware native desktop, screen/headless,
+  browser JavaScript, viewport, window-handle, and profile evidence plus deterministic sanitized JSON/HTML reports.
+  Source findings remain hypotheses and do not prove incompatibility or propose automatic fixes.
 - Added the offline compatibility compare engine for explicit headed/headless and observability-axis analysis, with
   sanitized deterministic JSON and standalone HTML reports. It does not add static source heuristics or automatic fixes.
 - Added an internal, non-published compatibility run-manifest foundation with explicit headed/headless metadata

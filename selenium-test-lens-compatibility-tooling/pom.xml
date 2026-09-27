@@ -11,6 +11,7 @@
     <dependencies>
         <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-compatibility-engine</artifactId><version>${project.version}</version></dependency>
         <dependency><groupId>tools.jackson.core</groupId><artifactId>jackson-core</artifactId><version>${jackson-core.version}</version></dependency>
+        <dependency><groupId>com.github.javaparser</groupId><artifactId>javaparser-symbol-solver-core</artifactId><version>3.28.2</version></dependency>
         <dependency><groupId>org.seleniumhq.selenium</groupId><artifactId>selenium-api</artifactId><version>${selenium.version}</version></dependency>
         <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-core</artifactId><version>${project.version}</version><scope>test</scope></dependency>
         <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>

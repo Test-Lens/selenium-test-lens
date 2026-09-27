@@ -121,5 +121,38 @@ JSON and standalone HTML render the same comparison model. The HTML has local fi
 live Lab action, or apply/fix control. Both formats are capped at 64 MiB and contain manifest IDs and safe logical
 references rather than raw trace events, exception messages, parameters, paths, handles, capabilities, or secrets.
 The report provides exact matched, unmatched, ambiguous, limited, regression, and baseline-red counts; it does not
-publish a compatibility percentage or claim whole-application coverage. No automatic patch or STATIC source
-heuristic is implemented at this stage.
+publish a compatibility percentage or claim whole-application coverage. No automatic patch is implemented.
+
+## Static source evidence
+
+The compatibility tooling also provides an explicit offline Java 17 scan. Callers supply a trusted project root,
+bounded source roots, and optional classpath entries. The scanner does not launch browsers, invoke builds, load or
+execute project classes, run annotation processors, execute JavaScript, or execute tests. Source roots remain under
+the project root; generated Maven source trees are excluded by default. Kotlin and unresolved symbols are coverage
+limitations.
+
+STATIC findings are evidence only. Their maximum causal state is `HYPOTHESIS`, severity is `INFO` or `REVIEW`, and
+`CodeChangeRequired` is `UNKNOWN`. They cannot say a test is headless-incompatible or that a cause is confirmed.
+
+Implemented detectors resolve `java.awt.Robot` input/screen capture, `java.awt.Desktop` actions,
+`java.awt.FileDialog`, Toolkit screen metrics, GraphicsEnvironment and allowlisted headless-property checks.
+Recognized Selenium JavaScript execution calls use a bounded constant evaluator for `window.screen` and
+focus/visibility APIs. Deterministic `setSize` is an INFO configuration fact; maximize/fullscreen, direct indexing
+of a list made from `getWindowHandles()`, and allowlisted profile configuration are reviewable evidence.
+
+The distinctions are deliberate: `TakesScreenshot` is not Robot screen capture; file-input `sendKeys` is not a
+native chooser; `window.screen` is not the inner viewport; and normal hover, waits, clipboard use, locators, or
+`Thread.sleep` are not generic headless findings. Dynamic JavaScript is not guessed. Cross-API native-upload/auth
+flow detection is deferred; default-viewport-by-absence and broad sleep/hover/clipboard warnings are rejected as
+too noisy.
+
+Static reports are written explicitly to:
+
+```text
+target/test-lens/compatibility/reports/compatibility-static-v1.json
+target/test-lens/compatibility/reports/compatibility-static-v1.html
+```
+
+They contain project-relative locations and fixed semantic descriptions, never source snippets, JavaScript text,
+secret literals, absolute paths, or fake headed/headless runtime columns. Finding identifiers are domain-separated
+and derived from logical AST identity rather than timestamps or source positions.

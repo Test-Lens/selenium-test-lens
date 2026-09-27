@@ -17,7 +17,7 @@ class CompatibilityModuleBoundaryTest {
         assertTrue(engine.contains("maven.deploy.skip"));
         String tooling=Files.readString(root.resolve("selenium-test-lens-compatibility-tooling/pom.xml"));
         assertTrue(tooling.contains("selenium-test-lens-compatibility-engine"));assertTrue(tooling.contains("jackson-core"));assertTrue(tooling.contains("selenium-api"));
-        assertFalse(tooling.contains("jackson-databind"));assertFalse(tooling.contains("javaparser"));assertFalse(tooling.contains("selector-"));assertTrue(tooling.contains("maven.deploy.skip"));
+        assertFalse(tooling.contains("jackson-databind"));assertTrue(tooling.contains("javaparser-symbol-solver-core"));assertTrue(tooling.contains("3.28.2"));assertFalse(tooling.contains("selector-"));assertTrue(tooling.contains("maven.deploy.skip"));
         for(String module:List.of("selenium-test-lens-core","selenium-test-lens-overlay","selenium-test-lens-selenium","selenium-test-lens-junit5","selenium-test-lens-testng","selenium-test-lens-allure","selenium-test-lens-react","selenium-test-lens-selector-engine","selenium-test-lens-selector-live","selenium-test-lens-selector-lab","selenium-test-lens-selector-tooling")){
             String pom=Files.readString(root.resolve(module).resolve("pom.xml"));
             assertFalse(pom.contains("selenium-test-lens-compatibility-"),module+" must not acquire compatibility capture");
