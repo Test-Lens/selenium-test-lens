@@ -88,9 +88,9 @@ class SelectorLabBrowserIT {
                     const click=t=>t&&t.dispatchEvent(new MouseEvent('click',{bubbles:true,composed:true,cancelable:true}));
                     if(window.labStage===0){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Pick element');if(b){click(b);window.labStage=1;}}
                     else if(window.labStage===1){const p=r.querySelector('#stl-selector-lab-picker'),t=document.getElementById('target');if(p){const q=t.getBoundingClientRect();p.dispatchEvent(new MouseEvent('click',{bubbles:true,composed:true,cancelable:true,clientX:q.left+2,clientY:q.top+2}));window.labStage=2;}}
-                    else if(window.labStage===2){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Local-only policy');if(b){click(b);window.labStage=3;}}
+                    else if(window.labStage===2){const d=[...r.querySelectorAll('input[name="stl-policy-destination"]')].find(x=>x.value==='LOCAL');if(d){d.checked=true;d.dispatchEvent(new Event('change',{bubbles:true}));window.labStage=3;}}
                     else if(window.labStage===3){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Prepare exact stable');if(b){click(b);window.labStage=4;}}
-                    else if(window.labStage===4){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Transfer pending change to trusted host');if(b){clearInterval(window.labAutomation);click(b);}}
+                    else if(window.labStage===4){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Send for host approval');if(b){clearInterval(window.labAutomation);click(b);}}
                     },25);</script>
                     """);
             PolicyWorkspaceSnapshot workspace=PolicyWorkspaceSnapshot.create(PolicyWorkspaceSnapshot.OriginDocument.absent(PolicyWorkspaceSnapshot.Origin.TRACKED),PolicyWorkspaceSnapshot.OriginDocument.absent(PolicyWorkspaceSnapshot.Origin.LOCAL),null);
@@ -99,6 +99,36 @@ class SelectorLabBrowserIT {
             SelectorLabResult result=new SelectorLabSession(request).run();
             assertNotNull(result.pendingPolicyChange());assertTrue(result.pendingPolicyChange().hostApprovalRequired());
             assertEquals(PolicyWorkspaceSnapshot.Origin.LOCAL,result.pendingPolicyChange().draft().destination());
+        } finally {driver.quit();}
+    }
+
+    @Test void policyDrawerShowsExistingRuleAndPreparesDetectorBackedPattern() {
+        WebDriver driver=BrowserTestHarness.createDriver();
+        try {
+            String uuid="550e8400-e29b-41d4-a716-446655440000";
+            open(driver,"""
+                    <button id='550e8400-e29b-41d4-a716-446655440000'>Save</button><script>
+                    window.labStage=0;window.policyViewSeen=false;window.labAutomation=setInterval(()=>{const h=document.getElementById('selenium-overlay-host'),r=h&&h.shadowRoot;if(!r)return;
+                    const click=t=>t&&t.dispatchEvent(new MouseEvent('click',{bubbles:true,composed:true,cancelable:true}));
+                    if(window.labStage===0){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Pick element');if(b){click(b);window.labStage=1;}}
+                    else if(window.labStage===1){const p=r.querySelector('#stl-selector-lab-picker'),t=document.getElementById('550e8400-e29b-41d4-a716-446655440000');if(p){const q=t.getBoundingClientRect();p.dispatchEvent(new MouseEvent('click',{bubbles:true,composed:true,cancelable:true,clientX:q.left+2,clientY:q.top+2}));window.labStage=2;}}
+                    else if(window.labStage===2&&r.textContent.includes('Current policy state')){window.policyViewSeen=r.textContent.includes('Effective policy: STABLE')&&r.textContent.includes('Shared project policy');const d=[...r.querySelectorAll('input[name="stl-policy-destination"]')].find(x=>x.value==='LOCAL');if(d){d.checked=true;d.dispatchEvent(new Event('change',{bubbles:true}));window.labStage=3;}}
+                    else if(window.labStage===3){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Preview detector-backed pattern');if(b&&!b.disabled){click(b);window.labStage=4;}}
+                    else if(window.labStage===4){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Prepare pattern unstable');if(b&&!b.disabled){click(b);window.labStage=5;}}
+                    else if(window.labStage===5&&r.textContent.includes('STRUCTURAL_PATTERN')&&r.textContent.includes('PENDING HOST APPROVAL')){const b=[...r.querySelectorAll('button')].find(x=>x.textContent==='Send for host approval');if(b){clearInterval(window.labAutomation);click(b);}}
+                    },25);</script>
+                    """);
+            var subject=new io.github.testlens.selector.engine.SelectorSubject(io.github.testlens.selector.engine.SelectorSubject.SubjectKind.STATIC_DECLARATION,"id",io.github.testlens.selector.engine.SelectorSubject.ValueState.KNOWN,uuid,"decl","module","src/Test.java","Test#field",null,null,null,io.github.testlens.selector.engine.SelectorSubject.InputTrust.SOURCE_CANONICAL,null);
+            var rule=io.github.testlens.selector.engine.SelectorPolicy.Rule.create(io.github.testlens.selector.engine.SelectorPolicy.Decision.STABLE,0,new io.github.testlens.selector.engine.SelectorPolicy.Scope(null,null,"decl",null,null,null,null),io.github.testlens.selector.engine.SelectorPolicy.ExactMatcher.from(subject),new io.github.testlens.selector.engine.SelectorPolicy.Reason("TEST",null));
+            var tracked=new PolicyWorkspaceSnapshot.OriginDocument(PolicyWorkspaceSnapshot.Origin.TRACKED,PolicyWorkspaceSnapshot.FileState.EXPECTED_PRESENT,PolicyWorkspaceSnapshot.rawFileDigest("tracked".getBytes(StandardCharsets.UTF_8)),PolicyWorkspaceSnapshot.semanticDigest(List.of(rule)),List.of(rule));
+            PolicyWorkspaceSnapshot workspace=PolicyWorkspaceSnapshot.create(tracked,PolicyWorkspaceSnapshot.OriginDocument.absent(PolicyWorkspaceSnapshot.Origin.LOCAL),null);
+            SelectorLabRequest base=request(driver,By.id(uuid));
+            SelectorLabRequest enriched=new SelectorLabRequest(base.driver(),base.searchContext(),base.usageIntent(),base.originalBy(),base.contextFingerprint(),"decl","module","src/Test.java","Test#field",null,null,workspace.compiled(),base.evidence(),base.preferredTestAttributes(),base.redactionPolicy(),base.displayMode(),base.auditProjection(),base.similarityCatalog(),base.similarityEvidence(),base.similarityScope(),base.incompleteHistory(),base.preparedSourceNavigationTarget(),workspace);
+            SelectorLabResult result=new SelectorLabSession(enriched).run();
+            assertEquals(Boolean.TRUE,((JavascriptExecutor)driver).executeScript("return window.policyViewSeen;"));
+            assertNotNull(result.pendingPolicyChange());
+            assertEquals(io.github.testlens.selector.engine.SelectorPolicy.MatcherKind.STRUCTURAL_PATTERN,result.pendingPolicyChange().draft().proposedRule().matcher().kind());
+            assertEquals(io.github.testlens.selector.engine.SelectorPolicy.Decision.UNSTABLE,result.pendingPolicyChange().draft().proposedRule().decision());
         } finally {driver.quit();}
     }
 

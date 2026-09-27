@@ -61,6 +61,29 @@ writes either policy file. A transferred draft says PREPARED/PENDING APPROVAL, n
 application JavaScript can forge an allowed preparation request, so a browser gesture is explicitly not write
 authorization.
 
+The V1 drawer exposes the complete preparation workflow. Destination is an explicit radio choice between the shared
+tracked file and the local-only file; neither is preselected. Available scopes are derived Java-side and presented as
+This declaration, This file, This module, Project, or a known runtime usage/context scope. Declaration is the narrow
+default when available, while Project is always an explicit widening. Changing scope or destination cancels the
+current transferable draft and requires fresh simulation.
+
+For each candidate the drawer shows the effective merged policy, its tracked/local origin, matcher kind, scope,
+selected rule ID, shadowed matching rules, and policy/evidence conflicts. Existing Java-known rules can prepare a
+removal, reverse their decision, or replace their scope. Replacement remains in the same origin and preserves matcher
+and priority. Moving between tracked and local policy files requires separately reviewed remove/add operations and is
+not atomic in V1.
+
+A detector-backed pattern preview displays only sanitized segment kinds plus separate Similar selectors and Proposed
+policy matches counts. Static/history matches, excluded near matches, conflicts, and incomplete coverage remain
+visible. A useful full-scope preview enables preparation of STABLE or UNSTABLE pattern drafts; no arbitrary pattern
+editor is present. Incomplete coverage remains transferable only with the typed `PREVIEW_INCOMPLETE` host
+acknowledgement.
+
+The draft panel renders action, decision, matcher, scope, destination, rule ID, known impact counts, simulation
+dispositions, warnings, blocking issues, and required host acknowledgements. A blocking draft has no transfer button.
+Acknowledgements are display-only in the browser. The sole transfer action is **Send for host approval**, which returns
+the immutable pending change and closes the Lab; it does not write either file.
+
 Use once is scoped to the current Lab analysis and candidate. It does not change engine rank, appearance facts,
 history, or policy evaluation, and cannot override wrong-target, no-match, invalid-selector, stale, unavailable, or
 lost-session validation. Its wording is “Chosen for this Lab session.”

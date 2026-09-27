@@ -28,6 +28,13 @@ class SelectorLabSessionTest {
         assertTrue(js.contains("stopImmediatePropagation"));assertTrue(js.contains("shadowRoot.elementFromPoint"));
         assertFalse(js.contains("localStorage"));assertFalse(js.contains("sessionStorage"));assertFalse(js.contains("eval("));assertFalse(js.contains("innerHTML"));
         assertFalse(js.contains(".click()"));assertFalse(js.contains("window.location"));
+        assertTrue(js.contains("Send for host approval"));assertTrue(js.contains("PREPARED · NOT SAVED · PENDING HOST APPROVAL"));
+        assertTrue(js.contains("renderPatternPreview"));assertTrue(js.contains("Prepare removal"));assertTrue(js.contains("Replace decision"));
+        assertTrue(js.contains("Prepare exact stable"));assertTrue(js.contains("Prepare exact unstable"));
+        assertTrue(js.contains("Prepare pattern '+decision.toLowerCase()"));
+        assertTrue(js.contains("Shared project policy"));assertTrue(js.contains("Local-only policy"));
+        assertTrue(js.contains("display only; browser cannot acknowledge"));
+        assertFalse(js.contains("WRITE_POLICY"));assertFalse(js.contains("APPLY_POLICY"));assertFalse(js.contains("SAVE_POLICY"));
     }
     @Test void onlyPreparedJetBrainsNavigationTargetReachesTheBrowser(){
         Fixture f=new Fixture();SelectorLabRequest base=f.request();
