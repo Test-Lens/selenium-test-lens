@@ -7,7 +7,7 @@
     <artifactId>selenium-test-lens-migration-tooling</artifactId>
     <packaging>jar</packaging>
     <name>Test Lens for Selenium — Migration Tooling</name>
-    <description>Read-only Git checkpoints, evidence import, and migration proposal preview tooling.</description>
+    <description>Checkpointed migration analysis, explicitly approved run orchestration, and isolation tooling.</description>
     <properties><maven.deploy.skip>true</maven.deploy.skip></properties>
     <dependencies>
         <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-selector-engine</artifactId><version>${project.version}</version></dependency>

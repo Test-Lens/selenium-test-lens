@@ -17,6 +17,7 @@ final class MigrationDigests {
         MessageDigest md=sha256();put(md,domain);md.update(ByteBuffer.allocate(8).putLong(value.length).array());md.update(value);
         return HexFormat.of().formatHex(md.digest());
     }
+    static String rawBytes(byte[] value){MessageDigest md=sha256();md.update(value);return HexFormat.of().formatHex(md.digest());}
     static MessageDigest sha256(){try{return MessageDigest.getInstance("SHA-256");}catch(NoSuchAlgorithmException e){throw new IllegalStateException(e);}}
     private static void put(MessageDigest md,String value){byte[]b=value.getBytes(StandardCharsets.UTF_8);md.update(ByteBuffer.allocate(8).putLong(b.length).array());md.update(b);}
 }

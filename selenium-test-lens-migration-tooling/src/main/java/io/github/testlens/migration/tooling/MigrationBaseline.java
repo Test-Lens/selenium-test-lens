@@ -1,0 +1,15 @@
+package io.github.testlens.migration.tooling;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+
+/** Keeps original and diagnostic-instrumented baselines distinct. B3 only records externally established deltas. */
+public record MigrationBaseline(String baselineId,MigrationRunPlan.BaselineRole role,String checkpointRef,String sourceStateDigest,
+        String configurationDigest,String parentOriginalBaselineRef,String instrumentationDeltaRef,List<MigrationArtifactRef>evidenceRefs,
+        List<String>runPlanRefs,List<String>runResultRefs,Completeness completeness,List<String>limitations){
+    public MigrationBaseline{if(role==MigrationRunPlan.BaselineRole.VARIANT)throw new IllegalArgumentException("baseline role required");Objects.requireNonNull(completeness);if(role==MigrationRunPlan.BaselineRole.INSTRUMENTED_BASELINE&&(parentOriginalBaselineRef==null||instrumentationDeltaRef==null))throw new IllegalArgumentException("instrumented baseline requires parent and delta");if(role==MigrationRunPlan.BaselineRole.ORIGINAL_BASELINE&&(parentOriginalBaselineRef!=null||instrumentationDeltaRef!=null))throw new IllegalArgumentException("original baseline cannot have instrumentation parent");evidenceRefs=evidenceRefs==null?List.of():evidenceRefs.stream().sorted(Comparator.comparing(MigrationArtifactRef::logicalRef)).toList();runPlanRefs=sorted(runPlanRefs);runResultRefs=sorted(runResultRefs);limitations=sorted(limitations);String expected="migration-baseline-v1:sha256:"+MigrationDigests.digest("migration-baseline-v1",role.name(),checkpointRef,sourceStateDigest,configurationDigest,parentOriginalBaselineRef==null?"":parentOriginalBaselineRef,instrumentationDeltaRef==null?"":instrumentationDeltaRef,String.join("\n",evidenceRefs.stream().map(MigrationArtifactRef::digest).toList()),String.join("\n",runPlanRefs),String.join("\n",runResultRefs),completeness.name(),String.join("\n",limitations));if(!expected.equals(baselineId))throw new IllegalArgumentException("baselineId");}
+    public enum Completeness{COMPLETE,EVIDENCE_SUPPLIED,NOT_RUN,PARTIAL}
+    public static MigrationBaseline create(MigrationRunPlan.BaselineRole role,String checkpoint,String source,String configuration,String parent,String delta,List<MigrationArtifactRef>evidence,List<String>plans,List<String>results,Completeness completeness,List<String>limitations){String id="migration-baseline-v1:sha256:"+MigrationDigests.digest("migration-baseline-v1",role.name(),checkpoint,source,configuration,parent==null?"":parent,delta==null?"":delta,String.join("\n",evidence.stream().map(MigrationArtifactRef::digest).sorted().toList()),String.join("\n",sorted(plans)),String.join("\n",sorted(results)),completeness.name(),String.join("\n",sorted(limitations)));return new MigrationBaseline(id,role,checkpoint,source,configuration,parent,delta,evidence,plans,results,completeness,limitations);}
+    private static List<String>sorted(List<String>v){return v==null?List.of():v.stream().distinct().sorted().toList();}
+}

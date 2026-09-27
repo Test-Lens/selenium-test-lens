@@ -101,3 +101,112 @@ wording. The deterministic dry-run JSON summarizes evidence, eligibility/categor
 conflicts, dependencies, verification steps, and decisions but omits exact diffs. S10B2 has no Apply button, source
 writer, Git action, test command runner, or verification executor. S10B3 may add explicitly authorized orchestration;
 S11 remains the sole owner of source apply, post-patch verification, and guarded rollback.
+
+## S10B3 explicit orchestration
+
+S10B3 completes the S10 preparation/review boundary. A `MigrationRunPlan` is a content-addressed, shell-free plan
+containing a trusted executable reference, an argument array, a previously validated worktree binding, a small typed
+environment overlay, secret-reference names, a finite timeout, bounded expected artifacts, execution mode and scope,
+business side-effect classification, checkpoint, and baseline role. The local host separately binds the executable
+reference to an absolute executable and the worktree reference to a directory. Imported JSON, HTML, source, selectors,
+and browser content cannot supply either binding.
+
+Execution always uses `ProcessBuilder(List<String>)`. Arguments are never reparsed from the human-readable dry-run
+display. V1 on Windows supports native executables such as `java.exe`; `.cmd`, `.bat`, and `.ps1` are rejected with a
+safe stop because supporting them would introduce a command-shell boundary. Project wrappers are suggestions until a
+host deliberately supplies a supported executable. There is no general shell capability.
+
+Authorization has two independent dimensions. `EXECUTE_PROJECT_TEST_COMMAND` acknowledges that Maven, Gradle, Java,
+or a test runner can execute arbitrary host/project code. A second capability acknowledges application/data effects:
+`RUN_READ_ONLY_TEST`, `RUN_UNKNOWN_SIDE_EFFECT_TEST`, or `RUN_MUTATING_TEST`. Arbitrary tests default to `UNKNOWN`;
+method names and annotations do not prove read-only behavior. Missing capabilities produce `SAFE_STOP` without a TTY
+prompt, including in CI.
+
+The child inherits the host environment according to normal Java `ProcessBuilder` behavior; B3's additional overlay
+contains only allowlisted non-secret keys. Plans serialize secret-reference names, not values. A host resolver injects
+a value transiently into the child environment; values are excluded from plan IDs,
+dry-run output, checkpoints, and durable results. Standard output and error are independently bounded to at most
+8 MiB, drained concurrently, and represented durably by byte counts, digests, truncation state, and an empty-by-default
+diagnostic summary. Exact logs are local-sensitive and remain in memory unless the host explicitly writes them through
+the existing safe state store. Every process has a timeout and cancellation control. Timeout, cancellation, or thread
+interruption terminates descendants and the parent with a bounded graceful/forced sequence and records if any process
+remains.
+
+### Run artifacts and baselines
+
+Expected artifacts are trusted plan paths below either a conservative project `target/` or `build/` output root, or
+the B1 state root. Absolute
+paths, traversal, `.git`, symlink escape, and oversized files are rejected. Before execution the orchestrator records
+existence and exact SHA-256; afterward it enforces `MUST_BE_CREATED`, `MUST_CHANGE`, `MAY_REUSE`, or `OPTIONAL`.
+Modification time is not evidence of freshness. A compatibility manifest projection strictly rejects duplicate JSON
+fields, unknown top-level fields, unsupported schema/algorithm versions, malformed IDs, test-identity mismatch, and
+effective headed/headless or DEFAULT/FAST mismatch. A stale, malformed, or mode-mismatched manifest cannot become new
+evidence.
+
+Migration Assistant cannot make an arbitrary Maven, TestNG, or JUnit suite emit compatibility manifests. A supported
+run either invokes an already configured trusted command, consumes a trace/bundle through a separately supplied trusted
+host adapter, or receives manifests externally. Migration tooling deliberately does not depend on Selenium-heavy
+`compatibility-tooling` and installs no runtime listener.
+
+`ORIGINAL_BASELINE` binds evidence and run records to the pre-instrumentation source/configuration checkpoint.
+`INSTRUMENTED_BASELINE` requires an original parent plus an explicit instrumentation-delta digest and a new checkpoint;
+it never replaces or masquerades as the original. B3 only records instrumentation already established externally or
+manually. It does not apply an instrumentation patch. Selected headed STANDARD, headless STANDARD, and headless FAST
+runs remain separate plans, and a single-test scope is never silently expanded to a suite.
+
+Before and after every run, Git preflight/source fingerprinting produces checkpoint history. An unexpected tracked or
+untracked source-state change is reported as `SOURCE_STATE_CHANGED_BY_RUN` and blocks continuing as if the baseline
+were stable. Expected ignored output artifacts do not dirty the source state. Interrupted ledger entries resume
+conservatively as `INTERRUPTED`, `UNKNOWN_COMPLETION`, or `ARTIFACTS_PARTIAL`; process disappearance is never treated as
+proof that the command did not finish.
+
+### Approved Git isolation actions
+
+B3 has a separate fixed-operation dispatcher; B1's read-only allowlist is unchanged. The only mutation templates are:
+
+```
+git branch -- <validated-branch> <exact-commit-oid>
+git worktree add -b <validated-branch> -- <trusted-absolute-destination> <exact-commit-oid>
+git stash push --message test-lens-migration-v1
+git stash push --include-untracked --message test-lens-migration-v1
+git stash apply --index <exact-recorded-stash-oid>
+```
+
+Branch/worktree candidates pass `check-ref-format`, bases are verified as exact local commit OIDs, repository/worktree
+bindings are rechecked, ongoing Git operations block the action, and existing branches or destinations are never
+forced, reset, pruned, removed, or reused. Branch creation does not switch the current worktree. Worktree creation
+requires both `CREATE_BRANCH` and `CREATE_WORKTREE`; partial failure triggers a fresh observation but no automatic
+deletion. Every successful mutation produces a fresh B1 checkpoint while preserving the prior checkpoint.
+
+Mutation commands keep prompting and paging disabled and pass `core.fsmonitor=false`, but unlike B1 reads they do not
+set `GIT_OPTIONAL_LOCKS=0`, because real mutations need Git locks. No mutation template contains fetch, pull, push,
+commit, reset, clean, restore, checkout, merge, or rebase.
+
+On Git 2.55 for Windows, disposable sentinel fixtures demonstrate that the exact `worktree add` template invokes a
+repository `post-checkout` hook and a configured smudge filter, and that the exact `stash push` template invokes a
+configured clean filter. These are repository-controlled executable code. The exact branch-ref creation template did
+not invoke the `post-checkout` sentinel.
+Consequently worktree creation also requires the distinct `ALLOW_REPOSITORY_GIT_HELPERS` capability; without it the
+tool returns `SAFE_STOP` before Git runs. Stash creation/restoration conservatively requires the same capability because
+Git consults attributes and clean/smudge filters while materializing stash trees; the exact helper set still depends on
+repository configuration. Branch creation does not require it because it only creates a ref and performs no checkout.
+This retains repository semantics without silently disabling helpers or pretending isolation is code-execution-free.
+
+Stash is an explicit alternative, not the default recommendation for a dirty tree. `TRACKED_ONLY` excludes untracked
+and ignored files; `TRACKED_AND_UNTRACKED` adds `--include-untracked`; V1 never uses `--all`. The tool records `refs/stash`
+before and after creation and persists the new exact commit OID, scope, bindings, source fingerprints, and before/after
+checkpoints. Restore requires `RESTORE_STASH`, the exact recorded OID, and an unchanged post-stash source precondition,
+then uses `stash apply --index <oid>`. It never uses a moving `stash@{0}`, `pop`, or `drop`. Conflicts are reported and
+left for manual resolution; the stash remains retained.
+
+The orchestration dry-run adds plan IDs, executable references, arguments as separate display values, environment key
+names, secret-reference names, expected artifacts, baseline roles, isolation operations, exact commit bases, stash
+scope, and every required capability. It executes nothing and never exposes secret values. The B3 state machine ends at
+`REVIEWED_FOR_S11`; it includes `PREFLIGHT_READY`, `ISOLATED`, `BASELINE_READY`, `RUNNING`, `EVIDENCE_READY`,
+`ANALYSIS_READY`, `PROPOSALS_READY`, `INTERRUPTED`, and `BLOCKED`, but deliberately has no `APPLIED` or `VERIFIED` state.
+
+S10 is therefore complete as preparation, evidence, proposal, review, run orchestration, and workspace isolation.
+There is still no source apply, patch apply, post-patch compile/test, automatic rollback, commit, merge, rebase, or Git
+network behavior. S11 receives content-addressed checkpoints, exact source preconditions and patch bytes, proposal and
+decision ledgers, run/baseline evidence, and isolation-action records; S11 alone may implement guarded source apply,
+verification, and precondition-aware rollback.

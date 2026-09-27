@@ -6,6 +6,10 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added explicit Migration Assistant run orchestration with separate project-code and business-side-effect approvals,
+  fresh artifact validation, original/instrumented baseline tracking, approved branch/worktree isolation, and
+  conservative exact-OID stash create/restore. It does not apply source, verify a source patch, commit, or contact
+  Git remotes.
 - Added the internal Migration Assistant proposal foundation with strict evidence import, a narrow trusted selector
   source projection, source-safe in-memory locator patch previews, deterministic proposal/conflict models, review
   decisions, and dry-run reporting. It does not apply source, execute verification, or perform Git orchestration.
