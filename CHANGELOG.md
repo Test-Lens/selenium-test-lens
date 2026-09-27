@@ -6,6 +6,9 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added Migration Assistant post-apply verification orchestration with plan-bound compile/test stages, typed Java
+  wrapper-main execution, source-state guards, fresh compatibility evidence, and BUILD/headless/observability
+  comparisons. Verification failure never rolls source back, and no commit automation is included.
 - Added guarded Migration Assistant source-apply transactions with exact content-addressed plans, source backups and
   targets, an integrity-linked journal, repository-scoped apply locking, partial-apply compensation, explicit
   ownership-checked rollback, and crash-recovery inspection. Successful apply ends at `VERIFICATION_PENDING`; it

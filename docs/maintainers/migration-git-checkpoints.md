@@ -303,3 +303,60 @@ record post-apply state is `RECOVERY_REQUIRED` and does not cause an unsafe auto
 least the verification requirements whose digest is bound into the ApplyPlan; it may add stricter checks but cannot
 silently remove reviewed requirements. Compile, affected tests, headed/headless/FAST runs, post-change compatibility
 comparison, and the final verification verdict belong exclusively to S11B2.
+
+## S11B2 post-apply verification
+
+Verification is a separate, non-mutating phase over an accepted Apply transaction in `VERIFICATION_PENDING`. The
+content-derived verification plan must reproduce the exact requirement digest bound into the ApplyPlan; additional
+requirements may make a later plan stricter, but no required reviewed obligation can disappear. Requirements are
+deduplicated by typed stage, target/test identity, execution mode, expectation, side-effect class, and source scope,
+then run in the fixed order source structure, compile, direct tests, known use-site tests, headed, headless, FAST,
+manifest validation, and compatibility comparison. Only required stages determine `VERIFIED`; optional stages remain
+visible when not run.
+
+Before verification and before and after every stage, tooling checks the repository/worktree binding, the exact
+tool-written digest of each touched file, and the post-Apply source-state digest. Ignored `target/` or `build/`
+outputs do not change that source state, while a tracked or other relevant source change blocks the remaining plan
+as `POST_APPLY_SOURCE_CHANGED`. The post-Apply checkpoint/source digest, ApplyPlan ID, and transaction ID are the
+revision identity for uncommitted source; unchanged Git `HEAD` is never presented as the patched revision.
+
+A verification requirement is not a command. A trusted host binds an exact stage ref to an existing shell-free
+`MigrationRunPlan`, working-tree/checkpoint binding, expected artifacts, network policy, and optional wrapper
+identity. The existing S10 authorization still requires `EXECUTE_PROJECT_TEST_COMMAND` plus the exact read-only,
+unknown, or mutating business-side-effect capability. Compile also executes project/build code. Missing approval or
+a missing exact binding blocks the stage instead of choosing a nearby test or broadening its scope.
+
+Windows wrapper support uses trusted `java.exe` and an exact, digest-bound wrapper JAR/properties pair. The only
+allowed main classes are `org.gradle.wrapper.GradleWrapperMain` for
+`gradle/wrapper/gradle-wrapper.jar` plus `.properties`, and
+`org.apache.maven.wrapper.MavenWrapperMain` for `.mvn/wrapper/maven-wrapper.jar` plus `.properties`. Maven layouts
+without the compatible JAR stop as unsupported. Wrapper paths must remain regular, non-symlink files below the
+worktree; changed JAR or properties bytes make the run plan stale. `.cmd`, `.bat`, and `.ps1` remain unsupported and
+there is no generic `cmd.exe` or shell fallback.
+
+Build network authorization is explicit. `NETWORK_AUTHORIZED` requires `ALLOW_BUILD_TOOL_NETWORK`; `OFFLINE`
+requires the wrapper's typed offline argument, and a wrapper cannot claim that network is irrelevant. This is an
+authorization and disclosure boundary, not an operating-system firewall. A wrapper bootstrap may still fail when
+its distribution is unavailable locally. Credentials embedded in a distribution URL are never shown; exact
+properties bytes are represented only by their SHA-256 binding.
+
+Fresh compatibility manifests are checked with the S10 pre/post digest rules and a strict bounded migration-side
+reader. Required post-change evidence must bind the transaction, ApplyPlan, checkpoint, source-state digest,
+execution mode, and structured test identity. Process success, test outcome, artifact validity, and compatibility
+acceptance remain separate facts. A stale/missing manifest or insufficient source relation cannot certify the
+transaction.
+
+Comparison axes are question-specific: pre/post headed and pre/post headless use `BUILD`; post-change headed versus
+headless uses `HEADLESS_MODE`; and post-change headless DEFAULT versus FAST uses `OBSERVABILITY_MODE`. The last two
+must share the new source revision, while BUILD must compare different source revisions. Plan-bound acceptable
+outcomes and comparability rules decide the stage. A headed regression, unresolved targeted headless finding, or
+FAST execution regression fails; expected FAST evidence reduction can be accepted. Historical baseline-red evidence
+is retained rather than rewritten as a patch regression.
+
+Verification results distinguish `VERIFIED`, `FAILED`, `INCONCLUSIVE`, `BLOCKED`, and `INTERRUPTED`, with the same
+coverage per stage and proposal. Plans and results use strict duplicate-rejecting, bounded deterministic JSON below
+the B1 safe state root. Reruns create new result history and an explicit supersession relation without applying source
+again. A short transaction-operation lock prevents rollback and verification state transitions from racing; no
+repository Apply lock is held during external commands. Compile, test, timeout, or comparison failure never triggers
+automatic rollback. B1's separately authorized ownership-checked rollback remains the only rollback path. S11B3
+owns final report and recovery presentation, and automated commit remains absent.
