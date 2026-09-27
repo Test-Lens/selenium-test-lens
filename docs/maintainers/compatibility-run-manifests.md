@@ -78,3 +78,48 @@ Both compatibility artifacts are non-published. `selenium-test-lens-compatibilit
 modules do not depend on either artifact. S09B2 can consume the manifest reader, explicit knowledge/provenance,
 attempts, evidence completeness, semantic configuration digest, and safe browser/display/context summaries to build
 comparability without adding normal-run browser commands or I/O.
+
+## Offline comparison reports
+
+The compare engine requires an explicit `ComparisonIntent`; it never guesses whether the caller meant to isolate
+headless mode, observability, viewport, browser, or another axis. For a headless comparison, effective (not merely
+requested) state must prove the headed/headless difference while observability and the remaining critical dimensions
+are controlled. For an observability comparison, `DEFAULT`/`FAST` is the intended difference and effective headless
+state must remain known and equal. B1 cannot always distinguish an explicit presentation override from a preset
+default, so that fact is reported as a limitation rather than invented equality.
+
+Comparability is `COMPARABLE`, `COMPARABLE_WITH_LIMITATIONS`, `NOT_COMPARABLE`, or `UNKNOWN`. Per-dimension states
+preserve known equality, intended difference, mismatch, left/right/both unknown, conflict, and not-applicable. Two
+unknown datasets, revisions, driver versions, or viewports are never treated as controlled equality. A viewport
+mismatch takes configuration-first precedence: align the viewport and rerun before considering a locator change.
+
+Matching uses the structured test identity and invocation discriminator. Duplicate manifest IDs are coalesced, while
+multiple distinct candidates for the same semantic key become an ambiguous coverage entry; file or list order is
+never used to pair tests. Attempts remain attached to their logical invocation. A one-attempt pass versus a pass
+after retry is a pass/pass behavioral delta, not two independently paired attempts.
+
+Outcome, comparability, and causal attribution are independent. A variant regression describes the observed result
+relationship but does not prove root cause. Findings separately retain severity, causal state (`OBSERVATION`,
+`HYPOTHESIS`, or `CONFIRMED_CAUSE`), causal confidence, and structured evidence statements. A failed baseline is
+always retained: two proven-identical failures, proven-different failures, an unknown relationship, and a variant
+improvement have distinct outcomes. The engine never says that headless broke an already-red baseline.
+
+Behavior is split into execution, observability, and expected-preset channels. Every group checks evidence
+completeness before comparing values. In particular, a FAST `SUMMARY_ONLY` manifest does not mean zero locator
+activity, retries, waits, or fallbacks. Expected FAST reductions such as missing HUD batches and reduced successful
+trace retention are informational observability differences; a real `PASS` to `FAIL` transition remains an execution
+regression under the observability axis.
+
+Canonical sanitized outputs are written explicitly beneath:
+
+```text
+target/test-lens/compatibility/reports/compatibility-v1.json
+target/test-lens/compatibility/reports/compatibility-v1.html
+```
+
+JSON and standalone HTML render the same comparison model. The HTML has local filters and no external resources,
+live Lab action, or apply/fix control. Both formats are capped at 64 MiB and contain manifest IDs and safe logical
+references rather than raw trace events, exception messages, parameters, paths, handles, capabilities, or secrets.
+The report provides exact matched, unmatched, ambiguous, limited, regression, and baseline-red counts; it does not
+publish a compatibility percentage or claim whole-application coverage. No automatic patch or STATIC source
+heuristic is implemented at this stage.

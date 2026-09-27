@@ -6,6 +6,8 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added the offline compatibility compare engine for explicit headed/headless and observability-axis analysis, with
+  sanitized deterministic JSON and standalone HTML reports. It does not add static source heuristics or automatic fixes.
 - Added an internal, non-published compatibility run-manifest foundation with explicit headed/headless metadata
   capture, logical-invocation retry attempts, bounded behavior summaries, and deterministic sanitized local JSON
   artifacts. It does not yet compare runs, issue compatibility verdicts, or perform static source analysis.
