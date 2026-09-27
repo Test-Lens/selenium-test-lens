@@ -30,6 +30,11 @@ class StaticCompatibilityAnalyzerTest {
         var report=scan(temp.resolve("src/test/java"),List.of());Set<String> codes=codes(report);
         assertTrue(codes.containsAll(Set.of("NATIVE_ROBOT_INPUT","NATIVE_ROBOT_SCREEN_CAPTURE","DESKTOP_NATIVE_ACTION","NATIVE_FILE_DIALOG","TOOLKIT_SCREEN_ASSUMPTION","EXPLICIT_HEADLESS_BRANCH")),codes.toString());
         assertEquals(1,report.findings().stream().filter(f->f.code().equals("NATIVE_ROBOT_INPUT")).count());
+        var nativeCoordinates=report.findings().stream().filter(f->f.code().equals("TOOLKIT_SCREEN_ASSUMPTION")).findFirst().orElseThrow();
+        assertEquals("TEST_ASSUMPTION",nativeCoordinates.category().name());
+        assertEquals("REVIEW",nativeCoordinates.severity().name());
+        assertEquals("REVIEW_INTERACTION_ASSUMPTION",nativeCoordinates.recommendation().name());
+        assertNotEquals("ALIGN_VIEWPORT_AND_RERUN",nativeCoordinates.recommendation().name());
         assertTrue(report.findings().stream().allMatch(f->f.causalState().name().equals("HYPOTHESIS")&&f.codeChangeRequired().name().equals("UNKNOWN")));
         String json=new String(new StaticCompatibilityReportJson().write(report));assertFalse(json.contains("secret-token"));assertFalse(json.contains(temp.toString()));
     }
@@ -51,8 +56,20 @@ class StaticCompatibilityAnalyzerTest {
         assertTrue(c.containsAll(Set.of("JS_SCREEN_ASSUMPTION","JS_FOCUS_VISIBILITY_ASSUMPTION","EXPLICIT_WINDOW_SIZE_CONFIGURATION","WINDOW_MAXIMIZE_OR_FULLSCREEN","WINDOW_HANDLE_ORDER_ASSUMPTION")));
         assertTrue(r.issues().contains("DYNAMIC_JAVASCRIPT_UNANALYZED:1"));
         assertEquals(1,r.findings().stream().filter(f->f.code().equals("WINDOW_HANDLE_ORDER_ASSUMPTION")).count());
+        var setSize=r.findings().stream().filter(f->f.code().equals("EXPLICIT_WINDOW_SIZE_CONFIGURATION")).findFirst().orElseThrow();
+        assertEquals("INFO",setSize.severity().name());assertEquals("CONFIGURATION",setSize.category().name());
         String json=new String(new StaticCompatibilityReportJson().write(r));assertFalse(json.contains("window.screen.width"));
         String html=new String(new StaticCompatibilityReportHtml().write(r));assertTrue(html.contains("Source-only findings are hypotheses"));assertFalse(html.contains("Baseline"));assertFalse(html.contains("window.screen.width"));assertFalse(html.contains("http://"));assertFalse(html.contains("https://"));
+    }
+
+    @Test void toolkitMetricReadAloneRemainsAnInformationalFact()throws Exception{
+        Path src=Files.createDirectories(temp.resolve("src/test/java/demo"));
+        Files.writeString(src.resolve("Metrics.java"),"package demo; import java.awt.Toolkit; class Metrics { void x(){ Toolkit.getDefaultToolkit().getScreenSize(); } }");
+        var report=scan(temp.resolve("src/test/java"),List.of());
+        assertFalse(codes(report).contains("TOOLKIT_SCREEN_ASSUMPTION"));
+        var metric=report.findings().stream().filter(f->f.code().equals("TOOLKIT_SCREEN_METRIC_READ")).findFirst().orElseThrow();
+        assertEquals("INFO",metric.severity().name());
+        assertEquals("COLLECT_MORE_EVIDENCE",metric.recommendation().name());
     }
 
     @Test void deterministicIdsIgnoreWhitespaceAndReportsAreDeterministic()throws Exception{

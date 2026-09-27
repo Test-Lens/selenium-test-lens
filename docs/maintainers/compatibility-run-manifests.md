@@ -146,6 +146,12 @@ native chooser; `window.screen` is not the inner viewport; and normal hover, wai
 flow detection is deferred; default-viewport-by-absence and broad sleep/hover/clipboard warnings are rejected as
 too noisy.
 
+Native screen geometry is not browser viewport geometry. A Toolkit screen-metric read by itself is an INFO fact that
+needs more evidence. When the same method also performs Robot/native coordinate input, the scanner reports a
+`TEST_ASSUMPTION` REVIEW finding and recommends reviewing the interaction assumption. Aligning WebDriver `setSize`
+or browser `innerWidth` can help responsive-layout comparisons, but it is not sufficient remediation for native
+desktop screen coordinates or display scaling.
+
 Static reports are written explicitly to:
 
 ```text
