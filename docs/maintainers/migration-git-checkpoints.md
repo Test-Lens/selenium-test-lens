@@ -360,3 +360,77 @@ again. A short transaction-operation lock prevents rollback and verification sta
 repository Apply lock is held during external commands. Compile, test, timeout, or comparison failure never triggers
 automatic rollback. B1's separately authorized ownership-checked rollback remains the only rollback path. S11B3
 owns final report and recovery presentation, and automated commit remains absent.
+
+## S11B3 final reporting and recovery presentation
+
+The final `MigrationApplyReport` is a deterministic, content-addressed local record of one Apply transaction. It keeps
+the historical transaction outcome, the accepted verification result, and the freshly inspected current worktree
+relation as three independent facts. A transaction can therefore remain historically `APPLIED_VERIFIED` while its
+current relation says `USER_MODIFIED_AFTER_APPLY`; later user work never erases old evidence and is never described as
+verified. Report generation performs a new read-only Git preflight, source fingerprint, touched-file digest check,
+journal-chain validation, backup check, and owned-diff artifact check. It executes no command, verification, recovery,
+rollback, source write, or Git mutation.
+
+The canonical migration-owned diff is still the S11B1 original-artifact-to-target-artifact diff. Whole-worktree Git
+diffs and unrelated dirty files are not migration ownership evidence. The sanitized JSON and standalone HTML expose
+logical paths, edit counts, semantic digests, Apply outcomes, and the local-sensitive diff reference/digest/byte count,
+but never embed exact hunks or source bytes. Absolute paths, logs, secret values, environment values, and credentialed
+wrapper URLs are excluded. Exact diff viewing is an explicit local-sensitive operation outside the shareable report.
+HTML is static, escaped, self-contained, and has no Apply, rollback, test, Git, or commit controls.
+
+Verification coverage lists every required and optional stage as passed, failed, blocked, inconclusive, interrupted,
+or not run. Compile, direct tests, known-use tests, headed, headless, FAST, manifest validation, and compatibility
+comparison remain separate rows. Per-proposal coverage maps the exact required stages back to each proposal, and the
+compatibility projection retains comparison intent, outcome, comparability, and targeted finding state. A successful
+process or one resolved proposal cannot hide an unrun or failed required obligation. Verification history is displayed
+with an explicitly selected accepted result ref; timestamps never select a latest result.
+
+Recovery presentation consumes S11B1's inspection rather than changing its rules. `MigrationRecoverySummary` explains
+whether a prepared transaction is safe to abandon, guarded rollback is wholly or partly available, metadata-only
+reconciliation is possible, or manual recovery is required. The immutable `MigrationRecoveryActionPlan` lists only
+actions that could be requested. Creating a report never performs them: rollback still requires the targeted
+`ROLLBACK_TOOL_CHANGES` capability, reconciliation requires intact transaction evidence, and temp cleanup is limited
+to exact registered transaction-owned names. Per-file rollback visibility reports current original/tool/user/missing
+state and backup validity instead of presenting a misleading batch boolean.
+
+`MigrationCommitReadiness` is advisory and has only `COMMIT_READY_MANUAL`,
+`MANUAL_COMMIT_REQUIRES_REVIEW`, and `COMMIT_BLOCKED`. Readiness requires a complete Apply, a `VERIFIED` accepted
+result, current source matching the verified state, and an intact exact owned diff. A touched file that was dirty before
+Apply, unrelated staged content, or unrelated worktree changes downgrades readiness because normal staging may include
+user work. The report tells the maintainer to inspect the owned diff and index, stage only intended changes, and commit
+manually. Migration tooling implements no `git add`, `git commit`, automatic commit, push, fetch, pull, merge, or rebase.
+
+The final JSON reader is strict, bounded, duplicate-rejecting Jackson Core with deterministic ordering and stable LF;
+state-store replacement remains atomic. JSON and HTML are limited to 64 MiB, with 32 proposals, 64 files, 512
+verification stages, 128 release gaps, and 1,024 issues. Core failure, blocked rollback, required recovery, or current
+divergence cannot be silently truncated. Report, exact diff, backups, and journals remain local-sensitive artifacts
+under the B1 safe state root.
+
+S11 is complete at this boundary: guarded exact-byte Apply, ownership-checked rollback and recovery, post-Apply
+verification, current-state inspection, final owned-diff reporting, and manual commit readiness exist. Automated commit
+is deliberately not required for 0.4.0 and no runtime migration API was added.
+
+### S12 release-hardening handoff
+
+`ReleaseHardeningHandoff` and its structured `MigrationReleaseGap` entries make NOT_RUN, skipped, deferred, and known
+limitations machine-visible. The current handoff retains these established facts rather than converting them to prose
+or claiming success:
+
+- Windows symlink fixtures were skipped where the environment could not create symlinks.
+- real Maven wrapper-main execution remains NOT_RUN, while generic `.cmd`, `.bat`, and `.ps1` execution is unsupported;
+- BrowserStack and Remote/Grid validation remain NOT_RUN;
+- the high 10k compatibility case observed about 1.19 GB and observability JSON approached the 64 MiB boundary;
+- selector policy preview at 100k was about 44.8 seconds, and the prior selector-history near-64 MiB boundary remains a
+  scale-hardening concern;
+- the 10k physical-file JavaParser migration benchmark remains NOT_RUN; synthetic migration metrics remain available;
+- the reactor-version script's ephemeral recursive target-path behavior must be reproduced and hardened in S12.
+
+S12 owns the final current Chrome/Firefox headed/headless and DEFAULT/FAST matrix, key runtime workflows, feasible
+Remote/Grid and available BrowserStack coverage, scale/memory/report-size disposition, platform skips, documentation,
+and release gates. It must not present unavailable provider runs as completed.
+
+S12 also owns the `PATCH_RELEASE_LANE` maintainer policy and any supporting docs/scripts. After v0.4.0, `main` remains
+the latest stable 0.4.x and moves to `0.4.1-SNAPSHOT`; fixes use `fix/0.4.1-<topic>`, release as 0.4.1/tag `v0.4.1`, then
+move to `0.4.2-SNAPSHOT`. No permanent develop/maintenance branch is required while no 0.5 feature work is planned; a
+`maintenance/0.4.x` branch can be considered only when 0.5 development begins. This is maintainer policy, not a runtime
+restriction. S11B3 records the requirement but does not create patch-release scripts, tags, pushes, or publications.

@@ -6,6 +6,9 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Added
 
+- Added final local Migration Assistant Apply reports with transaction-owned diff references, explicit verification
+  coverage, recovery and rollback diagnostics, current-state comparison, and manual commit readiness. Reports remain
+  read-only and sanitized; they do not commit, push, run verification, or embed source patches.
 - Added Migration Assistant post-apply verification orchestration with plan-bound compile/test stages, typed Java
   wrapper-main execution, source-state guards, fresh compatibility evidence, and BUILD/headless/observability
   comparisons. Verification failure never rolls source back, and no commit automation is included.
