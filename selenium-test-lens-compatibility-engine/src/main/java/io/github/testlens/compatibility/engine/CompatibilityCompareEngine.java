@@ -36,8 +36,10 @@ public final class CompatibilityCompareEngine {
         List<DimensionAssessment>d=new ArrayList<>();List<String>reasons=new ArrayList<>();
         d.add(new DimensionAssessment("testIdentity",DimensionState.EQUAL_KNOWN,true,"MATCHED_STRUCTURED_IDENTITY"));
         add(d,"dataset",b.context().datasetDigest(),v.context().datasetDigest(),true,"DATASET_MISMATCH");
-        add(d,"testSourceRevision",b.context().testSourceRevision(),v.context().testSourceRevision(),true,"TEST_REVISION_MISMATCH");
-        add(d,"systemUnderTestRevision",b.context().systemUnderTestRevision(),v.context().systemUnderTestRevision(),true,"SUT_REVISION_MISMATCH");
+        if(intent.axis()!=ComparisonIntent.Axis.BUILD){
+            add(d,"testSourceRevision",b.context().testSourceRevision(),v.context().testSourceRevision(),true,"TEST_REVISION_MISMATCH");
+            add(d,"systemUnderTestRevision",b.context().systemUnderTestRevision(),v.context().systemUnderTestRevision(),true,"SUT_REVISION_MISMATCH");
+        }
         add(d,"environment",b.context().environmentDigest(),v.context().environmentDigest(),true,"ENVIRONMENT_MISMATCH");
         add(d,"browserName",b.browser().name(),v.browser().name(),true,"BROWSER_MISMATCH");
         add(d,"browserVersion",b.browser().version(),v.browser().version(),true,"BROWSER_VERSION_MISMATCH");
@@ -56,6 +58,11 @@ public final class CompatibilityCompareEngine {
         } else if(intent.axis()==ComparisonIntent.Axis.OBSERVABILITY_MODE){
             intendedObservability(d,b,v);add(d,"effectiveHeadless",b.execution().effectiveHeadless(),v.execution().effectiveHeadless(),true,"HEADLESS_NOT_HELD_CONSTANT");
             d.add(new DimensionAssessment("observabilityDerivedOverrides",DimensionState.UNKNOWN_BOTH,false,"EXPLICIT_OVERRIDE_PROVENANCE_UNAVAILABLE"));
+        } else if(intent.axis()==ComparisonIntent.Axis.BUILD){
+            intendedBuild(d,b,v);
+            add(d,"effectiveHeadless",b.execution().effectiveHeadless(),v.execution().effectiveHeadless(),true,"HEADLESS_NOT_HELD_CONSTANT");
+            add(d,"observabilityMode",b.execution().observabilityMode(),v.execution().observabilityMode(),true,"OBSERVABILITY_NOT_HELD_CONSTANT");
+            addKnown(d,"semanticConfiguration",b.configuration().semanticConfigurationDigest(),v.configuration().semanticConfigurationDigest(),true,"SEMANTIC_CONFIGURATION_MISMATCH");
         } else {
             d.add(new DimensionAssessment("intendedAxis",DimensionState.NOT_APPLICABLE,true,"AXIS_COMPARE_NOT_SPECIALIZED_V1"));
         }
@@ -89,12 +96,28 @@ public final class CompatibilityCompareEngine {
         else if(s==DimensionState.CONFLICTED)reason="OBSERVABILITY_STATE_CONFLICTED";
         d.add(new DimensionAssessment("observabilityMode",s,true,reason));
     }
+    private void intendedBuild(List<DimensionAssessment>d,CompatibilityRunManifest b,CompatibilityRunManifest v){
+        DimensionState test=buildRevision(d,"testSourceRevision",b.context().testSourceRevision(),v.context().testSourceRevision(),"TEST_REVISION_MISMATCH");
+        DimensionState sut=buildRevision(d,"systemUnderTestRevision",b.context().systemUnderTestRevision(),v.context().systemUnderTestRevision(),"SUT_REVISION_MISMATCH");
+        boolean established=test==DimensionState.INTENDED_DIFFERENCE||sut==DimensionState.INTENDED_DIFFERENCE;
+        boolean unknown=List.of(test,sut).stream().anyMatch(CompatibilityCompareEngine::unknown);
+        DimensionState state=established?DimensionState.INTENDED_DIFFERENCE:unknown?DimensionState.UNKNOWN_BOTH:DimensionState.EQUAL_KNOWN;
+        d.add(new DimensionAssessment("buildRevision",state,true,established?"BUILD_REVISION_CHANGED":unknown?"BUILD_REVISION_UNKNOWN":"INTENDED_AXIS_NOT_ESTABLISHED"));
+    }
+    private static DimensionState buildRevision(List<DimensionAssessment>d,String name,Fact<String>l,Fact<String>r,String mismatch){
+        DimensionState state=state(l,r);
+        if(state==DimensionState.DIFFERENT&&l.knowledge()==Knowledge.KNOWN&&r.knowledge()==Knowledge.KNOWN)state=DimensionState.INTENDED_DIFFERENCE;
+        d.add(new DimensionAssessment(name,state,true,state==DimensionState.INTENDED_DIFFERENCE?mismatch:knowledgeReason(name,state)));
+        return state;
+    }
+    private static boolean unknown(DimensionState state){return state==DimensionState.UNKNOWN_LEFT||state==DimensionState.UNKNOWN_RIGHT||state==DimensionState.UNKNOWN_BOTH||state==DimensionState.CONFLICTED;}
     private static <T>void add(List<DimensionAssessment>d,String name,Fact<T>l,Fact<T>r,boolean critical,String mismatch){DimensionState s=state(l,r);d.add(new DimensionAssessment(name,s,critical,s==DimensionState.DIFFERENT?mismatch:knowledgeReason(name,s)));}
     private static void addKnown(List<DimensionAssessment>d,String name,String l,String r,boolean critical,String mismatch){DimensionState s=Objects.equals(l,r)?DimensionState.EQUAL_KNOWN:DimensionState.DIFFERENT;d.add(new DimensionAssessment(name,s,critical,s==DimensionState.DIFFERENT?mismatch:"EQUAL_KNOWN"));}
     private static String knowledgeReason(String name,DimensionState state){return switch(state){case EQUAL_KNOWN->"EQUAL_KNOWN";case UNKNOWN_LEFT->name.toUpperCase(Locale.ROOT)+"_UNKNOWN_LEFT";case UNKNOWN_RIGHT->name.toUpperCase(Locale.ROOT)+"_UNKNOWN_RIGHT";case UNKNOWN_BOTH->name.toUpperCase(Locale.ROOT)+"_UNKNOWN_BOTH";case CONFLICTED->name.toUpperCase(Locale.ROOT)+"_CONFLICTED";default->name.toUpperCase(Locale.ROOT)+"_DIFFERENT";};}
     private static <T>DimensionState state(Fact<T>l,Fact<T>r){if(l.knowledge()==Knowledge.CONFLICTED||r.knowledge()==Knowledge.CONFLICTED)return DimensionState.CONFLICTED;if(l.knowledge()!=Knowledge.KNOWN&&r.knowledge()!=Knowledge.KNOWN)return DimensionState.UNKNOWN_BOTH;if(l.knowledge()!=Knowledge.KNOWN)return DimensionState.UNKNOWN_LEFT;if(r.knowledge()!=Knowledge.KNOWN)return DimensionState.UNKNOWN_RIGHT;return Objects.equals(l.value(),r.value())?DimensionState.EQUAL_KNOWN:DimensionState.DIFFERENT;}
     private static Comparability comparability(List<DimensionAssessment>d,ComparisonIntent intent){
-        DimensionAssessment axis=d.stream().filter(x->x.dimension().equals(intent.axis()==ComparisonIntent.Axis.HEADLESS_MODE?"effectiveHeadless":"observabilityMode")).findFirst().orElse(null);
+        String axisDimension=switch(intent.axis()){case HEADLESS_MODE->"effectiveHeadless";case OBSERVABILITY_MODE->"observabilityMode";case BUILD->"buildRevision";default->"intendedAxis";};
+        DimensionAssessment axis=d.stream().filter(x->x.dimension().equals(axisDimension)).findFirst().orElse(null);
         if(axis==null||axis.state()!=DimensionState.INTENDED_DIFFERENCE)return axis!=null&&(axis.state()==DimensionState.UNKNOWN_BOTH||axis.state()==DimensionState.UNKNOWN_LEFT||axis.state()==DimensionState.UNKNOWN_RIGHT||axis.state()==DimensionState.CONFLICTED)?Comparability.UNKNOWN:Comparability.NOT_COMPARABLE;
         if(d.stream().anyMatch(x->x.critical()&&x.state()==DimensionState.DIFFERENT))return Comparability.NOT_COMPARABLE;
         if(d.stream().anyMatch(x->x.critical()&&(x.state()==DimensionState.UNKNOWN_BOTH||x.state()==DimensionState.UNKNOWN_LEFT||x.state()==DimensionState.UNKNOWN_RIGHT||x.state()==DimensionState.CONFLICTED)))return Comparability.UNKNOWN;

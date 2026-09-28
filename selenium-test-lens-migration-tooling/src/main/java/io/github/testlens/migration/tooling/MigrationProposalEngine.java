@@ -98,15 +98,19 @@ public final class MigrationProposalEngine {
                 input.useGraph().coverage().complete()?MigrationProposal.UsageCoverage.COMPLETE:MigrationProposal.UsageCoverage.PARTIAL;
         var blast=new MigrationProposal.BlastRadius(1,1,total,useRefs,tests,total>1,coverage,
                 input.useGraph()==null?List.of("USE_GRAPH_NOT_SUPPLIED"):input.useGraph().issues());
+        boolean incompleteCoverage=input.useGraph()!=null&&!input.useGraph().coverage().complete();
+        MigrationProposal.Eligibility eligibility=incompleteCoverage?MigrationProposal.Eligibility.REVIEW_REQUIRED:MigrationProposal.Eligibility.READY_FOR_REVIEW;
+        String problem=incompleteCoverage?"SOURCE_COVERAGE_INCOMPLETE":"VALIDATED_LOCATOR_REPLACEMENT";
+        List<String>limitations=new ArrayList<>(input.candidate().limitations());if(incompleteCoverage)limitations.add("SOURCE_COVERAGE_INCOMPLETE");
         List<MigrationProposal.VerificationStep>verify=new ArrayList<>();verify.add(step(MigrationProposal.VerificationKind.COMPILE_AFFECTED_MODULE));verify.add(step(MigrationProposal.VerificationKind.RUN_DIRECTLY_AFFECTED_TEST));
         if(total>1)verify.add(step(MigrationProposal.VerificationKind.RUN_KNOWN_USE_SITE_TESTS));verify.add(step(MigrationProposal.VerificationKind.RUN_HEADED));verify.add(step(MigrationProposal.VerificationKind.RUN_HEADLESS));verify.add(step(MigrationProposal.VerificationKind.CAPTURE_COMPATIBILITY_MANIFEST));verify.add(step(MigrationProposal.VerificationKind.COMPARE_COMPATIBILITY));
         List<String>targets=List.of(input.projection().logicalPath()),decls=List.of(input.projection().declarationRef());
-        String id=MigrationProposal.id(MigrationProposal.Category.LOCATOR,MigrationProposal.Eligibility.READY_FOR_REVIEW,"VALIDATED_LOCATOR_REPLACEMENT",evidence,targets,decls,beforeSemantic,afterSemantic,List.of(pre),List.of());
+        String id=MigrationProposal.id(MigrationProposal.Category.LOCATOR,eligibility,problem,evidence,targets,decls,beforeSemantic,afterSemantic,List.of(pre),List.of());
         MigrationProposal.PatchPreview preview=new MigrationProposal.PatchPreview("patches/"+id.replace(':','-')+".patch",patchDigest,diff.length);
-        return new MigrationProposal(1,1,id,MigrationProposal.Category.LOCATOR,MigrationProposal.Eligibility.READY_FOR_REVIEW,
-                "VALIDATED_LOCATOR_REPLACEMENT",evidence,complete(evidence),MigrationProposal.CausalState.CONFIRMED,
-                MigrationProposal.Confidence.HIGH,targets,decls,useRefs,beforeSemantic,afterSemantic,List.of(pre),List.of(edit),preview,
-                blast,verify,new MigrationProposal.RollbackPlan("REVERSE_EXACT_EDIT",afterSemantic,beforeSemantic),input.candidate().limitations(),List.of(),List.of(),afterSemantic);
+        return new MigrationProposal(1,1,id,MigrationProposal.Category.LOCATOR,eligibility,
+                problem,evidence,complete(evidence),MigrationProposal.CausalState.CONFIRMED,
+                incompleteCoverage?MigrationProposal.Confidence.MEDIUM:MigrationProposal.Confidence.HIGH,targets,decls,useRefs,beforeSemantic,afterSemantic,List.of(pre),List.of(edit),preview,
+                blast,verify,new MigrationProposal.RollbackPlan("REVERSE_EXACT_EDIT",afterSemantic,beforeSemantic),limitations,List.of(),List.of(),afterSemantic);
     }
 
     public MigrationProposal configurationProposal(String problemCode,String current,String proposed,List<MigrationEvidenceRef> evidence){

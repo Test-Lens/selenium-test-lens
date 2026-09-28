@@ -122,6 +122,8 @@ nav:
       - Architecture: architecture.md
       - Consumer compatibility: consumer-compatibility.md
       - Publishing versioned docs: maintainers/documentation-versioning.md
+      - Releasing Test Lens 0.4.x: maintainers/release-0.4.x.md
+      - 0.4.x patch-release lane: maintainers/patch-release.md
       - Real-browser integration tests: browser-integration-tests.md
       - Runtime performance audit: performance-audit.md
       - Static locator declaration index: maintainers/selector-declaration-index.md

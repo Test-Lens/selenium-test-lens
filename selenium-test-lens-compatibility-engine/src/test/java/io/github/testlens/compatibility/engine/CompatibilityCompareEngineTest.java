@@ -75,6 +75,39 @@ class CompatibilityCompareEngineTest {
 
     @Test void datasetMismatchAndHeadlessMismatchForObservabilityPreventFalseAttribution(){var b=manifest("a",EffectiveHeadlessState.HEADLESS,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1,"A",1280,EvidenceRetention.FULL_TRACE,null);var v=manifest("a",EffectiveHeadlessState.HEADED,ObservabilityMode.FAST,ResultStatus.FAILED,1,"B",1280,EvidenceRetention.SUMMARY_ONLY,"FAIL");var c=compare(b,v,ComparisonIntent.Axis.OBSERVABILITY_MODE).testComparisons().get(0);assertEquals(Comparability.NOT_COMPARABLE,c.comparability().status());assertTrue(c.comparability().reasonCodes().contains("DATASET_MISMATCH"));assertTrue(c.comparability().reasonCodes().contains("HEADLESS_NOT_HELD_CONSTANT"));}
 
+    @Test void buildAxisAllowsIntentionalRevisionChangeAndPreservesOutcomes(){
+        var pass=revision(manifest("a",EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1,"dataset",1280,EvidenceRetention.FULL_TRACE,null),"old","sut");
+        var passNew=revision(manifest("a",EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1,"dataset",1280,EvidenceRetention.FULL_TRACE,null),"new","sut");
+        var failNew=revision(manifest("a",EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.FAILED,1,"dataset",1280,EvidenceRetention.FULL_TRACE,"FAIL"),"new","sut");
+        var failOld=revision(manifest("a",EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.FAILED,1,"dataset",1280,EvidenceRetention.FULL_TRACE,"FAIL"),"old","sut");
+        assertEquals(Outcome.NO_MEANINGFUL_DIFFERENCE,compare(pass,passNew,ComparisonIntent.Axis.BUILD).testComparisons().get(0).outcome());
+        var regression=compare(pass,failNew,ComparisonIntent.Axis.BUILD);assertEquals(Outcome.VARIANT_REGRESSION,regression.testComparisons().get(0).outcome());
+        assertTrue(regression.findings().stream().anyMatch(f->f.code().equals("VARIANT_RESULT_REGRESSION")&&f.causalState()==CausalState.HYPOTHESIS));
+        assertFalse(regression.findings().stream().anyMatch(f->f.causalState()==CausalState.CONFIRMED_CAUSE));
+        assertEquals(Outcome.VARIANT_IMPROVEMENT,compare(failOld,passNew,ComparisonIntent.Axis.BUILD).testComparisons().get(0).outcome());
+        assertEquals(Outcome.BASELINE_ALREADY_FAILED_SAME_FAILURE,compare(failOld,failNew,ComparisonIntent.Axis.BUILD).testComparisons().get(0).outcome());
+    }
+
+    @Test void buildAxisRetainsBehaviorBaselineRedAndControlledDimensionRules(){
+        var old=revision(manifest("a",EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1,"dataset",1280,EvidenceRetention.FULL_TRACE,null),"old","sut");
+        var retried=revision(manifest("a",EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.PASSED,2,"dataset",1280,EvidenceRetention.FULL_TRACE,"TRANSIENT"),"new","sut");
+        assertEquals(Outcome.PASS_WITH_BEHAVIORAL_DELTA,compare(old,retried,ComparisonIntent.Axis.BUILD).testComparisons().get(0).outcome());
+        assertEquals(Comparability.NOT_COMPARABLE,compare(old,revision(manifest("a",EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1,"other",1280,EvidenceRetention.FULL_TRACE,null),"new","sut"),ComparisonIntent.Axis.BUILD).testComparisons().get(0).comparability().status());
+        assertEquals(Comparability.NOT_COMPARABLE,compare(old,revision(manifest("a",EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1,"dataset",800,EvidenceRetention.FULL_TRACE,null),"new","sut"),ComparisonIntent.Axis.BUILD).testComparisons().get(0).comparability().status());
+        var same=compare(old,old,ComparisonIntent.Axis.BUILD).testComparisons().get(0);assertEquals(Comparability.NOT_COMPARABLE,same.comparability().status());assertTrue(same.comparability().reasonCodes().contains("INTENDED_AXIS_NOT_ESTABLISHED"));
+    }
+
+    @Test void nonBuildAxesStillRequireSameSourceAndDifferentTestsRemainUnmatched(){
+        var oldHeaded=revision(manifest("a",EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1,"dataset",1280,EvidenceRetention.FULL_TRACE,null),"old","sut");
+        var newHeadless=revision(manifest("a",EffectiveHeadlessState.HEADLESS,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1,"dataset",1280,EvidenceRetention.FULL_TRACE,null),"new","sut");
+        assertEquals(Comparability.NOT_COMPARABLE,compare(oldHeaded,newHeadless,ComparisonIntent.Axis.HEADLESS_MODE).testComparisons().get(0).comparability().status());
+        var oldDefault=revision(manifest("a",EffectiveHeadlessState.HEADLESS,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1,"dataset",1280,EvidenceRetention.FULL_TRACE,null),"old","sut");
+        var newFast=revision(manifest("a",EffectiveHeadlessState.HEADLESS,ObservabilityMode.FAST,ResultStatus.PASSED,1,"dataset",1280,EvidenceRetention.SUMMARY_ONLY,null),"new","sut");
+        assertEquals(Comparability.NOT_COMPARABLE,compare(oldDefault,newFast,ComparisonIntent.Axis.OBSERVABILITY_MODE).testComparisons().get(0).comparability().status());
+        var other=revision(manifest("other",EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1,"dataset",1280,EvidenceRetention.FULL_TRACE,null),"new","sut");
+        var unmatched=compare(oldHeaded,other,ComparisonIntent.Axis.BUILD);assertEquals(0,unmatched.coverage().matched());assertEquals(1,unmatched.coverage().unmatchedBaseline());assertEquals(1,unmatched.coverage().unmatchedVariant());
+    }
+
     private CompatibilityComparisonReport compare(CompatibilityRunManifest b,CompatibilityRunManifest v,ComparisonIntent.Axis axis){return engine.compare(List.of(b),List.of(v),intent(axis));}
     private ComparisonIntent intent(ComparisonIntent.Axis axis){return new ComparisonIntent(axis,"baseline","variant");}
     private CompatibilityRunManifest failed(String key,String category,boolean complete){return manifest(key,EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.FAILED,1,"dataset",1280,EvidenceRetention.FULL_TRACE,complete?category:null);}
@@ -95,4 +128,9 @@ class CompatibilityCompareEngineTest {
         String placeholder="compatibility-manifest-v1:sha256:"+"0".repeat(64);CompatibilityRunManifest temp=new CompatibilityRunManifest(1,1,placeholder,key,execution,browser,display,context,configuration,attemptList,tr,completeness,List.of(),List.of());String id=CompatibilityManifestIdentity.id(temp);return new CompatibilityRunManifest(1,1,id,key,execution,browser,display,context,configuration,attemptList,tr,completeness,List.of(),List.of());
     }
     private static Fact<String>known(String value){return Fact.known(value,Provenance.TRUSTED_DESCRIPTOR);}
+    private static CompatibilityRunManifest revision(CompatibilityRunManifest source,String testRevision,String sutRevision){
+        Context old=source.context();Context context=new Context(old.datasetDigest(),old.environmentDigest(),known(testRevision),known(sutRevision),old.locale(),old.timezone());
+        String placeholder="compatibility-manifest-v1:sha256:"+"0".repeat(64);var temp=new CompatibilityRunManifest(1,1,placeholder,source.testIdentity(),source.execution(),source.browser(),source.display(),context,source.configuration(),source.attempts(),source.terminalResult(),source.completeness(),source.issues(),source.evidenceDigests());
+        String id=CompatibilityManifestIdentity.id(temp);return new CompatibilityRunManifest(1,1,id,temp.testIdentity(),temp.execution(),temp.browser(),temp.display(),temp.context(),temp.configuration(),temp.attempts(),temp.terminalResult(),temp.completeness(),temp.issues(),temp.evidenceDigests());
+    }
 }

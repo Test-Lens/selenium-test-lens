@@ -1,6 +1,7 @@
 package io.github.testlens.migration.tooling;
 
 import io.github.testlens.selector.tooling.TrustedSelectorSourceProjection;
+import io.github.testlens.selector.tooling.TrustedSelectorUseGraph;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -51,6 +52,13 @@ class MigrationProposalEngineTest {
 
     @Test void conflictsAndLedgerInvalidateChangedInputs()throws Exception{
         write("src/p/Page.java","package p; import org.openqa.selenium.By; class Page { By save=By.id(\"save\"); }".getBytes(StandardCharsets.UTF_8));var d=projection().declarations().get(0);var a=new MigrationProposalEngine().planLocator(input(d,candidate(d,"name","save")));var b=new MigrationProposalEngine().planLocator(input(d,candidate(d,"css selector","#save")));var set=MigrationProposalSet.create("checkpoint",null,List.of(a,b),List.of(),MigrationProposalSet.Completeness.COMPLETE,List.of());assertEquals("SAME_DECLARATION_DIFFERENT_SEMANTICS",set.conflicts().get(0).code());var decision=MigrationDecisionLedger.decide(a,"checkpoint",MigrationDecisionLedger.Decision.APPROVE_FOR_S11,"host-review",null,null);var ledger=MigrationDecisionLedger.create(List.of(decision));assertTrue(ledger.validateApproval(a,"checkpoint",a.evidenceRefs()).valid());assertFalse(ledger.validateApproval(a,"changed",a.evidenceRefs()).valid());
+    }
+
+    @Test void incompleteUseCoverageCannotProduceApplyEligibleProposal()throws Exception{
+        write("src/p/Page.java","package p; import org.openqa.selenium.By; class Page { static final By SAVE=By.id(\"save\"); }".getBytes(StandardCharsets.UTF_8));var d=projection().declarations().get(0);
+        var coverage=new TrustedSelectorUseGraph.Coverage(1,1,3,2,0,false);var graph=new TrustedSelectorUseGraph.Graph(List.of(),coverage,java.util.Map.of(d.declarationRef(),3),List.of("FILES_LIMIT"));
+        var proposal=new MigrationProposalEngine().planLocator(new MigrationProposalEngine.Input(temporary,d,graph,candidate(d,"css selector","#save"),List.of(),"migration-repository-binding-v1:sha256:"+"1".repeat(64),"migration-worktree-binding-v1:sha256:"+"2".repeat(64),"checkpoint"));
+        assertEquals(MigrationProposal.Eligibility.REVIEW_REQUIRED,proposal.eligibility());assertEquals(MigrationProposal.UsageCoverage.PARTIAL,proposal.blastRadius().usageCoverage());assertEquals(3,proposal.blastRadius().knownUseSiteCount());assertTrue(proposal.limitations().contains("SOURCE_COVERAGE_INCOMPLETE"));assertNotNull(proposal.patchPreview());
     }
 
     @Test void javaLiteralEscapesOnlyJavaSyntax(){assertEquals("\"a\\\"b\\\\c\\r\\n\\t😀\"",MigrationProposalEngine.javaLiteral("a\"b\\c\r\n\t😀"));}

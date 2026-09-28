@@ -21,7 +21,18 @@ public final class TrustedSelectorSourceProjection {
     private TrustedSelectorSourceProjection() { }
 
     public static Snapshot scan(Path projectRoot, List<Path> sourceRoots, List<Path> classpathEntries) {
-        var request = new SelectorIndexModel.ScanRequest(projectRoot, sourceRoots, classpathEntries);
+        return scan(new SelectorIndexModel.ScanRequest(projectRoot, sourceRoots, classpathEntries));
+    }
+
+    static Snapshot scan(Path projectRoot, List<Path> sourceRoots, List<Path> classpathEntries, int maxFiles) {
+        var defaults = SelectorIndexModel.Limits.defaults();
+        var limits = new SelectorIndexModel.Limits(defaults.maxFileBytes(), maxFiles, defaults.maxSourceRoots(),
+                defaults.maxAstDepth(), defaults.maxExpressionDepth(), defaults.maxConstantDepth(), defaults.maxVisitedSymbols());
+        return scan(new SelectorIndexModel.ScanRequest(projectRoot, sourceRoots, classpathEntries, "JAVA_17",
+                StandardCharsets.UTF_8, null, limits));
+    }
+
+    private static Snapshot scan(SelectorIndexModel.ScanRequest request) {
         var index = new JavaLocatorScanner().scan(request);
         List<Declaration> declarations = new ArrayList<>();
         for (var file : index.files()) {
@@ -39,8 +50,8 @@ public final class TrustedSelectorSourceProjection {
                 if (value.resolutionStatus() != SelectorIndexModel.ResolutionStatus.RESOLVED) {
                     limitations.add("SOURCE_" + value.resolutionStatus().name());
                 }
-                SourceRange patchRange = exactCallRange(projectRoot, value);
-                Encoding fileEncoding = hasBom(projectRoot.resolve(value.logicalPath())) ? Encoding.UTF8_BOM : Encoding.UTF8;
+                SourceRange patchRange = exactCallRange(request.projectRoot(), value);
+                Encoding fileEncoding = hasBom(request.projectRoot().resolve(value.logicalPath())) ? Encoding.UTF8_BOM : Encoding.UTF8;
                 declarations.add(new Declaration(value.declarationRef(), null, value.logicalPath(), file.contentHash(),
                         fileEncoding, patchRange, DeclarationKind.valueOf(value.declarationKind().name()),
                         strategy, scalar, shape, construct, declaringSymbol,
@@ -53,10 +64,13 @@ public final class TrustedSelectorSourceProjection {
         List<String> issues = new ArrayList<>();
         index.issues().forEach(value -> issues.add(value.code()));
         index.files().forEach(file -> file.issues().forEach(value -> issues.add(value.code())));
+        boolean fileLimitReached = index.issues().stream().anyMatch(value -> value.code().equals("FILES_LIMIT"));
         Coverage coverage = new Coverage(index.coverage().sourceRootsRequested(), index.coverage().sourceRootsFound(),
                 index.coverage().filesDiscovered(), index.coverage().filesParsed(),
                 index.coverage().symbolResolutionIssues(), !index.coverage().incompleteClasspath()
-                        && index.coverage().filesFailed() == 0 && index.coverage().filesExcluded() == 0);
+                        && index.coverage().filesFailed() == 0 && index.coverage().filesExcluded() == 0
+                        && index.coverage().sourceRootsFound() == index.coverage().sourceRootsRequested()
+                        && !fileLimitReached);
         return new Snapshot(SCHEMA_VERSION, declarations, coverage, issues.stream().distinct().sorted().toList());
     }
 

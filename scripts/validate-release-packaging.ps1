@@ -1,28 +1,40 @@
 param(
-    [string]$Version = ([xml](Get-Content -LiteralPath (Join-Path $PSScriptRoot "../pom.xml") -Raw)).project.version,
-    [string]$StagingDirectory = (Join-Path ([System.IO.Path]::GetTempPath()) ("selenium-test-lens-release-staging-" + [guid]::NewGuid()))
+    [string]$Version,
+    [string]$StagingDirectory = (Join-Path ([System.IO.Path]::GetTempPath()) ("selenium-test-lens-release-staging-" + [guid]::NewGuid())),
+    [switch]$MatrixOnly,
+    [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
 )
 
 $ErrorActionPreference = "Stop"
-$repo = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
+$repo = [IO.Path]::GetFullPath($RepositoryRoot)
+$model = Get-TestLensReactorModel -RepositoryRoot $repo -IncludeBrowserIt
+if ([string]::IsNullOrWhiteSpace($Version)) { $Version = $model.RootVersion }
 $pom = [xml](Get-Content -Raw (Join-Path $repo "pom.xml"))
 $ns = New-Object System.Xml.XmlNamespaceManager($pom.NameTable)
 $ns.AddNamespace("m", "http://maven.apache.org/POM/4.0.0")
 $excluded = $pom.SelectSingleNode("//m:plugin[m:artifactId='central-publishing-maven-plugin']/m:configuration/m:excludeArtifacts", $ns)
-if ($null -eq $excluded -or $excluded.InnerText.Trim() -ne "selenium-test-lens-examples,selenium-test-lens-browser-tests") {
-    throw "Central configuration must exclude examples and browser integration tests"
-}
+$published = @("selenium-test-lens-parent","selenium-test-lens-core","selenium-test-lens-overlay","selenium-test-lens","selenium-test-lens-junit5","selenium-test-lens-testng","selenium-test-lens-allure","selenium-test-lens-react")
+$internal = @("selenium-test-lens-examples","selenium-test-lens-browser-tests","selenium-test-lens-selector-engine","selenium-test-lens-selector-live","selenium-test-lens-selector-lab","selenium-test-lens-selector-tooling","selenium-test-lens-compatibility-engine","selenium-test-lens-compatibility-tooling","selenium-test-lens-migration-tooling")
+$classified = @($published + $internal | Sort-Object -Unique)
+$actual = @($model.Projects.ArtifactId | Sort-Object -Unique)
+$unknown = @($actual | Where-Object { $_ -notin $classified })
+$missing = @($classified | Where-Object { $_ -notin $actual })
+if ($unknown.Count -gt 0 -or $missing.Count -gt 0) { throw "Publication policy does not match reactor. Unknown: $($unknown -join ', '); missing: $($missing -join ', ')" }
+$centralExcluded = if ($null -eq $excluded) { @() } else { @($excluded.InnerText.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ } | Sort-Object -Unique) }
+if (@(Compare-Object $internal $centralExcluded).Count -ne 0) { throw "Central excludeArtifacts does not exactly match the nonpublished module policy" }
 
-$components = @(
-    @{ Artifact = "selenium-test-lens-parent"; Directory = $repo; Packaging = "pom" },
-    @{ Artifact = "selenium-test-lens-core"; Directory = (Join-Path $repo "selenium-test-lens-core"); Packaging = "jar" },
-    @{ Artifact = "selenium-test-lens-overlay"; Directory = (Join-Path $repo "selenium-test-lens-overlay"); Packaging = "jar" },
-    @{ Artifact = "selenium-test-lens"; Directory = (Join-Path $repo "selenium-test-lens-selenium"); Packaging = "jar" },
-    @{ Artifact = "selenium-test-lens-junit5"; Directory = (Join-Path $repo "selenium-test-lens-junit5"); Packaging = "jar" },
-    @{ Artifact = "selenium-test-lens-testng"; Directory = (Join-Path $repo "selenium-test-lens-testng"); Packaging = "jar" },
-    @{ Artifact = "selenium-test-lens-allure"; Directory = (Join-Path $repo "selenium-test-lens-allure"); Packaging = "jar" },
-    @{ Artifact = "selenium-test-lens-react"; Directory = (Join-Path $repo "selenium-test-lens-react"); Packaging = "jar" }
-)
+$rows = foreach ($project in $model.Projects) {
+    $publicationExpected = $project.ArtifactId -in $published
+    $ok = if ($publicationExpected) { -not $project.EffectiveDeploySkip } else { $project.EffectiveDeploySkip -and $project.ArtifactId -in $centralExcluded }
+    [pscustomobject]@{ ArtifactId=$project.ArtifactId; Reactor=if($project.ProfileOnly){"browser-it"}else{"normal"}; Packaging=$project.Packaging; PublicationExpected=$publicationExpected; EffectiveDeploySkip=$project.EffectiveDeploySkip; Result=if($ok){"PASS"}else{"FAIL"}; Directory=$project.Directory }
+}
+$rows | Sort-Object ArtifactId | Format-Table ArtifactId,Reactor,Packaging,PublicationExpected,EffectiveDeploySkip,Result -AutoSize | Out-String | Write-Output
+$failed = @($rows | Where-Object { $_.Result -ne "PASS" })
+if ($failed.Count -gt 0) { throw "Release publication matrix contains $($failed.Count) invalid module(s)" }
+if ($MatrixOnly) { Write-Output "Release publication matrix PASS: 8 published coordinates, 9 nonpublished modules"; return }
+
+$components = @($rows | Where-Object { $_.PublicationExpected } | ForEach-Object { @{ Artifact=$_.ArtifactId; Directory=$_.Directory; Packaging=$_.Packaging } })
 
 New-Item -ItemType Directory -Force -Path $StagingDirectory | Out-Null
 foreach ($component in $components) {
@@ -55,10 +67,8 @@ foreach ($component in $components) {
     }
 }
 
-$unexpected = Get-ChildItem -LiteralPath $StagingDirectory -Recurse -File | Where-Object { $_.Name -like "*selenium-test-lens-examples*" }
-if ($unexpected) { throw "Examples artifact found in release staging" }
-$unexpectedBrowserTests = Get-ChildItem -LiteralPath $StagingDirectory -Recurse -File | Where-Object { $_.Name -like "*selenium-test-lens-browser-tests*" }
-if ($unexpectedBrowserTests) { throw "Browser integration test artifact found in release staging" }
+$unexpected = @(Get-ChildItem -LiteralPath $StagingDirectory -Recurse -File | Where-Object { $name=$_.Name; @($internal | Where-Object { $name -like "*$_*" }).Count -gt 0 })
+if ($unexpected.Count -gt 0) { throw "Nonpublished artifact found in release staging: $($unexpected.Name -join ', ')" }
 
 Write-Output "Release staging validation PASS: $StagingDirectory"
 Get-ChildItem -LiteralPath $StagingDirectory -Recurse -File | ForEach-Object { $_.FullName.Substring($StagingDirectory.Length + 1) }

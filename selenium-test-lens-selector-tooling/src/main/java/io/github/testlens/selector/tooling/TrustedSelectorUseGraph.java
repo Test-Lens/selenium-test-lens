@@ -91,10 +91,12 @@ public final class TrustedSelectorUseGraph {
             }
             retained.sort(Comparator.comparing(UseSite::declarationRef).thenComparing(UseSite::logicalPath)
                     .thenComparingInt(UseSite::line).thenComparing(UseSite::useSiteRef));
+            List<String> issues = new ArrayList<>(projection.limitations());
+            unresolved.forEach(value -> { if (!issues.contains(value)) issues.add(value); });
             Coverage coverage = new Coverage(roots.size(), projection.coverage().sourceRootsRequested(), total[0], retained.size(),
                     unresolved.size(), roots.size() == projection.coverage().sourceRootsRequested() && unresolved.isEmpty()
-                            && total[0] <= MAX_RETAINED_USE_SITES);
-            return new Graph(retained, coverage, declarationCounts, unresolved);
+                            && total[0] <= MAX_RETAINED_USE_SITES && projection.coverage().complete());
+            return new Graph(retained, coverage, declarationCounts, issues);
         } catch (IOException failure) { throw new IllegalArgumentException("Cannot analyze selector use sites", failure); }
     }
 

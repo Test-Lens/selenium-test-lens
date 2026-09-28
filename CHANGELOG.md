@@ -4,6 +4,15 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Corrected compatibility BUILD comparisons so an intentional source/build revision change establishes the axis
+  while browser, viewport, dataset, execution, headless, observability, and configuration controls remain enforced.
+- Propagated bounded selector source-scan exhaustion into Audit, trusted source/use coverage, blast radius, and
+  migration proposal eligibility instead of reporting complete coverage.
+- Hardened release validation around the tracked Maven reactor and the explicit published/nonpublished module matrix,
+  with maintainer runbooks and bounded 0.4.x patch-release helpers that never commit, tag, push, or publish.
+
 ### Added
 
 - Added final local Migration Assistant Apply reports with transaction-owned diff references, explicit verification
