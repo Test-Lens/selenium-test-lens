@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -14,8 +15,8 @@ class PolicyFeedbackPerformanceHarnessTest {
     @Test
     @EnabledIfSystemProperty(named="testlens.selector.policy.performance",matches="true")
     void measuresDraftAndPatternPreviewScalingWithoutCiThresholds(){
-        for(int subjects:List.of(100,1_000,10_000))for(int rules:List.of(10,100,1_000))measure(subjects,rules);
-        measure(100_000,100);
+        System.out.printf(Locale.ROOT,"POLICY_PREVIEW_ENV java=%s os=%s processors=%d maxHeapMiB=%d warmups=1 repetitions=3 measured=pattern-preview%n",System.getProperty("java.version"),System.getProperty("os.name"),Runtime.getRuntime().availableProcessors(),Runtime.getRuntime().maxMemory()/1048576);
+        measure(1_000,1);measure(10_000,10);measure(25_000,100);measure(100_000,100);
     }
 
     private static void measure(int subjectCount,int ruleCount){
@@ -35,13 +36,13 @@ class PolicyFeedbackPerformanceHarnessTest {
         long exactStart=System.nanoTime();
         PolicyDraftService.Preparation exact=new PolicyDraftService().prepareExact(workspace,candidate,source,SelectorPolicy.Decision.STABLE,PolicyDraft.ScopeChoice.PROJECT,PolicyWorkspaceSnapshot.Origin.LOCAL,ObservationEvidence.unavailable());
         long exactNanos=System.nanoTime()-exactStart;
-        long previewStart=System.nanoTime();
-        FederatedPatternPreview.Result preview=new FederatedPatternPreview().preview(proposal,catalog,workspace.compiled(),Map.of(),false);
-        long previewNanos=System.nanoTime()-previewStart;
+        FederatedPatternPreview previewEngine=new FederatedPatternPreview();previewEngine.preview(proposal,catalog,workspace.compiled(),Map.of(),false);
+        long[]times=new long[3];FederatedPatternPreview.Result preview=null;long memoryBefore=used();for(int repetition=0;repetition<times.length;repetition++){long previewStart=System.nanoTime();preview=previewEngine.preview(proposal,catalog,workspace.compiled(),Map.of(),false);times[repetition]=System.nanoTime()-previewStart;}java.util.Arrays.sort(times);long previewNanos=times[1];
         assertTrue(exact.prepared());assertTrue(preview.matchedStaticSubjects().size()>0);
-        System.out.printf("policy-feedback subjects=%d rules=%d exactDraftMs=%.3f patternPreviewMs=%.3f knownMatches=%d%n",subjectCount,ruleCount,exactNanos/1_000_000d,previewNanos/1_000_000d,preview.matchedStaticSubjects().size());
+        System.out.printf(Locale.ROOT,"POLICY_PREVIEW subjects=%d rules=%d exactDraftMs=%.1f previewMedianMs=%.1f previewRangeMs=%.1f..%.1f matches=%d usages=%d heapDeltaMiB=%.1f%n",subjectCount,ruleCount,exactNanos/1_000_000d,previewNanos/1_000_000d,times[0]/1_000_000d,times[2]/1_000_000d,preview.matchedStaticSubjects().size(),preview.usageCount(),Math.max(0,used()-memoryBefore)/1048576d);
     }
 
     private static SelectorSubject subject(String value,String declaration){return new SelectorSubject(SelectorSubject.SubjectKind.STATIC_DECLARATION,"id",SelectorSubject.ValueState.KNOWN,value,declaration,"module","src/Page.java","Page#field",null,null,null,SelectorSubject.InputTrust.SOURCE_CANONICAL,null);}
     private static PolicyWorkspaceSnapshot workspace(List<SelectorPolicy.Rule> rules){if(rules.isEmpty())return PolicyWorkspaceSnapshot.create(PolicyWorkspaceSnapshot.OriginDocument.absent(PolicyWorkspaceSnapshot.Origin.TRACKED),PolicyWorkspaceSnapshot.OriginDocument.absent(PolicyWorkspaceSnapshot.Origin.LOCAL),null);byte[] bytes=rules.stream().map(SelectorPolicy.Rule::ruleId).sorted().reduce("",String::concat).getBytes(StandardCharsets.UTF_8);PolicyWorkspaceSnapshot.OriginDocument tracked=new PolicyWorkspaceSnapshot.OriginDocument(PolicyWorkspaceSnapshot.Origin.TRACKED,PolicyWorkspaceSnapshot.FileState.EXPECTED_PRESENT,PolicyWorkspaceSnapshot.rawFileDigest(bytes),PolicyWorkspaceSnapshot.semanticDigest(rules),rules);return PolicyWorkspaceSnapshot.create(tracked,PolicyWorkspaceSnapshot.OriginDocument.absent(PolicyWorkspaceSnapshot.Origin.LOCAL),null);}
+    private static long used(){Runtime runtime=Runtime.getRuntime();return runtime.totalMemory()-runtime.freeMemory();}
 }

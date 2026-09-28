@@ -97,3 +97,10 @@ The selector-tooling streaming codec uses Jackson Core only, strict duplicate de
 token/string/number/entity counts, deterministic field order and LF output, project `target/` path containment, and
 atomic sibling replacement when supported. The selector engine stays JDK-only, selector-live gains no dependency,
 and no runtime API or hot path is changed.
+
+The S12 opt-in near-bound regression populated all 100,000 observation buckets and wrote a deterministic 63,936,512
+byte history artifact under the 64 MiB ceiling. The same production pruning and serialization path is used; forced
+loss still marks retention as pruned/incomplete, and an artifact that cannot be reduced below its configured byte
+limit fails explicitly without replacing an existing destination. The diagnostic harness records Java, OS,
+processor count, maximum heap, fixture size, measured phases, bytes, and used-heap delta, and imposes no wall-clock
+CI threshold.

@@ -71,3 +71,17 @@ The static adapter analyzes resolved locator strategy/value pairs, treats dynami
 custom locators insufficient unless a trusted scalar exists, and analyzes composed annotation children separately.
 Future Audit and Lab stages can reuse the same signals, compiled policy indexes, evidence model, explanations, and
 preview operation without putting JavaParser or policy matching into runtime execution.
+
+## Bounded preview scaling
+
+Federated pattern preview visits the bounded declaration/history catalog once. It accumulates matched subject
+entries, affected declaration references, conflicts, and use-site counts during that visit; it does not rescan the
+catalog or the growing matched lists for each subject. Policy precedence, exact and structural matching, result
+ordering, conflict codes, and `STABLE`/`UNSTABLE` semantics are unchanged. Retention remains bounded by the existing
+100,000-subject catalog ceiling and the already-bounded per-subject usage samples; no source text or history runs are
+materialized by the preview.
+
+The opt-in S12 harness records Java/OS/processor/heap metadata, performs one warmup and three measured repetitions,
+and reports medians and ranges without a CI timing gate. On Java 21.0.10 / Windows 11, the 100,000-subject / 100-policy
+fixture completed with a 450.6 ms median (407.5-468.9 ms), replacing the former repeated matched-list scan. The
+measurement demonstrates the complexity correction only; it is not a machine-independent latency promise.

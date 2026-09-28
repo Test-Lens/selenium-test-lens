@@ -26,6 +26,10 @@ class SelectorHistoryPerformanceHarnessTest {
                 "target/selector-history-performance/metrics.csv")).toAbsolutePath().normalize();
         Files.createDirectories(output.getParent());
         List<String> rows=new ArrayList<>();
+        Runtime runtime=Runtime.getRuntime();
+        rows.add("# java="+System.getProperty("java.version")+",os="+System.getProperty("os.name")
+                +",processors="+runtime.availableProcessors()+",maxHeapBytes="+runtime.maxMemory()
+                +",warmups=0,repetitions=1,measuredPhase=build-query-serialize-used-heap");
         rows.add("kind,size,secondarySize,buildNanos,queryOrImportNanos,serializeOrPreviewNanos,bytes,heapDeltaBytes");
         for(int size:List.of(100,1_000,10_000,100_000))measureSimilarity(size,rows);
         for(int buckets:List.of(1_000,10_000,100_000))measureHistory(buckets,rows);

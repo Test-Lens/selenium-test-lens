@@ -123,6 +123,25 @@ references rather than raw trace events, exception messages, parameters, paths, 
 The report provides exact matched, unmatched, ambiguous, limited, regression, and baseline-red counts; it does not
 publish a compatibility percentage or claim whole-application coverage. No automatic patch is implemented.
 
+Comparison input is budgeted before manifests are retained. Each side accepts at most 25,000 manifests, preserves
+the 16 MiB per-manifest bound, and additionally caps cumulative raw manifest JSON at 128 MiB. A conservative retained
+semantic estimate, `max(8 KiB, 4 x raw bytes)` per manifest, is capped at 256 MiB per side. The estimate is a guard
+against obviously unsafe aggregate inputs, not a promise about the JVM's exact object size. Violations fail with a
+structured input-limit code before the excessive set is parsed; there is no truncation.
+
+JSON and HTML use deterministic two-pass rendering: a first pass counts encoded bytes against the 64 MiB bound and a
+second pass fills one exact-size byte array. This avoids simultaneously retaining a growable whole-report buffer and
+its copied result. A bound failure publishes neither partial JSON nor partial HTML, and an existing destination is
+left intact. The comparison model and report schema are unchanged.
+
+The S12 scale harness uses cold, single-repetition phases and records Java, OS, processor count, maximum heap, input
+size, parse/load, compare, JSON, HTML, output bytes, and a phase-sampled used-heap delta. On Java 21.0.10 / Windows 11
+with a 20-processor runtime and an approximately 8.1 GiB maximum heap, 10,000 matched tests produced 44,731,070 JSON
+bytes for `HEADLESS_MODE` and 60,921,079 bytes for `OBSERVABILITY_MODE`. The largest observed phase-sampled heap
+delta was about 523 MiB. These diagnostic figures are not CI thresholds or a true process peak/RSS guarantee. The
+25,000-per-side maximum was not exercised because the near-limit 10,000 observability report already provided the
+bounded trend without risking workstation exhaustion.
+
 ## Static source evidence
 
 The compatibility tooling also provides an explicit offline Java 17 scan. Callers supply a trusted project root,

@@ -6,6 +6,10 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Fixed
 
+- Reduced selector pattern-policy preview complexity by accumulating bounded use counts during the catalog pass,
+  without changing policy precedence, matching, conflict, or ordering semantics.
+- Reduced Compatibility Analyzer report-copy overhead with exact-size bounded JSON/HTML rendering and added explicit
+  aggregate manifest-input budgets with structured failures instead of truncation or expected out-of-memory control.
 - Corrected compatibility BUILD comparisons so an intentional source/build revision change establishes the axis
   while browser, viewport, dataset, execution, headless, observability, and configuration controls remain enforced.
 - Propagated bounded selector source-scan exhaustion into Audit, trusted source/use coverage, blast radius, and

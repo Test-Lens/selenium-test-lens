@@ -37,6 +37,22 @@ class CompatibilityReportToolingTest {
 
     @Test void expectedFastEvidenceReductionDoesNotRenderAsZeroActivity(){var r=new CompatibilityCompareEngine().compare(List.of(manifest("one",EffectiveHeadlessState.HEADLESS,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1)),List.of(manifest("one",EffectiveHeadlessState.HEADLESS,ObservabilityMode.FAST,ResultStatus.PASSED,1)),new ComparisonIntent(ComparisonIntent.Axis.OBSERVABILITY_MODE,"standard","fast"));String json=new String(new CompatibilityReportJson().write(r),StandardCharsets.UTF_8);assertTrue(json.contains("EXPECTED_FAST_EVIDENCE_REDUCTION"));assertTrue(json.contains("evidence unavailable"));assertFalse(json.contains("zero locator activity"));}
 
+    @Test void jsonAndHtmlEnforceExactByteBoundaryWithoutPublishingPartialOutput()throws Exception{
+        var value=report("boundary");byte[]json=new CompatibilityReportJson().write(value),html=new CompatibilityReportHtml().write(value);
+        assertArrayEquals(json,new CompatibilityReportJson(json.length).write(value));assertArrayEquals(html,new CompatibilityReportHtml(html.length).write(value));
+        var jsonFailure=assertThrows(CompatibilityReportJson.ReportFormatException.class,()->new CompatibilityReportJson(json.length-1).write(value));assertEquals("OUTPUT_LIMIT_EXCEEDED",jsonFailure.getMessage());
+        var htmlFailure=assertThrows(CompatibilityReportJson.ReportFormatException.class,()->new CompatibilityReportHtml(html.length-1).write(value));assertEquals("OUTPUT_LIMIT_EXCEEDED",htmlFailure.getMessage());
+        Path root=Files.createDirectory(temp.resolve("bounded")),destination=root.resolve("target/test-lens/compatibility/reports/existing.json");Files.createDirectories(destination.getParent());Files.writeString(destination,"sentinel",StandardCharsets.UTF_8);
+        CompatibilityReportJson bounded=new CompatibilityReportJson(json.length-1);assertThrows(CompatibilityReportJson.ReportFormatException.class,()->bounded.writeTo(value,root,Path.of("target/test-lens/compatibility/reports/existing.json")));assertEquals("sentinel",Files.readString(destination));
+    }
+
+    @Test void manifestLoaderEnforcesRawAndEstimatedAggregateBudgetsBeforeRetention()throws Exception{
+        CompatibilityManifestJson codec=new CompatibilityManifestJson();Path one=write(temp,"one.json",codec.write(manifest("one",EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1))),two=write(temp,"two.json",codec.write(manifest("two",EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1)));long oneBytes=Files.size(one),twoBytes=Files.size(two),exact=oneBytes+twoBytes,estimated=Math.max(8192,oneBytes*4)+Math.max(8192,twoBytes*4);
+        assertEquals(2,new CompatibilityComparisonTool(exact,estimated).load(List.of(two,one)).size());
+        var raw=assertThrows(CompatibilityComparisonTool.ManifestInputLimitException.class,()->new CompatibilityComparisonTool(exact-1,estimated).load(List.of(one,two)));assertEquals("AGGREGATE_MANIFEST_INPUT_LIMIT_EXCEEDED",raw.code());
+        var retained=assertThrows(CompatibilityComparisonTool.ManifestInputLimitException.class,()->new CompatibilityComparisonTool(exact,estimated-1).load(List.of(one,two)));assertEquals("ESTIMATED_RETAINED_INPUT_LIMIT_EXCEEDED",retained.code());
+    }
+
     private CompatibilityComparisonReport report(String logical){return new CompatibilityCompareEngine().compare(List.of(manifest(logical,EffectiveHeadlessState.HEADED,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1)),List.of(manifest(logical,EffectiveHeadlessState.HEADLESS,ObservabilityMode.DEFAULT,ResultStatus.PASSED,1)),new ComparisonIntent(ComparisonIntent.Axis.HEADLESS_MODE,logical,"headless standard"));}
     private static Path write(Path root,String name,byte[]bytes)throws Exception{Path p=root.resolve(name);Files.write(p,bytes);return p;}
 
