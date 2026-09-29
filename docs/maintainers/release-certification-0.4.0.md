@@ -1,6 +1,6 @@
 # Test Lens 0.4.0 release certification
 
-This maintainer evidence records the S12B3 platform and real-browser run made on 2026-09-29. It is a release-candidate checkpoint, not a substitute for the final S12B4 certification. A missing row is never inferred from another browser or mode.
+This maintainer evidence records the S12B3 platform and real-browser run and the completed S12B4 release-form preparation made on 2026-09-29. Every mandatory consumer row was executed independently; no result is inferred from another JDK, build tool, browser, or mode.
 
 ## Run identity
 
@@ -64,3 +64,39 @@ mvn -Pbrowser-it -pl selenium-test-lens-browser-tests -am verify -Dbrowser=firef
 ```
 
 The initial sandboxed headed invocation could not update Maven status files outside its writable root and is environment noise, not a product failure; the authorized identical command above passed.
+
+## S12B4 release-form preparation
+
+The prepared workspace is based on `0c13c1b81b2dbdb2730a8ff5d7ac11c833e36c70`. It resolves all 16 normal reactor projects and all 17 projects with `browser-it` to `0.4.0`. No runtime or browser source changed from the S12B3-certified commit. The final `chore(release): prepare 0.4.0` commit follows review of this accumulated release-form change set.
+
+| Gate | Result |
+| --- | --- |
+| `mvn clean verify -Dheaded=false` | PASS, 16-project release-form reactor |
+| Central profile, deploy disabled and GPG skipped | PASS, 16 projects; source and Javadoc JAR generation validated |
+| Publication staging | PASS, exactly 8 publishable coordinates and 9 excluded projects |
+| Java 17 Maven clean-room consumer | PASS with Maven 3.9.13 on Microsoft OpenJDK 17.0.20.1 against locally staged `0.4.0` artifacts |
+| Java 17 Gradle clean-room consumer | PASS with Gradle 8.10.2 on Microsoft OpenJDK 17.0.20.1 against locally staged `0.4.0` artifacts |
+| Java 21 Maven clean-room consumer | PASS against locally staged `0.4.0` artifacts |
+| Java 21 Gradle clean-room consumer | PASS with Gradle 8.10.2 on Microsoft OpenJDK 21.0.10 against locally staged `0.4.0` artifacts |
+| Public API | PASS: 283 types, 2183 callables; baseline 276/2132; delta 7/51; `@since 0.4.0` PASS |
+| Release-form Chrome smoke | PASS: Chrome 152.0.7977.83 / ChromeDriver 152.0.7977.82, headless compatibility capture 1/1 |
+| Release-form Firefox smoke | PASS: Firefox 156.0.1 / GeckoDriver 0.37.1, headless compatibility capture 1/1 |
+| Versioned documentation simulation | PASS: `0.4.0`, `latest -> 0.4.0`, historical versions retained, development source kept distinct |
+
+The clean-room Maven consumer used only the local staged repository for Test Lens `0.4.0`; third-party dependencies came from the configured dependency repositories. No Test Lens snapshot or workspace reactor classpath was accepted as a substitute. The release-form browser smokes supplement, rather than rewrite, the full S12B3 evidence above.
+
+The Central profile was exercised with `-Dgpg.skip=true`; signing was not attempted and no signed-artifact claim is made. The project does not claim byte-for-byte reproducible archives for 0.4.0 because no `project.build.outputTimestamp` contract is configured.
+
+### Documented limitations
+
+- Direct `.cmd`, `.bat`, and `.ps1` migration verification plans safe-stop; fixed Java wrapper-main and trusted native executables are the supported alternatives.
+- Compatibility and selector tooling enforce documented aggregate/input/output bounds; unlimited scale is not claimed.
+- Byte-for-byte reproducible archives are not claimed for 0.4.0.
+
+### Optional NOT_RUN
+
+- BrowserStack and local Grid remain optional environment/provider validations.
+- Windows symlink creation was skipped for missing process privilege.
+- The atomic-move fallback is deterministically injected in tests but was not naturally reproduced on the certification NTFS volume.
+- Archive signing was not run during local preparation; it remains an explicitly authorized release operation.
+- Workflow YAML was not re-linted locally because neither `actionlint` nor Python/PyYAML is installed; workflows were unchanged from S12B3 and their repository contract checks remained in the docs simulation.

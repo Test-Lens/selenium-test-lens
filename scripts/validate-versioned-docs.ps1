@@ -19,7 +19,7 @@ if (-not $latestStableMatch.Success) {
     throw "Cannot derive the latest stable documentation version from the CHANGELOG Unreleased comparison link."
 }
 $latestStableVersion = $latestStableMatch.Groups["version"].Value
-$developmentTitle = if ($sourceIsSnapshot) { "$developmentVersion / coming soon" } else { $developmentVersion }
+$developmentTitle = if ($sourceIsSnapshot) { "$developmentVersion / coming soon" } else { "$developmentVersion source" }
 $work = Join-Path ([IO.Path]::GetTempPath()) ("test-lens-versioned-docs-" + [guid]::NewGuid())
 $ok = $false
 $runtimeManifest = Join-Path $root "docs-hooks/hud-demo-runtime-assets.txt"

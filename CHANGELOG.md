@@ -4,6 +4,8 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-29
+
 ### Fixed
 
 - Added a fully local Maven wrapper-main execution fixture and Windows source-transaction coverage for DOS read-only,
@@ -249,7 +251,8 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 - Central Publisher Portal publication remains a manual, reviewed operation.
 - Legacy browser runtime aliases are still maintained for compatibility.
 
-[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.1.0...v0.2.0

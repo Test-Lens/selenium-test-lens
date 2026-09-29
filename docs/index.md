@@ -17,13 +17,14 @@ hide:
 Test Lens shows actions, waits, assertions, retries, and network activity while a test runs. After finalization, the same structured session can become an HTML/JSON report, screenshots, a failure bundle, or an explicitly uploaded report package.
 
 [See the live diagnostics](#live-hud-and-element-highlights){ .md-button .md-button--primary }
-[What's new in 0.3.1](whats-new-0.3.1.md){ .md-button }
+[What's new in 0.4.0](whats-new-0.4.0.md){ .md-button }
 [Explore the capabilities](#signature-capabilities){ .md-button }
 [Get started](#quick-start){ .md-button }
-[Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1){ .md-button }
+[Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens){ .md-button }
 
 | Documentation | Status | Library availability |
 |---|---|---|
+| [0.4.0 release notes](whats-new-0.4.0.md) | Prepared release; publication pending | Release certification complete |
 | [0.3.1 stable](https://test-lens.github.io/selenium-test-lens/0.3.1/) | Latest published release | Maven Central |
 | [0.3.0 historical](https://test-lens.github.io/selenium-test-lens/0.3.0/) | Previous release | Maven Central |
 | [0.2.0 historical](https://test-lens.github.io/selenium-test-lens/0.2.0/) | Historical release | Maven Central |
@@ -489,7 +490,7 @@ The latest stable release requires Java 17 or newer. Selenium remains an explici
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.3.1</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 

@@ -43,7 +43,7 @@ try {
     Assert-Throws { & (Join-Path $PSScriptRoot "validate-release-packaging.ps1") -RepositoryRoot $fixtureRoot -MatrixOnly } "internal module deploy enabled"
     [IO.File]::WriteAllText($internalPom, $originalInternal)
 
-    [IO.File]::WriteAllText($corePom, $originalCore.Replace('0.4.0-SNAPSHOT', '9.9.9-SNAPSHOT'))
+    [IO.File]::WriteAllText($corePom, $originalCore.Replace('<version>0.4.0</version>', '<version>9.9.9</version>'))
     Assert-Throws { & (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot } "wrong module version"
     [IO.File]::WriteAllText($corePom, $originalCore)
 
@@ -60,7 +60,7 @@ try {
     Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.4.0" -WhatIf } "non-patch target"
     foreach ($pomPath in @(git -C $fixtureRoot ls-files -- "pom.xml" ":(glob)**/pom.xml")) {
         $path = Join-Path $fixtureRoot $pomPath
-        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.4.0-SNAPSHOT", "0.4.1-SNAPSHOT"))
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.4.0", "0.4.1-SNAPSHOT"))
     }
     & git -C $fixtureRoot add -- pom.xml */pom.xml
     & git -C $fixtureRoot -c user.name=release-fixture -c user.email=release-fixture.invalid commit -q -m patch-snapshot

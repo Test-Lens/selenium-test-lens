@@ -131,7 +131,7 @@ React/SPA resilience helpers are separate from the main runtime. Add the module 
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-react</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 

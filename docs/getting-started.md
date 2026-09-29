@@ -10,7 +10,7 @@ This guide shows the shortest path from the Maven dependency to a working Lens s
 - Maven 3.x or Gradle
 - A Selenium `WebDriver` created by your test project
 
-The latest Test Lens for Selenium release is `0.3.0`, verified with Selenium 4.39.0.
+The current Test Lens for Selenium release is `0.4.0`, verified with Selenium 4.39.0.
 
 ## Installation
 
@@ -20,7 +20,7 @@ Add the main Test Lens for Selenium runtime to your Maven project:
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
@@ -30,7 +30,7 @@ The same stable release is available to Gradle consumers.
 
     ```kotlin
     dependencies {
-        testImplementation("io.github.test-lens:selenium-test-lens:0.3.0")
+        testImplementation("io.github.test-lens:selenium-test-lens:0.4.0")
     }
     ```
 
@@ -38,7 +38,7 @@ The same stable release is available to Gradle consumers.
 
     ```groovy
     dependencies {
-        testImplementation 'io.github.test-lens:selenium-test-lens:0.3.0'
+        testImplementation 'io.github.test-lens:selenium-test-lens:0.4.0'
     }
     ```
 
@@ -62,7 +62,7 @@ Add the optional JUnit 5 integration as a test dependency. It brings the lifecyc
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-junit5</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
     <scope>test</scope>
 </dependency>
 ```

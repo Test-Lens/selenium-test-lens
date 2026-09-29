@@ -7,11 +7,11 @@ targeted to Java 17.
 
 ## Clean-room release boundary
 
-The source reactor is currently `0.4.0-SNAPSHOT`. Compatibility validation
-copies tracked source to a temporary directory, verifies all ten project
-POMs at the derived release `0.4.0` version, builds release artifacts, and stages
-the seven publishable Maven coordinates in an isolated local repository. It
-never edits the source POMs.
+The source reactor is currently the exact `0.4.0` release form. Compatibility
+validation copies tracked source to a temporary directory, verifies all 17
+tracked project POMs at `0.4.0`, builds release artifacts, and stages the eight
+publishable Maven coordinates (including the parent POM) in an isolated local
+repository. It never edits the source POMs.
 
 The Maven and Gradle smoke consumers both resolve Test Lens from that staging
 repository. The Gradle build uses `exclusiveContent` for
@@ -47,7 +47,7 @@ repository:
 
 ```powershell
 ./consumer-tests/gradle/gradlew test verifyResolvedGraph `
-  "-PtestLensVersion=0.3.0" `
+  "-PtestLensVersion=0.4.0" `
   "-PtestLensRepository=/absolute/path/to/isolated-repository" `
   --no-daemon --stacktrace
 ```
@@ -58,21 +58,21 @@ published Test Lens JARs.
 
 ## Published-user coordinates
 
-The current release version is `0.3.0`:
+The current release version is `0.4.0`:
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.test-lens:selenium-test-lens:0.3.0")
-    testImplementation("io.github.test-lens:selenium-test-lens-react:0.3.0")
+    testImplementation("io.github.test-lens:selenium-test-lens:0.4.0")
+    testImplementation("io.github.test-lens:selenium-test-lens-react:0.4.0")
 }
 ```
 
 ```groovy
 dependencies {
-    testImplementation 'io.github.test-lens:selenium-test-lens:0.3.0'
-    testImplementation 'io.github.test-lens:selenium-test-lens-react:0.3.0'
+    testImplementation 'io.github.test-lens:selenium-test-lens:0.4.0'
+    testImplementation 'io.github.test-lens:selenium-test-lens-react:0.4.0'
 }
 ```
 
 Dedicated runner adapters are also tested by the isolated clean-room gate and
-published as optional `0.3.0` coordinates.
+published as optional `0.4.0` coordinates.

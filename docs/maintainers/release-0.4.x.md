@@ -70,6 +70,8 @@ Also run all documentation gates described in [Documentation versioning](documen
 
 The docs workflow accepts a release tag; it does not require the tag to precede Central staging. Keeping the tag after successful manual Central publication avoids publishing an immutable release marker for artifacts that were never made available.
 
+Test Lens 0.4.0 does not claim byte-for-byte reproducible archives. The release does not configure `project.build.outputTimestamp`; retain the exact release commit, locally staged artifact inventory, and Central artifact identity as the release evidence instead of claiming independently rebuilt archives are identical.
+
 ## Failure and resume rules
 
 - If Central staging fails before the tag, fix and retry or discard that failed staging deployment. Do not create a release tag.

@@ -54,7 +54,7 @@ try {
         $title = if ($Version.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)) {
             "$Version / coming soon"
         } else {
-            $Version
+            "$Version source"
         }
         [string[]]$deployArguments = @(
             "deploy", "dev",

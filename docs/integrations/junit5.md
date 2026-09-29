@@ -12,7 +12,7 @@ Add the extension in test scope and keep Selenium explicit at the version manage
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-junit5</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
     <scope>test</scope>
 </dependency>
 
@@ -30,7 +30,7 @@ Gradle users can use Kotlin DSL:
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.test-lens:selenium-test-lens-junit5:0.3.0")
+    testImplementation("io.github.test-lens:selenium-test-lens-junit5:0.4.0")
 }
 ```
 
@@ -38,7 +38,7 @@ or Groovy DSL:
 
 ```groovy
 dependencies {
-    testImplementation 'io.github.test-lens:selenium-test-lens-junit5:0.3.0'
+    testImplementation 'io.github.test-lens:selenium-test-lens-junit5:0.4.0'
 }
 ```
 

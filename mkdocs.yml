@@ -58,6 +58,7 @@ nav:
   - Home: index.md
   - Getting Started:
       - Installation & first test: getting-started.md
+      - What's new in 0.4.0: whats-new-0.4.0.md
       - What's new in 0.3.1: whats-new-0.3.1.md
       - What's new in 0.3.0: whats-new-0.3.0.md
       - Migrating from 0.2.x: migrating-0.2-to-0.3.md
@@ -169,9 +170,9 @@ extra:
   version:
     provider: mike
     default: latest
-    current: 0.4.0-SNAPSHOT
+    current: 0.4.0
     is_dev: true
-    is_snapshot: true
+    is_snapshot: false
     stable_url: https://test-lens.github.io/selenium-test-lens/latest/
   analytics:
     provider: google

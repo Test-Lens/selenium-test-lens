@@ -153,7 +153,7 @@ mvn -DskipTests install
 mvn dependency:tree -Dincludes=io.github.test-lens
 ```
 
-Configure the consumer for `0.4.0-SNAPSHOT`, confirm every Test Lens artifact resolves to that version, and run one remote BiDi test using the checks above.
+Configure the consumer for `0.4.0`, confirm every Test Lens artifact resolves to that version, and run one remote BiDi test using the checks above.
 
 ## Assertions and waits
 

@@ -10,7 +10,7 @@ Add the optional artifact alongside your own Allure runner adapter. Allure is no
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-allure</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
     <scope>test</scope>
 </dependency>
 <dependency>
