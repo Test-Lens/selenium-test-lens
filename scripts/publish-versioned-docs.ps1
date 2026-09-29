@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("dev", "release", "bootstrap-0.1.0")]
+    [ValidateSet("dev", "release", "redeploy-release", "bootstrap-0.1.0")]
     [string]$Operation,
     [string]$Version,
     [string]$Confirmation,
@@ -75,7 +75,17 @@ try {
         if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw "Release version must be MAJOR.MINOR.PATCH." }
         $config = "mkdocs-release.yml"
     }
-    if ($listed -match "(?m)^\s*$([regex]::Escape($Version))(\s|$)") {
+    $versionExists = $listed -match "(?m)^\s*$([regex]::Escape($Version))(\s|$)"
+    if ($Operation -eq "redeploy-release") {
+        # Administrative repair exception: this may replace documentation for an existing release,
+        # but must never be used to change the semantics of an already released API.
+        if (-not $versionExists) {
+            throw "Documentation version '$Version' does not exist on $Branch; redeploy-release only repairs an existing version."
+        }
+        if ($Confirmation -ne "redeploy-docs-$Version") {
+            throw "Exact redeploy confirmation 'redeploy-docs-$Version' is required."
+        }
+    } elseif ($versionExists) {
         throw "Immutable documentation version '$Version' already exists on $Branch."
     }
     if ($Operation -eq "bootstrap-0.1.0") {
@@ -92,7 +102,12 @@ try {
         "--title=$Version"
     )
     if (-not $NoPush) { $deployArguments += "--push" }
-    Invoke-Mike -Arguments $deployArguments -FailureMessage "mike failed to publish immutable version '$Version'"
+    $deployFailure = if ($Operation -eq "redeploy-release") {
+        "mike failed to repair existing documentation version '$Version'"
+    } else {
+        "mike failed to publish immutable version '$Version'"
+    }
+    Invoke-Mike -Arguments $deployArguments -FailureMessage $deployFailure
 
     [string[]]$defaultArguments = @("set-default", "latest", "--branch", $Branch)
     if (-not $NoPush) { $defaultArguments += "--push" }

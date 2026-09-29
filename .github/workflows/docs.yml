@@ -12,9 +12,17 @@ on:
         required: true
         type: choice
         default: validate-only
-        options: [validate-only, publish-dev, bootstrap-0.1.0, redeploy-pages]
+        options: [validate-only, publish-dev, bootstrap-0.1.0, redeploy-release, redeploy-pages]
+      version:
+        description: Existing MAJOR.MINOR.PATCH to repair (redeploy-release only)
+        required: false
+        type: string
+      source_ref:
+        description: Exact release source ref; redeploy-pages does not rebuild docs
+        required: false
+        type: string
       confirmation:
-        description: Exact confirmation required for bootstrap
+        description: Exact confirmation required for bootstrap or release-docs repair
         required: false
         type: string
 
@@ -28,11 +36,35 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     steps:
+      - name: Validate redeploy request inputs
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'redeploy-release'
+        shell: pwsh
+        env:
+          DOCS_REDEPLOY_VERSION: ${{ github.event.inputs.version }}
+          DOCS_REDEPLOY_SOURCE_REF: ${{ github.event.inputs.source_ref }}
+          DOCS_REDEPLOY_CONFIRMATION: ${{ github.event.inputs.confirmation }}
+        run: |
+          if ($env:DOCS_REDEPLOY_VERSION -notmatch '^\d+\.\d+\.\d+$') { throw 'redeploy-release requires version MAJOR.MINOR.PATCH.' }
+          if ([string]::IsNullOrWhiteSpace($env:DOCS_REDEPLOY_SOURCE_REF)) { throw 'redeploy-release requires source_ref.' }
+          if ($env:DOCS_REDEPLOY_SOURCE_REF -ne "release/$($env:DOCS_REDEPLOY_VERSION)") { throw 'source_ref must be release/<version>.' }
+          if ($env:DOCS_REDEPLOY_CONFIRMATION -ne "redeploy-docs-$($env:DOCS_REDEPLOY_VERSION)") { throw 'Exact redeploy confirmation is required.' }
       - name: Check out validation source
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.operation != 'validate-only' && 'main' || github.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'redeploy-release' && github.event.inputs.source_ref || github.event_name == 'workflow_dispatch' && github.event.inputs.operation != 'validate-only' && 'main' || github.ref }}
+      - name: Validate redeploy source version
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'redeploy-release'
+        shell: pwsh
+        env:
+          DOCS_REDEPLOY_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          [xml]$pom = Get-Content pom.xml
+          $ns = [Xml.XmlNamespaceManager]::new($pom.NameTable)
+          $ns.AddNamespace('m','http://maven.apache.org/POM/4.0.0')
+          $sourceVersion = $pom.SelectSingleNode('/m:project/m:version',$ns).InnerText.Trim()
+          if ($sourceVersion -ne $env:DOCS_REDEPLOY_VERSION) { throw "Root POM version '$sourceVersion' does not match requested redeploy '$($env:DOCS_REDEPLOY_VERSION)'." }
+          ./scripts/check-reactor-versions.ps1 -ExpectedVersion $env:DOCS_REDEPLOY_VERSION
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -72,7 +104,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'redeploy-release' && github.event.inputs.source_ref || github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -102,6 +134,24 @@ jobs:
           git rev-parse --verify refs/tags/v0.1.0
           ./scripts/check-doc-version-boundary.ps1 -ReleaseTag v0.1.0
           ./scripts/publish-versioned-docs.ps1 -Operation bootstrap-0.1.0 -Confirmation '${{ github.event.inputs.confirmation }}'
+      - name: Repair existing release documentation
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'redeploy-release'
+        shell: pwsh
+        env:
+          DOCS_REDEPLOY_VERSION: ${{ github.event.inputs.version }}
+          DOCS_REDEPLOY_SOURCE_REF: ${{ github.event.inputs.source_ref }}
+          DOCS_REDEPLOY_CONFIRMATION: ${{ github.event.inputs.confirmation }}
+        run: |
+          # Explicit administrative exception to immutable docs; never use it to change released API semantics.
+          [xml]$pom = Get-Content pom.xml
+          $ns = [Xml.XmlNamespaceManager]::new($pom.NameTable)
+          $ns.AddNamespace('m','http://maven.apache.org/POM/4.0.0')
+          $sourceVersion = $pom.SelectSingleNode('/m:project/m:version',$ns).InnerText.Trim()
+          if ($sourceVersion -ne $env:DOCS_REDEPLOY_VERSION) { throw "Root POM version '$sourceVersion' does not match requested redeploy '$($env:DOCS_REDEPLOY_VERSION)'." }
+          ./scripts/check-reactor-versions.ps1 -ExpectedVersion $env:DOCS_REDEPLOY_VERSION
+          $env:DOCS_RELEASE_VERSION = $env:DOCS_REDEPLOY_VERSION
+          $env:DOCS_RELEASE_EDIT_URI = "edit/$($env:DOCS_REDEPLOY_SOURCE_REF)/docs/"
+          ./scripts/publish-versioned-docs.ps1 -Operation redeploy-release -Version $env:DOCS_REDEPLOY_VERSION -Confirmation $env:DOCS_REDEPLOY_CONFIRMATION
       - name: Publish immutable tagged release
         if: startsWith(github.ref, 'refs/tags/v')
         shell: pwsh

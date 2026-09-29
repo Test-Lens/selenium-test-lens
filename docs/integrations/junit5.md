@@ -12,7 +12,7 @@ Add the extension in test scope and keep Selenium explicit at the version manage
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-junit5</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
     <scope>test</scope>
 </dependency>
 
@@ -26,11 +26,11 @@ Add the extension in test scope and keep Selenium explicit at the version manage
 
 The extension artifact depends on `selenium-test-lens` and `junit-jupiter-api`. Its Selenium dependency is optional. JUnit engine, parameterized-test support, and Platform TestKit are not runtime dependencies of the artifact.
 
-For a local build of the current development source, Gradle users can use Kotlin DSL:
+Gradle users can use Kotlin DSL:
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.test-lens:selenium-test-lens-junit5:0.2.0")
+    testImplementation("io.github.test-lens:selenium-test-lens-junit5:0.3.0")
 }
 ```
 
@@ -38,7 +38,7 @@ or Groovy DSL:
 
 ```groovy
 dependencies {
-    testImplementation 'io.github.test-lens:selenium-test-lens-junit5:0.2.0'
+    testImplementation 'io.github.test-lens:selenium-test-lens-junit5:0.3.0'
 }
 ```
 

@@ -7,7 +7,7 @@ title: HUD Studio
 HUD Studio configures the same browser-side renderer that Test Lens injects at runtime. Drag and resize the HUD in the preview or use the bounded product controls; both paths update one `HudOptions` model and the generated Java. The preview supplies synthetic events and never contacts an application or external service.
 
 !!! info "Development API"
-    Configurable HUD presets and HUD Studio are part of `0.3.0-SNAPSHOT`. The stable `0.2.0` renderer does not accept `HudOptions`.
+    Configurable HUD presets and HUD Studio are part of `0.3.0`. The `0.2.0` renderer does not accept `HudOptions`.
 
 <style>
 .tl-hud-studio-frame { display:block; width:100%; max-width:100%; height:900px; border:1px solid var(--md-default-fg-color--lightest); border-radius:.6rem; background:#e7edf4; }

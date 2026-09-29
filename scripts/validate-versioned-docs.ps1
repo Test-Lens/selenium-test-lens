@@ -10,18 +10,27 @@ if ($developmentVersion -notmatch '^\d+\.\d+\.\d+(-SNAPSHOT)?$') {
     throw "Versioned documentation simulation requires a semantic release or snapshot source version."
 }
 $sourceIsSnapshot = $developmentVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)
-$futureReleaseVersion = if ($sourceIsSnapshot) {
-    $developmentVersion.Substring(0, $developmentVersion.Length - "-SNAPSHOT".Length)
-} else {
-    $developmentVersion
+$changelog = [IO.File]::ReadAllText((Join-Path $root "CHANGELOG.md"))
+$latestStableMatch = [regex]::Match(
+    $changelog,
+    '(?m)^\[Unreleased\]:\s+https://github\.com/Test-Lens/selenium-test-lens/compare/v(?<version>\d+\.\d+\.\d+)\.\.\.HEAD\s*$'
+)
+if (-not $latestStableMatch.Success) {
+    throw "Cannot derive the latest stable documentation version from the CHANGELOG Unreleased comparison link."
 }
+$latestStableVersion = $latestStableMatch.Groups["version"].Value
 $developmentTitle = if ($sourceIsSnapshot) { "$developmentVersion / coming soon" } else { $developmentVersion }
 $work = Join-Path ([IO.Path]::GetTempPath()) ("test-lens-versioned-docs-" + [guid]::NewGuid())
 $ok = $false
 $runtimeManifest = Join-Path $root "docs-hooks/hud-demo-runtime-assets.txt"
+$faviconSource = Join-Path $root "docs/assets/images/favicon.png"
 if (-not (Test-Path -LiteralPath $runtimeManifest -PathType Leaf)) {
     throw "HUD demo runtime asset manifest is missing: $runtimeManifest"
 }
+if (-not (Test-Path -LiteralPath $faviconSource -PathType Leaf)) {
+    throw "Documentation favicon is missing: $faviconSource"
+}
+$faviconHash = (Get-FileHash $faviconSource -Algorithm SHA256).Hash
 $runtimeFiles = @(Get-Content -LiteralPath $runtimeManifest | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith("#") })
 if ($runtimeFiles.Count -eq 0 -or @($runtimeFiles | Sort-Object -Unique).Count -ne $runtimeFiles.Count) {
     throw "HUD demo runtime asset manifest must be non-empty and contain unique paths."
@@ -40,6 +49,16 @@ function TreeHash([string]$Path) {
     $bytes = [Text.Encoding]::UTF8.GetBytes(($items -join "`n"))
     $sha = [Security.Cryptography.SHA256]::Create()
     return ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace("-", "")
+}
+function Assert-Fails([scriptblock]$Action, [string]$ExpectedMessage) {
+    $failed = $false
+    try { & $Action | Out-Null } catch {
+        $failed = $true
+        if (-not $_.Exception.Message.Contains($ExpectedMessage)) {
+            throw "Expected failure containing '$ExpectedMessage', got: $($_.Exception.Message)"
+        }
+    }
+    if (-not $failed) { throw "Expected operation to fail: $ExpectedMessage" }
 }
 function Test-IsCompatibilityRedirectPage([string]$RelativePath) {
     $normalizedRelativePath = $RelativePath.Replace('\','/')
@@ -122,8 +141,21 @@ try {
             throw "Current typography asset is absent from the shared runtime manifest: $requiredRuntimeAsset"
         }
     }
-    foreach ($file in @("mkdocs.yml", "mkdocs-0.1.0.yml", "mkdocs-release.yml", "requirements-docs.txt", "README.md")) {
+    foreach ($file in @("mkdocs.yml", "mkdocs-0.1.0.yml", "mkdocs-release.yml", "requirements-docs.txt", "README.md", "CHANGELOG.md")) {
         Copy-Item -LiteralPath (Join-Path $root $file) -Destination $repo
+    }
+    $workflow = [IO.File]::ReadAllText((Join-Path $root ".github/workflows/docs.yml"))
+    foreach ($requiredWorkflowContract in @(
+        "bootstrap-0.1.0, redeploy-release, redeploy-pages",
+        "github.event.inputs.operation == 'redeploy-release' && github.event.inputs.source_ref",
+        "github.event.inputs.operation != 'validate-only' && 'main'",
+        "./scripts/publish-versioned-docs.ps1 -Operation redeploy-release",
+        "edit/`$(`$env:DOCS_REDEPLOY_SOURCE_REF)/docs/",
+        "redeploy-pages does not rebuild docs"
+    )) {
+        if (-not $workflow.Contains($requiredWorkflowContract)) {
+            throw "Redeploy workflow contract missing: $requiredWorkflowContract"
+        }
     }
     Push-Location $repo
     try {
@@ -151,6 +183,9 @@ try {
             New-Item -ItemType Directory -Path (Split-Path -Parent $redirectSource) -Force | Out-Null
             [IO.File]::WriteAllBytes($redirectSource, $developmentRedirectSources[$relativePath])
         }
+        & git add docs
+        & git commit -q -m latest-stable-source
+        & git tag "v$latestStableVersion"
         [IO.File]::AppendAllText(
             $repoHomepage,
             "`n<!-- validation-only development source -->`n",
@@ -195,6 +230,15 @@ try {
         } finally {
             & git worktree remove --force $releaseWorktree
         }
+        $env:DOCS_RELEASE_VERSION = $latestStableVersion
+        $env:DOCS_RELEASE_EDIT_URI = "edit/v$latestStableVersion/docs/"
+        $latestStableWorktree = Join-Path $work "latest-stable-$latestStableVersion"
+        & git worktree add --detach $latestStableWorktree "v$latestStableVersion"
+        try {
+            & ./scripts/publish-versioned-docs.ps1 -Operation release -Version $latestStableVersion -SourceRoot $latestStableWorktree
+        } finally {
+            & git worktree remove --force $latestStableWorktree
+        }
         & ./scripts/publish-versioned-docs.ps1 -Operation dev -Version $developmentVersion
         $stage2 = Join-Path $work "site-two"
         New-Item -ItemType Directory -Path $stage2 | Out-Null
@@ -206,21 +250,65 @@ try {
         try { & ./scripts/publish-versioned-docs.ps1 -Operation bootstrap-0.1.0 -Confirmation publish-immutable-0.1.0 -NoPush } catch { $duplicateFailed = $true }
         if (-not $duplicateFailed) { throw "Duplicate 0.1.0 publication was not rejected." }
 
-        $env:DOCS_RELEASE_VERSION = $futureReleaseVersion
-        $env:DOCS_RELEASE_EDIT_URI = "edit/v$futureReleaseVersion/docs/"
-        & ./scripts/publish-versioned-docs.ps1 -Operation release -Version $futureReleaseVersion
-        $stage3 = Join-Path $work "site-three"
-        New-Item -ItemType Directory -Path $stage3 | Out-Null
-        & git archive gh-pages -o (Join-Path $work "pages-three.tar")
-        & tar -xf (Join-Path $work "pages-three.tar") -C $stage3
+        Assert-Fails {
+            & ./scripts/publish-versioned-docs.ps1 -Operation release -Version 0.2.0 -NoPush
+        } "Immutable documentation version '0.2.0' already exists"
+        Assert-Fails {
+            & ./scripts/publish-versioned-docs.ps1 -Operation redeploy-release -Version 9.9.9 -Confirmation redeploy-docs-9.9.9 -NoPush
+        } "Documentation version '9.9.9' does not exist"
+        Assert-Fails {
+            & ./scripts/publish-versioned-docs.ps1 -Operation redeploy-release -Version 0.2.0 -NoPush
+        } "Exact redeploy confirmation 'redeploy-docs-0.2.0' is required"
+        Assert-Fails {
+            & ./scripts/publish-versioned-docs.ps1 -Operation redeploy-release -Version 0.2.0 -Confirmation wrong -NoPush
+        } "Exact redeploy confirmation 'redeploy-docs-0.2.0' is required"
+
+        $repairMarker = "validation-only repaired release documentation"
+        [IO.File]::AppendAllText($repoHomepage, "`n<!-- $repairMarker -->`n", [Text.UTF8Encoding]::new($false))
+        $env:DOCS_RELEASE_VERSION = "0.2.0"
+        $env:DOCS_RELEASE_EDIT_URI = "edit/release/0.2.0/docs/"
+        $redeployOutput = & ./scripts/publish-versioned-docs.ps1 -Operation redeploy-release -Version 0.2.0 `
+            -Confirmation redeploy-docs-0.2.0 -NoPush 6>&1
+        $redeployText = $redeployOutput | Out-String
+        foreach ($requiredArgument in @(
+            "mike arguments: deploy 0.2.0 latest",
+            "--update-aliases",
+            "mike arguments: set-default latest --branch gh-pages"
+        )) {
+            if (-not $redeployText.Contains($requiredArgument)) {
+                throw "Redeploy mike arguments missing: $requiredArgument"
+            }
+        }
+        $redeployStage = Join-Path $work "site-redeploy"
+        New-Item -ItemType Directory -Path $redeployStage | Out-Null
+        & git archive gh-pages -o (Join-Path $work "pages-redeploy.tar")
+        & tar -xf (Join-Path $work "pages-redeploy.tar") -C $redeployStage
+        if (-not [IO.File]::ReadAllText((Join-Path $redeployStage "0.2.0/index.html")).Contains($repairMarker)) {
+            throw "redeploy-release did not replace the existing 0.2.0 documentation."
+        }
+        if ((TreeHash (Join-Path $redeployStage "0.1.0")) -ne $stableHash) {
+            throw "redeploy-release changed historical 0.1.0 documentation."
+        }
+        $redeployedVersions = Get-Content (Join-Path $redeployStage "versions.json") -Raw | ConvertFrom-Json
+        $redeployedRelease = $redeployedVersions | Where-Object version -eq "0.2.0"
+        if ($null -eq $redeployedRelease -or $redeployedRelease.aliases -notcontains "latest") {
+            throw "redeploy-release did not retain latest on repaired 0.2.0."
+        }
+        $redeployedRoot = [IO.File]::ReadAllText((Join-Path $redeployStage "index.html"))
+        if (-not $redeployedRoot.Contains('url=latest/')) { throw "redeploy-release did not set root default to latest." }
+        if ((TreeHash (Join-Path $redeployStage "latest")) -ne (TreeHash (Join-Path $redeployStage "0.2.0"))) {
+            throw "redeploy-release latest alias differs from repaired 0.2.0."
+        }
 
         $requiredVersionedOutputs = @(
             "0.1.0/index.html", "0.1.0/search/search_index.json",
             "0.2.0/index.html", "0.2.0/search/search_index.json",
-            "dev/index.html", "dev/search/search_index.json",
+            "$latestStableVersion/index.html", "$latestStableVersion/search/search_index.json",
+            "dev/index.html", "dev/search/search_index.json", "dev/assets/images/favicon.png",
+            "$latestStableVersion/assets/images/favicon.png", "latest/assets/images/favicon.png",
             "latest/index.html", "index.html", "versions.json"
         )
-        foreach ($versionDirectory in @("0.2.0", "dev", "latest")) {
+        foreach ($versionDirectory in @("0.2.0", $latestStableVersion, "dev", "latest")) {
             foreach ($demoFile in @("index.html", "demo.css", "demo.js")) {
                 $requiredVersionedOutputs += "$versionDirectory/demo/hud/$demoFile"
             }
@@ -230,14 +318,28 @@ try {
         }
         foreach ($studioFile in @("index.html", "studio.css", "studio.js", "preview.html", "preview.css", "preview.js")) {
             $requiredVersionedOutputs += "dev/demo/hud-studio/$studioFile"
+            $requiredVersionedOutputs += "$latestStableVersion/demo/hud-studio/$studioFile"
         }
         foreach ($runtimeFile in $runtimeFiles) {
             $requiredVersionedOutputs += "dev/demo/hud-studio/runtime/$runtimeFile"
+            $requiredVersionedOutputs += "$latestStableVersion/demo/hud-studio/runtime/$runtimeFile"
         }
         foreach ($required in $requiredVersionedOutputs) {
             if (-not (Test-Path (Join-Path $stage2 $required))) { throw "Missing versioned output: $required" }
         }
-        foreach ($versionDirectory in @("0.1.0", "0.2.0", "dev")) {
+        foreach ($faviconPath in @(
+            "dev/assets/images/favicon.png",
+            "$latestStableVersion/assets/images/favicon.png",
+            "latest/assets/images/favicon.png"
+        )) {
+            if (-not (Test-Path -LiteralPath (Join-Path $stage2 $faviconPath) -PathType Leaf)) {
+                throw "Versioned documentation is missing the Test Lens favicon: $faviconPath"
+            }
+            if ((Get-FileHash (Join-Path $stage2 $faviconPath) -Algorithm SHA256).Hash -ne $faviconHash) {
+                throw "Versioned documentation favicon differs from the canonical derived asset: $faviconPath"
+            }
+        }
+        foreach ($versionDirectory in @("0.1.0", "0.2.0", $latestStableVersion, "dev")) {
             $assets = Join-Path $stage2 "$versionDirectory/assets"
             if (-not (Get-ChildItem $assets -Filter *.css -File -Recurse)) { throw "No CSS assets published for $versionDirectory." }
             if (-not (Get-ChildItem $assets -Filter *.js -File -Recurse)) { throw "No JavaScript assets published for $versionDirectory." }
@@ -246,6 +348,7 @@ try {
         $activeCompatibilityRedirects = @($compatibilityRedirects.Keys | Where-Object { Test-IsCompatibilityRedirectPage $_ })
         foreach ($relativePath in $activeCompatibilityRedirects) {
             Assert-CompatibilityRedirectPage $stage2 "dev" $relativePath $compatibilityRedirects[$relativePath].Target
+            Assert-CompatibilityRedirectPage $stage2 $latestStableVersion $relativePath $compatibilityRedirects[$relativePath].Target
         }
         $devRoot = Join-Path $stage2 "dev"
         foreach ($html in Get-ChildItem $devRoot -Filter *.html -File -Recurse) {
@@ -258,7 +361,7 @@ try {
         }
         $devHome = [IO.File]::ReadAllText((Join-Path $stage2 "dev/index.html"))
         if (-not $devHome.Contains("edit/main/docs/index.md")) { throw "dev homepage edit link does not target main." }
-        foreach ($versionDirectory in @("dev", "0.2.0", "latest")) {
+        foreach ($versionDirectory in @("dev", "0.2.0", $latestStableVersion, "latest")) {
             $versionHome = [IO.File]::ReadAllText((Join-Path $stage2 "$versionDirectory/index.html"))
             if (-not $versionHome.Contains('src="demo/hud/"')) { throw "Homepage iframe is not relative under $versionDirectory." }
             $demoHtml = [IO.File]::ReadAllText((Join-Path $stage2 "$versionDirectory/demo/hud/index.html"))
@@ -272,7 +375,7 @@ try {
             if ($publishedDevHash -ne $developmentHash) { throw "HUD demo runtime drift for dev/$runtimeFile." }
             $publishedStudioHash = (Get-FileHash (Join-Path $stage2 "dev/demo/hud-studio/runtime/$runtimeFile") -Algorithm SHA256).Hash
             if ($publishedStudioHash -ne $developmentHash) { throw "HUD Studio runtime drift for dev/$runtimeFile." }
-            foreach ($versionDirectory in @("0.2.0", "latest")) {
+            foreach ($versionDirectory in @("0.2.0", $latestStableVersion, "latest")) {
                 $publishedHash = (Get-FileHash (Join-Path $stage2 "$versionDirectory/demo/hud/runtime/$runtimeFile") -Algorithm SHA256).Hash
                 if ($publishedHash -ne $developmentHash) { throw "HUD demo runtime drift for $versionDirectory/$runtimeFile." }
             }
@@ -284,9 +387,12 @@ try {
         }
         $devGuide = [IO.File]::ReadAllText((Join-Path $stage2 "dev/getting-started/index.html"))
         if (-not $devGuide.Contains("edit/main/docs/getting-started.md")) { throw "dev edit link does not target main." }
-        foreach ($stableVersion in @("0.1.0", "0.2.0")) {
-            foreach ($html in Get-ChildItem (Join-Path $stage2 $stableVersion) -Filter *.html -File -Recurse) {
+        foreach ($stableVersion in @("0.1.0", "0.2.0", $latestStableVersion)) {
+            $stableRoot = Join-Path $stage2 $stableVersion
+            foreach ($html in Get-ChildItem $stableRoot -Filter *.html -File -Recurse) {
                 if ($html.FullName.Replace('\','/').Contains('/demo/')) { continue }
+                $relativePath = $html.FullName.Substring($stableRoot.Length + 1).Replace('\','/')
+                if ($stableVersion -eq $latestStableVersion -and (Test-IsCompatibilityRedirectPage $relativePath)) { continue }
                 $text = [IO.File]::ReadAllText($html.FullName)
                 if ($text.Contains($banner)) { throw "Development banner leaked into stable docs." }
                 if ($text.Contains("edit/main/docs/")) { throw "Stable edit link points to main." }
@@ -294,30 +400,32 @@ try {
             }
         }
         $versions = Get-Content (Join-Path $stage2 "versions.json") -Raw | ConvertFrom-Json
-        if (-not (($versions.version -contains "0.1.0") -and ($versions.version -contains "0.2.0") -and ($versions.version -contains "dev"))) {
+        if (-not (($versions.version -contains "0.1.0") -and ($versions.version -contains "0.2.0") -and ($versions.version -contains $latestStableVersion) -and ($versions.version -contains "dev"))) {
             throw "mike metadata lacks historical, stable, or dev versions."
         }
-        $stableVersion = $versions | Where-Object version -eq "0.2.0"
-        if ($null -eq $stableVersion -or $stableVersion.aliases -notcontains "latest") { throw "latest does not point to 0.2.0." }
+        $stableVersion = $versions | Where-Object version -eq $latestStableVersion
+        if ($null -eq $stableVersion -or $stableVersion.aliases -notcontains "latest") { throw "latest does not point to $latestStableVersion." }
+        if ($stableVersion.title -ne $latestStableVersion) { throw "Stable $latestStableVersion is mislabeled as '$($stableVersion.title)'." }
+        $historicalVersion = $versions | Where-Object version -eq "0.2.0"
+        if ($null -eq $historicalVersion -or $historicalVersion.aliases -contains "latest") {
+            throw "Historical 0.2.0 is missing or still owns the latest alias."
+        }
         $devVersion = $versions | Where-Object version -eq "dev"
         if ($null -eq $devVersion -or $devVersion.title -ne $developmentTitle) {
             throw "Pushed dev metadata did not preserve the exact title argument."
         }
-        $future = Get-Content (Join-Path $stage3 "versions.json") -Raw | ConvertFrom-Json
-        $futureRelease = $future | Where-Object version -eq $futureReleaseVersion
-        if ($null -eq $futureRelease -or $futureRelease.aliases -notcontains "latest") { throw "Future release did not move latest." }
-        if (-not (Test-Path (Join-Path $stage3 "0.1.0/index.html"))) { throw "Future release removed 0.1.0." }
-        foreach ($relativePath in $activeCompatibilityRedirects) {
-            Assert-CompatibilityRedirectPage $stage3 $futureReleaseVersion $relativePath $compatibilityRedirects[$relativePath].Target
+        if ($devVersion.aliases -contains "latest" -or $devVersion.title -eq $latestStableVersion) {
+            throw "Development documentation is mislabeled as the stable release."
         }
-        $futureGuide = [IO.File]::ReadAllText((Join-Path $stage3 "$futureReleaseVersion/getting-started/index.html"))
-        if (-not $futureGuide.Contains("edit/v$futureReleaseVersion/docs/getting-started.md")) { throw "Tagged release edit link does not target its tag." }
+        $stableGuide = [IO.File]::ReadAllText((Join-Path $stage2 "$latestStableVersion/getting-started/index.html"))
+        if (-not $stableGuide.Contains("edit/v$latestStableVersion/docs/getting-started.md")) { throw "Tagged release edit link does not target its tag." }
         $rootRedirect = [IO.File]::ReadAllText((Join-Path $stage2 "index.html"))
         if (-not $rootRedirect.Contains('url=latest/')) { throw "Root default does not redirect to latest." }
-        if ((TreeHash (Join-Path $stage2 "latest")) -ne (TreeHash (Join-Path $stage2 "0.2.0"))) {
-            throw "latest does not serve the published stable 0.2.0 documentation."
+        if ((TreeHash (Join-Path $stage2 "latest")) -ne (TreeHash (Join-Path $stage2 $latestStableVersion))) {
+            throw "latest does not serve the published stable $latestStableVersion documentation."
         }
-        Write-Host "Versioned docs simulation OK: dev/history/root preserved and future latest advanced."
+        Write-Host ("Versioned docs metadata: " + ($versions | ConvertTo-Json -Compress))
+        Write-Host "Versioned docs simulation OK: dev=$developmentTitle; latest/root=$latestStableVersion; history preserved."
         $ok = $true
     } finally { Pop-Location }
 } finally {

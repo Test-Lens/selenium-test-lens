@@ -4,13 +4,13 @@ Allure remains the report UI and result ecosystem; Test Lens supplies finalized 
 
 ## Install
 
-Add the development artifact alongside your own Allure runner adapter. Allure is not pulled into the Test Lens core, Selenium, JUnit 5, TestNG, or umbrella artifacts.
+Add the optional artifact alongside your own Allure runner adapter. Allure is not pulled into the Test Lens core, Selenium, JUnit 5, TestNG, or umbrella artifacts.
 
 ```xml
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-allure</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>0.3.0</version>
     <scope>test</scope>
 </dependency>
 <dependency>
