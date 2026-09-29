@@ -1,6 +1,6 @@
 # TestNG integration
 
-The optional `selenium-test-lens-testng` module defaults to one `WebDriver`, `TestLens`, and session for every physical TestNG test-method invocation. The unreleased 0.4.0 line also offers explicit class-scoped driver reuse while retaining a separate Test Lens session and report for every invocation. Adding the dependency alone does not register a listener.
+The optional `selenium-test-lens-testng` module defaults to one `WebDriver`, `TestLens`, and session for every physical TestNG test-method invocation. Release 0.4.0 also offers explicit class-scoped driver reuse while retaining a separate Test Lens session and report for every invocation. Adding the dependency alone does not register a listener.
 
 `TestLensTestNgContext.current().lens().expectPage()` polls URL or title in the active window of that physical invocation. Assertion polling stays within the session and does not become a TestNG retry or a recovery retry; popup selection remains an explicit Selenium/Lens context operation.
 
@@ -210,7 +210,7 @@ Return configured `TestLensOptions` from the factory. A policy violation from an
 
 Lens-owned network capture is stopped by every invocation finalizer. A later `PER_CLASS` invocation may start a new capture generation on the same driver without retaining the prior invocation's buffer or listeners; the driver is quit only after the class-instance lifecycle. Requests still in flight at the boundary cannot be reassigned perfectly when the browser protocol supplies no invocation correlation, so tests should await material requests before returning. A factory that selects `BIDI` or `AUTO` must create local or remote Chrome/Firefox options with BiDi enabled. One remote provider session can therefore contain several independent Test Lens reports; Test Lens does not overwrite provider status or take ownership from a provider SDK.
 
-## Local 0.4.0 snapshot validation
+## Local 0.4.0 validation
 
 Install the current reactor without publishing it, then point the consumer at the snapshot and verify resolution:
 

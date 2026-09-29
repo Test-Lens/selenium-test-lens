@@ -15,6 +15,8 @@ lens.startSession("Checkout");
 
 The HUD is especially useful when debugging a headed test, demonstrating a flow, or investigating a wait/retry. It does not replace the persistent trace or test-runner output.
 
+![Test Lens 0.4.0 semantic action and assertion rows update through one correlated lifecycle](../assets/media/hud-action-assertion-lifecycle.webp)
+
 The panel observes and presents Lens operations; it does not alter Selenium's success criteria. HUD injection or cleanup failure is decorative and cannot turn an otherwise successful or failed WebDriver operation into the opposite outcome.
 
 ### Semantic event rows
@@ -43,6 +45,8 @@ structured `locatorObservation` strategy/value and its schema are unchanged.
 Source Navigation availability remains a SYSTEM warning/info presentation and never becomes a failed test result. Its F8/Escape interaction, links, compatibility refresh, wheel behavior, and native scrollbar remain independent of semantic row updates.
 
 Messages, labels, and icons are inserted as text rather than HTML. The runtime does not inspect message contents to determine category or phase. Unicode is carried unchanged through event metadata, JSON, reports, and the DOM, with emoji fallback fonts applied only to decorative icon spans.
+
+Emoji appearance can vary with the browser, operating system, and installed fonts. Test Lens preserves Unicode and writes built-in and user-entered semantic text as UTF-8; it does not promise identical glyph rendering across platforms. On Windows, use a UTF-8-capable terminal/editor when inspecting exported JSON or logs—the report and HUD encoding remains UTF-8 even if a console code page displays replacement characters.
 
 Raw network rows can be reduced independently with [`NetworkHudFilter`](../advanced/network.md#hud-only-filtering). Its default hides duplicate request rows and shows responses and failures. This affects only the HUD: capture, waits, counters, trace, JSON, reports, external sinks, and failure evidence remain complete.
 
@@ -278,6 +282,8 @@ The five state-specific durations are optional overrides; the colors, common 150
 One public operation owns one feedback lifecycle. A click, fill, clear, select, explicit wait/assertion, or manual highlight may be user-visible; locator re-resolution, stale refresh, visibility/enabled probes, routine polling, hit-testing, Smart Click strategy transitions, and geometry refresh are diagnostic-only. For example, `NATIVE → ACTIONS → POINT → JS` remains one click with one ACTION and one terminal result. Its selected strategy is retained in operation details, but it does not create extra outlines or HUD action rows.
 
 Presentation is asynchronous and never extends the WebDriver operation timeout. If a 20 ms click completes while ACTION has 500 ms configured, ACTION finishes its own 500 ms display and the pending SUCCESS then receives its complete duration. Each decoration is revision-owned: an old timer or late transitional callback cannot remove or repaint a newer terminal state. Rapid independent operations execute immediately; their visuals are ordered locally for the same target, while different targets do not clear each other. Repeated pending transitions are collapsed and each target has a bounded visual backlog; under overload an unshown visual may be dropped at DEBUG level without dropping trace/log results or blocking the action.
+
+![ACTION, WAITING, RETRY, SUCCESS, and FAILURE highlights in the 0.4.0 renderer](../assets/media/hud-highlight-lifecycle.webp)
 
 Geometry refresh preserves state, revision, and deadline. Explicit clear, disabled highlights/overlay, session finish, navigation/document loss, or target detach may end presentation early and cancel pending work. DEBUG/TRACE keeps internal probe details but does not re-enable internal visual noise.
 

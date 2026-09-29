@@ -55,6 +55,8 @@ Throws `UiLocatorException` after the shared locator deadline/retry budget or on
 
 The locator emits one logical start/pass/failure lifecycle; strategy transitions are debug details such as `NATIVE=intercepted`, `ACTIONS=hit-test mismatch`, `POINT=no-valid-point`, and `JS=dispatched`. When overlays are enabled, internal transitions reuse one ACTION decoration followed by the normal terminal SUCCESS or FAILURE decoration. `click()` does not capture a screenshot by itself.
 
+![Smart Click keeps one semantic action while DEBUG reveals the bounded fallback stages](../assets/media/smart-click-fallback.webp)
+
 ```java
 lens.getByRole("button", "Save").waitUntilClickable().click();
 ```

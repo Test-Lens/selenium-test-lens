@@ -4,6 +4,23 @@ Test Lens attaches to a `WebDriver` created by the consumer. `TestLensOptions` c
 
 The tables below are a decision map. Exact builder methods, ranges, and defaults are in the [configuration reference](reference/configuration.md).
 
+## Browser execution and observability
+
+Headless execution and FAST observability are independent axes:
+
+| Axis | Values | Precedence | What it changes |
+| --- | --- | --- | --- |
+| Browser execution | `HeadlessMode.TRUE`, `FALSE`, `UNSET` | explicit Java → `testLens.headless` → `TEST_LENS_HEADLESS` → `UNSET` | Browser launch only. Adapted Chrome uses `--headless=new`; adapted Firefox uses `-headless`. `UNSET` preserves the factory decision. |
+| Observability | `ObservabilityMode.DEFAULT`, `FAST` | explicit Java → `testLens.observability` → `TEST_LENS_OBSERVABILITY` → `DEFAULT` | Presentation and passed-session retention only. It does not change Selenium, Smart Click, waits, retries, or assertions. |
+
+`TestLens.attach(existingDriver, ...)` cannot recreate or change an already-running browser. Resolve `BrowserExecutionConfig` before a manual factory creates its driver, or use the JUnit 5/TestNG adapted factory hooks. Only trimmed case-insensitive `true`/`false` are valid headless property/environment values.
+
+FAST disables the live HUD, automatic highlights, and live Source Navigation by default. It keeps structured events and the bounded recorder; a failed session still keeps configured summary and failure evidence. Explicit component overrides remain possible, but reduce FAST's presentation savings. `HudPreset.DEBUG` is a HUD presentation preset, not another observability mode.
+
+![DEFAULT live presentation followed by FAST with no live HUD or automatic highlight](assets/media/hud-default-vs-fast.webp)
+
+See the exact [`BrowserExecutionConfig` and FAST reference](reference/configuration.md#browser-execution-configuration).
+
 ## Core
 
 ```java

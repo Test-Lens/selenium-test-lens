@@ -45,9 +45,11 @@ try {
 
 [Getting started](docs/getting-started.md) · [What's new in 0.4.0](docs/whats-new-0.4.0.md) · [0.2.x migration](docs/migrating-0.2-to-0.3.md) · [Published documentation](https://test-lens.github.io/selenium-test-lens/latest/) · [Development documentation](https://test-lens.github.io/selenium-test-lens/dev/)
 
+![Test Lens 0.4.0 semantic action and assertion lifecycle](docs/assets/media/hud-action-assertion-lifecycle.webp)
+
 ## Why Test Lens
 
-Release `0.4.0` adds native Selenium observation, explicit headed/headless and FAST execution evidence, TestNG `PER_CLASS`, bounded selector and compatibility tooling, and the offline Migration Assistant. See the concise [0.4.0 overview](docs/whats-new-0.4.0.md); earlier overviews remain archived.
+Release `0.4.0` adds native Selenium observation, independent headed/headless and DEFAULT/FAST configuration, TestNG `PER_CLASS`, semantic HUD lifecycles, and a bounded Smart Click cascade. See the concise [0.4.0 overview](docs/whats-new-0.4.0.md); earlier overviews remain archived.
 
 ### Native interactions with visible recovery
 
@@ -57,9 +59,9 @@ The recommended click path is the ordinary locator API:
 lens.getByRole("button", "Save").click();
 ```
 
-The HUD and trace describe the attempt while an optional highlight marks the target. Highlighting is visual decoration only: it does not intercept pointer events or activate the element. Each activation attempt uses native `WebElement.click()`. An intercepted click may be followed by another native click after explicit overlay recovery, and the locator retry policy may start a fresh action attempt.
+The HUD and trace correlate the operation while an optional highlight marks the target. Highlighting is visual decoration only: it does not intercept pointer events or activate the element. Within one shared deadline, Smart Click tries `NATIVE`, `ACTIONS`, and a hit-tested `POINT`, then one JavaScript dispatch only when `javascriptClickFallback` permits it. Physical fallbacks require a target-owned hit test; hidden and disabled targets still fail, and an ambiguous native delivery is never followed by a blind second click.
 
-There is no JavaScript-click, Selenium Actions-click, ancestor-click, or hidden state-mutation fallback. Actionability checks are best-effort diagnostics, not a guarantee that the browser will accept the click. See [element actions](docs/elements/actions.md) and [visual diagnostics](docs/observability/visual-diagnostics.md).
+Stale targets return to the locator retry path rather than being reused. This does not mean “click anything”: actionability and hit testing remain bounded safety checks. See [element actions](docs/elements/actions.md) and [visual diagnostics](docs/observability/visual-diagnostics.md).
 
 ### Semantic and scoped queries
 

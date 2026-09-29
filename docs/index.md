@@ -48,35 +48,35 @@ HTML/JSON reports · screenshots · failure bundle · optional HTTP upload
 
 It does not replace Selenium, Page Objects, JUnit, TestNG, or an existing reporting stack. Raw WebDriver remains available whenever it is the clearer or more complete API.
 
-## 0.3.1 at a glance
+## 0.4.0 at a glance
 
-Release 0.3.1 makes live diagnostics more expressive and the resulting evidence easier to investigate. These are focused additions to the same HUD, highlight, and report pipeline.
+Release 0.4.0 connects ordinary Selenium calls and Lens interactions to the same semantic evidence, adds explicit browser and observability modes, and strengthens runner and recovery lifecycles.
 
 <div class="grid cards" markdown>
 
--   **NEW 0.3.1 · REACTIVE HIGHLIGHTS**
+-   **NEW 0.4.0 · NATIVE SELENIUM OBSERVATION**
 
-    See ACTION, WAITING, RETRY, SUCCESS, and FAILURE on the actual target, with independent colors, labels, duration, and automatic-feedback control.
+    Observe ordinary `WebDriver` and selected `WebElement` operations without replacing the native call, adding Smart Click, or executing the action twice.
 
-    [Configure state-aware highlights](observability/visual-diagnostics.md#state-aware-highlights)
+    [Observe an existing Selenium driver](getting-started.md#observe-ordinary-selenium-calls)
 
--   **NEW 0.3.1 · HUD TIMESTAMPS**
+-   **NEW 0.4.0 · DEFAULT AND FAST**
 
-    Show or hide event times, choose ISO UTC, time-only, or date-time output, and use the test JVM zone or an explicit `ZoneId`.
+    Keep full live diagnostics with DEFAULT, or remove live HUD, automatic highlights, and Source Navigation with FAST while preserving execution semantics and failure evidence.
 
-    [Configure HUD timestamps](observability/visual-diagnostics.md#hud-timestamps)
+    [Choose an observability mode](configuration.md#browser-execution-and-observability)
 
--   **NEW 0.3.1 · SOURCE NAVIGATION**
+-   **NEW 0.4.0 · TESTNG PER_CLASS**
 
-    During local debugging, press F8 to toggle actionable `File.java:line` call sites and open a resolved source location in IntelliJ, VS Code, or a custom protocol provider; Escape switches Source Navigation off.
+    Reuse one adapter-owned driver for sequential methods of a class while every method, DataProvider row, and retry receives a fresh Lens session and report.
 
-    [Set up local source navigation](observability/visual-diagnostics.md#local-source-navigation)
+    [Configure TestNG driver scope](integrations/testng.md#driver-scope)
 
--   **IMPROVED 0.3.1 · REPORTS AND EVIDENCE**
+-   **IMPROVED 0.4.0 · SEMANTIC DIAGNOSTICS**
 
-    Use wider, more readable standalone HTML reports with clearer failures and attributes, offline/file support, and diagnostic full-page evidence that renders the Test Lens overlay once.
+    Follow action, wait/retry, assertion, locator, success, and failure meaning across operation-correlated HUD rows, state-aware highlights, reports, and bounded trace evidence.
 
-    [Inspect reports](observability/reports.md) · [Understand screenshot evidence](observability/screenshots-evidence.md)
+    [Read the visual lifecycle](observability/visual-diagnostics.md) · [Review 0.4.0](whats-new-0.4.0.md)
 
 </div>
 
@@ -179,7 +179,7 @@ The in-browser HUD makes the active Lens session visible in the page under test.
 }());
 </script>
 
-<small>This is a deterministic simulation: the checkout UI and network rows are synthetic, while the HUD, labeled highlight, and scroll arrow use the renderer for this documentation version. No request is sent.</small>
+<small>This deterministic local demo uses the 0.4.0 runtime renderer. Choose action/assertion, highlight, DEFAULT/FAST, native-observation, or Smart Click scenarios. The checkout events are synthetic and no request is sent; the semantic HUD, highlights, presets, and scroll cue are the same versioned assets shipped by this documentation build.</small>
 
 <!-- configurable-hud-dev:start -->
 The development renderer defaults to the compact preset. Try **Compact**, **Minimal**, or **Debug** above, or [customize the complete HUD in HUD Studio](observability/hud-studio.md).

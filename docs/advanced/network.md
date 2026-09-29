@@ -27,6 +27,8 @@ String exportJson()
 
 BiDi capture observes traffic. It does not intercept, modify, block, mock, or replay requests, and it is not a CDP fallback.
 
+WebDriver BiDi and Selenium DevTools/CDP modules are separate mechanisms. The Test Lens BiDi flows documented here do not require a browser-version-matched `selenium-devtools-v*` artifact. A Selenium warning that no matching CDP implementation is available therefore does not by itself make an enabled BiDi session unavailable; activation still depends on `HasBiDi`/augmentation, the returned `webSocketUrl`, a successful connection, and listener subscription.
+
 `captureMode()` is the requested mode. `activeCaptureMode()` is present only while a source is active: `MANUAL` for manual capture and `BIDI` for both successful `BIDI` and `AUTO`. A successful start registers one listener each for before-request, response-completed, and fetch-error; `stop()` removes the module subscriptions without closing the driver. `stop()` also invalidates an initialization that is still registering its source: a late success or failure cannot reactivate capture or overwrite `STOPPED`, and any source returned afterward is closed without holding the lifecycle lock. Repeated starts replace the prior generation, and late callbacks are discarded. Event snapshots are immutable and safe while BiDi callback threads are active. Connection initialization is attempted at most twice, without a fixed sleep, and only before any listener is registered; subscription failures are never retried because registration may be ambiguous.
 
 ## HUD-only filtering

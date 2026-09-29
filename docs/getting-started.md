@@ -105,9 +105,9 @@ Common form operations remain on the lazy locator abstraction: use `check()`/`un
 
 The main facade also exposes lazy semantic factories: `getByLabel`, `getByPlaceholder`, `getByAltText`, and named `getByRole`. Named roles and labels use the accessible name computed by WebDriver, so native labels, `aria-labelledby`, multiple references, and descendant image alt text follow the browser implementation rather than a partial `aria-label || text` approximation.
 
-## Observe existing Selenium Page Objects (0.4.0)
+## Observe ordinary Selenium calls
 
-The unreleased 0.4.0 line can observe ordinary Selenium calls without changing a Page Object to `UiLocator`. Attach Lens to the driver your project already owns, then pass the explicit observed facade to Page Objects **before** constructing them:
+Release 0.4.0 can observe ordinary Selenium calls without changing a Page Object to `UiLocator`. Attach Lens to the driver your project already owns, then pass the explicit observed facade to Page Objects **before** constructing them:
 
 ```java
 WebDriver rawDriver = createDriver();
@@ -130,6 +130,8 @@ lens.observe(rawDriver.findElement(By.id("save")), "Save").click();
 ```
 
 Labels describe that particular observed view and are redacted before diagnostic presentation. `sendKeys` values, JavaScript source/arguments/results, and arbitrary returned application data are not collected.
+
+![Ordinary Selenium calls observed by Test Lens without exposing the entered value](assets/media/native-selenium-observation.webp)
 
 To observe an explicit JavaScript command, execute it through the observed driver. Direct observed-element arguments are visual targets; nested object graphs are deliberately not searched:
 
@@ -189,9 +191,9 @@ mvn test
 
 When the session is finalized, Test Lens writes its HTML and JSON reports under `target/ui-test-lens` by default.
 
-## Optional: configure the 0.3.0 HUD
+## Optional: configure the HUD
 
-The default `COMPACT` HUD is enough to get started. In release 0.3.0, customize it through immutable `HudOptions` and pass it with `TestLensOptions`:
+The default `COMPACT` HUD is enough to get started. Customize it through immutable `HudOptions` and pass it with `TestLensOptions`:
 
 ```java
 import io.github.testlens.TestLens;
@@ -218,7 +220,7 @@ The HUD is only a diagnostic aid and does not change test execution or assertion
 - [Use the JUnit 5 lifecycle extension](integrations/junit5.md)
 - [Use locators, actions, waits, and assertions](elements/index.md)
 - [Configure Test Lens](configuration.md)
-- [Review what's new in 0.3.0](whats-new-0.3.0.md)
+- [Review what's new in 0.4.0](whats-new-0.4.0.md)
 - [Migrate from 0.2.x](migrating-0.2-to-0.3.md)
 - [Migrate incrementally from raw Selenium](migration.md)
 - [Add the optional React/SPA helpers module](framework-integration.md#optional-reactspa-helpers-module)
