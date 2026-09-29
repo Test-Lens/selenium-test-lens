@@ -6,8 +6,11 @@
   lens.state.overlay = lens.state.overlay || {}; lens.state.highlight = lens.state.highlight || {};
   if (lens.modules.highlight && lens.modules.highlight.__uiTestLensHighlight === true) return;
   var state = lens.state.highlight;
-  state.sequence = state.sequence || 0; state.records = state.records || [];
-  state.activeByTarget = state.activeByTarget || (typeof WeakMap === 'function' ? new WeakMap() : null);
+  var MAX_PENDING_OPERATIONS = 8;
+  state.sequence = state.sequence || 0;
+  state.records = state.records || [];
+  state.lanes = state.lanes || [];
+  state.lanesByTarget = state.lanesByTarget || (typeof WeakMap === 'function' ? new WeakMap() : null);
 
   function overlayRoot() {
     var root = lens.state.overlay.root || window.__seleniumOverlayRoot;
@@ -30,10 +33,14 @@
   }
   function options(value) {
     value = value || {};
+    var suppliedOperation = value.operationId != null && String(value.operationId) !== '';
     return { duration: isFinite(Number(value.duration)) ? Math.max(0, Number(value.duration)) : 1500,
+      suppress: value.suppress === true,
       color: value.color || '#ffeb3b', className: value.className || 'selenium-overlay-highlight',
       borderWidth: isFinite(Number(value.borderWidth)) ? Math.max(1, Number(value.borderWidth)) : 2,
-      showLabel: value.showLabel !== false, state: value.state || 'action' };
+      showLabel: value.showLabel !== false, state: value.state || 'action',
+      sessionId: String(value.sessionId || 'manual'), operationId: suppliedOperation ? String(value.operationId) : 'manual-' + (++state.sequence),
+      standalone: value.standalone === true || !suppliedOperation };
   }
   function connected(target) {
     if (!target) return false;
@@ -41,36 +48,131 @@
     var root = target.getRootNode ? target.getRootNode() : document;
     return root === document ? document.documentElement.contains(target) : !!root && !!root.host && connected(root.host);
   }
-  function removeRecord(record) {
-    if (!record || record.removed) return; record.removed = true;
+  function terminal(name) { return name === 'success' || name === 'failure'; }
+  function transient(name) { return name === 'action' || name === 'waiting' || name === 'retry'; }
+  function laneFor(target) {
+    var lane = state.lanesByTarget && state.lanesByTarget.get(target);
+    if (lane) return lane;
+    lane = { target: target, operations: [], visible: null, completed: [] };
+    state.lanes.push(lane); if (state.lanesByTarget) state.lanesByTarget.set(target, lane);
+    return lane;
+  }
+  function existingOperation(operationId) {
+    for (var laneIndex = 0; laneIndex < state.lanes.length; laneIndex++) {
+      var candidateLane = state.lanes[laneIndex];
+      for (var operationIndex = 0; operationIndex < candidateLane.operations.length; operationIndex++) {
+        if (candidateLane.operations[operationIndex].id === operationId) {
+          return { lane: candidateLane, operation: candidateLane.operations[operationIndex] };
+        }
+      }
+    }
+    return null;
+  }
+  function removeVisual(record) {
+    if (!record || record.removed) return;
+    record.removed = true;
     if (record.timer != null) window.clearTimeout(record.timer);
-    window.removeEventListener('scroll', record.listener, true); window.removeEventListener('resize', record.listener, true);
+    window.removeEventListener('scroll', record.listener, true);
+    window.removeEventListener('resize', record.listener, true);
     if (record.container && record.container.parentNode) record.container.parentNode.removeChild(record.container);
-    if (state.activeByTarget && state.activeByTarget.get(record.target) === record) state.activeByTarget.delete(record.target);
     var index = state.records.indexOf(record); if (index >= 0) state.records.splice(index, 1);
   }
-  function decorate(target, label, rawOptions) {
-    if (!target || !target.getBoundingClientRect || !connected(target)) return false;
-    var root = overlayRoot(); if (!root) return false; ensureStyle(root);
-    var opts = options(rawOptions), previous = state.activeByTarget && state.activeByTarget.get(target);
-    if (previous) removeRecord(previous);
-    var container = document.createElement('div'); container.className = opts.className;
-    container.setAttribute('data-uitestlens-highlight', '1'); container.setAttribute('data-uitestlens-highlight-state', opts.state);
-    container.setAttribute('data-uitestlens-highlight-token', String(++state.sequence));
-    container.style.borderColor = opts.color; container.style.borderWidth = opts.borderWidth + 'px'; container.style.pointerEvents = 'none';
-    if (opts.showLabel && label) { var badge = document.createElement('div'); badge.className = 'selenium-overlay-highlight-badge'; badge.textContent = String(label); badge.style.background = opts.color; container.appendChild(badge); }
-    root.appendChild(container);
-    var record = { target: target, container: container, removed: false, timer: null, listener: null };
-    record.listener = function () {
-      if (!connected(target)) { removeRecord(record); return; }
-      try { var rect = target.getBoundingClientRect(); container.style.left = rect.left + 'px'; container.style.top = rect.top + 'px'; container.style.width = rect.width + 'px'; container.style.height = rect.height + 'px'; }
-      catch (ignored) { removeRecord(record); }
-    };
-    state.records.push(record); if (state.activeByTarget) state.activeByTarget.set(target, record);
-    window.addEventListener('scroll', record.listener, true); window.addEventListener('resize', record.listener, true);
-    record.listener(); record.timer = window.setTimeout(function () { removeRecord(record); }, opts.duration);
-    return !record.removed;
+  function finishOperation(lane, operation) {
+    var index = lane.operations.indexOf(operation); if (index >= 0) lane.operations.splice(index, 1);
+    if (operation.terminal) {
+      lane.completed.push(operation.id); if (lane.completed.length > 16) lane.completed.shift();
+    }
   }
+  function showNext(lane) {
+    if (lane.visible) return;
+    while (lane.operations.length) {
+      var operation = lane.operations[0], request = operation.next;
+      if (!request) {
+        if (lane.operations.length > 1 || operation.standalone || operation.terminal) {
+          finishOperation(lane, operation); continue;
+        }
+        return;
+      }
+      operation.next = null;
+      if (request.suppress) {
+        if (operation.standalone || terminal(request.state)) finishOperation(lane, operation);
+        continue;
+      }
+      if (!connected(request.target)) { finishOperation(lane, operation); continue; }
+      var root = overlayRoot(); if (!root) return; ensureStyle(root);
+      var container = document.createElement('div'); container.className = request.className;
+      var revision = ++state.sequence, shownAt = Date.now(), deadline = shownAt + request.duration;
+      container.setAttribute('data-uitestlens-highlight', '1');
+      container.setAttribute('data-uitestlens-highlight-state', request.state);
+      container.setAttribute('data-uitestlens-highlight-session', request.sessionId);
+      container.setAttribute('data-uitestlens-highlight-operation', request.operationId);
+      container.setAttribute('data-uitestlens-highlight-revision', String(revision));
+      container.setAttribute('data-uitestlens-highlight-shown-at', String(shownAt));
+      container.setAttribute('data-uitestlens-highlight-deadline', String(deadline));
+      container.style.borderColor = request.color; container.style.borderWidth = request.borderWidth + 'px';
+      container.style.pointerEvents = 'none';
+      if (request.showLabel && request.label) {
+        var badge = document.createElement('div'); badge.className = 'selenium-overlay-highlight-badge';
+        badge.textContent = String(request.label); badge.style.background = request.color; container.appendChild(badge);
+      }
+      root.appendChild(container);
+      var record = { lane: lane, operation: operation, target: request.target, container: container,
+        state: request.state, revision: revision, shownAt: shownAt, deadline: deadline,
+        removed: false, timer: null, listener: null };
+      record.listener = function () {
+        if (!connected(record.target)) { clearLane(lane); return; }
+        try {
+          var rect = record.target.getBoundingClientRect();
+          container.style.left = rect.left + 'px'; container.style.top = rect.top + 'px';
+          container.style.width = rect.width + 'px'; container.style.height = rect.height + 'px';
+        } catch (ignored) { clearLane(lane); }
+      };
+      lane.visible = record; state.records.push(record);
+      window.addEventListener('scroll', record.listener, true); window.addEventListener('resize', record.listener, true);
+      record.listener();
+      record.timer = window.setTimeout(function () {
+        if (!lane.visible || lane.visible.revision !== revision || lane.visible !== record) return;
+        removeVisual(record); lane.visible = null;
+        if (!operation.next) finishOperation(lane, operation);
+        showNext(lane);
+      }, request.duration);
+      return;
+    }
+  }
+  function clearLane(lane) {
+    if (!lane) return;
+    if (lane.visible) removeVisual(lane.visible);
+    lane.visible = null; lane.operations.length = 0; lane.completed.length = 0;
+    var index = state.lanes.indexOf(lane); if (index >= 0) state.lanes.splice(index, 1);
+    if (state.lanesByTarget) state.lanesByTarget.delete(lane.target);
+  }
+  function accept(target, label, rawOptions) {
+    if (!target || !target.getBoundingClientRect || !connected(target)) return false;
+    var opts = options(rawOptions), existing = existingOperation(opts.operationId);
+    var lane = existing ? existing.lane : laneFor(target);
+    if (lane.completed.indexOf(opts.operationId) >= 0) return false;
+    var operation = existing ? existing.operation : null;
+    if (!operation) {
+      if (lane.operations.length >= MAX_PENDING_OPERATIONS + 1) {
+        if (window.console && console.debug) console.debug('Test Lens highlight dropped: bounded target backlog');
+        return false;
+      }
+      operation = { id: opts.operationId, sessionId: opts.sessionId, terminal: false,
+        standalone: opts.standalone, next: null };
+      lane.operations.push(operation);
+    }
+    if (operation.terminal && !terminal(opts.state)) return false;
+    var request = Object.assign({}, opts, { label: label, target: target });
+    if (terminal(opts.state)) {
+      operation.terminal = true; operation.next = request;
+    } else if (transient(opts.state)) {
+      if (lane.visible && lane.visible.operation === operation && lane.visible.state === opts.state) return true;
+      operation.next = request;
+    } else return false;
+    showNext(lane);
+    return !opts.suppress;
+  }
+  function decorate(target, label, rawOptions) { return accept(target, label, rawOptions); }
   function parent(target, levels, label, rawOptions) {
     var current = target, remaining = Math.max(1, Number(levels) || 1);
     while (remaining-- > 0 && current && current.parentElement) current = current.parentElement;
@@ -82,6 +184,12 @@
     var current = target && selector && target.closest ? target.closest(selector) : null;
     return decorate(current, label, Object.assign({}, rawOptions, { className: 'selenium-overlay-highlight-closest' }));
   }
-  function clear() { var records = state.records.slice(); records.forEach(removeRecord); return records.length; }
-  lens.modules.highlight = { __uiTestLensHighlight: true, element: element, parent: parent, ancestor: ancestor, closest: closest, clear: clear };
+  function clear() {
+    var count = state.records.length;
+    state.lanes.slice().forEach(clearLane);
+    state.lanesByTarget = typeof WeakMap === 'function' ? new WeakMap() : null;
+    return count;
+  }
+  lens.modules.highlight = { __uiTestLensHighlight: true, element: element, parent: parent,
+    ancestor: ancestor, closest: closest, clear: clear };
 })(window, document);

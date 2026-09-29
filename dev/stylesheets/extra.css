@@ -8,6 +8,16 @@
     linear-gradient(145deg, color-mix(in srgb, var(--md-primary-fg-color) 12%, var(--md-default-bg-color)), var(--md-default-bg-color));
 }
 
+.lens-home-logo {
+  display: block;
+  width: min(100%, 26rem);
+  height: auto;
+  margin: 0 0 1rem;
+  padding: 0.35rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.96);
+}
+
 .lens-hero h1 {
   margin-bottom: 0.35rem;
   font-weight: 750;

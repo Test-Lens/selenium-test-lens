@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+        <meta name="description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
       
       
       
@@ -16,7 +16,7 @@
         <link rel="prev" href="..">
       
       
-        <link rel="next" href="../whats-new-0.3.1/">
+        <link rel="next" href="../whats-new-0.4.0/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Installation & first test - Selenium Test Lens</title>
+        <title>Installation & first test - Test Lens</title>
       
     
     
@@ -71,6 +71,24 @@
 
     
     
+  
+  
+    
+  
+  
+  
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Test Lens">
+  <meta property="og:title" content="Installation &amp; first test - Test Lens">
+  <meta property="og:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/getting-started/">
+  <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+  <meta property="og:image:alt" content="Test Lens">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Installation &amp; first test - Test Lens">
+  <meta name="twitter:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+
   </head>
   
   
@@ -140,8 +158,7 @@
   </script>
   
     
-      Development documentation for <strong>0.4.0-SNAPSHOT</strong>.
-      These features are not yet available in the latest Maven Central release.
+      Documentation source for <strong>0.4.0</strong>.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -161,10 +178,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Selenium Test Lens" class="md-header__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href=".." title="Test Lens" class="md-header__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -175,7 +191,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Selenium Test Lens
+            Test Lens
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -491,13 +507,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Selenium Test Lens" class="md-nav__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href=".." title="Test Lens" class="md-nav__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
-    Selenium Test Lens
+    Test Lens
   </label>
   
     <div class="md-nav__source">
@@ -698,6 +713,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#observe-ordinary-selenium-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observe ordinary Selenium calls
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#run-your-test" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -709,10 +735,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#optional-configure-the-030-hud" class="md-nav__link">
+  <a href="#optional-configure-the-hud" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Optional: configure the 0.3.0 HUD
+        Optional: configure the HUD
       
     </span>
   </a>
@@ -734,6 +760,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../whats-new-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.4.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2819,6 +2873,146 @@
   
   
     <li class="md-nav__item">
+      <a href="../maintainers/release-0.4.x/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releasing Test Lens 0.4.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/release-certification-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 release certification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/media-inventory-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 media inventory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/recording-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recording 0.4.0 media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/patch-release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.x patch-release lane
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../browser-integration-tests/" class="md-nav__link">
         
   
@@ -2827,6 +3021,258 @@
     
   
     Real-browser integration tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../performance-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime performance audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/selector-declaration-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Static locator declaration index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/selector-stability-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector stability policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/selector-candidate-live-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector candidate live analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/selector-find-similar-history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector similarity and cross-run history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/selector-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Offline Selector Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/selector-lab-readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read-only Selector Lab
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/compatibility-run-manifests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility run manifests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/migration-git-checkpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Git preflight and checkpoints
   
 
     
@@ -2875,7 +3321,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.4.0" class="md-nav__link">
         
   
   
@@ -2903,7 +3349,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.4.0/" class="md-nav__link">
         
   
   
@@ -2991,6 +3437,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#observe-ordinary-selenium-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observe ordinary Selenium calls
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#run-your-test" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3002,10 +3459,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#optional-configure-the-030-hud" class="md-nav__link">
+  <a href="#optional-configure-the-hud" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Optional: configure the 0.3.0 HUD
+        Optional: configure the HUD
       
     </span>
   </a>
@@ -3049,7 +3506,7 @@
 
 
 <h1 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h1>
-<p>Selenium Test Lens works with the <code>WebDriver</code> your test framework already uses. You can add it to an existing Selenium project without changing how the driver is created or closed.</p>
+<p>Test Lens for Selenium works with the <code>WebDriver</code> your test framework already uses. You can add it to an existing Selenium project without changing how the driver is created or closed.</p>
 <p>This guide shows the shortest path from the Maven dependency to a working Lens session.</p>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
@@ -3057,13 +3514,13 @@
 <li>Maven 3.x or Gradle</li>
 <li>A Selenium <code>WebDriver</code> created by your test project</li>
 </ul>
-<p>The latest Selenium Test Lens release is <code>0.3.0</code>, verified with Selenium 4.39.0.</p>
+<p>The current Test Lens for Selenium release is <code>0.4.0</code>, verified with Selenium 4.39.0.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<p>Add the main Selenium Test Lens runtime to your Maven project:</p>
+<p>Add the main Test Lens for Selenium runtime to your Maven project:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;dependency&gt;</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nt">&lt;groupId&gt;</span>io.github.test-lens<span class="nt">&lt;/groupId&gt;</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&lt;artifactId&gt;</span>selenium-test-lens<span class="nt">&lt;/artifactId&gt;</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.3.0<span class="nt">&lt;/version&gt;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.4.0<span class="nt">&lt;/version&gt;</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">&lt;/dependency&gt;</span>
 </span></code></pre></div>
 <p>The same stable release is available to Gradle consumers.</p>
@@ -3071,13 +3528,13 @@
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">dependencies</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"io.github.test-lens:selenium-test-lens:0.3.0"</span><span class="p">)</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"io.github.test-lens:selenium-test-lens:0.4.0"</span><span class="p">)</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">}</span>
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="n">testImplementation</span><span class="w"> </span><span class="s1">'io.github.test-lens:selenium-test-lens:0.3.0'</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="n">testImplementation</span><span class="w"> </span><span class="s1">'io.github.test-lens:selenium-test-lens:0.4.0'</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="o">}</span>
 </span></code></pre></div>
 </div>
@@ -3097,7 +3554,7 @@ on JDK 17 and JDK 21.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">&lt;dependency&gt;</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="nt">&lt;groupId&gt;</span>io.github.test-lens<span class="nt">&lt;/groupId&gt;</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">&lt;artifactId&gt;</span>selenium-test-lens-junit5<span class="nt">&lt;/artifactId&gt;</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.3.0<span class="nt">&lt;/version&gt;</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.4.0<span class="nt">&lt;/version&gt;</span>
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="nt">&lt;scope&gt;</span>test<span class="nt">&lt;/scope&gt;</span>
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="nt">&lt;/dependency&gt;</span>
 </span></code></pre></div>
@@ -3131,49 +3588,72 @@ on JDK 17 and JDK 21.</p>
 </span></code></pre></div>
 <p>Common form operations remain on the lazy locator abstraction: use <code>check()</code>/<code>uncheck()</code> for semantic native or ARIA controls, <code>upload(Path...)</code> for file inputs, and <code>focus()</code> or <code>scrollIntoView()</code> when those browser operations are intentional. You do not need to expose a raw <code>WebElement</code>; see <a href="../elements/actions/">Element actions</a>.</p>
 <p>The main facade also exposes lazy semantic factories: <code>getByLabel</code>, <code>getByPlaceholder</code>, <code>getByAltText</code>, and named <code>getByRole</code>. Named roles and labels use the accessible name computed by WebDriver, so native labels, <code>aria-labelledby</code>, multiple references, and descendant image alt text follow the browser implementation rather than a partial <code>aria-label || text</code> approximation.</p>
+<h2 id="observe-ordinary-selenium-calls">Observe ordinary Selenium calls<a class="headerlink" href="#observe-ordinary-selenium-calls" title="Permanent link">&para;</a></h2>
+<p>Release 0.4.0 can observe ordinary Selenium calls without changing a Page Object to <code>UiLocator</code>. Attach Lens to the driver your project already owns, then pass the explicit observed facade to Page Objects <strong>before</strong> constructing them:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">WebDriver</span><span class="w"> </span><span class="n">rawDriver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">createDriver</span><span class="p">();</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">rawDriver</span><span class="p">,</span><span class="w"> </span><span class="n">options</span><span class="p">);</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lens</span><span class="p">.</span><span class="na">observeDriver</span><span class="p">();</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">LoginPage</span><span class="w"> </span><span class="n">page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">LoginPage</span><span class="p">(</span><span class="n">driver</span><span class="p">);</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="n">lens</span><span class="p">.</span><span class="na">startSession</span><span class="p">(</span><span class="s">"native selenium"</span><span class="p">);</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="n">page</span><span class="p">.</span><span class="na">login</span><span class="p">();</span>
+</span></code></pre></div>
+<p>Calls such as <code>driver.findElement(by).click()</code>, <code>element.clear()</code>, and <code>element.sendKeys(...)</code> keep native Selenium semantics. Observation adds the existing semantic HUD, trace/report correlation, source location, redaction, duration, and automatic highlight lifecycle. It does not add Smart Click, waits, actionability checks, retries, stale recovery, another lookup, or JavaScript fallback. A native command is delegated once and its original Selenium exception is returned unchanged. Use <code>UiLocator</code> when Test Lens interaction and recovery semantics are wanted.</p>
+<p><code>lens.driver()</code> still returns the attached/raw driver. Calling <code>observeDriver()</code> does not instrument old references: the returned facade must be the reference used by the Page Object. Repeated calls return the stable facade for that Lens. Provider code that intentionally needs a concrete driver class can continue to use <code>lens.driver()</code>; the observed facade preserves Selenium interfaces such as <code>JavascriptExecutor</code>, <code>TakesScreenshot</code>, <code>Interactive</code>, and <code>HasCapabilities</code>, but is not promised to be a concrete <code>ChromeDriver</code> or <code>RemoteWebDriver</code>.</p>
+<p>An existing element can instead be observed selectively, without a lookup or any other browser command at wrapping time:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">observe</span><span class="p">(</span><span class="n">rawDriver</span><span class="p">.</span><span class="na">findElement</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"save"</span><span class="p">)),</span><span class="w"> </span><span class="s">"Save"</span><span class="p">).</span><span class="na">click</span><span class="p">();</span>
+</span></code></pre></div>
+<p>Labels describe that particular observed view and are redacted before diagnostic presentation. <code>sendKeys</code> values, JavaScript source/arguments/results, and arbitrary returned application data are not collected.</p>
+<p><img alt="Ordinary Selenium calls observed by Test Lens without exposing the entered value" src="../assets/media/native-selenium-observation.webp" /></p>
+<p>To observe an explicit JavaScript command, execute it through the observed driver. Direct observed-element arguments are visual targets; nested object graphs are deliberately not searched:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">WebElement</span><span class="w"> </span><span class="n">button</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lens</span><span class="p">.</span><span class="na">observe</span><span class="p">(</span><span class="n">rawDriver</span><span class="p">.</span><span class="na">findElement</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"save"</span><span class="p">)),</span><span class="w"> </span><span class="s">"Save"</span><span class="p">);</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="p">((</span><span class="n">JavascriptExecutor</span><span class="p">)</span><span class="w"> </span><span class="n">driver</span><span class="p">).</span><span class="na">executeScript</span><span class="p">(</span><span class="s">"arguments[0].click();"</span><span class="p">,</span><span class="w"> </span><span class="n">button</span><span class="p">);</span>
+</span></code></pre></div>
+<p>Using the raw executor with an observed element remains valid Selenium serialization, but the raw command itself is not observed and Test Lens does not invent a PASSED/FAILED lifecycle for it. <code>executeAsyncScript</code> completes only when Selenium returns or throws. Script text, arguments, and result values are not recorded.</p>
+<p><code>WebDriverWait</code> remains a Selenium wait: repeated finds and state reads are technical DEBUG diagnostics rather than Test Lens retries or functional failures. <code>PageFactory</code>, child searches, lists, active elements, frame/window navigation, Actions, and open Shadow DOM descendants retain observation where supported by Selenium 4.39. Locator provenance is captured from the real <code>findElement(s)(By)</code> call without a second find; a selectively wrapped raw element correctly has an unknown locator.</p>
 <p>Collections can be composed without leaving <code>UiLocator</code>: scope a descendant with <code>locator(...)</code>, keep parents with <code>filterHas(...)</code>, filter visible text or DOM attributes, then wait for a current count. The order of filters, positional selection, and descendant lookup is preserved.</p>
 <p>Collection and state assertions use the same fresh-DOM polling model:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">cssSelector</span><span class="p">(</span><span class="s">".product-card"</span><span class="p">))</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">        </span><span class="p">.</span><span class="na">filterByAttribute</span><span class="p">(</span><span class="s">"data-status"</span><span class="p">,</span><span class="w"> </span><span class="s">"available"</span><span class="p">)</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">        </span><span class="p">.</span><span class="na">expect</span><span class="p">()</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">        </span><span class="p">.</span><span class="na">toHaveCount</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"save"</span><span class="p">).</span><span class="na">expect</span><span class="p">().</span><span class="na">toHaveAttribute</span><span class="p">(</span><span class="s">"aria-busy"</span><span class="p">,</span><span class="w"> </span><span class="s">"false"</span><span class="p">);</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByRole</span><span class="p">(</span><span class="s">"checkbox"</span><span class="p">,</span><span class="w"> </span><span class="s">"Terms"</span><span class="p">).</span><span class="na">expect</span><span class="p">().</span><span class="na">toBeChecked</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">cssSelector</span><span class="p">(</span><span class="s">".product-card"</span><span class="p">))</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">        </span><span class="p">.</span><span class="na">filterByAttribute</span><span class="p">(</span><span class="s">"data-status"</span><span class="p">,</span><span class="w"> </span><span class="s">"available"</span><span class="p">)</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">        </span><span class="p">.</span><span class="na">expect</span><span class="p">()</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">        </span><span class="p">.</span><span class="na">toHaveCount</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"save"</span><span class="p">).</span><span class="na">expect</span><span class="p">().</span><span class="na">toHaveAttribute</span><span class="p">(</span><span class="s">"aria-busy"</span><span class="p">,</span><span class="w"> </span><span class="s">"false"</span><span class="p">);</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByRole</span><span class="p">(</span><span class="s">"checkbox"</span><span class="p">,</span><span class="w"> </span><span class="s">"Terms"</span><span class="p">).</span><span class="na">expect</span><span class="p">().</span><span class="na">toBeChecked</span><span class="p">();</span>
 </span></code></pre></div>
 <p>These assertions read state only. They do not click controls or mutate the page, and their polling does not count as a recovery retry.</p>
 <p>Use page assertions for navigation and document readiness without creating a locator:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">expectPage</span><span class="p">().</span><span class="na">toContainUrl</span><span class="p">(</span><span class="s">"/checkout"</span><span class="p">);</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">expectPage</span><span class="p">().</span><span class="na">toHaveTitle</span><span class="p">(</span><span class="s">"Checkout"</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">expectPage</span><span class="p">().</span><span class="na">toContainUrl</span><span class="p">(</span><span class="s">"/checkout"</span><span class="p">);</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">expectPage</span><span class="p">().</span><span class="na">toHaveTitle</span><span class="p">(</span><span class="s">"Checkout"</span><span class="p">);</span>
 </span></code></pre></div>
 <p>They observe the current window selected by your Selenium flow. URL matching is raw and case-sensitive; title matching follows <code>UiAssertionOptions</code> text settings. Reported URL previews omit credentials, query strings, and fragments.</p>
 <p>For readiness rather than an assertion value, the main facade also delegates to the page waits:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">waitForPageReady</span><span class="p">();</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">waitForNetworkIdle</span><span class="p">(</span><span class="n">Duration</span><span class="p">.</span><span class="na">ofMillis</span><span class="p">(</span><span class="mi">500</span><span class="p">),</span><span class="w"> </span><span class="n">Duration</span><span class="p">.</span><span class="na">ofSeconds</span><span class="p">(</span><span class="mi">5</span><span class="p">));</span>
+<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">waitForPageReady</span><span class="p">();</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">waitForNetworkIdle</span><span class="p">(</span><span class="n">Duration</span><span class="p">.</span><span class="na">ofMillis</span><span class="p">(</span><span class="mi">500</span><span class="p">),</span><span class="w"> </span><span class="n">Duration</span><span class="p">.</span><span class="na">ofSeconds</span><span class="p">(</span><span class="mi">5</span><span class="p">));</span>
 </span></code></pre></div>
 <p>The defaults come from <code>TestLensOptions.locatorOptions()</code>. The network wait is an XHR/fetch tracker heuristic, not complete browser network-idle detection; see <a href="../elements/waiting/#page-and-javascript-waits">Element and page waiting</a>.</p>
 <p>Lens finalization writes the session diagnostics. Use <code>finishSkipped(reason)</code> for an aborted test or unmet assumption; unlike <code>finishFailed(...)</code>, it does not request a failure screenshot. Keep your existing <code>WebDriver</code> cleanup as-is.</p>
 <p>For JUnit, TestNG and reporter lifecycle examples, see <a href="../framework-integration/">Framework integration</a>. The runner adapters are the recommended JUnit 5 and TestNG paths in 0.3.0.</p>
 <h2 id="run-your-test">Run your test<a class="headerlink" href="#run-your-test" title="Permanent link">&para;</a></h2>
 <p>Run the test with your existing Maven command:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>mvn<span class="w"> </span><span class="nb">test</span>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>mvn<span class="w"> </span><span class="nb">test</span>
 </span></code></pre></div>
 <p>When the session is finalized, Test Lens writes its HTML and JSON reports under <code>target/ui-test-lens</code> by default.</p>
-<h2 id="optional-configure-the-030-hud">Optional: configure the 0.3.0 HUD<a class="headerlink" href="#optional-configure-the-030-hud" title="Permanent link">&para;</a></h2>
-<p>The default <code>COMPACT</code> HUD is enough to get started. In release 0.3.0, customize it through immutable <code>HudOptions</code> and pass it with <code>TestLensOptions</code>:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.TestLens</span><span class="p">;</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.TestLensOptions</span><span class="p">;</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.hud.HudOptions</span><span class="p">;</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.hud.HudPosition</span><span class="p">;</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.hud.HudPreset</span><span class="p">;</span>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="n">HudOptions</span><span class="w"> </span><span class="n">hud</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HudOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">        </span><span class="p">.</span><span class="na">preset</span><span class="p">(</span><span class="n">HudPreset</span><span class="p">.</span><span class="na">COMPACT</span><span class="p">)</span>
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">        </span><span class="p">.</span><span class="na">position</span><span class="p">(</span><span class="n">HudPosition</span><span class="p">.</span><span class="na">TOP_RIGHT</span><span class="p">)</span>
-</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
-</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
-</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">,</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">        </span><span class="p">.</span><span class="na">hud</span><span class="p">(</span><span class="n">hud</span><span class="p">)</span>
-</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">());</span>
+<h2 id="optional-configure-the-hud">Optional: configure the HUD<a class="headerlink" href="#optional-configure-the-hud" title="Permanent link">&para;</a></h2>
+<p>The default <code>COMPACT</code> HUD is enough to get started. Customize it through immutable <code>HudOptions</code> and pass it with <code>TestLensOptions</code>:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.TestLens</span><span class="p">;</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.TestLensOptions</span><span class="p">;</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.hud.HudOptions</span><span class="p">;</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.hud.HudPosition</span><span class="p">;</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="kn">import</span><span class="w"> </span><span class="nn">io.github.testlens.hud.HudPreset</span><span class="p">;</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="n">HudOptions</span><span class="w"> </span><span class="n">hud</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HudOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">        </span><span class="p">.</span><span class="na">preset</span><span class="p">(</span><span class="n">HudPreset</span><span class="p">.</span><span class="na">COMPACT</span><span class="p">)</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">        </span><span class="p">.</span><span class="na">position</span><span class="p">(</span><span class="n">HudPosition</span><span class="p">.</span><span class="na">TOP_RIGHT</span><span class="p">)</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">,</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">        </span><span class="p">.</span><span class="na">hud</span><span class="p">(</span><span class="n">hud</span><span class="p">)</span>
+</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">());</span>
 </span></code></pre></div>
 <p>The HUD is only a diagnostic aid and does not change test execution or assertions. <a href="../observability/hud-studio/">HUD Studio</a> edits the same renderer and generates matching Java configuration. Legacy <code>OverlayConfig</code> HUD setters remain compatible; explicit <code>HudOptions</code> wins for overlapping values.</p>
 <h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
@@ -3182,7 +3662,7 @@ on JDK 17 and JDK 21.</p>
 <li><a href="../integrations/junit5/">Use the JUnit 5 lifecycle extension</a></li>
 <li><a href="../elements/">Use locators, actions, waits, and assertions</a></li>
 <li><a href="../configuration/">Configure Test Lens</a></li>
-<li><a href="../whats-new-0.3.0/">Review what's new in 0.3.0</a></li>
+<li><a href="../whats-new-0.4.0/">Review what's new in 0.4.0</a></li>
 <li><a href="../migrating-0.2-to-0.3/">Migrate from 0.2.x</a></li>
 <li><a href="../migration/">Migrate incrementally from raw Selenium</a></li>
 <li><a href="../framework-integration/#optional-reactspa-helpers-module">Add the optional React/SPA helpers module</a></li>
@@ -3242,13 +3722,13 @@ on JDK 17 and JDK 21.</p>
         
         
           
-          <a href="../whats-new-0.3.1/" class="md-footer__link md-footer__link--next" aria-label="Next: What&#39;s new in 0.3.1">
+          <a href="../whats-new-0.4.0/" class="md-footer__link md-footer__link--next" aria-label="Next: What&#39;s new in 0.4.0">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                What's new in 0.3.1
+                What's new in 0.4.0
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -3285,7 +3765,7 @@ on JDK 17 and JDK 21.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0-SNAPSHOT", "default": "latest", "is_dev": true, "is_snapshot": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>

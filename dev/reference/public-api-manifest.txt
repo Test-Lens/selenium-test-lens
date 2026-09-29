@@ -1,6 +1,6 @@
 # Generated public API manifest. Do not edit by hand.
-# Types: 276
-# Public callable methods/constructors: 2132
+# Types: 283
+# Public callable methods/constructors: 2183
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -255,6 +255,11 @@ TYPE io.github.testlens.core.redaction.RedactionPolicy
   public java.lang.String redact(java.lang.String)
   public java.lang.String redact(java.lang.String, java.lang.String)
   public java.lang.String redactUrl(java.lang.String)
+TYPE io.github.testlens.core.trace.PassedTraceRetention
+  public static final io.github.testlens.core.trace.PassedTraceRetention RETAIN_TRACE
+  public static final io.github.testlens.core.trace.PassedTraceRetention SUMMARY_ONLY
+  public static io.github.testlens.core.trace.PassedTraceRetention[] values()
+  public static io.github.testlens.core.trace.PassedTraceRetention valueOf(java.lang.String)
 TYPE io.github.testlens.core.trace.RetryOutcomePolicy
   public static final io.github.testlens.core.trace.RetryOutcomePolicy REPORT_ONLY
   public static final io.github.testlens.core.trace.RetryOutcomePolicy WARN
@@ -429,6 +434,19 @@ TYPE io.github.testlens.core.trace.TraceMetadata
   public io.github.testlens.core.trace.TraceStatus status()
   public java.lang.String environment()
   public java.util.Map<java.lang.String, java.lang.String> labels()
+TYPE io.github.testlens.core.trace.TraceRetentionOptions$Builder
+  public io.github.testlens.core.trace.TraceRetentionOptions$Builder maxEvents(int)
+  public io.github.testlens.core.trace.TraceRetentionOptions$Builder maxBytes(long)
+  public io.github.testlens.core.trace.TraceRetentionOptions$Builder maxEventBytes(long)
+  public io.github.testlens.core.trace.TraceRetentionOptions$Builder passedSessionRetention(io.github.testlens.core.trace.PassedTraceRetention)
+  public io.github.testlens.core.trace.TraceRetentionOptions build()
+TYPE io.github.testlens.core.trace.TraceRetentionOptions
+  public static io.github.testlens.core.trace.TraceRetentionOptions defaults()
+  public static io.github.testlens.core.trace.TraceRetentionOptions$Builder builder()
+  public int maxEvents()
+  public long maxBytes()
+  public long maxEventBytes()
+  public io.github.testlens.core.trace.PassedTraceRetention passedSessionRetention()
 TYPE io.github.testlens.core.trace.TraceStatus
   public static final io.github.testlens.core.trace.TraceStatus STARTED
   public static final io.github.testlens.core.trace.TraceStatus PASSED
@@ -459,6 +477,7 @@ TYPE io.github.testlens.core.trace.UiTestLensSession
   public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String)
   public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int)
   public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int, io.github.testlens.core.redaction.RedactionPolicy)
+  public static io.github.testlens.core.trace.UiTestLensSession start(java.lang.String, io.github.testlens.core.trace.RetryOutcomePolicy, int, io.github.testlens.core.redaction.RedactionPolicy, io.github.testlens.core.trace.TraceRetentionOptions)
   public java.lang.String id()
   public synchronized io.github.testlens.core.trace.TraceMetadata metadata()
   public synchronized java.util.List<io.github.testlens.core.trace.TraceEvent> events()
@@ -619,6 +638,12 @@ TYPE io.github.testlens.HighlightOptions$Builder
   public io.github.testlens.HighlightOptions$Builder successColor(java.lang.String)
   public io.github.testlens.HighlightOptions$Builder failureColor(java.lang.String)
   public io.github.testlens.HighlightOptions$Builder durationMs(long)
+  public io.github.testlens.HighlightOptions$Builder actionDurationMs(long)
+  public io.github.testlens.HighlightOptions$Builder waitingDurationMs(long)
+  public io.github.testlens.HighlightOptions$Builder retryDurationMs(long)
+  public io.github.testlens.HighlightOptions$Builder successDurationMs(long)
+  public io.github.testlens.HighlightOptions$Builder failureDurationMs(long)
+  public io.github.testlens.HighlightOptions$Builder clearDurationOverride(io.github.testlens.HighlightState)
   public io.github.testlens.HighlightOptions$Builder borderWidthPx(int)
   public io.github.testlens.HighlightOptions$Builder showLabels(boolean)
   public io.github.testlens.HighlightOptions build()
@@ -633,6 +658,8 @@ TYPE io.github.testlens.HighlightOptions
   public java.lang.String successColor()
   public java.lang.String failureColor()
   public long durationMs()
+  public long effectiveDurationMs(io.github.testlens.HighlightState)
+  public java.util.OptionalLong durationOverrideMs(io.github.testlens.HighlightState)
   public int borderWidthPx()
   public boolean showLabels()
   public java.lang.String color(io.github.testlens.HighlightState)
@@ -991,6 +1018,7 @@ TYPE io.github.testlens.hud.SourceIde
   public static io.github.testlens.hud.SourceIde[] values()
   public static io.github.testlens.hud.SourceIde valueOf(java.lang.String)
 TYPE io.github.testlens.hud.SourceNavigationModifier
+  public static final io.github.testlens.hud.SourceNavigationModifier F8
   public static final io.github.testlens.hud.SourceNavigationModifier CTRL_ALT
   public static io.github.testlens.hud.SourceNavigationModifier[] values()
   public static io.github.testlens.hud.SourceNavigationModifier valueOf(java.lang.String)
@@ -1000,6 +1028,7 @@ TYPE io.github.testlens.hud.SourceNavigationOptions$Builder
   public io.github.testlens.hud.SourceNavigationOptions$Builder ide(io.github.testlens.hud.SourceIde)
   public io.github.testlens.hud.SourceNavigationOptions$Builder sourceRoots(java.nio.file.Path...)
   public io.github.testlens.hud.SourceNavigationOptions$Builder customUriTemplate(java.lang.String)
+  public io.github.testlens.hud.SourceNavigationOptions$Builder intellijProject(java.lang.String, java.nio.file.Path)
   public io.github.testlens.hud.SourceNavigationOptions build()
 TYPE io.github.testlens.hud.SourceNavigationOptions
   public static io.github.testlens.hud.SourceNavigationOptions defaults()
@@ -1009,6 +1038,8 @@ TYPE io.github.testlens.hud.SourceNavigationOptions
   public io.github.testlens.hud.SourceIde ide()
   public java.util.List<java.nio.file.Path> sourceRoots()
   public java.lang.String customUriTemplate()
+  public java.lang.String intellijProjectName()
+  public java.nio.file.Path intellijProjectRoot()
 MODULE selenium-test-lens-selenium
 TYPE io.github.testlens.JsOverlayDebug$AssertionSummary$AssertionTextFormat
   public static final io.github.testlens.JsOverlayDebug$AssertionSummary$AssertionTextFormat MESSAGE
@@ -1101,6 +1132,7 @@ TYPE io.github.testlens.JsOverlayDebug
   public void initHud(java.lang.String, java.lang.String)
   public void setStep(java.lang.String)
   public void hudLog(java.lang.String, java.lang.String, java.lang.String)
+  public void hudLog(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
   public void highlightClick(org.openqa.selenium.WebElement, java.lang.String)
   public org.openqa.selenium.WebElement highlightElement(org.openqa.selenium.WebElement, java.lang.String)
   public org.openqa.selenium.WebElement highlightElement(org.openqa.selenium.WebElement, java.lang.String, io.github.testlens.HighlightState)
@@ -1115,6 +1147,7 @@ TYPE io.github.testlens.JsOverlayDebug
   public void smartTypeWithHintHighlighted(org.openqa.selenium.WebElement, java.lang.String)
   public void smartTypeWithHintHighlighted(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)
   public void smartClickWithOverlayHandler(org.openqa.selenium.WebElement, java.lang.String)
+  public void smartClickWithOverlayHandler(org.openqa.selenium.WebElement, java.lang.String, boolean)
   public void clearDebugArtifacts()
   public void waitForPageReady()
   public void waitForPageReady(java.time.Duration)
@@ -1175,6 +1208,11 @@ TYPE io.github.testlens.JsOverlayDebug
   public void apiHighlightJsonPathsAnimated(java.util.List<java.lang.String>, long)
   public org.openqa.selenium.WebDriver getDriver()
   public io.github.testlens.OverlayConfig getConfig()
+TYPE io.github.testlens.ObservabilityMode
+  public static final io.github.testlens.ObservabilityMode DEFAULT
+  public static final io.github.testlens.ObservabilityMode FAST
+  public static io.github.testlens.ObservabilityMode[] values()
+  public static io.github.testlens.ObservabilityMode valueOf(java.lang.String)
 TYPE io.github.testlens.OverlayWait
   public io.github.testlens.OverlayWait(org.openqa.selenium.WebDriver, java.time.Duration, io.github.testlens.JsOverlayDebug, io.github.testlens.core.OverlayLogger)
   public io.github.testlens.OverlayWait(org.openqa.selenium.WebDriver, java.time.Duration, io.github.testlens.JsOverlayDebug)
@@ -1203,6 +1241,9 @@ TYPE io.github.testlens.TestLens
   public static io.github.testlens.TestLens attach(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig)
   public static io.github.testlens.TestLens attach(org.openqa.selenium.WebDriver, io.github.testlens.TestLensOptions)
   public org.openqa.selenium.WebDriver driver()
+  public org.openqa.selenium.WebDriver observeDriver()
+  public org.openqa.selenium.WebElement observe(org.openqa.selenium.WebElement)
+  public org.openqa.selenium.WebElement observe(org.openqa.selenium.WebElement, java.lang.String)
   public io.github.testlens.core.trace.UiTestLensSession startSession(java.lang.String)
   public java.util.Optional<io.github.testlens.core.trace.UiTestLensSession> session()
   public io.github.testlens.ScenarioStateManager scenarioState()
@@ -1289,6 +1330,8 @@ TYPE io.github.testlens.TestLensOptions$Builder
   public io.github.testlens.TestLensOptions$Builder allowedRetries(int)
   public io.github.testlens.TestLensOptions$Builder failureBundleOptions(io.github.testlens.selenium.evidence.FailureBundleOptions)
   public io.github.testlens.TestLensOptions$Builder redactionPolicy(io.github.testlens.core.redaction.RedactionPolicy)
+  public io.github.testlens.TestLensOptions$Builder traceRetention(io.github.testlens.core.trace.TraceRetentionOptions)
+  public io.github.testlens.TestLensOptions$Builder observabilityMode(io.github.testlens.ObservabilityMode)
   public io.github.testlens.TestLensOptions$Builder hud(io.github.testlens.hud.HudOptions)
   public io.github.testlens.TestLensOptions$Builder highlights(io.github.testlens.HighlightOptions)
   public io.github.testlens.TestLensOptions$Builder highlight(io.github.testlens.HighlightOptions)
@@ -1306,6 +1349,8 @@ TYPE io.github.testlens.TestLensOptions
   public int allowedRetries()
   public io.github.testlens.selenium.evidence.FailureBundleOptions failureBundleOptions()
   public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
+  public io.github.testlens.core.trace.TraceRetentionOptions traceRetention()
+  public io.github.testlens.ObservabilityMode observabilityMode()
   public io.github.testlens.hud.HudOptions hud()
   public io.github.testlens.HighlightOptions highlights()
   public io.github.testlens.HighlightOptions highlight()
@@ -2123,6 +2168,16 @@ TYPE io.github.testlens.selenium.evidence.VisualRedactionOptions
   public int paddingPx()
   public java.lang.String maskLabel()
   public boolean hasMasks()
+TYPE io.github.testlens.selenium.execution.BrowserExecutionConfig
+  public static io.github.testlens.selenium.execution.BrowserExecutionConfig resolve()
+  public static io.github.testlens.selenium.execution.BrowserExecutionConfig resolve(io.github.testlens.selenium.execution.HeadlessMode)
+  public io.github.testlens.selenium.execution.HeadlessMode headless()
+TYPE io.github.testlens.selenium.execution.HeadlessMode
+  public static final io.github.testlens.selenium.execution.HeadlessMode UNSET
+  public static final io.github.testlens.selenium.execution.HeadlessMode TRUE
+  public static final io.github.testlens.selenium.execution.HeadlessMode FALSE
+  public static io.github.testlens.selenium.execution.HeadlessMode[] values()
+  public static io.github.testlens.selenium.execution.HeadlessMode valueOf(java.lang.String)
 TYPE io.github.testlens.selenium.locator.UiLocator
   public io.github.testlens.selenium.locator.UiLocator(org.openqa.selenium.WebDriver, org.openqa.selenium.By, java.lang.String, io.github.testlens.JsOverlayDebug, io.github.testlens.selenium.locator.UiLocatorOptions, io.github.testlens.core.OverlayLogger)
   public io.github.testlens.selenium.locator.UiLocator click()
@@ -2200,6 +2255,7 @@ TYPE io.github.testlens.selenium.locator.UiLocatorOptions$Builder
   public io.github.testlens.selenium.locator.UiLocatorOptions$Builder retryOnClickIntercepted(boolean)
   public io.github.testlens.selenium.locator.UiLocatorOptions$Builder retryOnNotInteractable(boolean)
   public io.github.testlens.selenium.locator.UiLocatorOptions$Builder highlightBeforeAction(boolean)
+  public io.github.testlens.selenium.locator.UiLocatorOptions$Builder javascriptClickFallback(boolean)
   public io.github.testlens.selenium.locator.UiLocatorOptions build()
 TYPE io.github.testlens.selenium.locator.UiLocatorOptions
   public static io.github.testlens.selenium.locator.UiLocatorOptions defaults()
@@ -2212,6 +2268,7 @@ TYPE io.github.testlens.selenium.locator.UiLocatorOptions
   public boolean retryOnClickIntercepted()
   public boolean retryOnNotInteractable()
   public boolean highlightBeforeAction()
+  public boolean javascriptClickFallback()
 TYPE io.github.testlens.selenium.locator.UiLocatorSelectors
   public static java.lang.String xpathLiteral(java.lang.String)
   public static java.lang.String normalizeSpaceExpression(java.lang.String)
@@ -2660,18 +2717,27 @@ TYPE io.github.testlens.selenium.steps.UiStepStatus
   public static io.github.testlens.selenium.steps.UiStepStatus valueOf(java.lang.String)
 MODULE selenium-test-lens-junit5
 TYPE io.github.testlens.junit5.TestLensExtension$Builder
+  public io.github.testlens.junit5.TestLensExtension$Builder headless(io.github.testlens.selenium.execution.HeadlessMode)
   public io.github.testlens.junit5.TestLensExtension$Builder lensOptions(io.github.testlens.TestLensOptions)
   public io.github.testlens.junit5.TestLensExtension$Builder sessionName(java.util.function.Function<org.junit.jupiter.api.extension.ExtensionContext, java.lang.String>)
   public io.github.testlens.junit5.TestLensExtension build()
 TYPE io.github.testlens.junit5.TestLensExtension
   public static io.github.testlens.junit5.TestLensExtension$Builder builder(java.util.function.Supplier<? extends org.openqa.selenium.WebDriver>)
+  public static io.github.testlens.junit5.TestLensExtension$Builder builder(java.util.function.Function<io.github.testlens.selenium.execution.BrowserExecutionConfig, ? extends org.openqa.selenium.WebDriver>)
   public void beforeEach(org.junit.jupiter.api.extension.ExtensionContext) throws java.lang.Exception
   public void afterEach(org.junit.jupiter.api.extension.ExtensionContext) throws java.lang.Exception
   public boolean supportsParameter(org.junit.jupiter.api.extension.ParameterContext, org.junit.jupiter.api.extension.ExtensionContext)
   public java.lang.Object resolveParameter(org.junit.jupiter.api.extension.ParameterContext, org.junit.jupiter.api.extension.ExtensionContext)
 MODULE selenium-test-lens-testng
+TYPE io.github.testlens.testng.DriverScope
+  public static final io.github.testlens.testng.DriverScope PER_METHOD
+  public static final io.github.testlens.testng.DriverScope PER_CLASS
+  public static io.github.testlens.testng.DriverScope[] values()
+  public static io.github.testlens.testng.DriverScope valueOf(java.lang.String)
 TYPE io.github.testlens.testng.TestLensTestNg
   public abstract java.lang.Class<? extends io.github.testlens.testng.TestLensTestNgFactory> factory()
+  public abstract io.github.testlens.testng.DriverScope driverScope()
+  public abstract io.github.testlens.selenium.execution.HeadlessMode headless()
 TYPE io.github.testlens.testng.TestLensTestNgContext
   public static io.github.testlens.testng.TestLensTestNgContext current()
   public org.openqa.selenium.WebDriver driver()
@@ -2679,13 +2745,15 @@ TYPE io.github.testlens.testng.TestLensTestNgContext
   public io.github.testlens.core.trace.UiTestLensSession session()
 TYPE io.github.testlens.testng.TestLensTestNgFactory
   public abstract org.openqa.selenium.WebDriver createDriver()
+  public default org.openqa.selenium.WebDriver createDriver(io.github.testlens.selenium.execution.BrowserExecutionConfig)
   public default io.github.testlens.TestLensOptions lensOptions()
   public default java.lang.String sessionName(org.testng.ITestResult)
 TYPE io.github.testlens.testng.TestLensTestNgListener
   public io.github.testlens.testng.TestLensTestNgListener()
   public void beforeInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
-  public void onFinish(org.testng.ISuite)
   public void afterInvocation(org.testng.IInvokedMethod, org.testng.ITestResult)
+  public void onAfterClass(org.testng.ITestClass)
+  public void onFinish(org.testng.ISuite)
 MODULE selenium-test-lens-allure
 TYPE io.github.testlens.allure.AllureAttachResult
   public io.github.testlens.allure.AllureAttachResult(io.github.testlens.allure.AllureAttachStatus, int, int, java.util.List<java.lang.String>, java.util.List<java.lang.String>)

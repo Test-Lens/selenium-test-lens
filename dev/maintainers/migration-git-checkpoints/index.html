@@ -1,0 +1,4143 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+      
+      
+      
+        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/maintainers/migration-git-checkpoints/">
+      
+      
+        <link rel="prev" href="../compatibility-run-manifests/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Migration Git preflight and checkpoints - Test Lens</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-T0B0XE6MS1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-T0B0XE6MS1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-T0B0XE6MS1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  
+  
+    
+  
+  
+  
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Test Lens">
+  <meta property="og:title" content="Migration Git preflight and checkpoints - Test Lens">
+  <meta property="og:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/maintainers/migration-git-checkpoints/">
+  <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+  <meta property="og:image:alt" content="Test Lens">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Migration Git preflight and checkpoints - Test Lens">
+  <meta name="twitter:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#migration-git-preflight-and-checkpoints" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+  <style>.tl-version-switcher{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-bottom:.25rem}.tl-version-switcher select{max-width:15rem}</style>
+  <nav class="tl-version-switcher" aria-label="Documentation version"
+       data-current-version="dev">
+    <strong>Version:</strong>
+    <select aria-label="Choose documentation version" data-tl-version-select>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
+    </select>
+    <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
+  </nav>
+  <script>
+    (() => {
+      const nav = document.currentScript.previousElementSibling;
+      const select = nav.querySelector("[data-tl-version-select]");
+      const base = "https://test-lens.github.io/selenium-test-lens/";
+      const selectCurrent = () => {
+        const current = nav.dataset.currentVersion;
+        for (const option of select.options) option.selected = option.textContent === current;
+      };
+      select.addEventListener("change", () => { window.location.assign(select.value); });
+      selectCurrent();
+      fetch(base + "versions.json", { credentials: "same-origin" })
+        .then(response => response.ok ? response.json() : Promise.reject())
+        .then(versions => {
+          select.replaceChildren(...versions.map(item => {
+            const option = document.createElement("option");
+            option.value = base + item.version + "/";
+            option.textContent = item.title || item.version;
+            option.dataset.version = item.version;
+            option.selected = item.version === nav.dataset.currentVersion;
+            return option;
+          }));
+        })
+        .catch(() => selectCurrent());
+    })();
+  </script>
+  
+    
+      Documentation source for <strong>0.4.0</strong>.
+    
+    <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
+  
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Test Lens" class="md-header__button md-logo" aria-label="Test Lens" data-md-component="logo">
+      
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Test Lens
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Migration Git preflight and checkpoints
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Test-Lens/selenium-test-lens" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Test-Lens/selenium-test-lens
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Using Test Lens
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../observability/" class="md-tabs__link">
+          
+  
+  
+  Observability
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../security/redaction/" class="md-tabs__link">
+          
+  
+  
+  Security
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../advanced/" class="md-tabs__link">
+          
+  
+  
+  Advanced Features
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../integrations/" class="md-tabs__link">
+          
+  
+  
+  Integrations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../migration/" class="md-tabs__link">
+          
+  
+  
+  Migration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../reference/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Test Lens" class="md-nav__button md-logo" aria-label="Test Lens" data-md-component="logo">
+      
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
+
+    </a>
+    Test Lens
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Test-Lens/selenium-test-lens" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Test-Lens/selenium-test-lens
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation & first test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.4.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.3.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.3.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migrating-0.2-to-0.3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating from 0.2.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../framework-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Existing WebDriver integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Test Lens
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Using Test Lens
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/react-spa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    React & SPA resilience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/auth-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managed Auth State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/managed-test-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managed Test State & Resources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elements
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Elements
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elements overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/locators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Locators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/waiting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Waiting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/assertions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/information/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Element information
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/select-controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Select controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser Context
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Browser Context
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser context overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/windows-tabs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Windows & tabs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/alerts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerts, confirms & prompts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Observability
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/visual-diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live HUD & configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/hud-studio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HUD Studio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/screenshots-evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Screenshots & evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/trace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Trace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTML, JSON & ZIP reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/report-upload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Report upload
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/flakiness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flakiness and retry outcomes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/failure-bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Failure bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Security
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensitive-data redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/visual-redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced features overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/steps-business-assertions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steps & business assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Network diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/overlay-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overlay policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/visual-helpers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual helpers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/js-overlay-debug/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JsOverlayDebug advanced facade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/junit5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JUnit 5
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/testng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestNG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/allure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Allure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Migration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From raw Selenium
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/test-lens/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestLens
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration builders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/result-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result & data types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/core-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/advanced-low-level/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced / low-level API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/public-api-catalog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Binary API catalog (optional)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../consumer-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Consumer compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing versioned docs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-0.4.x/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releasing Test Lens 0.4.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-certification-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 release certification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../media-inventory-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 media inventory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recording-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recording 0.4.0 media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../patch-release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.x patch-release lane
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-integration-tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Real-browser integration tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../performance-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime performance audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-declaration-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Static locator declaration index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-stability-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector stability policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-candidate-live-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector candidate live analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-find-similar-history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector similarity and cross-run history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Offline Selector Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-lab-readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read-only Selector Lab
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compatibility-run-manifests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility run manifests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Git preflight and checkpoints
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Git preflight and checkpoints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#git-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#identity-and-source-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identity and source state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-root-and-checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State root and checkpoint
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plans-are-not-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plans are not actions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s10b2-proposal-and-review-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S10B2 proposal and review boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s10b3-explicit-orchestration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S10B3 explicit orchestration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="S10B3 explicit orchestration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run-artifacts-and-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run artifacts and baselines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#approved-git-isolation-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approved Git isolation actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s11b1-guarded-source-apply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S11B1 guarded source Apply
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="S11B1 guarded source Apply">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lock-journal-and-replacement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lock, journal, and replacement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rollback-and-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rollback and recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s11b2-post-apply-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S11B2 post-apply verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s11b3-final-reporting-and-recovery-presentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S11B3 final reporting and recovery presentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="S11B3 final reporting and recovery presentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#s12-release-hardening-handoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S12 release-hardening handoff
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.4.0" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maven Central
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Javadoc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#git-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#identity-and-source-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identity and source state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#state-root-and-checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State root and checkpoint
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plans-are-not-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plans are not actions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s10b2-proposal-and-review-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S10B2 proposal and review boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s10b3-explicit-orchestration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S10B3 explicit orchestration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="S10B3 explicit orchestration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run-artifacts-and-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run artifacts and baselines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#approved-git-isolation-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approved Git isolation actions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s11b1-guarded-source-apply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S11B1 guarded source Apply
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="S11B1 guarded source Apply">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lock-journal-and-replacement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lock, journal, and replacement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rollback-and-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rollback and recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s11b2-post-apply-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S11B2 post-apply verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#s11b3-final-reporting-and-recovery-presentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S11B3 final reporting and recovery presentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="S11B3 final reporting and recovery presentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#s12-release-hardening-handoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S12 release-hardening handoff
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/main/docs/maintainers/migration-git-checkpoints.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="migration-git-preflight-and-checkpoints">Migration Git preflight and checkpoints<a class="headerlink" href="#migration-git-preflight-and-checkpoints" title="Permanent link">&para;</a></h1>
+<p>S10B1 is internal, non-published, read-only migration tooling. It records Git and source state for later review; it
+does not propose or apply edits, create branches or worktrees, stash changes, run tests, or contact Git remotes.
+The interrupted S10B1 implementation was resumed from its existing worktree and completed without discarding or
+rewriting the valid checkpoint, preflight, and fixture work that was already present.</p>
+<h2 id="git-boundary">Git boundary<a class="headerlink" href="#git-boundary" title="Permanent link">&para;</a></h2>
+<p>Git is invoked as a trusted executable with <code>ProcessBuilder(List&lt;String&gt;)</code>, never through a shell. The closed B1
+allowlist contains read-only semantic operations only. Every invocation sets <code>GIT_TERMINAL_PROMPT=0</code>,
+<code>GIT_OPTIONAL_LOCKS=0</code>, <code>GIT_PAGER=cat</code>, and <code>PAGER=cat</code>, and passes <code>-c core.fsmonitor=false</code>,
+<code>-c color.ui=false</code>, and <code>--no-pager</code>. This prevents repository-configured fsmonitor and pager helpers from running.
+No network operation is available. A <code>safe.directory</code> failure is reported without weakening global Git security.</p>
+<p>Status uses <code>--porcelain=v2 -z</code>. Staged, unstaged, untracked, conflicted, rename, and copy facts remain distinct,
+including staged-then-modified paths and names containing whitespace or newlines. Named, detached, and unborn HEAD,
+worktrees, sparse checkout, and merge/rebase/cherry-pick/revert/bisect markers are represented. Submodule presence is
+detected locally from <code>.gitmodules</code> and gitlinks; detailed state is intentionally partial and no update is run.</p>
+<h2 id="identity-and-source-state">Identity and source state<a class="headerlink" href="#identity-and-source-state" title="Permanent link">&para;</a></h2>
+<p>Opaque domain-separated digests bind a checkpoint to the same local Git common directory and worktree. Absolute
+repository, worktree, <code>.git</code>, and user-home paths stay in an ephemeral local context and are not serialized. Another
+clone requires explicit future rebind plus a complete fresh validation.</p>
+<p>Clean tracked state uses the HEAD tree. Only dirty paths are hashed: exact index blob SHA-256 for staged content,
+exact file SHA-256 for working/untracked regular files, link-target text digest without following symlinks, and an
+explicit deleted state. Rename and copy origins are retained in the dirty fingerprint. Metadata is checked before
+and after reads, and regular files are opened with no-follow semantics. A conflicted index is recorded by preflight
+but deliberately makes the source checkpoint incomplete until manual resolution. Limits are 10,000 paths, 64 MiB per file,
+512 MiB aggregate dirty content, and 16 MiB checkpoint JSON. Overflow or a concurrent edit yields
+<code>INCOMPLETE_SOURCE_STATE</code> and blocks later mutation eligibility.</p>
+<h2 id="state-root-and-checkpoint">State root and checkpoint<a class="headerlink" href="#state-root-and-checkpoint" title="Permanent link">&para;</a></h2>
+<p>An explicit trusted state root is allowed, but an in-worktree root must be under <code>target</code>, already ignored, and not
+inside <code>.git</code>. Without one, <code>target/test-lens/migration</code> is used only when <code>git check-ignore</code> proves it ignored;
+otherwise <code>${user.home}/.test-lens/migration/&lt;repository-binding&gt;/</code> is used. Ignore files are never modified, and
+checkpoint creation must not change the semantic worktree status.</p>
+<p>Checkpoint IDs are <code>migration-checkpoint-v1:sha256:&lt;hex&gt;</code> and filenames use a Windows-safe hyphenated form. Jackson
+Core streaming provides fixed ordering, strict duplicate/schema/enum checks, bounds, a stable trailing LF, and
+sibling-temp atomic replacement. Checkpoints are local-sensitive because logical Git filenames are retained; they
+contain no credentials and are never uploaded automatically.</p>
+<p>Resume returns <code>VALID</code>, <code>VALID_WITH_WARNINGS</code>, <code>REQUIRES_REFRESH</code>, or <code>BLOCKED</code>, with independent reasons:
+<code>HEAD_CHANGED</code>, <code>BRANCH_CHANGED</code>, <code>WORKTREE_CHANGED</code>, <code>INDEX_CHANGED</code>, <code>WORKING_FILE_CHANGED</code>,
+<code>UNTRACKED_CHANGED</code>, <code>GIT_OPERATION_CHANGED</code>, <code>INPUT_REPORT_CHANGED</code>, <code>SOURCE_PRECONDITION_CHANGED</code>,
+<code>MISSING_ARTIFACT</code>, <code>REPOSITORY_BINDING_CHANGED</code>, and <code>CHECKPOINT_INCOMPLETE</code>. B1 reports changed paths but has no
+proposal-target relevance knowledge yet.</p>
+<h2 id="plans-are-not-actions">Plans are not actions<a class="headerlink" href="#plans-are-not-actions" title="Permanent link">&para;</a></h2>
+<p><code>USE_CURRENT_WORKTREE</code>, <code>CREATE_DEDICATED_BRANCH</code>, <code>CREATE_DEDICATED_WORKTREE</code>, <code>STASH_EXPLICITLY</code>, and
+<code>MANUAL_RESOLUTION_REQUIRED</code> are immutable plans. B1 never executes them. Exact-OID stash handling is reserved for
+S10B3. Source apply, verify, rollback, and commit remain S11 responsibilities.</p>
+<h2 id="s10b2-proposal-and-review-boundary">S10B2 proposal and review boundary<a class="headerlink" href="#s10b2-proposal-and-review-boundary" title="Permanent link">&para;</a></h2>
+<p>S10B2 adds offline proposal planning, not migration execution. Compatibility comparison, static compatibility, and
+Selector Audit JSON enter as untrusted bytes. Bounded duplicate-rejecting readers validate V1 schemas and project
+only structured codes into <code>SANITIZED_EVIDENCE</code>. Exact file-byte SHA-256 is retained. Human explanations, HTML,
+safe display text, candidate labels, and <code>By.toString()</code> are never promoted to patch material. In particular,
+Selector Audit's <code>ALTERNATIVE_AVAILABLE</code> can request review but cannot supply a locator value.</p>
+<p>Exact locator proposals require a current <code>TRUSTED_LOCAL_PATCH_MATERIAL</code> projection and an explicitly supplied,
+live-validated trusted candidate. The narrow selector-tooling bridge exposes declaration and component references,
+project-relative path, exact file digest, UTF-16 source range, declaration and expression shape, resolved standard
+strategy/scalar when available, construct digest, declaring symbol, freshness, and limitations. It exposes neither
+source text nor an AST. A bounded symbol-resolved use graph retains at most 100,000 uses, samples at most 256 per
+proposal, and carries unresolved-symbol and source-root coverage rather than claiming unknown uses are complete.</p>
+<p>The V1 Java transformer supports an exact standard Selenium <code>By.&lt;factory&gt;(compile-time scalar)</code> expression. It
+re-reads the current file, verifies its full digest, strictly decodes UTF-8 or UTF-8 BOM, rejects mixed newlines,
+reparses Java 17, and verifies the exact AST node and old locator semantics before computing an in-memory edit.
+LF and CRLF are preserved. Java literal escaping does not reinterpret CSS or XPath. Parameterized/concatenated
+locators, helper-generated/custom locators, PageFactory annotations, and a strategy-changing static-import call that
+would need an import edit remain manual-only. A runtime observation such as <code>row-123</code> can never replace
+<code>"row-" + rowId</code>.</p>
+<p>Patch previews replace only approved UTF-16 ranges and use deterministic three-line unified-diff context with
+<code>a/&lt;logical-path&gt;</code> and <code>b/&lt;logical-path&gt;</code> labels, no timestamps or absolute paths. Full-file SHA, node kind, construct
+and semantic digests, encoding, newline convention, bindings, and already-applied semantics form the S11
+precondition. Any later edit to a touched file stales the V1 proposal; there is no fuzzy relocation or silent rebase.
+Exact diffs are <code>LOCAL_SENSITIVE_ARTIFACT</code> data and are in-memory by default. Explicit persistence can only use the
+existing B1 state store under <code>patches/</code>, <code>proposals/</code>, <code>decisions/</code>, or <code>reports/</code>.</p>
+<p>Proposal eligibility is <code>READY_FOR_REVIEW</code>, <code>REVIEW_REQUIRED</code>, <code>MANUAL_ONLY</code>, <code>BLOCKED_INSUFFICIENT_EVIDENCE</code>,
+<code>BLOCKED_STALE_INPUT</code>, or <code>NO_CHANGE_RECOMMENDED</code>; there is no auto-apply state. Static findings remain hypotheses.
+Non-comparable viewport, dataset, or browser evidence produces configuration/rerun guidance without a locator patch.
+Policy stability, rank, Audit recommendation, and Use once are evidence or preferences, never source authorization.
+Blast radius reports exact declaration targets, bounded known uses and correlated test refs, plus <code>COMPLETE</code>, <code>PARTIAL</code>,
+or <code>UNKNOWN</code> coverage. Same-node/different-semantics and overlapping-range conflicts have no automatic winner;
+configuration alignment and new-evidence dependencies are explicit.</p>
+<p>The decision ledger records approve-for-S11, reject, defer, and manual-only acknowledgement against the proposal ID,
+semantic digest, checkpoint, source preconditions, and evidence digests. Notes are bounded inert local text. Any
+proposal, checkpoint, source, or evidence change invalidates approval rather than inheriting a decision by display
+wording. The deterministic dry-run JSON summarizes evidence, eligibility/category counts, targets, blast radius,
+conflicts, dependencies, verification steps, and decisions but omits exact diffs. S10B2 has no Apply button, source
+writer, Git action, test command runner, or verification executor. S10B3 may add explicitly authorized orchestration;
+S11 remains the sole owner of source apply, post-patch verification, and guarded rollback.</p>
+<h2 id="s10b3-explicit-orchestration">S10B3 explicit orchestration<a class="headerlink" href="#s10b3-explicit-orchestration" title="Permanent link">&para;</a></h2>
+<p>S10B3 completes the S10 preparation/review boundary. A <code>MigrationRunPlan</code> is a content-addressed, shell-free plan
+containing a trusted executable reference, an argument array, a previously validated worktree binding, a small typed
+environment overlay, secret-reference names, a finite timeout, bounded expected artifacts, execution mode and scope,
+business side-effect classification, checkpoint, and baseline role. The local host separately binds the executable
+reference to an absolute executable and the worktree reference to a directory. Imported JSON, HTML, source, selectors,
+and browser content cannot supply either binding.</p>
+<p>Execution always uses <code>ProcessBuilder(List&lt;String&gt;)</code>. Arguments are never reparsed from the human-readable dry-run
+display. V1 on Windows supports native executables such as <code>java.exe</code>; <code>.cmd</code>, <code>.bat</code>, and <code>.ps1</code> are rejected with a
+safe stop because supporting them would introduce a command-shell boundary. Project wrappers are suggestions until a
+host deliberately supplies a supported executable. There is no general shell capability.</p>
+<p>Authorization has two independent dimensions. <code>EXECUTE_PROJECT_TEST_COMMAND</code> acknowledges that Maven, Gradle, Java,
+or a test runner can execute arbitrary host/project code. A second capability acknowledges application/data effects:
+<code>RUN_READ_ONLY_TEST</code>, <code>RUN_UNKNOWN_SIDE_EFFECT_TEST</code>, or <code>RUN_MUTATING_TEST</code>. Arbitrary tests default to <code>UNKNOWN</code>;
+method names and annotations do not prove read-only behavior. Missing capabilities produce <code>SAFE_STOP</code> without a TTY
+prompt, including in CI.</p>
+<p>The child inherits the host environment according to normal Java <code>ProcessBuilder</code> behavior; B3's additional overlay
+contains only allowlisted non-secret keys. Plans serialize secret-reference names, not values. A host resolver injects
+a value transiently into the child environment; values are excluded from plan IDs,
+dry-run output, checkpoints, and durable results. Standard output and error are independently bounded to at most
+8 MiB, drained concurrently, and represented durably by byte counts, digests, truncation state, and an empty-by-default
+diagnostic summary. Exact logs are local-sensitive and remain in memory unless the host explicitly writes them through
+the existing safe state store. Every process has a timeout and cancellation control. Timeout, cancellation, or thread
+interruption terminates descendants and the parent with a bounded graceful/forced sequence and records if any process
+remains.</p>
+<h3 id="run-artifacts-and-baselines">Run artifacts and baselines<a class="headerlink" href="#run-artifacts-and-baselines" title="Permanent link">&para;</a></h3>
+<p>Expected artifacts are trusted plan paths below either a conservative project <code>target/</code> or <code>build/</code> output root, or
+the B1 state root. Absolute
+paths, traversal, <code>.git</code>, symlink escape, and oversized files are rejected. Before execution the orchestrator records
+existence and exact SHA-256; afterward it enforces <code>MUST_BE_CREATED</code>, <code>MUST_CHANGE</code>, <code>MAY_REUSE</code>, or <code>OPTIONAL</code>.
+Modification time is not evidence of freshness. A compatibility manifest projection strictly rejects duplicate JSON
+fields, unknown top-level fields, unsupported schema/algorithm versions, malformed IDs, test-identity mismatch, and
+effective headed/headless or DEFAULT/FAST mismatch. A stale, malformed, or mode-mismatched manifest cannot become new
+evidence.</p>
+<p>Migration Assistant cannot make an arbitrary Maven, TestNG, or JUnit suite emit compatibility manifests. A supported
+run either invokes an already configured trusted command, consumes a trace/bundle through a separately supplied trusted
+host adapter, or receives manifests externally. Migration tooling deliberately does not depend on Selenium-heavy
+<code>compatibility-tooling</code> and installs no runtime listener.</p>
+<p><code>ORIGINAL_BASELINE</code> binds evidence and run records to the pre-instrumentation source/configuration checkpoint.
+<code>INSTRUMENTED_BASELINE</code> requires an original parent plus an explicit instrumentation-delta digest and a new checkpoint;
+it never replaces or masquerades as the original. B3 only records instrumentation already established externally or
+manually. It does not apply an instrumentation patch. Selected headed STANDARD, headless STANDARD, and headless FAST
+runs remain separate plans, and a single-test scope is never silently expanded to a suite.</p>
+<p>Before and after every run, Git preflight/source fingerprinting produces checkpoint history. An unexpected tracked or
+untracked source-state change is reported as <code>SOURCE_STATE_CHANGED_BY_RUN</code> and blocks continuing as if the baseline
+were stable. Expected ignored output artifacts do not dirty the source state. Interrupted ledger entries resume
+conservatively as <code>INTERRUPTED</code>, <code>UNKNOWN_COMPLETION</code>, or <code>ARTIFACTS_PARTIAL</code>; process disappearance is never treated as
+proof that the command did not finish.</p>
+<h3 id="approved-git-isolation-actions">Approved Git isolation actions<a class="headerlink" href="#approved-git-isolation-actions" title="Permanent link">&para;</a></h3>
+<p>B3 has a separate fixed-operation dispatcher; B1's read-only allowlist is unchanged. The only mutation templates are:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git branch -- &lt;validated-branch&gt; &lt;exact-commit-oid&gt;
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>git worktree add -b &lt;validated-branch&gt; -- &lt;trusted-absolute-destination&gt; &lt;exact-commit-oid&gt;
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>git stash push --message test-lens-migration-v1
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>git stash push --include-untracked --message test-lens-migration-v1
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>git stash apply --index &lt;exact-recorded-stash-oid&gt;
+</span></code></pre></div>
+<p>Branch/worktree candidates pass <code>check-ref-format</code>, bases are verified as exact local commit OIDs, repository/worktree
+bindings are rechecked, ongoing Git operations block the action, and existing branches or destinations are never
+forced, reset, pruned, removed, or reused. Branch creation does not switch the current worktree. Worktree creation
+requires both <code>CREATE_BRANCH</code> and <code>CREATE_WORKTREE</code>; partial failure triggers a fresh observation but no automatic
+deletion. Every successful mutation produces a fresh B1 checkpoint while preserving the prior checkpoint.</p>
+<p>Mutation commands keep prompting and paging disabled and pass <code>core.fsmonitor=false</code>, but unlike B1 reads they do not
+set <code>GIT_OPTIONAL_LOCKS=0</code>, because real mutations need Git locks. No mutation template contains fetch, pull, push,
+commit, reset, clean, restore, checkout, merge, or rebase.</p>
+<p>On Git 2.55 for Windows, disposable sentinel fixtures demonstrate that the exact <code>worktree add</code> template invokes a
+repository <code>post-checkout</code> hook and a configured smudge filter, and that the exact <code>stash push</code> template invokes a
+configured clean filter. These are repository-controlled executable code. The exact branch-ref creation template did
+not invoke the <code>post-checkout</code> sentinel.
+Consequently worktree creation also requires the distinct <code>ALLOW_REPOSITORY_GIT_HELPERS</code> capability; without it the
+tool returns <code>SAFE_STOP</code> before Git runs. Stash creation/restoration conservatively requires the same capability because
+Git consults attributes and clean/smudge filters while materializing stash trees; the exact helper set still depends on
+repository configuration. Branch creation does not require it because it only creates a ref and performs no checkout.
+This retains repository semantics without silently disabling helpers or pretending isolation is code-execution-free.</p>
+<p>Stash is an explicit alternative, not the default recommendation for a dirty tree. <code>TRACKED_ONLY</code> excludes untracked
+and ignored files; <code>TRACKED_AND_UNTRACKED</code> adds <code>--include-untracked</code>; V1 never uses <code>--all</code>. The tool records <code>refs/stash</code>
+before and after creation and persists the new exact commit OID, scope, bindings, source fingerprints, and before/after
+checkpoints. Restore requires <code>RESTORE_STASH</code>, the exact recorded OID, and an unchanged post-stash source precondition,
+then uses <code>stash apply --index &lt;oid&gt;</code>. It never uses a moving <code>stash@{0}</code>, <code>pop</code>, or <code>drop</code>. Conflicts are reported and
+left for manual resolution; the stash remains retained.</p>
+<p>The orchestration dry-run adds plan IDs, executable references, arguments as separate display values, environment key
+names, secret-reference names, expected artifacts, baseline roles, isolation operations, exact commit bases, stash
+scope, and every required capability. It executes nothing and never exposes secret values. The B3 state machine ends at
+<code>REVIEWED_FOR_S11</code>; it includes <code>PREFLIGHT_READY</code>, <code>ISOLATED</code>, <code>BASELINE_READY</code>, <code>RUNNING</code>, <code>EVIDENCE_READY</code>,
+<code>ANALYSIS_READY</code>, <code>PROPOSALS_READY</code>, <code>INTERRUPTED</code>, and <code>BLOCKED</code>, but deliberately has no <code>APPLIED</code> or <code>VERIFIED</code> state.</p>
+<p>S10 is therefore complete as preparation, evidence, proposal, review, run orchestration, and workspace isolation.
+There is still no source apply, patch apply, post-patch compile/test, automatic rollback, commit, merge, rebase, or Git
+network behavior. S11 receives content-addressed checkpoints, exact source preconditions and patch bytes, proposal and
+decision ledgers, run/baseline evidence, and isolation-action records; S11 alone may implement guarded source apply,
+verification, and precondition-aware rollback.</p>
+<h2 id="s11b1-guarded-source-apply">S11B1 guarded source Apply<a class="headerlink" href="#s11b1-guarded-source-apply" title="Permanent link">&para;</a></h2>
+<p>S11B1 adds source mutation only inside the non-published migration-tooling module. It does not add a runtime API,
+compile or run tests, perform headed/headless/FAST verification, invoke a shell, mutate source through Git, or commit.
+Its successful terminal state is <code>VERIFICATION_PENDING</code>, never <code>VERIFIED</code>.</p>
+<p>An <code>APPROVE_FOR_S11</code> decision makes a proposal eligible for consideration; it is not source-write authority. The host
+selects exact proposal IDs and separately supplies <code>APPLY_APPROVED_SOURCE_CHANGES</code> bound to the resulting apply-plan
+ID and repository/worktree bindings. Decisions are active only through explicit decision-ref supersession. Array
+order and timestamps have no precedence. Missing superseded decisions, cross-proposal links, cycles, or multiple
+non-superseded decisions invalidate the ledger. A superseding reject or defer prevents Apply.</p>
+<p>Proposal dependencies use typed, content-addressed <code>MigrationDependencyResolution</code> artifacts. New evidence,
+configuration alignment, prerequisite proposals, and trusted manual decisions are distinct resolution types bound to
+an exact proposal, dependency semantic ref, checkpoint, and evidence digests. Approval never bypasses an unresolved
+or stale dependency.</p>
+<p>Preparation reruns read-only Git preflight and source fingerprinting, writes a fresh checkpoint, and validates every
+selected proposal before any source write. Only <code>READY_FOR_REVIEW</code> proposals with exact source edits are accepted.
+All files are contained below the trusted worktree, regular and non-symlink, outside <code>.git</code>, strictly UTF-8 or UTF-8
+BOM, and LF or CRLF. The current full-file digest, AST node, declaration, range, old construct, and locator semantics
+must still match. There is no nearby search, fuzzy relocation, or automatic patch rebase.</p>
+<p>Executable proposal edits are rebuilt in memory rather than executed directly. The immutable
+<code>MigrationApplyPlan</code> binds the selected proposals, effective decisions, dependency resolutions, evidence,
+repository/worktree/checkpoints, approved UTF-16 ranges, exact original and proposed file SHA-256 values,
+content-addressed byte artifacts, merged verification-requirement digest, and exact owned-diff digest. The strict
+Jackson Core codec rejects duplicates, unknown fields, unsupported versions, invalid enums, semantic-ID mismatch,
+and bounds violations. The persisted plan is reloaded and must equal the plan whose ID the host authorized.</p>
+<p>Hard V1 bounds are 32 proposals, 64 files, 512 edits, 64 MiB per source artifact, 512 MiB aggregate originals,
+512 MiB aggregate targets, 64 MiB exact final diff, 16 MiB per plan/journal document, and 1,024 issues. Existing-file
+modification is the only supported source operation; file creation and deletion remain unsupported.</p>
+<h3 id="lock-journal-and-replacement">Lock, journal, and replacement<a class="headerlink" href="#lock-journal-and-replacement" title="Permanent link">&para;</a></h3>
+<p>A repository-binding-specific <code>FileChannel.tryLock()</code> is acquired before last-moment validation and held through
+replacement, immediate compensation, and transaction finalization. It prevents concurrent Test Lens Apply calls but
+does not lock an IDE or arbitrary process, so every target SHA is checked again before the first write and immediately
+before its own replacement. Any pre-write mismatch aborts the entire batch with zero writes. A mid-transaction
+external edit stops remaining files and produces a partial transaction without overwriting that edit.</p>
+<p>Before mutation, all original and target artifacts must exist and match their exact digest and size; an ownership
+registry and <code>PREPARED</code> journal event must be durable. Source backups are the bytes observed before migration, so a
+pre-existing user edit is preserved in both the backup and the rollback target rather than replaced with Git <code>HEAD</code>.
+Backups, targets, plans, journals, and diffs are <code>LOCAL_SENSITIVE_ARTIFACT</code> data below the already-safe B1 state root.</p>
+<p>The journal is an append-only sequence of individually atomic event files. Each event binds its sequence,
+transaction, semantic payload, previous-event digest, and own digest. Missing, reordered, corrupted, or cross-
+transaction events fail integrity validation. Operational timestamps are provenance and do not affect event identity.
+The transaction ID is derived from the exact plan and preparation checkpoint plus a fixed V1 attempt identity; it is
+not a random UUID.</p>
+<p>Each file uses a transaction-owned sibling temp created with <code>CREATE_NEW</code>, exact bytes written through <code>FileChannel</code>,
+<code>force(true)</code>, digest verification, and <code>ATOMIC_MOVE</code> with replacement when supported. The explicit fallback is a
+same-filesystem replacement move and is not described as atomic. POSIX permissions are retained when available;
+DOS read-only files are blocked rather than made writable. Windows ACL ownership and arbitrary extended attributes
+are not promised. The resulting target digest is checked immediately. Multi-file Apply is deliberately not called
+atomic: replacements occur one at a time and a failure at file N leaves an exact <code>PARTIAL_APPLY</code> record and never
+attempts N+1.</p>
+<p>Immediate compensation is available only in the same uninterrupted Apply call after an internal write failure and
+only when the host supplied a separate <code>ROLLBACK_TOOL_CHANGES</code> authorization in advance. Each target must still equal
+the exact tool-written digest. Apply authority alone does not imply rollback authority, and later verification failure
+will never trigger automatic rollback.</p>
+<h3 id="rollback-and-recovery">Rollback and recovery<a class="headerlink" href="#rollback-and-recovery" title="Permanent link">&para;</a></h3>
+<p>Explicit rollback is transaction-scoped and requires <code>ROLLBACK_TOOL_CHANGES</code> bound to the exact transaction and local
+bindings. A file is restored only when its current digest equals the transaction's proposed digest. An original digest
+is idempotently <code>ALREADY_ORIGINAL</code>; any other digest is <code>USER_MODIFIED</code> and is never overwritten; missing files remain
+missing. Rollback uses the same guarded exact-byte replacement boundary and never invokes <code>git reset</code>, <code>checkout</code>, or
+<code>restore</code>. It affects no unrelated file and retains the append-only history.</p>
+<p>Crash recovery reads the typed plan, ownership registry, journal chain, backups, and current target digests. Each file
+is classified as <code>ORIGINAL</code>, <code>TOOL_APPLIED</code>, <code>UNKNOWN_MODIFIED</code>, or <code>MISSING</code>. A prepared transaction with only original
+bytes is safe to abandon. A mixture of original and proposed bytes offers guarded rollback but never continues pending
+writes automatically. All proposed bytes with a missing final event require reconciliation, not a second Apply. An
+unknown modification, missing backup, or corrupt journal requires manual recovery. Only an exact transaction-owned
+temp name and target digest may be cleaned; arbitrary <code>.tmp</code> files are outside tool ownership.</p>
+<p>The final diff is generated from transaction-owned original and proposed artifacts, with logical <code>a/</code> and <code>b/</code> paths,
+not from the whole worktree. Pre-existing unrelated dirt is excluded and pre-existing edits in a touched file remain
+part of the original side. The sanitized apply-plan summary exposes only paths, counts, digests, budgets, dependency
+state, required capabilities, rollback availability, and verification-requirement digest; exact bytes and diff remain
+separate local-sensitive artifacts.</p>
+<p>After all target digests pass, S11B1 records a fresh source checkpoint and appends <code>VERIFICATION_PENDING</code>. Failure to
+record post-apply state is <code>RECOVERY_REQUIRED</code> and does not cause an unsafe automatic rollback. S11B2 must execute at
+least the verification requirements whose digest is bound into the ApplyPlan; it may add stricter checks but cannot
+silently remove reviewed requirements. Compile, affected tests, headed/headless/FAST runs, post-change compatibility
+comparison, and the final verification verdict belong exclusively to S11B2.</p>
+<h2 id="s11b2-post-apply-verification">S11B2 post-apply verification<a class="headerlink" href="#s11b2-post-apply-verification" title="Permanent link">&para;</a></h2>
+<p>Verification is a separate, non-mutating phase over an accepted Apply transaction in <code>VERIFICATION_PENDING</code>. The
+content-derived verification plan must reproduce the exact requirement digest bound into the ApplyPlan; additional
+requirements may make a later plan stricter, but no required reviewed obligation can disappear. Requirements are
+deduplicated by typed stage, target/test identity, execution mode, expectation, side-effect class, and source scope,
+then run in the fixed order source structure, compile, direct tests, known use-site tests, headed, headless, FAST,
+manifest validation, and compatibility comparison. Only required stages determine <code>VERIFIED</code>; optional stages remain
+visible when not run.</p>
+<p>Before verification and before and after every stage, tooling checks the repository/worktree binding, the exact
+tool-written digest of each touched file, and the post-Apply source-state digest. Ignored <code>target/</code> or <code>build/</code>
+outputs do not change that source state, while a tracked or other relevant source change blocks the remaining plan
+as <code>POST_APPLY_SOURCE_CHANGED</code>. The post-Apply checkpoint/source digest, ApplyPlan ID, and transaction ID are the
+revision identity for uncommitted source; unchanged Git <code>HEAD</code> is never presented as the patched revision.</p>
+<p>A verification requirement is not a command. A trusted host binds an exact stage ref to an existing shell-free
+<code>MigrationRunPlan</code>, working-tree/checkpoint binding, expected artifacts, network policy, and optional wrapper
+identity. The existing S10 authorization still requires <code>EXECUTE_PROJECT_TEST_COMMAND</code> plus the exact read-only,
+unknown, or mutating business-side-effect capability. Compile also executes project/build code. Missing approval or
+a missing exact binding blocks the stage instead of choosing a nearby test or broadening its scope.</p>
+<p>Windows wrapper support uses trusted <code>java.exe</code> and an exact, digest-bound wrapper JAR/properties pair. The only
+allowed main classes are <code>org.gradle.wrapper.GradleWrapperMain</code> for
+<code>gradle/wrapper/gradle-wrapper.jar</code> plus <code>.properties</code>, and
+<code>org.apache.maven.wrapper.MavenWrapperMain</code> for <code>.mvn/wrapper/maven-wrapper.jar</code> plus <code>.properties</code>. Maven layouts
+without the compatible JAR stop as unsupported. Wrapper paths must remain regular, non-symlink files below the
+worktree; changed JAR or properties bytes make the run plan stale. <code>.cmd</code>, <code>.bat</code>, and <code>.ps1</code> remain unsupported and
+there is no generic <code>cmd.exe</code> or shell fallback.</p>
+<p>Build network authorization is explicit. <code>NETWORK_AUTHORIZED</code> requires <code>ALLOW_BUILD_TOOL_NETWORK</code>; <code>OFFLINE</code>
+requires the wrapper's typed offline argument, and a wrapper cannot claim that network is irrelevant. This is an
+authorization and disclosure boundary, not an operating-system firewall. A wrapper bootstrap may still fail when
+its distribution is unavailable locally. Credentials embedded in a distribution URL are never shown; exact
+properties bytes are represented only by their SHA-256 binding.</p>
+<p>Fresh compatibility manifests are checked with the S10 pre/post digest rules and a strict bounded migration-side
+reader. Required post-change evidence must bind the transaction, ApplyPlan, checkpoint, source-state digest,
+execution mode, and structured test identity. Process success, test outcome, artifact validity, and compatibility
+acceptance remain separate facts. A stale/missing manifest or insufficient source relation cannot certify the
+transaction.</p>
+<p>Comparison axes are question-specific: pre/post headed and pre/post headless use <code>BUILD</code>; post-change headed versus
+headless uses <code>HEADLESS_MODE</code>; and post-change headless DEFAULT versus FAST uses <code>OBSERVABILITY_MODE</code>. The last two
+must share the new source revision, while BUILD must compare different source revisions. Plan-bound acceptable
+outcomes and comparability rules decide the stage. A headed regression, unresolved targeted headless finding, or
+FAST execution regression fails; expected FAST evidence reduction can be accepted. Historical baseline-red evidence
+is retained rather than rewritten as a patch regression.</p>
+<p>Verification results distinguish <code>VERIFIED</code>, <code>FAILED</code>, <code>INCONCLUSIVE</code>, <code>BLOCKED</code>, and <code>INTERRUPTED</code>, with the same
+coverage per stage and proposal. Plans and results use strict duplicate-rejecting, bounded deterministic JSON below
+the B1 safe state root. Reruns create new result history and an explicit supersession relation without applying source
+again. A short transaction-operation lock prevents rollback and verification state transitions from racing; no
+repository Apply lock is held during external commands. Compile, test, timeout, or comparison failure never triggers
+automatic rollback. B1's separately authorized ownership-checked rollback remains the only rollback path. S11B3
+owns final report and recovery presentation, and automated commit remains absent.</p>
+<h2 id="s11b3-final-reporting-and-recovery-presentation">S11B3 final reporting and recovery presentation<a class="headerlink" href="#s11b3-final-reporting-and-recovery-presentation" title="Permanent link">&para;</a></h2>
+<p>The final <code>MigrationApplyReport</code> is a deterministic, content-addressed local record of one Apply transaction. It keeps
+the historical transaction outcome, the accepted verification result, and the freshly inspected current worktree
+relation as three independent facts. A transaction can therefore remain historically <code>APPLIED_VERIFIED</code> while its
+current relation says <code>USER_MODIFIED_AFTER_APPLY</code>; later user work never erases old evidence and is never described as
+verified. Report generation performs a new read-only Git preflight, source fingerprint, touched-file digest check,
+journal-chain validation, backup check, and owned-diff artifact check. It executes no command, verification, recovery,
+rollback, source write, or Git mutation.</p>
+<p>The canonical migration-owned diff is still the S11B1 original-artifact-to-target-artifact diff. Whole-worktree Git
+diffs and unrelated dirty files are not migration ownership evidence. The sanitized JSON and standalone HTML expose
+logical paths, edit counts, semantic digests, Apply outcomes, and the local-sensitive diff reference/digest/byte count,
+but never embed exact hunks or source bytes. Absolute paths, logs, secret values, environment values, and credentialed
+wrapper URLs are excluded. Exact diff viewing is an explicit local-sensitive operation outside the shareable report.
+HTML is static, escaped, self-contained, and has no Apply, rollback, test, Git, or commit controls.</p>
+<p>Verification coverage lists every required and optional stage as passed, failed, blocked, inconclusive, interrupted,
+or not run. Compile, direct tests, known-use tests, headed, headless, FAST, manifest validation, and compatibility
+comparison remain separate rows. Per-proposal coverage maps the exact required stages back to each proposal, and the
+compatibility projection retains comparison intent, outcome, comparability, and targeted finding state. A successful
+process or one resolved proposal cannot hide an unrun or failed required obligation. Verification history is displayed
+with an explicitly selected accepted result ref; timestamps never select a latest result.</p>
+<p>Recovery presentation consumes S11B1's inspection rather than changing its rules. <code>MigrationRecoverySummary</code> explains
+whether a prepared transaction is safe to abandon, guarded rollback is wholly or partly available, metadata-only
+reconciliation is possible, or manual recovery is required. The immutable <code>MigrationRecoveryActionPlan</code> lists only
+actions that could be requested. Creating a report never performs them: rollback still requires the targeted
+<code>ROLLBACK_TOOL_CHANGES</code> capability, reconciliation requires intact transaction evidence, and temp cleanup is limited
+to exact registered transaction-owned names. Per-file rollback visibility reports current original/tool/user/missing
+state and backup validity instead of presenting a misleading batch boolean.</p>
+<p><code>MigrationCommitReadiness</code> is advisory and has only <code>COMMIT_READY_MANUAL</code>,
+<code>MANUAL_COMMIT_REQUIRES_REVIEW</code>, and <code>COMMIT_BLOCKED</code>. Readiness requires a complete Apply, a <code>VERIFIED</code> accepted
+result, current source matching the verified state, and an intact exact owned diff. A touched file that was dirty before
+Apply, unrelated staged content, or unrelated worktree changes downgrades readiness because normal staging may include
+user work. The report tells the maintainer to inspect the owned diff and index, stage only intended changes, and commit
+manually. Migration tooling implements no <code>git add</code>, <code>git commit</code>, automatic commit, push, fetch, pull, merge, or rebase.</p>
+<p>The final JSON reader is strict, bounded, duplicate-rejecting Jackson Core with deterministic ordering and stable LF;
+state-store replacement remains atomic. JSON and HTML are limited to 64 MiB, with 32 proposals, 64 files, 512
+verification stages, 128 release gaps, and 1,024 issues. Core failure, blocked rollback, required recovery, or current
+divergence cannot be silently truncated. Report, exact diff, backups, and journals remain local-sensitive artifacts
+under the B1 safe state root.</p>
+<p>S11 is complete at this boundary: guarded exact-byte Apply, ownership-checked rollback and recovery, post-Apply
+verification, current-state inspection, final owned-diff reporting, and manual commit readiness exist. Automated commit
+is deliberately not required for 0.4.0 and no runtime migration API was added.</p>
+<h3 id="s12-release-hardening-handoff">S12 release-hardening handoff<a class="headerlink" href="#s12-release-hardening-handoff" title="Permanent link">&para;</a></h3>
+<p><code>ReleaseHardeningHandoff</code> and its structured <code>MigrationReleaseGap</code> entries make NOT_RUN, skipped, deferred, and known
+limitations machine-visible. The current handoff retains these established facts rather than converting them to prose
+or claiming success:</p>
+<ul>
+<li>Windows symlink fixtures were skipped where the environment could not create symlinks.</li>
+<li>local Maven wrapper-main execution is covered by a no-network fixture that launches the fixed main class through
+  the production <code>java.exe</code> process boundary; generic <code>.cmd</code>, <code>.bat</code>, and <code>.ps1</code> execution remains unsupported;</li>
+<li>BrowserStack and Remote/Grid validation remain NOT_RUN;</li>
+<li>the high 10k compatibility case observed about 1.19 GB and observability JSON approached the 64 MiB boundary;</li>
+<li>selector policy preview at 100k was about 44.8 seconds, and the prior selector-history near-64 MiB boundary remains a
+  scale-hardening concern;</li>
+<li>the 10k physical-file JavaParser migration benchmark remains NOT_RUN; synthetic migration metrics remain available;</li>
+<li>the reactor-version script's ephemeral recursive target-path behavior must be reproduced and hardened in S12.</li>
+</ul>
+<p>S12 owns the final current Chrome/Firefox headed/headless and DEFAULT/FAST matrix, key runtime workflows, feasible
+Remote/Grid and available BrowserStack coverage, scale/memory/report-size disposition, platform skips, documentation,
+and release gates. It must not present unavailable provider runs as completed.</p>
+<p>S12 also owns the <code>PATCH_RELEASE_LANE</code> maintainer policy and any supporting docs/scripts. After v0.4.0, <code>main</code> remains
+the latest stable 0.4.x and moves to <code>0.4.1-SNAPSHOT</code>; fixes use <code>fix/0.4.1-&lt;topic&gt;</code>, release as 0.4.1/tag <code>v0.4.1</code>, then
+move to <code>0.4.2-SNAPSHOT</code>. No permanent develop/maintenance branch is required while no 0.5 feature work is planned; a
+<code>maintenance/0.4.x</code> branch can be considered only when 0.5 development begins. This is maintainer policy, not a runtime
+restriction. S11B3 records the requirement but does not create patch-release scripts, tags, pushes, or publications.</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../compatibility-run-manifests/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Compatibility run manifests">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Compatibility run manifests
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

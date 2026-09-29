@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+        <meta name="description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>Network diagnostics - Selenium Test Lens</title>
+        <title>Network diagnostics - Test Lens</title>
       
     
     
@@ -71,6 +71,24 @@
 
     
     
+  
+  
+    
+  
+  
+  
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Test Lens">
+  <meta property="og:title" content="Network diagnostics - Test Lens">
+  <meta property="og:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/advanced/network/">
+  <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+  <meta property="og:image:alt" content="Test Lens">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Network diagnostics - Test Lens">
+  <meta name="twitter:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+
   </head>
   
   
@@ -140,8 +158,7 @@
   </script>
   
     
-      Development documentation for <strong>0.4.0-SNAPSHOT</strong>.
-      These features are not yet available in the latest Maven Central release.
+      Documentation source for <strong>0.4.0</strong>.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -161,10 +178,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Selenium Test Lens" class="md-header__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href="../.." title="Test Lens" class="md-header__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -175,7 +191,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Selenium Test Lens
+            Test Lens
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -491,13 +507,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Selenium Test Lens" class="md-nav__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href="../.." title="Test Lens" class="md-nav__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
-    Selenium Test Lens
+    Test Lens
   </label>
   
     <div class="md-nav__source">
@@ -608,6 +623,34 @@
     
   
     Installation & first test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.4.0
   
 
     
@@ -2087,6 +2130,45 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Enabling WebDriver BiDi">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#browserstack-prerequisite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BrowserStack prerequisite
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#startup-diagnostics-and-graceful-degradation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Startup diagnostics and graceful degradation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-remote-smoke-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional remote smoke test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2830,6 +2912,146 @@
   
   
     <li class="md-nav__item">
+      <a href="../../maintainers/release-0.4.x/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releasing Test Lens 0.4.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/release-certification-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 release certification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/media-inventory-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 media inventory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/recording-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recording 0.4.0 media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/patch-release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.x patch-release lane
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../browser-integration-tests/" class="md-nav__link">
         
   
@@ -2838,6 +3060,258 @@
     
   
     Real-browser integration tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../performance-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime performance audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-declaration-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Static locator declaration index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-stability-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector stability policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-candidate-live-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector candidate live analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-find-similar-history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector similarity and cross-run history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Offline Selector Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-lab-readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read-only Selector Lab
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/compatibility-run-manifests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility run manifests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/migration-git-checkpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Git preflight and checkpoints
   
 
     
@@ -2886,7 +3360,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.4.0" class="md-nav__link">
         
   
   
@@ -2914,7 +3388,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.4.0/" class="md-nav__link">
         
   
   
@@ -2998,6 +3472,45 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Enabling WebDriver BiDi">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#browserstack-prerequisite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BrowserStack prerequisite
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#startup-diagnostics-and-graceful-degradation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Startup diagnostics and graceful degradation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-remote-smoke-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional remote smoke test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3091,7 +3604,8 @@ API level: <strong>Advanced</strong></p>
 </span></code></pre></div>
 <p><code>MANUAL</code> remains the default and accepts caller-supplied events. <code>BIDI</code> passively subscribes through Selenium 4.39's beta <code>org.openqa.selenium.bidi.module.Network</code>; the browser session must have BiDi enabled when it is created. <code>AUTO</code> attempts the same subscription and reports <code>UNSUPPORTED</code> when it cannot establish it. Neither mode falls back to <code>MANUAL</code> or performance logs. <code>PERFORMANCE_LOGS</code> remains unsupported and <code>OFF</code> remains stopped.</p>
 <p>BiDi capture observes traffic. It does not intercept, modify, block, mock, or replay requests, and it is not a CDP fallback.</p>
-<p><code>captureMode()</code> is the requested mode. <code>activeCaptureMode()</code> is present only while a source is active: <code>MANUAL</code> for manual capture and <code>BIDI</code> for both successful <code>BIDI</code> and <code>AUTO</code>. A successful start registers one listener each for before-request, response-completed, and fetch-error; <code>stop()</code> removes the module subscriptions without closing the driver. <code>stop()</code> also invalidates an initialization that is still registering its source: a late success or failure cannot reactivate capture or overwrite <code>STOPPED</code>, and any source returned afterward is closed without holding the lifecycle lock. Repeated starts replace the prior generation, and late callbacks are discarded. Event snapshots are immutable and safe while BiDi callback threads are active.</p>
+<p>WebDriver BiDi and Selenium DevTools/CDP modules are separate mechanisms. The Test Lens BiDi flows documented here do not require a browser-version-matched <code>selenium-devtools-v*</code> artifact. A Selenium warning that no matching CDP implementation is available therefore does not by itself make an enabled BiDi session unavailable; activation still depends on <code>HasBiDi</code>/augmentation, the returned <code>webSocketUrl</code>, a successful connection, and listener subscription.</p>
+<p><code>captureMode()</code> is the requested mode. <code>activeCaptureMode()</code> is present only while a source is active: <code>MANUAL</code> for manual capture and <code>BIDI</code> for both successful <code>BIDI</code> and <code>AUTO</code>. A successful start registers one listener each for before-request, response-completed, and fetch-error; <code>stop()</code> removes the module subscriptions without closing the driver. <code>stop()</code> also invalidates an initialization that is still registering its source: a late success or failure cannot reactivate capture or overwrite <code>STOPPED</code>, and any source returned afterward is closed without holding the lifecycle lock. Repeated starts replace the prior generation, and late callbacks are discarded. Event snapshots are immutable and safe while BiDi callback threads are active. Connection initialization is attempted at most twice, without a fixed sleep, and only before any listener is registered; subscription failures are never retried because registration may be ambiguous.</p>
 <h2 id="hud-only-filtering">HUD-only filtering<a class="headerlink" href="#hud-only-filtering" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.selenium.network.NetworkHudFilter -->
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">static</span><span class="w"> </span><span class="n">NetworkHudFilter</span><span class="w"> </span><span class="nf">defaults</span><span class="p">()</span>
@@ -3150,21 +3664,57 @@ API level: <strong>Advanced</strong></p>
 <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">FirefoxOptions</span><span class="w"> </span><span class="n">browserOptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">FirefoxOptions</span><span class="p">().</span><span class="na">enableBiDi</span><span class="p">();</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">FirefoxDriver</span><span class="p">(</span><span class="n">browserOptions</span><span class="p">);</span>
 </span></code></pre></div>
-<p>Lens does not retrofit BiDi after session creation. A local or wrapped driver is unwrapped through the official <code>WrapsDriver</code> contract with cycle/depth protection. A <code>RemoteWebDriver</code> can work only when its Grid/node exposes the WebSocket capability; Grid execution is not part of the current tested matrix.</p>
+<p>Lens cannot add BiDi to a browser session that was created without it. For an already BiDi-enabled local driver, Lens uses <code>HasBiDi.getBiDi()</code> so Selenium may initialize a lazy connection; an empty <code>maybeGetBiDi()</code> before first use is not treated as unsupported. Official <code>WrapsDriver</code> and Selenium <code>Decorated</code> chains are inspected with cycle/depth protection without replacing the consumer's driver reference.</p>
+<p>Selenium 4.39's raw <code>RemoteWebDriver</code> does not directly implement <code>HasBiDi</code>. When the remote session returns a valid <code>webSocketUrl</code>, Lens applies Selenium's <code>Augmenter</code> once to a private BiDi view of that same session, initializes the connection, and gives that view only to Selenium's Network module. Normal application commands continue through the original driver/decorator. Lens closes subscriptions and any connection it created, but never calls <code>quit()</code> during network finalization. The capability is diagnostic evidence, while the Selenium interface and successful connection remain the authority for activation.</p>
+<h3 id="browserstack-prerequisite">BrowserStack prerequisite<a class="headerlink" href="#browserstack-prerequisite" title="Permanent link">&para;</a></h3>
+<p>BrowserStack's current Selenium documentation requires <code>seleniumBidi: true</code> under <code>bstack:options</code>; BrowserStack then requests/returns the standard <code>webSocketUrl</code> needed by Selenium. The provider also recommends selecting a Selenium 4 version. This example uses the repository's supported Selenium version and contains no credentials:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">MutableCapabilities</span><span class="w"> </span><span class="n">capabilities</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">MutableCapabilities</span><span class="p">();</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">capabilities</span><span class="p">.</span><span class="na">setCapability</span><span class="p">(</span><span class="s">"browserName"</span><span class="p">,</span><span class="w"> </span><span class="s">"chrome"</span><span class="p">);</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">capabilities</span><span class="p">.</span><span class="na">setCapability</span><span class="p">(</span><span class="s">"bstack:options"</span><span class="p">,</span><span class="w"> </span><span class="n">Map</span><span class="p">.</span><span class="na">of</span><span class="p">(</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">        </span><span class="s">"os"</span><span class="p">,</span><span class="w"> </span><span class="s">"Windows"</span><span class="p">,</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">        </span><span class="s">"osVersion"</span><span class="p">,</span><span class="w"> </span><span class="s">"11"</span><span class="p">,</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">        </span><span class="s">"seleniumVersion"</span><span class="p">,</span><span class="w"> </span><span class="s">"4.39.0"</span><span class="p">,</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">        </span><span class="s">"seleniumBidi"</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">));</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">RemoteWebDriver</span><span class="p">(</span><span class="n">browserStackUrl</span><span class="p">,</span><span class="w"> </span><span class="n">capabilities</span><span class="p">);</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">);</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="n">NetworkDiagnostics</span><span class="w"> </span><span class="n">network</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lens</span><span class="p">.</span><span class="na">network</span><span class="p">().</span><span class="na">start</span><span class="p">(</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">        </span><span class="n">NetworkDiagnosticsOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">                </span><span class="p">.</span><span class="na">captureMode</span><span class="p">(</span><span class="n">NetworkCaptureMode</span><span class="p">.</span><span class="na">BIDI</span><span class="p">)</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">                </span><span class="p">.</span><span class="na">build</span><span class="p">());</span>
+</span></code></pre></div>
+<p>See BrowserStack's <a href="https://www.browserstack.com/docs/automate/selenium/bidi-event-driven-testing">official Selenium BiDi instructions</a>. Do not log a hub URL containing credentials. A successful <code>start(...)</code> has <code>isStarted() == true</code>, <code>summary().status() == STARTED</code>, and <code>activeCaptureMode() == Optional.of(BIDI)</code>. Merely requesting <code>BIDI</code> does not prove activation.</p>
+<h3 id="startup-diagnostics-and-graceful-degradation">Startup diagnostics and graceful degradation<a class="headerlink" href="#startup-diagnostics-and-graceful-degradation" title="Permanent link">&para;</a></h3>
+<p>BiDi startup diagnostics distinguish <code>UNSUPPORTED</code>, <code>INITIALIZATION_FAILED</code>, <code>REMOTE_ENDPOINT_UNAVAILABLE</code>, <code>SESSION_CLOSED</code>, <code>PROTOCOL_ERROR</code>, and <code>CAPTURE_START_FAILED</code> internally. HUD/log lifecycle entries use the semantic <code>SYSTEM</code> category: successful activation is informational/running capture state, while unsupported or failed optional capture is a warning rather than a failed test action. Metadata records only safe facts such as driver type, local/remote shape, <code>HasBiDi</code> availability, whether <code>webSocketUrl</code> was present, lazy/initialized state, augmentation, bounded attempt count, category, and stage. Endpoint values, credentials, headers, cookies, and tokens are not logged.</p>
+<p><code>BIDI</code> and <code>AUTO</code> startup remains non-throwing: inspect <code>isStarted()</code>, <code>summary()</code>, and <code>activeCaptureMode()</code> before relying on capture. An unavailable optional source does not fail the Selenium test, does not silently switch to manual capture, and cannot produce a valid network assertion snapshot. Existing network assertions still fail closed if the requested capture never became active.</p>
+<h3 id="optional-remote-smoke-test">Optional remote smoke test<a class="headerlink" href="#optional-remote-smoke-test" title="Permanent link">&para;</a></h3>
+<p>With provider credentials supplied through environment variables and never printed:</p>
+<ol>
+<li>Create a remote session with the provider's Selenium BiDi option enabled.</li>
+<li>Start <code>BIDI</code> capture and assert <code>network.isStarted()</code> plus active mode <code>BIDI</code>.</li>
+<li>Navigate to a page that performs one known request.</li>
+<li>Wait for that request and attach/export the network diagnostic.</li>
+<li>Stop capture, verify the driver can still read the page title, then finalize Lens and let the test owner quit the driver.</li>
+</ol>
+<p>To validate a local development build in a consumer without publishing it:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>mvn -DskipTests install
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>mvn dependency:tree -Dincludes=io.github.test-lens
+</span></code></pre></div>
+<p>Configure the consumer for <code>0.4.0</code>, confirm every Test Lens artifact resolves to that version, and run one remote BiDi test using the checks above.</p>
 <h2 id="assertions-and-waits">Assertions and waits<a class="headerlink" href="#assertions-and-waits" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.selenium.network.NetworkDiagnostics -->
-<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">NetworkDiagnosticsResult</span><span class="w"> </span><span class="nf">assertNoFailedRequests</span><span class="p">()</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">NetworkWaitResult</span><span class="w"> </span><span class="nf">waitForResponse</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">urlContains</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">status</span><span class="p">)</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">NetworkWaitResult</span><span class="w"> </span><span class="nf">waitForResponse</span><span class="p">(</span><span class="n">NetworkWaitCondition</span><span class="w"> </span><span class="n">condition</span><span class="p">)</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">NetworkResponseExpectation</span><span class="w"> </span><span class="nf">expectResponse</span><span class="p">()</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">Optional</span><span class="o">&lt;</span><span class="n">NetworkEvent</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">findMatchingEvent</span><span class="p">(</span><span class="n">NetworkWaitCondition</span><span class="w"> </span><span class="n">condition</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">NetworkDiagnosticsResult</span><span class="w"> </span><span class="nf">assertNoFailedRequests</span><span class="p">()</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">NetworkWaitResult</span><span class="w"> </span><span class="nf">waitForResponse</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">urlContains</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">status</span><span class="p">)</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">NetworkWaitResult</span><span class="w"> </span><span class="nf">waitForResponse</span><span class="p">(</span><span class="n">NetworkWaitCondition</span><span class="w"> </span><span class="n">condition</span><span class="p">)</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">NetworkResponseExpectation</span><span class="w"> </span><span class="nf">expectResponse</span><span class="p">()</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">Optional</span><span class="o">&lt;</span><span class="n">NetworkEvent</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">findMatchingEvent</span><span class="p">(</span><span class="n">NetworkWaitCondition</span><span class="w"> </span><span class="n">condition</span><span class="p">)</span>
 </span></code></pre></div>
 <p><code>assertNoFailedRequests()</code> means “the valid capture snapshot contains no failures,” not “the event buffer happens to contain no failures.” It throws <code>NetworkAssertionError</code> when capture was never started, is <code>OFF</code>, is unsupported, failed or is still initializing. Zero events are valid only after the current generation successfully became active. A normally stopped generation retains its valid snapshot and remains assertable; starting a later invalid generation invalidates that permission without clearing historical events.</p>
 <p>The convenience wait overload builds a URL-substring/status condition. BiDi callbacks signal active waits immediately; the condition still uses a global deadline and tolerates spurious wakeups. Unsupported capture returns <code>SKIPPED/UNSUPPORTED_CAPTURE_MODE</code> with zero attempts, failed BiDi startup returns <code>FAILED/CAPTURE_START_FAILED</code> with zero attempts, and <code>OFF</code>, a stopped capture, or <code>stop()</code> during a wait returns <code>CAPTURE_NOT_STARTED</code>. These wait outcomes are unchanged. <code>expectResponse()</code> converts every non-match into <code>NetworkAssertionError</code>. Failed assertions preserve the lifecycle status in their summary and expose a redacted message and diagnostic cause/suppressed graph.</p>
 <h2 id="session-attachment">Session attachment<a class="headerlink" href="#session-attachment" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.selenium.network.NetworkDiagnostics -->
-<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">NetworkDiagnosticsResult</span><span class="w"> </span><span class="nf">attachToSession</span><span class="p">(</span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="n">session</span><span class="p">)</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">NetworkDiagnosticsResult</span><span class="w"> </span><span class="nf">attachToSession</span><span class="p">(</span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="n">session</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="w"> </span><span class="n">outputPath</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">NetworkDiagnosticsResult</span><span class="w"> </span><span class="nf">attachToSession</span><span class="p">(</span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="n">session</span><span class="p">)</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">NetworkDiagnosticsResult</span><span class="w"> </span><span class="nf">attachToSession</span><span class="p">(</span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="n">session</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="w"> </span><span class="n">outputPath</span><span class="p">)</span>
 </span></code></pre></div>
 <p>Exports/attaches network JSON evidence. Attachment occurs only when one of these methods is called explicitly. The former no-op <code>NetworkDiagnosticsOptions.attachToSession(boolean)</code> option was removed in 0.2.0. Paths and export failures appear in the result. Finalizing a failed Test Lens session still snapshots the current network summary into its failure bundle without invoking these attachment methods.</p>
 <h2 id="supporting-results-and-statuses">Supporting results and statuses<a class="headerlink" href="#supporting-results-and-statuses" title="Permanent link">&para;</a></h2>
@@ -3274,7 +3824,7 @@ API level: <strong>Advanced</strong></p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0-SNAPSHOT", "default": "latest", "is_dev": true, "is_snapshot": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

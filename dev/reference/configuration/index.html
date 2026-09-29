@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+        <meta name="description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>Configuration builders - Selenium Test Lens</title>
+        <title>Configuration builders - Test Lens</title>
       
     
     
@@ -71,6 +71,24 @@
 
     
     
+  
+  
+    
+  
+  
+  
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Test Lens">
+  <meta property="og:title" content="Configuration builders - Test Lens">
+  <meta property="og:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/reference/configuration/">
+  <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+  <meta property="og:image:alt" content="Test Lens">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Configuration builders - Test Lens">
+  <meta name="twitter:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+
   </head>
   
   
@@ -140,8 +158,7 @@
   </script>
   
     
-      Development documentation for <strong>0.4.0-SNAPSHOT</strong>.
-      These features are not yet available in the latest Maven Central release.
+      Documentation source for <strong>0.4.0</strong>.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -161,10 +178,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Selenium Test Lens" class="md-header__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href="../.." title="Test Lens" class="md-header__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -175,7 +191,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Selenium Test Lens
+            Test Lens
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -491,13 +507,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Selenium Test Lens" class="md-nav__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href="../.." title="Test Lens" class="md-nav__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
-    Selenium Test Lens
+    Test Lens
   </label>
   
     <div class="md-nav__source">
@@ -608,6 +623,34 @@
     
   
     Installation & first test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.4.0
   
 
     
@@ -2542,6 +2585,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#browser-execution-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browser execution configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#testlensoptions" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2549,6 +2603,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="TestLensOptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fast-observability-040" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FAST observability (0.4.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2962,6 +3033,146 @@
   
   
     <li class="md-nav__item">
+      <a href="../../maintainers/release-0.4.x/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releasing Test Lens 0.4.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/release-certification-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 release certification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/media-inventory-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 media inventory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/recording-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recording 0.4.0 media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/patch-release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.x patch-release lane
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../browser-integration-tests/" class="md-nav__link">
         
   
@@ -2970,6 +3181,258 @@
     
   
     Real-browser integration tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../performance-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime performance audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-declaration-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Static locator declaration index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-stability-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector stability policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-candidate-live-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector candidate live analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-find-similar-history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector similarity and cross-run history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Offline Selector Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-lab-readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read-only Selector Lab
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/compatibility-run-manifests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility run manifests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/migration-git-checkpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Git preflight and checkpoints
   
 
     
@@ -3018,7 +3481,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.4.0" class="md-nav__link">
         
   
   
@@ -3046,7 +3509,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.4.0/" class="md-nav__link">
         
   
   
@@ -3101,6 +3564,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#browser-execution-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browser execution configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#testlensoptions" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3108,6 +3582,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="TestLensOptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fast-observability-040" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FAST observability (0.4.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3336,7 +3827,60 @@
 
 <h1 id="configuration-builders">Configuration builders<a class="headerlink" href="#configuration-builders" title="Permanent link">&para;</a></h1>
 <p>All option objects are immutable after <code>build()</code> unless their API explicitly exposes a mutable collaborator. Durations described as positive reject null/zero/negative values. Defaults below come from the current Java field initializers and constructors.</p>
+<h2 id="browser-execution-configuration">Browser execution configuration<a class="headerlink" href="#browser-execution-configuration" title="Permanent link">&para;</a></h2>
+<p><code>BrowserExecutionConfig</code> is resolved before an adapted factory creates a browser. <code>HeadlessMode</code> is <code>TRUE</code>
+(headless), <code>FALSE</code> (headed), or <code>UNSET</code> (keep the factory's existing decision). Precedence is explicit Java API,
+JVM property <code>-DtestLens.headless=true|false</code>, environment <code>TEST_LENS_HEADLESS=true|false</code>, then <code>UNSET</code>.
+Only trimmed, case-insensitive <code>true</code> and <code>false</code> are valid; invalid or blank values fail before factory invocation.
+A higher-precedence source prevents lower sources from being parsed.</p>
+<p>Manual integration resolves once at the driver-creation boundary:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">BrowserExecutionConfig</span><span class="w"> </span><span class="n">execution</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BrowserExecutionConfig</span><span class="p">.</span><span class="na">resolve</span><span class="p">();</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">myBrowserFactory</span><span class="p">.</span><span class="na">create</span><span class="p">(</span><span class="n">execution</span><span class="p">);</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">,</span><span class="w"> </span><span class="n">options</span><span class="p">);</span>
+</span></code></pre></div>
+<p>The config carries browser-neutral intent. An adapted factory applies it to its existing <code>ChromeOptions</code>,
+<code>FirefoxOptions</code>, or provider capabilities, retaining profiles, preferences, proxy, BiDi, and custom settings.
+<code>FALSE</code> is an explicit headed request; <code>UNSET</code> preserves the factory default. Headless and HUD presets are
+independent.</p>
+<p><code>TestLens.attach(existingDriver, ...)</code> receives an already-created Selenium session. It never creates another
+driver, quits/recreates the session, changes capabilities, or retroactively changes headed/headless mode.</p>
 <h2 id="testlensoptions">TestLensOptions<a class="headerlink" href="#testlensoptions" title="Permanent link">&para;</a></h2>
+<h3 id="fast-observability-040">FAST observability (0.4.0)<a class="headerlink" href="#fast-observability-040" title="Permanent link">&para;</a></h3>
+<p><code>ObservabilityMode.FAST</code> is an opt-in observability policy for a cheap successful-test path. It does not change
+Selenium commands, waits, assertions, locator resolution, Smart Click strategy, retries, browser arguments, or
+headed/headless execution. Without explicit component overrides it keeps structured semantic events and the
+bounded recorder, but does not initialize or update the live HUD, does not show automatic highlights, does not
+probe live Source Navigation, and retains only the passed-session summary. A terminal failure still preserves
+the bounded failure-aware trace, source context, visually redacted screenshot, and enabled failure-bundle
+components.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">TestLensOptions</span><span class="w"> </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">        </span><span class="p">.</span><span class="na">observabilityMode</span><span class="p">(</span><span class="n">ObservabilityMode</span><span class="p">.</span><span class="na">FAST</span><span class="p">)</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</span></code></pre></div>
+<p>Configuration is resolved once when immutable options are built. Precedence is an explicit Java call,
+<code>-DtestLens.observability=fast|default</code>, <code>TEST_LENS_OBSERVABILITY=FAST|DEFAULT</code>, then <code>DEFAULT</code>. Values are
+trimmed and case-insensitive; a blank or unknown effective value fails with <code>IllegalArgumentException</code>. An
+explicit Java <code>DEFAULT</code> suppresses property/environment parsing. FAST and <code>HeadlessMode</code> are independent, so
+headed or headless browsers can use either observability mode. <code>HudPreset.DEBUG</code> remains a presentation preset:
+FAST + DEBUG does not open a live HUD unless presentation is also explicitly enabled.</p>
+<p>Existing component settings override FAST defaults. For example:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">TestLensOptions</span><span class="w"> </span><span class="n">fastWithLiveDebug</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">        </span><span class="p">.</span><span class="na">observabilityMode</span><span class="p">(</span><span class="n">ObservabilityMode</span><span class="p">.</span><span class="na">FAST</span><span class="p">)</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">        </span><span class="p">.</span><span class="na">overlayConfig</span><span class="p">(</span><span class="n">OverlayConfig</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">                </span><span class="p">.</span><span class="na">showHudPanel</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">                </span><span class="p">.</span><span class="na">hudOptions</span><span class="p">(</span><span class="n">HudOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">().</span><span class="na">preset</span><span class="p">(</span><span class="n">HudPreset</span><span class="p">.</span><span class="na">DEBUG</span><span class="p">).</span><span class="na">build</span><span class="p">())</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">                </span><span class="p">.</span><span class="na">highlightOptions</span><span class="p">(</span><span class="n">HighlightOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">                        </span><span class="p">.</span><span class="na">automaticFeedback</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">                        </span><span class="p">.</span><span class="na">build</span><span class="p">())</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">                </span><span class="p">.</span><span class="na">build</span><span class="p">())</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">        </span><span class="p">.</span><span class="na">traceRetention</span><span class="p">(</span><span class="n">TraceRetentionOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">                </span><span class="p">.</span><span class="na">passedSessionRetention</span><span class="p">(</span><span class="n">PassedTraceRetention</span><span class="p">.</span><span class="na">RETAIN_TRACE</span><span class="p">)</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">                </span><span class="p">.</span><span class="na">build</span><span class="p">())</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</span></code></pre></div>
+<p>Explicit manual highlights and screenshots still execute in FAST. User log events remain in trace/report; they
+reach the browser only when live HUD presentation was explicitly enabled. Explicit network capture remains lazy
+and fully functional. These overrides deliberately reduce FAST's performance benefit.</p>
 <p><code>TestLensOptions.defaults()</code> or <code>builder()</code>; API level <strong>Recommended</strong>.</p>
 <table>
 <thead>
@@ -3353,6 +3897,12 @@
 <td><code>OverlayConfig</code></td>
 <td><code>OverlayConfig.builder().build()</code></td>
 <td>Visual runtime behavior; null is rejected when options are built/used.</td>
+</tr>
+<tr>
+<td><code>observabilityMode(value)</code></td>
+<td><code>ObservabilityMode</code></td>
+<td>resolved <code>DEFAULT</code></td>
+<td><code>FAST</code> suppresses default live presentation and uses <code>SUMMARY_ONLY</code> for passed sessions. Null clears the Java override and restores property/environment resolution. Added in <code>0.4.0</code>.</td>
 </tr>
 <tr>
 <td><code>hud(value)</code></td>
@@ -3401,6 +3951,12 @@
 <td><code>RedactionPolicy</code></td>
 <td><code>RedactionPolicy.defaults()</code></td>
 <td>Central diagnostic redaction used by logger fan-out, trace, network/API overlays, reports, and failure-bundle text; null restores the safe default.</td>
+</tr>
+<tr>
+<td><code>traceRetention(value)</code></td>
+<td><code>TraceRetentionOptions</code></td>
+<td>4,096 events / 8 MiB / 256 KiB per event, <code>RETAIN_TRACE</code></td>
+<td>Hard per-session count and estimated-byte bounds. Null restores defaults. <code>SUMMARY_ONLY</code> releases passed detail after terminal summary creation. Added in <code>0.4.0</code>.</td>
 </tr>
 <tr>
 <td><code>cleanupHudOnFinish(value)</code></td>
@@ -3483,6 +4039,12 @@
 <td><code>boolean</code></td>
 <td><code>true</code></td>
 <td>Retained public option, but the current <code>UiLocator</code> implementation does not consult it. Click decoration is controlled by <code>OverlayConfig.enabled</code>; other locator actions currently do not highlight. No effect on waits.</td>
+</tr>
+<tr>
+<td><code>javascriptClickFallback(value)</code></td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+<td>Enables the final <code>HTMLElement.click()</code> stage after bounded <code>NATIVE</code>, <code>ACTIONS</code>, and <code>POINT</code> strategies prove they did not dispatch. Set false for physical-only clicks.</td>
 </tr>
 </tbody>
 </table>
@@ -3704,8 +4266,8 @@ the optional explicit value, <code>usesSystemTimestampZone()</code> identifies s
 every format preset, including <code>ISO_UTC</code>. Region zones apply DST; fixed <code>ZoneOffset</code>
 values do not. These settings affect only HUD presentation, never trace/report data, ordering, or
 durations.</p>
-<p><code>sourceNavigation(...)</code> installs disabled-by-default <code>SourceNavigationOptions</code>. The current activation modifier is <code>CTRL_ALT</code>; providers are <code>INTELLIJ</code>, <code>VSCODE</code>, and <code>CUSTOM</code>. Additional <code>sourceRoots(Path...)</code> supplement lazy standard Maven/Gradle Java/Kotlin discovery, and <code>customUriTemplate(...)</code> accepts <code>{file}</code>, <code>{line}</code>, and <code>{column}</code> placeholders. Logical source metadata never contains the resolved absolute path. See <a href="../../observability/visual-diagnostics/#local-source-navigation">local source navigation</a> for local/remote and interaction behavior.</p>
-<p><code>HighlightOptions</code> defaults are: enabled and automatic feedback on; ACTION <code>#ffeb3b</code>, WAITING <code>#2196f3</code>, RETRY <code>#ff9800</code>, SUCCESS <code>#4caf50</code>, FAILURE <code>#f44336</code>; 1500 ms; 2 px border; labels on. <code>TestLensOptions.Builder.highlights(...)</code> installs the typed options; the singular 0.3.1 preview alias remains deprecated for source compatibility. Duration accepts zero and border width accepts 1-16 px. <code>OverlayConfig.highlightColor(...)</code> and <code>decorationDurationMs(...)</code> remain compatibility inputs for action color and highlight duration only when the corresponding typed field is unset. Explicit typed fields are authoritative in either call order, and the legacy duration continues to configure other decorations.</p>
+<p><code>sourceNavigation(...)</code> installs disabled-by-default <code>SourceNavigationOptions</code>. <code>F8</code> is the default toggle and Escape disables it. Deprecated <code>CTRL_ALT</code> remains available with its original hold semantics for explicitly configured compatibility. Providers are <code>INTELLIJ</code>, <code>VSCODE</code>, and <code>CUSTOM</code>. IntelliJ navigation uses <code>intellijProject(String, Path)</code> or reliably infers identity from <code>.idea/.name</code>; it does not guess from the worktree directory. Additional <code>sourceRoots(Path...)</code> supplement lazy standard Maven/Gradle Java/Kotlin discovery, and <code>customUriTemplate(...)</code> accepts <code>{file}</code>, <code>{line}</code>, and <code>{column}</code> placeholders. Logical source metadata never contains the resolved absolute path. See <a href="../../observability/visual-diagnostics/#local-source-navigation">local source navigation</a> for local/remote behavior and protocol diagnostics.</p>
+<p><code>HighlightOptions</code> defaults are: enabled and automatic feedback on; ACTION <code>#ffeb3b</code>, WAITING <code>#2196f3</code>, RETRY <code>#ff9800</code>, SUCCESS <code>#4caf50</code>, FAILURE <code>#f44336</code>; common duration 1500 ms; no state duration overrides; 2 px border; labels on. <code>actionDurationMs</code>, <code>waitingDurationMs</code>, <code>retryDurationMs</code>, <code>successDurationMs</code>, and <code>failureDurationMs</code> set explicit overrides. <code>durationOverrideMs(state)</code> returns empty for inheritance, <code>effectiveDurationMs(state)</code> resolves override then common/legacy default, and <code>clearDurationOverride(state)</code> restores inheritance. An explicit state override of zero suppresses that visual state; inherited common <code>durationMs(0)</code> retains its historical zero-delay render/removal behavior. Negative durations are rejected and border width accepts 1-16 px. <code>TestLensOptions.Builder.highlights(...)</code> installs the typed options; the singular 0.3.1 preview alias remains deprecated for source compatibility. <code>OverlayConfig.highlightColor(...)</code> and <code>decorationDurationMs(...)</code> remain compatibility inputs only when the corresponding typed field is unset. Explicit typed fields are authoritative in either call order, and the legacy duration continues to configure other decorations.</p>
 <p><code>HudHeaderLayout.AUTO</code> is the preset default. It places the atomic TEST and STEP label/value items on one row when their natural widths fit and moves the complete STEP item to row two otherwise. <code>INLINE</code> always uses one row with ellipsis as needed; <code>STACKED</code> always uses two. Values never wrap and retain their full tooltip. PIPE, when enabled, is rendered as a separate metadata row and does not participate in the TEST/STEP layout decision.</p>
 <p>The global <code>fontPreset(...)</code> is the baseline for every section. <code>typography(HudTypography)</code> can override the local font stack for the header, current step, event log, or metadata; omitted section values inherit the global preset. <code>HudTypography.timestampFontSizePx(...)</code> independently configures timestamp text from 8 through 18 px and defaults to 9 px without changing message size. These typed presets use local font stacks only. Arbitrary CSS, remote fonts, and font URLs are not accepted.</p>
 <p><code>scrollbarStyle(...)</code> selects <code>SUBTLE</code>, <code>STANDARD</code>, or <code>NATIVE</code> for the event log. <code>SUBTLE</code> is the default except that <code>DEBUG</code> selects <code>STANDARD</code>. The custom styles accept a bounded 4–14 px Chromium width plus validated <code>#RRGGBB</code> track, thumb, and hover colors. Firefox applies the same colors but maps the styles to the engine's supported <code>thin</code> or native width rather than an exact pixel width. <code>NATIVE</code> leaves scrollbar rendering to the browser and operating system.</p>
@@ -3713,17 +4275,17 @@ durations.</p>
 <h2 id="hudtheme">HudTheme<a class="headerlink" href="#hudtheme" title="Permanent link">&para;</a></h2>
 <p>Factories: <code>defaultTheme</code>, <code>dark</code>, <code>light</code>, <code>glass</code>, <code>compact</code>, <code>highContrast</code>, <code>blackAndColors</code>, <code>minimal</code>, <code>fromPreset</code>, and <code>builder</code>.</p>
 <!-- API SIGNATURES: io.github.testlens.hud.HudTheme -->
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="p">.</span><span class="na">Builder</span><span class="w"> </span><span class="nf">builder</span><span class="p">()</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">defaultTheme</span><span class="p">()</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">dark</span><span class="p">()</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">light</span><span class="p">()</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">glass</span><span class="p">()</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">compact</span><span class="p">()</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">highContrast</span><span class="p">()</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">blackAndColors</span><span class="p">()</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">minimal</span><span class="p">()</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">fromPreset</span><span class="p">(</span><span class="n">HudThemePreset</span><span class="w"> </span><span class="n">preset</span><span class="p">)</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">toMap</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="p">.</span><span class="na">Builder</span><span class="w"> </span><span class="nf">builder</span><span class="p">()</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">defaultTheme</span><span class="p">()</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">dark</span><span class="p">()</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">light</span><span class="p">()</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">glass</span><span class="p">()</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">compact</span><span class="p">()</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">highContrast</span><span class="p">()</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">blackAndColors</span><span class="p">()</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">minimal</span><span class="p">()</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="kd">static</span><span class="w"> </span><span class="n">HudTheme</span><span class="w"> </span><span class="nf">fromPreset</span><span class="p">(</span><span class="n">HudThemePreset</span><span class="w"> </span><span class="n">preset</span><span class="p">)</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">toMap</span><span class="p">()</span>
 </span></code></pre></div>
 <p>The builder exposes <strong>all</strong> of: <code>background</code>, <code>foreground</code>, <code>mutedForeground</code>, <code>accent</code>, <code>success</code>, <code>warning</code>, <code>danger</code>, <code>borderColor</code>, <code>fontFamily</code>, <code>boxShadow</code>, <code>backdropFilter</code> (<code>String</code>); <code>borderRadiusPx</code>, <code>fontSizePx</code>, <code>zIndex</code>, <code>paddingPx</code>, <code>gapPx</code>, <code>maxHeightPx</code> (<code>Integer</code>); and <code>opacity(Double)</code>. Blank strings normalize to null/inherited values. Sizes are validated non-negative/positive according to property; opacity is 0..1. <code>toMap()</code> is consumed by overlay JavaScript. Theme strings are trusted CSS, not untrusted user input.</p>
 <h2 id="uistepoptions">UiStepOptions<a class="headerlink" href="#uistepoptions" title="Permanent link">&para;</a></h2>
@@ -3927,8 +4489,8 @@ durations.</p>
 <h2 id="trace-and-report-options">Trace and report options<a class="headerlink" href="#trace-and-report-options" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>TraceJsonExportOptions</code>: stack traces, artifact metadata, and missing artifacts default true; optional artifact base directory.</li>
-<li><code>TraceHtmlExportOptions</code>: title <code>Selenium Test Lens Trace</code>; JSON/artifacts/attributes/grouping/type summary/failure summary/artifact preview/duration summary true; stack traces/collapse-passed/compact false; theme <code>AUTO</code>; message max 1000 (non-negative).</li>
-<li><code>TraceBundleExportOptions</code>: stack traces/artifact metadata/missing artifacts/copy artifacts true; name <code>Selenium Test Lens Report</code>; output <code>target/ui-test-lens-report</code>; theme <code>AUTO</code>.</li>
+<li><code>TraceHtmlExportOptions</code>: title <code>Test Lens Trace</code>; JSON/artifacts/attributes/grouping/type summary/failure summary/artifact preview/duration summary true; stack traces/collapse-passed/compact false; theme <code>AUTO</code>; message max 1000 (non-negative).</li>
+<li><code>TraceBundleExportOptions</code>: stack traces/artifact metadata/missing artifacts/copy artifacts true; name <code>Test Lens Report</code>; output <code>target/ui-test-lens-report</code>; theme <code>AUTO</code>.</li>
 <li><code>LogExportOptions</code>: record fields are <code>includeMetadata</code>, <code>includeThrowable</code>, <code>prettyPrint</code>, and <code>maxFieldLength</code>. <code>defaults()</code> is true/true/true/500; <code>compact()</code> is false/false/false/500; non-positive maximum length normalizes to 500.</li>
 </ul>
 <h2 id="reactactionabilityoptions">ReactActionabilityOptions<a class="headerlink" href="#reactactionabilityoptions" title="Permanent link">&para;</a></h2>
@@ -4030,7 +4592,7 @@ durations.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0-SNAPSHOT", "default": "latest", "is_dev": true, "is_snapshot": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

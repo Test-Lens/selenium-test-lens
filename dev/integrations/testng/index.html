@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+        <meta name="description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>TestNG - Selenium Test Lens</title>
+        <title>TestNG - Test Lens</title>
       
     
     
@@ -71,6 +71,24 @@
 
     
     
+  
+  
+    
+  
+  
+  
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Test Lens">
+  <meta property="og:title" content="TestNG - Test Lens">
+  <meta property="og:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/integrations/testng/">
+  <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+  <meta property="og:image:alt" content="Test Lens">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TestNG - Test Lens">
+  <meta name="twitter:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+
   </head>
   
   
@@ -140,8 +158,7 @@
   </script>
   
     
-      Development documentation for <strong>0.4.0-SNAPSHOT</strong>.
-      These features are not yet available in the latest Maven Central release.
+      Documentation source for <strong>0.4.0</strong>.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -161,10 +178,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Selenium Test Lens" class="md-header__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href="../.." title="Test Lens" class="md-header__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -175,7 +191,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Selenium Test Lens
+            Test Lens
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -491,13 +507,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Selenium Test Lens" class="md-nav__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href="../.." title="Test Lens" class="md-nav__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
-    Selenium Test Lens
+    Test Lens
   </label>
   
     <div class="md-nav__source">
@@ -608,6 +623,34 @@
     
   
     Installation & first test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.4.0
   
 
     
@@ -2306,6 +2349,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#driver-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Driver scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#outcome-and-ownership-contract" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2332,6 +2386,17 @@
     <span class="md-ellipsis">
       
         Recovery-retry policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-040-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local 0.4.0 validation
       
     </span>
   </a>
@@ -2808,6 +2873,146 @@
   
   
     <li class="md-nav__item">
+      <a href="../../maintainers/release-0.4.x/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releasing Test Lens 0.4.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/release-certification-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 release certification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/media-inventory-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 media inventory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/recording-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recording 0.4.0 media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/patch-release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.x patch-release lane
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../browser-integration-tests/" class="md-nav__link">
         
   
@@ -2816,6 +3021,258 @@
     
   
     Real-browser integration tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../performance-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime performance audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-declaration-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Static locator declaration index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-stability-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector stability policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-candidate-live-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector candidate live analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-find-similar-history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector similarity and cross-run history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Offline Selector Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-lab-readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read-only Selector Lab
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/compatibility-run-manifests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility run manifests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/migration-git-checkpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Git preflight and checkpoints
   
 
     
@@ -2864,7 +3321,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.4.0" class="md-nav__link">
         
   
   
@@ -2892,7 +3349,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.4.0/" class="md-nav__link">
         
   
   
@@ -2969,6 +3426,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#driver-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Driver scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#outcome-and-ownership-contract" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3001,6 +3469,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#local-040-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local 0.4.0 validation
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -3027,24 +3506,24 @@
 
 
 <h1 id="testng-integration">TestNG integration<a class="headerlink" href="#testng-integration" title="Permanent link">&para;</a></h1>
-<p>The optional <code>selenium-test-lens-testng</code> module owns one <code>WebDriver</code>, <code>TestLens</code>, and session for every physical TestNG test-method invocation. It uses TestNG's invocation listener and <code>ITestResult</code> attributes; adding the dependency alone does not register a listener.</p>
+<p>The optional <code>selenium-test-lens-testng</code> module defaults to one <code>WebDriver</code>, <code>TestLens</code>, and session for every physical TestNG test-method invocation. Release 0.4.0 also offers explicit class-scoped driver reuse while retaining a separate Test Lens session and report for every invocation. Adding the dependency alone does not register a listener.</p>
 <p><code>TestLensTestNgContext.current().lens().expectPage()</code> polls URL or title in the active window of that physical invocation. Assertion polling stays within the session and does not become a TestNG retry or a recovery retry; popup selection remains an explicit Selenium/Lens context operation.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;dependency&gt;</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nt">&lt;groupId&gt;</span>io.github.test-lens<span class="nt">&lt;/groupId&gt;</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&lt;artifactId&gt;</span>selenium-test-lens-testng<span class="nt">&lt;/artifactId&gt;</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.3.0<span class="nt">&lt;/version&gt;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.4.0<span class="nt">&lt;/version&gt;</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">&lt;scope&gt;</span>test<span class="nt">&lt;/scope&gt;</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">&lt;/dependency&gt;</span>
 </span></code></pre></div>
 <p>Declare Selenium separately at the version selected by the test project. TestNG is a dependency of this adapter only; core, overlay, the main runtime, React, and the JUnit 5 adapter do not depend on it.</p>
 <p>Gradle Kotlin DSL uses
-<code>testImplementation("io.github.test-lens:selenium-test-lens-testng:0.3.0")</code>;
+<code>testImplementation("io.github.test-lens:selenium-test-lens-testng:0.4.0")</code>;
 Groovy DSL uses
-<code>testImplementation 'io.github.test-lens:selenium-test-lens-testng:0.3.0'</code>.
-These coordinates are published with the 0.3.0 release.</p>
+<code>testImplementation 'io.github.test-lens:selenium-test-lens-testng:0.4.0'</code>.
+These coordinates are part of the 0.4.0 release.</p>
 <h2 id="factory-and-listener">Factory and listener<a class="headerlink" href="#factory-and-listener" title="Permanent link">&para;</a></h2>
-<p>Factories need an accessible public no-argument constructor. A new factory is constructed for every physical invocation.</p>
+<p>Factories need an accessible public no-argument constructor. <code>PER_METHOD</code> constructs one for every physical invocation; <code>PER_CLASS</code> constructs one lazily for each concrete TestNG class instance and <code>XmlTest</code> context.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">ChromeFactory</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">TestLensTestNgFactory</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="nf">ChromeFactory</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
@@ -3061,42 +3540,103 @@ These coordinates are published with the 0.3.0 release.</p>
 </span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="p">}</span>
 </span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>Register the listener explicitly and configure its factory separately. <code>@Listeners</code> is not used as a meta-annotation, and there is no <code>META-INF/services</code> registration, so <strong>both annotations are required</strong>.</p>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nd">@Listeners</span><span class="p">(</span><span class="n">TestLensTestNgListener</span><span class="p">.</span><span class="na">class</span><span class="p">)</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nd">@TestLensTestNg</span><span class="p">(</span><span class="n">factory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChromeFactory</span><span class="p">.</span><span class="na">class</span><span class="p">)</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kd">class</span> <span class="nc">LoginTest</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nd">@Test</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">login</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">        </span><span class="n">TestLensTestNgContext</span><span class="w"> </span><span class="n">invocation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLensTestNgContext</span><span class="p">.</span><span class="na">current</span><span class="p">();</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">        </span><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">invocation</span><span class="p">.</span><span class="na">driver</span><span class="p">();</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">invocation</span><span class="p">.</span><span class="na">lens</span><span class="p">();</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">        </span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="n">session</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">invocation</span><span class="p">.</span><span class="na">session</span><span class="p">();</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">        </span><span class="n">driver</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">applicationUrl</span><span class="p">);</span>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">        </span><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"login"</span><span class="p">).</span><span class="na">click</span><span class="p">();</span>
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="p">}</span>
+<p>An adapted factory can receive resolved execution intent before creating Selenium's session:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nd">@Override</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kd">public</span><span class="w"> </span><span class="n">WebDriver</span><span class="w"> </span><span class="nf">createDriver</span><span class="p">(</span><span class="n">BrowserExecutionConfig</span><span class="w"> </span><span class="n">execution</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="n">ChromeOptions</span><span class="w"> </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">existingChromeOptions</span><span class="p">();</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">execution</span><span class="p">.</span><span class="na">headless</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">HeadlessMode</span><span class="p">.</span><span class="na">TRUE</span><span class="p">)</span><span class="w"> </span><span class="n">options</span><span class="p">.</span><span class="na">addArguments</span><span class="p">(</span><span class="s">"--headless=new"</span><span class="p">);</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">execution</span><span class="p">.</span><span class="na">headless</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">HeadlessMode</span><span class="p">.</span><span class="na">FALSE</span><span class="p">)</span><span class="w"> </span><span class="n">removeProjectHeadlessDefault</span><span class="p">(</span><span class="n">options</span><span class="p">);</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ChromeDriver</span><span class="p">(</span><span class="n">options</span><span class="p">);</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Browser-specific mapping remains factory-owned so existing capabilities are preserved. After this one-time
+adaptation, use <code>-DtestLens.headless=true|false</code>, <code>TEST_LENS_HEADLESS=true|false</code>, or the annotation's explicit
+<code>headless</code> member. <code>FALSE</code> means force headed; <code>UNSET</code> preserves the factory's current default. A legacy factory is
+still called exactly once for <code>UNSET</code>, while configured TRUE/FALSE fails before legacy <code>createDriver()</code>.
+Register the listener explicitly and configure its factory separately. <code>@Listeners</code> is not used as a meta-annotation, and there is no <code>META-INF/services</code> registration, so <strong>both annotations are required</strong>.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nd">@Listeners</span><span class="p">(</span><span class="n">TestLensTestNgListener</span><span class="p">.</span><span class="na">class</span><span class="p">)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nd">@TestLensTestNg</span><span class="p">(</span><span class="n">factory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChromeFactory</span><span class="p">.</span><span class="na">class</span><span class="p">)</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kd">class</span> <span class="nc">LoginTest</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nd">@Test</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">login</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">        </span><span class="n">TestLensTestNgContext</span><span class="w"> </span><span class="n">invocation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLensTestNgContext</span><span class="p">.</span><span class="na">current</span><span class="p">();</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">        </span><span class="n">WebDriver</span><span class="w"> </span><span class="n">driver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">invocation</span><span class="p">.</span><span class="na">driver</span><span class="p">();</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">        </span><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">invocation</span><span class="p">.</span><span class="na">lens</span><span class="p">();</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">        </span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="n">session</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">invocation</span><span class="p">.</span><span class="na">session</span><span class="p">();</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">        </span><span class="n">driver</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">applicationUrl</span><span class="p">);</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">        </span><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"login"</span><span class="p">).</span><span class="na">click</span><span class="p">();</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="p">}</span>
 </span></code></pre></div>
 <!-- API SIGNATURES: io.github.testlens.testng.TestLensTestNg -->
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">abstract</span><span class="w"> </span><span class="n">Class</span><span class="o">&lt;?</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">TestLensTestNgFactory</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">factory</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">abstract</span><span class="w"> </span><span class="n">Class</span><span class="o">&lt;?</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">TestLensTestNgFactory</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">factory</span><span class="p">()</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kd">public</span><span class="w"> </span><span class="kd">abstract</span><span class="w"> </span><span class="n">DriverScope</span><span class="w"> </span><span class="nf">driverScope</span><span class="p">()</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kd">public</span><span class="w"> </span><span class="kd">abstract</span><span class="w"> </span><span class="n">HeadlessMode</span><span class="w"> </span><span class="nf">headless</span><span class="p">()</span>
 </span></code></pre></div>
 <!-- API SIGNATURES: io.github.testlens.testng.TestLensTestNgFactory -->
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">abstract</span><span class="w"> </span><span class="n">WebDriver</span><span class="w"> </span><span class="nf">createDriver</span><span class="p">()</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kd">public</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="w"> </span><span class="nf">lensOptions</span><span class="p">()</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">sessionName</span><span class="p">(</span><span class="n">ITestResult</span><span class="w"> </span><span class="n">result</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">abstract</span><span class="w"> </span><span class="n">WebDriver</span><span class="w"> </span><span class="nf">createDriver</span><span class="p">()</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kd">public</span><span class="w"> </span><span class="n">WebDriver</span><span class="w"> </span><span class="nf">createDriver</span><span class="p">(</span><span class="n">BrowserExecutionConfig</span><span class="w"> </span><span class="n">executionConfig</span><span class="p">)</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kd">public</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="w"> </span><span class="nf">lensOptions</span><span class="p">()</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">sessionName</span><span class="p">(</span><span class="n">ITestResult</span><span class="w"> </span><span class="n">result</span><span class="p">)</span>
 </span></code></pre></div>
 <!-- API SIGNATURES: io.github.testlens.testng.TestLensTestNgContext -->
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">TestLensTestNgContext</span><span class="w"> </span><span class="nf">current</span><span class="p">()</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kd">public</span><span class="w"> </span><span class="n">WebDriver</span><span class="w"> </span><span class="nf">driver</span><span class="p">()</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kd">public</span><span class="w"> </span><span class="n">TestLens</span><span class="w"> </span><span class="nf">lens</span><span class="p">()</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="kd">public</span><span class="w"> </span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="nf">session</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">TestLensTestNgContext</span><span class="w"> </span><span class="nf">current</span><span class="p">()</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kd">public</span><span class="w"> </span><span class="n">WebDriver</span><span class="w"> </span><span class="nf">driver</span><span class="p">()</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kd">public</span><span class="w"> </span><span class="n">TestLens</span><span class="w"> </span><span class="nf">lens</span><span class="p">()</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="kd">public</span><span class="w"> </span><span class="n">UiTestLensSession</span><span class="w"> </span><span class="nf">session</span><span class="p">()</span>
 </span></code></pre></div>
 <!-- API SIGNATURES: io.github.testlens.testng.TestLensTestNgListener -->
-<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">public</span><span class="w"> </span><span class="nf">TestLensTestNgListener</span><span class="p">()</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">beforeInvocation</span><span class="p">(</span><span class="n">IInvokedMethod</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">ITestResult</span><span class="w"> </span><span class="n">result</span><span class="p">)</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">afterInvocation</span><span class="p">(</span><span class="n">IInvokedMethod</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">ITestResult</span><span class="w"> </span><span class="n">result</span><span class="p">)</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onFinish</span><span class="p">(</span><span class="n">ISuite</span><span class="w"> </span><span class="n">suite</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kd">public</span><span class="w"> </span><span class="nf">TestLensTestNgListener</span><span class="p">()</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">beforeInvocation</span><span class="p">(</span><span class="n">IInvokedMethod</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">ITestResult</span><span class="w"> </span><span class="n">result</span><span class="p">)</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">afterInvocation</span><span class="p">(</span><span class="n">IInvokedMethod</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">ITestResult</span><span class="w"> </span><span class="n">result</span><span class="p">)</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onAfterClass</span><span class="p">(</span><span class="n">ITestClass</span><span class="w"> </span><span class="n">testClass</span><span class="p">)</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onFinish</span><span class="p">(</span><span class="n">ISuite</span><span class="w"> </span><span class="n">suite</span><span class="p">)</span>
 </span></code></pre></div>
+<h2 id="driver-scope">Driver scope<a class="headerlink" href="#driver-scope" title="Permanent link">&para;</a></h2>
+<p><code>PER_METHOD</code> is the default and preserves the established adapter contract exactly: the factory, driver, Lens, and session are created for the physical <code>@Test</code> invocation, <code>current()</code> is available in the test body, and finalization plus <code>quit()</code> happen after that test callback. It does not extend the managed context into user configuration hooks.</p>
+<p><code>PER_CLASS</code> is an explicit 0.4.0 opt-in for sequential tests that intentionally share browser state:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nd">@Listeners</span><span class="p">(</span><span class="n">TestLensTestNgListener</span><span class="p">.</span><span class="na">class</span><span class="p">)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nd">@TestLensTestNg</span><span class="p">(</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">        </span><span class="n">factory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ChromeFactory</span><span class="p">.</span><span class="na">class</span><span class="p">,</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">        </span><span class="n">driverScope</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DriverScope</span><span class="p">.</span><span class="na">PER_CLASS</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="p">)</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">AccountPageTests</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="nd">@BeforeMethod</span><span class="p">(</span><span class="n">alwaysRun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">prepare</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">        </span><span class="n">TestLensTestNgContext</span><span class="p">.</span><span class="na">current</span><span class="p">().</span><span class="na">lens</span><span class="p">().</span><span class="na">waitForInteractiveOrComplete</span><span class="p">();</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">    </span><span class="nd">@Test</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">editsProfile</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">        </span><span class="n">TestLensTestNgContext</span><span class="p">.</span><span class="na">current</span><span class="p">().</span><span class="na">lens</span><span class="p">().</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"edit-profile"</span><span class="p">).</span><span class="na">click</span><span class="p">();</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">    </span><span class="nd">@AfterMethod</span><span class="p">(</span><span class="n">alwaysRun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">evidence</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="w">        </span><span class="n">TestLensTestNgContext</span><span class="p">.</span><span class="na">current</span><span class="p">().</span><span class="na">lens</span><span class="p">().</span><span class="na">captureScreenshot</span><span class="p">(</span><span class="s">"after-method"</span><span class="p">);</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>The managed envelope is:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>adapter: acquire/reuse driver + start invocation session
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>user: all applicable BeforeMethod hooks
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>user: Test body or TestNG skip caused by setup
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>user: all applicable AfterMethod hooks
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>adapter: finish/export invocation session and clear callback binding
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>user: applicable AfterClass hooks
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>adapter: quit the class-instance owner exactly once
+</span></code></pre></div>
+<p><code>current()</code> is intentionally unavailable in <code>BeforeClass</code>, <code>AfterClass</code>, group, test, and suite configuration hooks. TestNG 7.9 may call <code>IClassListener.onAfterClass</code> either before or after user <code>AfterClass</code> methods depending on <code>testng.listener.execution.symmetric</code>; Test Lens observes both boundaries and never treats the listener callback alone as permission to quit.</p>
+<p>The owner key uses the owning <code>ISuite</code>, <code>ITestContext</code>/<code>XmlTest</code>, and concrete instance by identity. Two <code>@Factory</code> instances, the same class in two <code>&lt;test&gt;</code> blocks, and a later suite in the same JVM therefore receive different drivers. <code>parallel="instances"</code>, <code>parallel="classes"</code>, or independent <code>&lt;test&gt;</code> execution may run different owners concurrently. One owner remains sequential: <code>parallel="methods"</code>, a parallel DataProvider, and <code>invocationCount</code> with a multi-thread pool fail before the expensive driver is created:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Shared WebDriver scope PER_CLASS conflicts with parallel method execution.
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Use PER_METHOD, or execute this class sequentially.
+</span></code></pre></div>
+<p>Test Lens does not serialize such tests silently and does not disable TestNG parallelism globally.</p>
+<p><code>parallel=classes</code>, <code>parallel=tests</code>, and <code>parallel=instances</code> can run independent owners concurrently only when each owner's methods remain sequential. For factory instances, use TestNG's <code>group-by-instances="true"</code>; <code>parallel=instances</code> alone is not treated as proof that one instance cannot overlap, and the runtime guard rejects an actual overlap before the second user callback receives the driver.</p>
+<p>TestNG may move sequential callbacks between worker threads. The adapter therefore identifies owners by suite/context/instance and guards actual overlapping invocations rather than treating <code>threadId</code> as identity. It does not unwrap or weaken a consumer-supplied Selenium <code>ThreadGuard</code>; a driver deliberately confined to one creation thread remains incompatible with any TestNG schedule that invokes it from another thread.</p>
+<p>Every DataProvider row and every RetryAnalyzer attempt attaches a fresh <code>TestLens</code> and starts a fresh session with its own session ID, terminal status, scenario resources, evidence, network buffer, and report directory while a healthy class driver remains the same. Before the first <code>BeforeMethod</code>, TestNG has not yet published the final test <code>ITestResult</code>; the adapter gives <code>sessionName(...)</code> a read-only invocation descriptor containing the actual test method, instance, and context. It intentionally exposes no raw DataProvider values. At test entry the adapter binds the real result. Configuration failures are combined into the Lens outcome without rewriting unrelated TestNG results.</p>
+<p>Class-scoped reuse does not navigate, refresh, clear cookies/storage, close windows, or reset authentication between methods. Test code remains responsible for application-state isolation and must declare TestNG dependencies/priorities if a demonstration intentionally relies on order. Do not call <code>quit()</code> in <code>AfterMethod</code> or <code>AfterClass</code>; the adapter owns the managed driver. A definitively lost session is not silently replaced with a different browser.</p>
 <h2 id="outcome-and-ownership-contract">Outcome and ownership contract<a class="headerlink" href="#outcome-and-ownership-contract" title="Permanent link">&para;</a></h2>
 <p>The listener maps <code>SUCCESS</code> to <code>finishPassed()</code>, <code>FAILURE</code> and <code>SUCCESS_PERCENTAGE_FAILURE</code> to <code>finishFailed(originalThrowable)</code>, and <code>SKIP</code>/<code>SkipException</code> to <code>finishSkipped(reason)</code>. It finalizes reports before calling <code>driver.quit()</code> and then removes the <code>ITestResult</code> state. If the test already finalized its Lens, the first terminal outcome and the exactly-once report pipeline are reused; the callback does not create a second terminal event or bundle. Do not call <code>quit()</code> again from <code>@AfterMethod</code>.</p>
 <p>The listener never uploads reports. A test may explicitly finalize and synchronously upload before it returns; the listener then observes the existing terminal result and still owns its one driver cleanup. A suite-wide transport policy belongs in a project-owned listener ordered around the explicit <a href="../../observability/report-upload/">report uploader</a>, with credentials supplied from controlled configuration rather than test metadata.</p>
@@ -3104,11 +3644,25 @@ These coordinates are published with the 0.3.0 release.</p>
 <p>For <code>FAILURE</code> and <code>SUCCESS_PERCENTAGE_FAILURE</code>, the listener completes the failure bundle before its single <code>driver.quit()</code>. A partial bundle does not change TestNG status or replace the original throwable. Policy-induced failure follows the same ordering and is not finalized twice.</p>
 <p>Disabled tests, configuration methods, dependency-skipped methods, and tests blocked by a failed <code>@BeforeMethod</code> do not create a driver or empty session. Calling <code>TestLensTestNgContext.current()</code> outside a managed test method throws <code>IllegalStateException</code>.</p>
 <h2 id="dataprovider-retry-and-parallel-execution">DataProvider, retry, and parallel execution<a class="headerlink" href="#dataprovider-retry-and-parallel-execution" title="Permanent link">&para;</a></h2>
-<p>State is stored as a namespaced attribute of the physical <code>ITestResult</code>, not on the test class or listener. Parallel methods and parallel DataProviders therefore cannot see one another's drivers, sessions, scenario state, or resources, and reusing a test instance is safe. Every RetryAnalyzer attempt gets its own factory, driver, Lens, session ID, scenario scope, report directory, and final status: a failed attempt is recorded as <code>FAILED</code>, while a later successful attempt is a separate <code>PASSED</code> session. One <code>SuiteStateManager</code> is stored on the owning <code>ISuite</code>, shared atomically inside that suite, and cleared by the listener at suite end. See <a href="../../features/managed-test-state/">Managed Test State &amp; Resources</a>.</p>
+<p>In <code>PER_METHOD</code>, state is stored on the physical <code>ITestResult</code>; parallel methods and parallel DataProviders cannot see one another's resources. Every RetryAnalyzer attempt gets its own factory, driver, Lens, session ID, scenario scope, report directory, and status. In <code>PER_CLASS</code>, the driver owner is separate from the callback-local invocation binding: retries and sequential DataProvider rows reuse the healthy driver but never reuse terminal Lens state. One <code>SuiteStateManager</code> remains stored on the owning <code>ISuite</code> and is cleared at suite end. See <a href="../../features/managed-test-state/">Managed Test State &amp; Resources</a>.</p>
+<p>Native Selenium observation is opt-in per Lens invocation. In <code>PER_CLASS</code>, do not cache an observed facade created by invocation A and reuse it in invocation B: it remains owned by A and becomes diagnostic-only after A is finalized. Bind Page Objects to the current invocation in <code>@BeforeMethod</code> while preserving the shared raw browser:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nd">@BeforeMethod</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">bindPage</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLensTestNgContext</span><span class="p">.</span><span class="na">current</span><span class="p">().</span><span class="na">lens</span><span class="p">();</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="n">page</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">AccountPage</span><span class="p">(</span><span class="n">lens</span><span class="p">.</span><span class="na">observeDriver</span><span class="p">());</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>The adapter still owns the one class-scoped driver and creates a fresh Lens/session/report for every DataProvider row and retry. Native observation does not change <code>PER_METHOD</code> defaults or TestNG lifecycle/quit ownership.</p>
 <p>The default name contains the class, method, public TestNG invocation counter, and an opaque per-attempt token. It deliberately excludes DataProvider values. A custom <code>sessionName(ITestResult)</code> may return a different name, but should not include credentials or other parameter secrets.</p>
 <h2 id="recovery-retry-policy">Recovery-retry policy<a class="headerlink" href="#recovery-retry-policy" title="Permanent link">&para;</a></h2>
 <p>Return configured <code>TestLensOptions</code> from the factory. A policy violation from an otherwise successful method is written into the completed reports, then the listener explicitly changes its <code>ITestResult</code> to <code>FAILURE</code> and installs the <code>RetryPolicyViolationException</code> as throwable. Driver quit still happens exactly once; later cleanup errors are suppressed. <code>IRetryAnalyzer</code> attempts remain independent sessions rather than one aggregated summary.</p>
-<p>Lens-owned network capture is stopped by every finalizer before the listener's single <code>driver.quit()</code>. A factory that selects <code>BIDI</code> or <code>AUTO</code> must create Chrome/Firefox options with <code>enableBiDi()</code>; missing BiDi is reported as unsupported and never falls back to manual events.</p>
+<p>Lens-owned network capture is stopped by every invocation finalizer. A later <code>PER_CLASS</code> invocation may start a new capture generation on the same driver without retaining the prior invocation's buffer or listeners; the driver is quit only after the class-instance lifecycle. Requests still in flight at the boundary cannot be reassigned perfectly when the browser protocol supplies no invocation correlation, so tests should await material requests before returning. A factory that selects <code>BIDI</code> or <code>AUTO</code> must create local or remote Chrome/Firefox options with BiDi enabled. One remote provider session can therefore contain several independent Test Lens reports; Test Lens does not overwrite provider status or take ownership from a provider SDK.</p>
+<h2 id="local-040-validation">Local 0.4.0 validation<a class="headerlink" href="#local-040-validation" title="Permanent link">&para;</a></h2>
+<p>Install the current reactor without publishing it, then point the consumer at the snapshot and verify resolution:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">mvn</span> <span class="n">-DskipTests</span> <span class="n">install</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">mvn</span> <span class="n">dependency</span><span class="p">:</span><span class="n">tree</span> <span class="s2">"-Dincludes=io.github.test-lens"</span>
+</span></code></pre></div>
+<p>Use <code>0.4.0</code>, run a sequential <code>PER_CLASS</code> fixture, and confirm one Selenium session ID, multiple Test Lens session IDs/report directories, and one final <code>quit()</code>. For a BrowserStack smoke test, enable Selenium BiDi in the consumer's already-verified provider configuration; credentials must remain outside source and logs.</p>
 <p>The factory's <code>TestLensOptions.redactionPolicy(...)</code> is used for that physical invocation through final report/bundle creation. Redaction errors remain diagnostic and never replace the original TestNG throwable or alter status mapping; the listener still quits its owned driver exactly once afterward. Screenshot pixels remain outside this protection.</p>
 
 
@@ -3207,7 +3761,7 @@ These coordinates are published with the 0.3.0 release.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0-SNAPSHOT", "default": "latest", "is_dev": true, "is_snapshot": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

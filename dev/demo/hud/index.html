@@ -11,7 +11,7 @@
   <header class="demo-toolbar">
     <div>
       <strong>Test Lens checkout demo</strong>
-      <span>Synthetic events · no network requests</span>
+      <span>0.4.0 renderer · deterministic local scenarios · no network requests</span>
     </div>
     <div class="preset-control" role="group" aria-label="HUD style">
       <span>HUD style</span>
@@ -19,6 +19,15 @@
       <button type="button" data-hud-preset="MINIMAL" aria-pressed="false">Minimal</button>
       <button type="button" data-hud-preset="DEBUG" aria-pressed="false">Debug</button>
     </div>
+    <label class="scenario-control" for="scenario">Scenario
+      <select id="scenario">
+        <option value="lifecycle">Action + assertion</option>
+        <option value="highlights">Highlight lifecycle</option>
+        <option value="observability">DEFAULT vs FAST</option>
+        <option value="native">Native Selenium</option>
+        <option value="smart-click">Smart Click fallback</option>
+      </select>
+    </label>
     <button id="replay-demo" type="button" aria-controls="checkout-demo">Replay demo</button>
   </header>
 
@@ -49,6 +58,7 @@
         <div><dt>Total</dt><dd>$42.00</dd></div>
       </dl>
       <button id="place-order" class="primary" type="button">Place order</button>
+      <div id="click-cover" hidden>Loading overlay</div>
       <div id="confirmation" role="status" tabindex="-1" hidden>
         <strong>Order confirmed</strong>
         <span>Reference TL-DEMO-020</span>
@@ -61,7 +71,7 @@
   </noscript>
 
   <script>
-    window.__uiTestLens = { version: '0.3.0-demo', modules: {}, state: { overlay: {} } };
+    window.__uiTestLens = { version: '0.4.0-demo', modules: {}, state: { overlay: {} } };
     var overlayHost = document.createElement('div');
     overlayHost.id = 'selenium-overlay-host';
     overlayHost.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;z-index:2147483647;pointer-events:none';

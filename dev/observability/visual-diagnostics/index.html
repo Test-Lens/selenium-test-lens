@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Observable, retryable Selenium interactions and diagnostic artifacts for an existing WebDriver.">
+        <meta name="description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>Live HUD & configuration - Selenium Test Lens</title>
+        <title>Live HUD & configuration - Test Lens</title>
       
     
     
@@ -71,6 +71,24 @@
 
     
     
+  
+  
+    
+  
+  
+  
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Test Lens">
+  <meta property="og:title" content="Live HUD &amp; configuration - Test Lens">
+  <meta property="og:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/observability/visual-diagnostics/">
+  <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+  <meta property="og:image:alt" content="Test Lens">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Live HUD &amp; configuration - Test Lens">
+  <meta name="twitter:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+
   </head>
   
   
@@ -140,8 +158,7 @@
   </script>
   
     
-      Development documentation for <strong>0.4.0-SNAPSHOT</strong>.
-      These features are not yet available in the latest Maven Central release.
+      Documentation source for <strong>0.4.0</strong>.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -161,10 +178,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Selenium Test Lens" class="md-header__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href="../.." title="Test Lens" class="md-header__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -175,7 +191,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Selenium Test Lens
+            Test Lens
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -491,13 +507,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Selenium Test Lens" class="md-nav__button md-logo" aria-label="Selenium Test Lens" data-md-component="logo">
+    <a href="../.." title="Test Lens" class="md-nav__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
-    Selenium Test Lens
+    Test Lens
   </label>
   
     <div class="md-nav__source">
@@ -608,6 +623,34 @@
     
   
     Installation & first test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.4.0
   
 
     
@@ -1587,6 +1630,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#semantic-event-rows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semantic event rows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#configurable-hud" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1616,6 +1670,34 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Local source navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#intellij-compatibility-and-preflight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IntelliJ compatibility and preflight
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#contributor-headed-debug-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contributor headed-debug check
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -2858,6 +2940,146 @@
   
   
     <li class="md-nav__item">
+      <a href="../../maintainers/release-0.4.x/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releasing Test Lens 0.4.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/release-certification-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 release certification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/media-inventory-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 media inventory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/recording-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recording 0.4.0 media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/patch-release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.x patch-release lane
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../browser-integration-tests/" class="md-nav__link">
         
   
@@ -2866,6 +3088,258 @@
     
   
     Real-browser integration tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../performance-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime performance audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-declaration-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Static locator declaration index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-stability-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector stability policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-candidate-live-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector candidate live analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-find-similar-history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector similarity and cross-run history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Offline Selector Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selector-lab-readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read-only Selector Lab
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/compatibility-run-manifests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility run manifests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/migration-git-checkpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Git preflight and checkpoints
   
 
     
@@ -2914,7 +3388,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.4.0" class="md-nav__link">
         
   
   
@@ -2942,7 +3416,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.3.1/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.4.0/" class="md-nav__link">
         
   
   
@@ -3009,6 +3483,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#semantic-event-rows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Semantic event rows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#configurable-hud" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3038,6 +3523,34 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Local source navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#intellij-compatibility-and-preflight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IntelliJ compatibility and preflight
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#contributor-headed-debug-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contributor headed-debug check
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -3135,7 +3648,27 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">startSession</span><span class="p">(</span><span class="s">"Checkout"</span><span class="p">);</span>
 </span></code></pre></div>
 <p>The HUD is especially useful when debugging a headed test, demonstrating a flow, or investigating a wait/retry. It does not replace the persistent trace or test-runner output.</p>
+<p><img alt="Test Lens 0.4.0 semantic action and assertion rows update through one correlated lifecycle" src="../../assets/media/hud-action-assertion-lifecycle.webp" /></p>
 <p>The panel observes and presents Lens operations; it does not alter Selenium's success criteria. HUD injection or cleanup failure is decorative and cannot turn an otherwise successful or failed WebDriver operation into the opposite outcome.</p>
+<h3 id="semantic-event-rows">Semantic event rows<a class="headerlink" href="#semantic-event-rows" title="Permanent link">&para;</a></h3>
+<p>HUD rows distinguish event meaning from log severity. Each visible row includes a textual category and phase plus independent decorative icons. The default category mapping is: <code>ACTION</code> 🖱️, <code>ASSERTION</code> 🧪, <code>LOCATOR</code> 🔎, <code>ACTIONABILITY</code> 🛡️, <code>HIGHLIGHT</code> ✨, <code>USER</code> 💬, and <code>SYSTEM</code> ℹ️. Phases use RUNNING ⏳, PASSED ✅, RETRYING 🔄, WARNING ⚠️, FAILED ❌, INFO ℹ️, and a muted DEBUG marker. Emoji spans are decorative and hidden from assistive technology; textual <code>[CATEGORY] PHASE</code> labels and row roles remain available without color or emoji. Running animation is disabled under <code>prefers-reduced-motion</code>.</p>
+<p>User-authored HUD messages may replace only the decorative <code>USER</code> icon: <code>overlay.hudLog("info", "Starting custom step", null, "🚀")</code>. A null, empty, or blank icon inherits the default 💬 icon. The category remains <code>USER</code>, and its independent status icon and <code>[USER] INFO</code> text remain visible. Icons are arbitrary Unicode text, so compound emoji such as <code>❤️</code> and <code>👩‍💻</code> are preserved and safely inserted with <code>textContent</code>, never interpreted as HTML.</p>
+<p><code>STANDARD</code> and <code>COMPACT</code> show public operations, assertions, terminal results, real retries, warnings, failures, user messages, and important recovery facts. Successful locator resolution, actionability probes, and highlight-renderer events are filtered before DOM rows are created. <code>DEBUG</code> adds those technical categories with muted DEBUG styling; it does not reinterpret them as functional success. <code>MINIMAL</code> retains its established compact contract and does not enable the event log by default.</p>
+<p>STARTED, retry, and terminal events from one public action/assertion carry the same operation ID, so the HUD updates one row from RUNNING through RETRYING to PASSED or FAILED. Two real clicks still have distinct IDs even when they target the same selector. Smart Click's <code>NATIVE → ACTIONS → POINT → JS</code> cascade therefore remains one ACTION; <code>finalStrategy=JS</code> stays diagnostic detail. A successful green outline is <code>HIGHLIGHT/DEBUG</code>, not <code>PASSED</code>.</p>
+<p>Action targets use <code>Action :: label :: compact locator</code> without empty segments. An explicit Test Lens label always
+wins. Otherwise, live DEFAULT observability may make one best-effort Selenium <code>getAccessibleName()</code> call after
+resolution and revise the same operation row, for example <code>Click :: #save</code> to
+<code>Click :: Save :: #save</code>. Blank, stale, or failed lookups keep the locator-only form and never affect the Selenium
+action result. FAST performs no automatic label command; explicit or already-known labels remain usable. Values
+are redacted before HUD delivery and rendered as text. Input values, including password values, are never queried
+as label fallbacks.</p>
+<p>Compact locators are presentation only: IDs use <code>#id</code>, CSS stays CSS, names use <code>[name="value"]</code>, safe single
+classes use <code>.class</code>, tags stay tags, XPath uses <code>xpath: ...</code>, and link text uses <code>link: "..."</code> or
+<code>link~: "..."</code>. Custom, complex, and unsafe-to-compact locators retain a bounded safe display. The canonical
+structured <code>locatorObservation</code> strategy/value and its schema are unchanged.</p>
+<p>Source Navigation availability remains a SYSTEM warning/info presentation and never becomes a failed test result. Its F8/Escape interaction, links, compatibility refresh, wheel behavior, and native scrollbar remain independent of semantic row updates.</p>
+<p>Messages, labels, and icons are inserted as text rather than HTML. The runtime does not inspect message contents to determine category or phase. Unicode is carried unchanged through event metadata, JSON, reports, and the DOM, with emoji fallback fonts applied only to decorative icon spans.</p>
+<p>Emoji appearance can vary with the browser, operating system, and installed fonts. Test Lens preserves Unicode and writes built-in and user-entered semantic text as UTF-8; it does not promise identical glyph rendering across platforms. On Windows, use a UTF-8-capable terminal/editor when inspecting exported JSON or logs—the report and HUD encoding remains UTF-8 even if a console code page displays replacement characters.</p>
 <p>Raw network rows can be reduced independently with <a href="../../advanced/network/#hud-only-filtering"><code>NetworkHudFilter</code></a>. Its default hides duplicate request rows and shows responses and failures. This affects only the HUD: capture, waits, counters, trace, JSON, reports, external sinks, and failure evidence remain complete.</p>
 <h3 id="configurable-hud">Configurable HUD<a class="headerlink" href="#configurable-hud" title="Permanent link">&para;</a></h3>
 <p>For 0.3.0, configure the panel through immutable <code>HudOptions</code>. The default is <code>COMPACT</code>; a preset establishes a coherent base and explicit builder overrides win independently of call order:</p>
@@ -3214,25 +3747,27 @@ timestamps, or evidence metadata. HUD Studio exposes visibility, preset, free-fo
 font size, and deterministic winter/summer previews.</p>
 <h3 id="local-source-navigation">Local source navigation<a class="headerlink" href="#local-source-navigation" title="Permanent link">&para;</a></h3>
 <p>Source navigation is opt-in and intended for local debugging:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">HudOptions</span><span class="w"> </span><span class="n">hud</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HudOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">        </span><span class="p">.</span><span class="na">sourceNavigation</span><span class="p">(</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">                </span><span class="n">SourceNavigationOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">                        </span><span class="p">.</span><span class="na">enabled</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">                        </span><span class="p">.</span><span class="na">ide</span><span class="p">(</span><span class="n">SourceIde</span><span class="p">.</span><span class="na">INTELLIJ</span><span class="p">)</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">                        </span><span class="p">.</span><span class="na">build</span><span class="p">())</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">Path</span><span class="w"> </span><span class="n">ideRoot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">"D:/Java Projects/selenium-test-lens"</span><span class="p">);</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">HudOptions</span><span class="w"> </span><span class="n">hud</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HudOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">        </span><span class="p">.</span><span class="na">sourceNavigation</span><span class="p">(</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">                </span><span class="n">SourceNavigationOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">                        </span><span class="p">.</span><span class="na">enabled</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">                        </span><span class="p">.</span><span class="na">ide</span><span class="p">(</span><span class="n">SourceIde</span><span class="p">.</span><span class="na">INTELLIJ</span><span class="p">)</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">                        </span><span class="p">.</span><span class="na">intellijProject</span><span class="p">(</span><span class="s">"selenium-test-lens"</span><span class="p">,</span><span class="w"> </span><span class="n">ideRoot</span><span class="p">)</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">                        </span><span class="p">.</span><span class="na">build</span><span class="p">())</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
 </span></code></pre></div>
-<p>Hold Ctrl+Alt to reveal source locations in the HUD. Click a source location to navigate to the corresponding line in your IDE. Outside that chord the HUD remains fully passive; while it is held, only the source link accepts pointer events. Releasing either key or moving focus away from the browser immediately restores the passive state.</p>
-<p>The mode is active only while the real Ctrl and Alt modifier state remains set. Pressing and releasing another key, such as Shift, does not deactivate it; releasing Ctrl or Alt does. <code>window.blur</code> always deactivates it. AltGr/AltGraph never activates source navigation, even on Windows keyboards that report it as <code>ctrlKey &amp;&amp; altKey</code>.</p>
+<p>Press F8 to toggle Source Navigation on or off; Escape switches it off. Key auto-repeat is ignored, and focused text inputs retain F8. When enabled, source locations become links while wheel/touchpad scrolling, the native scrollbar, text selection, expand/collapse controls, and other HUD controls remain normal. No modifier needs to be held and Source Navigation does not install a wheel handler.</p>
+<p><code>SourceNavigationModifier.CTRL_ALT</code> remains available for compatibility with explicit 0.3.1 configurations, but is deprecated. It preserves the original hold behavior exactly: the mode is active only while real Ctrl and Alt state remains set, releasing either key or moving focus away deactivates it, and AltGr/AltGraph never activates it. It does not become a toggle.</p>
 <p>The link displays only <code>File.java:line</code>. The source call site is captured when a user-facing action, wait, assertion, or manual highlight is emitted. Standard multi-module Maven/Gradle Java and Kotlin roots are detected lazily from <code>src/test/java</code>, <code>src/main/java</code>, <code>src/test/kotlin</code>, and <code>src/main/kotlin</code>. Add non-standard roots without publishing absolute paths in event metadata:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">SourceNavigationOptions</span><span class="w"> </span><span class="n">sourceNavigation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SourceNavigationOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">        </span><span class="p">.</span><span class="na">enabled</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">        </span><span class="p">.</span><span class="na">activationModifier</span><span class="p">(</span><span class="n">SourceNavigationModifier</span><span class="p">.</span><span class="na">CTRL_ALT</span><span class="p">)</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="p">.</span><span class="na">ide</span><span class="p">(</span><span class="n">SourceIde</span><span class="p">.</span><span class="na">VSCODE</span><span class="p">)</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">        </span><span class="p">.</span><span class="na">sourceRoots</span><span class="p">(</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">                </span><span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">"acceptance/src/test/java"</span><span class="p">),</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">                </span><span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">"shared/src/main/kotlin"</span><span class="p">))</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">        </span><span class="p">.</span><span class="na">ide</span><span class="p">(</span><span class="n">SourceIde</span><span class="p">.</span><span class="na">VSCODE</span><span class="p">)</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="p">.</span><span class="na">sourceRoots</span><span class="p">(</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">                </span><span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">"acceptance/src/test/java"</span><span class="p">),</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">                </span><span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">"shared/src/main/kotlin"</span><span class="p">))</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
 </span></code></pre></div>
 <table>
 <thead>
@@ -3244,7 +3779,7 @@ font size, and deterministic winter/summer previews.</p>
 <tbody>
 <tr>
 <td><code>INTELLIJ</code></td>
-<td>Uses the local <code>idea://open</code> protocol handler. The same provider can be used by compatible JetBrains IDE installations.</td>
+<td>Uses the JetBrains <code>jetbrains://idea/navigate/reference</code> handler with an exact project identity and project-relative path.</td>
 </tr>
 <tr>
 <td><code>VSCODE</code></td>
@@ -3256,41 +3791,85 @@ font size, and deterministic winter/summer previews.</p>
 </tr>
 </tbody>
 </table>
-<p>Local file resolution and protocol navigation are best-effort and never change the test result. If the logical location cannot be resolved, the <code>File.java:line</code> text remains visible but is not a link. Remote WebDriver sessions may likewise show the logical label without an active local IDE target. A missing protocol handler or rejected navigation cannot fail the test.</p>
-<p>The full local path and IDE URI stay in the Java/browser callback boundary and are not stored as <code>href</code>, <code>data-*</code>, hidden text, or serialized row data in the open Shadow DOM. Exported events retain only class, method, file name, and line number; absolute paths and IDE URIs are not written to reports, JSON traces, or evidence.</p>
+<p>For IntelliJ IDEA, configure the project identity IntelliJ expects, not the worktree directory name. <code>intellijProject(name, root)</code> is explicit and recommended for worktrees and multi-module builds. Without it, Test Lens walks upward for <code>.idea/.name</code>; it never guesses the project from a directory name. The resolved file must exist beneath the configured project root. The URI path is project-relative and includes <code>:line</code> and an optional <code>:column</code>, with query values URL-encoded for spaces, Windows paths, and non-ASCII characters.</p>
+<h4 id="intellij-compatibility-and-preflight">IntelliJ compatibility and preflight<a class="headerlink" href="#intellij-compatibility-and-preflight" title="Permanent link">&para;</a></h4>
+<p>IntelliJ navigation requires JetBrains' <code>jetbrains://</code> protocol. Known supported setups are:</p>
+<ul>
+<li>IntelliJ IDEA 2026.1 or newer bundles <code>jetbrainsd</code>; JetBrains Toolbox is <strong>not required</strong> for these versions;</li>
+<li>IntelliJ IDEA older than 2026.1 requires JetBrains Toolbox App 3.3 or newer to provide and start <code>jetbrainsd</code> and register <code>jetbrains://</code> handling for supported installed IDEs.</li>
+</ul>
+<p><code>jetbrainsd</code> receives the operating-system protocol request and forwards it to Toolbox or the IDE. IDEA 2026.1+ supplies this component itself, so installing Toolbox is unnecessary. Standalone IntelliJ releases before 2026.1 may not register the protocol themselves; for those releases, install or update Toolbox to 3.3+, keep Toolbox running, and retry the HUD compatibility check, or update IntelliJ IDEA to 2026.1+.</p>
+<p>On Windows, Test Lens performs a bounded, best-effort preflight when Source Navigation starts. It checks the <code>jetbrains</code> protocol registration, a running or installed <code>jetbrainsd</code>, and IntelliJ product metadata. An explicitly configured installation can be supplied to the test JVM with <code>-Dtestlens.intellij.home=&lt;IDE home&gt;</code> or <code>-Dtestlens.intellij.executable=&lt;path to idea64.exe&gt;</code>; otherwise the probe may inspect a running IDEA process. Product name, version, and build come from the installation's <code>product-info.json</code>, never from a guessed directory name. Other operating systems currently report the environment as unverified rather than blocking a potentially valid link.</p>
+<p>The HUD distinguishes three outcomes:</p>
+<ul>
+<li><strong>Ready</strong>: the protocol handler and project mapping were verified; links dispatch normally.</li>
+<li><strong>Action required</strong>: a required handler, daemon, mapping, root, or source file is known to be unavailable; links remain disabled and compatibility details provide the corrective action.</li>
+<li><strong>Availability unverified</strong>: local probing could not establish protocol availability; navigation remains available, but the HUD labels the request as unverified.</li>
+</ul>
+<p>The compatibility summary is emitted once per state change to the Java logger and HUD event stream. <strong>Retry compatibility check</strong> re-runs the lightweight probe on the next HUD update, so starting Toolbox or IntelliJ does not require restarting the browser session. Detailed executable paths, resolved source paths, and generated URIs remain at <code>FINE</code> logging only.</p>
+<p>For advanced Windows troubleshooting, compare the HUD result with:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">Get-Process</span> <span class="p">|</span> <span class="nb">Where-Object</span> <span class="p">{</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="nv">$_</span><span class="p">.</span><span class="n">ProcessName</span> <span class="o">-match</span> <span class="s2">"jetbrainsd|toolbox|idea"</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="p">}</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nb">Get-Item</span> <span class="s2">"Registry::HKEY_CLASSES_ROOT\jetbrains"</span> <span class="n">-ErrorAction</span> <span class="n">SilentlyContinue</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="nb">Get-ChildItem</span> <span class="s2">"$env:LOCALAPPDATA\JetBrains\Daemon\bundles\current"</span> <span class="p">`</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="n">-ErrorAction</span> <span class="n">SilentlyContinue</span>
+</span></code></pre></div>
+<p>A running <code>jetbrainsd</code> or a populated daemon bundle plus a registered <code>HKEY_CLASSES_ROOT\jetbrains</code> protocol indicates that the local transport is available. For IDEA 2026.1+, Toolbox is not required: start or restart IDEA once and retry the compatibility check if registration is missing. If an older IDEA release such as 2025.2.5 is running but all three checks are absent, install/run Toolbox 3.3+ or update IDEA to 2026.1+.</p>
+<p>Local file resolution and protocol navigation are best-effort and never change the test result. If the project mapping, source path, line, or file is invalid, the <code>File.java:line</code> text remains visible but is not a link. Remote WebDriver sessions may likewise show the logical label without an active local IDE target. Clicking a valid link synchronously requests the custom protocol from the real user gesture; the HUD reports <strong>Source navigation requested</strong>, not success, because a webpage cannot confirm that the IDE accepted it. Browsers may show an external-protocol confirmation prompt.</p>
+<p>Enable <code>FINE</code> logging for <code>io.github.testlens.source-navigation</code> to inspect the provider, project, logical path, resolved IDE path, line, column, and final URI. You can also right-click a source link and copy its link address. Test that URI independently in the browser or Windows Run dialog:</p>
+<ul>
+<li>If Windows reports that no application can open it, install/run JetBrains Toolbox 3.3+ or update IntelliJ IDEA to 2026.1+, then use <strong>Retry compatibility check</strong>.</li>
+<li>If IDEA opens but selects no project, correct <code>intellijProject(...)</code> or <code>.idea/.name</code>.</li>
+<li>If the project opens but the file does not, correct the project root/source roots and inspect the resolved path diagnostic.</li>
+<li>As a diagnostic only, compare with <code>idea64.exe --line &lt;line&gt; --column &lt;column&gt; &lt;file&gt;</code>; the browser never executes this command.</li>
+</ul>
+<h4 id="contributor-headed-debug-check">Contributor headed-debug check<a class="headerlink" href="#contributor-headed-debug-check" title="Permanent link">&para;</a></h4>
+<p>To exercise the real HUD manually, run the existing Source Navigation browser contract in a headed Chrome session:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">mvn</span> <span class="o">-f</span> <span class="n">selenium-test-lens-browser-tests</span><span class="p">/</span><span class="n">pom</span><span class="p">.</span><span class="n">xml</span> <span class="n">-Dbrowser</span><span class="p">=</span><span class="n">chrome</span> <span class="n">-Dheaded</span><span class="p">=</span><span class="n">true</span> <span class="s2">"-Dit.test=RealBrowserContractsIT#hudSourceNavigationF8ToggleKeepsScrollingControlsAndDirectLinksUsable"</span> <span class="nb">test-compile</span> <span class="n">failsafe</span><span class="p">:</span><span class="n">integration-test</span> <span class="n">failsafe</span><span class="p">:</span><span class="n">verify</span>
+</span></code></pre></div>
+<p>For an interactive debugging pass, launch the same Maven goal from the IDE debugger and place a breakpoint in <code>RealBrowserContractsIT#hudSourceNavigationF8ToggleKeepsScrollingControlsAndDirectLinksUsable</code> immediately before the source-location <code>.click()</code> that dispatches navigation. While execution is paused, use the headed browser to toggle Source Navigation, inspect compatibility details, scroll and drag the native HUD scrollbar, and exercise ordinary HUD controls; then resume to run the contract assertions. This is a contributor workflow only—production code contains no pause or debug behavior.</p>
+<p>IDE foreground activation remains subject to browser and Windows focus policy. Test Lens uses the supported JetBrains URI and does not use executable launching or focus hacks.</p>
+<p>The actionable URI is rendered as the source anchor's <code>href</code> so dispatch remains synchronous and users can copy it for diagnostics. IntelliJ URIs contain only the project identity and project-relative target; exported events retain only class, method, file name, and line number. Absolute local paths and IDE URIs are not written to reports, JSON traces, or evidence.</p>
 <p>Use <code>OverlayConfig</code> for the master visual switch, HUD visibility, highlight behavior, and legacy compatibility. To hide only the HUD while retaining click decoration:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">OverlayConfig</span><span class="w"> </span><span class="n">overlayConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OverlayConfig</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">        </span><span class="p">.</span><span class="na">showHudPanel</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">OverlayConfig</span><span class="w"> </span><span class="n">overlayConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OverlayConfig</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">        </span><span class="p">.</span><span class="na">showHudPanel</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
 </span></code></pre></div>
 <p>To disable all visual overlay behavior:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">OverlayConfig</span><span class="w"> </span><span class="n">overlayConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OverlayConfig</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">        </span><span class="p">.</span><span class="na">enabled</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">OverlayConfig</span><span class="w"> </span><span class="n">overlayConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OverlayConfig</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">        </span><span class="p">.</span><span class="na">enabled</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
 </span></code></pre></div>
 <p>See <a href="../../getting-started/">Getting Started</a> and the complete <a href="../../reference/configuration/#overlayconfig"><code>OverlayConfig</code> table</a>.</p>
 <p><code>TestLens.startSession(...)</code> attempts the initial HUD injection. Events retry injection lazily when a browser document was not available earlier, such as around navigation. When <a href="../../reference/configuration/#testlensoptions"><code>TestLensOptions.cleanupHudOnFinish</code></a> is enabled, finalization removes HUD/debug artifacts on a best-effort basis. Injection and cleanup failures do not change the WebDriver operation's intended result.</p>
 <h2 id="state-aware-highlights">State-aware highlights<a class="headerlink" href="#state-aware-highlights" title="Permanent link">&para;</a></h2>
 <p>A highlight is a temporary border/label drawn around an element so you can see which DOM target Test Lens selected. It is useful when a selector matches an unexpected element or a click is intercepted by page UI.</p>
 <p>The 0.3.1 <code>HighlightOptions</code> model controls manual decoration and automatic operation feedback:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">HighlightOptions</span><span class="w"> </span><span class="n">highlights</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HighlightOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">        </span><span class="p">.</span><span class="na">enabled</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">        </span><span class="p">.</span><span class="na">automaticFeedback</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">        </span><span class="p">.</span><span class="na">actionColor</span><span class="p">(</span><span class="s">"#ffeb3b"</span><span class="p">)</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">        </span><span class="p">.</span><span class="na">waitingColor</span><span class="p">(</span><span class="s">"#2196f3"</span><span class="p">)</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">        </span><span class="p">.</span><span class="na">retryColor</span><span class="p">(</span><span class="s">"#ff9800"</span><span class="p">)</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">        </span><span class="p">.</span><span class="na">successColor</span><span class="p">(</span><span class="s">"#4caf50"</span><span class="p">)</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">        </span><span class="p">.</span><span class="na">failureColor</span><span class="p">(</span><span class="s">"#f44336"</span><span class="p">)</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">        </span><span class="p">.</span><span class="na">durationMs</span><span class="p">(</span><span class="mi">1500</span><span class="p">)</span>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">        </span><span class="p">.</span><span class="na">borderWidthPx</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">        </span><span class="p">.</span><span class="na">showLabels</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="n">TestLensOptions</span><span class="w"> </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">        </span><span class="p">.</span><span class="na">highlights</span><span class="p">(</span><span class="n">highlights</span><span class="p">)</span>
-</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">HighlightOptions</span><span class="w"> </span><span class="n">highlights</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HighlightOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">        </span><span class="p">.</span><span class="na">enabled</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">        </span><span class="p">.</span><span class="na">automaticFeedback</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">        </span><span class="p">.</span><span class="na">actionColor</span><span class="p">(</span><span class="s">"#ffeb3b"</span><span class="p">)</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">        </span><span class="p">.</span><span class="na">waitingColor</span><span class="p">(</span><span class="s">"#2196f3"</span><span class="p">)</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">        </span><span class="p">.</span><span class="na">retryColor</span><span class="p">(</span><span class="s">"#ff9800"</span><span class="p">)</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">        </span><span class="p">.</span><span class="na">successColor</span><span class="p">(</span><span class="s">"#4caf50"</span><span class="p">)</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">        </span><span class="p">.</span><span class="na">failureColor</span><span class="p">(</span><span class="s">"#f44336"</span><span class="p">)</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">        </span><span class="p">.</span><span class="na">durationMs</span><span class="p">(</span><span class="mi">1500</span><span class="p">)</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">        </span><span class="p">.</span><span class="na">actionDurationMs</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">        </span><span class="p">.</span><span class="na">retryDurationMs</span><span class="p">(</span><span class="mi">800</span><span class="p">)</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">        </span><span class="p">.</span><span class="na">successDurationMs</span><span class="p">(</span><span class="mi">1500</span><span class="p">)</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">        </span><span class="p">.</span><span class="na">failureDurationMs</span><span class="p">(</span><span class="mi">2500</span><span class="p">)</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">        </span><span class="p">.</span><span class="na">borderWidthPx</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">        </span><span class="p">.</span><span class="na">showLabels</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="n">TestLensOptions</span><span class="w"> </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLensOptions</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">        </span><span class="p">.</span><span class="na">highlights</span><span class="p">(</span><span class="n">highlights</span><span class="p">)</span>
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
 </span></code></pre></div>
-<p>The defaults are exactly the values shown above. <code>durationMs(0)</code> is valid, and border width accepts 1 through 16 CSS pixels.</p>
+<p>The five state-specific durations are optional overrides; the colors, common 1500 ms duration, 2 px border, and enabled switches shown above remain the defaults. Resolution is: explicit state override, then <code>durationMs(...)</code>, then the existing legacy/default duration. Setter order does not change that precedence. <code>durationOverrideMs(state)</code> reports whether a state is explicit, <code>effectiveDurationMs(state)</code> returns the resolved value, and <code>clearDurationOverride(state)</code> restores inheritance. An explicit state override of zero suppresses only that visual state. The historical common <code>durationMs(0)</code> contract is unchanged: it still renders and schedules removal with zero delay. Border width accepts 1 through 16 CSS pixels.</p>
 <table>
 <thead>
 <tr>
@@ -3334,31 +3913,35 @@ font size, and deterministic winter/summer previews.</p>
 </tbody>
 </table>
 <p><code>enabled(false)</code> disables both manual and automatic element decorations. <code>automaticFeedback(false)</code> leaves the manual API available but suppresses automatic ACTION/WAITING/RETRY/SUCCESS/FAILURE feedback. Hiding only the HUD with <code>OverlayConfig.showHudPanel(false)</code> does not disable highlights. The master <code>OverlayConfig.enabled(false)</code> disables all overlay visuals, including HUD and highlights.</p>
+<p>One public operation owns one feedback lifecycle. A click, fill, clear, select, explicit wait/assertion, or manual highlight may be user-visible; locator re-resolution, stale refresh, visibility/enabled probes, routine polling, hit-testing, Smart Click strategy transitions, and geometry refresh are diagnostic-only. For example, <code>NATIVE → ACTIONS → POINT → JS</code> remains one click with one ACTION and one terminal result. Its selected strategy is retained in operation details, but it does not create extra outlines or HUD action rows.</p>
+<p>Presentation is asynchronous and never extends the WebDriver operation timeout. If a 20 ms click completes while ACTION has 500 ms configured, ACTION finishes its own 500 ms display and the pending SUCCESS then receives its complete duration. Each decoration is revision-owned: an old timer or late transitional callback cannot remove or repaint a newer terminal state. Rapid independent operations execute immediately; their visuals are ordered locally for the same target, while different targets do not clear each other. Repeated pending transitions are collapsed and each target has a bounded visual backlog; under overload an unshown visual may be dropped at DEBUG level without dropping trace/log results or blocking the action.</p>
+<p><img alt="ACTION, WAITING, RETRY, SUCCESS, and FAILURE highlights in the 0.4.0 renderer" src="../../assets/media/hud-highlight-lifecycle.webp" /></p>
+<p>Geometry refresh preserves state, revision, and deadline. Explicit clear, disabled highlights/overlay, session finish, navigation/document loss, or target detach may end presentation early and cancel pending work. DEBUG/TRACE keeps internal probe details but does not re-enable internal visual noise.</p>
 <p>Manual decoration is interaction-free:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"status"</span><span class="p">),</span><span class="w"> </span><span class="s">"Order status"</span><span class="p">).</span><span class="na">highlight</span><span class="p">();</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">highlight</span><span class="p">(</span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="s">"Order status"</span><span class="p">);</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">lens</span><span class="p">.</span><span class="na">highlight</span><span class="p">(</span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="s">"Saved"</span><span class="p">,</span><span class="w"> </span><span class="n">HighlightState</span><span class="p">.</span><span class="na">SUCCESS</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"status"</span><span class="p">),</span><span class="w"> </span><span class="s">"Order status"</span><span class="p">).</span><span class="na">highlight</span><span class="p">();</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">highlight</span><span class="p">(</span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="s">"Order status"</span><span class="p">);</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">lens</span><span class="p">.</span><span class="na">highlight</span><span class="p">(</span><span class="n">element</span><span class="p">,</span><span class="w"> </span><span class="s">"Saved"</span><span class="p">,</span><span class="w"> </span><span class="n">HighlightState</span><span class="p">.</span><span class="na">SUCCESS</span><span class="p">);</span>
 </span></code></pre></div>
 <p>These calls do not click, type, focus, or scroll. Manual <code>ACTION</code> remains neutral. Manual <code>SUCCESS</code> chooses a visual state only: it emits a highlight diagnostic and never invents <code>ASSERTION_PASSED</code> or changes the test result.</p>
-<p>The highlight uses a pointer-transparent overlay. It does not click, receive the click, change the target's state, or make the element actionable. The subsequent activation contract remains native <code>WebElement.click()</code> with only explicit overlay recovery and configured locator retries.</p>
+<p>The highlight uses a pointer-transparent overlay. It does not click, receive the click, change the target's state, or make the element actionable. The standard activation contract is the bounded Smart Click cascade described above; highlight scheduling does not add or repeat a click.</p>
 <p>For compatibility, <code>OverlayConfig.highlightColor(...)</code> supplies <code>actionColor</code> and <code>decorationDurationMs(...)</code> supplies <code>durationMs</code> only when that typed field was not explicitly set. Explicit <code>HighlightOptions</code> fields win regardless of builder call order. The legacy duration continues to control arrows and other historical decorations. <code>UiLocatorOptions.highlightBeforeAction()</code> remains a retained option but is not consulted by the current locator implementation.</p>
 <p><a href="../hud-studio/">HUD Studio</a> configures and previews all five states. The lower-level parent/closest helpers remain documented under <a href="../../advanced/js-overlay-debug/#hud-and-explicit-visual-helpers">advanced explicit visual helpers</a>.</p>
 <h2 id="wait-feedback">Wait feedback<a class="headerlink" href="#wait-feedback" title="Permanent link">&para;</a></h2>
 <p>Wait feedback shows that a condition is still being polled and reports its progress through the HUD/log/trace pipeline. It appears during explicit <a href="../../elements/waiting/">element waits</a> and relevant retry loops, helping distinguish an active wait from a stalled test.</p>
-<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"results"</span><span class="p">).</span><span class="na">waitUntilVisible</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"results"</span><span class="p">).</span><span class="na">waitUntilVisible</span><span class="p">();</span>
 </span></code></pre></div>
 <p>The visual feedback does not change the Selenium condition, polling interval, or deadline. Configure those through <a href="../../reference/configuration/#uilocatoroptions"><code>UiLocatorOptions.timeout(...)</code> and <code>pollInterval(...)</code></a>.</p>
 <h2 id="assertion-feedback">Assertion feedback<a class="headerlink" href="#assertion-feedback" title="Permanent link">&para;</a></h2>
 <p>Assertion feedback makes fluent assertion progress visible. Reporter events distinguish assertion start, retries, pass, timeout, and failure, which is useful when an expected UI state arrives late or never appears.</p>
-<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"status"</span><span class="p">).</span><span class="na">expect</span><span class="p">().</span><span class="na">toHaveText</span><span class="p">(</span><span class="s">"Saved"</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByTestId</span><span class="p">(</span><span class="s">"status"</span><span class="p">).</span><span class="na">expect</span><span class="p">().</span><span class="na">toHaveText</span><span class="p">(</span><span class="s">"Saved"</span><span class="p">);</span>
 </span></code></pre></div>
 <p>Assertions use their own polling and comparison settings. See <a href="../../elements/assertions/">Element assertions</a> and <a href="../../reference/configuration/#uiassertionoptions"><code>UiAssertionOptions</code></a>. Diagnostic previews are bounded by the options, but page content and screenshots can still expose sensitive values.</p>
 <h2 id="legacy-hud-theme-and-placement-compatibility">Legacy HUD theme and placement compatibility<a class="headerlink" href="#legacy-hud-theme-and-placement-compatibility" title="Permanent link">&para;</a></h2>
 <p><code>OverlayConfig</code> HUD position, offset, width, and <code>HudTheme</code> remain available for 0.2.x source compatibility:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">OverlayConfig</span><span class="w"> </span><span class="n">overlayConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OverlayConfig</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">        </span><span class="p">.</span><span class="na">hudPosition</span><span class="p">(</span><span class="n">HudPosition</span><span class="p">.</span><span class="na">TOP_RIGHT</span><span class="p">)</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">        </span><span class="p">.</span><span class="na">hudTheme</span><span class="p">(</span><span class="n">HudThemePreset</span><span class="p">.</span><span class="na">HIGH_CONTRAST</span><span class="p">)</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">OverlayConfig</span><span class="w"> </span><span class="n">overlayConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OverlayConfig</span><span class="p">.</span><span class="na">builder</span><span class="p">()</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">        </span><span class="p">.</span><span class="na">hudPosition</span><span class="p">(</span><span class="n">HudPosition</span><span class="p">.</span><span class="na">TOP_RIGHT</span><span class="p">)</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">        </span><span class="p">.</span><span class="na">hudTheme</span><span class="p">(</span><span class="n">HudThemePreset</span><span class="p">.</span><span class="na">HIGH_CONTRAST</span><span class="p">)</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">        </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
 </span></code></pre></div>
 <p>When explicit <code>HudOptions</code> and legacy HUD setters are combined, <code>HudOptions</code> is authoritative for every overlapping value regardless of builder call order. Without explicit <code>HudOptions</code>, legacy settings retain their historical behavior. Custom <code>HudTheme</code> strings are trusted CSS; new code should prefer the bounded product model generated by HUD Studio.</p>
 <h2 id="low-level-hud-api">Low-level HUD API<a class="headerlink" href="#low-level-hud-api" title="Permanent link">&para;</a></h2>
@@ -3460,7 +4043,7 @@ font size, and deterministic winter/summer previews.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0-SNAPSHOT", "default": "latest", "is_dev": true, "is_snapshot": true, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

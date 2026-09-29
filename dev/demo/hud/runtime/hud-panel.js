@@ -14,15 +14,101 @@
   lens.state.hud = lens.state.hud || {};
   var SAFE_MARGIN_PX = 10;
 
-  function setSourceNavigationActive(active) {
+  function sourceShortcutLabel(shortcut) {
+    return shortcut === 'CTRL_ALT' ? 'Ctrl+Alt' : 'F8';
+  }
+
+  function sourceCompatibility() {
+    return lens.state.hud.sourceNavigationCompatibility || {
+      state:'UNKNOWN',readiness:'UNVERIFIED',navigationAllowed:true,
+      summary:'Source Navigation availability unverified',detail:'Local IDE compatibility has not been checked.',
+      action:'Navigation attempts are allowed; verify the local protocol if nothing opens.',
+      ide:'IntelliJ IDEA',version:'unknown',protocol:'unknown',daemon:'unknown',project:'unknown'
+    };
+  }
+
+  function renderSourceNavigationStatus(requested) {
+    var panel = overlayRoot() && overlayRoot().querySelector('#selenium-hud-panel');
+    if (!panel) return;
+    var status = panel.querySelector('.stl-hud-source-status');
+    if (!status) return;
+    var compatibility = sourceCompatibility();
+    var shortcut = lens.state.hud.sourceNavigationShortcut || 'F8';
+    var suffix = shortcut === 'CTRL_ALT' ? ' \u00b7 Ctrl+Alt' : ' \u00b7 F8 / Esc';
+    status.textContent = '';
+    var headline = document.createElement('div');
+    headline.className = 'stl-hud-source-status-headline';
+    if (!compatibility.navigationAllowed) headline.textContent = 'Source Navigation unavailable';
+    else if (requested && compatibility.readiness === 'UNVERIFIED') headline.textContent = 'Navigation requested; availability unverified';
+    else if (requested) headline.textContent = 'Source navigation requested';
+    else headline.textContent = compatibility.readiness === 'UNVERIFIED'
+      ? 'Source Navigation ON \u00b7 availability unverified' : 'Source Navigation ON';
+    headline.textContent += suffix;
+    status.appendChild(headline);
+    if (compatibility.readiness !== 'VERIFIED') {
+      var reason = document.createElement('div');
+      reason.className = 'stl-hud-source-status-reason';
+      reason.textContent = compatibility.detail;
+      status.appendChild(reason);
+      var details = document.createElement('details');
+      details.className = 'stl-hud-source-compatibility-details';
+      var detailsSummary = document.createElement('summary');
+      detailsSummary.textContent = 'Compatibility details'; details.appendChild(detailsSummary);
+      var body = document.createElement('div');
+      body.textContent = 'IDE: '+compatibility.ide+' '+compatibility.version+'\nProtocol: '+compatibility.protocol
+        +'\njetbrainsd: '+compatibility.daemon+'\nProject mapping: '+compatibility.project
+        +'\nStatus: '+compatibility.readiness+'\nRecommended action: '+compatibility.action;
+      details.appendChild(body);
+      var retry = document.createElement('button');
+      retry.type = 'button'; retry.className = 'stl-hud-source-compatibility-retry';
+      retry.textContent = 'Retry compatibility check';
+      retry.addEventListener('click', function(event) {
+        event.preventDefault(); event.stopPropagation();
+        lens.state.hud.sourceNavigationRetryRequested = true;
+        retry.textContent = 'Recheck requested'; retry.disabled = true;
+      });
+      details.appendChild(retry); status.appendChild(details);
+    }
+    status.style.display = lens.state.hud.sourceNavigationActive ? 'block' : 'none';
+  }
+
+  function configureSourceTarget(source) {
+    var target = source && source.getAttribute('data-navigation-target');
+    if (!source || !target) return;
+    var allowed = sourceCompatibility().navigationAllowed;
+    source.setAttribute('data-navigable', String(allowed));
+    source.setAttribute('tabindex', allowed ? '0' : '-1');
+    if (allowed) source.setAttribute('href', target); else source.removeAttribute('href');
+    source.setAttribute('title', allowed
+      ? 'Open source in the configured IDE. Right-click to copy link address.'
+      : sourceCompatibility().detail+' '+sourceCompatibility().action);
+  }
+
+  function setSourceNavigationCompatibility(state, readiness, navigationAllowed, summary, detail, action,
+                                               ide, version, protocol, daemon, project) {
+    lens.state.hud.sourceNavigationCompatibility = {state:String(state),readiness:String(readiness),
+      navigationAllowed:!!navigationAllowed,summary:String(summary||''),detail:String(detail||''),
+      action:String(action||''),ide:String(ide||'IntelliJ IDEA'),version:String(version||'unknown'),
+      protocol:String(protocol||'unknown'),daemon:String(daemon||'unknown'),project:String(project||'unknown')};
+    var panel = overlayRoot() && overlayRoot().querySelector('#selenium-hud-panel');
+    if (panel) panel.querySelectorAll('.stl-hud-source-location[data-navigation-target]').forEach(configureSourceTarget);
+    renderSourceNavigationStatus(false);
+  }
+
+  function consumeSourceNavigationCompatibilityRetry() {
+    var requested = !!lens.state.hud.sourceNavigationRetryRequested;
+    lens.state.hud.sourceNavigationRetryRequested = false;
+    return requested;
+  }
+
+  function setSourceNavigationActive(active, requested) {
     var panel = overlayRoot() && overlayRoot().querySelector('#selenium-hud-panel');
     lens.state.hud.sourceNavigationActive = !!active;
     if (!panel) return;
     if (active) panel.classList.add('source-navigation-active');
     else panel.classList.remove('source-navigation-active');
     panel.setAttribute('data-source-navigation-active', String(!!active));
-    var status = panel.querySelector('.stl-hud-source-status');
-    if (status) status.style.display = active ? 'block' : 'none';
+    renderSourceNavigationStatus(requested);
   }
 
   function cleanupSourceNavigation() {
@@ -33,29 +119,51 @@
       if (state.sourceBlur) window.removeEventListener('blur', state.sourceBlur, true);
     }
     state.sourceKeyDown = state.sourceKeyUp = state.sourceBlur = null;
+    state.sourceNavigationShortcut = null;
     state.sourceCtrl = state.sourceAlt = false;
     setSourceNavigationActive(false);
+  }
+
+  function editableKeyTarget(target) {
+    if (!target) return false;
+    var name = String(target.tagName || '').toLowerCase();
+    return name === 'input' || name === 'textarea' || name === 'select' || !!target.isContentEditable;
   }
 
   function installSourceNavigation(config) {
     if (!option(config, 'sourceNavigationEnabled', false)) { cleanupSourceNavigation(); return; }
     var state = lens.state.hud;
-    if (state.sourceKeyDown && state.sourceKeyUp && state.sourceBlur) return;
+    var shortcut = String(option(config, 'sourceNavigationModifier', 'F8')).toUpperCase();
+    if (state.sourceKeyDown && state.sourceNavigationShortcut === shortcut) return;
+    cleanupSourceNavigation();
+    state.sourceNavigationShortcut = shortcut;
     function updateFromEvent(event) {
       var altGraph = !!(event && event.getModifierState && event.getModifierState('AltGraph'));
       state.sourceCtrl = !!(event && event.ctrlKey);
       state.sourceAlt = !!(event && event.altKey);
       setSourceNavigationActive(state.sourceCtrl && state.sourceAlt && !altGraph);
     }
-    state.sourceKeyDown = updateFromEvent;
-    state.sourceKeyUp = updateFromEvent;
-    state.sourceBlur = function() {
-      state.sourceCtrl = state.sourceAlt = false;
-      setSourceNavigationActive(false);
-    };
+    if (shortcut === 'CTRL_ALT') {
+      state.sourceKeyDown = updateFromEvent;
+      state.sourceKeyUp = updateFromEvent;
+      state.sourceBlur = function() {
+        state.sourceCtrl = state.sourceAlt = false;
+        setSourceNavigationActive(false);
+      };
+    } else {
+      state.sourceKeyDown = function(event) {
+        if (!event || event.repeat) return;
+        if (event.key === 'Escape' && state.sourceNavigationActive) {
+          setSourceNavigationActive(false);
+        } else if (!editableKeyTarget(event.target) && (event.key === 'F8' || event.code === 'F8')) {
+          event.preventDefault();
+          setSourceNavigationActive(!state.sourceNavigationActive);
+        }
+      };
+    }
     window.addEventListener('keydown', state.sourceKeyDown, true);
-    window.addEventListener('keyup', state.sourceKeyUp, true);
-    window.addEventListener('blur', state.sourceBlur, true);
+    if (state.sourceKeyUp) window.addEventListener('keyup', state.sourceKeyUp, true);
+    if (state.sourceBlur) window.addEventListener('blur', state.sourceBlur, true);
   }
 
   var HUD_PRESETS = {
@@ -69,7 +177,7 @@
     timestampPattern:"yyyy-MM-dd'T'HH:mm:ss.SSSXXX",timestampPatternSource:'PRESET',
     logoPlacement:'LEFT_RAIL',background:'#0f172a',backgroundOpacity:0.96,accent:'#38bdf8',
     primaryText:'#f8fafc',mutedText:'#cbd5e1',success:'#22c55e',warning:'#f59e0b',failure:'#ef4444',
-    sourceNavigationEnabled:false,sourceNavigationModifier:'CTRL_ALT'
+    sourceNavigationEnabled:false,sourceNavigationModifier:'F8'
   };
 
   function overlayRoot() {
@@ -200,10 +308,26 @@
       + '.stl-hud-context-header[data-layout="STACKED"]>.stl-hud-header-item{flex:0 0 auto;width:100%;}'
       + '.stl-hud-meta-row{white-space:nowrap;}'
       + '.stl-hud-meta-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}';
-    style.textContent += '#selenium-hud-panel{pointer-events:none}.stl-hud-source-location{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:.9em;text-decoration:underline;text-underline-offset:2px;pointer-events:none;cursor:default}'
+    style.textContent += '#selenium-hud-panel{pointer-events:auto}.stl-hud-source-location{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:.9em;text-decoration:underline;text-underline-offset:2px;pointer-events:none;cursor:default}'
       + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location{display:block}'
       + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location[data-navigable="true"]{pointer-events:auto;cursor:pointer}'
-      + '.stl-hud-source-status{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:8px;letter-spacing:.12em;margin-top:2px}';
+      + '.stl-hud-source-status{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:9px;letter-spacing:.03em;margin:2px 0 4px}'
+      + '.stl-hud-source-status-reason{color:var(--ui-test-lens-hud-warning,#f59e0b);margin-top:2px}'
+      + '.stl-hud-source-compatibility-details{color:var(--ui-test-lens-hud-muted-fg,#cbd5e1);white-space:pre-wrap;margin-top:2px}'
+      + '.stl-hud-source-compatibility-details>summary{cursor:pointer;color:var(--ui-test-lens-hud-accent,#38bdf8)}'
+      + '.stl-hud-source-compatibility-retry{margin-top:3px;padding:2px 5px;border:1px solid currentColor;border-radius:3px;color:inherit;background:transparent;font:inherit;cursor:pointer}'
+      + '.stl-hud-event{border-left:2px solid var(--stl-event-color,var(--ui-test-lens-hud-muted-fg,#cbd5e1));padding-left:5px}'
+      + '.stl-hud-event-category,.stl-hud-event-phase{font-size:.82em;font-weight:700;letter-spacing:.045em;white-space:nowrap}'
+      + '.stl-hud-event-icon{font-family:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;white-space:nowrap}'
+      + '.stl-hud-event-message{min-width:0;overflow-wrap:anywhere}'
+      + '.stl-hud-event[data-phase="PASSED"]{--stl-event-color:var(--ui-test-lens-hud-success,#22c55e)}'
+      + '.stl-hud-event[data-phase="FAILED"]{--stl-event-color:var(--ui-test-lens-hud-danger,#ef4444)}'
+      + '.stl-hud-event[data-phase="WARNING"],.stl-hud-event[data-phase="RETRYING"]{--stl-event-color:var(--ui-test-lens-hud-warning,#f59e0b)}'
+      + '.stl-hud-event[data-phase="RUNNING"]{--stl-event-color:var(--ui-test-lens-hud-accent,#38bdf8)}'
+      + '.stl-hud-event[data-phase="DEBUG"]{opacity:.72}'
+      + '.stl-hud-event[data-phase="RUNNING"] .stl-hud-event-status-icon{animation:stl-hud-pulse 1.25s ease-in-out infinite}'
+      + '@keyframes stl-hud-pulse{50%{opacity:.45}}'
+      + '@media (prefers-reduced-motion:reduce){.stl-hud-event-status-icon{animation:none!important}}';
     shadow.appendChild(style);
   }
 
@@ -579,6 +703,7 @@
       logs.style.marginTop = '3px';
       logs.style.maxHeight = option(config, 'maxLogHeight', 160) + 'px';
       logs.style.overflowY = 'auto';
+      logs.style.overscrollBehavior = 'contain';
       logs.style.borderTop = '1px solid var(--ui-test-lens-hud-border, rgba(255,255,255,0.2))';
       logs.style.paddingTop = '4px';
       structure.main.appendChild(logs);
@@ -644,7 +769,7 @@
       panel = document.createElement('div');
       panel.id = 'selenium-hud-panel';
       panel.style.position = 'fixed';
-      panel.style.pointerEvents = 'none';
+      panel.style.pointerEvents = 'auto';
       panel.style.lineHeight = '1.4';
       shadow.appendChild(panel);
     }
@@ -709,10 +834,10 @@
     if (option(config, 'sourceNavigationEnabled', false) && !sourceStatus) {
       sourceStatus = document.createElement('div');
       sourceStatus.className = 'stl-hud-source-status';
-      sourceStatus.textContent = 'SOURCE NAVIGATION';
       structure.main.insertBefore(sourceStatus, structure.main.firstChild);
     } else if (!option(config, 'sourceNavigationEnabled', false) && sourceStatus) removeNode(sourceStatus);
     installSourceNavigation(config);
+    renderSourceNavigationStatus(false);
     updateScrollableRegions(panel);
     positionPanel(panel, config);
   }
@@ -733,13 +858,82 @@
     positionPanel(panel, lens.state.hud.lastConfig || {});
   }
 
-  function eventVisible(config, eventType) {
+  var SEMANTIC_CATEGORY_ICONS = {
+    ACTION:'\ud83d\uddb1\ufe0f', ASSERTION:'\ud83e\uddea', LOCATOR:'\ud83d\udd0e', ACTIONABILITY:'\ud83d\udee1\ufe0f',
+    HIGHLIGHT:'\u2728', USER:'\ud83d\udcac', SYSTEM:'\u2139\ufe0f'
+  };
+  var SEMANTIC_PHASE_ICONS = {
+    RUNNING:'\u23f3', PASSED:'\u2705', RETRYING:'\ud83d\udd04', WARNING:'\u26a0\ufe0f',
+    FAILED:'\u274c', INFO:'\u2139\ufe0f', DEBUG:'\u00b7'
+  };
+
+  function fallbackCategory(eventType) {
+    var type = String(eventType || 'GENERAL');
+    if (type === 'HIGHLIGHT') return 'HIGHLIGHT';
+    if (type.indexOf('ACTIONABILITY_') === 0) return 'ACTIONABILITY';
+    if (type.indexOf('LOCATOR_RESOLVE_') === 0) return 'LOCATOR';
+    if (type.indexOf('ASSERTION_') === 0 || type.indexOf('BUSINESS_ASSERTION_') === 0 || type.indexOf('NETWORK_ASSERTION_') === 0) return 'ASSERTION';
+    if (type === 'HUD') return 'USER';
+    if (type === 'ACTION' || type === 'WAIT' || type.indexOf('LOCATOR_ACTION_') === 0 || type === 'LOCATOR_RETRY') return 'ACTION';
+    return 'SYSTEM';
+  }
+
+  function fallbackPhase(eventType, level) {
+    var type = String(eventType || 'GENERAL'), severity = String(level || 'info').toLowerCase();
+    if (type.indexOf('_STARTED') > 0 || type === 'WAIT') return 'RUNNING';
+    if (type.indexOf('_PASSED') > 0) return 'PASSED';
+    if (type.indexOf('_FAILED') > 0 || type.indexOf('_TIMED_OUT') > 0 || severity === 'error') return 'FAILED';
+    if (type.indexOf('_RETRY') > 0) return 'RETRYING';
+    if (severity === 'warn') return 'WARNING';
+    return 'INFO';
+  }
+
+  function normalizeSemantics(value, eventType, level) {
+    var semantic = value && typeof value === 'object' ? value : {};
+    var category = String(semantic.category || fallbackCategory(eventType)).toUpperCase();
+    var phase = String(semantic.phase || fallbackPhase(eventType, level)).toUpperCase();
+    var customIcon = semantic.customIcon == null ? '' : String(semantic.customIcon);
+    return {
+      category:SEMANTIC_CATEGORY_ICONS[category] ? category : 'SYSTEM',
+      phase:SEMANTIC_PHASE_ICONS[phase] ? phase : 'INFO',
+      operationId:String(semantic.operationId || ''),
+      attempt:Math.max(0, Number(semantic.attempt) || 0),
+      durationMs:Math.max(0, Number(semantic.durationMs) || 0),
+      technical:semantic.technical === true,
+      severity:String(semantic.severity || level || 'INFO').toUpperCase(),
+      customIcon:category === 'USER' && customIcon.trim() ? customIcon : ''
+    };
+  }
+
+  function semanticVisible(config, semantic) {
+    var preset = String(option(config, 'preset', 'STANDARD')).toUpperCase();
+    if (semantic.technical && semantic.phase !== 'WARNING' && preset !== 'DEBUG') return false;
+    if (preset === 'MINIMAL' && semantic.phase !== 'FAILED' && semantic.phase !== 'WARNING') return false;
+    return true;
+  }
+
+  function eventVisible(config, eventType, semantic) {
+    if (!semanticVisible(config, semantic)) return false;
     var type = String(eventType || 'GENERAL');
     if (type.indexOf('NETWORK_') === 0 && !option(config, 'showNetwork', true)) return false;
     if ((type === 'LOCATOR_RETRY' || type === 'ASSERTION_RETRY') && !option(config, 'showRetries', true)) return false;
     if ((type === 'WAIT' || type.indexOf('NETWORK_WAIT_') === 0) && !option(config, 'showWaits', true)) return false;
     if ((type === 'ASSERTION' || type.indexOf('ASSERTION_') === 0 || type.indexOf('BUSINESS_ASSERTION_') === 0 || type.indexOf('NETWORK_ASSERTION_') === 0) && !option(config, 'showAssertions', true)) return false;
     return true;
+  }
+
+  function operationRow(logs, operationId, category) {
+    if (!operationId) return null;
+    var children = logs.children || [];
+    for (var i=children.length-1;i>=0;i--) {
+      var candidate = children[i];
+      var candidateId = candidate.getAttribute ? candidate.getAttribute('data-operation-id')
+        : candidate.attributes && candidate.attributes['data-operation-id'];
+      var candidateCategory = candidate.getAttribute ? candidate.getAttribute('data-category')
+        : candidate.attributes && candidate.attributes['data-category'];
+      if (candidateId === operationId && candidateCategory === category) return candidate;
+    }
+    return null;
   }
 
   function acceptedTimestamp(value) {
@@ -751,45 +945,38 @@
     return {date:date,canonical:Number.isFinite(millis) ? raw : date.toISOString()};
   }
 
-  function log(message, level, timestamp, eventType, sourceLabel, navigationTarget, presentationTimestamp) {
+  function log(message, level, timestamp, eventType, sourceLabel, navigationTarget, presentationTimestamp, semanticValue, deferLayout) {
     var config = lens.state.hud.lastConfig || {};
-    if (!option(config, 'showEventLog', true) || !eventVisible(config, eventType)) return;
-    var panel = ensurePanel(lens.state.hud.lastConfig || {});
-    if (!panel) {
-      return;
-    }
+    var semantic = normalizeSemantics(semanticValue, eventType, level);
+    if (!option(config, 'showEventLog', true) || !eventVisible(config, eventType, semantic)) return;
+    var panel = ensurePanel(config);
+    if (!panel) return;
 
     var logs = ensureLogs(panel, config);
-    var row = document.createElement('div');
+    var row = operationRow(logs, semantic.operationId, semantic.category);
+    var newRow = !row;
+    if (!row) row = document.createElement('div');
+    else row.textContent = '';
+    row.className = 'stl-hud-event';
+    row.setAttribute('data-category', semantic.category);
+    row.setAttribute('data-phase', semantic.phase);
+    row.setAttribute('data-severity', semantic.severity);
+    if (semantic.operationId) row.setAttribute('data-operation-id', semantic.operationId);
+    row.setAttribute('role', semantic.phase === 'FAILED' || semantic.phase === 'WARNING' ? 'alert' : 'status');
+    row.setAttribute('aria-label', semantic.category + ' ' + semantic.phase + ': ' + String(message || ''));
     row.style.fontFamily = 'var(--ui-test-lens-hud-event-font-family, var(--ui-test-lens-hud-font-family))';
     row.style.fontSize = 'var(--ui-test-lens-hud-font-size, 10px)';
     row.style.marginBottom = '5px';
     row.style.display = 'flex';
     row.style.flexWrap = 'wrap';
-    row.style.columnGap = '3px';
+    row.style.columnGap = '4px';
     row.style.alignItems = 'baseline';
     row.style.whiteSpace = 'pre-wrap';
     row.style.wordBreak = 'break-word';
     row.style.lineHeight = '1.32';
+    row.style.color = 'var(--ui-test-lens-hud-fg, #ffffff)';
 
-    var lvl = (level || '').toLowerCase();
-    var color = 'var(--ui-test-lens-hud-fg, #ffffff)';
-    if (lvl === 'warn') {
-      color = 'var(--ui-test-lens-hud-warning, #ffd93b)';
-    }
-    if (lvl === 'error' || lvl === 'failed') {
-      color = 'var(--ui-test-lens-hud-danger, #ff4c4c)';
-    }
-    if (lvl === 'success') {
-      color = 'var(--ui-test-lens-hud-success, #00ff7f)';
-    }
-    if (lvl === 'royal') {
-      color = 'var(--ui-test-lens-hud-accent, #4ca3ff)';
-    }
-    row.style.color = color;
-
-    var accepted = acceptedTimestamp(timestamp);
-    var eventTimestamp = accepted.date;
+    var accepted = acceptedTimestamp(timestamp), eventTimestamp = accepted.date;
     row.setAttribute('data-test-lens-timestamp', accepted.canonical);
     var showTimestamp = option(config, 'showTimestamps', false);
     if (showTimestamp) {
@@ -798,43 +985,93 @@
       timestampNode.textContent = '[' + (presentationTimestamp == null || String(presentationTimestamp).trim() === ''
         ? eventTimestamp.toISOString() : String(presentationTimestamp)) + ']';
       timestampNode.style.fontSize = 'var(--ui-test-lens-hud-timestamp-font-size, 9px)';
-      timestampNode.style.lineHeight = '1';
-      timestampNode.style.whiteSpace = 'normal';
-      timestampNode.style.overflowWrap = 'anywhere';
-      timestampNode.style.flex = '0 1 auto';
-      timestampNode.style.minWidth = '0';
       timestampNode.style.color = 'var(--ui-test-lens-hud-muted-fg, rgba(255,255,255,.78))';
       row.appendChild(timestampNode);
     }
+    var categoryIcon = document.createElement('span');
+    categoryIcon.className = 'stl-hud-event-icon stl-hud-event-category-icon';
+    categoryIcon.setAttribute('aria-hidden', 'true');
+    categoryIcon.textContent = semantic.customIcon || SEMANTIC_CATEGORY_ICONS[semantic.category] || SEMANTIC_CATEGORY_ICONS.SYSTEM;
+    row.appendChild(categoryIcon);
+    var category = document.createElement('span');
+    category.className = 'stl-hud-event-category';
+    category.textContent = '[' + semantic.category + ']';
+    row.appendChild(category);
+    var statusIcon = document.createElement('span');
+    statusIcon.className = 'stl-hud-event-icon stl-hud-event-status-icon';
+    statusIcon.setAttribute('aria-hidden', 'true');
+    statusIcon.textContent = SEMANTIC_PHASE_ICONS[semantic.phase];
+    row.appendChild(statusIcon);
+    var phase = document.createElement('span');
+    phase.className = 'stl-hud-event-phase';
+    phase.textContent = semantic.phase;
+    row.appendChild(phase);
+    if (semantic.attempt > 0 && semantic.phase === 'RETRYING') {
+      var attempt = document.createElement('span');
+      attempt.className = 'stl-hud-event-attempt';
+      attempt.textContent = 'Attempt ' + semantic.attempt;
+      row.appendChild(attempt);
+    }
+    if (semantic.durationMs > 0 && (semantic.phase === 'PASSED' || semantic.phase === 'FAILED')) {
+      var duration = document.createElement('span');
+      duration.className = 'stl-hud-event-duration';
+      duration.textContent = '\u00b7 ' + semantic.durationMs + ' ms';
+      row.appendChild(duration);
+    }
     var content = document.createElement('span');
-    content.className = 'stl-hud-log-content';
+    content.className = 'stl-hud-log-content stl-hud-event-message';
     content.style.minWidth = '0';
-    content.style.flex = showTimestamp ? '1 1 55%' : '1 1 100%';
-    content.appendChild(document.createTextNode('[' + (level || '').toUpperCase() + '] ' + (message || '')));
+    content.style.flex = '1 1 55%';
+    content.textContent = String(message || '');
     if (option(config, 'sourceNavigationEnabled', false) && sourceLabel) {
-      var source = document.createElement('span');
+      var source = document.createElement(navigationTarget ? 'a' : 'span');
       source.className = 'stl-hud-source-location';
       source.textContent = String(sourceLabel);
-      source.setAttribute('data-navigable', String(!!navigationTarget));
+      source.setAttribute('data-navigable', 'false');
       if (navigationTarget) {
-        source.setAttribute('role', 'link');
-        source.setAttribute('tabindex', '-1');
+        source.setAttribute('data-navigation-target', String(navigationTarget));
+        configureSourceTarget(source);
         source.addEventListener('click', function(event) {
           if (!lens.state.hud.sourceNavigationActive) { event.preventDefault(); return; }
-          event.preventDefault();
+          if (!sourceCompatibility().navigationAllowed) {
+            event.preventDefault(); renderSourceNavigationStatus(false);
+            var details = panel.querySelector('.stl-hud-source-compatibility-details');
+            if (details) details.open = true;
+            return;
+          }
+          setSourceNavigationActive(true, true);
+          source.setAttribute('data-navigation-requested', 'true');
           if (typeof window.__uiTestLensSourceNavigation === 'function') {
+            event.preventDefault();
             try { window.__uiTestLensSourceNavigation(String(navigationTarget)); } catch (ignored) {}
-          } else {
-            try { window.location.href = String(navigationTarget); } catch (ignored) {}
           }
         });
       }
       content.appendChild(source);
     }
     row.appendChild(content);
-    logs.appendChild(row);
-    updateScrollableRegions(panel);
-    logs.scrollTop = logs.scrollHeight;
+    if (newRow) logs.appendChild(row);
+    while (logs.children && logs.children.length > 250) logs.removeChild(logs.firstChild);
+    if (!deferLayout) {
+      updateScrollableRegions(panel);
+      logs.scrollTop = logs.scrollHeight;
+    }
+    return {panel:panel,logs:logs};
+  }
+
+  function logBatch(entries) {
+    if (!Array.isArray(entries) || entries.length === 0) return;
+    var rendered = null;
+    entries.forEach(function (entry) {
+      if (!entry || typeof entry !== 'object') return;
+      var current = log(entry.message, entry.level, entry.timestamp, entry.eventType,
+        entry.sourceLabel, entry.navigationTarget, entry.presentationTimestamp, entry.semantics, true);
+      if (current) rendered = current;
+    });
+    if (rendered) {
+      updateScrollableRegions(rendered.panel);
+      rendered.logs.scrollTop = rendered.logs.scrollHeight;
+    }
   }
 
   function clear() {
@@ -889,8 +1126,11 @@
     init: init,
     setStep: setStep,
     log: log,
+    logBatch: logBatch,
     clear: clear,
     remove: remove,
+    setSourceNavigationCompatibility: setSourceNavigationCompatibility,
+    consumeSourceNavigationCompatibilityRetry: consumeSourceNavigationCompatibilityRetry,
     preset: function (name) {
       var value = HUD_PRESETS[String(name || '').toUpperCase()];
       if (!value) return null;
