@@ -6,6 +6,8 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Fixed
 
+- Added a fully local Maven wrapper-main execution fixture and Windows source-transaction coverage for DOS read-only,
+  exact BOM/CRLF/Unicode rollback, digest verification, and repository locking without adding shell or network access.
 - Reduced selector pattern-policy preview complexity by accumulating bounded use counts during the catalog pass,
   without changing policy precedence, matching, conflict, or ordering semantics.
 - Reduced Compatibility Analyzer report-copy overhead with exact-size bounded JSON/HTML rendering and added explicit

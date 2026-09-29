@@ -417,7 +417,8 @@ limitations machine-visible. The current handoff retains these established facts
 or claiming success:
 
 - Windows symlink fixtures were skipped where the environment could not create symlinks.
-- real Maven wrapper-main execution remains NOT_RUN, while generic `.cmd`, `.bat`, and `.ps1` execution is unsupported;
+- local Maven wrapper-main execution is covered by a no-network fixture that launches the fixed main class through
+  the production `java.exe` process boundary; generic `.cmd`, `.bat`, and `.ps1` execution remains unsupported;
 - BrowserStack and Remote/Grid validation remain NOT_RUN;
 - the high 10k compatibility case observed about 1.19 GB and observability JSON approached the 64 MiB boundary;
 - selector policy preview at 100k was about 44.8 seconds, and the prior selector-history near-64 MiB boundary remains a

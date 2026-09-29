@@ -2,6 +2,7 @@ package io.github.testlens.migration.tooling;
 
 import io.github.testlens.selector.tooling.TrustedSelectorSourceProjection;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
@@ -146,6 +147,20 @@ class MigrationApplyServiceTest {
         Fixture f=fixtureBytes("bom-crlf",bytes);MigrationApplyPlan plan=f.prepare().plan();var applied=f.service().apply(plan,f.repo(),f.store(),applyAuth(plan),null);
         assertEquals(MigrationApplyResult.Status.APPLIED,applied.status());byte[] changed=Files.readAllBytes(f.source());assertEquals((byte)0xef,changed[0]);assertTrue(new String(changed,3,changed.length-3,StandardCharsets.UTF_8).contains("\r\n"));
         f.service().rollback(applied.transactionId(),f.repo(),f.store(),rollbackAuth(plan,applied.transactionId()));assertArrayEquals(bytes,Files.readAllBytes(f.source()));
+    }
+
+    @Test void windowsDosReadOnlySourceIsRejectedWithoutChangingBytes() throws Exception {
+        Fixture f=fixture("dos-readonly","");
+        var dos=Files.getFileAttributeView(f.source(),java.nio.file.attribute.DosFileAttributeView.class);
+        Assumptions.assumeTrue(dos!=null,"DOS attributes unavailable on this filesystem");
+        dos.setReadOnly(true);
+        try{
+            byte[]before=Files.readAllBytes(f.source());var prepared=f.prepare();
+            assertEquals(MigrationApplyService.PreparationStatus.READ_ONLY_SOURCE,prepared.status());
+            assertNull(prepared.plan());
+            assertArrayEquals(before,Files.readAllBytes(f.source()));assertTrue(dos.readAttributes().isReadOnly());
+            assertTrue(prepared.issues().stream().anyMatch(x->x.contains("Page.java")));
+        }finally{dos.setReadOnly(false);}
     }
 
     @Test void oneStaleFileInTenFileBatchCausesZeroWrites() throws Exception {
