@@ -78,6 +78,13 @@ Release 0.4.0 connects ordinary Selenium calls and Lens interactions to the same
 
     [Read the visual lifecycle](observability/visual-diagnostics.md) · [Review 0.4.0](whats-new-0.4.0.md)
 
+-   **0.4.0 FOUNDATION · SELECTOR INTELLIGENCE**
+
+    Discover the browser-free selector index, evidence-first stability model, offline Audit, Find Similar, read-only
+    Lab, and optional live candidate analysis—with an explicit account of what is internal-only in 0.4.x.
+
+    [Explore Selector Intelligence](features/selector-intelligence.md)
+
 </div>
 
 ## 0.3.0 foundations

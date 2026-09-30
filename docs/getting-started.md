@@ -12,6 +12,11 @@ This guide shows the shortest path from the Maven dependency to a working Lens s
 
 The current Test Lens for Selenium release is `0.4.0`, verified with Selenium 4.39.0.
 
+Looking to assess selectors across an existing project? The 0.4.0 source includes browser-free Selector Audit,
+stability-policy, Find Similar, and read-only Lab foundations. They are not yet exposed by a supported public 0.4.x
+launcher or published selector artifact; see [Selector Intelligence](features/selector-intelligence.md) for the
+implemented capability and availability boundary.
+
 ## Installation
 
 Add the main Test Lens for Selenium runtime to your Maven project:

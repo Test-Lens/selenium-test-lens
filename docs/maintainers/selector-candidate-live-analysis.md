@@ -1,5 +1,9 @@
 # Selector candidate live analysis
 
+For the capability, workflow, availability, and limitations from a user perspective, start with the
+[Selector Intelligence user guide](../features/selector-intelligence.md). This page retains live-analysis safety,
+ranking, validation, and data-boundary invariants.
+
 Test Lens 0.4.0 contains an internal, non-published foundation for explicit developer-tool candidate analysis. It
 is not a Selector Lab UI, automatic repair facility, or source patcher. Normal Selenium execution and FAST do not
 load policies, capture target metadata, generate candidates, or issue validation commands.

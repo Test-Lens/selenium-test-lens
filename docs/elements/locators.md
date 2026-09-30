@@ -1,5 +1,9 @@
 # Locators
 
+For project-wide analysis of Selenium locator declarations, generated-looking identifiers, stability evidence,
+Find Similar, and candidate inspection, see [Selector Intelligence](../features/selector-intelligence.md). The
+0.4.x selector tooling is an internal, non-published foundation and does not change the public locator APIs below.
+
 Package: `io.github.testlens.selenium.locator`<br>
 Module: `selenium-test-lens-selenium`<br>
 API level: **Recommended**

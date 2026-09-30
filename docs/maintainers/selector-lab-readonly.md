@@ -1,5 +1,9 @@
 # Read-only Selector Lab foundation
 
+For the capability, workflow, availability, and limitations from a user perspective, start with the
+[Selector Intelligence user guide](../features/selector-intelligence.md). This page retains Lab protocol,
+read-only, policy-feedback, and trusted-apply invariants.
+
 Selector Lab is an internal, non-published developer-tooling surface. It opens only through an explicit internal
 call; while closed it installs no DOM, listeners, command waits, candidate work, or WebDriver commands. FAST keeps
 its normal zero-presentation behavior until that explicit call and is not changed to DEFAULT.

@@ -28,6 +28,16 @@ The TestNG adapter can reuse one adapter-owned driver for sequential methods of 
 
 The trace recorder retains bounded event counts and estimated bytes, exposes completeness telemetry, and can keep only the summary of a passed session. Failures retain bounded context and reuse central redaction and screenshot evidence. Runtime locator observations add versioned, bounded selector/context data without extra WebDriver commands.
 
+### Selector Intelligence foundations
+
+Release 0.4.0 also contains internal foundations for browser-free Java locator discovery, evidence-first stability
+classification and project policy, Find Similar with bounded history, offline Selector Audit, live candidate
+analysis, and a read-only Selector Lab. Generated-looking is deliberately not treated as proof of instability.
+
+These modules are excluded from Central publication and 0.4.x has no supported public CLI or `TestLens` launcher;
+this is clarification of code already shipped, not a new runtime feature. See
+[Selector Intelligence](features/selector-intelligence.md) for the exact capability and availability boundary.
+
 ## Improved
 
 - **Semantic HUD:** categories and phases are independent of logging severity. `ACTION`, `ASSERTION`, `LOCATOR`, `ACTIONABILITY`, `HIGHLIGHT`, `USER`, and `SYSTEM` rows carry `RUNNING`, `PASSED`, `RETRYING`, `FAILED`, `WARNING`, `INFO`, or `DEBUG` meaning. An operation ID updates one logical row instead of creating misleading start/result duplicates.

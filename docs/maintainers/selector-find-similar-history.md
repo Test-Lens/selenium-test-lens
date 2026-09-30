@@ -1,5 +1,9 @@
 # Selector similarity and cross-run history
 
+For the capability, workflow, availability, and limitations from a user perspective, start with the
+[Selector Intelligence user guide](../features/selector-intelligence.md). This page retains similarity,
+correlation, history, retention, and security invariants.
+
 Test Lens 0.4.0 contains an internal, offline foundation for finding structurally related selector subjects and
 aggregating bounded cross-run evidence. It is not Selector Audit or Selector Lab, does not save policies, and does
 not suggest that related locators identify the same element or are interchangeable. Normal runtime and FAST do not

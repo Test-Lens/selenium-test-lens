@@ -119,6 +119,7 @@ Text redaction is not pixel processing. `VisualRedactionOptions` separately mask
 
 ## Advanced capabilities
 
+- **Selector Intelligence foundation (0.4.0, internal tooling):** browser-free Java declaration discovery, evidence-first stability policy, Find Similar, offline Audit, live candidate analysis, and a read-only Lab exist in source. The selector modules are not published Central artifacts and 0.4.x has no supported public launcher. [Capability and availability guide](docs/features/selector-intelligence.md)
 - **WebDriver BiDi network diagnostics (0.2.0):** passive observation, correlation, waits, assertions, safe snapshots, and HUD filtering. It is not interception, mocking, or CDP. The manual event/wait/assertion path existed in `0.1.0`. [Network diagnostics](docs/advanced/network.md)
 - **Managed Auth State (0.3.0):** restore/validate/recreate cookies and web storage with tri-state validation, one-login maximum, canonical-path locking and atomic replacement; low-level origin-isolated capture/restore remains available. [Authentication state](docs/advanced/auth-state.md)
 - **Managed Test State & Resources (0.3.0):** typed state isolated to one physical invocation, explicitly shared suite/run state, and exactly-once LIFO cleanup for temporary resources across pass, failure, skip, retry, and parallel runner execution. [Managed test state](docs/features/managed-test-state.md)

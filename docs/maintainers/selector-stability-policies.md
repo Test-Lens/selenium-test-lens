@@ -1,5 +1,9 @@
 # Selector stability classification and policies
 
+For the capability, workflow, availability, and limitations from a user perspective, start with the
+[Selector Intelligence user guide](../features/selector-intelligence.md). This page retains the policy model,
+precedence, persistence, and security invariants.
+
 Test Lens 0.4.0 contains an internal, offline engine for describing generated-looking locator values and applying
 explicit project policy. This foundation is not Selector Audit or Selector Lab, does not rank candidates, and does
 not claim that a selector has been validated or will remain stable.

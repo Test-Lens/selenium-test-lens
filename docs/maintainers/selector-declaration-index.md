@@ -1,5 +1,9 @@
 # Static Java locator declaration index
 
+For the capability, workflow, availability, and limitations from a user perspective, start with the
+[Selector Intelligence user guide](../features/selector-intelligence.md). This page retains the source-index
+contract and implementation invariants.
+
 Test Lens 0.4.0 contains an internal, offline foundation for discovering Java locator declarations. It is not a
 Selector Audit, selector generator, stability score, or automatic migration tool. The module is deliberately not
 published and is not a dependency of the Test Lens runtime.

@@ -1,5 +1,9 @@
 # Offline Selector Audit
 
+For the capability, workflow, availability, and limitations from a user perspective, start with the
+[Selector Intelligence user guide](../features/selector-intelligence.md). This page retains the internal Audit
+contract and implementation invariants.
+
 Test Lens 0.4.0 contains an internal, non-published Selector Audit foundation. It is an offline,
 declaration-first view over the static selector index, stability policies, compact selector history,
 similarity families, pattern previews, and optionally supplied in-memory candidate analyses. Audit never starts a

@@ -66,6 +66,7 @@ nav:
       - Configuration: configuration.md
   - Using Test Lens:
       - Capabilities: capabilities.md
+      - Selector Intelligence: features/selector-intelligence.md
       - React & SPA resilience: features/react-spa.md
       - Managed Auth State: advanced/auth-state.md
       - Managed Test State & Resources: features/managed-test-state.md
