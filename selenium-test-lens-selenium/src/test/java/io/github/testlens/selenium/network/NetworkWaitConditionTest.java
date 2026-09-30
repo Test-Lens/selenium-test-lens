@@ -3,7 +3,9 @@ package io.github.testlens.selenium.network;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,6 +38,23 @@ class NetworkWaitConditionTest {
                 .build();
 
         assertTrue(condition.matches(responseEvent, List.of(requestEvent, responseEvent)));
+    }
+
+    @Test
+    void matchesResponseMethodThroughEmbeddedBiDiRequestWithoutStandaloneRequestEvent() {
+        NetworkRequest embedded = new NetworkRequest("redirect-chain", "GET", "/api/final", "",
+                Instant.ofEpochMilli(30), Map.of());
+        NetworkResponse response = new NetworkResponse("redirect-chain", "/api/final", 200, "OK", "text/plain",
+                Duration.ofMillis(4), Instant.ofEpochMilli(34), Map.of());
+        NetworkEvent responseEvent = NetworkEvent.response(response, embedded, Instant.ofEpochMilli(34),
+                Map.of("redirectCount", "2", "navigationId", "nav-1"));
+        NetworkWaitCondition condition = NetworkWaitCondition.builder()
+                .urlContains("/api/final")
+                .method("GET")
+                .status(200)
+                .build();
+
+        assertTrue(condition.matches(responseEvent, List.of(responseEvent)));
     }
 
     @Test
