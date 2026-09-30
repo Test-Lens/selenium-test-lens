@@ -1,11 +1,12 @@
 param(
     [string]$ReleaseVersion,
     [string]$TestLensRepository,
-    [switch]$KeepWorkDirectoryOnFailure
+    [switch]$KeepWorkDirectoryOnFailure,
+    [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
 )
 
 $ErrorActionPreference = "Stop"
-$repo = Split-Path -Parent $PSScriptRoot
+$repo = [IO.Path]::GetFullPath($RepositoryRoot)
 Import-Module (Join-Path $PSScriptRoot "CleanRoomRelease.psm1") -Force
 $sourceVersion = Get-TestLensSourceVersion -RepositoryRoot $repo
 $sourceIsSnapshot = $sourceVersion.EndsWith("-SNAPSHOT", [StringComparison]::Ordinal)
@@ -29,7 +30,7 @@ $work = Join-Path ([IO.Path]::GetTempPath()) ("selenium-test-lens-gradle-consume
 try {
     if ([string]::IsNullOrWhiteSpace($TestLensRepository)) {
         $prepared = New-TestLensCleanRoomRelease -RepositoryRoot $repo -ReleaseVersion $ReleaseVersion
-        $TestLensRepository = $prepared.StagingDirectory
+        $TestLensRepository = $prepared.StagingRoot
         $work = $prepared.WorkDirectory
         $ownedWork = $true
     } else {
@@ -51,7 +52,34 @@ try {
     $gradleHome = Join-Path $work "empty-gradle-home"
     New-Item -ItemType Directory -Force -Path $gradleHome | Out-Null
     if (Get-ChildItem -LiteralPath $gradleHome -Force) { throw "Gradle user home is not empty" }
-    $consumer = Join-Path $repo "consumer-tests/gradle"
+    $consumerSource = Join-Path $repo "consumer-tests/gradle"
+    if (-not (Test-Path -LiteralPath $consumerSource -PathType Container)) {
+        throw "Gradle consumer source fixture is missing: $consumerSource"
+    }
+    $consumer = Join-Path $work "consumer"
+    New-Item -ItemType Directory -Force -Path $consumer | Out-Null
+    $trackedConsumerFiles = @(& git -C $repo ls-files -- "consumer-tests/gradle" 2>&1)
+    if ($LASTEXITCODE -ne 0) {
+        throw "Cannot enumerate tracked Gradle consumer fixture files from RepositoryRoot '$repo': $($trackedConsumerFiles -join ' ')"
+    }
+    if ($trackedConsumerFiles.Count -eq 0) {
+        throw "Gradle consumer source fixture has no tracked files: $consumerSource"
+    }
+    foreach ($relative in $trackedConsumerFiles) {
+        $relativePath = $relative.ToString().Replace('/', [IO.Path]::DirectorySeparatorChar)
+        $prefix = "consumer-tests" + [IO.Path]::DirectorySeparatorChar +
+            "gradle" + [IO.Path]::DirectorySeparatorChar
+        if (-not $relativePath.StartsWith($prefix, [StringComparison]::Ordinal)) {
+            throw "Unexpected Gradle consumer fixture path: $relative"
+        }
+        $consumerRelative = $relativePath.Substring($prefix.Length)
+        $destination = Join-Path $consumer $consumerRelative
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+        Copy-Item -LiteralPath (Join-Path $repo $relativePath) -Destination $destination
+    }
+    if (Test-Path -LiteralPath (Join-Path $consumer ".git")) {
+        throw "Gradle clean-room consumer must not contain .git: $consumer"
+    }
     $wrapper = if ($env:OS -eq "Windows_NT") { Join-Path $consumer "gradlew.bat" } else { Join-Path $consumer "gradlew" }
     if (-not (Test-Path -LiteralPath $wrapper -PathType Leaf)) { throw "Gradle Wrapper is missing: $wrapper" }
 
@@ -64,7 +92,8 @@ try {
             $arguments = @(
                 "clean", "test", "verifyResolvedGraph", "--no-daemon", "--stacktrace",
                 "-PtestLensVersion=$ReleaseVersion",
-                "-PtestLensRepository=$TestLensRepository"
+                "-PtestLensRepository=$TestLensRepository",
+                "-PtestLensSourceRoot=$repo"
             )
             & $wrapper @arguments
             if ($LASTEXITCODE -ne 0) { throw "Gradle clean-room consumer failed" }

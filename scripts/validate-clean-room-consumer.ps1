@@ -1,10 +1,11 @@
 param(
     [string]$ReleaseVersion,
-    [string]$TestLensRepository
+    [string]$TestLensRepository,
+    [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
 )
 
 $ErrorActionPreference = "Stop"
-$repo = Split-Path -Parent $PSScriptRoot
+$repo = [IO.Path]::GetFullPath($RepositoryRoot)
 $mavenCommandName = if ($env:OS -eq "Windows_NT") { "mvn.cmd" } else { "mvn" }
 $mavenCommand = (Get-Command $mavenCommandName -ErrorAction Stop).Source
 Import-Module (Join-Path $PSScriptRoot "CleanRoomRelease.psm1") -Force
@@ -26,8 +27,8 @@ if (-not $sourceIsSnapshot -and $ReleaseVersion -ne $SourceVersion) {
 if ([string]::IsNullOrWhiteSpace($TestLensRepository)) {
     $prepared = New-TestLensCleanRoomRelease -RepositoryRoot $repo -ReleaseVersion $ReleaseVersion
     $work = $prepared.WorkDirectory
-    $staging = $prepared.StagingDirectory
-    $emptyM2 = $prepared.EmptyMavenRepository
+    $staging = $prepared.StagingRoot
+    $emptyM2 = $prepared.LocalRepositoryRoot
 } else {
     $staging = [IO.Path]::GetFullPath($TestLensRepository)
     if (-not (Test-Path -LiteralPath $staging -PathType Container)) {
@@ -41,6 +42,11 @@ $consumer = Join-Path $work "consumer"
 New-Item -ItemType Directory -Force -Path (Join-Path $consumer "src/test/java/cleanroom") | Out-Null
 $allureConsumer = Join-Path $work "allure-consumer"
 New-Item -ItemType Directory -Force -Path (Join-Path $allureConsumer "src/test/java/cleanroom") | Out-Null
+foreach ($consumerRoot in @($consumer, $allureConsumer)) {
+    if (Test-Path -LiteralPath (Join-Path $consumerRoot ".git")) {
+        throw "Clean-room ConsumerRoot must not contain .git: $consumerRoot"
+    }
+}
 
 $absoluteStagingPath = [System.IO.Path]::GetFullPath($staging)
 if (-not (Test-Path -LiteralPath $absoluteStagingPath -PathType Container)) {

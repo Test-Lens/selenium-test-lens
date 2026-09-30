@@ -1,12 +1,16 @@
 param(
     [string]$ExpectedVersion,
     [switch]$IncludeBrowserIt,
-    [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
+    [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
+    [string]$ReleaseSourceRoot
 )
 
 $ErrorActionPreference = "Stop"
 Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
-$model = Get-TestLensReactorModel -RepositoryRoot $RepositoryRoot -IncludeBrowserIt:$IncludeBrowserIt
+$model = Get-TestLensReactorModel `
+    -RepositoryRoot $RepositoryRoot `
+    -ReleaseSourceRoot $ReleaseSourceRoot `
+    -IncludeBrowserIt:$IncludeBrowserIt
 if ([string]::IsNullOrWhiteSpace($ExpectedVersion)) { $ExpectedVersion = $model.RootVersion }
 if ($model.RootVersion -ne $ExpectedVersion) { throw "Root project version is '$($model.RootVersion)', expected '$ExpectedVersion'" }
 foreach ($project in $model.Projects) {

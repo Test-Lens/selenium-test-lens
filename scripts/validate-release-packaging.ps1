@@ -2,15 +2,24 @@ param(
     [string]$Version,
     [string]$StagingDirectory = (Join-Path ([System.IO.Path]::GetTempPath()) ("selenium-test-lens-release-staging-" + [guid]::NewGuid())),
     [switch]$MatrixOnly,
-    [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
+    [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
+    [string]$ReleaseSourceRoot
 )
 
 $ErrorActionPreference = "Stop"
 Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
 $repo = [IO.Path]::GetFullPath($RepositoryRoot)
-$model = Get-TestLensReactorModel -RepositoryRoot $repo -IncludeBrowserIt
+$releaseSource = if ([string]::IsNullOrWhiteSpace($ReleaseSourceRoot)) {
+    $repo
+} else {
+    [IO.Path]::GetFullPath($ReleaseSourceRoot)
+}
+$model = Get-TestLensReactorModel `
+    -RepositoryRoot $repo `
+    -ReleaseSourceRoot $releaseSource `
+    -IncludeBrowserIt
 if ([string]::IsNullOrWhiteSpace($Version)) { $Version = $model.RootVersion }
-$pom = [xml](Get-Content -Raw (Join-Path $repo "pom.xml"))
+$pom = [xml](Get-Content -Raw (Join-Path $releaseSource "pom.xml"))
 $ns = New-Object System.Xml.XmlNamespaceManager($pom.NameTable)
 $ns.AddNamespace("m", "http://maven.apache.org/POM/4.0.0")
 $excluded = $pom.SelectSingleNode("//m:plugin[m:artifactId='central-publishing-maven-plugin']/m:configuration/m:excludeArtifacts", $ns)

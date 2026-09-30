@@ -20,9 +20,46 @@ function Get-TestLensPomTexts([xml]$Pom, [string]$XPath) {
 }
 
 function Get-TestLensReactorModel {
-    param([Parameter(Mandatory = $true)][string]$RepositoryRoot, [switch]$IncludeBrowserIt)
-    $root = [IO.Path]::GetFullPath($RepositoryRoot)
+    param(
+        [Parameter(Mandatory = $true)][string]$RepositoryRoot,
+        [string]$ReleaseSourceRoot,
+        [switch]$IncludeBrowserIt
+    )
+    if ([string]::IsNullOrWhiteSpace($RepositoryRoot)) {
+        throw "RepositoryRoot must identify the source Git worktree"
+    }
+    $repository = [IO.Path]::GetFullPath($RepositoryRoot)
+    if (-not (Test-Path -LiteralPath $repository -PathType Container)) {
+        throw "RepositoryRoot does not exist: $repository"
+    }
+    $repositoryPom = Join-Path $repository "pom.xml"
+    if (-not (Test-Path -LiteralPath $repositoryPom -PathType Leaf)) {
+        throw "RepositoryRoot does not contain root pom.xml: $repositoryPom"
+    }
+    $gitRootOutput = @(& git -C $repository rev-parse --show-toplevel 2>&1)
+    if ($LASTEXITCODE -ne 0) {
+        throw "RepositoryRoot is not a Git worktree: $repository ($($gitRootOutput -join ' '))"
+    }
+    $gitRoot = [IO.Path]::GetFullPath(($gitRootOutput | Select-Object -Last 1).ToString()).TrimEnd(
+        [IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+    $normalizedRepository = $repository.TrimEnd(
+        [IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+    if (-not $gitRoot.Equals($normalizedRepository, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "RepositoryRoot must be the Git worktree root '$gitRoot', but was '$repository'"
+    }
+
+    $root = if ([string]::IsNullOrWhiteSpace($ReleaseSourceRoot)) {
+        $repository
+    } else {
+        [IO.Path]::GetFullPath($ReleaseSourceRoot)
+    }
+    if (-not (Test-Path -LiteralPath $root -PathType Container)) {
+        throw "ReleaseSourceRoot does not exist: $root"
+    }
     $rootPomPath = Join-Path $root "pom.xml"
+    if (-not (Test-Path -LiteralPath $rootPomPath -PathType Leaf)) {
+        throw "ReleaseSourceRoot does not contain root pom.xml: $rootPomPath"
+    }
     $rootPom = Read-TestLensPom $rootPomPath
     $normalModules = @(Get-TestLensPomTexts $rootPom "/m:project/m:modules/m:module")
     $profileModules = @(Get-TestLensPomTexts $rootPom "/m:project/m:profiles/m:profile/m:modules/m:module")
@@ -31,8 +68,10 @@ function Get-TestLensReactorModel {
     $selectedModules = @($normalModules)
     if ($IncludeBrowserIt) { $selectedModules = @($selectedModules + $browserModules | Sort-Object -Unique) }
 
-    $trackedOutput = @(& git -C $root ls-files -- "pom.xml" ":(glob)**/pom.xml" 2>&1)
-    if ($LASTEXITCODE -ne 0) { throw "git ls-files failed while enumerating reactor POMs: $($trackedOutput -join ' ')" }
+    $trackedOutput = @(& git -C $repository ls-files -- "pom.xml" ":(glob)**/pom.xml" 2>&1)
+    if ($LASTEXITCODE -ne 0) {
+        throw "git ls-files failed while enumerating reactor POMs from RepositoryRoot '$repository': $($trackedOutput -join ' ')"
+    }
     $tracked = @($trackedOutput | ForEach-Object { $_.ToString().Replace('\','/') } | Sort-Object -Unique)
     $expectedKnown = @("pom.xml") + @($knownModules | ForEach-Object { $_.TrimEnd('/','\').Replace('\','/') + "/pom.xml" })
     $expectedKnown = @($expectedKnown | Sort-Object -Unique)
@@ -65,7 +104,8 @@ function Get-TestLensReactorModel {
         }
     }
     return [pscustomobject]@{
-        RepositoryRoot = $root; RootVersion = $rootVersion; Projects = @($projects)
+        RepositoryRoot = $repository; ReleaseSourceRoot = $root
+        RootVersion = $rootVersion; Projects = @($projects)
         NormalProjectCount = 1 + $normalModules.Count
         BrowserProjectCount = 1 + (@($normalModules + $browserModules | Sort-Object -Unique)).Count
         TrackedPomPaths = $tracked

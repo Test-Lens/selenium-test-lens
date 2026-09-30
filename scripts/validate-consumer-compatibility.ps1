@@ -1,10 +1,11 @@
 param(
     [string]$ReleaseVersion,
-    [switch]$KeepWorkDirectoryOnFailure
+    [switch]$KeepWorkDirectoryOnFailure,
+    [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
 )
 
 $ErrorActionPreference = "Stop"
-$repo = Split-Path -Parent $PSScriptRoot
+$repo = [IO.Path]::GetFullPath($RepositoryRoot)
 Import-Module (Join-Path $PSScriptRoot "CleanRoomRelease.psm1") -Force
 
 $prepared = $null
@@ -15,15 +16,17 @@ try {
         -ReleaseVersion $ReleaseVersion
 
     & (Join-Path $PSScriptRoot "validate-clean-room-consumer.ps1") `
+        -RepositoryRoot $repo `
         -ReleaseVersion $prepared.ReleaseVersion `
-        -TestLensRepository $prepared.StagingDirectory
+        -TestLensRepository $prepared.StagingRoot
     if ($LASTEXITCODE -ne 0) {
         throw "Maven clean-room consumer failed with exit code $LASTEXITCODE."
     }
 
     & (Join-Path $PSScriptRoot "validate-gradle-consumer.ps1") `
+        -RepositoryRoot $repo `
         -ReleaseVersion $prepared.ReleaseVersion `
-        -TestLensRepository $prepared.StagingDirectory `
+        -TestLensRepository $prepared.StagingRoot `
         -KeepWorkDirectoryOnFailure:$KeepWorkDirectoryOnFailure
     if ($LASTEXITCODE -ne 0) {
         throw "Gradle clean-room consumer failed with exit code $LASTEXITCODE."

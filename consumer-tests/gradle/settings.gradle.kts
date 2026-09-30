@@ -14,7 +14,12 @@ val lensRepository = file(repositoryValue).canonicalFile
 if (!lensRepository.isDirectory) {
     throw GradleException("testLensRepository does not exist or is not a directory")
 }
-val sourceRoot = rootDir.resolve("../..").canonicalFile
+val sourceRootValue = providers.gradleProperty("testLensSourceRoot").orNull
+    ?: throw GradleException("Required property 'testLensSourceRoot' is missing")
+val sourceRoot = file(sourceRootValue).canonicalFile
+if (!sourceRoot.isDirectory) {
+    throw GradleException("testLensSourceRoot does not exist or is not a directory")
+}
 if (lensRepository.toPath().startsWith(sourceRoot.toPath())) {
     throw GradleException("testLensRepository must be isolated from the project source tree")
 }

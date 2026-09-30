@@ -1,4 +1,5 @@
 Set-StrictMode -Version Latest
+Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
 
 function Get-TestLensSourceVersion {
     param([Parameter(Mandatory)][string]$RepositoryRoot)
@@ -91,9 +92,17 @@ function New-TestLensCleanRoomRelease {
                 [IO.File]::Copy($_.FullName, (Join-Path $source $_.Name), $true)
             }
         }
+    if (Test-Path -LiteralPath (Join-Path $source ".git")) {
+        throw "Clean-room ReleaseSourceRoot must not contain .git: $source"
+    }
 
-    $poms = @(Get-ChildItem -LiteralPath $source -Recurse -Filter pom.xml |
-        Where-Object { $_.FullName -notmatch '[\\/]target[\\/]' })
+    $reactor = Get-TestLensReactorModel `
+        -RepositoryRoot $repository `
+        -ReleaseSourceRoot $source `
+        -IncludeBrowserIt
+    $poms = @($reactor.Projects | ForEach-Object {
+        Get-Item -LiteralPath (Join-Path $source $_.RelativePom)
+    })
     if ($poms.Count -eq 0) { throw "No reactor POMs found in temporary release source" }
     foreach ($pom in $poms) {
         $content = [IO.File]::ReadAllText($pom.FullName)
@@ -118,15 +127,23 @@ function New-TestLensCleanRoomRelease {
     )
     & $maven @releaseBuildArguments | Out-Host
     if ($LASTEXITCODE -ne 0) { throw "Temporary release build failed" }
-    & (Join-Path $source "scripts/validate-release-packaging.ps1") -Version $ReleaseVersion -StagingDirectory $staging | Out-Host
+    & (Join-Path $source "scripts/validate-release-packaging.ps1") `
+        -RepositoryRoot $repository `
+        -ReleaseSourceRoot $source `
+        -Version $ReleaseVersion `
+        -StagingDirectory $staging | Out-Host
     if ($LASTEXITCODE -ne 0) { throw "Release staging validation failed" }
 
     [pscustomobject]@{
         SourceVersion = $sourceVersion
         ReleaseVersion = $ReleaseVersion
+        RepositoryRoot = $repository
+        ReleaseSourceRoot = $source
         WorkDirectory = $work
         SourceDirectory = $source
+        StagingRoot = [IO.Path]::GetFullPath($staging)
         StagingDirectory = [IO.Path]::GetFullPath($staging)
+        LocalRepositoryRoot = [IO.Path]::GetFullPath($emptyM2)
         EmptyMavenRepository = [IO.Path]::GetFullPath($emptyM2)
     }
 }

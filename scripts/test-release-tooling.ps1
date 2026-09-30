@@ -1,15 +1,27 @@
 $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $unicodeSuffix = ([char]0x017B).ToString() + ([char]0x00F3) + ([char]0x0142) + ([char]0x0107)
-$fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ("test-lens release fixture $unicodeSuffix " + [guid]::NewGuid())
+$testRoot = Join-Path ([IO.Path]::GetTempPath()) ("test-lens release fixture $unicodeSuffix " + [guid]::NewGuid())
+$fixtureRoot = Join-Path $testRoot "source repository"
+$releaseSourceRoot = Join-Path $testRoot "release source without git"
+$consumerRoot = Join-Path $testRoot "consumer without git"
+Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
 
 function Assert-Throws([scriptblock]$Action, [string]$Name) {
     try { & $Action | Out-Null } catch { return }
     throw "Expected failure: $Name"
 }
 
+function Assert-ThrowsLike([scriptblock]$Action, [string]$Pattern, [string]$Name) {
+    try { & $Action | Out-Null } catch {
+        if ($_.Exception.Message -like $Pattern) { return }
+        throw "Expected failure '$Name' matching '$Pattern', got: $($_.Exception.Message)"
+    }
+    throw "Expected failure: $Name"
+}
+
 try {
-    New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
+    New-Item -ItemType Directory -Force -Path $fixtureRoot, $releaseSourceRoot, $consumerRoot | Out-Null
     foreach ($relative in @(git -C $repositoryRoot ls-files -- "pom.xml" ":(glob)**/pom.xml")) {
         $destination = Join-Path $fixtureRoot $relative
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
@@ -21,15 +33,54 @@ try {
     & git -C $fixtureRoot -c user.name=release-fixture -c user.email=release-fixture.invalid commit -q -m initial
     if ($LASTEXITCODE -ne 0) { throw "Cannot commit release-tooling fixture" }
 
-    New-Item -ItemType Directory -Force -Path (Join-Path $fixtureRoot "target/generated") | Out-Null
-    [IO.File]::WriteAllText((Join-Path $fixtureRoot "target/generated/pom.xml"), "<project/>")
-    New-Item -ItemType Directory -Force -Path (Join-Path $fixtureRoot "nested disposable fixture") | Out-Null
-    [IO.File]::WriteAllText((Join-Path $fixtureRoot "nested disposable fixture/pom.xml"), "<project/>")
-    $normal = @(& (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot)
-    $browser = @(& (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot -IncludeBrowserIt)
-    if ($normal[-1] -notmatch '16 projects') { throw "Normal reactor count regression" }
-    if ($browser[-1] -notmatch '17 projects') { throw "Browser reactor count regression" }
-    & (Join-Path $PSScriptRoot "validate-release-packaging.ps1") -RepositoryRoot $fixtureRoot -MatrixOnly | Out-Null
+    foreach ($relative in @(& git -C $fixtureRoot ls-files -- "pom.xml" ":(glob)**/pom.xml")) {
+        $destination = Join-Path $releaseSourceRoot $relative
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+        Copy-Item -LiteralPath (Join-Path $fixtureRoot $relative) -Destination $destination
+    }
+    [IO.File]::WriteAllText((Join-Path $consumerRoot "pom.xml"), "<project/>")
+    if (Test-Path -LiteralPath (Join-Path $releaseSourceRoot ".git")) {
+        throw "Clean-room release source fixture must not contain .git"
+    }
+    if (Test-Path -LiteralPath (Join-Path $consumerRoot ".git")) {
+        throw "Consumer fixture must not contain .git"
+    }
+
+    foreach ($root in @($fixtureRoot, $releaseSourceRoot)) {
+        New-Item -ItemType Directory -Force -Path (Join-Path $root "target/generated") | Out-Null
+        [IO.File]::WriteAllText((Join-Path $root "target/generated/pom.xml"), "<project/>")
+        New-Item -ItemType Directory -Force -Path (Join-Path $root "nested disposable fixture") | Out-Null
+        [IO.File]::WriteAllText((Join-Path $root "nested disposable fixture/pom.xml"), "<project/>")
+    }
+
+    Push-Location $consumerRoot
+    try {
+        $model = Get-TestLensReactorModel `
+            -RepositoryRoot $fixtureRoot `
+            -ReleaseSourceRoot $releaseSourceRoot `
+            -IncludeBrowserIt
+        if ($model.TrackedPomPaths -contains "target/generated/pom.xml") {
+            throw "Generated target POM was included in tracked reactor metadata"
+        }
+        if ($model.TrackedPomPaths -contains "nested disposable fixture/pom.xml") {
+            throw "Untracked fixture POM was included in tracked reactor metadata"
+        }
+        $normal = @(& (Join-Path $PSScriptRoot "check-reactor-versions.ps1") `
+            -RepositoryRoot $fixtureRoot -ReleaseSourceRoot $releaseSourceRoot)
+        $browser = @(& (Join-Path $PSScriptRoot "check-reactor-versions.ps1") `
+            -RepositoryRoot $fixtureRoot -ReleaseSourceRoot $releaseSourceRoot -IncludeBrowserIt)
+        if ($normal[-1] -notmatch '16 projects') { throw "Normal reactor count regression" }
+        if ($browser[-1] -notmatch '17 projects') { throw "Browser reactor count regression" }
+        & (Join-Path $PSScriptRoot "validate-release-packaging.ps1") `
+            -RepositoryRoot $fixtureRoot `
+            -ReleaseSourceRoot $releaseSourceRoot `
+            -MatrixOnly | Out-Null
+    } finally {
+        Pop-Location
+    }
+    Assert-ThrowsLike {
+        Get-TestLensReactorModel -RepositoryRoot $consumerRoot
+    } "*RepositoryRoot is not a Git worktree*" "non-Git RepositoryRoot"
 
     $corePom = Join-Path $fixtureRoot "selenium-test-lens-core/pom.xml"
     $originalCore = [IO.File]::ReadAllText($corePom)
@@ -83,7 +134,7 @@ try {
             if ($text.Contains($forbidden)) { throw "$script contains forbidden release action '$forbidden'" }
         }
     }
-    Write-Output "Release tooling fixture PASS: deterministic tracked reactor, profile count, version failures, publication policy, and no automated release actions"
+    Write-Output "Release tooling fixture PASS: explicit Git repository root, Git-free release/consumer roots, deterministic tracked reactor, profile count, version failures, publication policy, and no automated release actions"
 } finally {
-    if (Test-Path -LiteralPath $fixtureRoot) { Remove-Item -LiteralPath $fixtureRoot -Recurse -Force }
+    if (Test-Path -LiteralPath $testRoot) { Remove-Item -LiteralPath $testRoot -Recurse -Force }
 }
