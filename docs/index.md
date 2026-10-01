@@ -24,9 +24,9 @@ Test Lens shows actions, waits, assertions, retries, and network activity while 
 
 | Documentation | Status | Library availability |
 |---|---|---|
-| [0.4.0 release notes](whats-new-0.4.0.md) | Prepared release; publication pending | Release certification complete |
-| [0.3.1 stable](https://test-lens.github.io/selenium-test-lens/0.3.1/) | Latest published release | Maven Central |
-| [0.3.0 historical](https://test-lens.github.io/selenium-test-lens/0.3.0/) | Previous release | Maven Central |
+| [0.4.0 stable](https://test-lens.github.io/selenium-test-lens/0.4.0/) | Latest published release | Maven Central |
+| [0.3.1 historical](https://test-lens.github.io/selenium-test-lens/0.3.1/) | Previous release | Maven Central |
+| [0.3.0 historical](https://test-lens.github.io/selenium-test-lens/0.3.0/) | Historical release | Maven Central |
 | [0.2.0 historical](https://test-lens.github.io/selenium-test-lens/0.2.0/) | Historical release | Maven Central |
 | [0.1.0 historical](https://test-lens.github.io/selenium-test-lens/0.1.0/) | Historical release | Maven Central |
 

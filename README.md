@@ -8,13 +8,13 @@
 
 | Version | Status | Availability | Documentation |
 |---|---|---|---|
-| `0.4.0` | Prepared release | Publication pending | [0.4.0 release notes](docs/whats-new-0.4.0.md) |
-| `0.3.1` | Latest published release | Maven Central | [Stable documentation — 0.3.1](https://test-lens.github.io/selenium-test-lens/0.3.1/) |
-| `0.3.0` | Previous release | Maven Central | [Historical documentation — 0.3.0](https://test-lens.github.io/selenium-test-lens/0.3.0/) |
+| `0.4.0` | Latest published release | Maven Central | [Stable documentation — 0.4.0](https://test-lens.github.io/selenium-test-lens/0.4.0/) |
+| `0.3.1` | Previous release | Maven Central | [Historical documentation — 0.3.1](https://test-lens.github.io/selenium-test-lens/0.3.1/) |
+| `0.3.0` | Historical release | Maven Central | [Historical documentation — 0.3.0](https://test-lens.github.io/selenium-test-lens/0.3.0/) |
 | `0.2.0` | Historical release | Maven Central | [Historical documentation — 0.2.0](https://test-lens.github.io/selenium-test-lens/0.2.0/) |
 | `0.1.0` | Historical release | Maven Central | [Historical documentation — 0.1.0](https://test-lens.github.io/selenium-test-lens/0.1.0/) |
 
-After publication, install release 0.4.0 (Java 17 or newer):
+Install release 0.4.0 (Java 17 or newer):
 
 ```xml
 <dependency>
