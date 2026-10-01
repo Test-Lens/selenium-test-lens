@@ -774,6 +774,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#selector-intelligence-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Selector Intelligence foundations
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1099,6 +1110,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../features/selector-intelligence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector Intelligence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../features/react-spa/" class="md-nav__link">
         
   
@@ -1196,10 +1235,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
             
   
   
@@ -1217,8 +1256,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1480,10 +1519,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
         
           
-          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
             
   
   
@@ -1501,8 +1540,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_6">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3542,6 +3581,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#selector-intelligence-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Selector Intelligence foundations
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3664,6 +3714,13 @@
 <p><code>ObservabilityMode.FAST</code> is independent of headless execution. It keeps Selenium, Smart Click, waits, retries, correlation, structured events, bounded recorder data, and failure evidence, while disabling the live HUD, automatic highlights, and live Source Navigation by default. Successful sessions retain their summary by default. Configure it through Java, <code>testLens.observability=fast</code>, or <code>TEST_LENS_OBSERVABILITY=fast</code>. <a href="../configuration/#browser-execution-and-observability">Compare DEFAULT and FAST</a>.</p>
 <h3 id="bounded-recorder-and-locator-observations">Bounded recorder and locator observations<a class="headerlink" href="#bounded-recorder-and-locator-observations" title="Permanent link">&para;</a></h3>
 <p>The trace recorder retains bounded event counts and estimated bytes, exposes completeness telemetry, and can keep only the summary of a passed session. Failures retain bounded context and reuse central redaction and screenshot evidence. Runtime locator observations add versioned, bounded selector/context data without extra WebDriver commands.</p>
+<h3 id="selector-intelligence-foundations">Selector Intelligence foundations<a class="headerlink" href="#selector-intelligence-foundations" title="Permanent link">&para;</a></h3>
+<p>Release 0.4.0 also contains internal foundations for browser-free Java locator discovery, evidence-first stability
+classification and project policy, Find Similar with bounded history, offline Selector Audit, live candidate
+analysis, and a read-only Selector Lab. Generated-looking is deliberately not treated as proof of instability.</p>
+<p>These modules are excluded from Central publication and 0.4.x has no supported public CLI or <code>TestLens</code> launcher;
+this is clarification of code already shipped, not a new runtime feature. See
+<a href="../features/selector-intelligence/">Selector Intelligence</a> for the exact capability and availability boundary.</p>
 <h2 id="improved">Improved<a class="headerlink" href="#improved" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Semantic HUD:</strong> categories and phases are independent of logging severity. <code>ACTION</code>, <code>ASSERTION</code>, <code>LOCATOR</code>, <code>ACTIONABILITY</code>, <code>HIGHLIGHT</code>, <code>USER</code>, and <code>SYSTEM</code> rows carry <code>RUNNING</code>, <code>PASSED</code>, <code>RETRYING</code>, <code>FAILED</code>, <code>WARNING</code>, <code>INFO</code>, or <code>DEBUG</code> meaning. An operation ID updates one logical row instead of creating misleading start/result duplicates.</li>
