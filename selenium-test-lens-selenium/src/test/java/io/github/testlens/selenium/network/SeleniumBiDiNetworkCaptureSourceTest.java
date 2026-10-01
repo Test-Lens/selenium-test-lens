@@ -123,6 +123,54 @@ class SeleniumBiDiNetworkCaptureSourceTest {
     }
 
     @Test
+    void multiHopRedirectsRetainResponseLocalCorrelationAcrossCallbackInterleaving() {
+        FakeModule module = new FakeModule();
+        RecordingSink sink = new RecordingSink();
+        SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.defaults(), sink);
+
+        // The next hop can be announced before the prior hop's responseCompleted callback arrives.
+        module.before.accept(BeforeRequestSent.fromJsonMap(base("chain", "/redirect-middle", 1, 120)));
+        module.response.accept(ResponseDetails.fromJsonMap(response("chain", "/redirect-start", 0, 302, 125, 1, 2)));
+        module.before.accept(BeforeRequestSent.fromJsonMap(base("chain", "/redirect-final", 2, 130)));
+        module.response.accept(ResponseDetails.fromJsonMap(response("chain", "/redirect-middle", 1, 302, 135, 2, 3)));
+        module.response.accept(ResponseDetails.fromJsonMap(response("chain", "/redirect-final", 2, 200, 140, 3, 4)));
+
+        List<NetworkEvent> responses = sink.events.stream().filter(event -> event.response() != null).toList();
+        assertEquals(List.of("0", "1", "2"), responses.stream()
+                .map(event -> event.attributes().get("redirectCount")).toList());
+        assertTrue(responses.stream().allMatch(event -> event.correlatedRequest() != null));
+        assertTrue(responses.stream().allMatch(event ->
+                event.response().requestId().equals(event.correlatedRequest().id())));
+        assertEquals(List.of("/redirect-start", "/redirect-middle", "/redirect-final"), responses.stream()
+                .map(event -> event.correlatedRequest().url()).toList());
+    }
+
+    @Test
+    void responseCorrelationDoesNotDependOnStandaloneRequestIdentityMultiplicityOrArrival() {
+        FakeModule module = new FakeModule();
+        RecordingSink sink = new RecordingSink();
+        SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.defaults(), sink);
+
+        // Repeated URL, changed IDs between hops, duplicate callback and unrelated concurrent traffic.
+        module.before.accept(BeforeRequestSent.fromJsonMap(base("hop-0", "/same", 0, 100)));
+        module.before.accept(BeforeRequestSent.fromJsonMap(base("noise", "/irrelevant", 0, 101)));
+        module.before.accept(BeforeRequestSent.fromJsonMap(base("hop-1", "/same", 1, 102)));
+        module.before.accept(BeforeRequestSent.fromJsonMap(base("hop-1", "/same", 1, 102)));
+        module.response.accept(ResponseDetails.fromJsonMap(response("hop-0", "/same", 0, 302, 110, 1, 2)));
+        module.response.accept(ResponseDetails.fromJsonMap(response("noise", "/irrelevant", 0, 204, 111, 1, 2)));
+        // The final completion can arrive after navigation/client-side work has already continued.
+        module.response.accept(ResponseDetails.fromJsonMap(response("hop-1", "/same", 1, 200, 500, 2, 3)));
+
+        NetworkEvent finalResponse = sink.events.stream()
+                .filter(event -> event.response() != null && event.response().status() == 200)
+                .findFirst().orElseThrow();
+        assertNotNull(finalResponse.correlatedRequest());
+        assertEquals("hop-1", finalResponse.correlatedRequest().id());
+        assertEquals("/same", finalResponse.correlatedRequest().url());
+        assertEquals("1", finalResponse.attributes().get("redirectCount"));
+    }
+
+    @Test
     void headersAreOptionalMaskedCaseInsensitivelyAndPreserveBase64AndDuplicates() {
         Map<String, Object> event = base("req-h", "/api/headers", 0, 1000);
         @SuppressWarnings("unchecked")
