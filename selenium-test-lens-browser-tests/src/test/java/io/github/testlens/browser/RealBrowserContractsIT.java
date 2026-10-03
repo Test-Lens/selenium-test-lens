@@ -1244,6 +1244,7 @@ class RealBrowserContractsIT {
                   linkPointer:getComputedStyle(link).pointerEvents, display:getComputedStyle(link).display,
                   tag:link.tagName,href:link.getAttribute('href'),tabIndex:link.getAttribute('tabindex'),
                   fontSize:getComputedStyle(link).fontSize,fontFamily:getComputedStyle(link).fontFamily,
+                  fontWeight:getComputedStyle(link).fontWeight,letterSpacing:getComputedStyle(link).letterSpacing,
                   color:getComputedStyle(link).color,ariaLabel:link.getAttribute('aria-label'),
                   active:panel.dataset.sourceNavigationActive,timestamp:timestamp.textContent,
                   eventTime:timestamp.closest('[data-test-lens-timestamp]').dataset.testLensTimestamp,
@@ -1255,9 +1256,11 @@ class RealBrowserContractsIT {
         assertEquals("none", passive.get("display"));
         assertEquals("A", passive.get("tag"));
         assertEquals("0", passive.get("tabIndex"));
-        assertEquals("11px", passive.get("fontSize"));
+        assertEquals("10.5px", passive.get("fontSize"));
         assertTrue(passive.get("fontFamily").toString().startsWith("\"JetBrains Mono\""), passive.toString());
-        assertEquals("rgb(196, 167, 255)", passive.get("color"));
+        assertEquals("400", passive.get("fontWeight"));
+        assertEquals("-0.2625px", passive.get("letterSpacing"));
+        assertEquals("rgb(167, 139, 250)", passive.get("color"));
         assertTrue(passive.get("ariaLabel").toString().startsWith("Open source ConsumerSourcePage.java:"), passive.toString());
         assertEquals(null, passive.get("timestampRole"));
         assertEquals(null, passive.get("timestampTabIndex"));
