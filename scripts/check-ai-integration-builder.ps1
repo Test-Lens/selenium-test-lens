@@ -1,4 +1,9 @@
-param([string]$SiteDirectory)
+param(
+    [string]$SiteDirectory,
+    [string]$ExpectedTargetRelease,
+    [ValidateSet("development", "release")]
+    [string]$ExpectedSourceKind = "development"
+)
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
@@ -6,8 +11,12 @@ $page = Join-Path $root "docs/ai-assisted-integration.md"
 $script = Join-Path $root "docs/javascripts/ai-integration-builder.js"
 $styles = Join-Path $root "docs/stylesheets/ai-integration-builder.css"
 $mkdocs = Join-Path $root "mkdocs.yml"
+$releaseConfig = Join-Path $root "mkdocs-release.yml"
+$override = Join-Path $root "overrides/main.html"
+$workflow = Join-Path $root ".github/workflows/docs.yml"
+$browserTest = Join-Path $root "scripts/test-ai-integration-builder-browser.cjs"
 
-foreach ($path in @($page, $script, $styles)) {
+foreach ($path in @($page, $script, $styles, $releaseConfig, $override, $workflow, $browserTest)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "AI Integration Builder source is missing: $path" }
 }
 
@@ -15,6 +24,28 @@ $pageText = [IO.File]::ReadAllText($page)
 $scriptText = [IO.File]::ReadAllText($script)
 $styleText = [IO.File]::ReadAllText($styles)
 $mkdocsText = [IO.File]::ReadAllText($mkdocs)
+$releaseConfigText = [IO.File]::ReadAllText($releaseConfig)
+$overrideText = [IO.File]::ReadAllText($override)
+$workflowText = [IO.File]::ReadAllText($workflow)
+
+$targetMatch = [regex]::Match($mkdocsText, '(?m)^\s{4}target_release:\s*(\d+\.\d+\.\d+)\s*$')
+if (-not $targetMatch.Success) { throw "MkDocs must declare one concrete AI integration target release." }
+$targetRelease = $targetMatch.Groups[1].Value
+if (-not [string]::IsNullOrWhiteSpace($ExpectedTargetRelease) -and $targetRelease -ne $ExpectedTargetRelease) {
+    throw "AI integration target '$targetRelease' differs from expected '$ExpectedTargetRelease'."
+}
+if ($releaseConfigText -notmatch 'target_release:\s*!ENV \[DOCS_RELEASE_VERSION, release\]') {
+    throw "Release documentation must bind the AI integration target to DOCS_RELEASE_VERSION."
+}
+foreach ($metaName in @("test-lens-integration-target", "test-lens-docs-public-root", "test-lens-docs-source-kind", "test-lens-docs-source-revision")) {
+    if (-not $overrideText.Contains($metaName)) { throw "Documentation deployment metadata is missing: $metaName" }
+}
+if ($workflowText -notmatch 'DOCS_SOURCE_REVISION\s*=.*git rev-parse HEAD') {
+    throw "Documentation publication does not derive source revision metadata from the checked-out source."
+}
+if ($pageText -match 'data-test-lens-version|data-docs-base' -or $scriptText -match "(?m)^\s*var VERSION\s*=") {
+    throw "AI Integration Builder contains a second independent version source."
+}
 
 foreach ($contract in @(
     "AI-assisted integration: ai-assisted-integration.md",
@@ -28,6 +59,8 @@ foreach ($contract in @(
     'data-generated-prompt',
     'data-copy-prompt',
     'data-selenium-version',
+    'data-target-status',
+    'data-selection-mode',
     'role="status"',
     'aria-live="polite"',
     'Core lifecycle is always included',
@@ -63,6 +96,10 @@ foreach ($module in @(
     if ($scriptText -notmatch "(?m)^\s+${module}:\s*\[") { throw "AI Integration Builder module missing: $module" }
 }
 
+foreach ($function in @("resolveCapabilities", "resolveDocumentationTarget", "scopeSection", "compositionSection")) {
+    if ($scriptText -notmatch "function\s+$function\s*\(") { throw "AI Integration Builder hardening function missing: $function" }
+}
+
 foreach ($forbidden in @(
     "selenium-test-lens-selector-engine", "selenium-test-lens-selector-tooling", "selenium-test-lens-selector-live",
     "selenium-test-lens-selector-lab", "selenium-test-lens-compatibility-engine", "selenium-test-lens-compatibility-tooling",
@@ -81,6 +118,8 @@ if ($styleText -notmatch '@media\s*\(max-width:\s*760px\)' -or
 $node = Get-Command node -ErrorAction Stop
 & $node.Source --check $script
 if ($LASTEXITCODE -ne 0) { throw "AI Integration Builder JavaScript syntax validation failed." }
+& $node.Source --check $browserTest
+if ($LASTEXITCODE -ne 0) { throw "AI Integration Builder browser test syntax validation failed." }
 & $node.Source (Join-Path $root "scripts/test-ai-integration-builder.mjs")
 if ($LASTEXITCODE -ne 0) { throw "AI Integration Builder behavior validation failed." }
 
@@ -101,10 +140,14 @@ if (-not [string]::IsNullOrWhiteSpace($SiteDirectory)) {
         'Copy integration prompt',
         'data-ai-integration-builder',
         'href="../getting-started/"',
-        'href="../advanced/network/"'
+        'href="../advanced/network/"',
+        "name=`"test-lens-integration-target`" content=`"$targetRelease`"",
+        'name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/"',
+        "name=`"test-lens-docs-source-kind`" content=`"$ExpectedSourceKind`"",
+        'name="test-lens-docs-source-revision"'
     )) {
         if (-not $built.Contains($contract)) { throw "Built AI Integration Builder contract missing: $contract" }
     }
 }
 
-Write-Host "AI Integration Builder validation OK: public feature inventory, deterministic full prompt, compatibility boundary, accessibility and responsive assets."
+Write-Host "AI Integration Builder validation OK: target=$targetRelease, trusted numeric documentation binding, explicit scope, Selenium qualifiers, dependencies, accessibility and responsive assets."

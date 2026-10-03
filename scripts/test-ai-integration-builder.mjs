@@ -7,90 +7,130 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = fs.readFileSync(path.join(root, 'docs/javascripts/ai-integration-builder.js'), 'utf8');
 const page = fs.readFileSync(path.join(root, 'docs/ai-assisted-integration.md'), 'utf8');
-const context = { globalThis: {} };
+const context = { globalThis: {}, URL };
 vm.runInNewContext(source, context, { filename: 'ai-integration-builder.js' });
 const builder = context.globalThis.TestLensAiIntegrationBuilder;
 
 assert.ok(builder, 'builder API must be exported');
-assert.equal(builder.VERSION, '0.4.0');
+assert.equal(builder.VERSION_TOKEN, '{{TEST_LENS_TARGET_RELEASE}}');
 assert.deepEqual(Array.from(builder.BIDI_MINIMUM), [4, 39, 0]);
 
-const mandatory = [
-  'Mandatory project discovery before changes',
-  'effective/resolved Selenium Java version',
-  'Non-negotiable lifecycle invariants',
-  'Preserve CI and project execution',
-  'Required validation',
-  'Final report',
-  'finishPassed()',
-  'driver.quit()',
-  'Never hard-code secrets',
-  'Do not claim a command, browser, provider or workflow passed unless it was actually executed'
-];
+const release = {
+  targetRelease: '0.4.0',
+  publicDocsRoot: 'https://test-lens.github.io/selenium-test-lens/',
+  sourceKind: 'release'
+};
+const promptFor = options => builder.buildPrompt({ ...release, style: 'manual', capabilities: [], ...options });
 
-for (const [preset, capabilities] of Object.entries(builder.PRESETS)) {
-  const prompt = builder.buildPrompt({ style: 'auto', capabilities, docsBase: 'https://docs.example/0.4.0/' });
-  for (const contract of mandatory) assert.match(prompt, new RegExp(contract.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${preset}: ${contract}`);
-  assert.match(prompt, /Lifecycle model: inspect and choose/);
-  assert.match(prompt, /https:\/\/docs\.example\/0\.4\.0\/getting-started\//);
+const latestTarget = builder.resolveDocumentationTarget({ ...release, sourceRevision: 'abc123' }, 'https://test-lens.github.io/selenium-test-lens/latest/ai-assisted-integration/');
+assert.equal(latestTarget.valid, true);
+assert.equal(latestTarget.docsBase, 'https://test-lens.github.io/selenium-test-lens/0.4.0/');
+const numericTarget = builder.resolveDocumentationTarget({ ...release, sourceRevision: 'abc123' }, 'https://test-lens.github.io/selenium-test-lens/0.4.0/ai-assisted-integration/');
+assert.equal(numericTarget.valid, true);
+const devTarget = builder.resolveDocumentationTarget({ ...release, sourceKind: 'development' }, 'http://127.0.0.1:8000/selenium-test-lens/dev/ai-assisted-integration/');
+assert.equal(devTarget.valid, true);
+assert.equal(devTarget.docsBase, 'https://test-lens.github.io/selenium-test-lens/0.4.0/');
+assert.equal(builder.resolveDocumentationTarget({ ...release, targetRelease: '0.4.1' }, 'https://test-lens.github.io/selenium-test-lens/0.4.0/ai-assisted-integration/').valid, false);
+assert.equal(builder.resolveDocumentationTarget({ ...release, targetRelease: '' }, 'https://test-lens.github.io/selenium-test-lens/latest/').valid, false);
+assert.equal(builder.resolveDocumentationTarget({ ...release, publicDocsRoot: 'http://localhost:8000/' }, 'http://localhost:8000/').valid, false);
+
+const pinnedPrompt = promptFor({ capabilities: ['hud'] });
+assert.match(pinnedPrompt, /selenium-test-lens:0\.4\.0/);
+assert.match(pinnedPrompt, /https:\/\/test-lens\.github\.io\/selenium-test-lens\/0\.4\.0\//);
+assert.doesNotMatch(pinnedPrompt, /selenium-test-lens\/(?:latest|dev)\//);
+assert.doesNotMatch(pinnedPrompt, /localhost|127\.0\.0\.1|file:\/\//);
+const laterLatestPrompt = builder.buildPrompt({ ...release, targetRelease: '0.5.0', style: 'manual', capabilities: ['hud'] });
+assert.match(laterLatestPrompt, /selenium-test-lens:0\.5\.0/);
+assert.match(pinnedPrompt, /selenium-test-lens:0\.4\.0/, 'previous prompt meaning remains pinned');
+
+assert.equal(builder.seleniumAssessment('', true).kind, 'unknown');
+assert.equal(builder.seleniumAssessment('not-a-version', true).kind, 'invalid');
+assert.equal(builder.seleniumAssessment('4.38.0', true).kind, 'blocked');
+assert.equal(builder.seleniumAssessment('4.39.0', true).kind, 'compatible-version');
+assert.equal(builder.seleniumAssessment('4.100.0', true).kind, 'compatible-version');
+assert.equal(builder.seleniumAssessment('4.9.0', true).kind, 'blocked');
+for (const version of ['4.39.0-rc1', '4.39.0-beta-1', '4.39.0-SNAPSHOT', '4.40.0-alpha.2']) {
+  const assessment = builder.seleniumAssessment(version, true);
+  assert.equal(assessment.kind, 'prerelease-review', version);
+  assert.match(assessment.message, /prerelease|SNAPSHOT/i);
 }
+assert.equal(builder.seleniumAssessment('4.39.0', false).kind, 'hint-only');
+assert.match(builder.seleniumAssessment('4.38.0', true).message, /version entered/i);
+assert.doesNotMatch(builder.seleniumAssessment('4.38.0', true).message, /currently resolves/i);
+const invalidHintPrompt = promptFor({ capabilities: ['bidiNetwork'], seleniumVersion: '<script>bad</script>' });
+assert.doesNotMatch(invalidHintPrompt, /<script>bad<\/script>/);
+assert.match(invalidHintPrompt, /has not been copied into this prompt as technical evidence/);
 
-const featureContracts = {
-  nativeObservation: ['Native Selenium observation', 'observeDriver()', 'exactly once'],
-  uiLocator: ['Lens-native interactions', 'UiLocator.click()', 'NATIVE -> ACTIONS -> POINT'],
-  hud: ['HUD and live diagnostics', 'MINIMAL, COMPACT (default), STANDARD and DEBUG', 'ObservabilityMode.DEFAULT and FAST'],
-  reportsEvidence: ['Reports and evidence', 'evidence bundle/ZIP', 'Do not describe Test Lens as a video recorder'],
-  reportUpload: ['Explicit report upload', 'finish -> synchronous HTTP upload -> quit', 'never sends anything automatically'],
-  allure: ['Allure coexistence', 'selenium-test-lens-allure:0.4.0', 'does not replace Allure'],
-  bidiNetwork: ['WebDriver BiDi network diagnostics', '4.39.0 or newer', 'not interception, blocking, mocking'],
-  visualRedaction: ['Visual redaction', 'VisualRedactionOptions', 'STRICT'],
-  managedAuth: ['Managed Auth State', 'AuthStateRequest', 'same-origin'],
-  managedTestState: ['Managed Test State & Resources', 'scenarioState()', 'exactly-once LIFO'],
-  reactSpa: ['React & SPA resilience', 'selenium-test-lens-react:0.4.0', 'Do not add it merely because'],
-  applicationWaits: ['Application-aware waits', 'waitForNetworkIdle', 'not browser-wide network idle']
+assert.deepEqual(Array.from(builder.resolveCapabilities([]).effective), []);
+const uploadOnly = builder.resolveCapabilities(['reportUpload']);
+assert.deepEqual(Array.from(uploadOnly.explicit), ['reportUpload']);
+assert.deepEqual(Array.from(uploadOnly.required), ['reportsEvidence']);
+const explicitReportsUpload = builder.resolveCapabilities(['reportsEvidence', 'reportUpload']);
+assert.deepEqual(Array.from(explicitReportsUpload.required), []);
+const allureOnly = builder.resolveCapabilities(['allure']);
+assert.deepEqual(Array.from(allureOnly.required), ['reportsEvidence']);
+
+const headings = {
+  nativeObservation: '## Native Selenium observation',
+  uiLocator: '## Lens-native interactions',
+  hud: '## HUD and live diagnostics',
+  reportsEvidence: '## Reports and evidence',
+  reportUpload: '## Explicit report upload',
+  allure: '## Allure coexistence',
+  bidiNetwork: '## WebDriver BiDi network diagnostics',
+  visualRedaction: '## Visual redaction',
+  managedAuth: '## Managed Auth State',
+  managedTestState: '## Managed Test State & Resources',
+  reactSpa: '## React & SPA resilience',
+  applicationWaits: '## Application-aware waits'
 };
 
+const coreOnly = promptFor({ capabilities: [] });
+assert.match(coreOnly, /Explicitly selected capabilities: none; core lifecycle only/);
+for (const heading of Object.values(headings)) assert.ok(!coreOnly.includes(heading));
+
 for (const feature of builder.FEATURE_ORDER) {
-  const prompt = builder.buildPrompt({ style: 'manual', capabilities: [feature], docsBase: 'https://docs.example/0.4.0/' });
-  for (const contract of featureContracts[feature]) assert.ok(prompt.includes(contract), `${feature}: ${contract}`);
+  const prompt = promptFor({ capabilities: [feature] });
+  assert.ok(prompt.includes(headings[feature]), feature);
+  for (const [other, heading] of Object.entries(headings)) {
+    const requiredReport = (feature === 'reportUpload' || feature === 'allure') && other === 'reportsEvidence';
+    if (other !== feature && !requiredReport) assert.ok(!prompt.includes(heading), `${feature} must not implement ${other}`);
+  }
 }
 
-const reportUpload = Array.from(builder.normalizedCapabilities(['reportUpload']));
-assert.deepEqual(reportUpload, ['reportsEvidence', 'reportUpload']);
-const allure = Array.from(builder.normalizedCapabilities(['allure']));
-assert.deepEqual(allure, ['reportsEvidence', 'allure']);
+const waitsOnly = promptFor({ capabilities: ['applicationWaits'] });
+assert.match(waitsOnly, /BiDi diagnostics are a separate option/);
+assert.doesNotMatch(waitsOnly, /## WebDriver BiDi network diagnostics/);
+assert.doesNotMatch(waitsOnly, /enableBiDi\(\)|webSocketUrl/);
+const uiOnly = promptFor({ capabilities: ['uiLocator'] });
+assert.doesNotMatch(uiOnly, /## Native Selenium observation/);
+const observeOnly = promptFor({ capabilities: ['nativeObservation'] });
+assert.doesNotMatch(observeOnly, /## Lens-native interactions/);
+const reactOnly = promptFor({ capabilities: ['reactSpa'] });
+assert.doesNotMatch(reactOnly, /## Lens-native interactions/);
 
-const below = builder.seleniumAssessment('4.38.2', true);
-assert.equal(below.kind, 'blocked');
-assert.equal(below.message, 'Test Lens BiDi/network diagnostics require Selenium Java 4.39.0 or newer. This project currently resolves Selenium 4.38.2, so Test Lens BiDi-based functionality cannot be enabled with the current dependency set.');
-assert.equal(builder.seleniumAssessment('4.39.0', true).kind, 'compatible-version');
-assert.equal(builder.seleniumAssessment('4.40.1', true).kind, 'compatible-version');
-assert.equal(builder.seleniumAssessment('4.38.2', false).kind, 'inactive');
-
-const blockedPrompt = builder.buildPrompt({ style: 'manual', capabilities: ['bidiNetwork'], seleniumVersion: '4.38.2' });
-assert.ok(blockedPrompt.includes(below.message));
-assert.match(blockedPrompt, /integrate core Lens without BiDi/);
-const compatiblePrompt = builder.buildPrompt({ style: 'manual', capabilities: ['bidiNetwork'], seleniumVersion: '4.39.0' });
-assert.match(compatiblePrompt, /Browser, session, transport and provider compatibility still require runtime verification/);
-const newerPrompt = builder.buildPrompt({ style: 'manual', capabilities: ['bidiNetwork'], seleniumVersion: '4.41.0' });
-assert.match(newerPrompt, /Browser, session, transport and provider compatibility still require runtime verification/);
-const noBidiPrompt = builder.buildPrompt({ style: 'manual', capabilities: [], seleniumVersion: '4.38.2' });
-assert.doesNotMatch(noBidiPrompt, /WebDriver BiDi network diagnostics and mandatory compatibility gate/);
-
-for (const [style, heading] of Object.entries({ auto: 'inspect and choose', manual: 'existing/custom WebDriver', junit5: 'JUnit 5 adapter', testng: 'TestNG adapter' })) {
-  assert.ok(builder.buildPrompt({ style, capabilities: [] }).includes(`Lifecycle model: ${heading}`));
+for (const style of ['manual', 'junit5', 'testng']) {
+  const composed = promptFor({ style, capabilities: ['reportUpload', 'allure'] });
+  assert.match(composed, /## Finalization, publication and cleanup composition/);
+  assert.match(composed, /same finalized result|same result/i);
+  assert.match(composed, /endpoint|configuration/);
+  if (style !== 'manual') assert.match(composed, /adapter normally owns terminal mapping/);
 }
+const testNgObserved = promptFor({ style: 'testng', capabilities: ['nativeObservation'] });
+assert.match(testNgObserved, /PER_CLASS/);
+assert.match(testNgObserved, /never retain an observed facade from a finalized invocation/);
 
-const allPrompt = builder.buildPrompt({ style: 'testng', capabilities: builder.FEATURE_ORDER, docsBase: 'https://docs.example/latest/' });
-for (const contracts of Object.values(featureContracts)) assert.ok(allPrompt.includes(contracts[0]));
-assert.doesNotMatch(allPrompt, /selenium-test-lens-selector-(?:engine|tooling|live|lab)/);
-assert.doesNotMatch(allPrompt, /selenium-test-lens-(?:compatibility|migration)-/);
-assert.doesNotMatch(allPrompt, /CDP fallback|network mocking|record video/);
+const mandatory = ['Mandatory project discovery before changes', 'test-runtime classpath', 'Non-negotiable lifecycle invariants', 'Preserve CI and project execution', 'Required validation', 'Final report'];
+for (const [preset, capabilities] of Object.entries(builder.PRESETS)) {
+  const prompt = promptFor({ style: 'auto', capabilities });
+  for (const contract of mandatory) assert.ok(prompt.includes(contract), `${preset}: ${contract}`);
+}
 
 assert.equal((page.match(/data-copy-prompt/g) || []).length, 1);
 assert.equal((page.match(/data-generated-prompt/g) || []).length, 1);
 assert.equal((page.match(/data-feature=/g) || []).length, builder.FEATURE_ORDER.length);
+assert.doesNotMatch(page, /data-test-lens-version|data-docs-base/);
 assert.doesNotMatch(page, /name="(?:detail|prompt-level|verbosity)"/i);
 assert.doesNotMatch(page, />\s*(?:Short prompt|Basic prompt|Advanced prompt)\s*</i);
 
-console.log('AI Integration Builder behavior OK: presets, modules, dependencies, Selenium boundary and full-prompt contract.');
+console.log('AI Integration Builder behavior OK: trusted release binding, Selenium qualifiers, explicit scope, dependencies and lifecycle composition.');

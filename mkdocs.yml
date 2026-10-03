@@ -172,6 +172,11 @@ validation:
   anchors: warn
 
 extra:
+  ai_integration:
+    target_release: 0.4.0
+    public_docs_root: https://test-lens.github.io/selenium-test-lens/
+  build:
+    source_revision: !ENV [DOCS_SOURCE_REVISION, local-unverified]
   version:
     provider: mike
     default: latest

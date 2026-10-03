@@ -17,6 +17,8 @@ versions: verify the symbol against the corresponding release tag before adding 
 - `/0.1.0/` uses the archived sources in `docs-versions/0.1.0`, because tag `v0.1.0` predates the complete MkDocs site. Its edit link is disabled.
 - The root URL and `/latest/` resolve to the latest stable release, never to `dev`.
 
+The AI Integration Builder is bound at build time to `extra.ai_integration.target_release`. Development pages label that stable consumer target explicitly; release builds override it from `DOCS_RELEASE_VERSION`. The rendered HTML also records the checked-out source revision and whether the source is `development` or `release`. Coordinates and copied API links use the numeric target path, never the page's potentially moving `/latest/`, `/dev/`, localhost, or filesystem URL. `scripts/check-ai-integration-builder.ps1` fails the build when these metadata contracts disagree or are missing.
+
 After preparing a real release, remove its `Coming in X.Y.Z` markers in the release-preparation commit. After tagging, advance the root POM and `extra.version.current` to the next snapshot together. New unreleased features must receive a marker; normal dependency examples continue to use the latest Maven Central release. Never update an already published stable version from `main`.
 
 ## Historical 0.1.0 bootstrap

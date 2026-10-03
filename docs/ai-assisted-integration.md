@@ -26,8 +26,11 @@ Selector Intelligence/Lab, compatibility analysis and migration tooling are not 
 
 The builder runs entirely in this page. It does not read or modify your repository and sends nothing to a server. Presets only change the selected capabilities; every result is the same full-detail integration prompt.
 
-<section class="tl-ai-builder" data-ai-integration-builder data-docs-base="../" data-test-lens-version="0.4.0" aria-labelledby="ai-builder-title">
+The page's build metadata supplies one concrete target release. Coordinates and copied API links are both pinned to that numeric release, even when you opened the page through `latest` or a local/development preview. A development preview labels its stable integration target explicitly. If the metadata is missing, unsafe, or disagrees with a numeric documentation URL, the builder disables copying instead of guessing.
+
+<section class="tl-ai-builder" data-ai-integration-builder aria-labelledby="ai-builder-title">
   <h3 id="ai-builder-title">Build your integration prompt</h3>
+  <p class="tl-ai-builder__target" data-target-status role="status" aria-live="polite"></p>
   <ol class="tl-ai-builder__steps" aria-label="Builder steps">
     <li>Choose integration style</li>
     <li>Choose capabilities</li>
@@ -141,7 +144,7 @@ The builder runs entirely in this page. It does not read or modify your reposito
         <small>Use document and XHR/fetch-idle waits with their exact, bounded semantics.</small>
       </label>
     </div>
-    <p id="reports-dependency-note" class="tl-ai-builder__note">Reports and evidence is selected automatically when Report Upload or Allure needs finalized artifacts.</p>
+    <p id="reports-dependency-note" class="tl-ai-builder__note">Reports and evidence is selected and locked while Report Upload or Allure requires finalized artifacts. If you selected reports explicitly before adding that parent option, reports remains selected when the parent is removed.</p>
   </fieldset>
 
   <fieldset class="tl-ai-builder__context">
@@ -156,6 +159,7 @@ The builder runs entirely in this page. It does not read or modify your reposito
 
   <div>
     <strong>Selected capabilities</strong>
+    <p class="tl-ai-builder__selection-mode" data-selection-mode>Custom selection</p>
     <p class="tl-ai-builder__summary" data-selection-summary aria-live="polite"></p>
   </div>
 
@@ -185,7 +189,9 @@ Test Lens integration crosses WebDriver lifetime, runner callbacks, recovery and
 
 ## Compatibility checks
 
-Every generated prompt requires the effective Selenium Java dependency, not merely the first version literal in a build file. The agent must inspect Maven parents, properties, dependency management and BOMs or Gradle catalogs, platforms and constraints, then confirm the resolved graph where the build permits it.
+Every generated prompt requires the effective Selenium Java dependency on the relevant test-runtime classpath, not merely the first version literal in a build file. The agent must inspect Maven parents, properties, dependency management and BOMs or Gradle catalogs, platforms and constraints, then confirm the resolved graph and detect mixed Selenium module versions where the build permits it.
+
+The optional version field is only a user-entered early hint. It is never described as dependency-resolution evidence. Stable releases, prerelease/SNAPSHOT values, invalid input and missing input are assessed separately. A prerelease with numeric core `4.39.0` is not treated as equivalent evidence to stable `4.39.0`, but it is not declared incompatible solely because it has a qualifier.
 
 For Test Lens WebDriver BiDi/network integration, Selenium Java **4.39.0 is the minimum supported integration baseline** in the current release. A lower version blocks Lens BiDi configuration until a safe minimal upgrade is made. Version 4.39.0 or newer only clears the dependency-version gate: browser, driver, session capabilities, `webSocketUrl`/BiDi connection, Grid and cloud-provider transport still require runtime verification. This is a Test Lens support boundary, not a claim that earlier Selenium versions have no BiDi functionality.
 

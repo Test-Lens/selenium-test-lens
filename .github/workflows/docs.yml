@@ -73,16 +73,21 @@ jobs:
           cache-dependency-path: requirements-docs.txt
       - name: Install pinned documentation dependencies
         run: python -m pip install -r requirements-docs.txt
-      - name: Build both documentation sources strictly
+      - name: Build documentation sources strictly
         run: |
+          DOCS_SOURCE_REVISION="$(git rev-parse HEAD)"
+          DOCS_RELEASE_VERSION="$(python -c "import yaml; print(yaml.safe_load(open('mkdocs.yml', encoding='utf-8'))['extra']['ai_integration']['target_release'])")"
+          export DOCS_SOURCE_REVISION DOCS_RELEASE_VERSION
           mkdocs build --strict --site-dir "${RUNNER_TEMP}/dev-site"
+          mkdocs build --strict --config-file mkdocs-release.yml --site-dir "${RUNNER_TEMP}/release-site"
           mkdocs build --strict --config-file mkdocs-0.1.0.yml --site-dir "${RUNNER_TEMP}/stable-site"
       - name: Validate documentation contracts
         shell: pwsh
         run: |
           ./scripts/check-doc-links.ps1
           ./scripts/check-hud-demo.ps1 -SiteDirectory "${env:RUNNER_TEMP}/dev-site"
-          ./scripts/check-ai-integration-builder.ps1 -SiteDirectory "${env:RUNNER_TEMP}/dev-site"
+          ./scripts/check-ai-integration-builder.ps1 -SiteDirectory "${env:RUNNER_TEMP}/dev-site" -ExpectedSourceKind development
+          ./scripts/check-ai-integration-builder.ps1 -SiteDirectory "${env:RUNNER_TEMP}/release-site" -ExpectedSourceKind release
           ./scripts/check-doc-signatures.ps1
           ./scripts/check-doc-version-boundary.ps1
           ./scripts/validate-stable-doc-examples.ps1
@@ -123,6 +128,7 @@ jobs:
         if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'publish-dev')
         shell: pwsh
         run: |
+          $env:DOCS_SOURCE_REVISION = (& git rev-parse HEAD).Trim()
           [xml]$pom = Get-Content pom.xml
           $ns = [Xml.XmlNamespaceManager]::new($pom.NameTable)
           $ns.AddNamespace('m','http://maven.apache.org/POM/4.0.0')
@@ -132,6 +138,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'bootstrap-0.1.0'
         shell: pwsh
         run: |
+          $env:DOCS_SOURCE_REVISION = (& git rev-parse HEAD).Trim()
           git rev-parse --verify refs/tags/v0.1.0
           ./scripts/check-doc-version-boundary.ps1 -ReleaseTag v0.1.0
           ./scripts/publish-versioned-docs.ps1 -Operation bootstrap-0.1.0 -Confirmation '${{ github.event.inputs.confirmation }}'
@@ -144,6 +151,7 @@ jobs:
           DOCS_REDEPLOY_CONFIRMATION: ${{ github.event.inputs.confirmation }}
         run: |
           # Explicit administrative exception to immutable docs; never use it to change released API semantics.
+          $env:DOCS_SOURCE_REVISION = (& git rev-parse HEAD).Trim()
           [xml]$pom = Get-Content pom.xml
           $ns = [Xml.XmlNamespaceManager]::new($pom.NameTable)
           $ns.AddNamespace('m','http://maven.apache.org/POM/4.0.0')
@@ -157,6 +165,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         shell: pwsh
         run: |
+          $env:DOCS_SOURCE_REVISION = (& git rev-parse HEAD).Trim()
           if ('${{ github.ref_name }}' -notmatch '^v(\d+\.\d+\.\d+)$') { throw 'Tag must be vMAJOR.MINOR.PATCH.' }
           $version = $Matches[1]
           ./scripts/check-reactor-versions.ps1 -ExpectedVersion $version

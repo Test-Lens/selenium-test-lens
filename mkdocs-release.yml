@@ -2,6 +2,11 @@ INHERIT: mkdocs.yml
 edit_uri: !ENV [DOCS_RELEASE_EDIT_URI, ""]
 
 extra:
+  ai_integration:
+    target_release: !ENV [DOCS_RELEASE_VERSION, release]
+    public_docs_root: https://test-lens.github.io/selenium-test-lens/
+  build:
+    source_revision: !ENV [DOCS_SOURCE_REVISION, local-unverified]
   version:
     provider: mike
     default: latest
