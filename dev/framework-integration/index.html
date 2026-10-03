@@ -13,10 +13,10 @@
         <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/framework-integration/">
       
       
-        <link rel="prev" href="../migrating-0.2-to-0.3/">
+        <link rel="prev" href="../ai-assisted-integration/">
       
       
-        <link rel="next" href="../configuration/">
+        <link rel="next" href="../whats-new-0.4.0/">
       
       
         
@@ -54,6 +54,8 @@
     
     
       <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../stylesheets/ai-integration-builder.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -648,98 +650,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../whats-new-0.4.0/" class="md-nav__link">
+      <a href="../ai-assisted-integration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    What's new in 0.4.0
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../whats-new-0.3.1/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    What's new in 0.3.1
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../whats-new-0.3.0/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    What's new in 0.3.0
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../migrating-0.2-to-0.3/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Migrating from 0.2.x
+    AI-assisted integration
   
 
     
@@ -900,6 +818,118 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../whats-new-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.4.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../whats-new-0.3.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../whats-new-0.3.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migrating-0.2-to-0.3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating from 0.2.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -3535,6 +3565,7 @@
 
 <h1 id="integrating-test-lens-with-an-existing-selenium-project">Integrating Test Lens with an existing Selenium project<a class="headerlink" href="#integrating-test-lens-with-an-existing-selenium-project" title="Permanent link">&para;</a></h1>
 <p>Test Lens is designed to fit into an existing Selenium test stack. Keep your current driver factory, test runner, Page Objects and reporting tools.</p>
+<p>If a coding agent will make the changes, use the <a href="../ai-assisted-integration/">AI Integration Builder</a> to generate a complete prompt for this workflow without guessing the project's lifecycle, resolved Selenium version, retry model or CI.</p>
 <p>Create one <code>TestLens</code> instance for each driver/test invocation:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">);</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">startSession</span><span class="p">(</span><span class="n">testName</span><span class="p">);</span>
@@ -3675,7 +3706,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../migrating-0.2-to-0.3/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Migrating from 0.2.x">
+          <a href="../ai-assisted-integration/" class="md-footer__link md-footer__link--prev" aria-label="Previous: AI-assisted integration">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -3685,20 +3716,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Migrating from 0.2.x
+                AI-assisted integration
               </div>
             </div>
           </a>
         
         
           
-          <a href="../configuration/" class="md-footer__link md-footer__link--next" aria-label="Next: Configuration">
+          <a href="../whats-new-0.4.0/" class="md-footer__link md-footer__link--next" aria-label="Next: What&#39;s new in 0.4.0">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Configuration
+                What's new in 0.4.0
               </div>
             </div>
             <div class="md-footer__button md-icon">

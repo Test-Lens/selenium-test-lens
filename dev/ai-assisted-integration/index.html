@@ -6,35 +6,35 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+        <meta name="description" content="Build a complete repository-aware prompt for integrating published Test Lens capabilities safely.">
       
       
       
-        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/maintainers/release-0.4.x/">
+        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/ai-assisted-integration/">
       
       
-        <link rel="prev" href="../documentation-versioning/">
+        <link rel="prev" href="../getting-started/">
       
       
-        <link rel="next" href="../release-certification-0.4.0/">
+        <link rel="next" href="../framework-integration/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Releasing Test Lens 0.4.x - Test Lens</title>
+        <title>AI-assisted integration - Test Lens</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,11 +53,11 @@
       
     
     
-      <link rel="stylesheet" href="../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
-      <link rel="stylesheet" href="../../stylesheets/ai-integration-builder.css">
+      <link rel="stylesheet" href="../stylesheets/ai-integration-builder.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
   
@@ -81,14 +81,14 @@
   
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Test Lens">
-  <meta property="og:title" content="Releasing Test Lens 0.4.x - Test Lens">
-  <meta property="og:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
-  <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/maintainers/release-0.4.x/">
+  <meta property="og:title" content="AI-assisted integration - Test Lens">
+  <meta property="og:description" content="Build a complete repository-aware prompt for integrating published Test Lens capabilities safely.">
+  <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/ai-assisted-integration/">
   <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
   <meta property="og:image:alt" content="Test Lens">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Releasing Test Lens 0.4.x - Test Lens">
-  <meta name="twitter:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta name="twitter:title" content="AI-assisted integration - Test Lens">
+  <meta name="twitter:description" content="Build a complete repository-aware prompt for integrating published Test Lens capabilities safely.">
   <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
 
   </head>
@@ -110,7 +110,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#releasing-test-lens-04x" class="md-skip">
+        <a href="#ai-assisted-integration" class="md-skip">
           Skip to content
         </a>
       
@@ -180,9 +180,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Test Lens" class="md-header__button md-logo" aria-label="Test Lens" data-md-component="logo">
+    <a href=".." title="Test Lens" class="md-header__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
+  <img src="../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -199,7 +199,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Releasing Test Lens 0.4.x
+              AI-assisted integration
             
           </span>
         </div>
@@ -312,7 +312,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href=".." class="md-tabs__link">
         
   
   
@@ -329,11 +329,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../getting-started/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../getting-started/" class="md-tabs__link">
           
   
   
@@ -353,7 +355,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../capabilities/" class="md-tabs__link">
+        <a href="../capabilities/" class="md-tabs__link">
           
   
   
@@ -373,7 +375,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../observability/" class="md-tabs__link">
+        <a href="../observability/" class="md-tabs__link">
           
   
   
@@ -393,7 +395,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../security/redaction/" class="md-tabs__link">
+        <a href="../security/redaction/" class="md-tabs__link">
           
   
   
@@ -413,7 +415,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../advanced/" class="md-tabs__link">
+        <a href="../advanced/" class="md-tabs__link">
           
   
   
@@ -433,7 +435,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../integrations/" class="md-tabs__link">
+        <a href="../integrations/" class="md-tabs__link">
           
   
   
@@ -453,7 +455,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../migration/" class="md-tabs__link">
+        <a href="../migration/" class="md-tabs__link">
           
   
   
@@ -469,13 +471,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../reference/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../reference/" class="md-tabs__link">
           
   
   
@@ -509,9 +509,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Test Lens" class="md-nav__button md-logo" aria-label="Test Lens" data-md-component="logo">
+    <a href=".." title="Test Lens" class="md-nav__button md-logo" aria-label="Test Lens" data-md-component="logo">
       
-  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
+  <img src="../assets/brand/test-lens-icon.png" alt="logo">
 
     </a>
     Test Lens
@@ -538,7 +538,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -562,26 +562,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -599,7 +604,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -617,7 +622,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting-started/" class="md-nav__link">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   
@@ -642,10 +647,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../ai-assisted-integration/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI-assisted integration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -661,6 +693,103 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ai-integration-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI Integration Builder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-the-prompt-is-detailed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why the prompt is detailed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compatibility-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility checks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-invariants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integration invariants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-agent-should-not-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the agent should not do
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-matched-integration-guides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version-matched integration guides
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -673,7 +802,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../framework-integration/" class="md-nav__link">
+      <a href="../framework-integration/" class="md-nav__link">
         
   
   
@@ -701,7 +830,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../whats-new-0.4.0/" class="md-nav__link">
+      <a href="../whats-new-0.4.0/" class="md-nav__link">
         
   
   
@@ -729,7 +858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../whats-new-0.3.1/" class="md-nav__link">
+      <a href="../whats-new-0.3.1/" class="md-nav__link">
         
   
   
@@ -757,7 +886,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../whats-new-0.3.0/" class="md-nav__link">
+      <a href="../whats-new-0.3.0/" class="md-nav__link">
         
   
   
@@ -785,7 +914,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../migrating-0.2-to-0.3/" class="md-nav__link">
+      <a href="../migrating-0.2-to-0.3/" class="md-nav__link">
         
   
   
@@ -813,7 +942,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../configuration/" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
@@ -900,7 +1029,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../capabilities/" class="md-nav__link">
+      <a href="../capabilities/" class="md-nav__link">
         
   
   
@@ -928,7 +1057,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/selector-intelligence/" class="md-nav__link">
+      <a href="../features/selector-intelligence/" class="md-nav__link">
         
   
   
@@ -956,7 +1085,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/react-spa/" class="md-nav__link">
+      <a href="../features/react-spa/" class="md-nav__link">
         
   
   
@@ -984,7 +1113,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/auth-state/" class="md-nav__link">
+      <a href="../advanced/auth-state/" class="md-nav__link">
         
   
   
@@ -1012,7 +1141,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../features/managed-test-state/" class="md-nav__link">
+      <a href="../features/managed-test-state/" class="md-nav__link">
         
   
   
@@ -1092,7 +1221,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../elements/" class="md-nav__link">
+      <a href="../elements/" class="md-nav__link">
         
   
   
@@ -1120,7 +1249,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../elements/locators/" class="md-nav__link">
+      <a href="../elements/locators/" class="md-nav__link">
         
   
   
@@ -1148,7 +1277,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../elements/actions/" class="md-nav__link">
+      <a href="../elements/actions/" class="md-nav__link">
         
   
   
@@ -1176,7 +1305,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../elements/waiting/" class="md-nav__link">
+      <a href="../elements/waiting/" class="md-nav__link">
         
   
   
@@ -1204,7 +1333,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../elements/assertions/" class="md-nav__link">
+      <a href="../elements/assertions/" class="md-nav__link">
         
   
   
@@ -1232,7 +1361,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../elements/information/" class="md-nav__link">
+      <a href="../elements/information/" class="md-nav__link">
         
   
   
@@ -1260,7 +1389,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../elements/collections/" class="md-nav__link">
+      <a href="../elements/collections/" class="md-nav__link">
         
   
   
@@ -1288,7 +1417,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../elements/select-controls/" class="md-nav__link">
+      <a href="../elements/select-controls/" class="md-nav__link">
         
   
   
@@ -1376,7 +1505,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../browser-context/" class="md-nav__link">
+      <a href="../browser-context/" class="md-nav__link">
         
   
   
@@ -1404,7 +1533,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../browser-context/frames/" class="md-nav__link">
+      <a href="../browser-context/frames/" class="md-nav__link">
         
   
   
@@ -1432,7 +1561,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../browser-context/windows-tabs/" class="md-nav__link">
+      <a href="../browser-context/windows-tabs/" class="md-nav__link">
         
   
   
@@ -1460,7 +1589,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../browser-context/alerts/" class="md-nav__link">
+      <a href="../browser-context/alerts/" class="md-nav__link">
         
   
   
@@ -1496,7 +1625,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../examples/" class="md-nav__link">
+      <a href="../examples/" class="md-nav__link">
         
   
   
@@ -1583,7 +1712,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/" class="md-nav__link">
+      <a href="../observability/" class="md-nav__link">
         
   
   
@@ -1611,7 +1740,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/visual-diagnostics/" class="md-nav__link">
+      <a href="../observability/visual-diagnostics/" class="md-nav__link">
         
   
   
@@ -1639,7 +1768,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/hud-studio/" class="md-nav__link">
+      <a href="../observability/hud-studio/" class="md-nav__link">
         
   
   
@@ -1667,7 +1796,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/screenshots-evidence/" class="md-nav__link">
+      <a href="../observability/screenshots-evidence/" class="md-nav__link">
         
   
   
@@ -1695,7 +1824,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/trace/" class="md-nav__link">
+      <a href="../observability/trace/" class="md-nav__link">
         
   
   
@@ -1723,7 +1852,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/reports/" class="md-nav__link">
+      <a href="../observability/reports/" class="md-nav__link">
         
   
   
@@ -1751,7 +1880,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/report-upload/" class="md-nav__link">
+      <a href="../observability/report-upload/" class="md-nav__link">
         
   
   
@@ -1779,7 +1908,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/flakiness/" class="md-nav__link">
+      <a href="../observability/flakiness/" class="md-nav__link">
         
   
   
@@ -1807,7 +1936,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/failure-bundles/" class="md-nav__link">
+      <a href="../observability/failure-bundles/" class="md-nav__link">
         
   
   
@@ -1835,7 +1964,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../observability/logging/" class="md-nav__link">
+      <a href="../observability/logging/" class="md-nav__link">
         
   
   
@@ -1922,7 +2051,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../security/redaction/" class="md-nav__link">
+      <a href="../security/redaction/" class="md-nav__link">
         
   
   
@@ -1950,7 +2079,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../security/visual-redaction/" class="md-nav__link">
+      <a href="../security/visual-redaction/" class="md-nav__link">
         
   
   
@@ -2037,7 +2166,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/" class="md-nav__link">
+      <a href="../advanced/" class="md-nav__link">
         
   
   
@@ -2065,7 +2194,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/steps-business-assertions/" class="md-nav__link">
+      <a href="../advanced/steps-business-assertions/" class="md-nav__link">
         
   
   
@@ -2093,7 +2222,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/network/" class="md-nav__link">
+      <a href="../advanced/network/" class="md-nav__link">
         
   
   
@@ -2121,7 +2250,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/overlay-policies/" class="md-nav__link">
+      <a href="../advanced/overlay-policies/" class="md-nav__link">
         
   
   
@@ -2149,7 +2278,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/visual-helpers/" class="md-nav__link">
+      <a href="../advanced/visual-helpers/" class="md-nav__link">
         
   
   
@@ -2177,7 +2306,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/js-overlay-debug/" class="md-nav__link">
+      <a href="../advanced/js-overlay-debug/" class="md-nav__link">
         
   
   
@@ -2264,7 +2393,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../integrations/" class="md-nav__link">
+      <a href="../integrations/" class="md-nav__link">
         
   
   
@@ -2292,7 +2421,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../integrations/junit5/" class="md-nav__link">
+      <a href="../integrations/junit5/" class="md-nav__link">
         
   
   
@@ -2320,7 +2449,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../integrations/testng/" class="md-nav__link">
+      <a href="../integrations/testng/" class="md-nav__link">
         
   
   
@@ -2348,7 +2477,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../integrations/allure/" class="md-nav__link">
+      <a href="../integrations/allure/" class="md-nav__link">
         
   
   
@@ -2435,7 +2564,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../migration/" class="md-nav__link">
+      <a href="../migration/" class="md-nav__link">
         
   
   
@@ -2467,31 +2596,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
         
           
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
             
   
   
@@ -2509,7 +2633,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             
@@ -2527,7 +2651,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/" class="md-nav__link">
+      <a href="../reference/" class="md-nav__link">
         
   
   
@@ -2555,7 +2679,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/test-lens/" class="md-nav__link">
+      <a href="../reference/test-lens/" class="md-nav__link">
         
   
   
@@ -2583,7 +2707,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/configuration/" class="md-nav__link">
+      <a href="../reference/configuration/" class="md-nav__link">
         
   
   
@@ -2611,7 +2735,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/result-types/" class="md-nav__link">
+      <a href="../reference/result-types/" class="md-nav__link">
         
   
   
@@ -2639,7 +2763,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/core-model/" class="md-nav__link">
+      <a href="../reference/core-model/" class="md-nav__link">
         
   
   
@@ -2667,7 +2791,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/advanced-low-level/" class="md-nav__link">
+      <a href="../reference/advanced-low-level/" class="md-nav__link">
         
   
   
@@ -2695,7 +2819,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/public-api-catalog/" class="md-nav__link">
+      <a href="../reference/public-api-catalog/" class="md-nav__link">
         
   
   
@@ -2723,7 +2847,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/" class="md-nav__link">
+      <a href="../architecture/" class="md-nav__link">
         
   
   
@@ -2751,7 +2875,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../consumer-compatibility/" class="md-nav__link">
+      <a href="../consumer-compatibility/" class="md-nav__link">
         
   
   
@@ -2779,7 +2903,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../documentation-versioning/" class="md-nav__link">
+      <a href="../maintainers/documentation-versioning/" class="md-nav__link">
         
   
   
@@ -2804,37 +2928,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Releasing Test Lens 0.4.x
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../maintainers/release-0.4.x/" class="md-nav__link">
         
   
   
@@ -2850,114 +2947,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#release-boundary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Release boundary
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#a-snapshot-hardening" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        A. Snapshot hardening
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#b-release-preparation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        B. Release preparation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#c-release-candidate-evidence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        C. Release-candidate evidence
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#d-central-tag-github-and-documentation-ordering" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        D. Central, tag, GitHub, and documentation ordering
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#failure-and-resume-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Failure and resume rules
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#publication-policy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Publication policy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#external-state-changes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        External state changes
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2970,7 +2959,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../release-certification-0.4.0/" class="md-nav__link">
+      <a href="../maintainers/release-certification-0.4.0/" class="md-nav__link">
         
   
   
@@ -2998,7 +2987,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../media-inventory-0.4.0/" class="md-nav__link">
+      <a href="../maintainers/media-inventory-0.4.0/" class="md-nav__link">
         
   
   
@@ -3026,7 +3015,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../recording-0.4.0/" class="md-nav__link">
+      <a href="../maintainers/recording-0.4.0/" class="md-nav__link">
         
   
   
@@ -3054,7 +3043,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../patch-release/" class="md-nav__link">
+      <a href="../maintainers/patch-release/" class="md-nav__link">
         
   
   
@@ -3082,7 +3071,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../browser-integration-tests/" class="md-nav__link">
+      <a href="../browser-integration-tests/" class="md-nav__link">
         
   
   
@@ -3110,7 +3099,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../performance-audit/" class="md-nav__link">
+      <a href="../performance-audit/" class="md-nav__link">
         
   
   
@@ -3138,7 +3127,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../selector-declaration-index/" class="md-nav__link">
+      <a href="../maintainers/selector-declaration-index/" class="md-nav__link">
         
   
   
@@ -3166,7 +3155,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../selector-stability-policies/" class="md-nav__link">
+      <a href="../maintainers/selector-stability-policies/" class="md-nav__link">
         
   
   
@@ -3194,7 +3183,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../selector-candidate-live-analysis/" class="md-nav__link">
+      <a href="../maintainers/selector-candidate-live-analysis/" class="md-nav__link">
         
   
   
@@ -3222,7 +3211,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../selector-find-similar-history/" class="md-nav__link">
+      <a href="../maintainers/selector-find-similar-history/" class="md-nav__link">
         
   
   
@@ -3250,7 +3239,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../selector-audit/" class="md-nav__link">
+      <a href="../maintainers/selector-audit/" class="md-nav__link">
         
   
   
@@ -3278,7 +3267,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../selector-lab-readonly/" class="md-nav__link">
+      <a href="../maintainers/selector-lab-readonly/" class="md-nav__link">
         
   
   
@@ -3306,7 +3295,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../compatibility-run-manifests/" class="md-nav__link">
+      <a href="../maintainers/compatibility-run-manifests/" class="md-nav__link">
         
   
   
@@ -3334,7 +3323,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../migration-git-checkpoints/" class="md-nav__link">
+      <a href="../maintainers/migration-git-checkpoints/" class="md-nav__link">
         
   
   
@@ -3473,10 +3462,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#release-boundary" class="md-nav__link">
+  <a href="#ai-integration-builder" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Release boundary
+        AI Integration Builder
       
     </span>
   </a>
@@ -3484,10 +3473,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#a-snapshot-hardening" class="md-nav__link">
+  <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
-        A. Snapshot hardening
+        How it works
       
     </span>
   </a>
@@ -3495,10 +3484,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#b-release-preparation" class="md-nav__link">
+  <a href="#why-the-prompt-is-detailed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        B. Release preparation
+        Why the prompt is detailed
       
     </span>
   </a>
@@ -3506,10 +3495,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#c-release-candidate-evidence" class="md-nav__link">
+  <a href="#compatibility-checks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        C. Release-candidate evidence
+        Compatibility checks
       
     </span>
   </a>
@@ -3517,10 +3506,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#d-central-tag-github-and-documentation-ordering" class="md-nav__link">
+  <a href="#integration-invariants" class="md-nav__link">
     <span class="md-ellipsis">
       
-        D. Central, tag, GitHub, and documentation ordering
+        Integration invariants
       
     </span>
   </a>
@@ -3528,10 +3517,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#failure-and-resume-rules" class="md-nav__link">
+  <a href="#what-the-agent-should-not-do" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Failure and resume rules
+        What the agent should not do
       
     </span>
   </a>
@@ -3539,21 +3528,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#publication-policy" class="md-nav__link">
+  <a href="#version-matched-integration-guides" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Publication policy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#external-state-changes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        External state changes
+        Version-matched integration guides
       
     </span>
   </a>
@@ -3577,7 +3555,7 @@
 
 
   
-    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/main/docs/maintainers/release-0.4.x.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/main/docs/ai-assisted-integration.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -3585,82 +3563,249 @@
   
 
 
-<h1 id="releasing-test-lens-04x">Releasing Test Lens 0.4.x<a class="headerlink" href="#releasing-test-lens-04x" title="Permanent link">&para;</a></h1>
-<p>This is the maintainer runbook for the 0.4.x line. Every step that changes Git, Maven Central, GitHub, or published documentation requires a separate human authorization. None of the validation scripts commits, tags, pushes, publishes, or deploys documentation.</p>
-<h2 id="release-boundary">Release boundary<a class="headerlink" href="#release-boundary" title="Permanent link">&para;</a></h2>
-<p>The 0.4.0 feature scope is frozen. The 0.4.x line accepts correctness and security fixes, Selenium/browser compatibility fixes, performance-regression fixes, documentation fixes, and release-tooling fixes. It does not accept new execution or scheduling contracts.</p>
-<p>Adaptive Parallelism / CPU-aware worker sizing is <strong>DEFERRED — FUTURE_FEATURE_RELEASE</strong> and is excluded from 0.4.x. A future design must use an early TestNG configurator rather than the current <code>@Listeners</code> boundary, distinguish an explicit count from TestNG's default of five, account for DataProvider and auxiliary pools and PER_CLASS safety, prefer JUnit's native dynamic strategy, and start with integer/percentage plus a maximum cap rather than <code>auto</code>.</p>
-<h2 id="a-snapshot-hardening">A. Snapshot hardening<a class="headerlink" href="#a-snapshot-hardening" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Confirm the intended branch, clean worktree, and exact HEAD.</li>
-<li>Run both reactor checks:</li>
-</ol>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">./</span><span class="n">scripts</span><span class="p">/</span><span class="n">check-reactor-versions</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ExpectedVersion</span> <span class="n">0</span><span class="p">.</span><span class="n">4</span><span class="p">.</span><span class="n">0-SNAPSHOT</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">./</span><span class="n">scripts</span><span class="p">/</span><span class="n">check-reactor-versions</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ExpectedVersion</span> <span class="n">0</span><span class="p">.</span><span class="n">4</span><span class="p">.</span><span class="n">0-SNAPSHOT</span> <span class="n">-IncludeBrowserIt</span>
-</span></code></pre></div>
-<ol>
-<li>Run the publication policy check with <code>./scripts/validate-release-packaging.ps1 -MatrixOnly</code>.</li>
-<li>Complete the bounded unit, reactor, browser, consumer, documentation, and performance-regression gates. Record every skip and NOT_RUN item.</li>
-</ol>
-<h2 id="b-release-preparation">B. Release preparation<a class="headerlink" href="#b-release-preparation" title="Permanent link">&para;</a></h2>
-<p>Create the release branch according to the repository's current maintainer flow. Prepare the exact version only after snapshot hardening passes. Version changes must be limited to tracked reactor POMs and release-owned documentation; generated and fixture POMs are not version sources.</p>
-<p>For a patch release, <code>prepare-patch-release.ps1</code> performs only bounded local file preparation. For 0.4.0, make the equivalent reviewed version and documentation changes explicitly. Review the complete diff before committing.</p>
-<h2 id="c-release-candidate-evidence">C. Release-candidate evidence<a class="headerlink" href="#c-release-candidate-evidence" title="Permanent link">&para;</a></h2>
-<p>Retain this evidence with the release record:</p>
+<h1 id="ai-assisted-integration">AI-assisted integration<a class="headerlink" href="#ai-assisted-integration" title="Permanent link">&para;</a></h1>
+<p>Use the AI Integration Builder to prepare one complete prompt for a coding agent. The prompt tells the agent to inspect the real project first, preserve its WebDriver and runner contracts, select only published Test Lens APIs, implement the capabilities you choose, validate the result, and report what it actually ran.</p>
+<div class="admonition tip">
+<p class="admonition-title">Start new integrations from latest</p>
+<p>This page follows the current <a href="https://test-lens.github.io/selenium-test-lens/latest/"><code>latest</code> documentation</a>, which is the recommended starting point for a new integration. Older Test Lens versions and their documentation remain available and may still work correctly. They can produce a less complete or less effective integration because later releases may include fixes, improved APIs and lifecycle adapters, newer diagnostics and observability, or corrected integration patterns.</p>
+</div>
+<p>The builder's selectable surface is the published 0.4.0 consumer boundary:</p>
+<table>
+<thead>
+<tr>
+<th>Choice</th>
+<th>Public artifact/API</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Core, native observation, <code>UiLocator</code>, HUD, reports/evidence, upload, BiDi network, redaction, auth, state/resources and waits</td>
+<td><code>selenium-test-lens</code>; public <code>TestLens</code> and the documented supporting types</td>
+</tr>
+<tr>
+<td>JUnit 5 lifecycle</td>
+<td><code>selenium-test-lens-junit5</code>; <code>TestLensExtension</code></td>
+</tr>
+<tr>
+<td>TestNG lifecycle</td>
+<td><code>selenium-test-lens-testng</code>; <code>TestLensTestNgListener</code>, <code>@TestLensTestNg</code> and <code>TestLensTestNgContext</code></td>
+</tr>
+<tr>
+<td>Allure evidence attachment</td>
+<td><code>selenium-test-lens-allure</code>; <code>AllureTestLens</code></td>
+</tr>
+<tr>
+<td>React/SPA helpers</td>
+<td><code>selenium-test-lens-react</code>; <code>ReactSupport</code> and the documented helper types</td>
+</tr>
+</tbody>
+</table>
+<p>Selector Intelligence/Lab, compatibility analysis and migration tooling are not builder choices because their reactor modules are not published consumer artifacts in 0.4.0. CI vendors, Grid and cloud providers are discovered constraints, not Test Lens feature adapters.</p>
+<h2 id="ai-integration-builder">AI Integration Builder<a class="headerlink" href="#ai-integration-builder" title="Permanent link">&para;</a></h2>
+<p>The builder runs entirely in this page. It does not read or modify your repository and sends nothing to a server. Presets only change the selected capabilities; every result is the same full-detail integration prompt.</p>
+<section class="tl-ai-builder" data-ai-integration-builder data-docs-base="../" data-test-lens-version="0.4.0" aria-labelledby="ai-builder-title">
+  <h3 id="ai-builder-title">Build your integration prompt</h3>
+  <ol class="tl-ai-builder__steps" aria-label="Builder steps">
+    <li>Choose integration style</li>
+    <li>Choose capabilities</li>
+    <li>Review the full prompt</li>
+    <li>Copy the prompt</li>
+  </ol>
+
+  <div>
+    <strong>Presets</strong>
+    <p class="tl-ai-builder__note">A preset is a starting selection, not a detail level. Project-specific features remain explicit.</p>
+    <div class="tl-ai-builder__presets" role="group" aria-label="Capability presets">
+      <button type="button" data-preset="minimal" aria-pressed="false">Minimal integration</button>
+      <button type="button" data-preset="existing" aria-pressed="false">Existing Selenium project</button>
+      <button type="button" data-preset="recommended" aria-pressed="false">Recommended observability</button>
+      <button type="button" data-preset="maximum" aria-pressed="false">Maximum diagnostics</button>
+    </div>
+  </div>
+
+  <fieldset>
+    <legend>1. Choose integration style</legend>
+    <div class="tl-ai-builder__options">
+      <label class="tl-ai-builder__option">
+        <input type="radio" name="integration-style" value="auto" checked>
+        <strong>Inspect and choose safely</strong>
+        <small>Let the agent choose manual attachment, JUnit 5, or TestNG after it traces the existing ownership model.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="radio" name="integration-style" value="manual">
+        <strong>Existing/custom WebDriver lifecycle</strong>
+        <small>The project keeps driver creation and cleanup; Lens finalizes before the existing quit.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="radio" name="integration-style" value="junit5">
+        <strong>JUnit 5 adapter</strong>
+        <small>Use the published extension only when its per-invocation driver ownership fits the project.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="radio" name="integration-style" value="testng">
+        <strong>TestNG adapter</strong>
+        <small>Use the explicit listener/annotation contract with the correct PER_METHOD or PER_CLASS scope.</small>
+      </label>
+    </div>
+  </fieldset>
+
+  <div class="tl-ai-builder__core">
+    <strong>Core lifecycle is always included.</strong>
+    The generated prompt always covers attach/start/finalize, PASSED/FAILED/SKIPPED, original-failure preservation, invocation isolation, retry separation, and finalization before driver cleanup. It cannot be switched off.
+  </div>
+
+  <fieldset>
+    <legend>2. Choose Test Lens capabilities</legend>
+    <div class="tl-ai-builder__options">
+      <label class="tl-ai-builder__option">
+        <input type="checkbox" data-feature="nativeObservation">
+        <strong>Native Selenium observation</strong>
+        <small>Observe existing Selenium calls exactly once through <code>observeDriver()</code> or <code>observe(...)</code>.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="checkbox" data-feature="uiLocator">
+        <strong>Lens-native interactions</strong>
+        <small>Use <code>UiLocator</code> deliberately for Lens waits, assertions, actionability and bounded recovery.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="checkbox" data-feature="hud">
+        <strong>HUD and live diagnostics</strong>
+        <small>Use the real MINIMAL, COMPACT, STANDARD or DEBUG preset and DEFAULT/FAST observability contract.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="checkbox" data-feature="reportsEvidence">
+        <strong>Reports and evidence</strong>
+        <small>Trace, JSON/HTML reports, screenshots and failed-session evidence bundles. Test Lens does not record video.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="checkbox" data-feature="reportUpload">
+        <strong>Explicit report upload</strong>
+        <small>Synchronous HTTP upload after finalization; never automatic and independent of CI.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="checkbox" data-feature="allure">
+        <strong>Allure attachments</strong>
+        <small>Attach finalized Lens evidence to an active Allure context without replacing Allure.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="checkbox" data-feature="bidiNetwork">
+        <strong>WebDriver BiDi network diagnostics</strong>
+        <small>Passive request/response/redirect/fetch-error evidence; requires the full Selenium/session/provider preflight.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="checkbox" data-feature="visualRedaction">
+        <strong>Visual redaction</strong>
+        <small>Mask screenshot pixels with <code>VisualRedactionOptions</code> while keeping safe defaults.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="checkbox" data-feature="managedAuth">
+        <strong>Managed Auth State</strong>
+        <small>Same-origin restore/validate/recreate with explicit handling for sensitive persisted state.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="checkbox" data-feature="managedTestState">
+        <strong>Managed Test State &amp; Resources</strong>
+        <small>Invocation state, intentional suite sharing, and exactly-once LIFO resource cleanup.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="checkbox" data-feature="reactSpa">
+        <strong>React &amp; SPA resilience</strong>
+        <small>Add the optional published module only for a verified rerender, React Select, or DOM-readiness need.</small>
+      </label>
+      <label class="tl-ai-builder__option">
+        <input type="checkbox" data-feature="applicationWaits">
+        <strong>Application-aware waits</strong>
+        <small>Use document and XHR/fetch-idle waits with their exact, bounded semantics.</small>
+      </label>
+    </div>
+    <p id="reports-dependency-note" class="tl-ai-builder__note">Reports and evidence is selected automatically when Report Upload or Allure needs finalized artifacts.</p>
+  </fieldset>
+
+  <fieldset class="tl-ai-builder__context">
+    <legend>Optional early compatibility hint</legend>
+    <label for="ai-selenium-version">
+      Selenium Java version, if known
+      <input id="ai-selenium-version" data-selenium-version type="text" inputmode="decimal" autocomplete="off" placeholder="For example: 4.39.0" aria-describedby="ai-selenium-help ai-selenium-warning">
+    </label>
+    <p id="ai-selenium-help" class="tl-ai-builder__note">This only provides an early warning. The generated prompt always requires the agent to verify the effective resolved dependency from the repository.</p>
+    <p id="ai-selenium-warning" class="tl-ai-builder__warning" data-selenium-warning role="status" aria-live="polite"></p>
+  </fieldset>
+
+  <div>
+    <strong>Selected capabilities</strong>
+    <p class="tl-ai-builder__summary" data-selection-summary aria-live="polite"></p>
+  </div>
+
+  <div>
+    <label for="ai-generated-prompt"><strong>3. Review the generated integration prompt</strong></label>
+    <textarea id="ai-generated-prompt" data-generated-prompt readonly spellcheck="false" aria-describedby="ai-prompt-note"></textarea>
+    <p id="ai-prompt-note" class="tl-ai-builder__note">The prompt always includes repository discovery, Selenium resolution, lifecycle invariants, CI preservation, real validation and a truthful final report.</p>
+  </div>
+
+  <div class="tl-ai-builder__copy">
+    <button type="button" data-copy-prompt>Copy integration prompt</button>
+    <span data-copy-status role="status" aria-live="polite"></span>
+  </div>
+</section>
+
+<script src="../javascripts/ai-integration-builder.js"></script>
+
+<h2 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
+<p>The builder only generates text. It cannot inspect dependencies, edit code, run tests, contact a CI system, or enable browser capabilities. Paste the prompt into a coding agent that can work in the target repository. The agent is then instructed to discover the project facts that users should not have to enter manually: build system, Java, resolved Selenium, runner, WebDriver ownership, local/remote execution, Grid or cloud provider, retries, parallelism, reporters and CI.</p>
+<p>Presets are intentionally conservative. <strong>Maximum diagnostics</strong> selects the general diagnostic capabilities, including BiDi preflight, but does not assume that a project has Allure, an upload endpoint, managed authentication, managed state, or a React-specific problem. Those remain explicit choices.</p>
+<h2 id="why-the-prompt-is-detailed">Why the prompt is detailed<a class="headerlink" href="#why-the-prompt-is-detailed" title="Permanent link">&para;</a></h2>
+<p>Test Lens integration crosses WebDriver lifetime, runner callbacks, recovery and runner retries, parallel state, diagnostics, evidence, reporting and security. A short dependency snippet can compile while still finalizing too late, closing a driver twice, losing the original failure, sharing state across parallel invocations, or claiming unsupported network behavior. The builder therefore produces one complete instruction rather than “basic” and “advanced” variants.</p>
+<h2 id="compatibility-checks">Compatibility checks<a class="headerlink" href="#compatibility-checks" title="Permanent link">&para;</a></h2>
+<p>Every generated prompt requires the effective Selenium Java dependency, not merely the first version literal in a build file. The agent must inspect Maven parents, properties, dependency management and BOMs or Gradle catalogs, platforms and constraints, then confirm the resolved graph where the build permits it.</p>
+<p>For Test Lens WebDriver BiDi/network integration, Selenium Java <strong>4.39.0 is the minimum supported integration baseline</strong> in the current release. A lower version blocks Lens BiDi configuration until a safe minimal upgrade is made. Version 4.39.0 or newer only clears the dependency-version gate: browser, driver, session capabilities, <code>webSocketUrl</code>/BiDi connection, Grid and cloud-provider transport still require runtime verification. This is a Test Lens support boundary, not a claim that earlier Selenium versions have no BiDi functionality.</p>
+<h2 id="integration-invariants">Integration invariants<a class="headerlink" href="#integration-invariants" title="Permanent link">&para;</a></h2>
 <ul>
-<li>release commit SHA and exact version;</li>
-<li>normal and <code>browser-it</code> reactor inventories;</li>
-<li>public API counts (283 types and 2183 callables) and the <code>v0.3.1</code>/<code>@since 0.4.0</code> result;</li>
-<li>full Maven reactor result;</li>
-<li>browser matrix with browser, browser-driver, Java, OS, headed/headless, and DEFAULT/FAST versions or modes;</li>
-<li>Maven and Gradle clean-room consumer results on Java 17 and 21;</li>
-<li>the 8-published/9-nonpublished packaging matrix;</li>
-<li>Central profile verification, source JARs, Javadoc JARs, licenses, and signatures;</li>
-<li>strict docs, links, signatures, version boundary, Javadoc language, and Mike simulation;</li>
-<li>dependency versions and all NOT_RUN, skipped, platform, provider, and scale limitations.</li>
+<li>The existing project owns its driver unless it deliberately adopts the JUnit 5 or TestNG adapter's documented ownership model.</li>
+<li>Lens finalization and failure evidence happen before the owning cleanup calls <code>driver.quit()</code> exactly once.</li>
+<li>The original test failure remains authoritative; diagnostic and cleanup failures do not replace it.</li>
+<li>State is isolated per physical invocation. Retry attempts, parameter rows and parallel tests do not share a mutable Lens instance.</li>
+<li>Runner retry, Lens recovery retry and polling are separate concepts and keep their existing policies.</li>
+<li>Central text redaction and screenshot masking defaults stay enabled; secrets are never embedded in source or prompts.</li>
+<li>Integration changes remain minimal and avoid unrelated dependency updates or framework refactors.</li>
 </ul>
-<p>Run the release-form checks before deployment:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">./</span><span class="n">scripts</span><span class="p">/</span><span class="n">check-reactor-versions</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ExpectedVersion</span> <span class="n">0</span><span class="p">.</span><span class="n">4</span><span class="p">.</span><span class="n">0</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="p">./</span><span class="n">scripts</span><span class="p">/</span><span class="n">check-reactor-versions</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ExpectedVersion</span> <span class="n">0</span><span class="p">.</span><span class="n">4</span><span class="p">.</span><span class="n">0</span> <span class="n">-IncludeBrowserIt</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">mvn</span> <span class="n">test</span> <span class="n">-Dheaded</span><span class="p">=</span><span class="n">false</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">mvn</span> <span class="n">-Pcentral-release</span> <span class="s2">"-Dgpg.skip=true"</span> <span class="s2">"-DskipTests"</span> <span class="n">verify</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">./</span><span class="n">scripts</span><span class="p">/</span><span class="n">validate-release-packaging</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Version</span> <span class="n">0</span><span class="p">.</span><span class="n">4</span><span class="p">.</span><span class="n">0</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">./</span><span class="n">scripts</span><span class="p">/</span><span class="n">validate-clean-room-consumer</span><span class="p">.</span><span class="n">ps1</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">./</span><span class="n">scripts</span><span class="p">/</span><span class="n">check-public-api</span><span class="p">.</span><span class="n">ps1</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">./</span><span class="n">scripts</span><span class="p">/</span><span class="n">check-public-api-since</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-BaselineTag</span> <span class="n">v0</span><span class="p">.</span><span class="n">3</span><span class="p">.</span><span class="n">1</span> <span class="n">-ExpectedSince</span> <span class="n">0</span><span class="p">.</span><span class="n">4</span><span class="p">.</span><span class="n">0</span>
-</span></code></pre></div>
-<p>Also run all documentation gates described in <a href="../documentation-versioning/">Documentation versioning</a>. These commands validate; they do not authorize publication.</p>
-<h2 id="d-central-tag-github-and-documentation-ordering">D. Central, tag, GitHub, and documentation ordering<a class="headerlink" href="#d-central-tag-github-and-documentation-ordering" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Validate the exact release commit and preserve its SHA.</li>
-<li>With explicit publication authorization, deploy its signed artifacts using the <code>central-release</code> profile. The Central plugin waits for validation and has <code>autoPublish=false</code>.</li>
-<li>Inspect the validated Central deployment and publish it manually.</li>
-<li>After artifact identity and availability are confirmed, create the immutable <code>v0.4.0</code> tag from that exact commit and push it with explicit authorization.</li>
-<li>Create or retry the GitHub Release from the immutable tag.</li>
-<li>The tag-driven documentation workflow publishes the immutable Mike version and updates <code>latest</code>; verify both the versioned URL and redirects.</li>
-<li>Verify Central coordinates, source/Javadoc artifacts, GitHub Release, docs, and clean-room consumers externally.</li>
-<li>Prepare and separately commit the post-release <code>0.4.1-SNAPSHOT</code> bump.</li>
-</ol>
-<p>The docs workflow accepts a release tag; it does not require the tag to precede Central staging. Keeping the tag after successful manual Central publication avoids publishing an immutable release marker for artifacts that were never made available.</p>
-<p>Test Lens 0.4.0 does not claim byte-for-byte reproducible archives. The release does not configure <code>project.build.outputTimestamp</code>; retain the exact release commit, locally staged artifact inventory, and Central artifact identity as the release evidence instead of claiming independently rebuilt archives are identical.</p>
-<h2 id="failure-and-resume-rules">Failure and resume rules<a class="headerlink" href="#failure-and-resume-rules" title="Permanent link">&para;</a></h2>
+<h2 id="what-the-agent-should-not-do">What the agent should not do<a class="headerlink" href="#what-the-agent-should-not-do" title="Permanent link">&para;</a></h2>
 <ul>
-<li>If Central staging fails before the tag, fix and retry or discard that failed staging deployment. Do not create a release tag.</li>
-<li>If a tag exists and publication later fails, never move or rewrite it. Resume only when identical artifact identity can be preserved; otherwise document the incident and issue a patch release.</li>
-<li>If GitHub Release creation fails, retry against the existing immutable tag.</li>
-<li>If docs publishing fails, rerun the serialized immutable docs workflow. Follow its explicit repair procedure; do not force-push or delete version history.</li>
-<li>Never recover a release through history rewriting, tag movement, blanket repository cleanup, or an unreviewed republish.</li>
+<li>Do not rewrite the test framework, replace the driver factory, mass-migrate Page Objects or add another <code>quit()</code> without a proven need.</li>
+<li>Do not enable Test Lens BiDi below its supported Selenium baseline or treat a compatible version as proof of a working session/provider.</li>
+<li>Do not change runner retry count, parallelism, reporting or CI architecture merely to add Test Lens.</li>
+<li>Do not remove an existing reporter or claim that Test Lens replaces Allure.</li>
+<li>Do not describe native observation as Smart Click/recovery, <code>waitForNetworkIdle</code> as browser-wide idle, attached video as Lens recording, or caller-supplied API previews as automatic capture.</li>
+<li>Do not claim interception, network mocking, body capture, CDP fallback or automatic report upload.</li>
+<li>Do not use Selector Intelligence, Selector Lab, compatibility tooling, migration tooling or another internal/unpublished module as a consumer dependency.</li>
+<li>Do not say validation passed unless the command was actually executed.</li>
 </ul>
-<h2 id="publication-policy">Publication policy<a class="headerlink" href="#publication-policy" title="Permanent link">&para;</a></h2>
-<p>The parent POM and seven runtime/library JAR modules are published. Examples, browser tests, selector modules, compatibility modules, and migration tooling are nonpublished. <code>validate-release-packaging.ps1</code> derives reactor membership from tracked POMs, requires every module to be classified, verifies effective <code>maven.deploy.skip</code>, verifies the Central exclusion set, and stages only publishable artifacts.</p>
-<h2 id="external-state-changes">External state changes<a class="headerlink" href="#external-state-changes" title="Permanent link">&para;</a></h2>
-<p>The runbook deliberately separates validation from authorization. Committing, merging, pushing, Central deployment/publication, tag creation, GitHub Release creation, Mike deployment, and the post-release bump are individually reviewed maintainer actions.</p>
+<h2 id="version-matched-integration-guides">Version-matched integration guides<a class="headerlink" href="#version-matched-integration-guides" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../getting-started/">Getting Started</a></li>
+<li><a href="../framework-integration/">Existing WebDriver integration</a></li>
+<li><a href="../integrations/junit5/">JUnit 5</a></li>
+<li><a href="../integrations/testng/">TestNG</a></li>
+<li><a href="../integrations/allure/">Allure</a></li>
+<li><a href="../observability/visual-diagnostics/">HUD and live diagnostics</a></li>
+<li><a href="../observability/reports/">Reports</a></li>
+<li><a href="../observability/report-upload/">Report upload</a></li>
+<li><a href="../observability/failure-bundles/">Failure bundles</a></li>
+<li><a href="../advanced/network/">Network diagnostics</a></li>
+<li><a href="../security/redaction/">Sensitive-data redaction</a></li>
+<li><a href="../security/visual-redaction/">Visual redaction</a></li>
+<li><a href="../features/react-spa/">React &amp; SPA resilience</a></li>
+<li><a href="../advanced/auth-state/">Managed Auth State</a></li>
+<li><a href="../features/managed-test-state/">Managed Test State &amp; Resources</a></li>
+</ul>
 
 
 
 
 
 
+
+  
+  
 
 
 
@@ -3692,7 +3837,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../documentation-versioning/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Publishing versioned docs">
+          <a href="../getting-started/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation &amp; first test">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -3702,20 +3847,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Publishing versioned docs
+                Installation & first test
               </div>
             </div>
           </a>
         
         
           
-          <a href="../release-certification-0.4.0/" class="md-footer__link md-footer__link--next" aria-label="Next: 0.4.0 release certification">
+          <a href="../framework-integration/" class="md-footer__link md-footer__link--next" aria-label="Next: Existing WebDriver integration">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                0.4.0 release certification
+                Existing WebDriver integration
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -3752,10 +3897,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.4.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
