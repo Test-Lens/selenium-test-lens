@@ -17,7 +17,7 @@ function node(tag = 'div') {
     tagName: tag.toUpperCase(), dataset: {}, style: {}, children: [], classList: classList(), className: '', textContent: '', hidden: false,
     appendChild(child) { this.children.push(child); child.parentNode = this; return child; },
     remove() {}, addEventListener(type, listener) { listeners.set(type, listener); },
-    querySelector(selector) { return this.children.find(child => selector === `.${child.className}`) || null; },
+    querySelector(selector) { return this.children.find(child => selector === `.${child.className}`) || null; }, querySelectorAll() { return []; },
     closest() { return null; }, setAttribute() {}, getAttribute(name) { return this.attributes?.[name] ?? null; },
     getBoundingClientRect() { return { left: 10, top: 10, right: 430, bottom: 290, width: 420, height: 280 }; }
   };
@@ -73,6 +73,8 @@ assert.deepEqual([action.sourceLabel, assertion.sourceLabel, failed.sourceLabel]
 assert.ok([action.target, assertion.target, failed.target].every(target => target.startsWith('#demo-source-')));
 assert.ok(semantic.some(entry => entry.semantics.category === 'USER' && entry.sourceLabel == null));
 assert.ok(semantic.every(entry => !/JetBrains protocol handler is not registered/.test(entry.message)));
+assert.match(source, /Preview source location/);
+assert.match(source, /activate to simulate navigation/);
 
 window.__uiTestLensSourceNavigation(action.target);
 assert.match(status.textContent, /would open CheckoutPage\.java:87 in IntelliJ/);
