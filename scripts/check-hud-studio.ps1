@@ -59,6 +59,9 @@ $previewHtml = [IO.File]::ReadAllText((Join-Path $source "preview.html"))
 foreach ($asset in @("runtime/visual-typography.js", "runtime/hud-panel.js", "runtime/highlight.js", "preview.js", "preview.css")) {
     if (-not $previewHtml.Contains($asset)) { throw "HUD Studio preview does not use required relative asset: $asset" }
 }
+foreach ($simulationContract in @("source-navigation-simulation", "source-navigation-demo-status", "Simulated source navigation", "no local IDE check", "no external application launch")) {
+    if (-not $previewHtml.Contains($simulationContract)) { throw "HUD Studio preview is missing its simulation disclosure: $simulationContract" }
+}
 
 $script = [IO.File]::ReadAllText((Join-Path $source "studio.js"))
 $styles = [IO.File]::ReadAllText((Join-Path $source "studio.css"))
@@ -71,6 +74,12 @@ $previewScript = [IO.File]::ReadAllText((Join-Path $source "preview.js"))
 $previewStyles = [IO.File]::ReadAllText((Join-Path $source "preview.css"))
 foreach ($contract in @("function beginDrag", "function beginResize", "stl-studio-drag-handle", "position:vertical+'_'+horizontal", "Math.min(500", "offsetX", "maxHeight", "type:'hud-change'", "type:'hud-select'")) {
     if (-not $previewScript.Contains($contract)) { throw "HUD Studio preview is missing WYSIWYG contract: $contract" }
+}
+foreach ($sourceContract in @("CheckoutTest.java:42", "CheckoutPage.java:87", "OrderAssertions.java:116", "DEMO_SIMULATED", "__uiTestLensSourceNavigation", "hud-source-navigation-state", "JetBrains Mono", "#c4a7ff")) {
+    if (-not $previewScript.Contains($sourceContract)) { throw "HUD Studio source-navigation preview is missing contract: $sourceContract" }
+}
+if ($previewScript -match '(?i)(?:jetbrains|vscode)://|https?://localhost|https?://127\.0\.0\.1') {
+    throw "HUD Studio source navigation must not expose an external IDE or localhost target."
 }
 if ($previewScript -notmatch 'sourceNavigationPreviewActive' -or $previewScript -notmatch 'new KeyboardEvent') {
     throw "HUD Studio preview must expose inactive and active source-navigation states through the runtime keyboard contract."
@@ -109,6 +118,8 @@ if ($LASTEXITCODE -ne 0) { throw "HUD Studio JavaScript syntax validation failed
 if ($LASTEXITCODE -ne 0) { throw "HUD Studio preview JavaScript syntax validation failed." }
 & $node.Source (Join-Path $root "scripts/test-hud-studio.mjs")
 if ($LASTEXITCODE -ne 0) { throw "HUD Studio behavior validation failed." }
+& $node.Source (Join-Path $root "scripts/test-hud-studio-preview.mjs")
+if ($LASTEXITCODE -ne 0) { throw "HUD Studio preview behavior validation failed." }
 & $node.Source (Join-Path $root "scripts/test-hud-studio-host.mjs")
 if ($LASTEXITCODE -ne 0) { throw "HUD Studio host mode validation failed." }
 
