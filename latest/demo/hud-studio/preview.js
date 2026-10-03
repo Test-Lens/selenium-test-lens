@@ -25,6 +25,14 @@
 
   function panel() { return window.__seleniumOverlayRoot.querySelector('#selenium-hud-panel'); }
 
+  function configureDemoSourceAccessibility(value) {
+    var ide = state && state.sourceNavigationIde === 'VSCODE' ? 'VS Code'
+      : state && state.sourceNavigationIde === 'CUSTOM' ? 'the custom IDE' : 'IntelliJ';
+    value.querySelectorAll('.stl-hud-source-location[data-navigation-target]').forEach(function(source) {
+      source.setAttribute('aria-label', 'Preview source location ' + source.textContent + '; activate to simulate navigation in ' + ide + '.');
+    });
+  }
+
   function ensureStudioControlStyles() {
     var root = window.__seleniumOverlayRoot;
     if (root.querySelector('style[data-studio-controls]')) return;
@@ -45,6 +53,7 @@
     var value = panel();
     if (!value) return;
     ensureStudioControlStyles();
+    configureDemoSourceAccessibility(value);
     value.dataset.studioInteractive = 'true';
     if (!value.querySelector('.stl-studio-drag-handle')) {
       var dragHandle = document.createElement('button');
