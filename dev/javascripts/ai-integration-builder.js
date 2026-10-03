@@ -1,7 +1,8 @@
 (function (global) {
   'use strict';
 
-  var VERSION = '0.4.0';
+  var VERSION_TOKEN = '{{TEST_LENS_TARGET_RELEASE}}';
+  var PUBLIC_DOCS_ORIGIN = 'https://test-lens.github.io';
   var BIDI_MINIMUM = [4, 39, 0];
 
   var FEATURE_ORDER = [
@@ -45,9 +46,9 @@
     BASE: [
       '# Test Lens integration task',
       '',
-      'Integrate Test Lens ' + VERSION + ' into this existing Selenium Java test project. Work from the repository as it is; inspect it before editing and preserve its architecture unless a change is technically required for the selected capabilities.',
+      'Integrate Test Lens ' + VERSION_TOKEN + ' into this existing Selenium Java test project. Work from the repository as it is; inspect it before editing and preserve its architecture unless a change is technically required for the selected capabilities.',
       '',
-      'Use the current versioned Test Lens documentation linked below and only public, published APIs. For a manual/custom lifecycle the main coordinate is io.github.test-lens:selenium-test-lens:' + VERSION + '. When an official JUnit 5 or TestNG adapter is selected, use its published adapter coordinate and its transitive main runtime instead of adding internal reactor modules. Keep Selenium explicit and require Java 17 or newer.',
+      'Use the pinned numeric Test Lens documentation linked below and only public, published APIs. For a manual/custom lifecycle the main coordinate is io.github.test-lens:selenium-test-lens:' + VERSION_TOKEN + '. When an official JUnit 5 or TestNG adapter is selected, use its published adapter coordinate and its transitive main runtime instead of adding internal reactor modules. Keep Selenium explicit and require Java 17 or newer.',
       '',
       'Do not add selenium-test-lens-core or selenium-test-lens-overlay directly unless the existing project deliberately consumes their documented low-level API. Do not use internal source modules, unpublished artifacts, roadmap functionality, or APIs inferred only from implementation classes. Do not perform unrelated dependency upgrades or refactors.'
     ],
@@ -56,8 +57,8 @@
       '',
       '1. Inspect repository status, build files, parent/BOM/version catalogs, test source layout, and existing documentation. Preserve unrelated local changes.',
       '2. Determine the build system and wrapper/approved commands, Java source/runtime level, test framework and its actual version.',
-      '3. Determine the effective/resolved Selenium Java version. Do not trust the first literal found in a POM or Gradle file. Inspect Maven properties, parent POMs, dependencyManagement and imported BOMs, or Gradle version catalogs, platforms and dependency constraints, including transitive resolution.',
-      '4. Confirm resolution with the project build tool where possible: use Maven dependency:tree or dependency:list, Gradle dependencies/dependencyInsight, or the project equivalent. Record the exact command and resolved org.seleniumhq.selenium version.',
+      '3. Determine the effective/resolved Selenium Java version on the test-runtime classpath of every module being integrated. Do not trust the first literal found in a POM or Gradle file. Inspect Maven properties, parent POMs, dependencyManagement and imported BOMs, or Gradle version catalogs, platforms and dependency constraints, including transitive resolution.',
+      '4. Confirm resolution with the project build tool where possible: use Maven dependency:tree or dependency:list, Gradle dependencies/dependencyInsight, or the project equivalent. Record the exact command and resolved org.seleniumhq.selenium modules, and flag mixed Selenium module versions instead of reducing them to one misleading number.',
       '5. Trace WebDriver creation, options/capabilities, ownership, storage, and cleanup. Identify local versus RemoteWebDriver execution, Grid/cloud provider, browser matrix, retry implementation, parallel execution and driver scope.',
       '6. Inventory existing reporters, screenshots/artifacts, redaction/security conventions, CI jobs, commands, retry, parallelism and artifact collection. Treat CI as project context, not as a Test Lens feature.',
       '7. Identify the smallest integration seam and the affected tests before editing. Do not mechanically migrate every Page Object.'
@@ -97,12 +98,12 @@
     JUNIT5: [
       '## Lifecycle model: JUnit 5 adapter',
       '',
-      'Use the published io.github.test-lens:selenium-test-lens-junit5:' + VERSION + ' artifact only if TestLensExtension matches the project architecture. Register it once per test class with a real driver factory and use its WebDriver/TestLens parameter injection. The extension owns the driver returned by that factory, creates isolated state per parameterized/repeated/nested/parallel invocation, maps aborted tests to SKIPPED, finalizes first and calls quit exactly once. Remove or avoid a competing @AfterEach quit for that driver; do not combine lifecycle adapters for one invocation.'
+      'Use the published io.github.test-lens:selenium-test-lens-junit5:' + VERSION_TOKEN + ' artifact only if TestLensExtension matches the project architecture. Register it once per test class with a real driver factory and use its WebDriver/TestLens parameter injection. The extension owns the driver returned by that factory, creates isolated state per parameterized/repeated/nested/parallel invocation, maps aborted tests to SKIPPED, finalizes first and calls quit exactly once. Remove or avoid a competing @AfterEach quit for that driver; do not combine lifecycle adapters for one invocation.'
     ],
     TESTNG: [
       '## Lifecycle model: TestNG adapter',
       '',
-      'Use the published io.github.test-lens:selenium-test-lens-testng:' + VERSION + ' artifact only if TestLensTestNgListener and @TestLensTestNg fit the project. Both explicit registrations are required; there is no automatic service registration. Preserve the project\'s retry analyzer, DataProvider behavior, parallel schedule and driver scope. Default PER_METHOD owns one driver per physical invocation. Use opt-in PER_CLASS only when the existing class-scoped ownership is compatible: every DataProvider row and retry still needs a fresh Lens session/report while the class driver remains suite/context/instance-owned. Do not add competing setup/teardown ownership or a second quit.'
+      'Use the published io.github.test-lens:selenium-test-lens-testng:' + VERSION_TOKEN + ' artifact only if TestLensTestNgListener and @TestLensTestNg fit the project. Both explicit registrations are required; there is no automatic service registration. Preserve the project\'s retry analyzer, DataProvider behavior, parallel schedule and driver scope. Default PER_METHOD owns one driver per physical invocation. Use opt-in PER_CLASS only when the existing class-scoped ownership is compatible: every DataProvider row and retry still needs a fresh Lens session/report while the class driver remains suite/context/instance-owned. Do not add competing setup/teardown ownership or a second quit. With PER_CLASS, recreate every observed facade and Page Object binding for the current Lens invocation; never retain an observed facade from a finalized invocation merely because the raw driver is shared.'
     ],
     OBSERVE_DRIVER: [
       '## Native Selenium observation',
@@ -114,7 +115,7 @@
     UI_LOCATOR: [
       '## Lens-native interactions',
       '',
-      'Use public TestLens locator factories and UiLocator only in new or deliberately modernized seams that benefit from Lens-native waits, assertions, re-resolution and bounded recovery. Preserve locator intent and Page Object boundaries. UiLocator.click() uses the documented bounded NATIVE -> ACTIONS -> POINT -> optional JS cascade under one deadline; do not reproduce it with ad-hoc retries or mass-convert Page Objects. Keep native Selenium observation for areas that require unchanged Selenium semantics.'
+      'Use public TestLens locator factories and UiLocator only in new or deliberately modernized seams that benefit from Lens-native waits, assertions, re-resolution and bounded recovery. Preserve locator intent and Page Object boundaries. UiLocator.click() uses the documented bounded NATIVE -> ACTIONS -> POINT -> optional JS cascade under one deadline; do not reproduce it with ad-hoc retries or mass-convert Page Objects. Informational boundary: native Selenium observation is a separate option for areas requiring unchanged Selenium semantics; do not add it unless it was selected or already exists.'
     ],
     HUD: [
       '## HUD and live diagnostics',
@@ -131,20 +132,21 @@
     REPORT_UPLOAD: [
       '## Explicit report upload',
       '',
-      'Use public ReportUploader only after Lens finalization and before driver cleanup: finish -> synchronous HTTP upload -> quit. Upload is explicit and independent of CI; configuring an endpoint or finalizing never sends anything automatically. Source endpoint/token from the project\'s existing secret/configuration mechanism, never source code. Preserve local evidence on upload failure, respect payload/timeout/retry bounds, do not follow redirects, and choose explicitly whether requireSuccess() should affect the test/build.'
+      'Use public ReportUploader with one already-finalized TestLensFinalizationResult. Upload is explicit, synchronous and independent of CI; configuring an endpoint or finalizing never sends anything automatically. First locate the endpoint and credentials in the project\'s existing controlled configuration. Never guess an address or secret. If required configuration is absent, report report-upload as blocked and do not claim that capability is integrated. Preserve local evidence on upload failure, respect payload/timeout/retry bounds, do not follow redirects, and choose explicitly whether requireSuccess() should affect the test/build.'
     ],
     ALLURE: [
       '## Allure coexistence',
       '',
-      'Use the published io.github.test-lens:selenium-test-lens-allure:' + VERSION + ' artifact only when the project already has an active supported Allure context. Keep the existing Allure runner adapter, annotations, lifecycle and allure-results directory. Call AllureTestLens.attach(finalizedResult[, options]) after Test Lens finalization while the Allure executable is active. It attaches finalized evidence; it does not replace Allure, generate the Allure report, own WebDriver, upload over HTTP or map every trace event to an Allure step. Preserve the original test outcome if attachment fails.'
+      'Use the published io.github.test-lens:selenium-test-lens-allure:' + VERSION_TOKEN + ' artifact only when the project already has an active supported Allure context. Keep the existing Allure runner adapter, annotations, lifecycle and allure-results directory. Call AllureTestLens.attach(finalizedResult[, options]) once with the same finalized result while the Allure executable is active. It attaches finalized evidence; it does not replace Allure, generate the Allure report, own WebDriver, upload over HTTP or map every trace event to an Allure step. Preserve the original test outcome if attachment fails.'
     ],
     BIDI_NETWORK: [
       '## WebDriver BiDi network diagnostics and mandatory compatibility gate',
       '',
       'Test Lens BiDi/network diagnostics require Selenium Java 4.39.0 or newer as the supported integration baseline. First resolve the effective Selenium version from the dependency graph.',
       '',
-      '- If it is below 4.39.0, print this clear warning using the real version: "Test Lens BiDi/network diagnostics require Selenium Java 4.39.0 or newer. This project currently resolves Selenium X.Y.Z, so Test Lens BiDi-based functionality cannot be enabled with the current dependency set." Do not configure apparently working Lens BiDi. Identify the minimal controlling dependency/property change, assess framework/browser/Grid/cloud impact, and avoid unrelated upgrades. If that one upgrade is safe and required, perform it minimally and run full validation; otherwise integrate core Lens without BiDi and report the limitation.',
-      '- If it is 4.39.0 or newer, do not treat the version check as sufficient. Verify the actual browser, driver, session construction, enableBiDi()/webSocketUrl capability, local versus RemoteWebDriver path, Grid/cloud provider support and successful BiDi transport at runtime.',
+      '- If the resolved stable version is below 4.39.0, print this clear warning using the real resolved version: "Test Lens BiDi/network diagnostics require Selenium Java 4.39.0 or newer. This project currently resolves Selenium X.Y.Z, so Test Lens BiDi-based functionality cannot be enabled with the current dependency set." Do not configure apparently working Lens BiDi. Identify the minimal controlling dependency/property change, assess framework/browser/Grid/cloud impact, and avoid unrelated upgrades. If that one upgrade is safe and required, perform it minimally and run full validation; otherwise integrate core Lens without BiDi and report the limitation.',
+      '- If the resolved value is a prerelease or SNAPSHOT, do not treat its numeric core as proof that the supported stable baseline is met. Identify the exact artifact, qualifier and resolved modules, then verify compatibility explicitly. Do not declare it automatically incompatible solely because it is prerelease.',
+      '- If the resolved stable version is 4.39.0 or newer, do not treat the version check as sufficient. Verify the actual browser, driver, session construction, enableBiDi()/webSocketUrl capability, local versus RemoteWebDriver path, Grid/cloud provider support and successful BiDi transport at runtime.',
       '',
       'Use public NetworkDiagnostics with BIDI or AUTO only after those checks. Capture is passive request/response/redirect/fetch-error evidence with waits/assertions over captured state. It is not interception, blocking, mocking, replay, request/response body capture, CDP, performance-log fallback or a general BiDi wrapper. Preserve redaction and header masking. Check startup/status results; unsupported or failed capture must not be reported as zero failures.'
     ],
@@ -166,12 +168,12 @@
     REACT_SPA: [
       '## React & SPA resilience',
       '',
-      'Add the published io.github.test-lens:selenium-test-lens-react:' + VERSION + ' artifact only when verified rerender windows, React Select conventions or DOM-readiness conventions require it. Do not add it merely because the application uses React. Prefer ordinary UiLocator.click() for normal interaction; ReactSupport.smartClick has a separate legacy/specialized contract. Keep ReactSafeExecutor retry settings separate from UiLocator and runner retries, and do not claim component-tree introspection or universal framework compatibility.'
+      'Add the published io.github.test-lens:selenium-test-lens-react:' + VERSION_TOKEN + ' artifact only when verified rerender windows, React Select conventions or DOM-readiness conventions require it. Do not add it merely because the application uses React. Informational boundary: UiLocator is a separate capability and is not added by this selection; if it already exists or was selected, prefer its ordinary click for normal interaction. ReactSupport.smartClick has a separate legacy/specialized contract. Keep ReactSafeExecutor retry settings separate from UiLocator and runner retries, and do not claim component-tree introspection or universal framework compatibility.'
     ],
     APPLICATION_WAITS: [
       '## Application-aware waits',
       '',
-      'Use public page waits only where their exact semantics match the application. waitForPageReady requires document.readyState=complete; waitForInteractiveOrComplete accepts interactive or complete. waitForNetworkIdle is a bounded in-page heuristic that tracks only XHR/fetch started after its tracker is installed and requires a complete zero-active idle window. It is not browser-wide network idle and does not see earlier requests, images, CSS, scripts, WebSocket, EventSource or beacon. Use BiDi diagnostics for passive browser-level evidence when compatible. Keep polling distinct from Lens recovery and runner retries.'
+      'Use public page waits only where their exact semantics match the application. waitForPageReady requires document.readyState=complete; waitForInteractiveOrComplete accepts interactive or complete. waitForNetworkIdle is a bounded in-page heuristic that tracks only XHR/fetch started after its tracker is installed and requires a complete zero-active idle window. It is not browser-wide network idle and does not see earlier requests, images, CSS, scripts, WebSocket, EventSource or beacon. Informational boundary: BiDi diagnostics are a separate option for passive browser-level evidence; do not configure BiDi, its dependencies or browser capabilities unless it was selected or already exists. Keep polling distinct from Lens recovery and runner retries.'
     ],
     VALIDATION: [
       '## Required validation',
@@ -209,6 +211,13 @@
     testng: 'TESTNG'
   };
 
+  var STYLE_LABELS = {
+    auto: 'Inspect and choose safely',
+    manual: 'Existing/custom WebDriver lifecycle',
+    junit5: 'JUnit 5 adapter',
+    testng: 'TestNG adapter'
+  };
+
   var DOC_LINKS = {
     base: [
       ['Getting Started', 'getting-started/'],
@@ -234,15 +243,39 @@
     applicationWaits: [['Element and application waits', 'elements/waiting/']]
   };
 
-  function normalizedCapabilities(capabilities) {
+  function resolveCapabilities(capabilities) {
     var selected = new Set((capabilities || []).filter(function (name) { return FEATURE_ORDER.indexOf(name) >= 0; }));
-    if (selected.has('reportUpload') || selected.has('allure')) selected.add('reportsEvidence');
-    return FEATURE_ORDER.filter(function (name) { return selected.has(name); });
+    var reasons = {};
+    if (!selected.has('reportsEvidence')) {
+      var parents = [];
+      if (selected.has('reportUpload')) parents.push(FEATURE_LABELS.reportUpload);
+      if (selected.has('allure')) parents.push(FEATURE_LABELS.allure);
+      if (parents.length) reasons.reportsEvidence = 'required by ' + parents.join(' and ');
+    }
+    var explicit = FEATURE_ORDER.filter(function (name) { return selected.has(name); });
+    var required = FEATURE_ORDER.filter(function (name) { return Object.prototype.hasOwnProperty.call(reasons, name); });
+    var effectiveSet = new Set(explicit.concat(required));
+    return {
+      explicit: explicit,
+      required: required,
+      effective: FEATURE_ORDER.filter(function (name) { return effectiveSet.has(name); }),
+      reasons: reasons
+    };
+  }
+
+  function normalizedCapabilities(capabilities) {
+    return resolveCapabilities(capabilities).effective;
   }
 
   function parseVersion(value) {
-    var match = /^\s*(\d+)\.(\d+)(?:\.(\d+))?(?:[-+][0-9A-Za-z.-]+)?\s*$/.exec(value || '');
-    return match ? [Number(match[1]), Number(match[2]), Number(match[3] || 0)] : null;
+    var match = /^\s*(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z][0-9A-Za-z.-]*))?(?:\+([0-9A-Za-z][0-9A-Za-z.-]*))?\s*$/.exec(value || '');
+    if (!match) return null;
+    return {
+      numbers: [Number(match[1]), Number(match[2]), Number(match[3])],
+      qualifier: match[4] || '',
+      buildMetadata: match[5] || '',
+      stability: match[4] ? 'prerelease' : 'stable'
+    };
   }
 
   function compareVersion(left, right) {
@@ -254,22 +287,69 @@
 
   function seleniumAssessment(value, bidiSelected) {
     var trimmed = String(value || '').trim();
-    if (!bidiSelected) return { kind: 'inactive', message: 'BiDi is not selected. The agent must still resolve the effective Selenium version.' };
-    if (!trimmed) return { kind: 'unknown', message: 'Optional hint not provided. The agent must resolve Selenium from the repository before enabling BiDi.' };
+    if (!trimmed) return bidiSelected
+      ? { kind: 'unknown', trusted: false, message: 'Optional hint not provided. The agent must resolve Selenium from the repository before enabling BiDi.' }
+      : { kind: 'inactive', trusted: false, message: 'BiDi is not selected. The agent must still resolve the effective Selenium version.' };
     var parsed = parseVersion(trimmed);
-    if (!parsed) return { kind: 'invalid', message: 'Enter a Selenium version such as 4.39.0. The agent will still verify the resolved dependency.' };
-    if (compareVersion(parsed, BIDI_MINIMUM) < 0) {
+    if (!parsed) return { kind: 'invalid', trusted: false, message: 'The entered value is not a supported Selenium version format. Enter a value such as 4.39.0, 4.39.0-rc1 or 4.39.0-SNAPSHOT. The agent will still verify the resolved dependency.' };
+    if (!bidiSelected) return { kind: 'hint-only', trusted: true, parsed: parsed, message: 'Version hint recorded. BiDi is not selected, and the agent must still resolve the effective Selenium version.' };
+    if (parsed.stability === 'prerelease') {
+      var numericRelation = compareVersion(parsed.numbers, BIDI_MINIMUM);
       return {
-        kind: 'blocked',
-        message: 'Test Lens BiDi/network diagnostics require Selenium Java 4.39.0 or newer. This project currently resolves Selenium ' + trimmed + ', so Test Lens BiDi-based functionality cannot be enabled with the current dependency set.'
+        kind: 'prerelease-review',
+        trusted: true,
+        parsed: parsed,
+        message: numericRelation < 0
+          ? 'The prerelease version entered is numerically below the supported Test Lens BiDi baseline and also requires separate compatibility verification.'
+          : 'The version entered is a prerelease or SNAPSHOT. It does not by itself demonstrate the supported stable Test Lens BiDi baseline; verify the exact resolved build and runtime compatibility.'
       };
     }
-    return { kind: 'compatible-version', message: 'No version warning for ' + trimmed + '. Browser, session, transport and provider compatibility still require runtime verification.' };
+    if (compareVersion(parsed.numbers, BIDI_MINIMUM) < 0) {
+      return {
+        kind: 'blocked',
+        trusted: true,
+        parsed: parsed,
+        message: 'The version entered is below the supported Test Lens BiDi baseline. Test Lens BiDi/network diagnostics require stable Selenium Java 4.39.0 or newer. The agent must verify the project\'s resolved dependency before deciding whether BiDi can be enabled.'
+      };
+    }
+    return { kind: 'compatible-version', trusted: true, parsed: parsed, message: 'The stable version entered meets the numeric Test Lens BiDi baseline. This does not confirm working BiDi: browser, session, transport and provider compatibility still require runtime verification.' };
   }
 
-  function absoluteDocsBase(value) {
-    var base = value || 'https://test-lens.github.io/selenium-test-lens/latest/';
-    return /\/$/.test(base) ? base : base + '/';
+  function normalizePublicRoot(value) {
+    try {
+      var url = new URL(value);
+      if (url.protocol !== 'https:' || url.origin !== PUBLIC_DOCS_ORIGIN || !/\/selenium-test-lens\/$/.test(url.pathname)) return null;
+      return url.href;
+    } catch (ignored) {
+      return null;
+    }
+  }
+
+  function resolveDocumentationTarget(metadata, pageUrl) {
+    var targetRelease = String(metadata && metadata.targetRelease || '').trim();
+    var publicDocsRoot = normalizePublicRoot(metadata && metadata.publicDocsRoot);
+    var sourceKind = String(metadata && metadata.sourceKind || '').trim();
+    var sourceRevision = String(metadata && metadata.sourceRevision || '').trim();
+    var errors = [];
+    if (!/^\d+\.\d+\.\d+$/.test(targetRelease)) errors.push('Target release metadata must be a concrete MAJOR.MINOR.PATCH version.');
+    if (!publicDocsRoot) errors.push('Public documentation root metadata is missing or unsafe.');
+    if (sourceKind !== 'development' && sourceKind !== 'release') errors.push('Documentation source kind metadata is missing or invalid.');
+    try {
+      var page = new URL(pageUrl);
+      var numericPath = /\/selenium-test-lens\/(\d+\.\d+\.\d+)(?:\/|$)/.exec(page.pathname);
+      if (numericPath && numericPath[1] !== targetRelease) errors.push('Numeric documentation path and target release metadata disagree.');
+    } catch (ignored) {
+      errors.push('Builder page URL is invalid.');
+    }
+    return {
+      valid: errors.length === 0,
+      errors: errors,
+      targetRelease: targetRelease,
+      publicDocsRoot: publicDocsRoot,
+      docsBase: errors.length || !publicDocsRoot ? null : publicDocsRoot + targetRelease + '/',
+      sourceKind: sourceKind,
+      sourceRevision: sourceRevision || 'unavailable'
+    };
   }
 
   function documentationSection(style, capabilities, docsBase) {
@@ -280,7 +360,7 @@
     var seen = new Set();
     var lines = ['## Version-matched public documentation', ''];
     links.forEach(function (item) {
-      var url = absoluteDocsBase(docsBase) + item[1];
+      var url = docsBase + item[1];
       if (!seen.has(url)) {
         seen.add(url);
         lines.push('- ' + item[0] + ': ' + url);
@@ -289,82 +369,173 @@
     return lines;
   }
 
+  function renderModule(name, targetRelease) {
+    return MODULES[name].join('\n').split(VERSION_TOKEN).join(targetRelease);
+  }
+
+  function scopeSection(style, resolution, targetRelease, sourceKind) {
+    var explicit = resolution.explicit.map(function (name) { return FEATURE_LABELS[name]; });
+    var required = resolution.required.map(function (name) { return FEATURE_LABELS[name] + ' (' + resolution.reasons[name] + ')'; });
+    var notSelected = FEATURE_ORDER.filter(function (name) { return resolution.effective.indexOf(name) < 0; }).map(function (name) { return FEATURE_LABELS[name]; });
+    return [
+      '## Requested integration scope',
+      '',
+      '- Target release: Test Lens ' + targetRelease + '.',
+      '- Builder source: ' + (sourceKind === 'development' ? 'development preview explicitly targeting the stable ' + targetRelease + ' consumer contract' : 'versioned release documentation for ' + targetRelease) + '.',
+      '- Lifecycle model: ' + STYLE_LABELS[style] + '.',
+      '- Explicitly selected capabilities: ' + (explicit.length ? explicit.join('; ') : 'none; core lifecycle only') + '.',
+      '- Capabilities included only as required dependencies: ' + (required.length ? required.join('; ') : 'none') + '.',
+      '- Additional capabilities not requested: ' + (notSelected.length ? notSelected.join('; ') : 'none') + '.',
+      '',
+      'Implement only the lifecycle model, explicit selections and required dependencies listed above. Mentions of other Test Lens capabilities are informational boundaries, not authorization to configure them. An unchecked option does not disable built-in safe defaults such as finalization or redaction. Preserve any existing project integration unless a selected change requires a reviewed adjustment; do not remove it merely because it was not selected again.'
+    ];
+  }
+
+  function compositionSection(style, resolution) {
+    var upload = resolution.effective.indexOf('reportUpload') >= 0;
+    var allure = resolution.effective.indexOf('allure') >= 0;
+    if (!upload && !allure) return [];
+    var lines = ['## Finalization, publication and cleanup composition', ''];
+    if (style === 'manual' || style === 'auto') {
+      lines.push('For a manual lifecycle, obtain exactly one terminal TestLensFinalizationResult, then use that same result for' + (upload && allure ? ' Allure attachment and explicit HTTP upload' : upload ? ' explicit HTTP upload' : ' Allure attachment') + ', and only then allow the existing owner to quit the driver. Preserve the original throwable across publication failures.');
+      if (style === 'auto') lines.push('If an official adapter is chosen after inspection, follow its documented adapter-specific publication path instead of copying the manual teardown sequence into its callback.');
+    } else {
+      lines.push('The selected adapter normally owns terminal mapping, finalization and its single driver cleanup. Do not add a second finish or quit around the adapter. When publication is required, use the documented supported path: deliberately finalize once while the test/Allure context is still active and publish the returned result before the test returns; the adapter then reuses that terminal result and performs its normal cleanup. For centralized coverage of every outcome, use a project-owned ordered ' + (style === 'junit5' ? 'JUnit 5 extension' : 'TestNG listener') + ' around the documented uploader/Allure APIs only if the project can prove ordering; do not invent a Test Lens callback.');
+    }
+    if (upload) lines.push('Report upload remains incomplete if no endpoint/authentication configuration can be found and verified. Report that concrete blocker; never guess configuration or claim success.');
+    if (allure) lines.push('Attach while an active Allure executable context exists. If that context cannot be established for the chosen lifecycle, report Allure attachment as blocked instead of moving attachment after runner teardown.');
+    return lines;
+  }
+
   function buildPrompt(options) {
     var style = STYLE_MODULES[options && options.style] ? options.style : 'auto';
-    var capabilities = normalizedCapabilities(options && options.capabilities);
+    var targetRelease = String(options && options.targetRelease || '').trim();
+    var publicDocsRoot = normalizePublicRoot(options && options.publicDocsRoot);
+    var sourceKind = options && options.sourceKind === 'development' ? 'development' : 'release';
+    if (!/^\d+\.\d+\.\d+$/.test(targetRelease) || !publicDocsRoot) throw new Error('Trusted target-release metadata is required before a prompt can be generated.');
+    var resolution = resolveCapabilities(options && options.capabilities);
+    var capabilities = resolution.effective;
     var assessment = seleniumAssessment(options && options.seleniumVersion, capabilities.indexOf('bidiNetwork') >= 0);
     var sections = [];
     ['BASE', 'PROJECT_DISCOVERY', 'SELENIUM_COMPATIBILITY', 'LIFECYCLE_INVARIANTS', 'CI_PRESERVATION'].forEach(function (name) {
-      sections.push(MODULES[name].join('\n'));
+      sections.push(renderModule(name, targetRelease));
     });
-    sections.push(MODULES[STYLE_MODULES[style]].join('\n'));
-    capabilities.forEach(function (name) { sections.push(MODULES[FEATURE_MODULES[name]].join('\n')); });
+    sections.push(scopeSection(style, resolution, targetRelease, sourceKind).join('\n'));
+    sections.push(renderModule(STYLE_MODULES[style], targetRelease));
+    capabilities.forEach(function (name) { sections.push(renderModule(FEATURE_MODULES[name], targetRelease)); });
+    if (compositionSection(style, resolution).length) sections.push(compositionSection(style, resolution).join('\n'));
     if (capabilities.indexOf('bidiNetwork') >= 0 && options && String(options.seleniumVersion || '').trim()) {
-      sections.push(['## Builder Selenium hint', '', 'User-provided hint: ' + String(options.seleniumVersion).trim() + '.', assessment.message, 'Treat this only as an early signal; verify the effective dependency graph before editing.'].join('\n'));
+      var hintLines = ['## Builder Selenium hint', ''];
+      if (assessment.trusted) hintLines.push('User-entered hint: ' + String(options.seleniumVersion).trim() + '.');
+      else hintLines.push('The optional version field contained an invalid value; it has not been copied into this prompt as technical evidence.');
+      hintLines.push(assessment.message, 'This is only a user-entered hint, not dependency-resolution evidence. Verify the effective test-runtime classpath before editing.');
+      sections.push(hintLines.join('\n'));
     }
-    sections.push(documentationSection(style, capabilities, options && options.docsBase).join('\n'));
-    sections.push(MODULES.VALIDATION.join('\n'));
-    sections.push(MODULES.FINAL_REPORT.join('\n'));
+    sections.push(documentationSection(style, capabilities, publicDocsRoot + targetRelease + '/').join('\n'));
+    sections.push(renderModule('VALIDATION', targetRelease));
+    sections.push(renderModule('FINAL_REPORT', targetRelease));
     return sections.join('\n\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
   }
 
   function init(document, location, navigator) {
     var root = document.querySelector('[data-ai-integration-builder]');
     if (!root) return;
+    if (root.dataset.aiBuilderInitialized === 'true') return;
+    root.dataset.aiBuilderInitialized = 'true';
     var prompt = root.querySelector('[data-generated-prompt]');
     var warning = root.querySelector('[data-selenium-warning]');
     var summary = root.querySelector('[data-selection-summary]');
+    var selectionMode = root.querySelector('[data-selection-mode]');
+    var targetStatus = root.querySelector('[data-target-status]');
     var copyStatus = root.querySelector('[data-copy-status]');
     var versionInput = root.querySelector('[data-selenium-version]');
     var copyButton = root.querySelector('[data-copy-prompt]');
     var featureInputs = Array.from(root.querySelectorAll('[data-feature]'));
     var styleInputs = Array.from(root.querySelectorAll('input[name="integration-style"]'));
-    var docsBase = new URL(root.dataset.docsBase || '../', location.href).href;
+    var metadataValue = function (name) {
+      var element = document.querySelector('meta[name="' + name + '"]');
+      return element ? element.getAttribute('content') : '';
+    };
+    var target = resolveDocumentationTarget({
+      targetRelease: metadataValue('test-lens-integration-target'),
+      publicDocsRoot: metadataValue('test-lens-docs-public-root'),
+      sourceKind: metadataValue('test-lens-docs-source-kind'),
+      sourceRevision: metadataValue('test-lens-docs-source-revision')
+    }, location.href);
+    var explicitCapabilities = new Set(featureInputs.filter(function (input) { return input.checked; }).map(function (input) { return input.dataset.feature; }));
+
+    if (!target.valid) {
+      targetStatus.textContent = 'Prompt unavailable: ' + target.errors.join(' ');
+      targetStatus.dataset.state = 'invalid';
+      prompt.value = 'A trusted target release could not be established. Do not use this builder output.\n';
+      copyButton.disabled = true;
+      warning.dataset.state = 'invalid';
+      warning.textContent = 'Release metadata validation failed; no version or documentation URL was guessed.';
+      return;
+    }
+    targetStatus.textContent = (target.sourceKind === 'development' ? 'Development preview' : 'Versioned documentation') + ' — integration target Test Lens ' + target.targetRelease + '; API links are pinned to /' + target.targetRelease + '/. Source revision: ' + target.sourceRevision + '.';
+    targetStatus.dataset.state = target.sourceKind;
 
     function style() {
       var selected = styleInputs.find(function (input) { return input.checked; });
       return selected ? selected.value : 'auto';
     }
 
-    function selectedCapabilities() {
-      return featureInputs.filter(function (input) { return input.checked; }).map(function (input) { return input.dataset.feature; });
+    function sameSelection(left, right) {
+      return left.length === right.length && left.every(function (name, index) { return name === right[index]; });
     }
 
-    function syncDependencies() {
+    function matchingPreset(explicit) {
+      return Object.keys(PRESETS).find(function (name) {
+        var preset = FEATURE_ORDER.filter(function (feature) { return PRESETS[name].indexOf(feature) >= 0; });
+        return sameSelection(explicit, preset);
+      }) || null;
+    }
+
+    function syncDependencies(resolution) {
       var reports = featureInputs.find(function (input) { return input.dataset.feature === 'reportsEvidence'; });
-      var required = featureInputs.some(function (input) {
-        return input.checked && (input.dataset.feature === 'reportUpload' || input.dataset.feature === 'allure');
+      featureInputs.forEach(function (input) {
+        input.checked = resolution.effective.indexOf(input.dataset.feature) >= 0;
       });
-      if (required) reports.checked = true;
-      reports.disabled = required;
-      reports.closest('label').classList.toggle('is-required', required);
-      reports.setAttribute('aria-describedby', required ? 'reports-dependency-note' : '');
+      var dependencyActive = resolution.explicit.indexOf('reportUpload') >= 0 || resolution.explicit.indexOf('allure') >= 0;
+      reports.disabled = dependencyActive;
+      reports.closest('label').classList.toggle('is-required', dependencyActive);
+      reports.setAttribute('aria-describedby', dependencyActive ? 'reports-dependency-note' : '');
+    }
+
+    function syncPreset(resolution) {
+      var preset = matchingPreset(resolution.explicit);
+      root.querySelectorAll('[data-preset]').forEach(function (button) {
+        var active = button.dataset.preset === preset;
+        button.setAttribute('aria-pressed', String(active));
+        button.classList.toggle('is-active', active);
+      });
+      selectionMode.textContent = preset ? 'Preset: ' + root.querySelector('[data-preset="' + preset + '"]').textContent : 'Custom selection';
     }
 
     function update() {
-      syncDependencies();
-      var capabilities = normalizedCapabilities(selectedCapabilities());
-      var assessment = seleniumAssessment(versionInput.value, capabilities.indexOf('bidiNetwork') >= 0);
+      var resolution = resolveCapabilities(Array.from(explicitCapabilities));
+      syncDependencies(resolution);
+      syncPreset(resolution);
+      var assessment = seleniumAssessment(versionInput.value, resolution.effective.indexOf('bidiNetwork') >= 0);
       warning.dataset.state = assessment.kind;
       warning.textContent = assessment.message;
-      summary.textContent = capabilities.length ? capabilities.map(function (name) { return FEATURE_LABELS[name]; }).join(' · ') : 'Core lifecycle only';
+      var explicitSummary = resolution.explicit.length ? resolution.explicit.map(function (name) { return FEATURE_LABELS[name]; }).join(' · ') : 'Core lifecycle only';
+      var requiredSummary = resolution.required.length ? '; required dependency: ' + resolution.required.map(function (name) { return FEATURE_LABELS[name] + ' — ' + resolution.reasons[name]; }).join(' · ') : '';
+      summary.textContent = 'Explicit: ' + explicitSummary + requiredSummary;
       prompt.value = buildPrompt({
         style: style(),
-        capabilities: capabilities,
+        capabilities: resolution.explicit,
         seleniumVersion: versionInput.value,
-        docsBase: docsBase
+        targetRelease: target.targetRelease,
+        publicDocsRoot: target.publicDocsRoot,
+        sourceKind: target.sourceKind
       });
       copyStatus.textContent = '';
     }
 
     function applyPreset(name) {
-      var selected = new Set(PRESETS[name] || []);
-      featureInputs.forEach(function (input) { input.checked = selected.has(input.dataset.feature); });
-      root.querySelectorAll('[data-preset]').forEach(function (button) {
-        var active = button.dataset.preset === name;
-        button.setAttribute('aria-pressed', String(active));
-        button.classList.toggle('is-active', active);
-      });
+      explicitCapabilities = new Set(PRESETS[name] || []);
       update();
     }
 
@@ -386,28 +557,40 @@
     root.querySelectorAll('[data-preset]').forEach(function (button) {
       button.addEventListener('click', function () { applyPreset(button.dataset.preset); });
     });
-    styleInputs.concat(featureInputs).forEach(function (input) { input.addEventListener('change', update); });
+    styleInputs.forEach(function (input) { input.addEventListener('change', update); });
+    featureInputs.forEach(function (input) {
+      input.addEventListener('change', function () {
+        if (input.checked) explicitCapabilities.add(input.dataset.feature);
+        else explicitCapabilities.delete(input.dataset.feature);
+        update();
+      });
+    });
     versionInput.addEventListener('input', update);
     copyButton.addEventListener('click', copyPrompt);
     update();
   }
 
   var api = {
-    VERSION: VERSION,
+    VERSION_TOKEN: VERSION_TOKEN,
     BIDI_MINIMUM: BIDI_MINIMUM.slice(),
     FEATURE_ORDER: FEATURE_ORDER.slice(),
     FEATURE_LABELS: Object.assign({}, FEATURE_LABELS),
     PRESETS: JSON.parse(JSON.stringify(PRESETS)),
     MODULES: MODULES,
+    STYLE_LABELS: STYLE_LABELS,
+    resolveCapabilities: resolveCapabilities,
     normalizedCapabilities: normalizedCapabilities,
     parseVersion: parseVersion,
     seleniumAssessment: seleniumAssessment,
+    resolveDocumentationTarget: resolveDocumentationTarget,
     buildPrompt: buildPrompt,
     init: init
   };
   global.TestLensAiIntegrationBuilder = api;
   if (global.document) {
-    if (global.document.readyState === 'loading') global.document.addEventListener('DOMContentLoaded', function () { init(global.document, global.location, global.navigator); });
-    else init(global.document, global.location, global.navigator);
+    var initializeCurrentPage = function () { init(global.document, global.location, global.navigator); };
+    if (global.document$ && typeof global.document$.subscribe === 'function') global.document$.subscribe(initializeCurrentPage);
+    if (global.document.readyState === 'loading') global.document.addEventListener('DOMContentLoaded', initializeCurrentPage);
+    else initializeCurrentPage();
   }
 })(typeof window === 'undefined' ? globalThis : window);

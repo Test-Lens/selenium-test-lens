@@ -90,6 +90,12 @@
   <meta name="twitter:title" content="AI-assisted integration - Test Lens">
   <meta name="twitter:description" content="Build a complete repository-aware prompt for integrating published Test Lens capabilities safely.">
   <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+  
+    <meta name="test-lens-integration-target" content="0.4.0">
+    <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
+    <meta name="test-lens-docs-source-kind" content="development">
+    <meta name="test-lens-docs-source-revision" content="cf5e0370b89067c93c4d12f0768b161f38ec92b0">
+  
 
   </head>
   
@@ -3603,8 +3609,10 @@
 <p>Selector Intelligence/Lab, compatibility analysis and migration tooling are not builder choices because their reactor modules are not published consumer artifacts in 0.4.0. CI vendors, Grid and cloud providers are discovered constraints, not Test Lens feature adapters.</p>
 <h2 id="ai-integration-builder">AI Integration Builder<a class="headerlink" href="#ai-integration-builder" title="Permanent link">&para;</a></h2>
 <p>The builder runs entirely in this page. It does not read or modify your repository and sends nothing to a server. Presets only change the selected capabilities; every result is the same full-detail integration prompt.</p>
-<section class="tl-ai-builder" data-ai-integration-builder data-docs-base="../" data-test-lens-version="0.4.0" aria-labelledby="ai-builder-title">
+<p>The page's build metadata supplies one concrete target release. Coordinates and copied API links are both pinned to that numeric release, even when you opened the page through <code>latest</code> or a local/development preview. A development preview labels its stable integration target explicitly. If the metadata is missing, unsafe, or disagrees with a numeric documentation URL, the builder disables copying instead of guessing.</p>
+<section class="tl-ai-builder" data-ai-integration-builder aria-labelledby="ai-builder-title">
   <h3 id="ai-builder-title">Build your integration prompt</h3>
+  <p class="tl-ai-builder__target" data-target-status role="status" aria-live="polite"></p>
   <ol class="tl-ai-builder__steps" aria-label="Builder steps">
     <li>Choose integration style</li>
     <li>Choose capabilities</li>
@@ -3718,7 +3726,7 @@
         <small>Use document and XHR/fetch-idle waits with their exact, bounded semantics.</small>
       </label>
     </div>
-    <p id="reports-dependency-note" class="tl-ai-builder__note">Reports and evidence is selected automatically when Report Upload or Allure needs finalized artifacts.</p>
+    <p id="reports-dependency-note" class="tl-ai-builder__note">Reports and evidence is selected and locked while Report Upload or Allure requires finalized artifacts. If you selected reports explicitly before adding that parent option, reports remains selected when the parent is removed.</p>
   </fieldset>
 
   <fieldset class="tl-ai-builder__context">
@@ -3733,6 +3741,7 @@
 
   <div>
     <strong>Selected capabilities</strong>
+    <p class="tl-ai-builder__selection-mode" data-selection-mode>Custom selection</p>
     <p class="tl-ai-builder__summary" data-selection-summary aria-live="polite"></p>
   </div>
 
@@ -3756,7 +3765,8 @@
 <h2 id="why-the-prompt-is-detailed">Why the prompt is detailed<a class="headerlink" href="#why-the-prompt-is-detailed" title="Permanent link">&para;</a></h2>
 <p>Test Lens integration crosses WebDriver lifetime, runner callbacks, recovery and runner retries, parallel state, diagnostics, evidence, reporting and security. A short dependency snippet can compile while still finalizing too late, closing a driver twice, losing the original failure, sharing state across parallel invocations, or claiming unsupported network behavior. The builder therefore produces one complete instruction rather than “basic” and “advanced” variants.</p>
 <h2 id="compatibility-checks">Compatibility checks<a class="headerlink" href="#compatibility-checks" title="Permanent link">&para;</a></h2>
-<p>Every generated prompt requires the effective Selenium Java dependency, not merely the first version literal in a build file. The agent must inspect Maven parents, properties, dependency management and BOMs or Gradle catalogs, platforms and constraints, then confirm the resolved graph where the build permits it.</p>
+<p>Every generated prompt requires the effective Selenium Java dependency on the relevant test-runtime classpath, not merely the first version literal in a build file. The agent must inspect Maven parents, properties, dependency management and BOMs or Gradle catalogs, platforms and constraints, then confirm the resolved graph and detect mixed Selenium module versions where the build permits it.</p>
+<p>The optional version field is only a user-entered early hint. It is never described as dependency-resolution evidence. Stable releases, prerelease/SNAPSHOT values, invalid input and missing input are assessed separately. A prerelease with numeric core <code>4.39.0</code> is not treated as equivalent evidence to stable <code>4.39.0</code>, but it is not declared incompatible solely because it has a qualifier.</p>
 <p>For Test Lens WebDriver BiDi/network integration, Selenium Java <strong>4.39.0 is the minimum supported integration baseline</strong> in the current release. A lower version blocks Lens BiDi configuration until a safe minimal upgrade is made. Version 4.39.0 or newer only clears the dependency-version gate: browser, driver, session capabilities, <code>webSocketUrl</code>/BiDi connection, Grid and cloud-provider transport still require runtime verification. This is a Test Lens support boundary, not a claim that earlier Selenium versions have no BiDi functionality.</p>
 <h2 id="integration-invariants">Integration invariants<a class="headerlink" href="#integration-invariants" title="Permanent link">&para;</a></h2>
 <ul>
