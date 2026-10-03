@@ -80,7 +80,9 @@
   function render() {
     if (!state) return;
     hud.remove();
-    hud.init({testName:'Checkout creates an order',pipelineId:'studio-preview',offsetX:state.offsetX,offsetY:state.offsetY,maxWidth:state.width,themeName:'CUSTOM',hudOptions:state});
+    var layoutWidth = Math.max(1, (document.documentElement.clientWidth || window.innerWidth) - 20);
+    var previewState = Object.assign({}, state, {width:Math.min(Number(state.width) || 520,layoutWidth)});
+    hud.init({testName:'Checkout creates an order',pipelineId:'studio-preview',offsetX:state.offsetX,offsetY:state.offsetY,maxWidth:previewState.width,themeName:'CUSTOM',hudOptions:previewState});
     hud.setSourceNavigationCompatibility('DEMO_SIMULATED','VERIFIED',true,
       'Simulated source navigation','Studio uses example source locations and a controlled preview dispatch.',
       'Run Test Lens locally to check an IDE and project mapping.',
