@@ -1448,6 +1448,14 @@ class RealBrowserContractsIT {
                 return document.getElementById('selenium-overlay-host').shadowRoot
                   .querySelector('#selenium-hud-panel').dataset.sourceNavigationActive==='false';
                 """).apply(driver));
+        driver.manage().window().setSize(new org.openqa.selenium.Dimension(500, 700));
+        ((JavascriptExecutor) driver).executeScript("document.body.style.minHeight='2000px';window.dispatchEvent(new Event('resize'))");
+        assertTrue(await(scriptBoolean("""
+                const panel=document.getElementById('selenium-overlay-host').shadowRoot.querySelector('#selenium-hud-panel');
+                const rect=panel.getBoundingClientRect();
+                return document.documentElement.clientWidth<=window.innerWidth
+                  && rect.left>=0 && rect.right<=document.documentElement.clientWidth+1;
+                """)), "HUD must fit the layout viewport when a vertical scrollbar narrows it");
         lens.finishPassed();
     }
 

@@ -60,6 +60,7 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("\"JetBrains Mono\",Consolas,ui-monospace"));
         assertTrue(HudPanelJs.INIT.contains("color:#a78bfa"));
         assertTrue(HudPanelJs.INIT.contains("font-size:10.5px;font-weight:400;letter-spacing:-.025em"));
+        assertTrue(HudPanelJs.INIT.contains("Math.min(inner, client)"));
         assertTrue(HudPanelJs.INIT.contains(":focus-visible{color:#ddd6fe;outline:2px solid #8b5cf6"));
         assertTrue(HudPanelJs.INIT.contains("if (!sourceLabel) sourceLabel = previousSource.textContent"));
         assertTrue(HudPanelJs.INIT.contains("if (!navigationTarget) navigationTarget = previousSource.getAttribute('data-navigation-target')"));
