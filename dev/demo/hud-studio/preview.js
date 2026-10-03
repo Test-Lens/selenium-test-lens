@@ -5,6 +5,12 @@
   var state = null;
   var generation = 0;
   var timers = [];
+  var applyingPreviewActivation = false;
+  var demoSources = {
+    checkoutTest: {label:'CheckoutTest.java:42',target:'#demo-source-checkout-test-42'},
+    checkoutPage: {label:'CheckoutPage.java:87',target:'#demo-source-checkout-page-87'},
+    orderAssertions: {label:'OrderAssertions.java:116',target:'#demo-source-order-assertions-116'}
+  };
 
   function cancel() {
     generation += 1;
@@ -28,7 +34,10 @@
       '.stl-studio-dragging{cursor:grabbing!important;outline:2px solid var(--ui-test-lens-hud-accent,#38bdf8)!important}' +
       '.stl-studio-drag-handle{position:absolute;top:2px;right:2px;z-index:4;width:auto;padding:2px 5px;border:1px solid rgba(248,250,252,.65);border-radius:3px;color:#f8fafc;background:rgba(15,23,42,.82);font:9px/1.2 system-ui,sans-serif;cursor:grab;pointer-events:auto}' +
       '.stl-studio-drag-handle:active{cursor:grabbing}' +
-      '.stl-studio-resize{position:absolute;right:3px;bottom:3px;z-index:4;width:18px;height:18px;border:2px solid #f8fafc;border-radius:4px;background:var(--ui-test-lens-hud-accent,#38bdf8);box-shadow:0 1px 4px rgba(15,23,42,.5);cursor:nwse-resize;pointer-events:auto}';
+      '.stl-studio-resize{position:absolute;right:3px;bottom:3px;z-index:4;width:18px;height:18px;border:2px solid #f8fafc;border-radius:4px;background:var(--ui-test-lens-hud-accent,#38bdf8);box-shadow:0 1px 4px rgba(15,23,42,.5);cursor:nwse-resize;pointer-events:auto}' +
+      '.stl-hud-source-location{color:#c4a7ff!important;font-family:"JetBrains Mono",Consolas,ui-monospace,"SFMono-Regular",Menlo,Monaco,monospace!important;font-size:11px!important;line-height:1.35!important}' +
+      '.stl-hud-source-location[data-navigable="true"]:hover{color:#d8b4fe!important}' +
+      '.stl-hud-source-location[data-navigable="true"]:focus-visible{color:#e9d5ff!important;outline:2px solid #a78bfa!important;outline-offset:2px}';
     root.appendChild(styles);
   }
 
@@ -63,29 +72,40 @@
     if (!state) return;
     hud.remove();
     hud.init({testName:'Checkout creates an order',pipelineId:'studio-preview',offsetX:state.offsetX,offsetY:state.offsetY,maxWidth:state.width,themeName:'CUSTOM',hudOptions:state});
+    hud.setSourceNavigationCompatibility('DEMO_SIMULATED','VERIFIED',true,
+      'Simulated source navigation','Studio uses example source locations and a controlled preview dispatch.',
+      'Run Test Lens locally to check an IDE and project mapping.',
+      state.sourceNavigationIde === 'VSCODE' ? 'VS Code' : state.sourceNavigationIde === 'CUSTOM' ? 'Custom IDE' : 'IntelliJ IDEA',
+      'simulated','simulated','simulated','simulated');
     hud.setStep('Checkout semantic event preview');
     var times=state.timestampPreview&&state.timestampPreview.events||[];
-    function event(message,level,type,category,phase,id,index,technical,attempt,duration){
-      hud.log(message,level,'2026-07-15T22:00:0'+index+'.123456789Z',type,null,null,times.length ? times[index%times.length] : null,
+    function event(message,level,type,category,phase,id,index,technical,attempt,duration,source){
+      hud.log(message,level,'2026-07-15T22:00:0'+index+'.123456789Z',type,
+        source ? source.label : null,source ? source.target : null,times.length ? times[index%times.length] : null,
         {category:category,phase:phase,operationId:id,technical:!!technical,attempt:attempt||0,durationMs:duration||0,severity:String(level).toUpperCase()});
     }
-    event('Place order','info','LOCATOR_ACTION_STARTED','ACTION','RUNNING','preview-action-running',0,false);
-    event('Place order','info','LOCATOR_ACTION_PASSED','ACTION','PASSED','preview-action-passed',1,false,0,143);
-    event('Confirmation should be visible','info','ASSERTION_STARTED','ASSERTION','RUNNING','preview-assert-running',2,false);
-    event('Previous value was hidden','warn','ASSERTION_RETRY','ASSERTION','RETRYING','preview-assert-retry',3,false,2);
-    event('Confirmation is visible','info','ASSERTION_PASSED','ASSERTION','PASSED','preview-assert-passed',4,false,0,281);
-    event('Order number should exist','error','ASSERTION_FAILED','ASSERTION','FAILED','preview-assert-failed',5,false,0,500);
-    event('JetBrains protocol handler is not registered','warn','GENERAL','SYSTEM','WARNING','preview-warning',6,false);
-    event('Checkpoint: payment fixture prepared','info','HUD','USER','INFO','preview-user',7,false);
-    event('Resolved Place order button','info','LOCATOR_RESOLVE_PASSED','LOCATOR','DEBUG','preview-locator',8,true);
+    event('Place order','info','LOCATOR_ACTION_STARTED','ACTION','RUNNING','preview-action',0,false,0,0,demoSources.checkoutPage);
+    event('Place order','info','LOCATOR_ACTION_PASSED','ACTION','PASSED','preview-action',1,false,0,143,demoSources.checkoutPage);
+    event('Confirmation should be visible','info','ASSERTION_STARTED','ASSERTION','RUNNING','preview-assert',2,false,0,0,demoSources.checkoutTest);
+    event('Previous value was hidden','warn','ASSERTION_RETRY','ASSERTION','RETRYING','preview-assert',3,false,2,0,demoSources.checkoutTest);
+    event('Confirmation is visible','info','ASSERTION_PASSED','ASSERTION','PASSED','preview-assert',4,false,0,281,demoSources.checkoutTest);
+    event('Order number should exist','info','ASSERTION_STARTED','ASSERTION','RUNNING','preview-assert-failed',5,false,0,0,demoSources.orderAssertions);
+    event('Order number should exist','error','ASSERTION_FAILED','ASSERTION','FAILED','preview-assert-failed',6,false,0,500,demoSources.orderAssertions);
+    event('Example API response exceeded the warning threshold','warn','GENERAL','SYSTEM','WARNING','preview-warning',7,false);
+    event('Checkpoint: payment fixture prepared','info','HUD','USER','INFO','preview-user',8,false);
+    event('Resolved Place order button','info','LOCATOR_RESOLVE_PASSED','LOCATOR','DEBUG','preview-locator',9,true);
     event('Rendered success-state outline','info','HIGHLIGHT','HIGHLIGHT','DEBUG','preview-highlight',9,true);
     enhancePanel();
     if (state.sourceNavigationEnabled) {
       var sourcePreviewActive=!!state.sourceNavigationPreviewActive;
       if (state.sourceNavigationModifier === 'CTRL_ALT') {
+        applyingPreviewActivation = true;
         window.dispatchEvent(new KeyboardEvent(sourcePreviewActive?'keydown':'keyup',{key:sourcePreviewActive?'Alt':'Shift',ctrlKey:sourcePreviewActive,altKey:sourcePreviewActive,bubbles:true}));
+        applyingPreviewActivation = false;
       } else if ((panel().dataset.sourceNavigationActive === 'true') !== sourcePreviewActive) {
+        applyingPreviewActivation = true;
         window.dispatchEvent(new KeyboardEvent('keydown',{key:'F8',code:'F8',bubbles:true}));
+        applyingPreviewActivation = false;
       }
     }
     if (panel()) window.parent.postMessage({type:'hud-rendered'},'*');
@@ -148,6 +168,40 @@
     else if (event.target.closest('#selenium-hud-test,#selenium-hud-step,#selenium-hud-pipeline')) section='typography';
     window.parent.postMessage({type:'hud-select',section:section},'*');
   }
+
+  function sourceLabelForTarget(target) {
+    var match = Object.keys(demoSources).map(function(key){return demoSources[key];})
+      .find(function(source){return source.target === target;});
+    return match ? match.label : 'example source';
+  }
+
+  function announceDemoNavigation(target) {
+    var ide = state && state.sourceNavigationIde === 'VSCODE' ? 'VS Code'
+      : state && state.sourceNavigationIde === 'CUSTOM' ? 'the custom IDE' : 'IntelliJ';
+    document.getElementById('source-navigation-demo-status').textContent =
+      'Preview: would open ' + sourceLabelForTarget(String(target || '')) + ' in ' + ide + '. No external application was launched.';
+  }
+
+  window.__uiTestLensSourceNavigation = function(target) { announceDemoNavigation(target); };
+  window.addEventListener('auxclick', function(event) {
+    var path = event.composedPath ? event.composedPath() : [];
+    var source = path.find(function(node){return node && node.classList && node.classList.contains('stl-hud-source-location');});
+    if (!source) return;
+    event.preventDefault();
+    if (panel() && panel().dataset.sourceNavigationActive === 'true' && source.dataset.navigable === 'true') {
+      announceDemoNavigation(source.getAttribute('data-navigation-target'));
+    }
+  }, true);
+  function publishActivationState(event) {
+    if (applyingPreviewActivation || !state || !state.sourceNavigationEnabled || (event && event.repeat)) return;
+    window.setTimeout(function(){
+      var value = panel();
+      if (value) window.parent.postMessage({type:'hud-source-navigation-state',active:value.dataset.sourceNavigationActive === 'true'},'*');
+    },0);
+  }
+  window.addEventListener('keydown', publishActivationState);
+  window.addEventListener('keyup', publishActivationState);
+  window.addEventListener('blur', publishActivationState);
 
   window.addEventListener('message', function (event) {
     if (event.source !== window.parent || !event.data) return;
