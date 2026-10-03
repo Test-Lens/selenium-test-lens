@@ -263,7 +263,11 @@
         : (typography ? typography.uiStack : '"Test Lens Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif');
   }
 
-  function viewportWidth() { return positiveNumber(window.innerWidth) || 1024; }
+  function viewportWidth() {
+    var inner = positiveNumber(window.innerWidth);
+    var client = positiveNumber(document.documentElement && document.documentElement.clientWidth);
+    return inner && client ? Math.min(inner, client) : (inner || client || 1024);
+  }
   function viewportHeight() { return positiveNumber(window.innerHeight) || 768; }
   function clamp(value, minimum, maximum) { return Math.max(minimum, Math.min(maximum, value)); }
 
