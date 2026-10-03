@@ -75,7 +75,7 @@ $previewStyles = [IO.File]::ReadAllText((Join-Path $source "preview.css"))
 foreach ($contract in @("function beginDrag", "function beginResize", "stl-studio-drag-handle", "position:vertical+'_'+horizontal", "Math.min(500", "offsetX", "maxHeight", "type:'hud-change'", "type:'hud-select'")) {
     if (-not $previewScript.Contains($contract)) { throw "HUD Studio preview is missing WYSIWYG contract: $contract" }
 }
-foreach ($sourceContract in @("CheckoutTest.java:42", "CheckoutPage.java:87", "OrderAssertions.java:116", "DEMO_SIMULATED", "__uiTestLensSourceNavigation", "hud-source-navigation-state", "Preview source location", "activate to simulate navigation", "JetBrains Mono", "#a78bfa", "font-size:10.5px", "letter-spacing:-.025em")) {
+foreach ($sourceContract in @("CheckoutTest.java:42", "CheckoutPage.java:87", "OrderAssertions.java:116", "DEMO_SIMULATED", "__uiTestLensSourceNavigation", "hud-source-navigation-state", "Preview source location", "activate to simulate navigation", "document.documentElement.clientWidth", "JetBrains Mono", "#a78bfa", "font-size:10.5px", "letter-spacing:-.025em")) {
     if (-not $previewScript.Contains($sourceContract)) { throw "HUD Studio source-navigation preview is missing contract: $sourceContract" }
 }
 if ($previewScript -match '(?i)(?:jetbrains|vscode)://|https?://localhost|https?://127\.0\.0\.1') {

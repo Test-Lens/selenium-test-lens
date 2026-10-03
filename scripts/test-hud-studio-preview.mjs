@@ -29,7 +29,7 @@ const status = node('p');
 const order = node('button');
 const result = node(); result.hidden = true;
 const elements = { 'source-navigation-demo-status': status, 'preview-order': order, 'preview-result': result };
-const document = { body: node('body'), createElement: node, getElementById(id) { return elements[id]; } };
+const document = { body: node('body'), documentElement: { clientWidth: 390 }, createElement: node, getElementById(id) { return elements[id]; } };
 document.body.appendChild = () => {};
 
 const logs = [];
@@ -64,6 +64,7 @@ assert.equal(panel.dataset.sourceNavigationActive, 'true');
 assert.equal(hud.compatibility[0], 'DEMO_SIMULATED');
 assert.equal(hud.compatibility[1], 'VERIFIED');
 assert.equal(hud.compatibility[2], true);
+assert.equal(hud.config.hudOptions.width, 370);
 
 const semantic = logs.map(args => ({ message: args[0], sourceLabel: args[4], target: args[5], semantics: args[7] }));
 const action = semantic.find(entry => entry.semantics.category === 'ACTION' && entry.semantics.phase === 'PASSED');
