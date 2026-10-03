@@ -20,6 +20,7 @@ Test Lens shows actions, waits, assertions, retries, and network activity while 
 [What's new in 0.4.0](whats-new-0.4.0.md){ .md-button }
 [Explore the capabilities](#signature-capabilities){ .md-button }
 [Get started](#quick-start){ .md-button }
+[Build an AI integration prompt](ai-assisted-integration.md){ .md-button }
 [Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens){ .md-button }
 
 | Documentation | Status | Library availability |

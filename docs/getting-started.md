@@ -1,5 +1,8 @@
 # Getting started
 
+!!! tip "Using a coding agent?"
+    Open [AI-assisted integration](ai-assisted-integration.md) to generate one complete, repository-aware prompt with the lifecycle, compatibility, security and validation rules for the public capabilities you choose.
+
 Test Lens for Selenium works with the `WebDriver` your test framework already uses. You can add it to an existing Selenium project without changing how the driver is created or closed.
 
 This guide shows the shortest path from the Maven dependency to a working Lens session.

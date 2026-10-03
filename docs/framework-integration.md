@@ -2,6 +2,8 @@
 
 Test Lens is designed to fit into an existing Selenium test stack. Keep your current driver factory, test runner, Page Objects and reporting tools.
 
+If a coding agent will make the changes, use the [AI Integration Builder](ai-assisted-integration.md) to generate a complete prompt for this workflow without guessing the project's lifecycle, resolved Selenium version, retry model or CI.
+
 Create one `TestLens` instance for each driver/test invocation:
 
 ```java

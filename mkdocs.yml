@@ -58,11 +58,12 @@ nav:
   - Home: index.md
   - Getting Started:
       - Installation & first test: getting-started.md
+      - AI-assisted integration: ai-assisted-integration.md
+      - Existing WebDriver integration: framework-integration.md
       - What's new in 0.4.0: whats-new-0.4.0.md
       - What's new in 0.3.1: whats-new-0.3.1.md
       - What's new in 0.3.0: whats-new-0.3.0.md
       - Migrating from 0.2.x: migrating-0.2-to-0.3.md
-      - Existing WebDriver integration: framework-integration.md
       - Configuration: configuration.md
   - Using Test Lens:
       - Capabilities: capabilities.md
@@ -162,6 +163,7 @@ markdown_extensions:
       alternate_style: true
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/ai-integration-builder.css
 
 validation:
   omitted_files: warn

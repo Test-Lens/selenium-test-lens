@@ -1,6 +1,6 @@
 # Test Lens 0.4.x patch-release lane
 
-After v0.4.0, `main` carries the latest stable 0.4.x work and is bumped to `0.4.1-SNAPSHOT`. Use `fix/0.4.1-<topic>` for a 0.4.1 fix, release 0.4.1 from an exact reviewed commit, tag it `v0.4.1`, and then bump `main` to `0.4.2-SNAPSHOT`.
+After v0.4.0, `main` carries the latest stable 0.4.x source and reviewed post-release work. It currently remains in release-form `0.4.0`; do not infer that a snapshot line has been opened from the existence of this runbook. When maintainers explicitly open 0.4.1 development, they first move the complete reactor and development-doc metadata together to `0.4.1-SNAPSHOT`. From that state, use `fix/0.4.1-<topic>` for a 0.4.1 fix, release 0.4.1 from an exact reviewed commit, tag it `v0.4.1`, and then move `main` to `0.4.2-SNAPSHOT`.
 
 Do not keep a permanent maintenance branch while no 0.5 feature line exists. If 0.5 development begins, introduce `maintenance/0.4.x` deliberately at that time.
 
