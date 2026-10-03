@@ -4,6 +4,12 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserved per-operation source locations when semantic HUD rows advance to a terminal payload that omits repeated
+  source metadata, and refined active source links with compact purple JetBrains Mono-first typography, distinct
+  hover/focus treatment, and accessible active/unavailable labels.
+
 ## [0.4.0] - 2026-09-29
 
 ### Fixed

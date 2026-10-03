@@ -56,6 +56,12 @@ class HudPanelJsTest {
         assertTrue(HudPanelJs.INIT.contains("Source Navigation unavailable"));
         assertTrue(HudPanelJs.INIT.contains("Retry compatibility check"));
         assertTrue(HudPanelJs.INIT.contains("source.removeAttribute('href')"));
+        assertTrue(HudPanelJs.INIT.contains("Open source ' + label + ' in the configured IDE"));
+        assertTrue(HudPanelJs.INIT.contains("\"JetBrains Mono\",Consolas,ui-monospace"));
+        assertTrue(HudPanelJs.INIT.contains("color:#c4a7ff"));
+        assertTrue(HudPanelJs.INIT.contains(":focus-visible{color:#e9d5ff;outline:2px solid #a78bfa"));
+        assertTrue(HudPanelJs.INIT.contains("if (!sourceLabel) sourceLabel = previousSource.textContent"));
+        assertTrue(HudPanelJs.INIT.contains("if (!navigationTarget) navigationTarget = previousSource.getAttribute('data-navigation-target')"));
         assertFalse(HudPanelJs.INIT.contains("addEventListener('wheel'"));
         assertFalse(HudPanelJs.INIT.contains("setTimeout(function()"));
     }

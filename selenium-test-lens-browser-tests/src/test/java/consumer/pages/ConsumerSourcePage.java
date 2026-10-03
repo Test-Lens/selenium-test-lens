@@ -10,4 +10,8 @@ public final class ConsumerSourcePage {
     public static void clickCounter(TestLens lens) {
         lens.locator(By.id("count-button"), "Counter button").click();
     }
+
+    public static void assertCounterVisible(TestLens lens) {
+        lens.locator(By.id("count-button"), "Counter button assertion").expect().toBeVisible();
+    }
 }

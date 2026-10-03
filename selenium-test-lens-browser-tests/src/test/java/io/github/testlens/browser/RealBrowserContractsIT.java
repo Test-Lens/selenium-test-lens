@@ -1190,10 +1190,15 @@ class RealBrowserContractsIT {
         TestLens lens = TestLens.attach(driver, TestLensOptions.builder().hud(hud).build());
         lens.startSession("source-navigation");
         ConsumerSourcePage.clickCounter(lens);
+        ConsumerSourcePage.assertCounterVisible(lens);
 
         assertTrue(await(scriptBoolean("""
                 const root=document.getElementById('selenium-overlay-host').shadowRoot;
-                return !!root.querySelector('.stl-hud-source-location');
+                const action=root.querySelector('[data-category="ACTION"] .stl-hud-source-location');
+                const assertion=root.querySelector('[data-category="ASSERTION"] .stl-hud-source-location');
+                return !!(action && assertion
+                  && /^ConsumerSourcePage\\.java:\\d+$/.test(action.textContent)
+                  && /^ConsumerSourcePage\\.java:\\d+$/.test(assertion.textContent));
                 """)));
         @SuppressWarnings("unchecked")
         Map<String, Object> unavailable = (Map<String, Object>) ((JavascriptExecutor) driver).executeScript("""
@@ -1238,6 +1243,8 @@ class RealBrowserContractsIT {
                 return {label:link.textContent, panelPointer:getComputedStyle(panel).pointerEvents,
                   linkPointer:getComputedStyle(link).pointerEvents, display:getComputedStyle(link).display,
                   tag:link.tagName,href:link.getAttribute('href'),tabIndex:link.getAttribute('tabindex'),
+                  fontSize:getComputedStyle(link).fontSize,fontFamily:getComputedStyle(link).fontFamily,
+                  color:getComputedStyle(link).color,ariaLabel:link.getAttribute('aria-label'),
                   active:panel.dataset.sourceNavigationActive,timestamp:timestamp.textContent,
                   eventTime:timestamp.closest('[data-test-lens-timestamp]').dataset.testLensTimestamp,
                   timestampRole:timestamp.getAttribute('role'),timestampTabIndex:timestamp.getAttribute('tabindex')};
@@ -1248,6 +1255,10 @@ class RealBrowserContractsIT {
         assertEquals("none", passive.get("display"));
         assertEquals("A", passive.get("tag"));
         assertEquals("0", passive.get("tabIndex"));
+        assertEquals("11px", passive.get("fontSize"));
+        assertTrue(passive.get("fontFamily").toString().startsWith("\"JetBrains Mono\""), passive.toString());
+        assertEquals("rgb(196, 167, 255)", passive.get("color"));
+        assertTrue(passive.get("ariaLabel").toString().startsWith("Open source ConsumerSourcePage.java:"), passive.toString());
         assertEquals(null, passive.get("timestampRole"));
         assertEquals(null, passive.get("timestampTabIndex"));
         String preparedUri = passive.get("href").toString();
@@ -1255,6 +1266,21 @@ class RealBrowserContractsIT {
                 preparedUri);
         assertTrue(preparedUri.matches(".*selenium-test-lens-browser-tests%2Fsrc%2Ftest%2Fjava%2Fconsumer%2Fpages%2FConsumerSourcePage\\.java%3A\\d+$"), preparedUri);
         assertFalse(preparedUri.contains(projectRoot.toString()), "the browser target must use an IDE-project-relative path");
+
+        assertTrue(scriptBoolean("""
+                const hud=window.__uiTestLens.modules.hud;
+                const root=document.getElementById('selenium-overlay-host').shadowRoot;
+                hud.log('Lifecycle running','info',new Date().toISOString(),'LOCATOR_ACTION_STARTED',
+                  'LifecycleSource.java:12','#safe-source',null,
+                  {category:'ACTION',phase:'RUNNING',operationId:'source-lifecycle',technical:false});
+                hud.log('Lifecycle passed','info',new Date().toISOString(),'LOCATOR_ACTION_PASSED',
+                  null,null,null,{category:'ACTION',phase:'PASSED',operationId:'source-lifecycle',technical:false,durationMs:1});
+                const row=root.querySelector('[data-operation-id="source-lifecycle"]');
+                const source=row && row.querySelector('.stl-hud-source-location');
+                return !!(source && source.textContent==='LifecycleSource.java:12'
+                  && source.getAttribute('data-navigation-target')==='#safe-source'
+                  && row.dataset.phase==='PASSED');
+                """).apply(driver), "terminal semantic update lost the source owned by its operation");
 
         ((JavascriptExecutor) driver).executeScript("window.__uiTestLens.modules.highlight.clear()");
         lens.highlight(driver.findElement(By.id("count-button")), "Source navigation repaint guard", HighlightState.SUCCESS);
