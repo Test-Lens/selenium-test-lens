@@ -76,7 +76,7 @@ jobs:
       - name: Build documentation sources strictly
         run: |
           DOCS_SOURCE_REVISION="$(git rev-parse HEAD)"
-          DOCS_RELEASE_VERSION="$(python -c "import yaml; print(yaml.safe_load(open('mkdocs.yml', encoding='utf-8'))['extra']['ai_integration']['target_release'])")"
+          DOCS_RELEASE_VERSION="$(python -c "import pathlib,re; text=pathlib.Path('mkdocs.yml').read_text(encoding='utf-8'); match=re.search(r'(?m)^ {4}target_release:\\s*(\\d+\\.\\d+\\.\\d+)\\s*$', text); assert match, 'missing concrete AI integration target_release'; print(match.group(1))")"
           export DOCS_SOURCE_REVISION DOCS_RELEASE_VERSION
           mkdocs build --strict --site-dir "${RUNNER_TEMP}/dev-site"
           mkdocs build --strict --config-file mkdocs-release.yml --site-dir "${RUNNER_TEMP}/release-site"
