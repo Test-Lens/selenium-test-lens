@@ -34,6 +34,51 @@
   margin: 0.3rem 0.35rem 0.3rem 0;
 }
 
+.lens-release-badge {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 0.65rem;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--md-accent-fg-color) 45%, transparent);
+  border-radius: 999px;
+  color: var(--md-default-fg-color--light);
+  background: color-mix(in srgb, var(--md-accent-fg-color) 10%, transparent);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.lens-benefits > ul > li {
+  min-height: 9rem;
+}
+
+.lens-benefits > ul > li > p:last-child {
+  margin-bottom: 0;
+}
+
 .grid.cards > ul > li {
   border-radius: 0.65rem;
+}
+
+@media (max-width: 44rem) {
+  .lens-hero {
+    margin-top: 0.5rem;
+    padding: 1.4rem 1rem;
+  }
+
+  .lens-hero h1 {
+    font-size: 1.7rem;
+    line-height: 1.12;
+  }
+
+  .lens-hero .md-button {
+    display: block;
+    width: 100%;
+    margin: 0.45rem 0 0;
+    text-align: center;
+  }
+
+  .lens-benefits > ul > li {
+    min-height: 0;
+  }
 }
