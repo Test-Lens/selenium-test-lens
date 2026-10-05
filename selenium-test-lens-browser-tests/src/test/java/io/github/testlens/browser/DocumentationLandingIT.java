@@ -140,6 +140,12 @@ class DocumentationLandingIT {
         driver.navigate().back();
         wait.until(ignored -> driver.getCurrentUrl().equals(root));
         waitForOverview(wait);
+        driver.navigate().forward();
+        wait.until(ignored -> driver.getCurrentUrl().contains(suffix));
+        wait.until(ignored -> driver.findElement(By.cssSelector(".md-content h1")).getText().startsWith(targetHeading));
+        driver.navigate().back();
+        wait.until(ignored -> driver.getCurrentUrl().equals(root));
+        waitForOverview(wait);
     }
 
     private void waitForOverview(WebDriverWait wait) {
