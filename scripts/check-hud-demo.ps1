@@ -41,22 +41,11 @@ if (-not $mkdocs.Contains("docs-hooks/copy-hud-demo-runtime.py")) {
 }
 
 $homepage = [IO.File]::ReadAllText((Join-Path $root "docs/index.md"))
-if (-not $homepage.Contains('src="demo/hud/"')) {
-    throw "The documentation homepage does not use a version-relative HUD demo iframe URL."
+if (-not $homepage.Contains('href="demo/hud/"')) {
+    throw "The documentation homepage does not use a version-relative HUD demo link."
 }
-if (-not $homepage.Contains('sandbox="allow-scripts"') -or $homepage -match 'sandbox="[^"]*(?:allow-same-origin|allow-forms|allow-popups|allow-top-navigation)') {
-    throw "The HUD demo iframe must use only the minimal allow-scripts sandbox capability."
-}
-foreach ($hostContract in @("IntersectionObserver", "test-lens-demo-visibility", "test-lens-demo-ready", "frame.contentWindow.postMessage")) {
-    if (-not $homepage.Contains($hostContract)) {
-        throw "The homepage is missing HUD demo viewport lifecycle behavior '$hostContract'."
-    }
-}
-if (-not $homepage.Contains('title="Interactive Test Lens HUD, highlight, and scroll-cue demonstration"')) {
-    throw "The HUD demo iframe is missing its accessible title."
-}
-if (-not $homepage.Contains("Open the standalone HUD demo")) {
-    throw "The HUD demo iframe is missing fallback content."
+if ($homepage.Contains('src="demo/hud/"') -or $homepage.Contains("test-lens-demo-visibility")) {
+    throw "The product overview must link to the HUD demo without auto-loading its runtime."
 }
 
 $demoHtml = [IO.File]::ReadAllText((Join-Path $demoSource "index.html"))
@@ -128,8 +117,8 @@ if (-not [string]::IsNullOrWhiteSpace($SiteDirectory)) {
         }
     }
     $builtHomepage = [IO.File]::ReadAllText((Join-Path $site "index.html"))
-    if (-not $builtHomepage.Contains('src="demo/hud/"')) {
-        throw "Built homepage does not preserve the version-relative HUD demo iframe URL."
+    if (-not $builtHomepage.Contains('href="demo/hud/"') -or $builtHomepage.Contains('src="demo/hud/"')) {
+        throw "Built homepage must preserve the relative HUD demo link without auto-loading the demo."
     }
 }
 
@@ -138,4 +127,4 @@ $runtimeContract = if ([string]::IsNullOrWhiteSpace($ExpectedRuntimeRef)) {
 } else {
     "renderer from $ExpectedRuntimeRef"
 }
-Write-Host "HUD demo validation OK: $runtimeContract, relative static assets, no network request, valid JavaScript."
+Write-Host "HUD demo validation OK: $runtimeContract, explicit landing link, relative static assets, no network request, valid JavaScript."

@@ -363,7 +363,8 @@ try {
         if (-not $devHome.Contains("edit/main/docs/index.md")) { throw "dev homepage edit link does not target main." }
         foreach ($versionDirectory in @("dev", "0.2.0", $latestStableVersion, "latest")) {
             $versionHome = [IO.File]::ReadAllText((Join-Path $stage2 "$versionDirectory/index.html"))
-            if (-not $versionHome.Contains('src="demo/hud/"')) { throw "Homepage iframe is not relative under $versionDirectory." }
+            if (-not $versionHome.Contains('href="demo/hud/"')) { throw "Homepage HUD demo link is not relative under $versionDirectory." }
+            if ($versionHome.Contains('src="demo/hud/"')) { throw "Homepage must not auto-load the HUD demo under $versionDirectory." }
             $demoHtml = [IO.File]::ReadAllText((Join-Path $stage2 "$versionDirectory/demo/hud/index.html"))
             foreach ($asset in @("demo.css", "demo.js") + @($runtimeFiles | Where-Object { $_.EndsWith(".js") } | ForEach-Object { "runtime/$_" })) {
                 if (-not $demoHtml.Contains($asset)) { throw "HUD demo under $versionDirectory does not reference relative asset $asset." }

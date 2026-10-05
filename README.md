@@ -43,7 +43,7 @@ try {
 }
 ```
 
-[Getting started](https://test-lens.github.io/selenium-test-lens/latest/getting-started/) · [AI-assisted integration](https://test-lens.github.io/selenium-test-lens/latest/ai-assisted-integration/) · [What's new in 0.4.0](docs/whats-new-0.4.0.md) · [0.2.x migration](docs/migrating-0.2-to-0.3.md) · [Published documentation](https://test-lens.github.io/selenium-test-lens/latest/) · [Development documentation](https://test-lens.github.io/selenium-test-lens/dev/)
+[Product overview](https://test-lens.github.io/selenium-test-lens/latest/) · [Getting started](https://test-lens.github.io/selenium-test-lens/latest/getting-started/) · [AI-assisted integration](https://test-lens.github.io/selenium-test-lens/latest/ai-assisted-integration/) · [What's new in 0.4.0](docs/whats-new-0.4.0.md) · [0.2.x migration](docs/migrating-0.2-to-0.3.md) · [Development documentation](https://test-lens.github.io/selenium-test-lens/dev/)
 
 ![Test Lens 0.4.0 semantic action and assertion lifecycle](docs/assets/media/hud-action-assertion-lifecycle.webp)
 

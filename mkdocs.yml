@@ -55,18 +55,14 @@ theme:
     - toc.follow
 
 nav:
-  - Home: index.md
+  - Overview: index.md
   - Getting Started:
       - Installation & first test: getting-started.md
       - AI-assisted integration: ai-assisted-integration.md
       - Existing WebDriver integration: framework-integration.md
-      - What's new in 0.4.0: whats-new-0.4.0.md
-      - What's new in 0.3.1: whats-new-0.3.1.md
-      - What's new in 0.3.0: whats-new-0.3.0.md
-      - Migrating from 0.2.x: migrating-0.2-to-0.3.md
       - Configuration: configuration.md
   - Using Test Lens:
-      - Capabilities: capabilities.md
+      - Product capabilities: capabilities.md
       - Selector Intelligence: features/selector-intelligence.md
       - React & SPA resilience: features/react-spa.md
       - Managed Auth State: advanced/auth-state.md
@@ -114,6 +110,11 @@ nav:
       - Allure: integrations/allure.md
   - Migration:
       - From raw Selenium: migration.md
+  - Releases:
+      - What's new in 0.4.0: whats-new-0.4.0.md
+      - What's new in 0.3.1: whats-new-0.3.1.md
+      - What's new in 0.3.0: whats-new-0.3.0.md
+      - Migrating from 0.2.x: migrating-0.2-to-0.3.md
   - Reference:
       - Complete API Reference: reference/index.md
       - TestLens: reference/test-lens.md
@@ -121,6 +122,7 @@ nav:
       - Result & data types: reference/result-types.md
       - Core model: reference/core-model.md
       - Advanced / low-level API: reference/advanced-low-level.md
+      - Product capability map: maintainers/product-capability-map.md
       - Binary API catalog (optional): reference/public-api-catalog.md
       - Architecture: architecture.md
       - Consumer compatibility: consumer-compatibility.md
