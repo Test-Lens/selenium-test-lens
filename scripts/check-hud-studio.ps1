@@ -149,8 +149,8 @@ if (-not [string]::IsNullOrWhiteSpace($SiteDirectory)) {
         throw "Built versioned landing page does not use a version-relative favicon URL."
     }
     foreach ($metadata in @(
-        '<meta property="og:title" content="Test Lens">',
-        '<meta property="og:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">',
+        '<meta property="og:title" content="Selenium Test Lens',
+        '<meta property="og:description" content="Add observable Selenium interactions, polling assertions, recovery diagnostics, browser HUD, reports, screenshots, and failure evidence',
         '<meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/">',
         '<meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">',
         '<meta name="twitter:card" content="summary_large_image">'
@@ -159,7 +159,7 @@ if (-not [string]::IsNullOrWhiteSpace($SiteDirectory)) {
     }
     foreach ($branding in @(
         '<img src="assets/brand/test-lens-icon.png" alt="logo">',
-        '<img class="lens-home-logo" src="assets/brand/test-lens-logo-horizontal.png" alt="Test Lens">'
+        '<img class="lens-home-logo" src="assets/brand/test-lens-logo-horizontal.png" alt="Selenium Test Lens" width="720" height="184">'
     )) {
         if (-not $builtHome.Contains($branding)) { throw "Built documentation branding image is missing: $branding" }
     }

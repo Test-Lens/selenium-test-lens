@@ -1,4 +1,6 @@
 ---
+title: Selenium Test Lens — product overview
+description: Add observable Selenium interactions, polling assertions, recovery diagnostics, browser HUD, reports, screenshots, and failure evidence to an existing Java test suite.
 hide:
   - navigation
   - toc
@@ -6,406 +8,84 @@ hide:
 
 <div class="lens-hero" markdown>
 
-<img class="lens-home-logo" src="assets/brand/test-lens-logo-horizontal.png" alt="Test Lens">
+<img class="lens-home-logo" src="assets/brand/test-lens-logo-horizontal.png" alt="Selenium Test Lens" width="720" height="184">
 
-**Test Lens for Selenium**
+<span class="lens-release-badge">Current stable release: 0.4.0</span>
 
-# Observe Selenium. Recover deliberately. Keep useful evidence.
+# Understand what your Selenium test did—and keep the evidence
 
-**Keep Selenium and your existing WebDriver. Add observability, resilient browser interaction, scoped test lifecycle, and evidence with explicit security boundaries.**
+**Selenium Test Lens is a Java library that adds observable interactions, reusable waits and assertions, visible recovery, and durable diagnostics to the WebDriver your project already owns.**
 
-Test Lens shows actions, waits, assertions, retries, and network activity while a test runs. After finalization, the same structured session can become an HTML/JSON report, screenshots, a failure bundle, or an explicitly uploaded report package.
+Watch actions, waits, assertions, retries, and selected network activity while a test runs. After finalization, investigate the same session through a structured trace, HTML/JSON reports, screenshots, and—on failure—a portable evidence bundle.
 
-[See the live diagnostics](#live-hud-and-element-highlights){ .md-button .md-button--primary }
-[What's new in 0.4.0](whats-new-0.4.0.md){ .md-button }
-[Explore the capabilities](#signature-capabilities){ .md-button }
-[Get started](#quick-start){ .md-button }
-[Build an AI integration prompt](ai-assisted-integration.md){ .md-button }
-[Maven Central](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens){ .md-button }
+Adopt it gradually: keep your runner, WebDriver factory, Page Objects, raw Selenium calls, and reporting stack. Attach Lens where diagnostics help, observe existing Selenium references explicitly, and move selected flows to the Lens-native locator API when its semantics are useful.
 
-| Documentation | Status | Library availability |
-|---|---|---|
-| [0.4.0 stable](https://test-lens.github.io/selenium-test-lens/0.4.0/) | Latest published release | Maven Central |
-| [0.3.1 historical](https://test-lens.github.io/selenium-test-lens/0.3.1/) | Previous release | Maven Central |
-| [0.3.0 historical](https://test-lens.github.io/selenium-test-lens/0.3.0/) | Historical release | Maven Central |
-| [0.2.0 historical](https://test-lens.github.io/selenium-test-lens/0.2.0/) | Historical release | Maven Central |
-| [0.1.0 historical](https://test-lens.github.io/selenium-test-lens/0.1.0/) | Historical release | Maven Central |
+[Get started](getting-started.md){ .md-button .md-button--primary }
+[Integrate with AI](ai-assisted-integration.md){ .md-button }
+[Explore capabilities](#product-capabilities){ .md-button }
+
+<small>`latest` currently resolves to release 0.4.0. [Read what changed in 0.4.0](whats-new-0.4.0.md) or [browse exact public signatures](reference/public-api-catalog.md).</small>
 
 </div>
 
 ## What Test Lens adds to Selenium
 
-Selenium remains the browser automation engine. Test Lens attaches to the `WebDriver` that your project already creates and surrounds native browser operations with a connected diagnostic layer:
+Selenium remains the browser automation engine. Test Lens connects everyday browser work to one diagnostic lifecycle:
 
 ```text
-your WebDriver and runner
+your existing WebDriver, runner, and Page Objects
         ↓
-semantic queries · native interactions · application-aware waits
+observed Selenium calls or Lens-native locators and interactions
         ↓
-HUD · highlights · trace · recovery and network diagnostics
+HUD · target highlights · waits · assertions · recovery · network diagnostics
         ↓
-HTML/JSON reports · screenshots · failure bundle · optional HTTP upload
+trace · HTML/JSON reports · screenshots · failure bundle · optional integrations
 ```
 
-It does not replace Selenium, Page Objects, JUnit, TestNG, or an existing reporting stack. Raw WebDriver remains available whenever it is the clearer or more complete API.
+Adding the dependency does **not** instrument every existing `WebDriver` or `WebElement` reference. `TestLens.attach(driver)` establishes the lifecycle; existing calls become observable only when code uses the facade returned by `lens.observeDriver()` or an explicitly wrapped element. `UiLocator` is a separate, opt-in interaction API with semantic queries, fresh-DOM polling, actionability diagnostics, and bounded recovery behavior.
 
-## 0.4.0 at a glance
+## Why teams add Test Lens
 
-Release 0.4.0 connects ordinary Selenium calls and Lens interactions to the same semantic evidence, adds explicit browser and observability modes, and strengthens runner and recovery lifecycles.
+<div class="grid cards lens-benefits" markdown>
 
-<div class="grid cards" markdown>
+-   **See the test as it runs**
 
--   **NEW 0.4.0 · NATIVE SELENIUM OBSERVATION**
+    The in-page HUD correlates the current test and step with actions, waits, assertions, recovery attempts, and network diagnostics. Pointer-transparent highlights show which target was resolved without changing the application result.
 
-    Observe ordinary `WebDriver` and selected `WebElement` operations without replacing the native call, adding Smart Click, or executing the action twice.
+-   **Write intent, not repeated plumbing**
 
-    [Observe an existing Selenium driver](getting-started.md#observe-ordinary-selenium-calls)
+    Semantic and scoped locators, collection operations, form actions, browser-context helpers, polling assertions, and application-readiness waits replace common `findElements` loops, sleeps, and one-off helper code.
 
--   **NEW 0.4.0 · DEFAULT AND FAST**
+-   **Make recovered instability visible**
 
-    Keep full live diagnostics with DEFAULT, or remove live HUD, automatic highlights, and Source Navigation with FAST while preserving execution semantics and failure evidence.
+    A recovered click or lookup is recorded as recovery, not silently presented as a clean pass. Retry summaries and outcome policies help distinguish condition polling, operation recovery, and runner-level test retries.
 
-    [Choose an observability mode](configuration.md#browser-execution-and-observability)
+-   **Leave useful evidence behind**
 
--   **NEW 0.4.0 · TESTNG PER_CLASS**
+    Finalization produces a trace and reports. Failed sessions can add diagnostic and clean screenshots, failure context, a network summary, a manifest, and a ZIP suitable for controlled CI retention.
 
-    Reuse one adapter-owned driver for sequential methods of a class while every method, DataProvider row, and retry receives a fresh Lens session and report.
+-   **Apply explicit data boundaries**
 
-    [Configure TestNG driver scope](integrations/testng.md#driver-scope)
+    Diagnostic text is redacted before fan-out to HUD, trace, sinks, reports, and bundles. Screenshot masking is configured separately and can fail closed; replayable authentication state remains sensitive by design.
 
--   **IMPROVED 0.4.0 · SEMANTIC DIAGNOSTICS**
+-   **Adopt without replacing the framework**
 
-    Follow action, wait/retry, assertion, locator, success, and failure meaning across operation-correlated HUD rows, state-aware highlights, reports, and bounded trace evidence.
-
-    [Read the visual lifecycle](observability/visual-diagnostics.md) · [Review 0.4.0](whats-new-0.4.0.md)
-
--   **0.4.0 FOUNDATION · SELECTOR INTELLIGENCE**
-
-    Discover the browser-free selector index, evidence-first stability model, offline Audit, Find Similar, read-only
-    Lab, and optional live candidate analysis—with an explicit account of what is internal-only in 0.4.x.
-
-    [Explore Selector Intelligence](features/selector-intelligence.md)
+    Manual lifecycle works with any runner. Optional JUnit 5 and TestNG adapters manage invocation lifecycle, while the Allure adapter attaches completed Lens evidence to an existing Allure result.
 
 </div>
 
-## 0.3.0 foundations
+<span id="signature-capabilities"></span>
 
-Release 0.3.0 adds configuration and lifecycle capabilities around the same Selenium session. These are public 0.3.0 APIs and were not features of release 0.2.0.
+## Product capabilities
 
-<div class="grid cards" markdown>
+### Locators, collections, and element state
 
--   **NEW 0.3.0 · LIVE UI — Configurable HUD**
+`UiLocator` is a lazy description that resolves against the current DOM when an operation runs. Start with Selenium `By`, or use intent-oriented factories such as `getByRole`, `getByLabel`, `getByPlaceholder`, `getByAltText`, `getByText`, and `getByTestId`. Role/name matching uses browser/WebDriver accessibility data rather than pretending visible text is the complete accessible name.
 
-    Start from Minimal, Compact, Standard, or Debug; then override supported content, position, viewport-safe size, header layout, typography, scrollbar, palette, opacity, and bounded PNG branding.
-
-    [Configure the runtime HUD](observability/visual-diagnostics.md#configurable-hud)
-
--   **NEW 0.3.0 · WYSIWYG — HUD Studio**
-
-    Drag, snap, and resize the real runtime renderer in Desktop, Laptop, or Mobile preview. Copy minimal Java that reproduces the edited `HudOptions`.
-
-    [Customize your HUD](observability/hud-studio.md)
-
--   **NEW 0.3.0 · SECURITY — Visual Redaction**
-
-    Mask screenshot pixels independently from text redaction. Password inputs use SOLID masking by default; STRICT refuses to publish a screenshot when a required mask cannot be verified.
-
-    [Define the screenshot boundary](security/visual-redaction.md)
-
--   **NEW 0.3.0 · AUTH — Managed Auth State**
-
-    Restore and validate persisted browser state, perform at most one login when recreation is justified, and atomically preserve or replace the previous file.
-
-    [Manage authentication state](advanced/auth-state.md)
-
--   **NEW 0.3.0 · STATE — Managed Test State & Resources**
-
-    Isolate typed data per physical invocation, share state intentionally inside one suite, and clean scenario resources exactly once in LIFO order.
-
-    [Manage state and resources](features/managed-test-state.md)
-
--   **NEW 0.3.0 · INTEGRATION — Allure**
-
-    Attach finalized, redacted Test Lens evidence to the active Allure executable through an optional artifact. The adapter neither captures another screenshot nor changes Allure status.
-
-    [Use the Allure adapter](integrations/allure.md)
-
-</div>
-
-## Live HUD and element highlights
-
-The in-browser HUD makes the active Lens session visible in the page under test. It presents the current step and diagnostic rows emitted by element actions, waits, assertions, recovery retries, and network diagnostics. Rows carry their operation status and safe target or locator context; [`NetworkHudFilter`](advanced/network.md#hud-only-filtering) can reduce raw request/response noise without removing captured evidence.
-
-<style>
-.tl-hud-demo-frame { display: block; width: 100%; max-width: 100%; height: 650px; border: 1px solid var(--md-default-fg-color--lightest); border-radius: .6rem; background: #eef2f7; }
-@media (max-width: 720px) { .tl-hud-demo-frame { height: 690px; } }
-</style>
-
-<iframe
-  id="test-lens-hud-demo"
-  class="tl-hud-demo-frame"
-  src="demo/hud/"
-  title="Interactive Test Lens HUD, highlight, and scroll-cue demonstration"
-  loading="eager"
-  sandbox="allow-scripts"
->
-  The interactive demo could not be loaded. <a href="demo/hud/">Open the standalone HUD demo.</a>
-</iframe>
-
-<script>
-(function () {
-  var frame = document.getElementById('test-lens-hud-demo');
-  if (!frame) return;
-
-  var visible = false;
-  function notifyDemo() {
-    if (frame.contentWindow) {
-      frame.contentWindow.postMessage({ type: 'test-lens-demo-visibility', visible: visible }, '*');
-    }
-  }
-
-  window.addEventListener('message', function (event) {
-    if (event.source === frame.contentWindow && event.data && event.data.type === 'test-lens-demo-ready') {
-      notifyDemo();
-    }
-  });
-
-  if (!('IntersectionObserver' in window)) {
-    visible = true;
-    frame.addEventListener('load', notifyDemo);
-    notifyDemo();
-    return;
-  }
-
-  var observer = new IntersectionObserver(function (entries) {
-    var entry = entries[0];
-    visible = Boolean(entry && entry.isIntersecting && entry.intersectionRatio >= 0.05);
-    notifyDemo();
-  }, { threshold: [0, 0.05] });
-  observer.observe(frame);
-  frame.addEventListener('load', notifyDemo);
-}());
-</script>
-
-<small>This deterministic local demo uses the 0.4.0 runtime renderer. Choose action/assertion, highlight, DEFAULT/FAST, native-observation, or Smart Click scenarios. The checkout events are synthetic and no request is sent; the semantic HUD, highlights, presets, and scroll cue are the same versioned assets shipped by this documentation build.</small>
-
-<!-- configurable-hud-dev:start -->
-The development renderer defaults to the compact preset. Try **Compact**, **Minimal**, or **Debug** above, or [customize the complete HUD in HUD Studio](observability/hud-studio.md).
-<!-- configurable-hud-dev:end -->
+Compose a query without escaping its selected UI region: `locator(...)` searches descendants, `filterHas(...)` keeps matching parents, and text/attribute filters, `nth`, `first`, and `last` preserve pipeline order. Collections expose current `resolveAll()`/`count()` snapshots and fresh-snapshot count waits.
 
 ```java
-lens.startSession("Checkout");
-lens.getByRole("button", "Place order")
-        .waitUntilClickable()
-        .click();
-```
-
-For the standard `click()` path, Test Lens draws one temporary, labeled highlight around the resolved target and uses the bounded `NATIVE → ACTIONS → POINT → JS` cascade. `ACTIONS` and `POINT` require a current browser hit-test owned by the target or its descendant. The default final `HTMLElement.click()` fallback handles a logically enabled target that remains physically covered; configure `UiLocatorOptions.javascriptClickFallback(false)` for physical-only behavior. The pointer-transparent Test Lens decoration never activates or exposes the target, and the cascade never substitutes an ancestor or mutates application DOM.
-
-HUD injection, updates, and cleanup are best effort and cannot change the result of the Selenium operation. The persistent record is the session trace—not the transient panel. [See the visual diagnostics contract](observability/visual-diagnostics.md) and [the exact click contract](elements/actions.md#click-contract-bounded-fallback-cascade).
-
-## Signature capabilities
-
-<div class="grid cards" markdown>
-
--   **Live HUD and target highlights**
-
-    Follow actions, waits, assertions, network entries, and recovery diagnostics in the tested page. Highlighting shows which element was resolved without intercepting pointer input.
-
-    [Visual diagnostics](observability/visual-diagnostics.md) · [Customize your HUD](observability/hud-studio.md)
-
--   **Managed and low-level authentication state**
-
-    Use managed restore/validate/recreate with tri-state validation and atomic replacement, or call the underlying cookie and Web Storage capture/restore primitives directly. Persisted state remains sensitive authentication material.
-
-    [Authentication state](advanced/auth-state.md)
-
--   **Managed Test State & Resources**
-
-    Keep typed data inside one physical test invocation, share selected values intentionally inside one suite/run, and clean temporary resources exactly once in LIFO order across pass, failure, skip, and retry.
-
-    [Managed test state](features/managed-test-state.md)
-
--   **React & SPA resilience**
-
-    Re-resolve elements across rerenders, inspect common busy/loading DOM conventions, wait for roots and DOM stability, and work with known React Select markup through the optional module.
-
-    [React/SPA resilience and its boundaries](features/react-spa.md)
-
--   **Application-aware waits**
-
-    Reuse ready-state, limited XHR/fetch-idle, React-root, component-visibility, and DOM-stability waits instead of rebuilding JavaScript polling helpers in every project.
-
-    [Waiting and readiness](elements/waiting.md)
-
--   **WebDriver BiDi network diagnostics**
-
-    Observe and correlate requests, responses, redirects, and fetch errors; wait for expected traffic and assert over a valid capture snapshot. This is passive diagnostics, not interception or mocking.
-
-    [Network diagnostics](advanced/network.md)
-
--   **Secrets redacted before diagnostic fan-out**
-
-    Apply one policy to recognized credentials, sensitive fields, URLs, exception copies, network data, reports, and failure-bundle text before they reach HUD, trace, or sinks.
-
-    [Redaction boundary](security/redaction.md)
-
--   **Runner-neutral facade, optional runner adapters**
-
-    Use `TestLens` with any runner, or add the JUnit 5 extension or TestNG listener for per-invocation lifecycle, outcome mapping, evidence finalization, and owned-driver cleanup.
-
-    [Framework integration](framework-integration.md)
-
--   **Reports, failure evidence, and explicit upload**
-
-    Finalize once to produce a trace and HTML/JSON reports. Failed sessions can add screenshots and a ZIP evidence bundle; completed output can be streamed explicitly to your own HTTP endpoint.
-
-    [Reports](observability/reports.md) · [Failure bundles](observability/failure-bundles.md) · [Report upload](observability/report-upload.md)
-
--   **[INTEGRATION] Allure**
-
-    Keep Allure as the report UI and attach Test Lens diagnostic and clean screenshots, HTML, trace, and failure evidence through Allure's native lifecycle.
-
-    [Allure integration](integrations/allure.md)
-
-</div>
-
-## Reuse authentication state with application validation
-
-Managed Auth State restores persisted cookies and Web Storage, asks the application whether the result is authenticated, and recreates state only when validation unambiguously returns `UNAUTHENTICATED`:
-
-```java
-AuthStateEnsureResult result = lens.authState().ensure(
-        AuthStateRequest.builder()
-                .key("primary-user")
-                .path(Path.of("target/test-auth/primary.json"))
-                .login(driver -> loginPage.login(username, password))
-                .validate(driver -> accountMenu.isDisplayed()
-                        ? AuthStateValidation.AUTHENTICATED
-                        : AuthStateValidation.UNAUTHENTICATED)
-                .build());
-```
-
-Missing state becomes `CREATED`; valid restored state becomes `RESTORED`; invalid restored state is cleared from the managed browser context and atomically replaced as `REFRESHED`. One operation performs at most one login. `INCONCLUSIVE` fails without login and preserves the old file, which is important when the application or identity backend is unavailable rather than logged out.
-
-The lower-level `AuthStateManager` capture/load/restore primitives remain available when the consumer owns validation and persistence sequencing. Default restore validates origin before browser mutation and rejects expired state. A redirect to another scheme, host, or effective port returns `ORIGIN_MISMATCH` before foreign-origin cookies or storage are changed.
-
-This is controlled same-origin test setup, not cross-origin SSO replay or automatic logout. Auth-state JSON can contain live credentials and is intentionally not transformed by diagnostic text redaction, because changing it would make restoration unreliable. Store it as access-controlled authentication material. [Read the managed lifecycle, primitives, and security contract](advanced/auth-state.md).
-
-## React and dynamic SPA behavior
-
-The optional React module helps around DOM replacement and application-specific readiness signals without pretending to inspect React's component tree.
-
-- `ReactSafeExecutor` re-finds the element for each configured attempt and can recover from stale, missing, or intercepted elements.
-- React actionability checks can observe `aria-disabled`, `aria-busy`, `data-loading`, `data-pending`, progress bars, spinners, skeletons, focus locks, dialogs, and configured busy/blocking locators.
-- `PageWaits` and `JsOverlayDebug` expose React-root, component-visibility, DOM-stability, and combined React/network waits with one total deadline.
-- `ReactSelectHelper` supports specific React Select DOM/id conventions, including its JavaScript option-click path.
-
-```java
-JsOverlayDebug overlay = new JsOverlayDebug(driver);
-overlay.waitForReactAndNetworkIdle(By.id("app"), Duration.ofSeconds(5));
-
-ReactSafeExecutor react = ReactSupport.reactSafe(overlay);
-react.clearAndType(By.cssSelector("[data-testid='search']"), "camera", "Search");
-```
-
-These are DOM-convention helpers. They do not inspect the React component tree, guarantee compatibility with every component library, or cross frame/window/shadow-root boundaries automatically. The legacy React `smartClick` has a separate contract; normal interaction should use `UiLocator.click()`. [Choose the React/SPA helpers deliberately](features/react-spa.md).
-
-## Smarter waits and application readiness
-
-Raw Selenium gives you `WebDriverWait` and `JavascriptExecutor`; Test Lens packages recurring browser/application observations behind reusable methods and records their progress through the same HUD and trace pipeline.
-
-```java
-lens.waitForPageReady(Duration.ofSeconds(5));
-lens.waitForNetworkIdle(
-        Duration.ofMillis(250),
-        Duration.ofSeconds(5));
-
-lens.getByTestId("results").waitUntilVisible();
-lens.getByRole("button", "Save").waitUntilClickable();
-```
-
-| Wait | Actual contract |
-|---|---|
-| `waitForPageReady` | Polls one `document.readyState` value per observation and accepts only `complete`. It does not prove that SPA data has rendered. |
-| `waitForInteractiveOrComplete` | Accepts `interactive` or `complete`; useful with non-default page-load strategies and asynchronous navigation. |
-| `waitForNetworkIdle` | Installs an idempotent page tracker and requires zero observed XHR/fetch calls for the complete idle window. It sees only calls started after installation—not images, CSS, scripts, WebSocket, EventSource, beacon, or earlier traffic. |
-| Locator waits | Re-resolve against the current DOM and poll visibility, hidden state, Selenium clickability, text, or collection count using configured timeout and interval. Clickability is not proof that an overlay cannot intercept the next click. |
-| React/SPA waits | Observe roots, component visibility, a `MutationObserver`-based DOM-stability window, and combined React/network stages under one total deadline. |
-
-Page-wait polling emits one started event and one terminal passed/failed event. An unmet deadline throws Selenium `TimeoutException`; terminal WebDriver/JavaScript failures stop immediately. Ordinary condition polling is not a recovery retry and does not mark the session flaky. [See all waiting contracts and limitations](elements/waiting.md).
-
-## WebDriver BiDi network visibility
-
-For browser-level traffic evidence, enable BiDi when creating the Selenium session and start Lens capture explicitly:
-
-```java
-ChromeOptions browserOptions = new ChromeOptions().enableBiDi();
-WebDriver driver = new ChromeDriver(browserOptions);
-
-TestLens lens = TestLens.attach(driver);
-lens.startSession("orders");
-
-NetworkDiagnostics network = lens.network().start(
-        NetworkDiagnosticsOptions.builder()
-                .captureMode(NetworkCaptureMode.BIDI)
-                .hudFilter(NetworkHudFilter.defaults())
-                .build());
-
-driver.get(applicationUrl);
-network.waitForResponse("/api/orders", 200);
-network.assertNoFailedRequests();
-```
-
-The typed adapter passively records requests, completed responses, redirects, and fetch errors from Selenium's WebDriver BiDi network module. Events preserve request IDs and redirect correlation; immutable snapshots feed waits, assertions, HUD rows, JSON evidence, trace, and failure-bundle network summaries.
-
-Capture must actually become active before an empty snapshot can satisfy `assertNoFailedRequests()`. `AUTO` and `BIDI` report unsupported/start-failure states rather than silently falling back to manual events or performance logs. Test Lens does not intercept, block, modify, mock, replay, or capture bodies, and it does not use CDP. [Configure capture, waits, assertions, limits, and HUD filtering](advanced/network.md).
-
-## Diagnostics with a defined secret boundary
-
-`RedactionPolicy.defaults()` is enabled before a structured log entry fans out to the HUD, session trace, built-in or external sinks. The same policy is applied at direct network, API-overlay, report, and failure-bundle text boundaries.
-
-Defaults recognize common authorization, cookie, password, secret, token, session, CSRF, and XSRF fields. Text handling also covers Bearer and Basic credentials, JWT-shaped values, structured key/value forms, sensitive URL query values, userinfo, fragments, and caller-supplied literal secrets.
-
-```java
-RedactionPolicy redaction = RedactionPolicy.builder()
-        .sensitiveKey("tenant-session")
-        .secret(System.getenv("TEST_CLIENT_SECRET"))
-        .build();
-
-TestLens lens = TestLens.attach(driver, TestLensOptions.builder()
-        .redactionPolicy(redaction)
-        .build());
-```
-
-Sinks receive redacted diagnostic copies, not the original throwable. Reports retain the original exception class as structural `exceptionType`, while safe copies provide redacted messages, causes, suppressed failures, and stack text. The original exception still controls the test result.
-
-Text redaction is not pixel processing or general personal-data detection. `VisualRedactionOptions` separately masks configured screenshot regions and password inputs by default; unmasked screenshot regions and attached video can still expose sensitive data. Page source and browser console are opt-in, best-effort text boundaries, while auth-state files remain replayable secret material. `RedactionPolicy.disabled()` is a deliberate text-redaction opt-out. [Review the text boundary](security/redaction.md) and [visual-redaction contract](security/visual-redaction.md).
-
-## Better Selenium APIs without hiding Selenium
-
-Observability is the main reason to add Test Lens, but the same facade removes repeated plumbing from everyday browser tests.
-
-| Area | Available API and behavior |
-|---|---|
-| Semantic locators | `getByRole`, `getByLabel`, `getByPlaceholder`, `getByAltText`, `getByText`, and `getByTestId`; role/name matching uses WebDriver-computed accessibility data rather than approximating the name from visible text. |
-| Scoped queries | Lazy `locator(...)`, `filterHas(...)`, text/attribute filters, `nth`, `first`, and `last`; descendant queries remain inside their parent container. |
-| Collections | Immutable current snapshots through `resolveAll()`/`count()` plus count waits that query one fresh snapshot per poll. |
-| Native interactions | `click`, `fill`, `clear`, key presses, hover, double/right click, check/uncheck, upload, focus, scrolling, and native select operations. Each method documents whether it uses `WebElement`, Selenium `Actions`, or JavaScript. |
-| Assertions | Polling assertions for element visibility/text/state, collection count, and page URL/title. Assertion polling is distinct from recovery retry. |
-| Browser context | Frame, parent/default-content, window/tab, new-window, and alert helpers retain explicit WebDriver context ownership. |
-| Actionability and overlays | Best-effort diagnostics plus explicit overlay policies for known blockers; no claim that every page-specific obstruction can be recovered. |
-| Steps and evidence | Named steps, attachments, viewport or opt-in full-page screenshots, and existing video references feed the trace without replacing runner behavior. |
-| Visual API helpers | Arrow-style element cues, upload feedback, and a caller-supplied API operation preview are available for specialized flows. The API modal does not discover or capture browser traffic. |
-
-Use these APIs where they reduce boilerplate; use raw Selenium alongside them for lower-level operations. [Browse the complete capability map](capabilities.md) or [the public API catalog](reference/public-api-catalog.md).
-
-## Semantic and scoped queries
-
-Semantic factories make intent visible, while composition keeps the query relative to the selected UI region:
-
-```java
-UiLocator availableCards = lens.locator(By.cssSelector(".product-card"), "Product cards")
+UiLocator availableCards = lens.locator(By.cssSelector(".product-card"), "Available products")
         .filterByAttribute("data-status", "available")
         .filterHas(lens.getByRole("button", "Buy"));
 
@@ -414,137 +94,185 @@ availableCards.first()
         .click();
 ```
 
-`getByRole(role, accessibleName)` checks the browser/WebDriver-computed role and accessible name. The current implementation supports explicit roles and selected implicit candidates; it does not implement the ARIA naming algorithm itself or fall back to guessed text when typed accessibility commands fail.
+Use [semantic and scoped locators](elements/locators.md), [collections](elements/collections.md), and [element information](elements/information.md) for practical contracts and boundaries. Queries remain in the current frame/window and do not cross shadow roots automatically.
 
-Composed locators are immutable and lazy. Pipeline order matters, elements are not cached, and a child query cannot escape its parent container—even when a supplied XPath begins with `//`. Queries remain in the current frame/window and do not cross shadow roots automatically. [Read the semantic and containment rules](elements/locators.md) and [collection behavior](elements/collections.md).
+### Actions, forms, and browser context
 
-## Recovery that remains visible
+Lens-native interactions cover click, fill, clear, keys, hover, double/right click, check/uncheck, upload, focus, scrolling, and native `<select>` controls. Frame, parent/default-content, window/tab, new-window, and alert helpers retain explicit Selenium context ownership. Known application overlays can be handled through an explicit policy rather than a global promise that every obstruction is recoverable.
 
-A recovered operation should not become indistinguishable from a clean pass. Test Lens separates three mechanisms:
+The standard click path shares one deadline across a bounded `NATIVE → ACTIONS → POINT → JS` cascade. Physical fallbacks require a current hit-test owned by the target or a descendant. The final `HTMLElement.click()` fallback is configurable, hidden or disabled targets still fail, and an ambiguous native delivery is never followed by a blind second click. Operations that are not safe to repeat do not become universally retryable.
 
-1. **Condition polling** observes a state until it matches or times out. It does not mark the session flaky.
-2. **Recovery retry** starts another physical operation attempt after a configured stale, intercepted, or not-interactable failure. It contributes to `RetrySummary`.
-3. **Runner retry** starts another JUnit/TestNG invocation and therefore another Lens session.
+[Review the click and form-action contracts](elements/actions.md), [select controls](elements/select-controls.md), [browser context](browser-context/index.md), and [overlay policies](advanced/overlay-policies.md).
 
-`RetrySummary` reports total recovery retries, time lost in failed attempts that led to another attempt, and deterministic grouping by action, locator, and effective exception type. `RetryOutcomePolicy` can report only, add a warning, fail on any recovery retry, or fail after an allowed threshold.
+### Smarter waits and polling assertions
+
+Element waits re-resolve against the current DOM and poll visibility, hidden state, Selenium clickability, text, or collection count. Assertions cover visibility, text/value, attachment, enabled/selected/checked state, attributes, classes, CSS, collection counts, and page URL/title. They report structured reasons instead of forcing each test to combine a loop, sleep, and one-time read.
+
+Page helpers distinguish document readiness from SPA readiness. `waitForPageReady` observes `document.readyState`; the XHR/fetch idle helper sees only calls that start after its tracker is installed; optional React/SPA helpers add DOM-convention checks. Ordinary polling is not a recovery retry and does not mark a session flaky.
 
 ```java
-TestLensOptions options = TestLensOptions.builder()
-        .retryOutcomePolicy(RetryOutcomePolicy.FAIL_AFTER_N)
-        .allowedRetries(1)
-        .build();
-
-TestLens lens = TestLens.attach(driver, options);
+lens.getByTestId("results").waitUntilVisible();
+lens.getByRole("button", "Save").waitUntilClickable().click();
+lens.getByTestId("status").expect().toHaveText("Saved");
+lens.expectPage().toContainUrl("/profile");
 ```
 
-A fail policy completes screenshots, reports, HUD cleanup, and the failure bundle before propagating `RetryPolicyViolationException`. This policy applies to recovery attempts—not normal wait/assertion polls. [Interpret flakiness evidence](observability/flakiness.md).
+[Compare element and page waits](elements/waiting.md) and [polling assertions](elements/assertions.md).
 
-## From live execution to portable evidence
+### Existing Selenium observation and Lens-native semantics
 
-The same session connects what you saw during execution with what you inspect after it:
+For an existing Page Object, pass the explicit observed facade before constructing it:
+
+```java
+TestLens lens = TestLens.attach(rawDriver, options);
+WebDriver observedDriver = lens.observeDriver();
+LoginPage page = new LoginPage(observedDriver);
+```
+
+Calls such as `findElement(...).click()`, `clear()`, and `sendKeys(...)` retain native Selenium semantics and are delegated once. Observation adds operation correlation, timing, source metadata, redacted diagnostics, and automatic highlight lifecycle; it does **not** add Smart Click, locator waits, actionability recovery, another lookup, or JavaScript fallback. Old references remain raw. Use `UiLocator` when the Lens-native behavior is wanted.
+
+[Integrate an existing driver and Page Objects](getting-started.md#observe-ordinary-selenium-calls).
+
+### Live HUD and element highlights
+
+The live HUD shows the active test and step plus semantic rows for actions, waits, assertions, recovery, manual entries, and enabled network diagnostics. Presets are `MINIMAL`, `COMPACT`, `STANDARD`, and `DEBUG`; content filters, position, bounded size, header, typography, scrollbar, palette, opacity, timestamps, branding, and highlight states are configurable.
+
+Local Source Navigation is optional. A row needs captured source metadata, a valid project mapping and provider target, the feature enabled, and the navigation mode activated. Compatibility status and the ON banner do not manufacture missing source metadata or prove that a target can be opened.
+
+HUD injection and cleanup are best effort and cannot decide a Selenium outcome. The persistent record is the trace. [See visual diagnostics](observability/visual-diagnostics.md) or use [HUD Studio](observability/hud-studio.md), a synthetic documentation preview backed by the runtime renderer.
+
+### Recovery that remains visible
+
+Test Lens separates three mechanisms:
+
+1. **Condition polling** observes state until it matches or times out.
+2. **Recovery retry** schedules another physical operation attempt after a configured recoverable failure.
+3. **Runner retry** starts another JUnit/TestNG invocation and therefore another Lens session.
+
+`RetrySummary` records recovery attempts and time lost. `RetryOutcomePolicy` can report, warn, or reject an otherwise passed session after evidence is finalized. This does not eliminate flaky tests; it makes recovered instability measurable and reviewable. [Interpret recovery and outcome policies](observability/flakiness.md).
+
+### Trace, logs, reports, and failure evidence
+
+Each finalized session connects transient browser feedback to durable artifacts:
 
 ```text
 action / wait / assertion / network event
         ↓
-HUD and target decoration (transient)
-        ↓
-session trace and retry summary
+bounded session trace and retry summary
         ↓
 exactly-once PASSED / FAILED / SKIPPED finalization
         ↓
 trace.json + report.html
         ↓ FAILED
-diagnostic screenshot + clean screenshot + failure-bundle/ + ZIP
-        ↓ optional and explicit
-HTTP report upload
+diagnostic and clean screenshots + manifest + failure bundle ZIP
 ```
 
-HTML is the human investigation view; JSON is the structured event model. A final failed session can collect diagnostic and clean screenshots, failure details, trace/report output, context, runtime and allowlisted configuration, network summary, component manifest, and a ZIP. Collectors are best effort: evidence failure does not replace the original test failure.
+Structured logging supports in-memory, console, consumer, composite, and text/JSON/HTML export paths. Screenshots are viewport-based by default; bounded opt-in full-page capture scrolls and stitches with WebDriver rather than CDP. A video file can be attached as caller-supplied evidence—Lens does not record video.
 
-Screenshots use the viewport by default. Opt-in full-page capture uses bounded scroll-and-stitch without CDP, keeps the current responsive viewport width, and records completed dimensions/tile count. It does not expand iframe documents or nested scroll containers. Configured [visual redaction](security/visual-redaction.md) protects both viewport and stitched screenshot pixels; video is an attachment to an existing recording and is not modified.
+Failure collectors are best effort and never replace the original test failure. CI or another system still owns artifact retention. Explore [trace](observability/trace.md), [logging](observability/logging.md), [reports](observability/reports.md), [screenshots](observability/screenshots-evidence.md), and [failure bundles](observability/failure-bundles.md).
 
-`ReportUploader` can synchronously stream one completed ZIP after finalization. It supports a bearer token, controlled headers, SHA-256 checksum, deterministic idempotency key, bounded opt-in retry, and direct/system/explicit proxy selection with no-proxy rules. Upload is never implicit and never needs or closes WebDriver:
+### Report delivery and existing reporting stacks
 
-```java
-TestLensFinalizationResult finalized = lens.finishPassed();
+After successful finalization, `ReportUploader` can synchronously stream one completed report ZIP to an explicitly configured HTTP endpoint. Upload is never automatic, does not re-finalize the session, and does not own or close WebDriver. The optional Allure module instead attaches selected finalized Lens artifacts to the active Allure test or step; it does not capture a second screenshot or change Allure status.
 
-ReportUploadOptions uploadOptions = ReportUploadOptions.builder()
-        .endpoint(URI.create("https://reports.example.test/api/test-lens/reports"))
-        .bearerToken(System.getenv("TEST_LENS_REPORT_TOKEN"))
-        .build();
+[Implement explicit report upload](observability/report-upload.md) or [attach evidence to Allure](integrations/allure.md).
 
-new ReportUploader(uploadOptions)
-        .upload(finalized)
-        .requireSuccess();
+### WebDriver BiDi network diagnostics
 
-driver.quit();
-```
+With Selenium Java 4.39.0+, a compatible browser/driver and a BiDi-enabled session, Lens can passively correlate requests, completed responses, redirects, and fetch errors. Immutable snapshots feed waits, assertions, HUD rows, JSON evidence, and failure-bundle summaries. Capture must become active before an empty snapshot can prove that no failures occurred.
 
-The lifecycle ordering is `finish → upload → quit`. Failed uploads leave local evidence unchanged. [Inspect reports](observability/reports.md), [configure failure bundles](observability/failure-bundles.md), [choose screenshot modes](observability/screenshots-evidence.md), and [implement the upload endpoint](observability/report-upload.md).
+This is observation, not interception: Lens does not block, modify, mock, replay, or capture bodies, and it has no CDP fallback. Separately, `apiCallWithModal(...)` displays request/response previews supplied by the caller; it does not discover browser traffic. [Configure network diagnostics and their limits](advanced/network.md).
 
-## Runner integration and ownership
+### Text redaction and screenshot masking
 
-The `TestLens` facade is runner-neutral. In a manual integration, your framework creates and closes the driver; Lens finalization never calls `quit()`.
+`RedactionPolicy.defaults()` protects recognized credentials, sensitive fields, URL components, exception copies, network data, reports, and failure-bundle text before diagnostic fan-out. The original throwable still controls the test result. Rules can add sensitive keys and literal secrets; disabling redaction is an explicit opt-out.
 
-The optional [JUnit 5 extension](integrations/junit5.md) and [TestNG listener](integrations/testng.md) create a driver through your configured factory for each managed invocation, map passed/failed/skipped outcomes, finalize Lens evidence, and close that adapter-owned driver exactly once. Parameterized, repeated, parallel, and runner-retried invocations retain separate session state. Neither adapter uploads reports automatically.
+`VisualRedactionOptions` separately masks configured screenshot regions. Password inputs receive SOLID masking by default, and STRICT mode refuses to publish when a required mask cannot be verified. Blur reduces readability but is not a guarantee of anonymization. Video, unmasked pixels, unknown secret formats, and replayable auth-state files remain outside the text-redaction guarantee.
 
-This lets an existing framework adopt the diagnostic lifecycle without replacing its runner model. [Compare manual, JUnit 5, and TestNG integration](framework-integration.md).
+[Understand text-redaction coverage](security/redaction.md) and [screenshot masking](security/visual-redaction.md).
+
+### Authentication state, test state, and resources
+
+Managed Auth State restores cookie/Web Storage state, validates it through an application callback, and performs at most one login when recreation is justified. Atomic replacement protects the previous file; origin validation prevents mutation in a foreign origin. The file may contain live credentials and must be stored as sensitive material.
+
+Scenario state is typed and isolated to one physical invocation. Suite state is shared only when requested inside one run. Scenario resources perform exactly-once LIFO cleanup across pass, failure, skip, and retry finalization. These are in-memory lifecycle tools, not disk-backed cross-JVM session storage.
+
+[Manage authentication state](advanced/auth-state.md) and [test state/resources](features/managed-test-state.md).
+
+### React and dynamic SPA behavior
+
+The optional `selenium-test-lens-react` artifact re-finds elements across rerenders, recognizes configured and common observable busy/loading DOM states, waits for roots and DOM stability, and supports known React Select markup. It works through observable DOM conventions; it does not inspect the React component tree or promise compatibility with every component library.
+
+[Choose React and SPA helpers deliberately](features/react-spa.md).
+
+### Lifecycle adapters and advanced composition
+
+The main `TestLens` facade is runner-neutral. Manual integration leaves driver creation and `quit()` with the consumer. Optional JUnit 5 and TestNG adapters map invocation outcome, finalize evidence, and close only adapter-owned drivers; parameterized, repeated, DataProvider, parallel, and runner-retried invocations keep separate Lens sessions. Named steps and business assertions can add domain-level structure without replacing the runner.
+
+[Compare manual, JUnit 5, and TestNG lifecycle](framework-integration.md), then see [named steps and business assertions](advanced/steps-business-assertions.md).
+
+## See the result
+
+![A Test Lens HUD showing correlated action and assertion lifecycle rows with target highlights](assets/media/hud-action-assertion-lifecycle.webp){ loading=lazy width=1600 height=900 }
+
+<small>This recorded 0.4.0 example shows the runtime HUD correlating an action and assertions with their terminal status. The HUD is transient; the same session data continues into trace/report output, and a failed finalization can add clean and diagnostic screenshots plus a failure bundle. <a href="demo/hud/">Open the deterministic HUD demo</a> or [inspect persistent report formats](observability/reports.md).</small>
 
 ## Quick start
 
-The latest stable release requires Java 17 or newer. Selenium remains an explicit dependency of the consuming project.
+### I have an existing Selenium project
 
-```xml
-<dependency>
-    <groupId>io.github.test-lens</groupId>
-    <artifactId>selenium-test-lens</artifactId>
-    <version>0.4.0</version>
-</dependency>
-```
+Add the main artifact, keep Selenium explicit, attach Lens to the driver your framework already creates, and finalize the session before the existing driver cleanup. No Page Object rewrite is required for manual lifecycle or explicit native observation.
 
-Attach Lens to the driver your framework already owns, start one session, and finalize it before closing the driver:
+[Install and attach Test Lens](getting-started.md) · [Integrate existing lifecycle and Page Objects](framework-integration.md)
+
+### I want the Lens-native interaction API
+
+Inside an active session, move selected flows to `UiLocator` when scoped queries, polling assertions, Smart Click diagnostics, or recovery evidence reduce your own helper code:
 
 ```java
-WebDriver driver = createExistingFrameworkDriver();
-TestLens lens = TestLens.attach(driver);
-
-try {
-    lens.startSession("checkout");
-    driver.get(applicationUrl);
-
-    lens.getByLabel("Email").fill("person@example.test");
-    lens.getByRole("button", "Continue").click();
-    lens.getByTestId("confirmation").expect().toBeVisible();
-
-    lens.finishPassed();
-} catch (RuntimeException | Error failure) {
-    lens.finishFailed(failure);
-    throw failure;
-} finally {
-    driver.quit();
-}
+lens.getByLabel("Email").fill("person@example.test");
+lens.getByRole("button", "Continue").click();
+lens.getByTestId("confirmation").expect().toBeVisible();
 ```
 
-Finalization is first-writer-wins and exactly once for the session. Concurrent or repeated facade finalizers reuse the same completed result rather than recreating reports, screenshots, network cleanup, or bundles. [Continue with installation and lifecycle](getting-started.md).
+[Learn locators, actions, waits, and assertions](elements/index.md) · [See complete lifecycle examples](examples.md)
 
-## Explore the full surface
+### I want an AI agent to prepare the integration
 
-The homepage highlights the connected workflow rather than treating every helper as an equal product feature. Use the focused guides for complete contracts and edge cases:
+The [AI Integration Builder](ai-assisted-integration.md) creates a version-bound prompt for an external coding agent from your selected runner, browser ownership, diagnostics, and security choices. It is a documentation tool—not an AI model embedded in Test Lens and not a guaranteed automatic installer.
 
-- [Capabilities overview](capabilities.md)
-- [Locators and semantic queries](elements/locators.md)
-- [Interactions and form controls](elements/actions.md)
-- [Assertions](elements/assertions.md)
-- [Waits and application readiness](elements/waiting.md)
-- [Visual diagnostics](observability/visual-diagnostics.md)
-- [Trace and reports](observability/trace.md)
-- [Failure evidence](observability/failure-bundles.md)
-- [WebDriver BiDi network diagnostics](advanced/network.md)
-- [Authentication state](advanced/auth-state.md)
-- [React & SPA resilience](features/react-spa.md)
-- [Browser context helpers](browser-context/index.md)
-- [Select controls](elements/select-controls.md)
-- [Advanced visual and API helpers](advanced/visual-helpers.md)
+## Requirements and optional capabilities
+
+| Surface | Requirement and boundary |
+|---|---|
+| Base library | Java 17+, the `io.github.test-lens:selenium-test-lens:0.4.0` artifact, and Selenium kept as an explicit consumer dependency. Lens attaches to a caller-owned driver. |
+| JUnit 5 / TestNG | Optional published adapter artifacts. Use them only when the adapter should own the configured driver/session lifecycle. |
+| Allure | Optional `selenium-test-lens-allure` artifact and an active Allure lifecycle. It publishes finalized evidence; it is not the evidence collector. |
+| React/SPA | Optional `selenium-test-lens-react` artifact. Detection is based on observable DOM states and known markup conventions. |
+| BiDi network capture | Selenium Java 4.39.0+, a compatible browser/driver/transport, BiDi enabled when creating the session, and explicit capture startup. |
+| Source Navigation | Captured source metadata, an enabled feature, active navigation mode, valid local project mapping, and a supported local provider. |
+| Evidence and upload | Local files remain local unless the consumer or CI stores them, Allure attaches them, or `ReportUploader` explicitly sends a package. |
+
+Selector analysis, compatibility tooling, migration tooling, examples, and browser-test modules exist in the repository but are not published as consumer artifacts in 0.4.0. [See the maintained product capability inventory](maintainers/product-capability-map.md) for the release boundary and evidence behind this overview.
+
+## What's new in 0.4.0
+
+The product overview above describes the complete release. These are selected changes relative to earlier versions:
+
+- Explicit native Selenium observation connects supported ordinary `WebDriver`/`WebElement` calls to semantic diagnostics without changing native execution semantics.
+- Independent browser-execution and `DEFAULT`/`FAST` observability modes make live presentation cost explicit while preserving failure evidence.
+- Semantic operation lifecycles correlate action, wait/retry, assertion, locator, and terminal status across HUD, highlights, reports, and trace.
+- TestNG `PER_CLASS` can reuse an adapter-owned driver for sequential methods while preserving a fresh Lens session per physical invocation.
+- Trace retention, source metadata, bounded Smart Click behavior, network startup diagnostics, and runner lifecycle contracts were strengthened.
+
+[Read the complete 0.4.0 release overview](whats-new-0.4.0.md) · [Read the changelog](https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md)
+
+## Explore the documentation
+
+- [Capabilities and ownership boundaries](capabilities.md)
+- [Elements: locators, actions, waits, assertions, and collections](elements/index.md)
+- [Observability and persistent artifacts](observability/index.md)
+- [Security boundaries](security/redaction.md)
+- [Integrations](integrations/index.md)
 - [Configuration](configuration.md)
-- [Public API catalog](reference/public-api-catalog.md)
-- [Browser integration contracts](browser-integration-tests.md)
+- [Exact public API catalog](reference/public-api-catalog.md)
