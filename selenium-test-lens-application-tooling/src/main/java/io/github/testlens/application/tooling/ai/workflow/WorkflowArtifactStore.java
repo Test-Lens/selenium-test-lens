@@ -14,7 +14,7 @@ import java.util.Set;
 
 /** Bounded host-side store for already-redacted workflow artifacts. It never accepts auth/browser state artifacts. @since 0.5.0 */
 public final class WorkflowArtifactStore {
-    private static final Set<String>ALLOWED=Set.of("request.json","context.json","test-plan.json","implementation-proposal.json","execution-result.json","failure-classification.json","repair-proposal.json","review-result.json","metrics.json");
+    private static final Set<String>ALLOWED=Set.of("request.json","context.json","test-plan.json","implementation-proposal.json","execution-result.json","failure-classification.json","repair-proposal.json","review-result.json","metrics.json","workflow-report.json","workflow-report.txt","agent-receipt.json");
     private final AgentArtifactSecurityGate gate=new AgentArtifactSecurityGate();
     public StoredArtifact store(Path root,String runId,ArtifactDocument artifact,RedactionPolicy redaction,List<String>canaries,Retention retention)throws IOException{
         if(root==null||runId==null||!runId.matches("[A-Za-z0-9._-]{1,96}"))throw new IllegalArgumentException("safe root and runId are required");

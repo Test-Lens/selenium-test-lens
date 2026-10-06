@@ -34,8 +34,34 @@ public interface AgentExecutor {
     enum Role { PLANNER, IMPLEMENTER, FAILURE_CLASSIFIER, REPAIRER, REVIEWER,
         TEST_ARCHITECT, SCENARIO_DESIGNER, TEST_IMPLEMENTER, TEST_VERIFIER, STABILIZER, CODE_REVIEWER, UNIT_TEST_AGENT }
 
+    enum AgentFailureCode {
+        AGENT_NOT_AVAILABLE,
+        AGENT_TIMEOUT,
+        AGENT_PROCESS_FAILED,
+        AGENT_OUTPUT_INVALID,
+        AGENT_CONTEXT_REJECTED
+    }
+
     final class AgentExecutionException extends Exception {
-        public AgentExecutionException(String message) { super(message); }
-        public AgentExecutionException(String message, Throwable cause) { super(message, cause); }
+        private final AgentFailureCode code;
+
+        public AgentExecutionException(String message) {
+            this(AgentFailureCode.AGENT_PROCESS_FAILED, message, null);
+        }
+
+        public AgentExecutionException(String message, Throwable cause) {
+            this(AgentFailureCode.AGENT_PROCESS_FAILED, message, cause);
+        }
+
+        public AgentExecutionException(AgentFailureCode code, String message) {
+            this(code, message, null);
+        }
+
+        public AgentExecutionException(AgentFailureCode code, String message, Throwable cause) {
+            super(message, cause);
+            this.code = java.util.Objects.requireNonNull(code, "code");
+        }
+
+        public AgentFailureCode code() { return code; }
     }
 }
