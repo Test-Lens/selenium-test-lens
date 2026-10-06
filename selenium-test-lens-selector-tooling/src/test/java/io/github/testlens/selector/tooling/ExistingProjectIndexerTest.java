@@ -19,6 +19,8 @@ class ExistingProjectIndexerTest {
         String first = ExistingProjectIndexer.selectorValueFingerprint("private-value");
         assertEquals(first, ExistingProjectIndexer.selectorValueFingerprint("private-value"));
         assertNotEquals(first, ExistingProjectIndexer.selectorValueFingerprint("other-value"));
+        assertEquals(ExistingProjectIndexer.selectorValueFingerprint("[data-testid='login-submit']"),
+                ExistingProjectIndexer.selectorValueFingerprint("[data-testid=\"login-submit\"]"));
         assertTrue(first.matches("sha256:[0-9a-f]{64}"));
         assertThrows(NullPointerException.class, () -> ExistingProjectIndexer.selectorValueFingerprint(null));
     }
@@ -28,12 +30,17 @@ class ExistingProjectIndexerTest {
         Fixture fixture = fixture();
         fixture.source("sample/BasePage.java", """
                 package sample;
-                class BasePage { void open() { navigate(); } void navigate() {} }
+                import org.openqa.selenium.By;
+                class BasePage { By root = By.id("root"); void open() { navigate(); } void navigate() {} }
                 """);
         fixture.source("sample/MenuComponent.java", """
                 package sample;
                 import org.openqa.selenium.By;
                 class MenuComponent { By item = By.cssSelector(".menu-item"); void choose() { use(item); } void use(By by) {} }
+                """);
+        fixture.source("sample/TopNavigation.java", """
+                package sample;
+                class TopNavigation { void openCustomers() {} }
                 """);
         fixture.source("sample/LoginPage.java", """
                 package sample;
@@ -46,6 +53,7 @@ class ExistingProjectIndexerTest {
                     void login() { fill(); submit(); }
                     void fill() { use(email); }
                     void submit() { save.click(); }
+                    void focusRoot() { use(root); }
                     void use(By by) {}
                 }
                 class Lens { UiLocator locator(By by) { return null; } }
@@ -70,9 +78,15 @@ class ExistingProjectIndexerTest {
         assertEquals(Completeness.COMPLETE, index.completeness(), index.limitations().toString());
         assertEquals(ClassClassification.BASE_PAGE, classification(index, "BasePage"));
         assertEquals(ClassClassification.COMPONENT, classification(index, "MenuComponent"));
+        assertEquals(ClassClassification.COMPONENT, classification(index, "TopNavigation"));
         assertEquals(ClassClassification.PAGE_OBJECT, classification(index, "LoginPage"));
+        assertTrue(index.elements().stream().anyMatch(value -> value.name().equals("save")
+                && value.strategy().equals("id")), "UiLocator wrapping By must reuse the same declaration scan");
         assertTrue(index.elements().stream().anyMatch(value -> value.name().equals("email")
                 && value.strategy().equals("id") && value.valueProjection().fingerprint().startsWith("sha256:")));
+        String rootDeclaration=index.elements().stream().filter(value->value.name().equals("root")).findFirst().orElseThrow().declarationRef();
+        String focusRoot=index.methods().stream().filter(value->value.name().equals("focusRoot")).findFirst().orElseThrow().id();
+        assertTrue(index.edges().stream().anyMatch(value->value.type()==EdgeType.METHOD_TO_DECLARATION&&value.fromId().equals(focusRoot)&&value.toId().equals(rootDeclaration)),"Inherited locator use must remain connected to its base declaration");
         assertTrue(index.elements().stream().anyMatch(value -> value.name().equals("save")
                 && value.declarationRef().startsWith("java-decl-v1:")));
         assertEquals(2, index.tests().size());
@@ -87,7 +101,7 @@ class ExistingProjectIndexerTest {
     }
 
     @Test
-    void reportsAmbiguousCallsAndBoundsAsPartialWithoutPersistingSourceOrAbsolutePaths() throws Exception {
+    void reportsUnresolvedScopedCallsAndBoundsAsPartialWithoutPersistingSourceOrAbsolutePaths() throws Exception {
         Fixture fixture = fixture();
         fixture.source("sample/A.java", """
                 package sample; import org.openqa.selenium.By;
@@ -104,7 +118,7 @@ class ExistingProjectIndexerTest {
         String rendered = index.toString();
 
         assertEquals(Completeness.PARTIAL, index.completeness());
-        assertTrue(index.limitations().stream().anyMatch(value -> value.code().equals("AMBIGUOUS_CALL")));
+        assertTrue(index.limitations().stream().anyMatch(value -> value.code().equals("UNRESOLVED_DYNAMIC_CALL")));
         assertTrue(index.limitations().stream().anyMatch(value -> value.code().equals("EDGES_LIMIT")));
         assertFalse(rendered.contains("token=do-not-store"));
         assertFalse(rendered.contains(fixture.root.toAbsolutePath().toString()));

@@ -34,7 +34,11 @@ public final class ExistingProjectIndexer {
     /** Returns the source-safe fingerprint used by {@link ExistingProjectIndex.ValueProjection}. */
     public static String selectorValueFingerprint(String value) {
         Objects.requireNonNull(value, "value");
-        return fingerprint(List.of(value));
+        return fingerprint(List.of(canonicalSelectorValue(value)));
+    }
+
+    private static String canonicalSelectorValue(String value){
+        java.util.regex.Matcher matcher=java.util.regex.Pattern.compile("\\[([A-Za-z_][A-Za-z0-9_.:-]*)='([A-Za-z0-9_.:-]+)'\\]").matcher(value);StringBuilder out=new StringBuilder();while(matcher.find())matcher.appendReplacement(out,java.util.regex.Matcher.quoteReplacement("["+matcher.group(1)+"=\""+matcher.group(2)+"\"]"));matcher.appendTail(out);return out.toString();
     }
 
     public record Bounds(int maxSourceRoots, int maxFiles, int maxDeclarations, int maxTypes,
@@ -98,7 +102,7 @@ public final class ExistingProjectIndexer {
             MethodCollection methodCollection = collectMethods(classIds, limitations);
             List<MethodEntry> methods = new ArrayList<>(methodCollection.entries());
             List<TestEntry> tests = collectTests(methodCollection, limitations);
-            List<Edge> edges = collectEdges(methodCollection, tests, elements, limitations);
+            List<Edge> edges = collectEdges(methodCollection, tests, elements, classes, limitations);
 
             classes.sort(Comparator.comparing(ClassEntry::id));
             elements.sort(Comparator.comparing(ElementEntry::id));
@@ -126,7 +130,8 @@ public final class ExistingProjectIndexer {
             Metrics metrics = new Metrics(selectorIndex.coverage().sourceRootsFound(), selectorIndex.files().size(),
                     Math.min(declarations, bounds.maxDeclarations()), classes.size(), elements.size(), methods.size(),
                     tests.size(), edges.size(), selectorIndex.coverage().filesParsed());
-            return new ExistingProjectIndex(ExistingProjectIndex.SCHEMA_VERSION, fingerprint, classes, elements, methods, tests, edges,
+            List<SourceFile> sourceFiles=units.stream().map(value->new SourceFile(value.logicalPath(),value.contentHash())).sorted(Comparator.comparing(SourceFile::logicalPath)).toList();
+            return new ExistingProjectIndex(ExistingProjectIndex.SCHEMA_VERSION, fingerprint, sourceFiles, classes, elements, methods, tests, edges,
                     partial ? Completeness.PARTIAL : Completeness.COMPLETE, limitations, metrics);
         }
 
@@ -197,8 +202,12 @@ public final class ExistingProjectIndexer {
                             .map(value -> new Parameter(value.getNameAsString(), value.getTypeAsString())).toList();
                     List<String> actions = method.findAll(MethodCallExpr.class).stream()
                             .map(call -> call.getNameAsString()).distinct().sorted().toList();
+                    Set<String> referencedNames = method.findAll(com.github.javaparser.ast.expr.NameExpr.class).stream()
+                            .map(value -> value.getNameAsString()).collect(java.util.stream.Collectors.toSet());
+                    String ownerQualified = owner.getFullyQualifiedName().orElse(null);
                     List<String> declarationRefs = facts.declarations().stream()
-                            .filter(value -> signature.equals(value.declaringSymbol().memberSignature()))
+                            .filter(value -> ownerQualified != null && ownerQualified.equals(value.declaringSymbol().qualifiedTypeName()))
+                            .filter(value -> referencedNames.contains(value.declaringSymbol().memberSignature()))
                             .map(DeclarationRecord::declarationRef).distinct().sorted().toList();
                     List<String> outgoingTypes = method.findAll(MethodCallExpr.class).stream()
                             .map(call -> call.getScope().map(Object::toString).orElse(null))
@@ -231,7 +240,7 @@ public final class ExistingProjectIndexer {
             return result;
         }
 
-        private List<Edge> collectEdges(MethodCollection methods, List<TestEntry> tests, List<ElementEntry> elements,
+        private List<Edge> collectEdges(MethodCollection methods, List<TestEntry> tests, List<ElementEntry> elements,List<ClassEntry> classes,
                                         List<Limitation> limitations) {
             Map<String, List<MethodEntry>> byCall = new HashMap<>();
             methods.entries().forEach(method -> byCall.computeIfAbsent(method.name() + "/" + method.parameters().size(),
@@ -240,15 +249,26 @@ public final class ExistingProjectIndexer {
             tests.forEach(test -> testsByMethod.put(test.methodId(), test));
             Map<String, List<ElementEntry>> elementsByName = new HashMap<>();
             elements.forEach(element -> elementsByName.computeIfAbsent(element.name(), ignored -> new ArrayList<>()).add(element));
+            Map<String,ClassEntry>classesById=classes.stream().collect(java.util.stream.Collectors.toMap(ClassEntry::id,value->value));
+            Map<String,String>classIdsByName=new HashMap<>();classes.forEach(value->{classIdsByName.put(value.qualifiedName(),value.id());classIdsByName.putIfAbsent(value.simpleName(),value.id());});
             LinkedHashMap<String, Edge> result = new LinkedHashMap<>();
             for (MethodDraft source : methods.drafts()) {
+                Set<String>allowedOwners=ownerHierarchy(source.entry().ownerClassId(),classesById,classIdsByName);
                 for (MethodCallExpr call : source.node().findAll(MethodCallExpr.class)) {
                     String callKey = call.getNameAsString() + "/" + call.getArguments().size();
                     List<MethodEntry> targets = byCall.getOrDefault(callKey, List.of());
                     if (call.getScope().isEmpty()) {
-                        List<MethodEntry> sameOwner = targets.stream().filter(value ->
-                                value.ownerClassId().equals(source.entry().ownerClassId())).toList();
-                        if (!sameOwner.isEmpty()) targets = sameOwner;
+                        targets = targets.stream().filter(value -> allowedOwners.contains(value.ownerClassId())).toList();
+                    } else {
+                        try {
+                            String ownerName = call.resolve().declaringType().getQualifiedName();
+                            String resolvedOwner = classIdsByName.get(ownerName);
+                            targets = resolvedOwner == null ? List.of() : targets.stream()
+                                    .filter(value -> value.ownerClassId().equals(resolvedOwner)).toList();
+                        } catch (RuntimeException unresolved) {
+                            limitations.add(new Limitation("UNRESOLVED_DYNAMIC_CALL", source.logicalPath(), callKey));
+                            continue;
+                        }
                     }
                     if (targets.size() == 1) {
                         EdgeType type = testsByMethod.containsKey(source.entry().id())
@@ -265,7 +285,7 @@ public final class ExistingProjectIndexer {
                         .map(value -> value.getNameAsString()).collect(java.util.stream.Collectors.toSet());
                 for (String name : names) {
                     for (ElementEntry element : elementsByName.getOrDefault(name, List.of())) {
-                        if (element.ownerClassId().equals(source.entry().ownerClassId())) {
+                        if (allowedOwners.contains(element.ownerClassId())) {
                             addEdge(result, EdgeType.METHOD_TO_DECLARATION, source.entry().id(),
                                     element.declarationRef(), limitations, source.logicalPath(), name);
                         }
@@ -278,6 +298,8 @@ public final class ExistingProjectIndexer {
             }
             return new ArrayList<>(result.values());
         }
+
+        private Set<String> ownerHierarchy(String ownerId,Map<String,ClassEntry>classesById,Map<String,String>classIdsByName){Set<String>result=new LinkedHashSet<>();java.util.ArrayDeque<String>queue=new java.util.ArrayDeque<>();queue.add(ownerId);while(!queue.isEmpty()&&result.size()<=classesById.size()){String current=queue.removeFirst();if(!result.add(current))continue;ClassEntry entry=classesById.get(current);if(entry==null)continue;for(String parent:entry.extendsTypes()){String parentId=classIdsByName.get(parent);if(parentId==null&&parent.contains("."))parentId=classIdsByName.get(parent.substring(parent.lastIndexOf('.')+1));if(parentId!=null)queue.addLast(parentId);}}return result;}
 
         private void addEdge(Map<String, Edge> edges, EdgeType type, String from, String to,
                              List<Limitation> limitations, String path, String subject) {
@@ -296,7 +318,8 @@ public final class ExistingProjectIndexer {
             String lower = type.getNameAsString().toLowerCase(Locale.ROOT);
             if (lower.contains("basepage"))
                 return ClassClassification.BASE_PAGE;
-            if (lower.contains("component") || lower.contains("widget") || lower.contains("fragment"))
+            if (lower.contains("component") || lower.contains("widget") || lower.contains("fragment")
+                    || lower.contains("navigation") || lower.endsWith("menu"))
                 return ClassClassification.COMPONENT;
             if (lower.contains("helper") || lower.contains("util")) return ClassClassification.TEST_HELPER;
             if (lower.endsWith("page") || declarations.stream().anyMatch(value ->
@@ -306,7 +329,7 @@ public final class ExistingProjectIndexer {
 
         private Origin origin(TypeDeclaration<?> type) {
             String name = type.getNameAsString().toLowerCase(Locale.ROOT);
-            if (name.endsWith("generatedbase") || name.startsWith("generatedbase")) return Origin.GENERATED_BASE;
+            if (name.endsWith("generatedbase") || name.startsWith("generated")) return Origin.GENERATED_BASE;
             if (name.endsWith("generated") || name.endsWith("extension")) return Origin.GENERATED_EXTENSION;
             return Origin.HAND_WRITTEN;
         }
@@ -315,13 +338,15 @@ public final class ExistingProjectIndexer {
             String name = method.getNameAsString().toLowerCase(Locale.ROOT);
             if (name.startsWith("assert") || actions.stream().anyMatch(value -> value.toLowerCase(Locale.ROOT).startsWith("assert")))
                 return MethodClassification.ASSERTION;
-            if (name.startsWith("open") || name.startsWith("goto") || name.startsWith("navigate"))
+            if (name.startsWith("open") || name.startsWith("goto") || name.startsWith("navigate")
+                    || (!method.getType().isVoidType() && method.getTypeAsString().endsWith("Page")
+                    && actions.stream().anyMatch(value -> value.equals("click"))))
                 return MethodClassification.NAVIGATION;
-            if (name.startsWith("get") || name.startsWith("is") || name.startsWith("has") || !method.getType().isVoidType())
-                return MethodClassification.QUERY;
             if (actions.stream().anyMatch(value -> Set.of("click", "sendKeys", "clear", "select").contains(value)))
                 return MethodClassification.ACTION;
             if (actions.size() > 1) return MethodClassification.WORKFLOW;
+            if (name.startsWith("get") || name.startsWith("is") || name.startsWith("has") || !method.getType().isVoidType())
+                return MethodClassification.QUERY;
             if (method.isStatic()) return MethodClassification.UTILITY;
             return MethodClassification.UNKNOWN;
         }

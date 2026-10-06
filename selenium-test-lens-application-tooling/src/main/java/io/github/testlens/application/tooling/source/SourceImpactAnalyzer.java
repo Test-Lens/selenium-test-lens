@@ -11,7 +11,7 @@ import java.util.Set;
 public final class SourceImpactAnalyzer {
     public SourceImpact analyze(String applicationElementId,PageObjectCorrelation correlation,ExistingProjectIndex index,int maxEdges){
         if(maxEdges<1)throw new IllegalArgumentException("maxEdges must be positive");
-        Set<String>declarations=new HashSet<>();correlation.elements().stream().filter(value->applicationElementId.equals(value.applicationElementId())&&value.sourceDeclarationRef()!=null&&value.state()!=PageObjectCorrelation.State.AMBIGUOUS&&value.state()!=PageObjectCorrelation.State.CONFLICT).forEach(value->declarations.add(value.sourceDeclarationRef()));
+        Set<String>declarations=new HashSet<>();correlation.elements().stream().filter(value->applicationElementId.equals(value.applicationElementId())&&value.sourceDeclarationRef()!=null&&(value.state()==PageObjectCorrelation.State.EXACT||value.state()==PageObjectCorrelation.State.STRONG)).forEach(value->declarations.add(value.sourceDeclarationRef()));
         Set<String>methods=new HashSet<>();index.methods().stream().filter(value->value.declarationRefs().stream().anyMatch(declarations::contains)).forEach(value->methods.add(value.id()));
         index.edges().stream().filter(edge->edge.type()==ExistingProjectIndex.EdgeType.METHOD_TO_DECLARATION&&declarations.contains(edge.toId())).forEach(edge->methods.add(edge.fromId()));
         ArrayDeque<String>queue=new ArrayDeque<>(methods);int traversed=0;boolean truncated=false;

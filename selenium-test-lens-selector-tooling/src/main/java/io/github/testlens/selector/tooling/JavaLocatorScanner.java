@@ -339,13 +339,24 @@ final class JavaLocatorScanner {
                 limits, issues, candidates));
 
         unit.findAll(VariableDeclarator.class).forEach(variable -> {
-            if (variable.getInitializer().isEmpty() || !looksLikeByType(variable.getTypeAsString())) return;
+            if (variable.getInitializer().isEmpty() || (!looksLikeByType(variable.getTypeAsString()) && !looksLikeUiLocatorType(variable.getTypeAsString()))) return;
             Expression initializer = variable.getInitializer().orElseThrow();
             Optional<MethodCallExpr> rootCall = directRootCall(initializer);
-            if (rootCall.isEmpty()) return;
-            MethodCallExpr call = rootCall.orElseThrow();
+            MethodCallExpr call;
+            if (looksLikeUiLocatorType(variable.getTypeAsString())) {
+                call = rootCall.filter(value -> analyzeCall(value, unit, limits, new ArrayList<>(), logicalPath) != null)
+                        .orElseGet(() -> initializer.findAll(MethodCallExpr.class).stream()
+                                .filter(value -> analyzeCall(value, unit, limits, new ArrayList<>(), logicalPath) != null)
+                                .findFirst().orElse(null));
+            } else {
+                // A By declaration may intentionally be produced by a custom helper. Keep the root
+                // declaration as its identity; only UiLocator wrappers project their nested Selenium By.
+                call = rootCall.orElse(null);
+            }
+            if (call == null) return;
             DeclarationKind kind = variable.findAncestor(FieldDeclaration.class).isPresent()
-                    ? DeclarationKind.BY_FIELD : DeclarationKind.BY_LOCAL;
+                    ? (looksLikeByType(variable.getTypeAsString()) ? DeclarationKind.BY_FIELD : DeclarationKind.CUSTOM)
+                    : (looksLikeByType(variable.getTypeAsString()) ? DeclarationKind.BY_LOCAL : DeclarationKind.CUSTOM);
             Analysis analysis = analyzeCall(call, unit, limits, issues, logicalPath);
             if (analysis == null) analysis = customAnalysis(call);
             initializer.findAll(MethodCallExpr.class).forEach(ownedCalls::add);
@@ -808,6 +819,10 @@ final class JavaLocatorScanner {
 
     private boolean looksLikeByType(String type) {
         return type.equals("By") || type.equals("org.openqa.selenium.By") || type.endsWith(".By");
+    }
+
+    private boolean looksLikeUiLocatorType(String type) {
+        return type.equals("UiLocator") || type.endsWith(".UiLocator");
     }
 
     private boolean isGeneratedRoot(Path path) {

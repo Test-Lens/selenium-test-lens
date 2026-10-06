@@ -53,16 +53,19 @@ public final class PageObjectCorrelator {
             Match winner=winners.get(0); List<PageObjectCorrelation.Evidence> evidence=new ArrayList<>(winner.evidence());
             if(pageOverrideMatches(effectiveOverrides,winner.element().ownerClassId(),page.pageId()))evidence.add(PageObjectCorrelation.Evidence.USER_OVERRIDE);
             PageObjectCorrelation.State state=evidence.contains(PageObjectCorrelation.Evidence.USER_OVERRIDE)?PageObjectCorrelation.State.EXACT:
-                    evidence.contains(PageObjectCorrelation.Evidence.SAME_PAGE_IDENTITY)?PageObjectCorrelation.State.STRONG:PageObjectCorrelation.State.PROBABLE;
+                    evidence.contains(PageObjectCorrelation.Evidence.SAME_PAGE_IDENTITY)||(evidence.contains(PageObjectCorrelation.Evidence.NORMALIZED_SELECTOR_MATCH)&&evidence.contains(PageObjectCorrelation.Evidence.LIVE_SAME_TARGET))?PageObjectCorrelation.State.STRONG:PageObjectCorrelation.State.PROBABLE;
             results.add(result(page,element,winner.element(),state,evidence,List.of())); count(pageClassMatches,page.pageId(),winner.element().ownerClassId());
         }
         List<PageObjectCorrelation.ClassCorrelation> classResults=new ArrayList<>();
         for(var page:application.pages()) for(var entry:pageClassMatches.getOrDefault(page.pageId(),Map.of()).entrySet()) {
             List<PageObjectCorrelation.Evidence> evidence=new ArrayList<>(); var owner=classes.get(entry.getKey());
             if(owner!=null&&samePageName(page,owner))evidence.add(PageObjectCorrelation.Evidence.SAME_PAGE_IDENTITY);
+            List<PageObjectCorrelation.ElementCorrelation> strongElements=results.stream().filter(value->value.pageId().equals(page.pageId())&&value.sourceElementId()!=null).filter(value->{var sourceElement=sourceElements.get(value.sourceElementId());return sourceElement!=null&&sourceElement.ownerClassId().equals(entry.getKey())&&(value.state()==PageObjectCorrelation.State.STRONG||value.state()==PageObjectCorrelation.State.EXACT);}).toList();
+            boolean hasStrongElement=!strongElements.isEmpty();
+            strongElements.stream().flatMap(value->value.evidence().stream()).distinct().forEach(evidence::add);
             if(pageOverrideMatches(effectiveOverrides,entry.getKey(),page.pageId()))evidence.add(PageObjectCorrelation.Evidence.USER_OVERRIDE);
             PageObjectCorrelation.State state=evidence.contains(PageObjectCorrelation.Evidence.USER_OVERRIDE)?PageObjectCorrelation.State.EXACT:
-                    evidence.contains(PageObjectCorrelation.Evidence.SAME_PAGE_IDENTITY)?PageObjectCorrelation.State.STRONG:PageObjectCorrelation.State.PROBABLE;
+                    evidence.contains(PageObjectCorrelation.Evidence.SAME_PAGE_IDENTITY)||hasStrongElement?PageObjectCorrelation.State.STRONG:PageObjectCorrelation.State.PROBABLE;
             classResults.add(new PageObjectCorrelation.ClassCorrelation(page.pageId(),entry.getKey(),state,evidence,List.of(),List.of()));
         }
         for(var override:effectiveOverrides.classToPage().entrySet()) if(!classes.containsKey(override.getKey())||!pages.containsKey(override.getValue()))

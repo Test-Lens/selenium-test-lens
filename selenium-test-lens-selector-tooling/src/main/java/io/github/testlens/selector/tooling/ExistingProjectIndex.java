@@ -12,6 +12,7 @@ import java.util.Comparator;
 public record ExistingProjectIndex(
         int schemaVersion,
         String projectFingerprint,
+        List<SourceFile> sourceFiles,
         List<ClassEntry> classes,
         List<ElementEntry> elements,
         List<MethodEntry> methods,
@@ -23,7 +24,10 @@ public record ExistingProjectIndex(
 
     public static final int SCHEMA_VERSION = 1;
 
+    public ExistingProjectIndex(int schemaVersion,String projectFingerprint,List<ClassEntry>classes,List<ElementEntry>elements,List<MethodEntry>methods,List<TestEntry>tests,List<Edge>edges,Completeness completeness,List<Limitation>limitations,Metrics metrics){this(schemaVersion,projectFingerprint,List.of(),classes,elements,methods,tests,edges,completeness,limitations,metrics);}
+
     public ExistingProjectIndex {
+        sourceFiles = canonical(sourceFiles, Comparator.comparing(SourceFile::logicalPath));
         classes = canonical(classes, Comparator.comparing(ClassEntry::id));
         elements = canonical(elements, Comparator.comparing(ElementEntry::id));
         methods = canonical(methods, Comparator.comparing(MethodEntry::id));
@@ -38,6 +42,9 @@ public record ExistingProjectIndex(
     public enum TestFramework { JUNIT5, TESTNG, UNKNOWN }
     public enum EdgeType { TEST_TO_METHOD, METHOD_TO_METHOD, METHOD_TO_DECLARATION }
     public enum Completeness { COMPLETE, PARTIAL }
+
+    /** Content-addressed file identity used for future changed-file re-indexing; it never contains source text. */
+    public record SourceFile(String logicalPath,String contentFingerprint) { }
 
     public record ClassEntry(String id, String logicalPath, String qualifiedName, String simpleName,
                              ClassClassification classification, Origin origin, List<String> extendsTypes) {

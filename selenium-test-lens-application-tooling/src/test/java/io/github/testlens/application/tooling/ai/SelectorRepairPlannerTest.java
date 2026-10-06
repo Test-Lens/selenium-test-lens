@@ -38,6 +38,8 @@ class SelectorRepairPlannerTest {
 
         assertThrows(IllegalArgumentException.class, () -> planner.propose("repair", selectorFailure(), before, live,
                 correlation(PageObjectCorrelation.State.AMBIGUOUS), impact(), "classification", "drift"));
+        assertThrows(IllegalArgumentException.class, () -> planner.propose("repair", selectorFailure(), before, live,
+                correlation(PageObjectCorrelation.State.PROBABLE), impact(), "classification", "drift"));
         assertThrows(IllegalArgumentException.class, () -> planner.propose("repair", selectorFailure(), before, inferred,
                 correlation(PageObjectCorrelation.State.EXACT), impact(), "classification", "drift"));
     }

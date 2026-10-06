@@ -39,6 +39,26 @@ class SourceImpactAnalyzerTest {
         assertEquals(List.of(), impact.limitations());
     }
 
+    @Test
+    void excludesProbableCorrelationsFromSourceImpact() {
+        ExistingProjectIndex index = new ExistingProjectIndex(1, "project", List.of(), List.of(),
+                List.of(method("method-login", List.of("decl-login"))), List.of(), List.of(),
+                ExistingProjectIndex.Completeness.COMPLETE, List.of(),
+                new ExistingProjectIndex.Metrics(1, 1, 1, 0, 0, 1, 0, 0, 1));
+        PageObjectCorrelation correlation = new PageObjectCorrelation(1, List.of(), List.of(
+                new PageObjectCorrelation.ElementCorrelation("LOGIN", "LOGIN_SUBMIT", "source-login", "decl-login",
+                        PageObjectCorrelation.State.PROBABLE,
+                        List.of(PageObjectCorrelation.Evidence.NORMALIZED_SELECTOR_MATCH), List.of(), List.of())
+        ), PageObjectCorrelation.Completeness.COMPLETE, List.of(),
+                new PageObjectCorrelation.Metrics(1, 1, 0, 0, 0, 1, 0, 0, 0));
+
+        SourceImpact impact = new SourceImpactAnalyzer().analyze("LOGIN_SUBMIT", correlation, index, 20);
+
+        assertEquals(List.of(), impact.sourceDeclarationRefs());
+        assertEquals(List.of(), impact.methodIds());
+        assertEquals(List.of(), impact.testIds());
+    }
+
     private static ExistingProjectIndex.MethodEntry method(String id, List<String> declarations) {
         return new ExistingProjectIndex.MethodEntry(id, "class-login", id, id + "()", List.of(), "void",
                 List.of(), declarations, List.of(), ExistingProjectIndex.MethodClassification.ACTION);
