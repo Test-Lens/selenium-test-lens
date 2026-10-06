@@ -32,9 +32,11 @@ class TargetedJavaCompilerTest {
     }
 
     @Test void scriptedExecutorIsDeterministicAndBounded() throws Exception {
-        ScriptedAgentExecutor executor = new ScriptedAgentExecutor(List.of(new AgentExecutor.AgentResult("one", "payload")));
-        var command = new AgentExecutor.AgentCommand("run", AgentExecutor.Role.PLANNER, List.of(), Map.of());
-        assertEquals("payload", executor.execute(command).payload());
+        var payload = new PageObjectCapabilityMissing("LOGIN", "clearUsername", "API is absent");
+        var artifact = ArtifactEnvelope.create("missing", "run", List.of(), 1, payload);
+        ScriptedAgentExecutor executor = new ScriptedAgentExecutor(List.of(new AgentExecutor.AgentResult("one", artifact)));
+        var command = new AgentExecutor.AgentCommand("run", AgentExecutor.Role.IMPLEMENTER, List.of(), Map.of());
+        assertEquals(payload, executor.execute(command).artifact().payload());
         assertEquals(0, executor.remaining());
         assertThrows(AgentExecutor.AgentExecutionException.class, () -> executor.execute(command));
     }

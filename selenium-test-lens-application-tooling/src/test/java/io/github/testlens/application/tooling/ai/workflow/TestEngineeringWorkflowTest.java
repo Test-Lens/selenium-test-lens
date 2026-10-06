@@ -1,7 +1,13 @@
 package io.github.testlens.application.tooling.ai.workflow;
 
 import io.github.testlens.application.tooling.ai.ContractHeader;
+import io.github.testlens.application.tooling.ai.CodeReviewResult;
+import io.github.testlens.application.tooling.ai.FailureClassification;
 import io.github.testlens.application.tooling.ai.RepairProposal;
+import io.github.testlens.application.tooling.ai.TestExecutionResult;
+import io.github.testlens.application.tooling.ai.TestImplementationProposal;
+import io.github.testlens.application.tooling.ai.TestPlan;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
@@ -18,16 +24,16 @@ class TestEngineeringWorkflowTest {
         TestEngineeringRun run = TestEngineeringRun.create("run-1", request());
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.PREPARE_CONTEXT));
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.REQUEST_PLAN));
-        ArtifactEnvelope<String> plan = ArtifactEnvelope.create("plan", "run-1", List.of(), 1, "plan payload");
+        ArtifactEnvelope<TestPlan> plan = ArtifactEnvelope.create("plan", "run-1", List.of(), 1, plan());
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.PLAN_PRODUCED, plan));
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.REQUEST_IMPLEMENTATION));
-        ArtifactEnvelope<String> implementation = ArtifactEnvelope.create("implementation", "run-1", List.of("plan"), 1, "source patch");
+        ArtifactEnvelope<TestImplementationProposal> implementation = ArtifactEnvelope.create("implementation", "run-1", List.of("plan"), 1, implementation());
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.IMPLEMENTATION_PRODUCED, implementation));
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.COMPILE_SUCCEEDED));
-        ArtifactEnvelope<String> execution = ArtifactEnvelope.create("execution", "run-1", List.of("implementation"), 1, "passed");
+        ArtifactEnvelope<TestExecutionResult> execution = ArtifactEnvelope.create("execution", "run-1", List.of("implementation"), 1, execution(TestExecutionResult.Outcome.PASS));
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.EXECUTION_SUCCEEDED, execution));
         assertEquals(TestEngineeringRun.State.REVIEW_REQUESTED, run.state());
-        ArtifactEnvelope<String> review = ArtifactEnvelope.create("review", "run-1", List.of("execution"), 1, "approved");
+        ArtifactEnvelope<CodeReviewResult> review = ArtifactEnvelope.create("review", "run-1", List.of("execution"), 1, review(CodeReviewResult.Verdict.APPROVE));
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.REVIEW_APPROVED, review));
 
         assertEquals(TestEngineeringRun.State.SUCCESS, run.state());
@@ -43,7 +49,7 @@ class TestEngineeringWorkflowTest {
                 new TestEngineeringRun.Metrics(0, 0, 0, 0, 0, 0), List.of(), null);
         TestEngineeringWorkflow.Event transition = event == TestEngineeringWorkflow.EventType.EXECUTION_SUCCEEDED
                 ? TestEngineeringWorkflow.Event.withArtifact(event,
-                    ArtifactEnvelope.create("event", "run-1", List.of(), 1, "payload"))
+                    ArtifactEnvelope.create("event", "run-1", List.of(), 1, execution(TestExecutionResult.Outcome.PASS)))
                 : TestEngineeringWorkflow.Event.of(event);
         assertThrows(IllegalStateException.class, () -> workflow.reduce(run, transition));
     }
@@ -80,25 +86,28 @@ class TestEngineeringWorkflowTest {
 
     @Test void rejectsCrossRunUnknownParentAndDigestMismatch() {
         TestEngineeringRun requested = atPlanRequested();
-        ArtifactEnvelope<String> otherRun = ArtifactEnvelope.create("plan", "other", List.of(), 1, "payload");
+        ArtifactEnvelope<TestPlan> otherRun = ArtifactEnvelope.create("plan", "other", List.of(), 1, plan());
         assertThrows(IllegalArgumentException.class, () -> workflow.reduce(requested,
                 TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.PLAN_PRODUCED, otherRun)));
-        ArtifactEnvelope<String> unknownParent = ArtifactEnvelope.create("plan", "run-1", List.of("missing"), 1, "payload");
+        ArtifactEnvelope<TestPlan> unknownParent = ArtifactEnvelope.create("plan", "run-1", List.of("missing"), 1, plan());
         assertThrows(IllegalArgumentException.class, () -> workflow.reduce(requested,
                 TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.PLAN_PRODUCED, unknownParent)));
         assertThrows(IllegalArgumentException.class,
-                () -> new ArtifactEnvelope<>("id", "run-1", List.of(), 1, "wrong", "payload"));
+                () -> new ArtifactEnvelope<>("id", "run-1", List.of(), 1, "wrong", plan()));
     }
 
     @Test void compileFailureCannotExecuteAndCorrectionBoundRequiresHumanReview() {
         TestEngineeringWorkflow bounded = new TestEngineeringWorkflow(new WorkflowPolicy(0, 1, 1, 20, 50));
         TestEngineeringRun run = readyToCompile(bounded);
-        ArtifactEnvelope<String> diagnostic = ArtifactEnvelope.create("compile-1", "run-1", List.of("implementation"), 1, "does not compile");
+        var failedCompilation = new TargetedJavaCompiler().compile(new TargetedJavaCompiler.CompilationRequest(
+                List.of(new TargetedJavaCompiler.SourceUnit(java.nio.file.Path.of("Broken.java"), "Broken", "class Broken {", ArtifactEnvelope.digest(""))),
+                17, System.getProperty("java.class.path"), 10), java.util.Map.of());
+        ArtifactEnvelope<TargetedJavaCompiler.CompilationResult> diagnostic = ArtifactEnvelope.create("compile-1", "run-1", List.of("implementation"), 1, failedCompilation);
         run = bounded.reduce(run, TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.COMPILE_FAILED, diagnostic));
         TestEngineeringRun failed = run;
         assertThrows(IllegalStateException.class, () -> bounded.reduce(failed,
                 TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.EXECUTION_SUCCEEDED,
-                        ArtifactEnvelope.create("exec", "run-1", List.of("compile-1"), 1, "impossible"))));
+                        ArtifactEnvelope.create("exec", "run-1", List.of("compile-1"), 1, execution(TestExecutionResult.Outcome.PASS)))));
         run = bounded.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.REQUEST_CORRECTION));
         assertEquals(TestEngineeringRun.State.NEEDS_HUMAN_REVIEW, run.state());
         assertEquals(0, run.metrics().corrections());
@@ -107,9 +116,9 @@ class TestEngineeringWorkflowTest {
     @Test void repairRequiresExplicitTrustedApplyMarkerBeforeRerun() {
         TestEngineeringRun run = readyToCompile(workflow);
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.COMPILE_SUCCEEDED));
-        ArtifactEnvelope<String> failed = ArtifactEnvelope.create("execution", "run-1", List.of("implementation"), 1, "failed");
+        ArtifactEnvelope<TestExecutionResult> failed = ArtifactEnvelope.create("execution", "run-1", List.of("implementation"), 1, execution(TestExecutionResult.Outcome.FAIL));
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.EXECUTION_FAILED, failed));
-        ArtifactEnvelope<String> classification = ArtifactEnvelope.create("classification", "run-1", List.of("execution"), 1, "runtime");
+        ArtifactEnvelope<FailureClassification> classification = ArtifactEnvelope.create("classification", "run-1", List.of("execution"), 1, classification());
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.CLASSIFY_FAILURE, classification));
         RepairProposal proposal = new RepairProposal(
                 new ContractHeader(ContractHeader.SCHEMA_VERSION, ContractHeader.Status.READY,
@@ -152,7 +161,7 @@ class TestEngineeringWorkflowTest {
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.PREPARE_CONTEXT));
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.REQUEST_PLAN));
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.PLAN_PRODUCED,
-                ArtifactEnvelope.create("plan", "run-1", List.of(), 1, "plan")));
+                ArtifactEnvelope.create("plan", "run-1", List.of(), 1, plan())));
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.REQUEST_IMPLEMENTATION));
         PageObjectExtensionProposal proposal = new PageObjectExtensionProposal(
                 new PageObjectCapabilityMissing("login", "submit", "no submit method"),
@@ -160,6 +169,44 @@ class TestEngineeringWorkflowTest {
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.CAPABILITY_MISSING,
                 ArtifactEnvelope.create("capability", "run-1", List.of("plan"), 1, proposal)));
         assertEquals(TestEngineeringRun.State.BLOCKED, run.state());
+    }
+
+    @Test void rejectsWrongPayloadAndReviewVerdictInsteadOfAdvancingState() {
+        TestEngineeringRun requested = atPlanRequested();
+        assertThrows(IllegalArgumentException.class, () -> workflow.reduce(requested,
+                TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.PLAN_PRODUCED,
+                        ArtifactEnvelope.create("wrong", "run-1", List.of(), 1, implementation()))));
+
+        TestEngineeringRun reviewRequested = readyToCompile(workflow);
+        reviewRequested = workflow.reduce(reviewRequested, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.COMPILE_SUCCEEDED));
+        reviewRequested = workflow.reduce(reviewRequested, TestEngineeringWorkflow.Event.withArtifact(
+                TestEngineeringWorkflow.EventType.EXECUTION_SUCCEEDED,
+                ArtifactEnvelope.create("execution", "run-1", List.of("implementation"), 1,
+                        execution(TestExecutionResult.Outcome.PASS))));
+        TestEngineeringRun finalReviewRequested = reviewRequested;
+        assertThrows(IllegalArgumentException.class, () -> workflow.reduce(finalReviewRequested,
+                TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.REVIEW_APPROVED,
+                        ArtifactEnvelope.create("review", "run-1", List.of("execution"), 1,
+                                review(CodeReviewResult.Verdict.REQUEST_CHANGES)))));
+    }
+
+    @Test void rejectsSecretCanaryBeforeArtifactEntersWorkflowRun() {
+        TestEngineeringWorkflow secured = new TestEngineeringWorkflow(WorkflowPolicy.defaults(),
+                RedactionPolicy.defaults(), List.of("real-password-value"));
+        TestEngineeringRun run = TestEngineeringRun.create("run-1", request());
+        run = secured.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.PREPARE_CONTEXT));
+        run = secured.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.REQUEST_PLAN));
+        run = secured.reduce(run, TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.PLAN_PRODUCED,
+                ArtifactEnvelope.create("plan", "run-1", List.of(), 1, plan())));
+        run = secured.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.REQUEST_IMPLEMENTATION));
+        TestEngineeringRun requested = run;
+        TestImplementationProposal unsafe = new TestImplementationProposal(ready(), "scenario",
+                "page.loginAs(\"user\", \"real-password-value\");",
+                TestImplementationProposal.SelectorAccessPolicy.PAGE_OBJECTS_ONLY, List.of(), List.of());
+        assertThrows(SecurityException.class, () -> secured.reduce(requested,
+                TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.IMPLEMENTATION_PRODUCED,
+                        ArtifactEnvelope.create("unsafe", "run-1", List.of("plan"), 1, unsafe))));
+        assertEquals(1, requested.artifacts().size());
     }
 
     private TestEngineeringRun atPlanRequested() {
@@ -173,10 +220,10 @@ class TestEngineeringWorkflowTest {
         run = reducer.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.PREPARE_CONTEXT));
         run = reducer.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.REQUEST_PLAN));
         run = reducer.reduce(run, TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.PLAN_PRODUCED,
-                ArtifactEnvelope.create("plan", "run-1", List.of(), 1, "plan")));
+                ArtifactEnvelope.create("plan", "run-1", List.of(), 1, plan())));
         run = reducer.reduce(run, TestEngineeringWorkflow.Event.of(TestEngineeringWorkflow.EventType.REQUEST_IMPLEMENTATION));
         return reducer.reduce(run, TestEngineeringWorkflow.Event.withArtifact(TestEngineeringWorkflow.EventType.IMPLEMENTATION_PRODUCED,
-                ArtifactEnvelope.create("implementation", "run-1", List.of("plan"), 1, "source")));
+                ArtifactEnvelope.create("implementation", "run-1", List.of("plan"), 1, implementation())));
     }
 
     private static TestEngineeringRequest request() {
@@ -186,5 +233,31 @@ class TestEngineeringWorkflowTest {
                 new TestEngineeringRequest.Framework("JUnit", "5", "junit-jupiter"),
                 new TestEngineeringRequest.Target("app", "LoginTest", "login"),
                 List.of("src/test/java"), TestEngineeringRequest.ExecutionPolicy.TARGETED_AFTER_COMPILE);
+    }
+
+    private static ContractHeader ready() {
+        return new ContractHeader(ContractHeader.SCHEMA_VERSION, ContractHeader.Status.READY,
+                List.of("test"), List.of(), ContractHeader.Confidence.OBSERVED);
+    }
+
+    private static TestPlan plan() { return new TestPlan(ready(), List.of()); }
+
+    private static TestImplementationProposal implementation() {
+        return new TestImplementationProposal(ready(), "scenario", "final class GeneratedTest {}",
+                TestImplementationProposal.SelectorAccessPolicy.PAGE_OBJECTS_ONLY, List.of(), List.of());
+    }
+
+    private static TestExecutionResult execution(TestExecutionResult.Outcome outcome) {
+        return new TestExecutionResult(ready(), "scenario", TestExecutionResult.Outcome.PASS, outcome,
+                List.of("trace"), List.of(), List.of(), outcome == TestExecutionResult.Outcome.FAIL ? "failed" : null);
+    }
+
+    private static FailureClassification classification() {
+        return new FailureClassification(ready(), FailureClassification.Category.UNKNOWN, "unknown",
+                List.of("trace"), List.of(), List.of());
+    }
+
+    private static CodeReviewResult review(CodeReviewResult.Verdict verdict) {
+        return new CodeReviewResult(ready(), verdict, List.of("implementation"), List.of());
     }
 }

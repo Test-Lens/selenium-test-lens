@@ -1,6 +1,13 @@
 package io.github.testlens.application.tooling.ai.workflow;
 
 import io.github.testlens.application.tooling.ai.RepairProposal;
+import io.github.testlens.application.tooling.ai.CodeReviewResult;
+import io.github.testlens.application.tooling.ai.FailureClassification;
+import io.github.testlens.application.tooling.ai.TestExecutionResult;
+import io.github.testlens.application.tooling.ai.TestImplementationProposal;
+import io.github.testlens.application.tooling.ai.TestPlan;
+import io.github.testlens.application.tooling.ai.security.AgentArtifactSecurityGate;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -14,8 +21,16 @@ import static io.github.testlens.application.tooling.ai.workflow.TestEngineering
 public final class TestEngineeringWorkflow {
     private static final Map<State, EnumSet<EventType>> LEGAL = legalTransitions();
     private final WorkflowPolicy policy;
+    private final RedactionPolicy redaction;
+    private final List<String> secretCanaries;
+    private final AgentArtifactSecurityGate securityGate = new AgentArtifactSecurityGate();
 
-    public TestEngineeringWorkflow(WorkflowPolicy policy) { this.policy = Objects.requireNonNull(policy, "policy"); }
+    public TestEngineeringWorkflow(WorkflowPolicy policy) { this(policy, RedactionPolicy.defaults(), List.of()); }
+    public TestEngineeringWorkflow(WorkflowPolicy policy, RedactionPolicy redaction, List<String> secretCanaries) {
+        this.policy = Objects.requireNonNull(policy, "policy");
+        this.redaction = Objects.requireNonNull(redaction, "redaction");
+        this.secretCanaries = List.copyOf(secretCanaries == null ? List.of() : secretCanaries);
+    }
 
     public TestEngineeringRun reduce(TestEngineeringRun run, Event event) {
         Objects.requireNonNull(run, "run");
@@ -25,15 +40,12 @@ public final class TestEngineeringWorkflow {
             throw new IllegalStateException("illegal transition: " + run.state() + " + " + event.type());
         }
 
+        requireSafe(run.request().toString(), List.of());
+        requireSafe(event.evidence(), List.of());
+        if (event.artifact() != null) requireSafe(event.artifact().payload().toString(), List.of(event.artifact().artifactId()));
+
         validateArtifact(run, event.artifact());
-        if (event.type() == EventType.PROPOSE_REPAIR
-                && !(event.artifact().payload() instanceof RepairProposal)) {
-            throw new IllegalArgumentException("repair artifact must be a PROPOSE_ONLY RepairProposal");
-        }
-        if (event.type() == EventType.CAPABILITY_MISSING
-                && !(event.artifact().payload() instanceof PageObjectExtensionProposal)) {
-            throw new IllegalArgumentException("missing capability requires an extension proposal, never a selector");
-        }
+        validateEventPayload(event);
         State next = target(run, event);
         boolean boundReached = next == State.NEEDS_HUMAN_REVIEW && switch (event.type()) {
             case REQUEST_CORRECTION, PROPOSE_REPAIR, RERUN_REQUESTED -> true;
@@ -55,6 +67,14 @@ public final class TestEngineeringWorkflow {
         audit.add(new TestEngineeringRun.AuditEntry(audit.size() + 1, run.state(), next, event.type(), event.evidence()));
         if (audit.size() > policy.maxAuditEntries()) throw new IllegalStateException("audit bound exceeded");
         return new TestEngineeringRun(run.runId(), run.request(), next, artifacts, metrics, audit, marker);
+    }
+
+    private void requireSafe(String text, List<String> references) {
+        var result = securityGate.validate(text, references, redaction, secretCanaries);
+        if (result.status() != AgentArtifactSecurityGate.Status.PASS) {
+            throw new SecurityException("Workflow input blocked: " + result.findings().stream()
+                    .map(AgentArtifactSecurityGate.Finding::code).toList());
+        }
     }
 
     private State target(TestEngineeringRun run, Event event) {
@@ -107,6 +127,32 @@ public final class TestEngineeringWorkflow {
                 throw new IllegalArgumentException("unknown parent artifact: " + parent);
             }
         }
+    }
+
+    private static void validateEventPayload(Event event) {
+        if (event.artifact() == null) return;
+        Object payload = event.artifact().payload();
+        boolean valid = switch (event.type()) {
+            case PLAN_PRODUCED -> payload instanceof TestPlan;
+            case IMPLEMENTATION_PRODUCED -> payload instanceof TestImplementationProposal;
+            case COMPILE_FAILED -> payload instanceof TargetedJavaCompiler.CompilationResult result && !result.successful();
+            case EXECUTION_SUCCEEDED -> payload instanceof TestExecutionResult result
+                    && result.compileOutcome() == TestExecutionResult.Outcome.PASS
+                    && result.executionOutcome() == TestExecutionResult.Outcome.PASS;
+            case EXECUTION_FAILED -> payload instanceof TestExecutionResult result
+                    && result.executionOutcome() != TestExecutionResult.Outcome.PASS;
+            case CLASSIFY_FAILURE -> payload instanceof FailureClassification;
+            case PROPOSE_REPAIR -> payload instanceof RepairProposal proposal
+                    && proposal.applicationPolicy() == RepairProposal.ApplicationPolicy.PROPOSE_ONLY;
+            case REVIEW_APPROVED -> payload instanceof CodeReviewResult result
+                    && result.verdict() == CodeReviewResult.Verdict.APPROVE;
+            case REVIEW_REJECTED -> payload instanceof CodeReviewResult result
+                    && result.verdict() != CodeReviewResult.Verdict.APPROVE;
+            case CAPABILITY_MISSING -> payload instanceof PageObjectCapabilityMissing
+                    || payload instanceof PageObjectExtensionProposal;
+            default -> true;
+        };
+        if (!valid) throw new IllegalArgumentException("Artifact payload does not satisfy " + event.type() + " contract");
     }
 
     private static Map<State, EnumSet<EventType>> legalTransitions() {

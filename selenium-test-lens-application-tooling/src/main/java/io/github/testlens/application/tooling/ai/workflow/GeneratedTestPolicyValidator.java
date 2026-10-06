@@ -34,9 +34,8 @@ public final class GeneratedTestPolicyValidator {
         for (int i = 0; i < tokens.size(); i++) {
             Token token = tokens.get(i);
             if (policy.blockRawBy() && sequence(tokens, i, "By", ".")) add(violations, Rule.RAW_BY, token, source);
-            if (policy.blockDriverLookup() && token.text().equals("driver") && i + 2 < tokens.size()
-                    && tokens.get(i + 1).text().equals(".")
-                    && (tokens.get(i + 2).text().equals("findElement") || tokens.get(i + 2).text().equals("findElements"))) {
+            if (policy.blockDriverLookup() && (token.text().equals("findElement") || token.text().equals("findElements"))
+                    && i > 0 && tokens.get(i - 1).text().equals(".")) {
                 add(violations, Rule.DRIVER_LOOKUP, token, source);
             }
             if (policy.blockJavascript() && (token.text().equals("JavascriptExecutor") || token.text().equals("executeScript"))) {

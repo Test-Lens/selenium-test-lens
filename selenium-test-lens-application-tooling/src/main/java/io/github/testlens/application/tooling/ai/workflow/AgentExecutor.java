@@ -1,5 +1,12 @@
 package io.github.testlens.application.tooling.ai.workflow;
 
+import io.github.testlens.application.tooling.ai.CodeReviewResult;
+import io.github.testlens.application.tooling.ai.FailureClassification;
+import io.github.testlens.application.tooling.ai.RepairProposal;
+import io.github.testlens.application.tooling.ai.TestImplementationProposal;
+import io.github.testlens.application.tooling.ai.TestExecutionResult;
+import io.github.testlens.application.tooling.ai.TestPlan;
+
 import java.util.List;
 import java.util.Map;
 
@@ -17,10 +24,11 @@ public interface AgentExecutor {
         }
     }
 
-    record AgentResult(String providerRequestId, String payload) {
+    record AgentResult(String providerRequestId, ArtifactEnvelope<?> artifact) {
         public AgentResult {
-            if (payload == null) throw new IllegalArgumentException("payload is required");
+            if (artifact == null || !structured(artifact.payload())) throw new IllegalArgumentException("A versioned structured agent artifact is required");
         }
+        private static boolean structured(Object value){return value instanceof TestPlan||value instanceof TestImplementationProposal||value instanceof TestExecutionResult||value instanceof FailureClassification||value instanceof RepairProposal||value instanceof CodeReviewResult||value instanceof PageObjectCapabilityMissing||value instanceof PageObjectExtensionProposal;}
     }
 
     enum Role { PLANNER, IMPLEMENTER, FAILURE_CLASSIFIER, REPAIRER, REVIEWER,

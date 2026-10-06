@@ -32,9 +32,9 @@ public final class TargetedJavaCompiler {
         Objects.requireNonNull(request, "request");
         currentSources = Map.copyOf(currentSources == null ? Map.of() : currentSources);
         List<CompilationDiagnostic> preconditions = verifyPreconditions(request, currentSources);
-        if (!preconditions.isEmpty()) return new CompilationResult(false, preconditions, 0);
+        if (!preconditions.isEmpty()) return new CompilationResult(false, preconditions, CompiledOutput.empty());
         if (compiler == null) return new CompilationResult(false,
-                List.of(new CompilationDiagnostic("NO_SYSTEM_COMPILER", null, -1, -1, "A JDK compiler is required")), 0);
+                List.of(new CompilationDiagnostic("NO_SYSTEM_COMPILER", null, -1, -1, "A JDK compiler is required")), CompiledOutput.empty());
 
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         try (StandardJavaFileManager standard = compiler.getStandardFileManager(diagnostics, Locale.ROOT, StandardCharsets.UTF_8);
@@ -45,10 +45,10 @@ public final class TargetedJavaCompiler {
             boolean successful = Boolean.TRUE.equals(compiler.getTask(null, files, diagnostics, options, null, units).call());
             List<CompilationDiagnostic> bounded = diagnostics.getDiagnostics().stream().limit(request.maxDiagnostics())
                     .map(TargetedJavaCompiler::diagnostic).toList();
-            return new CompilationResult(successful, bounded, files.classCount());
+            return new CompilationResult(successful, bounded, files.output());
         } catch (IOException failure) {
             return new CompilationResult(false,
-                    List.of(new CompilationDiagnostic("COMPILER_IO", null, -1, -1, bounded(failure.getMessage(), 1_000))), 0);
+                    List.of(new CompilationDiagnostic("COMPILER_IO", null, -1, -1, bounded(failure.getMessage(), 1_000))), CompiledOutput.empty());
         }
     }
 
@@ -102,10 +102,31 @@ public final class TargetedJavaCompiler {
         JavaFileObject asJavaFileObject() { return new SourceFile(binaryName, content); }
     }
 
-    public record CompilationResult(boolean successful, List<CompilationDiagnostic> diagnostics, int generatedClasses) {
-        public CompilationResult { diagnostics = List.copyOf(diagnostics); }
+    public record CompilationResult(boolean successful, List<CompilationDiagnostic> diagnostics, CompiledOutput output) {
+        public CompilationResult { diagnostics = List.copyOf(diagnostics); Objects.requireNonNull(output, "output"); }
+        public int generatedClasses() { return output.classCount(); }
     }
     public record CompilationDiagnostic(String code, Path path, long line, long column, String message) { }
+
+    /** Immutable compiled bytecode boundary used only for controlled targeted execution. */
+    public static final class CompiledOutput {
+        private final Map<String, byte[]> classes;
+        private CompiledOutput(Map<String, byte[]> classes) {
+            this.classes = classes.entrySet().stream().collect(java.util.stream.Collectors.toUnmodifiableMap(
+                    Map.Entry::getKey, value -> value.getValue().clone()));
+        }
+        private static CompiledOutput empty() { return new CompiledOutput(Map.of()); }
+        public int classCount() { return classes.size(); }
+        public Class<?> loadClass(String binaryName, ClassLoader parent) throws ClassNotFoundException {
+            if (!classes.containsKey(binaryName)) throw new ClassNotFoundException(binaryName);
+            return new MemoryClassLoader(parent, classes).loadClass(binaryName);
+        }
+        @Override public String toString() {
+            return classes.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                    .map(value -> value.getKey() + "=" + ArtifactEnvelope.digest(value.getValue()))
+                    .collect(java.util.stream.Collectors.joining(",", "CompiledOutput[", "]"));
+        }
+    }
 
     private static final class SourceFile extends SimpleJavaFileObject {
         private final String content;
@@ -117,9 +138,11 @@ public final class TargetedJavaCompiler {
     }
 
     private static final class ClassFile extends SimpleJavaFileObject {
+        private final String className;
         private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         private ClassFile(String className, Kind kind) {
             super(URI.create("memory:///" + className.replace('.', '/') + kind.extension), kind);
+            this.className = className;
         }
         @Override public ByteArrayOutputStream openOutputStream() { return bytes; }
     }
@@ -133,6 +156,22 @@ public final class TargetedJavaCompiler {
             classes.add(output);
             return output;
         }
-        private int classCount() { return classes.size(); }
+        private CompiledOutput output() {
+            return new CompiledOutput(classes.stream().collect(java.util.stream.Collectors.toMap(
+                    value -> value.className, value -> value.bytes.toByteArray())));
+        }
+    }
+
+    private static final class MemoryClassLoader extends ClassLoader {
+        private final Map<String, byte[]> classes;
+        private MemoryClassLoader(ClassLoader parent, Map<String, byte[]> classes) {
+            super(parent);
+            this.classes = classes;
+        }
+        @Override protected Class<?> findClass(String name) throws ClassNotFoundException {
+            byte[] bytes = classes.get(name);
+            if (bytes == null) return super.findClass(name);
+            return defineClass(name, bytes, 0, bytes.length);
+        }
     }
 }
