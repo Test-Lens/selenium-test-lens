@@ -57,7 +57,13 @@ public record ExistingProjectIndex(
                               int startOffset, int endOffsetExclusive) { }
 
     public record ElementEntry(String id, String ownerClassId, String name, String declarationRef,
-                               String strategy, ValueProjection valueProjection, SourceRange range) { }
+                               String strategy, ValueProjection valueProjection, SourceRange range,
+                               String declarationFingerprint) {
+        public ElementEntry(String id, String ownerClassId, String name, String declarationRef,
+                            String strategy, ValueProjection valueProjection, SourceRange range) {
+            this(id, ownerClassId, name, declarationRef, strategy, valueProjection, range, null);
+        }
+    }
 
     public record Parameter(String name, String type) { }
 

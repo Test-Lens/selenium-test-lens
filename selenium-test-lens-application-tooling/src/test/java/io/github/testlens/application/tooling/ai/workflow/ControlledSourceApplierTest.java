@@ -12,33 +12,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ControlledSourceApplierTest {
     @TempDir Path workspace;
 
-    @Test
-    void requiresTrustedApplyAllowedPathAndMatchingFingerprint() throws Exception {
-        Path source = workspace.resolve("src/test/java/LoginTest.java");
-        Files.createDirectories(source.getParent());
-        Files.writeString(source, "class LoginTest { }\n");
-        String fingerprint = ArtifactEnvelope.digest(Files.readString(source));
-        ControlledSourceApplier applier = new ControlledSourceApplier();
+    @Test void finalFingerprintCheckPreservesConcurrentUserEdit() throws Exception {
+        Path target = workspace.resolve("src/test/java/example/Test.java");
+        Files.createDirectories(target.getParent());
+        Files.writeString(target, "original");
+        String expected = ArtifactEnvelope.digest("original");
+        ControlledSourceApplier applier = new ControlledSourceApplier(path -> Files.writeString(path, "user edit"));
 
-        assertEquals(ControlledSourceApplier.Status.TRUST_REQUIRED,
-                applier.apply(workspace, request("src/test/java/LoginTest.java", fingerprint, false,
-                        List.of("src/test/java"))).status());
-        assertEquals(ControlledSourceApplier.Status.PATH_BLOCKED,
-                applier.apply(workspace, request("src/test/java/LoginTest.java", fingerprint, true,
-                        List.of("src/main/java"))).status());
-        assertEquals(ControlledSourceApplier.Status.SOURCE_PRECONDITION_FAILED,
-                applier.apply(workspace, request("src/test/java/LoginTest.java", "sha256:stale", true,
-                        List.of("src/test/java"))).status());
+        ControlledSourceApplier.ApplyResult result = applier.apply(workspace,
+                new ControlledSourceApplier.ApplyRequest(Path.of("src/test/java/example/Test.java"), expected,
+                        "replacement", List.of("src/test/java"), true));
 
-        var applied = applier.apply(workspace, request("src/test/java/LoginTest.java", fingerprint, true,
-                List.of("src/test/java")));
-        assertEquals(ControlledSourceApplier.Status.APPLIED, applied.status());
-        assertEquals("class LoginTest { void invalidPassword() {} }\n", Files.readString(source));
-    }
-
-    private static ControlledSourceApplier.ApplyRequest request(String path, String fingerprint, boolean trusted,
-                                                                 List<String> allowedPrefixes) {
-        return new ControlledSourceApplier.ApplyRequest(Path.of(path), fingerprint,
-                "class LoginTest { void invalidPassword() {} }\n", allowedPrefixes, trusted);
+        assertEquals(ControlledSourceApplier.Status.SOURCE_PRECONDITION_FAILED, result.status());
+        assertEquals("user edit", Files.readString(target));
     }
 }

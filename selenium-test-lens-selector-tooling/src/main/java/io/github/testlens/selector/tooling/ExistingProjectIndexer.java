@@ -178,7 +178,8 @@ public final class ExistingProjectIndexer {
                             range.startLine(), range.startColumn(), range.endLine(),
                             range.endColumn(), range.startOffset(), range.endOffsetExclusive());
                     result.add(new ElementEntry(id("element", declaration.declarationRef()), ownerId, name,
-                            declaration.declarationRef(), strategy, projection, publicRange));
+                            declaration.declarationRef(), strategy, projection, publicRange,
+                            declaration.contentFingerprint()));
                 }
             }
             return result;
