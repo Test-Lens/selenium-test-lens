@@ -12,7 +12,7 @@ ApplicationModel + correlated existing/generated Page Object API + requirement +
     -> ContextSlicer
     -> AgentContextPack
     -> PromptPackRenderer
-    -> external agent
+    -> AgentExecutor (scripted or bounded external process)
     -> structured result contract
 ```
 
@@ -74,7 +74,11 @@ When selector instability is proven, replacement follows Selector Intelligence: 
 
 An `AgentContextPack` is safer than raw DOM, but it is still an artifact that may contain application names, accessible labels, requirements, conventions, and URLs. `ContextSlicer` applies the configured `RedactionPolicy`, including URL redaction, before producing the pack. Review the pack before passing it to an external provider.
 
-Test Lens does not send a pack anywhere. Storage, provider selection, authentication, network transport, retention, and approval remain responsibilities of the caller or external tooling. Never place credentials, cookies, reusable auth state, authorization headers, or unreviewed secrets in a requirement or convention string.
+The development tooling now includes an opt-in `ExternalAgentRunner` implementation of the provider-neutral `AgentExecutor` boundary. Invoking that runner explicitly starts a configured local process; normal Test Lens runtime and context construction still perform no provider or network call. The runner does not contain a vendor SDK and does not choose a provider automatically.
+
+Before starting a process, the runner serializes a bounded, versioned command, applies the central redaction and canary gate, and stages only explicitly supplied, fingerprint-checked source excerpts. It clears the child environment and restores only non-secret names from an explicit allowlist. The child receives input through standard input, not shell interpolation, and must return exactly one JSON object matching the role-specific schema. Invalid, oversized, timed-out, or unsafe results fail closed.
+
+Storage, provider selection, provider authentication, network transport, retention, and approval remain trusted-host responsibilities. Never place credentials, cookies, reusable auth state, authorization headers, or unreviewed secrets in a requirement or convention string. The local Codex profile relies on the CLI's own authentication state outside serialized workflow artifacts; it does not copy credentials into an `AgentContextPack`.
 
 See the [guided mapping tutorial](../advanced/application-mapping/tutorial.md) for the complete model-to-context flow.
 

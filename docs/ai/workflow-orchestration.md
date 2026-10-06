@@ -23,7 +23,7 @@ Source excerpts are not included by default. If host tooling needs one, it shoul
 
 ## Provider-neutral execution boundary
 
-`AgentExecutor` receives an `AgentCommand` containing a run ID, a role, bounded artifact envelopes, and instructions, then returns a structured result payload. Production provider integration belongs outside these modules. Tests use `ScriptedAgentExecutor`; there is no network dependency.
+`AgentExecutor` receives an `AgentCommand` containing a run ID, a role, bounded artifact envelopes, and instructions, then returns a structured result payload. `ScriptedAgentExecutor` keeps CI deterministic. `ExternalAgentRunner` is the tooling-side implementation for an explicitly configured subprocess; neither implementation adds a provider SDK or a network dependency to Test Lens runtime.
 
 Available roles include:
 
@@ -38,6 +38,43 @@ Available roles include:
 | `UNIT_TEST_AGENT` | Add focused tests for a production method, parser/correlation rule, or workflow branch without taking ownership of production code. |
 
 An orchestrator should send each role only its inputs. A stabilizer does not need every Page Object, and a unit-test agent does not need authentication state or browser evidence.
+
+### Bounded external process
+
+`AgentProfile` is trusted-host configuration, not agent input. It pins an absolute executable, an argument list, one role, timeout, input/output/diagnostic byte limits, an environment allowlist, and either standard-output or file output transport. Arguments are passed directly to `ProcessBuilder`; requirements and context are written to standard input and never interpolated into a shell command.
+
+For every call, `ExternalAgentRunner`:
+
+1. checks that command and profile roles match;
+2. serializes `TEST_LENS_EXTERNAL_AGENT_V1` and validates redaction, canaries, references, and the input bound;
+3. creates an ephemeral staging directory below an absolute, non-symlink root and applies owner-only POSIX permissions where supported;
+4. optionally writes only allowlisted logical source excerpts whose content fingerprints match;
+5. clears the child environment and copies only allowed, non-secret variable names;
+6. bounds process time, standard output, standard error, result size, and cleanup;
+7. validates the result against the role-specific JSON Schema and strict decoder;
+8. applies the output security gate before creating an `ArtifactEnvelope`.
+
+The failure codes are intentionally distinct: `AGENT_NOT_AVAILABLE`, `AGENT_TIMEOUT`, `AGENT_PROCESS_FAILED`, `AGENT_OUTPUT_INVALID`, and `AGENT_CONTEXT_REJECTED`. The runner does not silently fall back to `ScriptedAgentExecutor`.
+
+Malformed JSON, additional or missing fields, a wrong schema version, an unexpected result type, truncated output, or an output security violation are `AGENT_OUTPUT_INVALID`. The supported result type is selected by role, for example `TEST_PLAN` for `TEST_ARCHITECT`, `TEST_IMPLEMENTATION_PROPOSAL` or a capability result for `TEST_IMPLEMENTER`, and `CODE_REVIEW_RESULT` for `CODE_REVIEWER`. Free-form prose is not a successful result.
+
+### Local Codex profile
+
+`CodexCliDetector` locates a directly executable native `codex` binary without invoking a shell. `CodexCliProfiles.readOnly(...)` supplies the verified non-interactive invocation:
+
+```text
+codex exec --ephemeral --ignore-user-config --ignore-rules
+  --sandbox read-only --color never --skip-git-repo-check
+  -C <isolated-staging-directory>
+  --output-schema <generated-schema.json>
+  --output-last-message <bounded-result.json> -
+```
+
+The profile deliberately runs in a dedicated staging directory rather than the consumer project. Its default environment allowlist contains only `CODEX_HOME` plus the minimum system-root and temporary-directory locations; it does not forward `HOME`, `USERPROFILE`, shell variables, or secret-looking names. Provider authentication remains owned by the installed CLI and is never serialized into the command or workflow report.
+
+This is process-boundary hardening, not a portable operating-system read sandbox. `ProcessBuilder` cannot prevent a configured executable from naming and reading an arbitrary host path. The executable and its provider sandbox are therefore trusted host configuration; use an OS/container sandbox when untrusted executables require enforceable filesystem read isolation. Lens itself stages only fingerprint-checked excerpts and exposes no API for arbitrary file reads.
+
+This is the first concrete external profile, not a Codex-specific workflow engine. Other tools can implement the same strict subprocess contract.
 
 ## Auditable state machine
 
@@ -64,6 +101,8 @@ CREATED
 
 Every `ArtifactEnvelope` belongs to one run, has a digest, and can name parent artifacts. The reducer rejects duplicate artifact IDs, unknown parents, and cross-run artifacts. `TestEngineeringRun` records state transitions and metrics for agent calls, compilations, executions, corrections, reruns, and repairs.
 
+`AgentWorkflowCoordinator` connects this reducer to an injected `AgentExecutor`, `TargetedJavaCompiler`, targeted-test boundary, failure classifier, and stabilizer. It requests architect, implementer, and reviewer results through the same executor abstraction, enforces `PAGE_OBJECTS_ONLY`, retries compile correction only up to `maxImplementationAttempts`, never executes after a policy or compile failure, and routes failed execution through classification before an optional `PROPOSE_ONLY` repair.
+
 ## Page Objects only is enforced
 
 The implementer instruction is backed by `GeneratedTestPolicyValidator`. Its default policy rejects Java test patches containing:
@@ -83,7 +122,7 @@ If the required Page Object operation is absent, the result is `PageObjectCapabi
 
 `TargetedJavaCompiler` compiles proposed in-memory source with the JDK compiler. Each source unit has a relative path and expected current-content fingerprint. A mismatch returns `SOURCE_PRECONDITION_FAILED`; it never compiles against a silently changed source. Diagnostics are bounded and the compile step must pass before execution.
 
-`TargetedTestExecutor` is an injected host boundary. It receives the run ID, test class, runner selectors, and a positive timeout, and returns a bounded result. The host implementation owns JUnit or TestNG invocation and collection of Test Lens trace, assertion, runtime, screenshot-reference, and selector-diagnostic evidence. It should run the requested test or scenario, not the complete reactor by default.
+`CompiledTargetedTestExecutor` is the injected host boundary used by `AgentWorkflowCoordinator`. It receives the run ID, test class, runner selectors, positive timeout, and the exact immutable `CompiledOutput` produced by the successful compile step. This prevents a targeted runner from accidentally executing a stale installed class with the same name. The host implementation owns JUnit or TestNG invocation and collection of Test Lens trace, assertion, runtime, screenshot-reference, and selector-diagnostic evidence. It should run the requested test or scenario, not the complete reactor by default. `TargetedTestExecutor.ExecutionResult` remains the bounded result projection.
 
 ## Classify before repair
 
@@ -100,14 +139,49 @@ A product mismatch must not be "fixed" by weakening the test. Synchronization ev
 5. uniqueness and verified selector quality;
 6. source impact for affected methods and tests.
 
-The resulting `RepairProposal` is always `PROPOSE_ONLY`. It names the declaration, old and new candidate IDs, classification and drift references, evidence, risks, affected tests, and verification plan. `ControlledSourceApplier` is a separate trusted-host operation requiring an allowed path, explicit approval, and matching source fingerprint. Browser-side consent never applies a source patch.
+The resulting `RepairProposal` is always `PROPOSE_ONLY`. It names the source file and exact declaration range, file and declaration fingerprints, old strategy/value, replacement candidate and live evidence, classification and drift references, risks, affected methods/tests, and verification plan.
+
+`TrustedRepairApplier` is the explicit trusted-host operation for this selector-only path. It accepts only `EXACT` or `STRONG` correlation and a live-analyzed, verified-in-scope, same-target, unique replacement with accepted stability evidence. Before mutation it verifies the allowed relative source root, rejects symlink traversal, matches the indexed source-file fingerprint, declaration identity/fingerprint/range, old strategy/value fingerprint, and exactly one old `By` expression in that range. It then delegates an atomic, fingerprint-guarded write to `ControlledSourceApplier`. Statuses such as `TRUST_REQUIRED`, `CORRELATION_BLOCKED`, `SOURCE_PRECONDITION_FAILED`, `DECLARATION_PRECONDITION_FAILED`, and `OLD_SELECTOR_MISMATCH` leave source unchanged.
+
+The browser certification copies a hand-written Page Object fixture to a temporary workspace. The old page and `By.id("old-login-button")` first pass and correlate exactly; the changed page removes that ID and exposes `data-testid="login-submit"`, so the same observed Selenium test fails with `NoSuchElementException` and a failed Lens trace. A new mapper observation obtains the replacement through live Selector Intelligence, the proposal remains `PROPOSE_ONLY`, trusted apply changes only the indexed `By` expression, compilation succeeds, and the same test passes. The contract is exercised in both Chrome and Firefox without patching repository source.
 
 ## Workflow artifacts and security gate
 
-`WorkflowArtifactStore` accepts only the known JSON artifact names for request, context, plan, implementation, execution, classification, repair, review, and metrics. Writes are rooted under a validated run ID, atomic where supported, content-addressed, and bounded by explicit run retention.
+`WorkflowArtifactStore` accepts only the known artifact names for request, context, plan, implementation, execution, classification, repair, review, metrics, agent receipts, and JSON/text workflow reports. Writes are rooted under a validated run ID, atomic where supported, content-addressed, and bounded by explicit run retention.
 
 Before storage or provider transport, `AgentArtifactSecurityGate` requires enabled central `RedactionPolicy`, rejects text that would still change under that policy, and checks caller-provided secret canaries. References to auth/storage state, cookies, page source, console or raw runner output, screenshots, and videos are rejected by default. The gate does not inspect image pixels; image and video evidence therefore remain outside agent context unless a separate trusted process establishes a safe projection.
 
 Do not include passwords, cookie values, bearer/JWT tokens, authorization headers, CSRF or client secrets, local/session storage, environment values, system properties, saved auth-state files, or raw stack/log bundles in workflow artifacts. Use a dedicated non-production account, keep reusable auth state outside the repository with restricted permissions and retention, validate the application origin, and fail closed if authentication state is uncertain.
+
+## Workflow report
+
+`WorkflowReport` is a schema-versioned summary of one run in deterministic JSON and a compact text projection. It records the requirement, final workflow state, ordered steps, evidence references, limitations, and separate metrics for context bytes, agent input/output, external-agent duration, deterministic duration, compile/execution duration, total duration, attempts, changed source files, and repair proposals. It is a summary, not a container for prompts, credentials, raw Maven logs, or model chain-of-thought.
+
+Typical successful steps are `CONTEXT_PREPARED`, `PLAN_READY`, `IMPLEMENTATION_READY`, `POLICY_VALIDATION`, `COMPILE_PASS`, `EXECUTION_PASS`, and `REVIEW`. A selector failure instead records `EXECUTION_FAIL`, `FAILURE_CLASSIFIED`, and, if evidence is sufficient, `REPAIR_PROPOSED` with status `PROPOSE_ONLY`. Reporting a proposal never implies that trusted apply occurred.
+
+## Opt-in Codex dogfooding
+
+The real-agent integrations are opt-in and require an authenticated local Codex CLI. Run the tooling-only contract from a reviewed checkout:
+
+```powershell
+mvn -pl selenium-test-lens-application-tooling -am `
+  -Dtest=RealCodexWorkflowIT `
+  -Dsurefire.failIfNoSpecifiedTests=false `
+  -Dtestlens.codex.dogfood=true test
+```
+
+`RealCodexWorkflowIT` dispatches architect, implementer, and reviewer roles through separate read-only Codex profiles, validates the implementation policy, compiles the proposed test, executes the exact generated bytecode through `CompiledTargetedTestExecutor`, and requires final review approval.
+
+The browser proof is separate:
+
+```powershell
+mvn -Pbrowser-it -pl selenium-test-lens-browser-tests -am `
+  -Dit.test=RealCodexExistingPageObjectWorkflowIT `
+  -Dtestlens.codex.dogfood=true -Dbrowser=chrome -Dheaded=false verify
+```
+
+It sends the bounded invalid-password requirement to real architect, implementer, and reviewer processes. The generated bytecode calls only the supplied `RuntimeLoginPage` API, is executed through a Test Lens-observed Chrome driver against a local fixture, leaves Lens trace events, reaches `SUCCESS`, and emits a JSON `WorkflowReport`. Use `-am` from the reactor root, or first install the current development artifacts; running the browser module against an older locally installed application-tooling JAR can produce class/linkage failures that are not agent failures.
+
+The runner records role, byte counts, duration, and status; it does not persist chain-of-thought. A skipped opt-in test or unavailable CLI is `NOT RUN`, not evidence of real-agent execution. The scripted workflow remains the CI contract and is not presented as a substitute for either real dogfood run.
 
 See [Existing Page Object correlation](../advanced/application-mapping/existing-page-objects.md) and the [guided tutorial](../advanced/application-mapping/tutorial.md#continue-from-an-existing-selenium-project).

@@ -35,7 +35,11 @@ Drift can report added or removed pages, states, elements, and transitions; rena
 
 A selector-related failure is not automatically a flaky selector. Classify runtime evidence first. If the cause is `SELECTOR_INSTABILITY`, obtain a replacement through the existing candidate generation, live validation, same-target comparison, and ranking pipeline.
 
-The tooling contract permits only `RepairProposal.ApplicationPolicy.PROPOSE_ONLY`. A proposal records what changed, why, old and new selector, same-target and stability evidence, and affected tests. It is not silent self-healing and is not automatically applied.
+The tooling contract permits only `RepairProposal.ApplicationPolicy.PROPOSE_ONLY`. A proposal records what changed, why, source path and exact declaration range, file and declaration fingerprints, old and new selector evidence, same-target and stability evidence, and affected methods/tests. It is not silent self-healing and is not automatically applied.
+
+`TrustedRepairApplier` is a separate host operation. It blocks `PROBABLE` and `AMBIGUOUS` correlations, non-live or wrong-target candidates, non-unique candidates, stale files/declarations, old-selector mismatch, paths outside allowed source roots, and symlink traversal. A successful apply replaces exactly one supported `By` expression inside the indexed declaration; it does not reformat or regenerate the class.
+
+The repair certification uses a real browser failure rather than a mocked status. A hand-written Page Object first passes against the old fixture, then fails after the old element ID is removed. Test Lens captures the failed Selenium call, the changed page is mapped through live Selector Intelligence, and trusted apply patches a copied temporary project before compile and rerun. Chrome and Firefox exercise the same contract.
 
 ## Security boundary
 
@@ -55,6 +59,8 @@ Before an authenticated test workflow can provide context to an agent, treat sav
 - fail closed when authentication provenance or redaction status cannot be established.
 
 `AgentArtifactSecurityGate` implements the textual/canary/reference checks for the workflow boundary. It does not inspect screenshot pixels and cannot turn arbitrary image evidence into a safe agent artifact.
+
+`ExternalAgentRunner` applies this gate both before process start and after result collection. It uses an isolated temporary working directory, bounded standard streams and result file, a timeout, an absolute executable, argument-list invocation, and an environment cleared to an explicit non-secret allowlist. Optional source excerpts use allowlisted logical paths and verified content fingerprints. The staging directory is deleted after success or failure; cleanup failures are not logged because staged content may be sensitive.
 
 ## Troubleshooting
 
@@ -109,6 +115,26 @@ The source changed after the proposal was prepared. Discard the stale proposal, 
 ### A selector repair is not produced
 
 Confirm that failure classification is `SELECTOR_INSTABILITY`, correlation resolves to one source declaration, and the replacement is live-analyzed, same-target, unique, and `VERIFIED`. Missing any one of these is a reason to stop or request human review, not to invent a locator.
+
+### Trusted repair is not applied
+
+Inspect `TrustedRepairApplier.ApplyResult.status()` rather than retrying with weaker checks. `TRUST_REQUIRED` means the host did not explicitly authorize mutation. `CORRELATION_BLOCKED` preserves uncertain identity. `SOURCE_PRECONDITION_FAILED`, `DECLARATION_PRECONDITION_FAILED`, and `OLD_SELECTOR_MISMATCH` mean the proposal is stale or no longer describes the indexed source. Re-index and rebuild the proposal; do not patch by textual search outside the recorded declaration.
+
+### External agent is unavailable or times out
+
+Distinguish `AGENT_NOT_AVAILABLE` from `AGENT_TIMEOUT` and `AGENT_PROCESS_FAILED`. Verify the absolute executable, local provider authentication, role-specific profile, timeout, and the deliberately small environment allowlist. Do not substitute `ScriptedAgentExecutor` silently in a production run.
+
+### External agent output is rejected
+
+`AGENT_OUTPUT_INVALID` means output was empty, oversized, malformed, used the wrong schema/version/result type, contained extra or missing fields, or failed output redaction/canary validation. Ask the agent to return exactly the supplied JSON Schema; do not scrape prose or recover a partial/truncated result with regular expressions.
+
+`AGENT_CONTEXT_REJECTED` is an input-side failure: the role may not match the profile, input may exceed the bound, a source excerpt fingerprint/path may be invalid, or redaction/canary/reference checks may have failed. Review the bounded projection instead of increasing all limits.
+
+### Codex dogfood test is skipped
+
+`RealCodexWorkflowIT` is opt-in and requires `-Dtestlens.codex.dogfood=true` plus a detected, locally authenticated native Codex CLI. A skipped test is `NOT RUN`; the scripted executor tests do not prove real external-agent execution. The CLI works in isolated read-only staging, so agent-side edits to the consumer checkout are neither expected nor permitted.
+
+Use `RealCodexExistingPageObjectWorkflowIT` for the actual browser proof. Run from the reactor root with `-am` so browser tests use the current `application-tooling` classes. A `NoClassDefFoundError`, `NoSuchMethodError`, or similar linkage failure can mean the module was launched against a stale locally installed development JAR; rebuild/install the current reactor artifacts and rerun before diagnosing the provider or browser.
 
 ### Workflow stops at NEEDS_HUMAN_REVIEW
 

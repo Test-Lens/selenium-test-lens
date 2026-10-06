@@ -149,7 +149,7 @@ Build a `RepairProposal` only from live validation, same-target, and stability e
 
 ## 9. Keep artifacts bounded
 
-Retain only the model history and context packs needed by the project. Keep `.test-lens` artifacts out of public reports unless they have been reviewed. No provider SDK or network call is required by these modules; the generated prompt pack can be consumed by Codex, an IDE agent, CI tooling, or another external orchestrator.
+Retain only the model history and context packs needed by the project. Keep `.test-lens` artifacts out of public reports unless they have been reviewed. No provider SDK or network call is required by mapping, generation, or scripted workflow tests. The opt-in `ExternalAgentRunner` can pass a bounded pack to an explicitly configured local process; that action is separate from normal runtime and must use the security controls described below.
 
 ## Continue from an existing Selenium project
 
@@ -229,13 +229,17 @@ After plan approval, the `TEST_IMPLEMENTER` receives only the chosen scenario, p
 
 If the Page Object cannot express the required action, record `PageObjectCapabilityMissing`. A `PageObjectExtensionProposal` may use an already-correlated declaration. If no suitable declaration exists, return to Selector Intelligence; do not let the generated test invent one.
 
+For an external process, select a trusted `AgentProfile` for each role and dispatch them through `RoleDispatchingAgentExecutor`. The profile pins an absolute executable, arguments, role, timeout, byte limits, output transport, and non-secret environment allowlist. `ExternalAgentRunner` sends the versioned command through standard input and accepts only the role-specific structured JSON result. Do not place the requirement on a shell command line or fall back silently to a scripted result when the real process fails.
+
+The repository's opt-in Codex profile runs `codex exec` in a generated read-only staging directory with an output schema and output file. It is an example of the provider-neutral subprocess boundary, not a requirement to use Codex and not a stable Maven integration.
+
 ### 14. Compile with source preconditions
 
 Use `TargetedJavaCompiler` for the proposed sources. Each `SourceUnit` names a relative path, binary name, content, and the fingerprint of the content expected at that path. A concurrent edit produces `SOURCE_PRECONDITION_FAILED`. Bound the compiler diagnostics passed to a correction step and never continue to browser execution after a compile failure.
 
 ### 15. Execute only the target and collect Lens evidence
 
-Provide a host `TargetedTestExecutor` that invokes the project's JUnit 5 or TestNG runner for the requested class/scenario and timeout. Keep the existing driver ownership and Test Lens lifecycle. Project the result into `TestExecutionResult`, keeping compile diagnostics, framework result, trace references, assertions, runtime events, screenshot references, and selector diagnostics distinct.
+Provide a host `CompiledTargetedTestExecutor` that invokes the project's JUnit 5 or TestNG runner for the requested class/scenario and timeout. The coordinator passes it the exact immutable output of the successful `TargetedJavaCompiler` step; load and execute that output rather than a same-named class from a stale local artifact. Keep the existing driver ownership and Test Lens lifecycle. Project the bounded `TargetedTestExecutor.ExecutionResult` into `TestExecutionResult`, keeping compile diagnostics, framework result, trace references, assertions, runtime events, screenshot references, and selector diagnostics distinct.
 
 Do not attach raw Surefire output, environment variables, system properties, page source, cookies, auth state, console dumps, screenshots, or videos to an agent context. A trusted host can keep those artifacts locally while producing a small redacted textual projection.
 
@@ -247,11 +251,21 @@ For a confirmed selector failure, `SelectorRepairPlanner` accepts only an unambi
 
 ### 17. Apply only at a trusted host boundary
 
-Review the repair outside the browser. `ControlledSourceApplier` requires an explicitly trusted apply, an allowed relative path, and the expected current source fingerprint. A mismatch returns `SOURCE_PRECONDITION_FAILED`. After an accepted patch, compile and rerun only affected tests, then request `CODE_REVIEWER` approval.
+Review the repair outside the browser. `TrustedRepairApplier` accepts the `PROPOSE_ONLY` proposal only when correlation is `EXACT` or `STRONG` and the replacement is live analyzed, verified, same-target, unique, and stable under policy. Its request includes the source index, allowed source-root prefixes, and an explicit trusted-apply flag.
+
+Before writing, it verifies the relative logical path, rejects symlink escape, matches the source-file and declaration fingerprints, matches the exact indexed range and old selector value, and requires exactly one supported old `By` expression in that declaration. It changes only that expression through `ControlledSourceApplier`; stale source returns `SOURCE_PRECONDITION_FAILED`, while declaration or old-selector mismatches have separate failure statuses. After `APPLIED`, re-index, compile, and rerun only affected tests, then request `CODE_REVIEWER` approval.
+
+The browser certification test demonstrates this against a hand-written `ExistingLoginPage`: the old UI passes, the changed UI removes the old ID and the same Selenium test really fails, Lens records a failed trace, live Selector Intelligence discovers and validates the replacement, trusted apply patches a temporary workspace, and the same test passes after recompilation. The test runs in Chrome and Firefox and asserts that no unrelated source text changed.
 
 ### 18. Preserve the audit trail
 
 Drive `TestEngineeringWorkflow` through legal events and retain its artifact ancestry, transitions, and bounded metrics. `WorkflowArtifactStore` writes only approved, already-redacted JSON artifact names under a validated run directory and enforces run retention. Before storage or external transport, require `AgentArtifactSecurityGate` to pass.
+
+Use `AgentWorkflowCoordinator` when the host wants the implemented architect -> implementer -> policy -> compile -> targeted execution -> classification/repair -> reviewer vertical flow. Its implementation-correction loop is bounded; policy and compile failures stop browser execution. A failed targeted run is classified before stabilization, and a repair remains a proposal.
+
+Create a `WorkflowReport` from the completed run. Its JSON and text projections include ordered steps and evidence references plus separate context, agent-I/O, agent-duration, deterministic, compile, execution, attempt, changed-file, and repair-proposal metrics. They intentionally exclude full prompts, raw runner logs, credentials, and chain-of-thought.
+
+For local real-agent dogfooding, run `RealCodexExistingPageObjectWorkflowIT` explicitly with `testlens.codex.dogfood=true`. It asks real Codex architect, implementer, and reviewer roles to handle the invalid-password requirement, then compiles the proposal and executes its exact bytecode through an existing Page Object and a Test Lens-observed browser. This test is not selected by default CI and does not make Codex a runtime dependency.
 
 The final successful chain is:
 
