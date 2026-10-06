@@ -45,10 +45,10 @@ public final class ApplicationMapper {
             CandidateAnalysis analysis;
             try{analysis=selectorService.analyze(new LiveCandidateRequest(driver,element.context(),element.target(),CandidateAnalysis.UsageIntent.FIND_ONE,null,context,element.shadow(),null,null,null,null,null,null,options.selectorPolicies(),options.selectorEvidence(),options.preferredTestAttributes()));}
             catch(StaleElementReferenceException stale){limitations.add(new ApplicationModel.Limitation("TARGET_STALE","A discovered target became stale before analysis"));continue;}
-            selectorAnalyses++;seleniumCommands+=analysis.completeness().validationCommands();SelectorProjectionAdapter.Projection selector=projections.project(analysis,options.redactionPolicy());
+            selectorAnalyses++;seleniumCommands+=analysis.completeness().validationCommands();ApplicationModel.ElementType type=SemanticNaming.type(element);SelectorProjectionAdapter.Projection selector=projections.project(analysis,type,options.redactionPolicy());
             for(CandidateAnalysis.Issue issue:analysis.issues())limitations.add(new ApplicationModel.Limitation(issue.code(),first(redact(issue.detail()),"Selector analysis issue")));
             String label=redact(element.label()),accessible=redact(element.accessibleName()),role=redact(element.role()),regionId=regionId(regions,element.regionKey());
-            ApplicationModel.ElementType type=SemanticNaming.type(element);String identityBase=elementIdentityBase(element,regionFingerprint(regions,element.regionKey()));boolean ambiguous=identityCounts.getOrDefault(identityBase,0)>1;
+            String identityBase=elementIdentityBase(element,regionFingerprint(regions,element.regionKey()));boolean ambiguous=identityCounts.getOrDefault(identityBase,0)>1;
             String structural=first(element.structuralHint(),"structural-unavailable");String occurrenceKey=identityBase+'|'+structural;int occurrence=ambiguousOccurrences.merge(occurrenceKey,1,Integer::sum);
             String fingerprint=ambiguous?ApplicationIds.id("element-fingerprint-v1",identityBase,structural,occurrence==1?"":Integer.toString(occurrence)):identityBase;
             String elementId=ApplicationIds.id("element-v1",pageId,fingerprint);String name=SemanticNaming.elementName(element,analysis.candidates(),fingerprint,options.overrides(),options.redactionPolicy(),options.preferredTestAttributes());

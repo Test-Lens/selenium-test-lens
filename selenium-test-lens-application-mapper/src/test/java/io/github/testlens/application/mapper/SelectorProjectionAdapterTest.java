@@ -55,6 +55,44 @@ class SelectorProjectionAdapterTest {
         assertTrue(projection.alternatives().isEmpty());
     }
 
+    @Test
+    void formControlProjectionNeverPersistsTextXpathValuesButKeepsSafeCandidates() {
+        Candidate secretText = candidate("text-secret", "xpath", "//*[text()='customer-secret-value']",
+                ValidationState.VERIFIED_IN_SCOPE, 1, TargetComparison.SAME_TARGET, Origin.TEXT_XPATH);
+        Candidate safeId = candidate("safe-id", "id", "customer-name",
+                ValidationState.VERIFIED_IN_SCOPE, 1, TargetComparison.SAME_TARGET, Origin.ID);
+        CandidateAnalysis mixed = analysis(Recommendation.KEEP_CURRENT, secretText, safeId);
+
+        for (ApplicationModel.ElementType type : List.of(
+                ApplicationModel.ElementType.INPUT, ApplicationModel.ElementType.TEXTAREA)) {
+            SelectorProjectionAdapter.Projection projection = adapter.project(mixed, type, RedactionPolicy.defaults());
+            List<ApplicationModel.SelectorProjection> selectors = new java.util.ArrayList<>();
+            selectors.add(projection.preferred());
+            selectors.addAll(projection.alternatives());
+
+            assertEquals(ApplicationModel.SelectorQuality.VERIFIED, projection.quality());
+            assertEquals("safe-id", projection.preferred().candidateId());
+            assertTrue(selectors.stream().noneMatch(selector -> selector.value().contains("customer-secret-value")));
+            assertTrue(selectors.stream().noneMatch(selector -> selector.candidateId().equals("text-secret")));
+        }
+    }
+
+    @Test
+    void formControlWithOnlyTextXpathCandidatesHasNoPersistableSelector() {
+        Candidate text = candidate("text-only", "xpath", "//*[text()='customer-secret-value']",
+                ValidationState.VERIFIED_IN_SCOPE, 1, TargetComparison.SAME_TARGET, Origin.TEXT_XPATH);
+
+        for (ApplicationModel.ElementType type : List.of(
+                ApplicationModel.ElementType.INPUT, ApplicationModel.ElementType.TEXTAREA)) {
+            SelectorProjectionAdapter.Projection projection = adapter.project(
+                    analysis(Recommendation.KEEP_CURRENT, text), type, RedactionPolicy.defaults());
+
+            assertEquals(ApplicationModel.SelectorQuality.UNAVAILABLE, projection.quality());
+            assertNull(projection.preferred());
+            assertTrue(projection.alternatives().isEmpty());
+        }
+    }
+
     private static CandidateAnalysis analysis(Recommendation recommendation, Candidate... candidates) {
         return new CandidateAnalysis(
                 CandidateAnalysis.SCHEMA_VERSION,
@@ -76,11 +114,22 @@ class SelectorProjectionAdapterTest {
             ValidationState state,
             int matches,
             TargetComparison comparison) {
+        return candidate(id, strategy, value, state, matches, comparison, Origin.TEST_ATTRIBUTE);
+    }
+
+    private static Candidate candidate(
+            String id,
+            String strategy,
+            String value,
+            ValidationState state,
+            int matches,
+            TargetComparison comparison,
+            Origin origin) {
         return new Candidate(
                 id,
                 new Locator(strategy, value),
                 false,
-                List.of(Origin.TEST_ATTRIBUTE),
+                List.of(origin),
                 List.of(),
                 new Validation(state, matches, comparison, List.of()),
                 new Complexity(ScopeFragility.DIRECT, SemanticPreference.PREFERRED_TEST_ATTRIBUTE, 0, 0, value.length(), 1),
