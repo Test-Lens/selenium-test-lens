@@ -31,6 +31,8 @@ import io.github.testlens.selector.tooling.ExistingProjectIndex;
 import io.github.testlens.selector.tooling.ExistingProjectIndexer;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
+import io.github.testlens.TestLens;
+import io.github.testlens.core.trace.UiTestLensSession;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -207,18 +209,25 @@ class ExistingProjectCorrelationBrowserIT {
                 driver.get(fixture.url());
                 TargetedTestExecutor executor = executionRequest -> {
                     assertEquals(runId, executionRequest.runId());
+                    TestLens lens = TestLens.attach(driver);
+                    UiTestLensSession session = lens.startSession("existing Page Object generated test");
                     Class<?> generated = compilation.output().loadClass(
                             "io.github.testlens.browser.GeneratedInvalidPasswordTest", getClass().getClassLoader());
                     boolean visible;
                     try {
                         visible = (boolean) generated.getMethod("execute", RuntimeLoginPage.class, TestCredentials.class)
-                                .invoke(null, new RuntimeLoginPage(driver),
+                                .invoke(null, new RuntimeLoginPage(lens.observeDriver()),
                                         new TestCredentials("fixture-user-secret", "auth-secret-canary-8391"));
                     } catch (ReflectiveOperationException failure) {
+                        lens.finishFailed(failure);
                         throw new IllegalStateException("Compiled generated test could not be executed", failure);
                     }
+                    if (visible) lens.finishPassed();
+                    else lens.finishFailed(new AssertionError("Login error was not visible"));
+                    assertTrue(session.events().size() >= 3, "existing Page Object calls must leave Test Lens trace evidence");
                     return new TargetedTestExecutor.ExecutionResult(visible, 1,
-                            List.of("runtime page-object action completed", "login error visible=" + visible));
+                            List.of("runtime page-object action completed", "login error visible=" + visible,
+                                    "trace events=" + session.events().size()));
                 };
                 TargetedTestExecutor.ExecutionResult execution = executor.execute(
                         new TargetedTestExecutor.ExecutionRequest(runId,
