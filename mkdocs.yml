@@ -59,6 +59,7 @@ nav:
   - Getting Started:
       - Installation & first test: getting-started.md
       - AI-assisted integration: ai-assisted-integration.md
+      - Codex contributor workflow: ai/codex-workflow.md
       - Existing WebDriver integration: framework-integration.md
       - Configuration: configuration.md
   - Using Test Lens:
@@ -98,6 +99,12 @@ nav:
       - Visual redaction: security/visual-redaction.md
   - Advanced Features:
       - Advanced features overview: advanced/index.md
+      - Application Mapping:
+          - Overview and models: advanced/application-mapping/index.md
+          - Guided end-to-end tutorial: advanced/application-mapping/tutorial.md
+          - Page Object generation: advanced/application-mapping/page-object-generation.md
+          - Drift, security & troubleshooting: advanced/application-mapping/drift-security-troubleshooting.md
+      - AI test engineering foundation: ai/test-engineering.md
       - Steps & business assertions: advanced/steps-business-assertions.md
       - Network diagnostics: advanced/network.md
       - Overlay policies: advanced/overlay-policies.md
@@ -125,6 +132,7 @@ nav:
       - Product capability map: maintainers/product-capability-map.md
       - Binary API catalog (optional): reference/public-api-catalog.md
       - Architecture: architecture.md
+      - Application Mapper architecture: maintainers/application-mapper-architecture.md
       - Consumer compatibility: consumer-compatibility.md
       - Publishing versioned docs: maintainers/documentation-versioning.md
       - Releasing Test Lens 0.4.x: maintainers/release-0.4.x.md

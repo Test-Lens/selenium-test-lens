@@ -43,3 +43,7 @@ The generator owns only `Generated*Page` files. A one-time user extension class 
 The AI layer is provider-neutral and produces bounded context packs and structured output contracts. Context slicing includes only relevant pages and transition closure and records exclusions and completeness. The implementer contract defaults to Page Object APIs only; missing behavior produces `PAGE_OBJECT_CAPABILITY_MISSING`, not an invented raw selector.
 
 No AI SDK, network client, or autonomous scheduler is part of these modules.
+
+## User documentation
+
+The source-only development contract is documented under [Application mapping](../advanced/application-mapping/index.md), with a separate [guided tutorial](../advanced/application-mapping/tutorial.md), [Page Object generation](../advanced/application-mapping/page-object-generation.md), [drift and security guidance](../advanced/application-mapping/drift-security-troubleshooting.md), and [AI test engineering](../ai/test-engineering.md). Every page states that these 0.5.0 development modules are not Maven 0.4.0 artifacts.
