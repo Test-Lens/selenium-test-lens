@@ -74,6 +74,16 @@ final class JavaLocatorScanner {
     private static final Set<String> GENERATED_ROOTS = Set.of("generated-sources", "generated-test-sources");
 
     SelectorIndex scan(ScanRequest request) {
+        return scan(request, null);
+    }
+
+    ExistingProjectIndex scanExistingProject(ScanRequest request, ExistingProjectIndexer.Bounds bounds) {
+        ExistingProjectIndexer.Collector collector = new ExistingProjectIndexer.Collector(bounds);
+        SelectorIndex selectorIndex = scan(request, collector);
+        return collector.finish(selectorIndex);
+    }
+
+    private SelectorIndex scan(ScanRequest request, ExistingProjectIndexer.Collector collector) {
         Path projectRoot = requireProjectRoot(request.projectRoot());
         Limits limits = request.limits();
         if (request.sourceRoots().size() > limits.maxSourceRoots()) {
@@ -90,7 +100,7 @@ final class JavaLocatorScanner {
         int symbolIssues = solverSetup.issues();
 
         for (FileSpec file : discovery.files()) {
-            SourceFileIndex indexed = indexFile(projectRoot, file, request, parser);
+            SourceFileIndex indexed = indexFile(projectRoot, file, request, parser, collector);
             files.add(indexed);
             symbolIssues += (int) indexed.issues().stream()
                     .filter(issue -> issue.code().startsWith("SYMBOL_"))
@@ -259,7 +269,8 @@ final class JavaLocatorScanner {
         return new Discovery(files, discovered[0], generatedExcluded[0], unsupportedLanguage[0], limitReached[0]);
     }
 
-    private SourceFileIndex indexFile(Path projectRoot, FileSpec file, ScanRequest request, JavaParser parser) {
+    private SourceFileIndex indexFile(Path projectRoot, FileSpec file, ScanRequest request, JavaParser parser,
+                                      ExistingProjectIndexer.Collector collector) {
         List<Issue> issues = new ArrayList<>();
         byte[] bytes;
         try {
@@ -313,6 +324,7 @@ final class JavaLocatorScanner {
         List<DeclarationRecord> declarations = declarations(unit, source, file.logicalPath(), hash,
                 request.limits(), issues);
         declarations.sort(Comparator.comparingInt(value -> value.sourceRange().startOffset()));
+        if (collector != null) collector.accept(file.logicalPath(), hash, unit, declarations);
         ParseStatus status = issues.isEmpty() ? ParseStatus.PARSED : ParseStatus.PARSED_WITH_ISSUES;
         return new SourceFileIndex(file.logicalPath(), "java", request.encoding().name(), hash,
                 false, false, status, issues, declarations);
@@ -668,6 +680,7 @@ final class JavaLocatorScanner {
         String type = enclosingType == null ? null : enclosingType.getFullyQualifiedName().orElse(null);
         MethodDeclaration method = node.findAncestor(MethodDeclaration.class).orElse(null);
         String member = method != null ? method.getSignature().asString()
+                : node instanceof VariableDeclarator variable ? variable.getNameAsString()
                 : node.findAncestor(FieldDeclaration.class).flatMap(field -> field.getVariables().stream().findFirst())
                 .map(VariableDeclarator::getNameAsString).orElse(null);
         String symbolKind = method != null ? "METHOD" : node.findAncestor(FieldDeclaration.class).isPresent()
