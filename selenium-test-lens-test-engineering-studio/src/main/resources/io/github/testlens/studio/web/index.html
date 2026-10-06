@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-session-token="">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="test-lens-session" content="">
+  <title>Test Engineering Studio · Test Lens</title>
+  <link rel="stylesheet" href="studio.css">
+</head>
+<body>
+<a class="skip-link" href="#studio-content">Skip to content</a>
+<div class="studio-shell">
+  <aside class="navigation" aria-label="Test Engineering navigation">
+    <header class="brand">
+      <span class="brand-mark" aria-hidden="true">TL</span>
+      <span><strong>Test Lens</strong><small>Test Engineering</small></span>
+    </header>
+    <nav id="studio-navigation">
+      <section aria-labelledby="nav-project"><h2 id="nav-project">Project</h2>
+        <button type="button" data-view="overview" aria-current="page">Overview</button>
+        <button type="button" data-view="application">Application</button>
+        <button type="button" data-view="page-objects">Page Objects</button>
+        <button type="button" data-view="problems"><span>Problems</span><span id="problem-count" class="nav-count" hidden></span></button>
+      </section>
+      <section aria-labelledby="nav-tests"><h2 id="nav-tests">Tests</h2>
+        <button type="button" data-view="requirements">Requirements</button>
+        <button type="button" data-view="plans">Plans</button>
+        <button type="button" data-view="runs">Runs</button>
+      </section>
+      <section aria-labelledby="nav-repairs"><h2 id="nav-repairs">Repairs</h2>
+        <button type="button" data-view="repairs">Proposed</button>
+        <button type="button" data-view="history">History</button>
+      </section>
+    </nav>
+    <footer><span class="connection-dot" aria-hidden="true"></span><span id="connection-status">Connecting to local tooling…</span></footer>
+  </aside>
+
+  <main id="studio-content" tabindex="-1">
+    <header class="workspace-header">
+      <div><p class="eyebrow">Persistent project workspace</p><h1 id="view-title">Project overview</h1><p id="project-label" class="muted">Loading project…</p></div>
+      <div class="header-actions"><button type="button" class="secondary" data-action="REFRESH_PROJECT">Refresh project</button></div>
+    </header>
+    <div id="operation-status" class="operation-status" role="status" aria-live="polite" hidden></div>
+    <div id="error-banner" class="error-banner" role="alert" hidden></div>
+    <div class="workspace-grid">
+      <section id="primary-view" class="primary-view" aria-live="polite" aria-busy="true"></section>
+      <aside id="details-panel" class="details-panel" aria-label="Evidence, limitations and artifacts"></aside>
+    </div>
+  </main>
+</div>
+<noscript>Test Engineering Studio requires JavaScript to communicate with the local Test Lens tooling host.</noscript>
+<script src="studio.js"></script>
+</body>
+</html>
