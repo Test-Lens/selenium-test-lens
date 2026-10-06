@@ -151,3 +151,122 @@ Build a `RepairProposal` only from live validation, same-target, and stability e
 
 Retain only the model history and context packs needed by the project. Keep `.test-lens` artifacts out of public reports unless they have been reviewed. No provider SDK or network call is required by these modules; the generated prompt pack can be consumed by Codex, an IDE agent, CI tooling, or another external orchestrator.
 
+## Continue from an existing Selenium project
+
+The previous steps demonstrate browser-to-model mapping. The 0.5.0 development source also contains a vertical workflow for a project that already has hand-written Page Objects and tests. The following sequence is an integration outline: supply the consuming project's real roots, classpath, runner, and lifecycle instead of copying placeholder paths.
+
+### 10. Index the existing source
+
+Use the Selector Audit-backed indexer. It parses each configured Java file once and projects Page Object classes, locator declarations, API methods, tests, and bounded usage edges without executing application code.
+
+```java
+ExistingProjectIndex source = new ExistingProjectIndexer().index(
+        new ExistingProjectIndexer.Request(
+                projectRoot,
+                List.of(
+                        projectRoot.resolve("src/main/java"),
+                        projectRoot.resolve("src/test/java")
+                ),
+                compileClasspathEntries
+        )
+);
+```
+
+Stop and inspect `source.limitations()` when completeness is `PARTIAL`. An incomplete classpath or a source/edge bound can make a relevant call unresolved.
+
+### 11. Correlate and inspect the usage graph
+
+```java
+PageObjectCorrelation correlation = new PageObjectCorrelator().correlate(
+        model,
+        source,
+        CorrelationOverrides.none()
+);
+```
+
+Review `AMBIGUOUS`, `NO_MATCH`, and `CONFLICT` entries. Add a stable-ID override only after a human has verified the relation. Do not resolve two same-labelled buttons by field-name similarity alone.
+
+For a changed application element, project the source impact:
+
+```java
+SourceImpact impact = new SourceImpactAnalyzer().analyze(
+        changedElementId,
+        correlation,
+        source,
+        10_000
+);
+```
+
+This returns declaration references, Page Object method IDs, test IDs, and limitations. It is a bounded syntactic graph, not a promise of complete compiler call-graph resolution.
+
+### 12. Wrap the requirement and slice source-aware context
+
+Create an `AgentTask` with confirmed stable page, state, and element IDs. Then use the source-aware overload:
+
+```java
+AgentContextPack context = new ContextSlicer().slice(
+        model,
+        task,
+        pageObjectApisByPageId,
+        List.of("JUnit 5 lifecycle from BaseUiTest", "Page Objects only"),
+        redactionPolicy,
+        ContextSlicer.Limits.defaults(),
+        source,
+        correlation,
+        ContextSlicer.SourceLimits.defaults()
+);
+```
+
+For an invalid-password requirement, the expected projection contains the login page, its correlated declarations and Page Object methods, and relevant login tests. It should exclude customer pages and unrelated tests. Check `included`, `excluded`, and `completeness` before invoking an external agent.
+
+The host workflow wraps the same business input in `TestEngineeringRequest`: requirement and acceptance criteria, included/excluded scope, test framework, target module/class/scenario, allowed relative paths, and targeted execution policy. Do not place credentials or production test data in this object.
+
+### 13. Plan, then implement through Page Objects
+
+Send the context to the `TEST_ARCHITECT` role. Its structured `TestPlan` identifies existing coverage, the new or extended scenario, preconditions, actions, expected outcomes, data requirements, risk, and known unknowns. The architect does not write Java.
+
+After plan approval, the `TEST_IMPLEMENTER` receives only the chosen scenario, projected Page Object API, nearby test conventions, and relevant tests. Validate the resulting source with `GeneratedTestPolicyValidator` before compilation. The default policy rejects raw `By`, `driver.findElement`, sleeps, direct JavaScript, retry workarounds, and paths outside the request.
+
+If the Page Object cannot express the required action, record `PageObjectCapabilityMissing`. A `PageObjectExtensionProposal` may use an already-correlated declaration. If no suitable declaration exists, return to Selector Intelligence; do not let the generated test invent one.
+
+### 14. Compile with source preconditions
+
+Use `TargetedJavaCompiler` for the proposed sources. Each `SourceUnit` names a relative path, binary name, content, and the fingerprint of the content expected at that path. A concurrent edit produces `SOURCE_PRECONDITION_FAILED`. Bound the compiler diagnostics passed to a correction step and never continue to browser execution after a compile failure.
+
+### 15. Execute only the target and collect Lens evidence
+
+Provide a host `TargetedTestExecutor` that invokes the project's JUnit 5 or TestNG runner for the requested class/scenario and timeout. Keep the existing driver ownership and Test Lens lifecycle. Project the result into `TestExecutionResult`, keeping compile diagnostics, framework result, trace references, assertions, runtime events, screenshot references, and selector diagnostics distinct.
+
+Do not attach raw Surefire output, environment variables, system properties, page source, cookies, auth state, console dumps, screenshots, or videos to an agent context. A trusted host can keep those artifacts locally while producing a small redacted textual projection.
+
+### 16. Classify before changing anything
+
+Use observed evidence to distinguish compilation, authentication, product behavior, selector instability, synchronization, Page Object capability, and unknown failures. A product defect produces no test or selector repair. A synchronization repair should add the correct condition rather than a sleep. Unknown evidence remains unknown.
+
+For a confirmed selector failure, `SelectorRepairPlanner` accepts only an unambiguous declaration correlation plus a live-validated, unique, same-target replacement selected by the existing Selector Intelligence pipeline. It emits a `PROPOSE_ONLY` `RepairProposal` with source impact and verification plan.
+
+### 17. Apply only at a trusted host boundary
+
+Review the repair outside the browser. `ControlledSourceApplier` requires an explicitly trusted apply, an allowed relative path, and the expected current source fingerprint. A mismatch returns `SOURCE_PRECONDITION_FAILED`. After an accepted patch, compile and rerun only affected tests, then request `CODE_REVIEWER` approval.
+
+### 18. Preserve the audit trail
+
+Drive `TestEngineeringWorkflow` through legal events and retain its artifact ancestry, transitions, and bounded metrics. `WorkflowArtifactStore` writes only approved, already-redacted JSON artifact names under a validated run directory and enforces run retention. Before storage or external transport, require `AgentArtifactSecurityGate` to pass.
+
+The final successful chain is:
+
+```text
+existing Page Objects and tests
+  -> source index and usage graph
+  -> evidence-bearing ApplicationModel correlation
+  -> small redacted AgentContextPack
+  -> TestPlan
+  -> Page-Objects-only test proposal
+  -> targeted compile
+  -> targeted run and Test Lens evidence
+  -> classification
+  -> optional PROPOSE_ONLY repair and trusted apply
+  -> rerun and code review
+```
+
+See [Existing Page Object correlation](existing-page-objects.md) for source-model limits and [AI workflow orchestration](../../ai/workflow-orchestration.md) for the complete state machine and security gates.

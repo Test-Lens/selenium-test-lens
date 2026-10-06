@@ -102,9 +102,11 @@ nav:
       - Application Mapping:
           - Overview and models: advanced/application-mapping/index.md
           - Guided end-to-end tutorial: advanced/application-mapping/tutorial.md
+          - Existing Page Object correlation: advanced/application-mapping/existing-page-objects.md
           - Page Object generation: advanced/application-mapping/page-object-generation.md
           - Drift, security & troubleshooting: advanced/application-mapping/drift-security-troubleshooting.md
       - AI test engineering foundation: ai/test-engineering.md
+      - AI workflow orchestration: ai/workflow-orchestration.md
       - Steps & business assertions: advanced/steps-business-assertions.md
       - Network diagnostics: advanced/network.md
       - Overlay policies: advanced/overlay-policies.md
@@ -133,6 +135,7 @@ nav:
       - Binary API catalog (optional): reference/public-api-catalog.md
       - Architecture: architecture.md
       - Application Mapper architecture: maintainers/application-mapper-architecture.md
+      - Existing-project AI workflow ADR: maintainers/existing-project-ai-workflow-architecture.md
       - Consumer compatibility: consumer-compatibility.md
       - Publishing versioned docs: maintainers/documentation-versioning.md
       - Releasing Test Lens 0.4.x: maintainers/release-0.4.x.md

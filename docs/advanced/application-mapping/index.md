@@ -115,7 +115,8 @@ Provenance distinguishes `OBSERVED`, `LIVE_CANDIDATE_ANALYSIS`, `USER_DECLARED`,
 ## Next steps
 
 - Follow the [end-to-end guided tutorial](tutorial.md).
+- Correlate the model with [existing Page Objects and tests](existing-page-objects.md).
 - Generate and safely regenerate [Page Objects](page-object-generation.md).
 - Review [application drift, security, and troubleshooting](drift-security-troubleshooting.md).
 - Prepare bounded [AI test-engineering context](../../ai/test-engineering.md).
-
+- Run the provider-neutral [AI workflow](../../ai/workflow-orchestration.md).

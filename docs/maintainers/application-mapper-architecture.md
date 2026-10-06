@@ -12,6 +12,7 @@ application-model (JDK only)
 application-mapper → selector-live → selector-engine
         ↑
 application-tooling (persistence, code generation, drift, AI contracts)
+        -> selector-tooling (existing-source index / Selector Audit)
 ```
 
 The three application modules remain unpublished while the selector modules they consume are internal. The vertical slice is compile- and browser-tested from the source reactor; publication is a separate API/product decision for a later release.
@@ -44,6 +45,8 @@ The AI layer is provider-neutral and produces bounded context packs and structur
 
 No AI SDK, network client, or autonomous scheduler is part of these modules.
 
+Existing-project source correlation and workflow orchestration extend this boundary without changing it. Selector Audit produces the single Java declaration identity used by `ExistingProjectIndex`; `PageObjectCorrelator` adds evidence-bearing application/source relations; the usage projection links tests, Page Object methods, and declarations; and source-aware context slicing exports only the task subgraph. The detailed decision, including the rule that AI never owns selector generation, is recorded in the [existing-project workflow ADR](existing-project-ai-workflow-architecture.md).
+
 ## User documentation
 
-The source-only development contract is documented under [Application mapping](../advanced/application-mapping/index.md), with a separate [guided tutorial](../advanced/application-mapping/tutorial.md), [Page Object generation](../advanced/application-mapping/page-object-generation.md), [drift and security guidance](../advanced/application-mapping/drift-security-troubleshooting.md), and [AI test engineering](../ai/test-engineering.md). Every page states that these 0.5.0 development modules are not Maven 0.4.0 artifacts.
+The source-only development contract is documented under [Application mapping](../advanced/application-mapping/index.md), with a separate [guided tutorial](../advanced/application-mapping/tutorial.md), [existing Page Object correlation](../advanced/application-mapping/existing-page-objects.md), [Page Object generation](../advanced/application-mapping/page-object-generation.md), [drift and security guidance](../advanced/application-mapping/drift-security-troubleshooting.md), [AI test engineering](../ai/test-engineering.md), and [workflow orchestration](../ai/workflow-orchestration.md). Every page states that these 0.5.0 development modules are not Maven 0.4.0 artifacts.

@@ -8,7 +8,7 @@ Test Lens prepares deterministic, provider-neutral inputs for test-engineering a
 The AI boundary begins only after deterministic observation and generation:
 
 ```text
-ApplicationModel + generated Page Object API + requirement + conventions
+ApplicationModel + correlated existing/generated Page Object API + requirement + conventions
     -> ContextSlicer
     -> AgentContextPack
     -> PromptPackRenderer
@@ -19,6 +19,8 @@ ApplicationModel + generated Page Object API + requirement + conventions
 ## Agent Context Packs
 
 `ContextSlicer` selects pages from explicit stable IDs and follows bounded transition dependencies. It includes only the corresponding states, elements, transitions, generated Page Object API summaries, and test conventions. It records every included and excluded scope decision and reports `COMPLETE_FOR_REQUESTED_SCOPE`, `PARTIAL`, or `FAILED`.
+
+The source-aware overload additionally consumes an `ExistingProjectIndex` and `PageObjectCorrelation`. It adds only evidence-backed Page Object classes, methods, declaration fingerprints, and relevant JUnit 5 or TestNG tests. Raw selector values and full source files are not part of that projection. See [Existing Page Object correlation](../advanced/application-mapping/existing-page-objects.md).
 
 Budgets cover pages, elements, transitions, transition depth, states, state-element references, Page Object APIs, conventions, individual strings, total characters, and scope decisions. If a budget is reached, the pack is partial; contracts are never silently truncated by `PromptPackRenderer`. Redaction is applied before context leaves this boundary.
 
@@ -76,3 +78,4 @@ Test Lens does not send a pack anywhere. Storage, provider selection, authentica
 
 See the [guided mapping tutorial](../advanced/application-mapping/tutorial.md) for the complete model-to-context flow.
 
+For the auditable state machine, compile and targeted-run boundaries, deterministic generated-test policy, trusted repair apply, workflow artifacts, and auth-state gates, continue with [AI workflow orchestration](workflow-orchestration.md).

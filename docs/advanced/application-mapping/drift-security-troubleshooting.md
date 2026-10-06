@@ -45,6 +45,17 @@ This is not a guarantee that arbitrary personal data can be inferred and removed
 
 Authentication is caller-owned. Restore or perform login before mapping; do not store credentials, tokens, cookies, or reusable authentication state in `ApplicationModel`.
 
+Before an authenticated test workflow can provide context to an agent, treat saved auth state as a replayable credential and apply these hard gates:
+
+- use a dedicated non-production account and validate the expected origin;
+- keep browser auth/storage-state files outside the repository with restricted access and bounded retention;
+- keep passwords, cookie values, authorization headers, JWTs, CSRF/client secrets, local/session storage, environment values, and system properties out of requests and artifacts;
+- require an enabled central `RedactionPolicy`, apply it before persistence or transport, and fail if secret canaries remain;
+- exclude raw Surefire output, stack traces, console logs, page source, screenshots, and video from agent context by default;
+- fail closed when authentication provenance or redaction status cannot be established.
+
+`AgentArtifactSecurityGate` implements the textual/canary/reference checks for the workflow boundary. It does not inspect screenshot pixels and cannot turn arbitrary image evidence into a safe agent artifact.
+
 ## Troubleshooting
 
 ### Coverage is PARTIAL
@@ -78,3 +89,27 @@ Verify that mode is `SAFE_EXPLORE`, depth and action count are non-zero, the can
 ### A mapper call failed
 
 Use `MappingException.code()` rather than parsing message text. Codes distinguish stale targets, browser-script failures, blocked crawl actions, unretained page state, identity ambiguity, unsupported closed shadow roots, serialization or generation conflicts, and selector review requirements. Preserve the original failure and its evidence.
+
+### Existing source correlation is AMBIGUOUS
+
+Inspect every candidate declaration and its page/context evidence. Do not choose by field or method name alone. Narrow the configured source roots or add a reviewed `CorrelationOverrides` entry that references stable class/page or source/application element IDs. If neither resolves identity, keep the result ambiguous.
+
+### Source-aware context is PARTIAL
+
+Review both application and source limitations. The source slice has independent bounds for Page Object classes, methods, declarations, existing tests, and serialized characters. An incomplete source index also makes the context partial. Increase only the limiting dimension after reviewing data exposure; do not remove `CONTEXT_BUDGET_REACHED` or source limitations from the artifact.
+
+### A generated test is rejected before compile
+
+Read `GeneratedTestPolicyValidator.ValidationResult`. The default policy rejects raw locators, direct driver lookup, sleeps, direct JavaScript, retry workarounds, protected or unapproved paths, and oversized source. Fix the proposal through the Page Object API. If the API is insufficient, record `PageObjectCapabilityMissing` instead of weakening policy.
+
+### Compilation reports SOURCE_PRECONDITION_FAILED
+
+The source changed after the proposal was prepared. Discard the stale proposal, re-read and re-index the affected source, create a new content fingerprint, and regenerate the bounded context. Do not overwrite the concurrent change.
+
+### A selector repair is not produced
+
+Confirm that failure classification is `SELECTOR_INSTABILITY`, correlation resolves to one source declaration, and the replacement is live-analyzed, same-target, unique, and `VERIFIED`. Missing any one of these is a reason to stop or request human review, not to invent a locator.
+
+### Workflow stops at NEEDS_HUMAN_REVIEW
+
+Inspect workflow metrics and audit entries. The configured correction, rerun, or repair bound was reached, or the caller explicitly requested review. Start a new run only after addressing the underlying uncertainty; do not increase every bound to hide a repeated failure.
