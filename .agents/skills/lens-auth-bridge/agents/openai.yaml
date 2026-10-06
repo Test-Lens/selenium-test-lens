@@ -1,0 +1,4 @@
+interface:
+  display_name: "lens-auth-bridge"
+  short_description: "Project workflow for Selenium Test Lens"
+  default_prompt: "Use $lens-auth-bridge for the assigned Selenium Test Lens task."

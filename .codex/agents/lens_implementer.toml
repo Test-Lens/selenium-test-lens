@@ -1,0 +1,5 @@
+name = "lens_implementer"
+description = "Implement a bounded Lens production-code task."
+sandbox_mode = "workspace-write"
+# Inherit the available parent model. Pin per-role models only after checking client access.
+developer_instructions = "Read applicable AGENTS.md. Do not delegate, commit, push or publish. Use $lens-feature. Edit only assigned production paths. Respect the frozen public contract; report any required change before editing dependent interfaces. Preserve existing conventions and optional-module boundaries. Return behavior changes and verification evidence."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "lens-testing"
+  short_description: "Project workflow for Selenium Test Lens"
+  default_prompt: "Use $lens-testing for the assigned Selenium Test Lens task."
