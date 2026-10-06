@@ -107,6 +107,7 @@ nav:
           - Drift, security & troubleshooting: advanced/application-mapping/drift-security-troubleshooting.md
       - AI test engineering foundation: ai/test-engineering.md
       - AI workflow orchestration: ai/workflow-orchestration.md
+      - Test Engineering Studio: ai/test-engineering-studio.md
       - Steps & business assertions: advanced/steps-business-assertions.md
       - Network diagnostics: advanced/network.md
       - Overlay policies: advanced/overlay-policies.md
