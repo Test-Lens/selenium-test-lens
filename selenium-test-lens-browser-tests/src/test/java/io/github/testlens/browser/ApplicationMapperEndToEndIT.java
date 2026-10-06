@@ -6,12 +6,14 @@ import io.github.testlens.TestLens;
 import io.github.testlens.application.mapper.ApplicationMapper;
 import io.github.testlens.application.mapper.ApplicationMapperOptions;
 import io.github.testlens.application.mapper.ApplicationOverrides;
+import io.github.testlens.application.mapper.MappingMetrics;
 import io.github.testlens.application.mapper.MappingObservation;
 import io.github.testlens.application.model.ApplicationModel;
 import io.github.testlens.application.tooling.ai.AgentContextPack;
 import io.github.testlens.application.tooling.ai.AgentTask;
 import io.github.testlens.application.tooling.ai.ContextSlicer;
 import io.github.testlens.application.tooling.ai.ContractHeader;
+import io.github.testlens.application.tooling.ai.PromptPackRenderer;
 import io.github.testlens.application.tooling.ai.RepairProposal;
 import io.github.testlens.application.tooling.codegen.GeneratedPageObject;
 import io.github.testlens.application.tooling.codegen.PageObjectGenerationOptions;
@@ -146,7 +148,9 @@ class ApplicationMapperEndToEndIT {
 
                 ApplicationModelJson json = new ApplicationModelJson();
                 Path modelFile = temporary.resolve("application-model.json");
+                long serializationStarted = System.nanoTime();
                 byte[] persistedModel = json.write(model);
+                long serializationNanos = System.nanoTime() - serializationStarted;
                 String persistedText = new String(persistedModel, StandardCharsets.UTF_8);
                 assertFalse(persistedText.contains("must-not-be-captured"));
                 assertFalse(persistedText.contains("private note"), () -> jsonContext(persistedText, "private note"));
@@ -157,7 +161,9 @@ class ApplicationMapperEndToEndIT {
                 PageObjectGenerationOptions generation = PageObjectGenerationOptions.verifiedOnly(
                         "fixture.generated", temporary.resolve("generated-sources"));
                 PageObjectGenerator generator = new PageObjectGenerator();
+                long generationStarted = System.nanoTime();
                 List<GeneratedPageObject> generated = generator.generate(restored, generation);
+                long generationNanos = System.nanoTime() - generationStarted;
                 PageObjectSourceStore.WriteResult sources = new PageObjectSourceStore().write(generation, generated);
                 Path compiled = compile(sources);
 
@@ -167,10 +173,38 @@ class ApplicationMapperEndToEndIT {
                 GeneratedPageObject generatedDetails = generated.stream()
                         .filter(page -> page.pageId().equals(firstDetails.pageId()))
                         .findFirst().orElseThrow();
+                long contextStarted = System.nanoTime();
                 AgentContextPack context = context(model, generatedLogin, generatedDetails);
+                long contextNanos = System.nanoTime() - contextStarted;
                 assertEquals(2, context.pages().size());
                 assertTrue(context.excluded().stream().anyMatch(decision -> decision.kind().equals("PAGE")));
                 assertFalse(context.pages().stream().anyMatch(page -> page.pageId().equals(dashboardObservation.pageId())));
+                String prompt = new PromptPackRenderer().render(PromptPackRenderer.Role.TEST_IMPLEMENTER,
+                        context, 1_000_000);
+                int rawDomBytes = driver.getPageSource().getBytes(StandardCharsets.UTF_8).length;
+                int modelBytes = persistedModel.length;
+                int contextBytes = prompt.getBytes(StandardCharsets.UTF_8).length;
+                assertTrue(contextBytes < modelBytes,
+                        () -> "task context must be smaller than the complete model: context=" + contextBytes
+                                + ", model=" + modelBytes);
+                MappingMetrics performance = mapper.metrics();
+                assertEquals(performance.observations(), performance.discoveryScriptCalls());
+                assertTrue(performance.selectorAnalyses() > 0);
+                assertTrue(performance.selectorAnalyses()
+                        <= performance.observations() * options.maxCandidateAnalyses());
+                assertTrue(performance.seleniumCommands() >= performance.selectorAnalyses());
+                assertTrue(performance.discoveryNanos() >= 0 && performance.mergeNanos() >= 0
+                        && serializationNanos >= 0 && generationNanos >= 0 && contextNanos >= 0);
+                System.out.printf("MAPPER_E2E_PERF browser=%s observations=%d discoveryNanos=%d "
+                                + "discoveryScriptCalls=%d seleniumCommands=%d selectorAnalyses=%d "
+                                + "selectorAnalysisNanos=%d mergeNanos=%d serializationNanos=%d "
+                                + "generationNanos=%d contextSlicingNanos=%d rawDomBytes=%d "
+                                + "applicationModelBytes=%d agentContextPromptBytes=%d%n",
+                        BrowserTestHarness.browserName(), performance.observations(), performance.discoveryNanos(),
+                        performance.discoveryScriptCalls(), performance.seleniumCommands(),
+                        performance.selectorAnalyses(), performance.selectorAnalysisNanos(),
+                        performance.mergeNanos(), serializationNanos, generationNanos, contextNanos,
+                        rawDomBytes, modelBytes, contextBytes);
 
                 driver.get(application.url("/login"));
                 executeGeneratedLogin(driver, compiled, "fixture.generated", generatedLogin, loginButton.elementId());
