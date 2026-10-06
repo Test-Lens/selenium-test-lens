@@ -102,6 +102,7 @@ foreach ($function in @("resolveCapabilities", "resolveDocumentationTarget", "sc
 
 foreach ($forbidden in @(
     "selenium-test-lens-selector-engine", "selenium-test-lens-selector-tooling", "selenium-test-lens-selector-live",
+    "selenium-test-lens-application-model", "selenium-test-lens-application-mapper", "selenium-test-lens-application-tooling",
     "selenium-test-lens-selector-lab", "selenium-test-lens-compatibility-engine", "selenium-test-lens-compatibility-tooling",
     "selenium-test-lens-migration-tooling"
 )) {

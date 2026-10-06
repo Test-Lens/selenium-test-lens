@@ -18,6 +18,9 @@ Test Lens for Selenium is split into small Maven modules so Selenium code, brows
 | `selenium-test-lens-junit5` | Optional JUnit 5 lifecycle and parameter injection | Depends on the main runtime and JUnit Jupiter API; Selenium remains optional |
 | `selenium-test-lens-testng` | Optional TestNG invocation lifecycle | Depends on the main runtime and TestNG; Selenium remains optional |
 | `selenium-test-lens-react` | Optional React- and SPA-specific Selenium helpers | Depends directly on the main runtime, core, overlay, and Selenium |
+| `selenium-test-lens-application-model` | Neutral, versioned application graph and deterministic identity schema | JDK-only; no Selenium, JavaParser, JSON library, or AI provider dependency |
+| `selenium-test-lens-application-mapper` | Explicit bounded current-page/guided discovery | Depends on application-model and the existing selector-engine/live pipeline; runs synchronously on the caller thread |
+| `selenium-test-lens-application-tooling` | Model persistence, drift, generated Page Object bases, and provider-neutral AI context contracts | Depends on application-model and core redaction; JavaParser and LLM SDKs are not runtime dependencies |
 | `selenium-test-lens-examples` | Compile-checked and documentation examples | Depends on the main runtime and React module; built with the reactor but excluded from Maven Central publication |
 | `selenium-test-lens-browser-tests` | Consumer-level Chrome and Firefox integration tests against deterministic local pages | Added to the reactor only by `browser-it`; depends on the built main artifact and is never published |
 
@@ -62,7 +65,7 @@ Collection composition extends that approach with immutable internal `By` stages
 Chrome and Firefox headless runs are required in CI. A headed Chrome run under Xvfb is available as a non-blocking manual smoke test. Edge and remote-grid execution are not currently in the browser matrix.
 
 The separate consumer-compatibility matrix runs on JDK 17 and JDK 21. For
-each JVM it transforms the nine-project source reactor from
+each JVM it transforms the source reactor from
 the root release version, stages exactly seven
 publishable coordinates, and executes Maven and Gradle consumers. Gradle
 cannot use reactor outputs, project dependencies, composite builds,

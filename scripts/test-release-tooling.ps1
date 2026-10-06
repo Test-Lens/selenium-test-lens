@@ -69,8 +69,8 @@ try {
             -RepositoryRoot $fixtureRoot -ReleaseSourceRoot $releaseSourceRoot)
         $browser = @(& (Join-Path $PSScriptRoot "check-reactor-versions.ps1") `
             -RepositoryRoot $fixtureRoot -ReleaseSourceRoot $releaseSourceRoot -IncludeBrowserIt)
-        if ($normal[-1] -notmatch '16 projects') { throw "Normal reactor count regression" }
-        if ($browser[-1] -notmatch '17 projects') { throw "Browser reactor count regression" }
+        if ($normal[-1] -notmatch '19 projects') { throw "Normal reactor count regression" }
+        if ($browser[-1] -notmatch '20 projects') { throw "Browser reactor count regression" }
         & (Join-Path $PSScriptRoot "validate-release-packaging.ps1") `
             -RepositoryRoot $fixtureRoot `
             -ReleaseSourceRoot $releaseSourceRoot `

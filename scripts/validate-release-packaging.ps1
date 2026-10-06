@@ -24,7 +24,7 @@ $ns = New-Object System.Xml.XmlNamespaceManager($pom.NameTable)
 $ns.AddNamespace("m", "http://maven.apache.org/POM/4.0.0")
 $excluded = $pom.SelectSingleNode("//m:plugin[m:artifactId='central-publishing-maven-plugin']/m:configuration/m:excludeArtifacts", $ns)
 $published = @("selenium-test-lens-parent","selenium-test-lens-core","selenium-test-lens-overlay","selenium-test-lens","selenium-test-lens-junit5","selenium-test-lens-testng","selenium-test-lens-allure","selenium-test-lens-react")
-$internal = @("selenium-test-lens-examples","selenium-test-lens-browser-tests","selenium-test-lens-selector-engine","selenium-test-lens-selector-live","selenium-test-lens-selector-lab","selenium-test-lens-selector-tooling","selenium-test-lens-compatibility-engine","selenium-test-lens-compatibility-tooling","selenium-test-lens-migration-tooling")
+$internal = @("selenium-test-lens-examples","selenium-test-lens-browser-tests","selenium-test-lens-application-model","selenium-test-lens-application-mapper","selenium-test-lens-application-tooling","selenium-test-lens-selector-engine","selenium-test-lens-selector-live","selenium-test-lens-selector-lab","selenium-test-lens-selector-tooling","selenium-test-lens-compatibility-engine","selenium-test-lens-compatibility-tooling","selenium-test-lens-migration-tooling")
 $classified = @($published + $internal | Sort-Object -Unique)
 $actual = @($model.Projects.ArtifactId | Sort-Object -Unique)
 $unknown = @($actual | Where-Object { $_ -notin $classified })
@@ -41,7 +41,7 @@ $rows = foreach ($project in $model.Projects) {
 $rows | Sort-Object ArtifactId | Format-Table ArtifactId,Reactor,Packaging,PublicationExpected,EffectiveDeploySkip,Result -AutoSize | Out-String | Write-Output
 $failed = @($rows | Where-Object { $_.Result -ne "PASS" })
 if ($failed.Count -gt 0) { throw "Release publication matrix contains $($failed.Count) invalid module(s)" }
-if ($MatrixOnly) { Write-Output "Release publication matrix PASS: 8 published coordinates, 9 nonpublished modules"; return }
+if ($MatrixOnly) { Write-Output "Release publication matrix PASS: 8 published coordinates, 12 nonpublished modules"; return }
 
 $components = @($rows | Where-Object { $_.PublicationExpected } | ForEach-Object { @{ Artifact=$_.ArtifactId; Directory=$_.Directory; Packaging=$_.Packaging } })
 
