@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.nio.file.Path;
 
 /**
@@ -18,7 +19,7 @@ import java.nio.file.Path;
  */
 public final class ReviewableCoordinatorWorkflowGateway implements StudioWorkflowGateway {
     private final AgentExecutor agents;
-    private final Function<AgentExecutor, AgentWorkflowCoordinator> coordinators;
+    private final BiFunction<AgentExecutor, CoordinatorWorkflowGateway.Input, AgentWorkflowCoordinator> coordinators;
     private final GeneratedTestPolicyValidator policyValidator;
     private final Function<TestEngineeringRequest,Path> generatedSourcePath;
     private final RepairSourceCompiler repairSourceCompiler;
@@ -28,12 +29,29 @@ public final class ReviewableCoordinatorWorkflowGateway implements StudioWorkflo
     public ReviewableCoordinatorWorkflowGateway(
             AgentExecutor agents,
             Function<AgentExecutor, AgentWorkflowCoordinator> coordinators) {
+        this(agents,(executor,ignored)->coordinators.apply(executor),new GeneratedTestPolicyValidator(GeneratedTestPolicyValidator.Policy.defaults()),
+                ReviewableCoordinatorWorkflowGateway::defaultGeneratedSourcePath,proposal->{throw new AgentExecutor.AgentExecutionException(AgentExecutor.AgentFailureCode.AGENT_PROCESS_FAILED,"Repair verification compiler is not configured");});
+    }
+
+    /** Builds the deterministic compiler/execution pipeline from the reviewed request and its project context. */
+    public ReviewableCoordinatorWorkflowGateway(
+            AgentExecutor agents,
+            BiFunction<AgentExecutor, CoordinatorWorkflowGateway.Input, AgentWorkflowCoordinator> coordinators) {
         this(agents,coordinators,new GeneratedTestPolicyValidator(GeneratedTestPolicyValidator.Policy.defaults()),
                 ReviewableCoordinatorWorkflowGateway::defaultGeneratedSourcePath,proposal->{throw new AgentExecutor.AgentExecutionException(AgentExecutor.AgentFailureCode.AGENT_PROCESS_FAILED,"Repair verification compiler is not configured");});
     }
 
     public ReviewableCoordinatorWorkflowGateway(AgentExecutor agents,
             Function<AgentExecutor, AgentWorkflowCoordinator> coordinators,
+            GeneratedTestPolicyValidator policyValidator,
+            Function<TestEngineeringRequest,Path> generatedSourcePath,
+            RepairSourceCompiler repairSourceCompiler) {
+        this(agents, (executor, ignored) -> coordinators.apply(executor), policyValidator,
+                generatedSourcePath, repairSourceCompiler);
+    }
+
+    public ReviewableCoordinatorWorkflowGateway(AgentExecutor agents,
+            BiFunction<AgentExecutor, CoordinatorWorkflowGateway.Input, AgentWorkflowCoordinator> coordinators,
             GeneratedTestPolicyValidator policyValidator,
             Function<TestEngineeringRequest,Path> generatedSourcePath,
             RepairSourceCompiler repairSourceCompiler) {
@@ -112,7 +130,7 @@ public final class ReviewableCoordinatorWorkflowGateway implements StudioWorkflo
             case TEST_IMPLEMENTER -> session.implementation();
             default -> agents.execute(command);
         };
-        AgentWorkflowCoordinator.Result result = coordinators.apply(replay).run(runId,
+        AgentWorkflowCoordinator.Result result = coordinators.apply(replay, session.input()).run(runId,
                 session.input().request(), session.input().context());
         sessions.put(runId, new Session(session.input(), session.plan(), session.implementation(), result,session.policy()));
         return result.toWorkflowReport(StrictJson.write(session.input().context()).length,

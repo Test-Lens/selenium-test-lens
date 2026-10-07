@@ -3,7 +3,8 @@ param(
     [string]$StagingDirectory = (Join-Path ([System.IO.Path]::GetTempPath()) ("selenium-test-lens-release-staging-" + [guid]::NewGuid())),
     [switch]$MatrixOnly,
     [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$ReleaseSourceRoot
+    [string]$ReleaseSourceRoot,
+    [string]$PublicationPolicyPath = (Join-Path $PSScriptRoot "config/publication-policy.json")
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,15 +18,17 @@ $releaseSource = if ([string]::IsNullOrWhiteSpace($ReleaseSourceRoot)) {
 $model = Get-TestLensReactorModel `
     -RepositoryRoot $repo `
     -ReleaseSourceRoot $releaseSource `
-    -IncludeBrowserIt
+    -IncludeBrowserIt `
+    -PublicationPolicyPath $PublicationPolicyPath
 if ([string]::IsNullOrWhiteSpace($Version)) { $Version = $model.RootVersion }
 $pom = [xml](Get-Content -Raw (Join-Path $releaseSource "pom.xml"))
 $ns = New-Object System.Xml.XmlNamespaceManager($pom.NameTable)
 $ns.AddNamespace("m", "http://maven.apache.org/POM/4.0.0")
 $excluded = $pom.SelectSingleNode("//m:plugin[m:artifactId='central-publishing-maven-plugin']/m:configuration/m:excludeArtifacts", $ns)
-$published = @("selenium-test-lens-parent","selenium-test-lens-core","selenium-test-lens-overlay","selenium-test-lens","selenium-test-lens-junit5","selenium-test-lens-testng","selenium-test-lens-allure","selenium-test-lens-react")
-$internal = @("selenium-test-lens-examples","selenium-test-lens-browser-tests","selenium-test-lens-application-model","selenium-test-lens-application-mapper","selenium-test-lens-application-tooling","selenium-test-lens-selector-engine","selenium-test-lens-selector-live","selenium-test-lens-selector-lab","selenium-test-lens-selector-tooling","selenium-test-lens-compatibility-engine","selenium-test-lens-compatibility-tooling","selenium-test-lens-migration-tooling")
-$classified = @($published + $internal | Sort-Object -Unique)
+$policy = Read-TestLensPublicationPolicy $PublicationPolicyPath
+$published = @($policy.Published)
+$internal = @($policy.CentralExcluded)
+$classified = @($policy.Classified | Sort-Object -Unique)
 $actual = @($model.Projects.ArtifactId | Sort-Object -Unique)
 $unknown = @($actual | Where-Object { $_ -notin $classified })
 $missing = @($classified | Where-Object { $_ -notin $actual })
@@ -34,14 +37,15 @@ $centralExcluded = if ($null -eq $excluded) { @() } else { @($excluded.InnerText
 if (@(Compare-Object $internal $centralExcluded).Count -ne 0) { throw "Central excludeArtifacts does not exactly match the nonpublished module policy" }
 
 $rows = foreach ($project in $model.Projects) {
-    $publicationExpected = $project.ArtifactId -in $published
+    $role = @($policy.ArtifactsByRole.Keys | Where-Object { $project.ArtifactId -in $policy.ArtifactsByRole[$_] }) | Select-Object -First 1
+    $publicationExpected = $role -in @("PUBLISHED_STABLE", "PUBLISHED_TOOLING")
     $ok = if ($publicationExpected) { -not $project.EffectiveDeploySkip } else { $project.EffectiveDeploySkip -and $project.ArtifactId -in $centralExcluded }
-    [pscustomobject]@{ ArtifactId=$project.ArtifactId; Reactor=if($project.ProfileOnly){"browser-it"}else{"normal"}; Packaging=$project.Packaging; PublicationExpected=$publicationExpected; EffectiveDeploySkip=$project.EffectiveDeploySkip; Result=if($ok){"PASS"}else{"FAIL"}; Directory=$project.Directory }
+    [pscustomobject]@{ ArtifactId=$project.ArtifactId; Role=$role; Reactor=if($project.ProfileOnly){"browser-it"}else{"normal"}; Packaging=$project.Packaging; PublicationExpected=$publicationExpected; EffectiveDeploySkip=$project.EffectiveDeploySkip; Result=if($ok){"PASS"}else{"FAIL"}; Directory=$project.Directory }
 }
-$rows | Sort-Object ArtifactId | Format-Table ArtifactId,Reactor,Packaging,PublicationExpected,EffectiveDeploySkip,Result -AutoSize | Out-String | Write-Output
+$rows | Sort-Object ArtifactId | Format-Table ArtifactId,Role,Reactor,Packaging,PublicationExpected,EffectiveDeploySkip,Result -AutoSize | Out-String | Write-Output
 $failed = @($rows | Where-Object { $_.Result -ne "PASS" })
 if ($failed.Count -gt 0) { throw "Release publication matrix contains $($failed.Count) invalid module(s)" }
-if ($MatrixOnly) { Write-Output "Release publication matrix PASS: 8 published coordinates, 12 nonpublished modules"; return }
+if ($MatrixOnly) { Write-Output "Release publication matrix PASS: $($published.Count) published coordinates, $($internal.Count) nonpublished modules"; return }
 
 $components = @($rows | Where-Object { $_.PublicationExpected } | ForEach-Object { @{ Artifact=$_.ArtifactId; Directory=$_.Directory; Packaging=$_.Packaging } })
 
@@ -52,7 +56,7 @@ foreach ($component in $components) {
     New-Item -ItemType Directory -Force -Path $destination | Out-Null
     Copy-Item -LiteralPath (Join-Path $component.Directory "pom.xml") -Destination (Join-Path $destination "$artifact-$Version.pom") -Force
 
-    if ($component.Packaging -eq "jar") {
+    if ($component.Packaging -in @("jar", "maven-plugin")) {
         foreach ($suffix in ".jar", "-sources.jar", "-javadoc.jar") {
             $source = Join-Path $component.Directory "target/$artifact-$Version$suffix"
             if (-not (Test-Path -LiteralPath $source)) { throw "Missing release artifact: $source" }

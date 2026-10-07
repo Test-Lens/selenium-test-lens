@@ -61,7 +61,9 @@ function New-TestLensCleanRoomRelease {
         throw "Release source version '$sourceVersion' cannot be transformed to '$ReleaseVersion'"
     }
     if ([string]::IsNullOrWhiteSpace($WorkDirectory)) {
-        $WorkDirectory = Join-Path ([IO.Path]::GetTempPath()) ("selenium-test-lens-clean-room-" + [guid]::NewGuid())
+        # Keep the release source path short enough for deeply nested Java packages on
+        # Windows installations that still enforce the legacy MAX_PATH boundary.
+        $WorkDirectory = Join-Path ([IO.Path]::GetTempPath()) ("tlcr-" + [guid]::NewGuid().ToString("N").Substring(0, 12))
     }
     $work = [IO.Path]::GetFullPath($WorkDirectory)
     $repositoryWithSeparator = $repository.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar

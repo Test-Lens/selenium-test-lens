@@ -18,8 +18,9 @@ import java.util.regex.Pattern;
 public final class TargetedRepairSourceCompiler implements ReviewableCoordinatorWorkflowGateway.RepairSourceCompiler {
     private static final int MAX_SOURCE_BYTES=2*1024*1024;
     private static final Pattern PACKAGE=Pattern.compile("(?m)^\\s*package\\s+([A-Za-z_$][A-Za-z0-9_$.]*)\\s*;");
-    private final Path projectRoot;private final int release;private final String classpath;private final TargetedJavaCompiler compiler=new TargetedJavaCompiler();
-    public TargetedRepairSourceCompiler(Path projectRoot,int release,String classpath){this.projectRoot=Objects.requireNonNull(projectRoot).toAbsolutePath().normalize();this.release=release;this.classpath=classpath==null?"":classpath;}
+    private final Path projectRoot;private final int release;private final String classpath;private final List<Path> sourceRoots,classpathEntries;private final TargetedJavaCompiler compiler=new TargetedJavaCompiler();
+    public TargetedRepairSourceCompiler(Path projectRoot,int release,String classpath){this(projectRoot,release,classpath,List.of(),List.of());}
+    TargetedRepairSourceCompiler(Path projectRoot,int release,String classpath,List<Path>sourceRoots,List<Path>classpathEntries){this.projectRoot=Objects.requireNonNull(projectRoot).toAbsolutePath().normalize();this.release=release;this.classpath=classpath==null?"":classpath;this.sourceRoots=List.copyOf(sourceRoots==null?List.of():sourceRoots);this.classpathEntries=List.copyOf(classpathEntries==null?List.of():classpathEntries);}
     @Override public void compile(RepairProposal proposal)throws AgentExecutor.AgentExecutionException{
         if(proposal==null||proposal.sourceTarget()==null)throw failed("Repair proposal has no trusted source target");
         Path relative;try{relative=Path.of(proposal.sourceTarget().logicalPath()).normalize();}catch(RuntimeException failure){throw failed("Repair source path is invalid");}
@@ -32,7 +33,18 @@ public final class TargetedRepairSourceCompiler implements ReviewableCoordinator
             String fingerprint=ArtifactEnvelope.digest(content);var unit=new TargetedJavaCompiler.SourceUnit(relative,binary,content,fingerprint);
             var result=compiler.compile(new TargetedJavaCompiler.CompilationRequest(List.of(unit),release,classpath,50),Map.of(relative,content));
             if(!result.successful())throw failed("Repaired source compilation failed: "+result.diagnostics().stream().map(TargetedJavaCompiler.CompilationDiagnostic::code).distinct().toList());
+            Path output=outputFor(source);if(output!=null)result.output().writeTo(output);
         }catch(IOException failure){throw failed("Unable to read repaired source: "+failure.getClass().getSimpleName());}
+    }
+    private Path outputFor(Path source){
+        Path matched=sourceRoots.stream().map(path->path.toAbsolutePath().normalize()).filter(source::startsWith)
+                .max(java.util.Comparator.comparingInt(Path::getNameCount)).orElse(null);
+        if(matched==null)return null;
+        boolean test=matched.toString().replace('\\','/').contains("/test/");
+        return classpathEntries.stream().map(path->path.toAbsolutePath().normalize())
+                .filter(path->path.startsWith(projectRoot))
+                .filter(path->{String value=path.toString().replace('\\','/');return test?value.endsWith("/test-classes"):value.endsWith("/classes")&&!value.endsWith("/test-classes");})
+                .findFirst().orElse(null);
     }
     private static AgentExecutor.AgentExecutionException failed(String message){return new AgentExecutor.AgentExecutionException(AgentExecutor.AgentFailureCode.AGENT_PROCESS_FAILED,message);}
 }

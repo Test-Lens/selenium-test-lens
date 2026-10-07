@@ -1,8 +1,6 @@
 package io.github.testlens.studio.launcher;
 
-import io.github.testlens.studio.StudioWorkflowGateway;
-import io.github.testlens.studio.project.ProjectDescriptor;
-import io.github.testlens.studio.project.ProjectDiscovery;
+import io.github.testlens.studio.TestEngineeringStudio;
 
 import java.nio.file.Path;
 import java.util.concurrent.CountDownLatch;
@@ -13,13 +11,8 @@ public final class Main {
 
     public static void main(String[] args) throws Exception {
         Arguments arguments = Arguments.parse(args);
-        ProjectDescriptor descriptor = new ProjectDiscovery().discover(arguments.project());
-        StudioWorkflowGateway unavailableWorkflow = runId -> {
-            throw new UnsupportedOperationException("No workflow gateway was supplied to the standalone launcher");
-        };
-        StudioLauncherService launcher = new StudioLauncherService(unavailableWorkflow, null);
-        StudioLauncherService.LaunchHandle handle = launcher.launch(descriptor,
-                new StudioLauncherService.LaunchOptions(arguments.openBrowser()));
+        TestEngineeringStudio.LaunchHandle handle = TestEngineeringStudio.launch(
+                new TestEngineeringStudio.LaunchRequest(arguments.project(),java.util.List.of(),java.util.List.of(),java.util.List.of(),arguments.openBrowser()));
         Runtime.getRuntime().addShutdownHook(new Thread(handle::close, "test-lens-studio-shutdown"));
         System.out.println("Test Engineering Studio: " + handle.uri());
         new CountDownLatch(1).await();

@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "applicationName": "external-login",
+  "startUrl": "http://127.0.0.1:18181/",
+  "browser": {"name": "CHROME", "headless": true},
+  "agentProfiles": {"TEST_ARCHITECT": "certification", "TEST_IMPLEMENTER": "certification", "CODE_REVIEWER": "certification"}
+}

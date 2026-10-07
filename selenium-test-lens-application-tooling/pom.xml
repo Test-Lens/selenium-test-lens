@@ -6,12 +6,11 @@
     <parent>
         <groupId>io.github.test-lens</groupId>
         <artifactId>selenium-test-lens-parent</artifactId>
-        <version>0.4.0</version>
+        <version>0.5.0-SNAPSHOT</version>
     </parent>
     <artifactId>selenium-test-lens-application-tooling</artifactId>
     <name>Test Lens for Selenium — Application Tooling</name>
     <description>Internal deterministic persistence, Page Object generation, drift, and AI context contracts.</description>
-    <properties><maven.deploy.skip>true</maven.deploy.skip></properties>
     <dependencies>
         <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-application-model</artifactId><version>${project.version}</version></dependency>
         <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-selector-tooling</artifactId><version>${project.version}</version></dependency>

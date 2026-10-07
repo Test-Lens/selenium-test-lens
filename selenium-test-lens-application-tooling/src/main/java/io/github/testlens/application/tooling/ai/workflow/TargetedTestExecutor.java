@@ -15,7 +15,16 @@ public interface TargetedTestExecutor {
             if (timeout == null || timeout.isNegative() || timeout.isZero()) throw new IllegalArgumentException("positive timeout is required");
         }
     }
-    record ExecutionResult(boolean successful, int tests, List<String> boundedEvidence) {
-        public ExecutionResult { boundedEvidence = List.copyOf(boundedEvidence == null ? List.of() : boundedEvidence); }
+    record ExecutionResult(Status status, int tests, List<String> boundedEvidence) {
+        public ExecutionResult(boolean successful, int tests, List<String> boundedEvidence) {
+            this(successful ? Status.PASS : Status.FAIL, tests, boundedEvidence);
+        }
+        public ExecutionResult {
+            if (status == null) throw new IllegalArgumentException("status is required");
+            if (tests < 0) throw new IllegalArgumentException("tests must not be negative");
+            boundedEvidence = List.copyOf(boundedEvidence == null ? List.of() : boundedEvidence);
+        }
+        public boolean successful() { return status == Status.PASS; }
     }
+    enum Status { PASS, FAIL, TIMED_OUT }
 }

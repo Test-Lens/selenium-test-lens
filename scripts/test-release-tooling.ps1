@@ -7,6 +7,19 @@ $releaseSourceRoot = Join-Path $testRoot "release source without git"
 $consumerRoot = Join-Path $testRoot "consumer without git"
 Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
 
+$publicationPolicy = Read-TestLensPublicationPolicy (Join-Path $PSScriptRoot "config/publication-policy.json")
+if ($publicationPolicy.LatestReleasedVersion -ne "0.4.0") {
+    throw "Latest released version guard regression"
+}
+foreach ($role in @("PUBLISHED_STABLE", "PUBLISHED_TOOLING", "INTERNAL", "TEST_ONLY", "DEMO", "FUTURE")) {
+    if (-not $publicationPolicy.ArtifactsByRole.Contains($role)) {
+        throw "Publication policy role is missing: $role"
+    }
+}
+if ("selenium-test-lens-selector-tooling" -notin $publicationPolicy.PublishedTooling) {
+    throw "Selector tooling must be a published tooling dependency"
+}
+
 function Assert-Throws([scriptblock]$Action, [string]$Name) {
     try { & $Action | Out-Null } catch { return }
     throw "Expected failure: $Name"
@@ -32,6 +45,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Cannot initialize release-tooling fixture" }
     & git -C $fixtureRoot -c user.name=release-fixture -c user.email=release-fixture.invalid commit -q -m initial
     if ($LASTEXITCODE -ne 0) { throw "Cannot commit release-tooling fixture" }
+    & git -C $fixtureRoot tag v0.4.0
+    if ($LASTEXITCODE -ne 0) { throw "Cannot create historical release tag in release-tooling fixture" }
 
     foreach ($relative in @(& git -C $fixtureRoot ls-files -- "pom.xml" ":(glob)**/pom.xml")) {
         $destination = Join-Path $releaseSourceRoot $relative
@@ -69,8 +84,8 @@ try {
             -RepositoryRoot $fixtureRoot -ReleaseSourceRoot $releaseSourceRoot)
         $browser = @(& (Join-Path $PSScriptRoot "check-reactor-versions.ps1") `
             -RepositoryRoot $fixtureRoot -ReleaseSourceRoot $releaseSourceRoot -IncludeBrowserIt)
-        if ($normal[-1] -notmatch '19 projects') { throw "Normal reactor count regression" }
-        if ($browser[-1] -notmatch '20 projects') { throw "Browser reactor count regression" }
+        if ($normal[-1] -notmatch "$($model.NormalProjectCount) projects") { throw "Normal reactor count regression" }
+        if ($browser[-1] -notmatch "$($model.BrowserProjectCount) projects") { throw "Browser reactor count regression" }
         & (Join-Path $PSScriptRoot "validate-release-packaging.ps1") `
             -RepositoryRoot $fixtureRoot `
             -ReleaseSourceRoot $releaseSourceRoot `
@@ -88,15 +103,28 @@ try {
     Assert-Throws { & (Join-Path $PSScriptRoot "validate-release-packaging.ps1") -RepositoryRoot $fixtureRoot -MatrixOnly } "published module deploy.skip"
     [IO.File]::WriteAllText($corePom, $originalCore)
 
-    $internalPom = Join-Path $fixtureRoot "selenium-test-lens-selector-engine/pom.xml"
+    $internalPom = Join-Path $fixtureRoot "selenium-test-lens-compatibility-engine/pom.xml"
     $originalInternal = [IO.File]::ReadAllText($internalPom)
     [IO.File]::WriteAllText($internalPom, $originalInternal.Replace('<maven.deploy.skip>true</maven.deploy.skip>', '<maven.deploy.skip>false</maven.deploy.skip>'))
     Assert-Throws { & (Join-Path $PSScriptRoot "validate-release-packaging.ps1") -RepositoryRoot $fixtureRoot -MatrixOnly } "internal module deploy enabled"
     [IO.File]::WriteAllText($internalPom, $originalInternal)
 
-    [IO.File]::WriteAllText($corePom, $originalCore.Replace('<version>0.4.0</version>', '<version>9.9.9</version>'))
+    [IO.File]::WriteAllText($corePom, $originalCore.Replace('<version>0.5.0-SNAPSHOT</version>', '<version>9.9.9</version>'))
     Assert-Throws { & (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot } "wrong module version"
     [IO.File]::WriteAllText($corePom, $originalCore)
+
+    $trackedPoms = @(& git -C $fixtureRoot ls-files -- "pom.xml" ":(glob)**/pom.xml")
+    foreach ($relative in $trackedPoms) {
+        $path = Join-Path $fixtureRoot $relative
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.0-SNAPSHOT", "0.4.0-SNAPSHOT"))
+    }
+    Assert-ThrowsLike {
+        & (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot
+    } "*must be newer than latest local release tag 'v0.4.0'*" "development version reuses latest release"
+    foreach ($relative in $trackedPoms) {
+        $path = Join-Path $fixtureRoot $relative
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.4.0-SNAPSHOT", "0.5.0-SNAPSHOT"))
+    }
 
     $browserPom = Join-Path $fixtureRoot "selenium-test-lens-browser-tests/pom.xml"
     Move-Item -LiteralPath $browserPom -Destination "$browserPom.missing"
@@ -108,24 +136,24 @@ try {
     if (@(& git -C $fixtureRoot status --porcelain).Count -ne 0) { throw "Release-tooling fixture was not restored to a clean state" }
 
     Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "invalid" -WhatIf } "invalid patch target"
-    Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.4.0" -WhatIf } "non-patch target"
+    Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.5.0" -WhatIf } "non-patch target"
     foreach ($pomPath in @(git -C $fixtureRoot ls-files -- "pom.xml" ":(glob)**/pom.xml")) {
         $path = Join-Path $fixtureRoot $pomPath
-        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.4.0", "0.4.1-SNAPSHOT"))
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.0-SNAPSHOT", "0.5.1-SNAPSHOT"))
     }
     & git -C $fixtureRoot add -- pom.xml */pom.xml
     & git -C $fixtureRoot -c user.name=release-fixture -c user.email=release-fixture.invalid commit -q -m patch-snapshot
     if ($LASTEXITCODE -ne 0) { throw "Cannot commit patch snapshot fixture" }
-    & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.4.1" -WhatIf | Out-Null
+    & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.5.1" -WhatIf | Out-Null
     if (@(& git -C $fixtureRoot status --porcelain).Count -ne 0) { throw "Patch preparation -WhatIf mutated the fixture" }
     $cleanCore = [IO.File]::ReadAllText($corePom)
     Add-Content -LiteralPath $corePom -Value "dirty"
-    Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.4.1" -WhatIf } "dirty worktree"
+    Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.5.1" -WhatIf } "dirty worktree"
     [IO.File]::WriteAllText($corePom, $cleanCore)
     $rootPom = Join-Path $fixtureRoot "pom.xml"
     $rootText = [IO.File]::ReadAllText($rootPom)
-    [IO.File]::WriteAllText($rootPom, $rootText.Replace("0.4.1-SNAPSHOT", "0.4.1"))
-    Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.4.1" -WhatIf } "wrong source snapshot"
+    [IO.File]::WriteAllText($rootPom, $rootText.Replace("0.5.1-SNAPSHOT", "0.5.1"))
+    Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.5.1" -WhatIf } "wrong source snapshot"
     [IO.File]::WriteAllText($rootPom, $rootText)
 
     foreach ($script in @("prepare-patch-release.ps1","check-patch-release.ps1")) {

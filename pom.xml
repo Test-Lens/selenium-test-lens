@@ -7,7 +7,7 @@
 
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-parent</artifactId>
-    <version>0.4.0</version>
+    <version>0.5.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Test Lens for Selenium</name>
     <description>Test Lens observability, diagnostics, and evidence tooling for Selenium test automation.</description>
@@ -56,6 +56,7 @@
         <module>selenium-test-lens-application-mapper</module>
         <module>selenium-test-lens-application-tooling</module>
         <module>selenium-test-lens-test-engineering-studio</module>
+        <module>selenium-test-lens-test-engineering-maven-plugin</module>
         <module>selenium-test-lens-selector-lab</module>
         <module>selenium-test-lens-selector-tooling</module>
         <module>selenium-test-lens-compatibility-engine</module>
@@ -317,7 +318,7 @@
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>${central.publishing.serverId}</publishingServerId>
-                            <excludeArtifacts>selenium-test-lens-examples,selenium-test-lens-browser-tests,selenium-test-lens-application-model,selenium-test-lens-application-mapper,selenium-test-lens-application-tooling,selenium-test-lens-test-engineering-studio,selenium-test-lens-selector-engine,selenium-test-lens-selector-live,selenium-test-lens-selector-lab,selenium-test-lens-selector-tooling,selenium-test-lens-compatibility-engine,selenium-test-lens-compatibility-tooling,selenium-test-lens-migration-tooling</excludeArtifacts>
+                            <excludeArtifacts>selenium-test-lens-examples,selenium-test-lens-browser-tests,selenium-test-lens-selector-lab,selenium-test-lens-compatibility-engine,selenium-test-lens-compatibility-tooling,selenium-test-lens-migration-tooling</excludeArtifacts>
                             <autoPublish>false</autoPublish>
                             <waitUntil>validated</waitUntil>
                         </configuration>

@@ -4,6 +4,15 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Prepared the 0.5.0 Test Engineering Studio Maven entry point, project/test-classpath bootstrap, split commit-safe and
+  machine-local configuration, local browser and Codex CLI preflight, persistent reviewed workflows, and explicit
+  trusted repair approval. This is release-candidate preparation; 0.4.0 remains the latest published release.
+- Added a canonical Studio getting-started guide for the fully qualified `0.5.0-SNAPSHOT:studio` goal, including
+  workspace ignore policy, security boundaries, preflight limits, and migration guidance that leaves 0.4.x runtime
+  behavior unchanged.
+
 ### Fixed
 
 - Preserved per-operation source locations when semantic HUD rows advance to a terminal payload that omits repeated

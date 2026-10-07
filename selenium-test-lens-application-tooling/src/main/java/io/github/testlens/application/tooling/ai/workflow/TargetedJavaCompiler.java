@@ -4,7 +4,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -121,6 +123,23 @@ public final class TargetedJavaCompiler {
             if (!classes.containsKey(binaryName)) throw new ClassNotFoundException(binaryName);
             return new MemoryClassLoader(parent, classes).loadClass(binaryName);
         }
+        /** Writes verified compiled classes to a caller-approved output root using atomic per-file replacement. */
+        public void writeTo(Path outputRoot) throws IOException {
+            Path root=Objects.requireNonNull(outputRoot,"outputRoot").toAbsolutePath().normalize();
+            Files.createDirectories(root);
+            Path realRoot=root.toRealPath();
+            for(Map.Entry<String,byte[]> entry:classes.entrySet()){
+                Path target=realRoot.resolve(entry.getKey().replace('.',java.io.File.separatorChar)+".class").normalize();
+                if(!target.startsWith(realRoot))throw new IOException("Compiled class path escapes output root");
+                Files.createDirectories(target.getParent());
+                Path temporary=Files.createTempFile(target.getParent(),target.getFileName().toString(),".tmp");
+                try{
+                    Files.write(temporary,entry.getValue());
+                    try{Files.move(temporary,target,StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING);}
+                    catch(java.nio.file.AtomicMoveNotSupportedException unsupported){Files.move(temporary,target,StandardCopyOption.REPLACE_EXISTING);}
+                }finally{Files.deleteIfExists(temporary);}
+            }
+        }
         @Override public String toString() {
             return classes.entrySet().stream().sorted(Map.Entry.comparingByKey())
                     .map(value -> value.getKey() + "=" + ArtifactEnvelope.digest(value.getValue()))
@@ -167,6 +186,14 @@ public final class TargetedJavaCompiler {
         private MemoryClassLoader(ClassLoader parent, Map<String, byte[]> classes) {
             super(parent);
             this.classes = classes;
+        }
+        @Override protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            synchronized (getClassLoadingLock(name)) {
+                Class<?> loaded=findLoadedClass(name);
+                if(loaded==null)loaded=classes.containsKey(name)?findClass(name):super.loadClass(name,false);
+                if(resolve)resolveClass(loaded);
+                return loaded;
+            }
         }
         @Override protected Class<?> findClass(String name) throws ClassNotFoundException {
             byte[] bytes = classes.get(name);

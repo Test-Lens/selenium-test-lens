@@ -6,17 +6,17 @@
     <parent>
         <groupId>io.github.test-lens</groupId>
         <artifactId>selenium-test-lens-parent</artifactId>
-        <version>0.4.0</version>
+        <version>0.5.0-SNAPSHOT</version>
     </parent>
     <artifactId>selenium-test-lens-test-engineering-studio</artifactId>
     <name>Test Lens for Selenium — Test Engineering Studio</name>
     <description>Internal local Test Engineering Studio facade, projections, workspace, and secure transport.</description>
-    <properties><maven.deploy.skip>true</maven.deploy.skip></properties>
     <dependencies>
         <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-application-mapper</artifactId><version>${project.version}</version></dependency>
         <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-application-tooling</artifactId><version>${project.version}</version></dependency>
         <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-selector-tooling</artifactId><version>${project.version}</version></dependency>
-        <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
+        <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId></dependency>
+        <dependency><groupId>org.junit.platform</groupId><artifactId>junit-platform-launcher</artifactId><version>1.10.2</version></dependency>
     </dependencies>
     <build><plugins><plugin><groupId>org.codehaus.mojo</groupId><artifactId>exec-maven-plugin</artifactId><version>3.5.0</version><configuration><mainClass>io.github.testlens.studio.launcher.Main</mainClass></configuration></plugin></plugins></build>
 </project>

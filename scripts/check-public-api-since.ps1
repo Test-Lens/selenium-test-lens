@@ -63,7 +63,15 @@ $sourceRoots = @(
     "selenium-test-lens-react",
     "selenium-test-lens-junit5",
     "selenium-test-lens-testng",
-    "selenium-test-lens-allure"
+    "selenium-test-lens-allure",
+    "selenium-test-lens-application-model",
+    "selenium-test-lens-selector-engine",
+    "selenium-test-lens-selector-live",
+    "selenium-test-lens-application-mapper",
+    "selenium-test-lens-application-tooling",
+    "selenium-test-lens-selector-tooling",
+    "selenium-test-lens-test-engineering-studio",
+    "selenium-test-lens-test-engineering-maven-plugin"
 ) | ForEach-Object { Join-Path $RepositoryRoot "$_/src/main/java" }
 
 $violations = [Collections.Generic.List[string]]::new()
@@ -82,9 +90,13 @@ foreach ($type in $newTypes) {
 
     $lines = @(Get-Content -LiteralPath $source -Encoding utf8)
     $escapedName = [regex]::Escape($declaredSimpleName)
+    # Member types declared in an interface are implicitly public even when the
+    # source omits the redundant modifier. Top-level API declarations must keep
+    # the explicit public modifier.
+    $publicModifier = if ($type.Contains('$')) { '(?:public\s+)?' } else { 'public\s+' }
     $declarationIndex = -1
     for ($index = 0; $index -lt $lines.Count; $index++) {
-        if ($lines[$index] -match "^\s*public\s+(?:(?:static|final|abstract)\s+)*(?:class|interface|enum|record)\s+$escapedName(?:\s|\{|\(|<)") {
+        if ($lines[$index] -match "^\s*$publicModifier(?:(?:static|final|abstract)\s+)*(?:class|interface|enum|record)\s+$escapedName(?:\s|\{|\(|<)") {
             $declarationIndex = $index
             break
         }

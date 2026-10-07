@@ -20,6 +20,11 @@ import io.github.testlens.studio.projection.*;
 import io.github.testlens.studio.workspace.StudioWorkspaceStore;
 import io.github.testlens.studio.workspace.WorkflowSessionSnapshot;
 import io.github.testlens.studio.project.ProjectDescriptor;
+import io.github.testlens.studio.browser.BrowserRequest;
+import io.github.testlens.studio.browser.BrowserSession;
+import io.github.testlens.studio.browser.BrowserSessionProvider;
+import io.github.testlens.studio.browser.Ownership;
+import io.github.testlens.studio.browser.Purpose;
 import org.openqa.selenium.WebDriver;
 
 import java.io.IOException;
@@ -33,7 +38,7 @@ import java.util.function.Supplier;
 import static io.github.testlens.studio.projection.StudioProjections.*;
 
 /** Thin application facade over S11/S12. It owns orchestration and presentation state, not domain decisions. */
-public final class TestEngineeringStudioService {
+public final class TestEngineeringStudioService implements AutoCloseable {
     public record Configuration(Path projectRoot, List<Path> sourceRoots, List<Path> classpathEntries,
                                 List<String> allowedRepairPrefixes, String applicationName) {
         public Configuration {
@@ -54,7 +59,8 @@ public final class TestEngineeringStudioService {
     private final StudioWorkspaceStore store;
     private final StudioProjectionFactory projections=new StudioProjectionFactory();
     private final RequirementContextSelector contextSelector=new RequirementContextSelector();
-    private final Supplier<WebDriver> driverProvider;
+    private final BrowserSessionProvider browserProvider;
+    private final Ownership browserOwnership;
     private final RedactionPolicy redaction = RedactionPolicy.defaults();
     private final AtomicBoolean operationRunning=new AtomicBoolean();
     private final Map<String,String> requirements=new ConcurrentHashMap<>();
@@ -69,21 +75,31 @@ public final class TestEngineeringStudioService {
     private volatile ApplicationModel applicationModel;
     private volatile PageObjectCorrelation correlation;
     private volatile ApplicationMapper guidedMapper;
+    private volatile BrowserSession guidedBrowserSession;
     private volatile String hydrationFailure;
     private volatile ProjectDescriptor projectDescriptor;
+    private volatile String browserProfile="default";
+    private volatile Capability browserCapability=new Capability("NOT_AVAILABLE","Browser provider is not configured");
+    private volatile Capability agentCapability=new Capability("NOT_AVAILABLE","Agent provider is not configured");
+    private volatile Capability compilationCapability=new Capability(javax.tools.ToolProvider.getSystemJavaCompiler()==null?"NOT_AVAILABLE":"AVAILABLE",javax.tools.ToolProvider.getSystemJavaCompiler()==null?"A JDK compiler is required":"JDK compiler available");
 
     public TestEngineeringStudioService(Configuration configuration, StudioWorkflowGateway workflows,
                                         Supplier<WebDriver> driverProvider) {
-        this(configuration,workflows,driverProvider,new ExistingProjectIndexer(),new PageObjectCorrelator(),new TrustedRepairApplier(),new StudioWorkspaceStore(configuration.projectRoot()));
+        this(configuration,workflows,callerOwned(driverProvider),Ownership.CALLER_OWNED,new ExistingProjectIndexer(),new PageObjectCorrelator(),new TrustedRepairApplier(),new StudioWorkspaceStore(configuration.projectRoot()));
     }
     public TestEngineeringStudioService(Configuration configuration, StudioWorkflowGateway workflows,
                                         Supplier<WebDriver> driverProvider, Path workspaceDirectory) {
-        this(configuration,workflows,driverProvider,new ExistingProjectIndexer(),new PageObjectCorrelator(),
+        this(configuration,workflows,callerOwned(driverProvider),Ownership.CALLER_OWNED,new ExistingProjectIndexer(),new PageObjectCorrelator(),
                 new TrustedRepairApplier(),StudioWorkspaceStore.atWorkspace(workspaceDirectory));
     }
-    TestEngineeringStudioService(Configuration configuration,StudioWorkflowGateway workflows,Supplier<WebDriver> driverProvider,
+    public TestEngineeringStudioService(Configuration configuration, StudioWorkflowGateway workflows,
+                                        BrowserSessionProvider browserProvider, Path workspaceDirectory) {
+        this(configuration, workflows, browserProvider, Ownership.STUDIO_OWNED, new ExistingProjectIndexer(), new PageObjectCorrelator(),
+                new TrustedRepairApplier(), StudioWorkspaceStore.atWorkspace(workspaceDirectory));
+    }
+    TestEngineeringStudioService(Configuration configuration,StudioWorkflowGateway workflows,BrowserSessionProvider browserProvider,Ownership browserOwnership,
                                  ExistingProjectIndexer indexer,PageObjectCorrelator correlator,TrustedRepairApplier repairApplier,StudioWorkspaceStore store){
-        this.configuration=Objects.requireNonNull(configuration);this.workflows=workflows;this.driverProvider=driverProvider;
+        this.configuration=Objects.requireNonNull(configuration);this.workflows=workflows;this.browserProvider=browserProvider;this.browserOwnership=Objects.requireNonNull(browserOwnership);
         this.indexer=Objects.requireNonNull(indexer);this.correlator=Objects.requireNonNull(correlator);this.repairApplier=Objects.requireNonNull(repairApplier);this.store=Objects.requireNonNull(store);
         hydratePersistedProject();
         hydrateWorkflowSessions();
@@ -94,12 +110,39 @@ public final class TestEngineeringStudioService {
             correlation=null;persistProjectArtifacts();return projectOverview();});
     }
     public ApplicationOverviewProjection mapApplication(ApplicationMapperOptions.Mode mode) throws IOException {
-        return exclusive(()->{if(driverProvider==null)throw new IllegalStateException("No caller-owned WebDriver provider configured");WebDriver driver=Objects.requireNonNull(driverProvider.get(),"Driver provider returned null");
-            ApplicationMapper mapper;
-            if(mode==ApplicationMapperOptions.Mode.GUIDED&&guidedMapper!=null)mapper=guidedMapper;
-            else { mapper=ApplicationMapper.start(driver,ApplicationMapperOptions.builder(configuration.applicationName()).mode(Objects.requireNonNull(mode)).build());if(mode==ApplicationMapperOptions.Mode.GUIDED)guidedMapper=mapper; }
-            mapper.observe(); if(mode==ApplicationMapperOptions.Mode.SAFE_EXPLORE)mapper.safeExplore(); applicationModel=mapper.model(); correlation=null;persistProjectArtifacts();return projections.application(applicationModel);});
+        return exclusive(()->{requireCapability(browserCapability,"Browser");if(browserProvider==null)throw new IllegalStateException("No browser session provider configured");
+            BrowserRequest request=browserRequest(Purpose.MAPPING);
+            BrowserSession session=mode==ApplicationMapperOptions.Mode.GUIDED&&guidedBrowserSession!=null?guidedBrowserSession:browserProvider.open(request);
+            boolean retained=false;
+            try {
+                if(session.ownership()!=request.ownership())throw new IllegalStateException("Browser provider returned unexpected session ownership");
+                if(session.ownership()!=Ownership.STUDIO_OWNED&&browserRequest(Purpose.MAPPING).ownership()==Ownership.STUDIO_OWNED)
+                    throw new IllegalStateException("Browser provider returned unexpected session ownership");
+                WebDriver driver=session.driver();
+                if(projectDescriptor!=null&&projectDescriptor.startUrl()!=null){String current=driver.getCurrentUrl();if(current==null||current.isBlank()||current.startsWith("data:")||"about:blank".equals(current))driver.get(projectDescriptor.startUrl().toString());}
+                ApplicationMapper mapper;
+                if(mode==ApplicationMapperOptions.Mode.GUIDED&&guidedMapper!=null)mapper=guidedMapper;
+                else { mapper=ApplicationMapper.start(driver,ApplicationMapperOptions.builder(configuration.applicationName()).mode(Objects.requireNonNull(mode)).build());if(mode==ApplicationMapperOptions.Mode.GUIDED){guidedMapper=mapper;guidedBrowserSession=session;retained=true;} }
+                mapper.observe(); if(mode==ApplicationMapperOptions.Mode.SAFE_EXPLORE)mapper.safeExplore(); applicationModel=mapper.model(); correlation=null;persistProjectArtifacts();return projections.application(applicationModel);
+            } finally { if(mode!=ApplicationMapperOptions.Mode.GUIDED||!retained)session.close(); }});
     }
+
+    private BrowserRequest browserRequest(Purpose purpose){
+        ProjectDescriptor.BrowserFlags flags=projectDescriptor==null?ProjectDescriptor.BrowserFlags.defaults():projectDescriptor.browser();
+        io.github.testlens.studio.browser.Browser browser=flags.browser()==ProjectDescriptor.Browser.CHROME
+                ?io.github.testlens.studio.browser.Browser.CHROME:io.github.testlens.studio.browser.Browser.FIREFOX;
+        return new BrowserRequest(purpose,browser,browserOwnership,flags.headless(),browserProfile);
+    }
+
+    private static BrowserSessionProvider callerOwned(Supplier<WebDriver> supplier){
+        if(supplier==null)return null;
+        return new BrowserSessionProvider(){
+            @Override public io.github.testlens.studio.browser.BrowserAvailability preflight(BrowserRequest request){return io.github.testlens.studio.browser.BrowserAvailability.AVAILABLE;}
+            @Override public BrowserSession open(BrowserRequest request){return new BrowserSession(Objects.requireNonNull(supplier.get(),"Driver provider returned null"),Ownership.CALLER_OWNED);}
+        };
+    }
+
+    @Override public void close(){BrowserSession session=guidedBrowserSession;guidedBrowserSession=null;guidedMapper=null;if(session!=null)session.close();}
     public PageObjectCorrelationProjection correlate() throws IOException {
         return exclusive(()->{if(sourceIndex==null||applicationModel==null)throw new IllegalStateException("Scan and map are required before correlation");
             correlation=correlator.correlate(applicationModel,sourceIndex,CorrelationOverrides.none());persistProjectArtifacts();return projections.correlations(correlation,0,100);});
@@ -163,7 +206,9 @@ public final class TestEngineeringStudioService {
     public boolean operationRunning(){return operationRunning.get();}
     public StudioWorkspaceStore workspace(){return store;}
     public void attachProjectDescriptor(ProjectDescriptor descriptor){this.projectDescriptor=Objects.requireNonNull(descriptor);}
-    public ProjectConfigurationProjection projectConfiguration(){ProjectDescriptor value=projectDescriptor;if(value==null)return null;Path root=value.projectRoot();java.util.function.Function<Path,String> relative=path->{Path normalized=path.toAbsolutePath().normalize();return normalized.startsWith(root)?root.relativize(normalized).toString().replace('\\','/'):"<outside-project>";};return new ProjectConfigurationProjection(value.projectId(),value.applicationName(),root.toString(),value.buildSystem().name(),value.status().name(),value.configurationSource().name(),value.mainSourceRoots().stream().map(relative).toList(),value.testSourceRoots().stream().map(relative).toList(),relative.apply(value.workspaceDirectory()),value.browser().browser().name(),value.browser().headless(),value.evidence(),value.limitations());}
+    public void attachBrowserProfile(String profileId){if(profileId==null||!profileId.matches("[A-Za-z0-9._-]{1,96}"))throw new IllegalArgumentException("A safe logical browser profile id is required");this.browserProfile=profileId;}
+    public void attachCapabilities(Capability browser,Capability agent,Capability compilation){this.browserCapability=Objects.requireNonNull(browser);this.agentCapability=Objects.requireNonNull(agent);this.compilationCapability=Objects.requireNonNull(compilation);}
+    public ProjectConfigurationProjection projectConfiguration(){ProjectDescriptor value=projectDescriptor;if(value==null)return null;Path root=value.projectRoot();java.util.function.Function<Path,String> relative=path->{Path normalized=path.toAbsolutePath().normalize();return normalized.startsWith(root)?root.relativize(normalized).toString().replace('\\','/'):"<outside-project>";};return new ProjectConfigurationProjection(value.projectId(),value.applicationName(),root.toString(),value.buildSystem().name(),value.status().name(),value.configurationSource().name(),value.mainSourceRoots().stream().map(relative).toList(),value.testSourceRoots().stream().map(relative).toList(),relative.apply(value.workspaceDirectory()),value.browser().browser().name(),value.browser().headless(),browserCapability,agentCapability,compilationCapability,value.evidence(),value.limitations());}
 
     private void registerGatewayRepair(String runId)throws IOException{RepairProposal proposal=workflows.repair(runId);if(proposal!=null)registerRepairProposal(runId,proposal);}
     private void refreshWorkflowArtifacts(String runId){TestExecutionResult execution=requireWorkflow().execution(runId);if(execution==null)executions.remove(runId);else executions.put(runId,projections.execution(execution));FailureClassification diagnosis=requireWorkflow().diagnosis(runId);if(diagnosis==null)diagnoses.remove(runId);else diagnoses.put(runId,projections.diagnosis(diagnosis));}
@@ -250,6 +295,7 @@ public final class TestEngineeringStudioService {
     private void markStale(String runId,String reason)throws IOException{WorkflowSessionSnapshot old=sessions.get(runId);if(old==null)return;WorkflowSessionSnapshot value=old.restored(WorkflowSessionSnapshot.Freshness.STALE,List.of(reason));sessions.put(runId,value);persistSession(runId);}
     private void assertFresh(String runId)throws IOException{WorkflowSessionSnapshot session=Objects.requireNonNull(sessions.get(runId),"Workflow session is missing");if(session.freshness()!=WorkflowSessionSnapshot.Freshness.FRESH)throw new IllegalStateException("Workflow is stale");ExistingProjectIndex current=indexer.index(new ExistingProjectIndexer.Request(configuration.projectRoot(),configuration.sourceRoots(),configuration.classpathEntries()));if(!Objects.equals(session.sourceFingerprint(),current.projectFingerprint())){sourceIndex=current;markStale(runId,"SOURCE_CHANGED");throw new IllegalStateException("Workflow is stale");}}
     private String currentFingerprint(){return sourceIndex==null?null:sourceIndex.projectFingerprint();}
+    private static void requireCapability(Capability capability,String name){if(capability==null||!"AVAILABLE".equals(capability.status()))throw new IllegalStateException(name+" capability is unavailable: "+(capability==null?"not configured":capability.reason()));}
     private void persistHistories()throws IOException{String fp=sourceIndex==null?null:sourceIndex.projectFingerprint();store.write(StudioWorkspaceStore.ArtifactKind.WORKFLOW_HISTORY,Map.of("requirements",new TreeMap<>(requirements),"plans",new TreeMap<>(plans),"implementations",new TreeMap<>(implementations),"executions",new TreeMap<>(executions),"diagnoses",new TreeMap<>(diagnoses),"runs",workflowHistory()),fp);store.write(StudioWorkspaceStore.ArtifactKind.REPAIR_HISTORY,repairHistory(),fp);}
     private <T> T exclusive(IoOperation<T> operation)throws IOException{if(!operationRunning.compareAndSet(false,true))throw new IllegalStateException("A Studio operation is already running");try{return operation.run();}finally{operationRunning.set(false);}}
     private <T> T exclusiveAgent(AgentOperation<T> operation)throws AgentExecutor.AgentExecutionException,IOException{if(!operationRunning.compareAndSet(false,true))throw new IllegalStateException("A Studio operation is already running");try{return operation.run();}finally{operationRunning.set(false);}}

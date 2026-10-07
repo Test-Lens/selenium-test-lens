@@ -15,6 +15,7 @@ import java.util.Map;
 public interface AgentExecutor {
     AgentResult execute(AgentCommand command) throws AgentExecutionException;
 
+    /** Structured provider request. @since 0.5.0 */
     record AgentCommand(String runId, Role role, List<ArtifactEnvelope<?>> inputs,
                         Map<String, String> instructions) {
         public AgentCommand {
@@ -24,6 +25,7 @@ public interface AgentExecutor {
         }
     }
 
+    /** Structured provider response. @since 0.5.0 */
     record AgentResult(String providerRequestId, ArtifactEnvelope<?> artifact) {
         public AgentResult {
             if (artifact == null || !structured(artifact.payload())) throw new IllegalArgumentException("A versioned structured agent artifact is required");
@@ -31,9 +33,11 @@ public interface AgentExecutor {
         private static boolean structured(Object value){return value instanceof TestPlan||value instanceof TestImplementationProposal||value instanceof TestExecutionResult||value instanceof FailureClassification||value instanceof RepairProposal||value instanceof CodeReviewResult||value instanceof PageObjectCapabilityMissing||value instanceof PageObjectExtensionProposal;}
     }
 
+    /** Provider-neutral workflow role. @since 0.5.0 */
     enum Role { PLANNER, IMPLEMENTER, FAILURE_CLASSIFIER, REPAIRER, REVIEWER,
         TEST_ARCHITECT, SCENARIO_DESIGNER, TEST_IMPLEMENTER, TEST_VERIFIER, STABILIZER, CODE_REVIEWER, UNIT_TEST_AGENT }
 
+    /** Bounded external-agent failure classification. @since 0.5.0 */
     enum AgentFailureCode {
         AGENT_NOT_AVAILABLE,
         AGENT_TIMEOUT,
@@ -42,6 +46,7 @@ public interface AgentExecutor {
         AGENT_CONTEXT_REJECTED
     }
 
+    /** Checked failure at the external-agent boundary. @since 0.5.0 */
     final class AgentExecutionException extends Exception {
         private final AgentFailureCode code;
 

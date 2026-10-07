@@ -12,12 +12,21 @@ $modules = [ordered]@{
     "selenium-test-lens-testng" = "selenium-test-lens-testng"
     "selenium-test-lens-allure" = "selenium-test-lens-allure"
     "selenium-test-lens-react" = "selenium-test-lens-react"
+    "selenium-test-lens-application-model" = "selenium-test-lens-application-model"
+    "selenium-test-lens-selector-engine" = "selenium-test-lens-selector-engine"
+    "selenium-test-lens-selector-live" = "selenium-test-lens-selector-live"
+    "selenium-test-lens-application-mapper" = "selenium-test-lens-application-mapper"
+    "selenium-test-lens-application-tooling" = "selenium-test-lens-application-tooling"
+    "selenium-test-lens-selector-tooling" = "selenium-test-lens-selector-tooling"
+    "selenium-test-lens-test-engineering-studio" = "selenium-test-lens-test-engineering-studio"
+    "test-lens-test-engineering-maven-plugin" = "selenium-test-lens-test-engineering-maven-plugin"
 }
 $manifestPath = Join-Path $repositoryRoot "docs/reference/public-api-manifest.txt"
 $catalogPath = Join-Path $repositoryRoot "docs/reference/public-api-catalog.md"
 $catalogDirectory = Join-Path $repositoryRoot "docs/reference/public-api"
 $classificationPath = Join-Path $repositoryRoot "docs/reference/public-api-classification.csv"
-$allowedClassifications = @("USER_API", "ADVANCED_API", "LOW_LEVEL_API", "INTERNAL_STYLE_PUBLIC")
+$classificationPolicyPath = Join-Path $repositoryRoot "scripts/config/public-api-classification.json"
+$allowedClassifications = @("USER_API", "ADVANCED_API", "LOW_LEVEL_API", "INTERNAL_STYLE_PUBLIC", "TOOLING", "INTERNAL")
 
 function Normalize-Signature([string]$line) {
     return ($line.Trim() -replace '\s+', ' ' -replace ';$', '')
@@ -95,6 +104,53 @@ foreach ($row in $classificationRows) {
     }
     $classifications[$row.Type] = $row
 }
+$classificationPolicy = [IO.File]::ReadAllText($classificationPolicyPath) | ConvertFrom-Json
+if ($classificationPolicy.schemaVersion -ne 1) {
+    throw "Unsupported public API classification schemaVersion '$($classificationPolicy.schemaVersion)'"
+}
+$moduleDefaults = @{}
+foreach ($property in $classificationPolicy.moduleDefaults.PSObject.Properties) {
+    if (-not $modules.Contains($property.Name)) {
+        throw "Public API classification has an unknown module default: $($property.Name)"
+    }
+    $classification = $property.Value.ToString()
+    if ($classification -notin @("TOOLING", "INTERNAL")) {
+        throw "Module default for $($property.Name) must be TOOLING or INTERNAL, found '$classification'"
+    }
+    $moduleDefaults[$property.Name] = $classification
+}
+foreach ($override in @($classificationPolicy.typeOverrides)) {
+    if ([string]::IsNullOrWhiteSpace($override.type) -or $override.classification -notin $allowedClassifications) {
+        throw "Invalid public API type override for '$($override.type)': '$($override.classification)'"
+    }
+    if ($classifications.ContainsKey($override.type)) {
+        throw "Duplicate public API classification for $($override.type)"
+    }
+    $classifications[$override.type] = [pscustomobject]@{
+        Type = $override.type
+        Module = ""
+        Classification = $override.classification
+        Documentation = $override.documentation
+    }
+}
+$typeModules = @{}
+foreach ($type in $types) { $typeModules[$type.Type] = $type.Module }
+foreach ($type in $types) {
+    if (-not $classifications.ContainsKey($type.Type) -and $moduleDefaults.ContainsKey($type.Module)) {
+        $classifications[$type.Type] = [pscustomobject]@{
+            Type = $type.Type
+            Module = $type.Module
+            Classification = $moduleDefaults[$type.Module]
+            Documentation = ""
+        }
+    }
+}
+foreach ($override in @($classificationPolicy.typeOverrides)) {
+    if (-not $typeModules.ContainsKey($override.type)) {
+        throw "Public API type override is stale or the module was not compiled: $($override.type)"
+    }
+    $classifications[$override.type].Module = $typeModules[$override.type]
+}
 $compiledNames = @($types | ForEach-Object Type)
 $missingClassifications = @($compiledNames | Where-Object { -not $classifications.ContainsKey($_) })
 $staleClassifications = @($classifications.Keys | Where-Object { $_ -notin $compiledNames })
@@ -122,7 +178,7 @@ foreach ($type in $types) {
 }
 $classificationSummary = ($allowedClassifications | ForEach-Object {
     $classificationName = $_
-    $classificationCount = @($classificationRows | Where-Object Classification -eq $classificationName).Count
+    $classificationCount = @($types | Where-Object { $classifications[$_.Type].Classification -eq $classificationName }).Count
     "$classificationName=$classificationCount"
 }) -join ", "
 
@@ -130,14 +186,28 @@ function ConvertTo-LfText([System.Collections.IEnumerable] $Lines) {
     return (($Lines -join "`n").TrimEnd("`r", "`n")) + "`n"
 }
 
+$compatibilityTypes = @($types | Where-Object {
+    $classifications[$_.Type].Classification -in @("USER_API", "ADVANCED_API")
+})
+$compatibilityCallableCount = @($compatibilityTypes | ForEach-Object { $_.Signatures } | Where-Object { $_ -match '\(' }).Count
+$compatibilityLines = [System.Collections.Generic.List[string]]::new()
+foreach ($entry in $modules.GetEnumerator()) {
+    $moduleTypes = @($compatibilityTypes | Where-Object Module -eq $entry.Key)
+    if ($moduleTypes.Count -eq 0) { continue }
+    $compatibilityLines.Add("MODULE $($entry.Key)")
+    foreach ($type in $moduleTypes) {
+        $compatibilityLines.Add("TYPE $($type.Type)")
+        foreach ($signature in $type.Signatures) { $compatibilityLines.Add("  $signature") }
+    }
+}
 $header = @(
-    "# Generated public API manifest. Do not edit by hand."
-    "# Types: $typeCount"
-    "# Public callable methods/constructors: $callableCount"
+    "# Generated stable/advanced API compatibility manifest. Do not edit by hand."
+    "# Types: $($compatibilityTypes.Count)"
+    "# Public callable methods/constructors: $compatibilityCallableCount"
     "# Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update"
     ""
 )
-$actual = ConvertTo-LfText ($header + $lines)
+$actual = ConvertTo-LfText ($header + $compatibilityLines)
 
 $catalog = [System.Collections.Generic.List[string]]::new()
 $catalog.Add("---")
@@ -151,7 +221,7 @@ $catalog.Add("This generated catalog is the optional binary-surface reference fo
 $catalog.Add("")
 $catalog.Add("Inventory: **$typeCount public types** and **$callableCount public callable methods/constructors** (including public nested types and compiler-generated record/enum members).")
 $catalog.Add("")
-$catalog.Add("Classifications: `USER_API` is the normal consumer path; `ADVANCED_API` is supported specialized functionality; `LOW_LEVEL_API` exposes lower abstractions; `INTERNAL_STYLE_PUBLIC` is binary-public implementation surface and is not recommended for application code.")
+$catalog.Add("Classifications: `USER_API` is the normal consumer path; `ADVANCED_API` is supported specialized functionality; `LOW_LEVEL_API` exposes legacy lower abstractions; `INTERNAL_STYLE_PUBLIC` is the legacy binary-public implementation surface; `TOOLING` and `INTERNAL` are published implementation surfaces without a compatibility promise.")
 $catalog.Add("")
 $catalog.Add("Signature details are split by published artifact and Java package to keep individual pages usable. These generated pages are excluded from site search.")
 $catalog.Add("")

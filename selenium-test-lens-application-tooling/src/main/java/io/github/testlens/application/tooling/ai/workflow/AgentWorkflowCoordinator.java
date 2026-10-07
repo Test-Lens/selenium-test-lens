@@ -270,8 +270,11 @@ public final class AgentWorkflowCoordinator {
 
     private static TestExecutionResult execution(TargetedTestExecutor.ExecutionResult result, long duration,
                                                  String scenarioId) {
-        TestExecutionResult.Outcome outcome = result.successful()
-                ? TestExecutionResult.Outcome.PASS : TestExecutionResult.Outcome.FAIL;
+        TestExecutionResult.Outcome outcome = switch (result.status()) {
+            case PASS -> TestExecutionResult.Outcome.PASS;
+            case FAIL -> TestExecutionResult.Outcome.FAIL;
+            case TIMED_OUT -> TestExecutionResult.Outcome.TIMED_OUT;
+        };
         ContractHeader header = new ContractHeader(ContractHeader.SCHEMA_VERSION,
                 result.successful() ? ContractHeader.Status.COMPLETED : ContractHeader.Status.FAILED,
                 result.boundedEvidence(), List.of(), ContractHeader.Confidence.OBSERVED);

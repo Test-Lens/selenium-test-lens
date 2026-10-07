@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "moduleDefaults": {
+    "selenium-test-lens-application-model": "TOOLING",
+    "selenium-test-lens-selector-engine": "TOOLING",
+    "selenium-test-lens-selector-live": "TOOLING",
+    "selenium-test-lens-application-mapper": "TOOLING",
+    "selenium-test-lens-application-tooling": "INTERNAL",
+    "selenium-test-lens-selector-tooling": "TOOLING",
+    "selenium-test-lens-test-engineering-studio": "INTERNAL",
+    "test-lens-test-engineering-maven-plugin": "INTERNAL"
+  },
+  "typeOverrides": [
+    {
+      "type": "io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope",
+      "classification": "ADVANCED_API"
+    },
+    {
+      "type": "io.github.testlens.application.tooling.ai.workflow.AgentExecutor",
+      "classification": "ADVANCED_API"
+    },
+    {
+      "type": "io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentCommand",
+      "classification": "ADVANCED_API"
+    },
+    {
+      "type": "io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentResult",
+      "classification": "ADVANCED_API"
+    },
+    {
+      "type": "io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode",
+      "classification": "ADVANCED_API"
+    },
+    {
+      "type": "io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException",
+      "classification": "ADVANCED_API"
+    },
+    {
+      "type": "io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$Status",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderAvailability",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderUnavailableException",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.studio.TestEngineeringStudio",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.studio.TestEngineeringStudio$LaunchRequest",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.studio.TestEngineeringStudio$LaunchHandle",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.studio.browser.BrowserSessionProvider",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.studio.browser.BrowserSession",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.studio.browser.BrowserRequest",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.studio.browser.BrowserAvailability",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.studio.browser.Browser",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.studio.browser.Purpose",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.studio.browser.Ownership",
+      "classification": "USER_API",
+      "documentation": "docs/ai/test-engineering-studio-getting-started.md"
+    },
+    {
+      "type": "io.github.testlens.studio.browser.DefaultLocalBrowserSessionProvider",
+      "classification": "ADVANCED_API"
+    }
+  ]
+}

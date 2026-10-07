@@ -11,6 +11,10 @@ import java.util.*;
 
 /** Secure deterministic discovery of Studio project configuration. @since 0.5.0 */
 public final class ProjectDiscovery {
+    private static final Set<String> PROJECT_FIELDS = Set.of(
+            "schemaVersion", "projectId", "applicationName", "name", "sourceRoots", "classpathEntries",
+            "workspaceDirectory", "workspace", "startUrl", "browser", "headless", "pageObjectPackages",
+            "browserProfile", "agentProfiles");
     private static final Set<String> SECRET_NAMES = Set.of(
             "password", "passwd", "secret", "token", "cookie", "authorization",
             "credential", "apikey", "api_key");
@@ -23,6 +27,7 @@ public final class ProjectDiscovery {
         Objects.requireNonNull(request, "request");
         Path root = canonicalRoot(request.projectRoot());
         Map<String, Object> config = readConfiguration(root);
+        rejectUnknownFields(config, PROJECT_FIELDS, "project config");
         rejectSecretLike(config, "config");
         int schema = integer(config, "schemaVersion", ProjectDescriptor.SCHEMA_VERSION);
         if (schema != ProjectDescriptor.SCHEMA_VERSION) {
@@ -37,7 +42,7 @@ public final class ProjectDiscovery {
                 : config.containsKey("sourceRoots") ? resolveRoots(root, strings(config, "sourceRoots"), "source root") : detected.sourceRoots();
         List<Path> mainRoots=sources.stream().filter(path->!path.toString().replace('\\','/').contains("/test/")).toList();
         List<Path> testRoots=sources.stream().filter(path->path.toString().replace('\\','/').contains("/test/")).toList();
-        List<Path> classpath = cli.classpathEntries() != null ? resolveRoots(root, cli.classpathEntries(), "classpath entry")
+        List<Path> classpath = cli.classpathEntries() != null ? resolveMavenClasspath(root, cli.classpathEntries())
                 : config.containsKey("classpathEntries") ? resolveRoots(root, strings(config, "classpathEntries"), "classpath entry")
                 : detected.classpathEntries();
         String workspaceValue = first(pathText(cli.workspaceDirectory()), string(config, "workspaceDirectory",
@@ -172,6 +177,19 @@ public final class ProjectDiscovery {
         return List.copyOf(paths);
     }
 
+    private static List<Path> resolveMavenClasspath(Path root,List<Path> values){
+        String configured=System.getProperty("maven.repo.local");
+        Path repository=(configured==null||configured.isBlank()?Path.of(System.getProperty("user.home"),".m2","repository"):Path.of(configured)).toAbsolutePath().normalize();
+        List<Path> result=new ArrayList<>();
+        for(Path value:values){
+            Path path=(value.isAbsolute()?value:root.resolve(value)).toAbsolutePath().normalize();
+            if(!path.startsWith(root)&&!path.startsWith(repository))throw new IllegalArgumentException("classpath entry is outside the project and Maven repository");
+            if(Files.isSymbolicLink(path))throw new IllegalArgumentException("classpath entry must not be a symbolic link");
+            result.add(path);
+        }
+        return List.copyOf(result);
+    }
+
     private static Path resolveInside(Path root, String value, String kind) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException(kind + " is blank");
         Path input = Path.of(value);
@@ -228,6 +246,11 @@ public final class ProjectDiscovery {
         } else if(value instanceof String text){
             String trimmed=text.trim();if(trimmed.matches("(?i)^(bearer\\s+.+|eyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}\\..+)$")||trimmed.matches("(?i).*(password|secret|authorization|client_secret)\\s*[:=].+"))throw new IllegalArgumentException("CONFIG_REJECTED_SECRET_LIKE_VALUE at "+path);
         }
+    }
+
+    static void rejectUnknownFields(Map<String, Object> value, Set<String> allowed, String label) {
+        List<String> unknown = value.keySet().stream().filter(key -> !allowed.contains(key)).sorted().toList();
+        if (!unknown.isEmpty()) throw new IllegalArgumentException(label + " contains unknown fields: " + unknown);
     }
 
     private static ProjectDescriptor.Browser parseBrowser(String value) {

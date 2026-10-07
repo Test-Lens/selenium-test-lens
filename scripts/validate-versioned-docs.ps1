@@ -119,9 +119,12 @@ try {
     $repo = Join-Path $work "repo"
     $remote = Join-Path $work "remote.git"
     New-Item -ItemType Directory -Path $repo | Out-Null
-    foreach ($directory in @("docs", "docs-versions", "docs-versioning", "overrides", "scripts")) {
+    foreach ($directory in @("docs", "docs-versions", "docs-versioning", "overrides")) {
         Copy-Item -LiteralPath (Join-Path $root $directory) -Destination $repo -Recurse
     }
+    $fixtureScripts = Join-Path $repo "scripts"
+    New-Item -ItemType Directory -Path $fixtureScripts | Out-Null
+    Copy-Item -LiteralPath (Join-Path $root "scripts/publish-versioned-docs.ps1") -Destination $fixtureScripts
     Copy-Item -LiteralPath (Join-Path $root "docs-hooks") -Destination $repo -Recurse
     $runtimeSource = Join-Path $root "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"
     $runtimeFixture = Join-Path $repo "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"

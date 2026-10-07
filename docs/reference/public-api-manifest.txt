@@ -1,12 +1,9 @@
-# Generated public API manifest. Do not edit by hand.
-# Types: 283
-# Public callable methods/constructors: 2183
+# Generated stable/advanced API compatibility manifest. Do not edit by hand.
+# Types: 263
+# Public callable methods/constructors: 2061
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
-TYPE io.github.testlens.core.browser.BrowserScriptExecutor
-  public abstract java.lang.Object execute(java.lang.String, java.lang.Object...)
-  public default java.lang.Object executeAsync(java.lang.String, java.lang.Object...)
 TYPE io.github.testlens.core.logging.CompositeLogSink
   public io.github.testlens.core.logging.CompositeLogSink(java.util.List<io.github.testlens.core.logging.UiTestLensLogSink>)
   public static io.github.testlens.core.logging.CompositeLogSink of(io.github.testlens.core.logging.UiTestLensLogSink...)
@@ -586,9 +583,6 @@ TYPE io.github.testlens.core.trace.export.TraceHtmlReportSection
   public static final io.github.testlens.core.trace.export.TraceHtmlReportSection RAW_JSON
   public static io.github.testlens.core.trace.export.TraceHtmlReportSection[] values()
   public static io.github.testlens.core.trace.export.TraceHtmlReportSection valueOf(java.lang.String)
-TYPE io.github.testlens.core.trace.export.TraceJsonWriter
-  public static java.lang.String write(java.lang.Object)
-  public static java.lang.String escape(java.lang.String)
 TYPE io.github.testlens.core.trace.export.TraceReportBundleExporter
   public static final java.nio.file.Path DEFAULT_OUTPUT_PATH
   public io.github.testlens.core.trace.export.TraceReportBundleExporter()
@@ -600,34 +594,6 @@ TYPE io.github.testlens.core.trace.export.TraceReportBundleExporter
   public java.nio.file.Path exportSuiteTo(java.util.List<io.github.testlens.core.trace.UiTestLensSession>, java.nio.file.Path, io.github.testlens.core.trace.export.TraceBundleExportOptions)
   public java.nio.file.Path export(io.github.testlens.core.trace.UiTestLensSession)
   public java.nio.file.Path exportTo(io.github.testlens.core.trace.UiTestLensSession, java.nio.file.Path)
-TYPE io.github.testlens.core.trace.export.TraceReportSupport
-  public static final java.lang.String SCHEMA_VERSION
-  public static final java.nio.file.Path DEFAULT_REPORT_DIRECTORY
-  public static final java.nio.file.Path DEFAULT_SUITE_JSON_PATH
-  public static final java.nio.file.Path DEFAULT_BUNDLE_PATH
-  public static java.util.List<io.github.testlens.core.trace.UiTestLensSession> safeSessions(java.util.List<io.github.testlens.core.trace.UiTestLensSession>)
-  public static io.github.testlens.core.trace.TraceStatus suiteStatus(java.util.List<io.github.testlens.core.trace.UiTestLensSession>)
-  public static io.github.testlens.core.trace.TraceStatus sessionStatus(io.github.testlens.core.trace.UiTestLensSession)
-  public static boolean hasWarning(io.github.testlens.core.trace.UiTestLensSession)
-  public static boolean isFailedOrError(io.github.testlens.core.trace.TraceEvent)
-  public static boolean isFailedOrErrorStatus(io.github.testlens.core.trace.TraceStatus)
-  public static long failureCount(io.github.testlens.core.trace.UiTestLensSession)
-  public static java.time.Duration sessionDuration(io.github.testlens.core.trace.UiTestLensSession)
-  public static java.time.Duration totalSessionDuration(java.util.List<io.github.testlens.core.trace.UiTestLensSession>)
-  public static long screenshotCount(io.github.testlens.core.trace.UiTestLensSession)
-  public static long screenshotCount(java.util.List<io.github.testlens.core.trace.UiTestLensSession>)
-  public static long artifactCount(java.util.List<io.github.testlens.core.trace.UiTestLensSession>)
-  public static long eventCount(java.util.List<io.github.testlens.core.trace.UiTestLensSession>)
-  public static java.lang.String safeFileName(java.lang.String, java.lang.String)
-  public static java.lang.String sessionAnchor(io.github.testlens.core.trace.UiTestLensSession)
-  public static java.nio.file.Path artifactPath(io.github.testlens.core.trace.TraceArtifact)
-  public static java.nio.file.Path absoluteArtifactPath(io.github.testlens.core.trace.TraceArtifact)
-  public static boolean artifactExists(io.github.testlens.core.trace.TraceArtifact)
-  public static long artifactSizeBytes(io.github.testlens.core.trace.TraceArtifact)
-  public static java.lang.String relativeArtifactPath(io.github.testlens.core.trace.TraceArtifact, java.nio.file.Path)
-TYPE io.github.testlens.utils.JsResources
-  public static java.lang.String load(java.lang.String)
-  public static java.lang.String readFirstExisting(java.lang.String, java.lang.String)
 MODULE selenium-test-lens-overlay
 TYPE io.github.testlens.HighlightOptions$Builder
   public io.github.testlens.HighlightOptions$Builder enabled(boolean)
@@ -705,83 +671,6 @@ TYPE io.github.testlens.OverlayConfig
   public boolean isHighlightOptionsAuthoritative()
   public io.github.testlens.hud.HudOptions getHudOptions()
   public boolean isHudOptionsAuthoritative()
-TYPE io.github.testlens.api.ApiOverlayJs
-  public static final java.lang.String INIT_MODAL
-  public static void inject(io.github.testlens.core.browser.BrowserScriptExecutor)
-TYPE io.github.testlens.api.ApiOverlayPanel
-  public io.github.testlens.api.ApiOverlayPanel(io.github.testlens.core.browser.BrowserScriptExecutor, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig)
-  public java.lang.String showRequest(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
-  public void setPending(java.lang.String, long)
-  public void setResponse(java.lang.String, int, long, java.lang.String, java.lang.String)
-  public void setError(java.lang.String, java.lang.String, java.lang.String)
-  public void hide()
-  public boolean apiHighlightJsonPath(java.lang.String)
-  public int apiHighlightKeyAnimated(java.lang.String, long, int)
-  public void ensureOpen()
-  public void highlightPathAnimated(java.lang.String, int)
-  public void highlightPathsAnimated(java.util.List<java.lang.String>, int, int)
-  public boolean highlightPathsAnimatedAndWait(java.util.List<java.lang.String>, int, int)
-  public java.util.List<java.lang.String> findPathsByKey(java.lang.String)
-  public boolean highlightPathsCandyAnimatedAndWait(java.util.List<java.lang.String>, int, int, int, int)
-  public void resetApiFocus()
-  public boolean filterToPaths(java.util.List<java.lang.String>, boolean)
-  public boolean clearFilter()
-  public void setAutoCloseMs(long, long)
-  public void setDelayAutoCloseUntilSearch(boolean)
-TYPE io.github.testlens.core.AssertionBadgesJs
-  public static final java.lang.String INIT
-  public static void inject(io.github.testlens.core.browser.BrowserScriptExecutor)
-  public static java.lang.String bridgeScript()
-TYPE io.github.testlens.core.HighlightJs
-  public static final java.lang.String INIT
-  public static void inject(io.github.testlens.core.browser.BrowserScriptExecutor)
-  public static java.lang.String bridgeScript()
-TYPE io.github.testlens.core.HudPanelJs
-  public static final java.lang.String INIT
-  public static void inject(io.github.testlens.core.browser.BrowserScriptExecutor)
-  public static java.lang.String bridgeScript()
-TYPE io.github.testlens.core.OverlayRootManager
-  public io.github.testlens.core.OverlayRootManager(io.github.testlens.core.browser.BrowserScriptExecutor, io.github.testlens.OverlayConfig)
-  public void ensureRootExists()
-  public void clearAll()
-TYPE io.github.testlens.core.ScrollArrowJs
-  public static final java.lang.String INIT
-  public static void inject(io.github.testlens.core.browser.BrowserScriptExecutor)
-  public static java.lang.String bridgeScript()
-TYPE io.github.testlens.core.TypeHintJs
-  public static final java.lang.String INIT
-  public static void inject(io.github.testlens.core.browser.BrowserScriptExecutor)
-  public static java.lang.String bridgeScript()
-TYPE io.github.testlens.core.UiTestLensRuntimeNames
-  public static final java.lang.String GLOBAL_NAMESPACE
-  public static final java.lang.String LEGACY_OVERLAY_ROOT_GLOBAL
-  public static final java.lang.String LEGACY_WAIT_ELAPSED_GLOBAL
-  public static final java.lang.String LEGACY_WAIT_MESSAGE_GLOBAL
-  public static final java.lang.String LEGACY_WAIT_HUD_GLOBAL
-  public static final java.lang.String LEGACY_API_MODAL_GLOBAL
-  public static final java.lang.String LEGACY_ACTIVE_REQUESTS_GLOBAL
-  public static final java.lang.String LEGACY_NETWORK_TRACKER_INSTALLED_GLOBAL
-  public static final java.lang.String RUNTIME_RESOURCE_ROOT
-  public static final java.lang.String LEGACY_SELENIUM_RESOURCE_ROOT
-  public static final java.lang.String API_OVERLAY_RESOURCE
-  public static final java.lang.String LEGACY_API_OVERLAY_RESOURCE
-  public static final java.lang.String WAIT_HUD_RESOURCE
-  public static final java.lang.String LEGACY_WAIT_HUD_RESOURCE
-  public static final java.lang.String HIGHLIGHT_RESOURCE
-  public static final java.lang.String LEGACY_HIGHLIGHT_RESOURCE
-  public static final java.lang.String TYPE_HINT_RESOURCE
-  public static final java.lang.String LEGACY_TYPE_HINT_RESOURCE
-  public static final java.lang.String SCROLL_ARROW_RESOURCE
-  public static final java.lang.String LEGACY_SCROLL_ARROW_RESOURCE
-  public static final java.lang.String HUD_PANEL_RESOURCE
-  public static final java.lang.String LEGACY_HUD_PANEL_RESOURCE
-  public static final java.lang.String ASSERTION_BADGES_RESOURCE
-  public static final java.lang.String LEGACY_ASSERTION_BADGES_RESOURCE
-  public static java.lang.String ensureNamespaceScript()
-TYPE io.github.testlens.core.WaitHudJs
-  public static final java.lang.String INIT
-  public static void inject(io.github.testlens.core.browser.BrowserScriptExecutor)
-  public static java.lang.String bridgeScript()
 TYPE io.github.testlens.hud.HudBranding
   public static final io.github.testlens.hud.HudBranding TEST_LENS
   public static final io.github.testlens.hud.HudBranding CUSTOM
@@ -901,12 +790,6 @@ TYPE io.github.testlens.hud.HudOptions
   public java.lang.String warningColor()
   public java.lang.String failureColor()
   public boolean hasCustomLogo()
-TYPE io.github.testlens.hud.HudPanel
-  public io.github.testlens.hud.HudPanel(io.github.testlens.core.browser.BrowserScriptExecutor, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig)
-  public void init(java.lang.String, java.lang.String)
-  public void updateStep(java.lang.String)
-  public void appendLog(java.lang.String, java.lang.String, java.lang.String)
-  public void appendLog(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
 TYPE io.github.testlens.hud.HudPosition
   public static final io.github.testlens.hud.HudPosition TOP_LEFT
   public static final io.github.testlens.hud.HudPosition TOP_RIGHT
@@ -1213,10 +1096,6 @@ TYPE io.github.testlens.ObservabilityMode
   public static final io.github.testlens.ObservabilityMode FAST
   public static io.github.testlens.ObservabilityMode[] values()
   public static io.github.testlens.ObservabilityMode valueOf(java.lang.String)
-TYPE io.github.testlens.OverlayWait
-  public io.github.testlens.OverlayWait(org.openqa.selenium.WebDriver, java.time.Duration, io.github.testlens.JsOverlayDebug, io.github.testlens.core.OverlayLogger)
-  public io.github.testlens.OverlayWait(org.openqa.selenium.WebDriver, java.time.Duration, io.github.testlens.JsOverlayDebug)
-  public <T> T until(java.util.function.Function<? super org.openqa.selenium.WebDriver, T>, java.lang.String)
 TYPE io.github.testlens.ScenarioResourceManager
   public synchronized <T> T register(java.lang.String, T, io.github.testlens.ThrowingConsumer<? super T>)
   public synchronized <T> T create(java.lang.String, io.github.testlens.ThrowingSupplier<? extends T>, io.github.testlens.ThrowingConsumer<? super T>) throws java.lang.Exception
@@ -1368,152 +1247,6 @@ TYPE io.github.testlens.ThrowingConsumer
   public abstract void accept(T) throws java.lang.Exception
 TYPE io.github.testlens.ThrowingSupplier
   public abstract T get() throws java.lang.Exception
-TYPE io.github.testlens.actions.AssertActions$OverlayAssertionResult
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult(boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, long)
-  public boolean isSuccess()
-  public java.lang.String getAssertionType()
-  public java.lang.String getContext()
-  public java.lang.String getExpected()
-  public java.lang.String getActual()
-  public java.lang.String getMessage()
-  public long getTimestampMillis()
-  public java.lang.String toMessage()
-  public java.lang.String toJson()
-TYPE io.github.testlens.actions.AssertActions
-  public io.github.testlens.actions.AssertActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.hud.HudPanel)
-  public io.github.testlens.actions.AssertActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.hud.HudPanel, io.github.testlens.core.OverlayLogger)
-  public io.github.testlens.actions.AssertActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.hud.HudPanel, io.github.testlens.core.OverlayLogger, io.github.testlens.actions.HighlightActions)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertTextEqualsModified(org.openqa.selenium.WebElement, java.lang.String, java.util.function.Function<java.lang.String, java.lang.String>, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertTextContainsModified(org.openqa.selenium.WebElement, java.lang.String, java.util.function.Function<java.lang.String, java.lang.String>, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertTextEquals(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertTextContains(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertAttributeEquals(org.openqa.selenium.WebElement, java.lang.String, java.lang.String, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertCssEquals(org.openqa.selenium.WebElement, java.lang.String, java.lang.String, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertColorEquals(org.openqa.selenium.WebElement, java.lang.String, java.lang.String, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertHasClass(org.openqa.selenium.WebElement, java.lang.String, boolean, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertVisible(org.openqa.selenium.WebElement, boolean, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertEnabled(org.openqa.selenium.WebElement, boolean, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertSelected(org.openqa.selenium.WebElement, boolean, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertEquals(java.lang.Object, java.lang.Object, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertNotEquals(java.lang.Object, java.lang.Object, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertContains(java.lang.String, java.lang.String, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertNotContains(java.lang.String, java.lang.String, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertTrue(boolean, java.lang.String)
-  public io.github.testlens.actions.AssertActions$OverlayAssertionResult assertFalse(boolean, java.lang.String)
-TYPE io.github.testlens.actions.HighlightActions
-  public io.github.testlens.actions.HighlightActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig)
-  public io.github.testlens.actions.HighlightActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayLogger)
-  public void highlightClick(org.openqa.selenium.WebElement, java.lang.String)
-  public void automaticAction(org.openqa.selenium.WebElement, java.lang.String)
-  public void highlight(org.openqa.selenium.WebElement, java.lang.String, io.github.testlens.HighlightState, boolean)
-  public void highlightParent(org.openqa.selenium.WebElement, int, java.lang.String)
-  public void highlightClosest(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)
-TYPE io.github.testlens.actions.ScrollActions
-  public io.github.testlens.actions.ScrollActions(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayRootManager)
-  public io.github.testlens.actions.ScrollActions(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayRootManager, io.github.testlens.core.OverlayLogger)
-  public void scrollToElementWithArrow(org.openqa.selenium.WebElement)
-  public void scrollToElementWithArrow(org.openqa.selenium.WebElement, long)
-  public void scrollToElementWithArrow(org.openqa.selenium.WebElement, long, io.github.testlens.scroll.ScrollElementEdge, io.github.testlens.scroll.ScrollViewportEdge)
-TYPE io.github.testlens.actions.SmartClickActions
-  public io.github.testlens.actions.SmartClickActions(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayRootManager, io.github.testlens.actions.HighlightActions)
-  public io.github.testlens.actions.SmartClickActions(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayRootManager, io.github.testlens.actions.HighlightActions, io.github.testlens.core.OverlayLogger)
-  public void setOverlayPolicy(io.github.testlens.selenium.overlay.OverlayPolicy)
-  public void clickWithOverlayHandling(org.openqa.selenium.WebElement, java.lang.String)
-  public void smartClick(org.openqa.selenium.WebElement, java.lang.String)
-TYPE io.github.testlens.actions.SmartInputActions
-  public io.github.testlens.actions.SmartInputActions(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayRootManager, io.github.testlens.actions.TypingActions)
-  public io.github.testlens.actions.SmartInputActions(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayRootManager, io.github.testlens.actions.TypingActions, io.github.testlens.core.OverlayLogger)
-  public void smartTypeWithHint(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)
-TYPE io.github.testlens.actions.TargetResolverActions
-  public io.github.testlens.actions.TargetResolverActions(org.openqa.selenium.WebDriver)
-  public io.github.testlens.actions.TargetResolverActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayLogger)
-  public org.openqa.selenium.WebElement resolveClickTarget(org.openqa.selenium.WebElement)
-  public org.openqa.selenium.WebElement resolveFileInputTarget(org.openqa.selenium.WebElement)
-  public java.lang.String resolveClickTargetSelector(org.openqa.selenium.WebElement)
-  public java.lang.String resolveFileInputSelector(org.openqa.selenium.WebElement)
-TYPE io.github.testlens.actions.TypingActions
-  public io.github.testlens.actions.TypingActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig)
-  public io.github.testlens.actions.TypingActions(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayLogger)
-  public void typeWithHint(org.openqa.selenium.WebElement, java.lang.String)
-  public void clearAndType(org.openqa.selenium.WebElement, java.lang.String)
-TYPE io.github.testlens.core.BlockingOverlayHelper
-  public io.github.testlens.core.BlockingOverlayHelper(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayRootManager, io.github.testlens.actions.HighlightActions)
-  public boolean handleGlobalOverlayIfPresent(java.lang.String, java.lang.String)
-  public boolean handleBlockingOverlayFor(org.openqa.selenium.WebElement, java.lang.String, java.lang.String)
-TYPE io.github.testlens.core.Guards$GuardResult
-  public final java.lang.String label
-  public final boolean isProblem
-  public final java.lang.String hit
-  public final java.lang.String url
-  public final java.lang.String title
-  public final java.lang.String bodySample
-  public static io.github.testlens.core.Guards$GuardResult ok(java.lang.String)
-  public java.lang.String formatForException()
-TYPE io.github.testlens.core.Guards
-  public io.github.testlens.core.Guards(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayLogger)
-  public io.github.testlens.core.Guards(org.openqa.selenium.WebDriver)
-  public io.github.testlens.core.Guards setEnabled(boolean)
-  public io.github.testlens.core.Guards setFailFast(boolean)
-  public io.github.testlens.core.Guards setBodySampleLimit(int)
-  public io.github.testlens.core.Guards addNeedle(java.lang.String)
-  public io.github.testlens.core.Guards$GuardResult checkpoint(java.lang.String)
-  public void assertOk(java.lang.String)
-TYPE io.github.testlens.core.OverlayLogger
-  public static io.github.testlens.core.OverlayLogger noop()
-  public static io.github.testlens.core.OverlayLogger from(io.github.testlens.core.logging.UiTestLensLogger)
-  public io.github.testlens.core.redaction.RedactionPolicy redactionPolicy()
-  public io.github.testlens.core.OverlayLogger withSink(io.github.testlens.core.logging.UiTestLensLogSink)
-  public void debug(java.lang.String)
-  public void info(java.lang.String)
-  public void warn(java.lang.String)
-  public void error(java.lang.String)
-  public void error(java.lang.String, java.lang.Throwable)
-  public void emit(io.github.testlens.core.logging.UiTestLensLogEntry)
-TYPE io.github.testlens.core.PageWaits
-  public io.github.testlens.core.PageWaits(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig)
-  public io.github.testlens.core.PageWaits(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig, java.time.Duration)
-  public void waitForDocumentReady()
-  public void waitForDocumentReady(java.time.Duration)
-  public void waitForInteractiveOrComplete()
-  public void waitForInteractiveOrComplete(java.time.Duration)
-  public void waitForNetworkIdle(java.time.Duration, java.time.Duration)
-  public void waitForNetworkIdle()
-  public org.openqa.selenium.WebElement waitForReactRootMounted(org.openqa.selenium.By)
-  public org.openqa.selenium.WebElement waitForReactRootMounted(org.openqa.selenium.By, java.time.Duration)
-  public void waitForSpaDomStableUnder(org.openqa.selenium.By, java.time.Duration, java.time.Duration)
-  public void waitForSpaDomStableUnder(org.openqa.selenium.By)
-  public org.openqa.selenium.WebElement waitForReactComponentVisible(org.openqa.selenium.By, org.openqa.selenium.By)
-  public org.openqa.selenium.WebElement waitForReactComponentVisible(org.openqa.selenium.By, org.openqa.selenium.By, java.time.Duration)
-  public void waitForReactAndNetworkIdle(org.openqa.selenium.By)
-  public void waitForReactAndNetworkIdle(org.openqa.selenium.By, java.time.Duration)
-TYPE io.github.testlens.core.PopupDetector
-  public io.github.testlens.core.PopupDetector(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig, io.github.testlens.core.OverlayRootManager, io.github.testlens.actions.HighlightActions)
-  public java.util.Optional<org.openqa.selenium.WebElement> findTopMostPopup()
-  public boolean highlightPopupIfPresent(java.lang.String)
-  public boolean closePopupIfPresent(java.lang.String, java.lang.String)
-  public boolean closePopupIfPresent()
-TYPE io.github.testlens.core.browser.SeleniumBrowserScriptExecutor
-  public io.github.testlens.core.browser.SeleniumBrowserScriptExecutor(org.openqa.selenium.WebDriver)
-  public io.github.testlens.core.browser.SeleniumBrowserScriptExecutor(org.openqa.selenium.JavascriptExecutor)
-  public java.lang.Object execute(java.lang.String, java.lang.Object...)
-  public java.lang.Object executeAsync(java.lang.String, java.lang.Object...)
-TYPE io.github.testlens.scroll.ScrollElementEdge
-  public static final io.github.testlens.scroll.ScrollElementEdge TOP
-  public static final io.github.testlens.scroll.ScrollElementEdge CENTER
-  public static final io.github.testlens.scroll.ScrollElementEdge BOTTOM
-  public static io.github.testlens.scroll.ScrollElementEdge[] values()
-  public static io.github.testlens.scroll.ScrollElementEdge valueOf(java.lang.String)
-TYPE io.github.testlens.scroll.ScrollViewportEdge
-  public static final io.github.testlens.scroll.ScrollViewportEdge TOP
-  public static final io.github.testlens.scroll.ScrollViewportEdge CENTER
-  public static final io.github.testlens.scroll.ScrollViewportEdge BOTTOM
-  public static io.github.testlens.scroll.ScrollViewportEdge[] values()
-  public static io.github.testlens.scroll.ScrollViewportEdge valueOf(java.lang.String)
-TYPE io.github.testlens.selenium.SeleniumOverlayFactory
-  public static io.github.testlens.core.browser.BrowserScriptExecutor scriptExecutor(org.openqa.selenium.WebDriver)
-  public static io.github.testlens.core.OverlayRootManager overlayRoot(org.openqa.selenium.WebDriver, io.github.testlens.OverlayConfig)
-  public static io.github.testlens.hud.HudPanel hudPanel(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig)
-  public static io.github.testlens.api.ApiOverlayPanel apiOverlayPanel(org.openqa.selenium.WebDriver, io.github.testlens.core.OverlayRootManager, io.github.testlens.OverlayConfig)
 TYPE io.github.testlens.selenium.actionability.ActionabilityCheck
   public static io.github.testlens.selenium.actionability.ActionabilityCheck enabled(io.github.testlens.selenium.actionability.ActionabilityCheckType)
   public static io.github.testlens.selenium.actionability.ActionabilityCheck skipped(io.github.testlens.selenium.actionability.ActionabilityCheckType)
@@ -1684,29 +1417,6 @@ TYPE io.github.testlens.selenium.assertions.UiAssertionStatus
   public static final io.github.testlens.selenium.assertions.UiAssertionStatus SKIPPED
   public static io.github.testlens.selenium.assertions.UiAssertionStatus[] values()
   public static io.github.testlens.selenium.assertions.UiAssertionStatus valueOf(java.lang.String)
-TYPE io.github.testlens.selenium.assertions.UiExpect$ElementProbe
-  public abstract io.github.testlens.selenium.assertions.UiExpect$ElementProbeResult probe(java.util.function.Function<org.openqa.selenium.WebElement, java.lang.String>)
-TYPE io.github.testlens.selenium.assertions.UiExpect$ElementProbeResult
-  public io.github.testlens.selenium.assertions.UiExpect$ElementProbeResult(boolean, java.lang.String)
-  public static io.github.testlens.selenium.assertions.UiExpect$ElementProbeResult present(java.lang.String)
-  public static io.github.testlens.selenium.assertions.UiExpect$ElementProbeResult missingElement()
-  public final java.lang.String toString()
-  public final int hashCode()
-  public final boolean equals(java.lang.Object)
-  public boolean present()
-  public java.lang.String value()
-TYPE io.github.testlens.selenium.assertions.UiExpect$VisibilityProbe
-  public abstract io.github.testlens.selenium.assertions.UiExpect$VisibilityProbeResult probe()
-TYPE io.github.testlens.selenium.assertions.UiExpect$VisibilityProbeResult
-  public io.github.testlens.selenium.assertions.UiExpect$VisibilityProbeResult(boolean, boolean)
-  public static io.github.testlens.selenium.assertions.UiExpect$VisibilityProbeResult visibleElement()
-  public static io.github.testlens.selenium.assertions.UiExpect$VisibilityProbeResult hiddenElement()
-  public static io.github.testlens.selenium.assertions.UiExpect$VisibilityProbeResult missingElement()
-  public final java.lang.String toString()
-  public final int hashCode()
-  public final boolean equals(java.lang.Object)
-  public boolean present()
-  public boolean visible()
 TYPE io.github.testlens.selenium.assertions.UiExpect
   public io.github.testlens.selenium.assertions.UiExpect(io.github.testlens.selenium.locator.UiLocator, io.github.testlens.selenium.assertions.UiAssertionOptions, io.github.testlens.core.OverlayLogger)
   public io.github.testlens.selenium.assertions.UiExpect(io.github.testlens.selenium.locator.UiLocator, io.github.testlens.selenium.assertions.UiAssertionOptions, io.github.testlens.core.OverlayLogger, io.github.testlens.selenium.assertions.UiExpect$VisibilityProbe)
@@ -2235,12 +1945,6 @@ TYPE io.github.testlens.selenium.locator.UiLocator
   public io.github.testlens.selenium.locator.UiLocator upload(java.nio.file.Path...)
   public io.github.testlens.selenium.locator.UiLocator focus()
   public io.github.testlens.selenium.locator.UiLocator scrollIntoView()
-TYPE io.github.testlens.selenium.locator.UiLocatorDescription
-  public static io.github.testlens.selenium.locator.UiLocatorDescription of(org.openqa.selenium.By, java.lang.String)
-  public org.openqa.selenium.By by()
-  public java.lang.String label()
-  public java.lang.String displayName()
-  public java.lang.String toString()
 TYPE io.github.testlens.selenium.locator.UiLocatorException
   public io.github.testlens.selenium.locator.UiLocatorException(java.lang.String, java.lang.String, java.lang.String, java.lang.Throwable, java.lang.String)
   public java.lang.String action()
@@ -2269,11 +1973,6 @@ TYPE io.github.testlens.selenium.locator.UiLocatorOptions
   public boolean retryOnNotInteractable()
   public boolean highlightBeforeAction()
   public boolean javascriptClickFallback()
-TYPE io.github.testlens.selenium.locator.UiLocatorSelectors
-  public static java.lang.String xpathLiteral(java.lang.String)
-  public static java.lang.String normalizeSpaceExpression(java.lang.String)
-  public static java.lang.String cssAttributeEquals(java.lang.String, java.lang.String)
-  public static java.lang.String cssString(java.lang.String)
 TYPE io.github.testlens.selenium.network.NetworkAssertionError
   public io.github.testlens.selenium.network.NetworkAssertionError(java.lang.String, io.github.testlens.selenium.network.NetworkSummary)
   public io.github.testlens.selenium.network.NetworkAssertionError(java.lang.String, io.github.testlens.selenium.network.NetworkSummary, io.github.testlens.selenium.network.NetworkWaitResult)
@@ -2569,10 +2268,6 @@ TYPE io.github.testlens.selenium.overlay.OverlayPolicy
   public static io.github.testlens.selenium.overlay.OverlayPolicy$Builder builder()
   public java.util.List<io.github.testlens.selenium.overlay.OverlayHandler> handlers()
   public boolean isEmpty()
-TYPE io.github.testlens.selenium.overlay.OverlayPolicyExecutor
-  public io.github.testlens.selenium.overlay.OverlayPolicyExecutor(org.openqa.selenium.WebDriver, io.github.testlens.selenium.overlay.OverlayPolicy, io.github.testlens.core.OverlayLogger)
-  public java.util.List<io.github.testlens.selenium.overlay.OverlayHandlingResult> handleKnownOverlays()
-  public boolean handleKnownOverlaysIfAny()
 TYPE io.github.testlens.selenium.reporting.ReportArtifactKind
   public static final io.github.testlens.selenium.reporting.ReportArtifactKind SESSION_REPORT
   public static final io.github.testlens.selenium.reporting.ReportArtifactKind FAILURE_BUNDLE
@@ -2705,9 +2400,6 @@ TYPE io.github.testlens.selenium.steps.UiStepResult
   public java.util.List<io.github.testlens.selenium.steps.UiStepResult> children()
   public boolean isPassed()
   public java.lang.String summary()
-TYPE io.github.testlens.selenium.steps.UiStepScope
-  public io.github.testlens.selenium.steps.UiStepScope(io.github.testlens.core.OverlayLogger, java.util.function.Consumer<java.lang.String>, java.util.function.Consumer<java.lang.String>)
-  public io.github.testlens.selenium.steps.UiStepResult run(java.lang.String, io.github.testlens.selenium.steps.UiStepOptions, java.lang.Runnable)
 TYPE io.github.testlens.selenium.steps.UiStepStatus
   public static final io.github.testlens.selenium.steps.UiStepStatus RUNNING
   public static final io.github.testlens.selenium.steps.UiStepStatus PASSED
@@ -2931,3 +2623,155 @@ TYPE io.github.testlens.react.actionability.ReactReadinessResult
   public java.time.Duration elapsed()
   public java.util.Map<java.lang.String, java.lang.Object> details()
   public boolean ready()
+MODULE selenium-test-lens-application-tooling
+TYPE io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentCommand
+  public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentCommand(java.lang.String, io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role, java.util.List<io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope<?>>, java.util.Map<java.lang.String, java.lang.String>)
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public java.lang.String runId()
+  public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role role()
+  public java.util.List<io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope<?>> inputs()
+  public java.util.Map<java.lang.String, java.lang.String> instructions()
+TYPE io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException
+  public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException(java.lang.String)
+  public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException(java.lang.String, java.lang.Throwable)
+  public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException(io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode, java.lang.String)
+  public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException(io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode, java.lang.String, java.lang.Throwable)
+  public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode code()
+TYPE io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode AGENT_NOT_AVAILABLE
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode AGENT_TIMEOUT
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode AGENT_PROCESS_FAILED
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode AGENT_OUTPUT_INVALID
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode AGENT_CONTEXT_REJECTED
+  public static io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode[] values()
+  public static io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode valueOf(java.lang.String)
+TYPE io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentResult
+  public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentResult(java.lang.String, io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope<?>)
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public java.lang.String providerRequestId()
+  public io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope<?> artifact()
+TYPE io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role PLANNER
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role IMPLEMENTER
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role FAILURE_CLASSIFIER
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role REPAIRER
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role REVIEWER
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role TEST_ARCHITECT
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role SCENARIO_DESIGNER
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role TEST_IMPLEMENTER
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role TEST_VERIFIER
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role STABILIZER
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role CODE_REVIEWER
+  public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role UNIT_TEST_AGENT
+  public static io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role[] values()
+  public static io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role valueOf(java.lang.String)
+TYPE io.github.testlens.application.tooling.ai.workflow.AgentExecutor
+  public abstract io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentResult execute(io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentCommand) throws io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException
+TYPE io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope
+  public io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope(java.lang.String, java.lang.String, java.util.List<java.lang.String>, int, java.lang.String, T)
+  public static <T> io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope<T> create(java.lang.String, java.lang.String, java.util.List<java.lang.String>, int, T)
+  public static java.lang.String digest(java.lang.Object)
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public java.lang.String artifactId()
+  public java.lang.String runId()
+  public java.util.List<java.lang.String> parents()
+  public int attempt()
+  public java.lang.String payloadDigest()
+  public T payload()
+TYPE io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderAvailability
+  public io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderAvailability(io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$Status, java.lang.String, java.lang.String)
+  public boolean available()
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$Status status()
+  public java.lang.String reason()
+  public java.lang.String providerVersion()
+TYPE io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderUnavailableException
+  public io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderUnavailableException(io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderAvailability)
+  public io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderAvailability availability()
+TYPE io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$Status
+  public static final io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$Status AVAILABLE
+  public static final io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$Status NOT_AVAILABLE
+  public static final io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$Status VERSION_UNSUPPORTED
+  public static final io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$Status PROFILE_INVALID
+  public static io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$Status[] values()
+  public static io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$Status valueOf(java.lang.String)
+TYPE io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider
+  public abstract io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderAvailability availability()
+  public abstract io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderAvailability preflight()
+  public default io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderAvailability preflight(io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role, java.lang.String)
+  public abstract io.github.testlens.application.tooling.ai.workflow.AgentExecutor executorFor(io.github.testlens.application.tooling.ai.workflow.AgentExecutor$Role, java.lang.String)
+MODULE selenium-test-lens-test-engineering-studio
+TYPE io.github.testlens.studio.TestEngineeringStudio$LaunchHandle
+  public java.net.URI uri()
+  public java.lang.String projectId()
+  public void await() throws java.lang.InterruptedException
+  public void close()
+TYPE io.github.testlens.studio.TestEngineeringStudio$LaunchRequest
+  public io.github.testlens.studio.TestEngineeringStudio$LaunchRequest(java.nio.file.Path, java.util.List<java.nio.file.Path>, java.util.List<java.nio.file.Path>, java.util.List<java.nio.file.Path>, boolean)
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public java.nio.file.Path projectRoot()
+  public java.util.List<java.nio.file.Path> mainSourceRoots()
+  public java.util.List<java.nio.file.Path> testSourceRoots()
+  public java.util.List<java.nio.file.Path> testClasspath()
+  public boolean openBrowser()
+TYPE io.github.testlens.studio.TestEngineeringStudio
+  public static io.github.testlens.studio.TestEngineeringStudio$LaunchHandle launch(io.github.testlens.studio.TestEngineeringStudio$LaunchRequest) throws java.io.IOException
+  public static io.github.testlens.studio.TestEngineeringStudio$LaunchHandle launch(io.github.testlens.studio.TestEngineeringStudio$LaunchRequest, io.github.testlens.studio.browser.BrowserSessionProvider, io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider) throws java.io.IOException
+TYPE io.github.testlens.studio.browser.Browser
+  public static final io.github.testlens.studio.browser.Browser CHROME
+  public static final io.github.testlens.studio.browser.Browser FIREFOX
+  public static io.github.testlens.studio.browser.Browser[] values()
+  public static io.github.testlens.studio.browser.Browser valueOf(java.lang.String)
+TYPE io.github.testlens.studio.browser.BrowserAvailability
+  public static final io.github.testlens.studio.browser.BrowserAvailability AVAILABLE
+  public static final io.github.testlens.studio.browser.BrowserAvailability NOT_AVAILABLE
+  public static final io.github.testlens.studio.browser.BrowserAvailability UNSUPPORTED
+  public static final io.github.testlens.studio.browser.BrowserAvailability CONFIGURATION_INVALID
+  public static io.github.testlens.studio.browser.BrowserAvailability[] values()
+  public static io.github.testlens.studio.browser.BrowserAvailability valueOf(java.lang.String)
+TYPE io.github.testlens.studio.browser.BrowserRequest
+  public io.github.testlens.studio.browser.BrowserRequest(io.github.testlens.studio.browser.Purpose, io.github.testlens.studio.browser.Browser, io.github.testlens.studio.browser.Ownership, boolean, java.lang.String)
+  public io.github.testlens.studio.browser.BrowserRequest(io.github.testlens.studio.browser.Purpose, io.github.testlens.studio.browser.Browser, io.github.testlens.studio.browser.Ownership, boolean)
+  public static io.github.testlens.studio.browser.BrowserRequest studioOwned(io.github.testlens.studio.browser.Purpose, io.github.testlens.studio.browser.Browser)
+  public static io.github.testlens.studio.browser.BrowserRequest callerOwned(io.github.testlens.studio.browser.Purpose, io.github.testlens.studio.browser.Browser)
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public io.github.testlens.studio.browser.Purpose purpose()
+  public io.github.testlens.studio.browser.Browser browser()
+  public io.github.testlens.studio.browser.Ownership ownership()
+  public boolean headless()
+  public java.lang.String profileId()
+TYPE io.github.testlens.studio.browser.BrowserSession
+  public io.github.testlens.studio.browser.BrowserSession(org.openqa.selenium.WebDriver, io.github.testlens.studio.browser.Ownership)
+  public org.openqa.selenium.WebDriver driver()
+  public io.github.testlens.studio.browser.Ownership ownership()
+  public boolean closed()
+  public void close()
+TYPE io.github.testlens.studio.browser.BrowserSessionProvider
+  public abstract io.github.testlens.studio.browser.BrowserAvailability preflight(io.github.testlens.studio.browser.BrowserRequest)
+  public abstract io.github.testlens.studio.browser.BrowserSession open(io.github.testlens.studio.browser.BrowserRequest)
+TYPE io.github.testlens.studio.browser.DefaultLocalBrowserSessionProvider
+  public io.github.testlens.studio.browser.DefaultLocalBrowserSessionProvider()
+  public io.github.testlens.studio.browser.BrowserAvailability preflight(io.github.testlens.studio.browser.BrowserRequest)
+  public io.github.testlens.studio.browser.BrowserSession open(io.github.testlens.studio.browser.BrowserRequest)
+TYPE io.github.testlens.studio.browser.Ownership
+  public static final io.github.testlens.studio.browser.Ownership STUDIO_OWNED
+  public static final io.github.testlens.studio.browser.Ownership CALLER_OWNED
+  public static io.github.testlens.studio.browser.Ownership[] values()
+  public static io.github.testlens.studio.browser.Ownership valueOf(java.lang.String)
+TYPE io.github.testlens.studio.browser.Purpose
+  public static final io.github.testlens.studio.browser.Purpose MAPPING
+  public static final io.github.testlens.studio.browser.Purpose TEST_EXECUTION
+  public static io.github.testlens.studio.browser.Purpose[] values()
+  public static io.github.testlens.studio.browser.Purpose valueOf(java.lang.String)

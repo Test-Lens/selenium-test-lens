@@ -10,11 +10,13 @@ description: Use the development Test Engineering Studio to scan a Selenium proj
 
 Test Engineering Studio is a local, persistent interface over the deterministic Application Mapper, existing-Page-Object index, `ContextSlicer`, S12 agent workflow, targeted compiler and trusted repair boundary. It is separate from the runtime HUD.
 
+Start with the [Maven getting-started guide](test-engineering-studio-getting-started.md) for the canonical 0.5.0 development goal, project/local configuration split, preflight and repository policy.
+
 ![Project overview populated by the browser fixture](../assets/media/test-engineering-studio/project-overview.png)
 
-## Launch Studio from the source checkout
+## Alternative source-checkout launcher
 
-The development launcher is configured through the Studio module's `exec-maven-plugin`. Build the unpublished reactor modules once, then start the loopback host for one explicit project root:
+The canonical consumer entry point is the Maven goal in [Getting started](test-engineering-studio-getting-started.md). Contributors can instead use the Studio module's `exec-maven-plugin`. Build the development reactor once, then start the loopback host for one explicit project root:
 
 ```powershell
 mvn -pl selenium-test-lens-test-engineering-studio -am -DskipTests install
@@ -27,7 +29,7 @@ Use `--no-open` when the host must print its loopback URL without opening the de
 mvn -f selenium-test-lens-test-engineering-studio/pom.xml exec:java -Dexec.args="--project D:\work\my-selenium-tests --no-open"
 ```
 
-Stop the Maven process to stop the Studio host. The launcher does not close a caller-owned WebDriver. This standalone development entry point currently supplies neither a WebDriver provider nor an external agent gateway, so it is useful for project discovery, source scanning and inspection of persisted state; mapping and agent workflow actions require an embedded launcher configured with those host-owned integrations.
+Stop the Maven process to stop the Studio host. The public bootstrap loads project-provided browser/agent providers from the test classpath when launched through the plugin; otherwise it uses the bounded local browser provider and Codex CLI provider. No browser or agent process starts until explicit preflight/action code requires it.
 
 ## Configuration and autodiscovery
 
@@ -38,7 +40,7 @@ Studio resolves the project root without following a project-root symlink and th
 3. Maven/Gradle layout autodetection;
 4. conservative defaults.
 
-The command-line launcher currently exposes only `--project` and `--no-open`; it does not expose every programmatic override as a flag. A minimal project file is:
+The contributor command-line launcher exposes only `--project` and `--no-open`; it does not expose every programmatic override as a flag. A minimal project file is:
 
 ```json
 {
@@ -162,7 +164,7 @@ From the repository root, run the complete Chrome fixture:
 mvn -pl selenium-test-lens-test-engineering-studio test
 ```
 
-The fixture starts the loopback Studio host and a local login application, scans hand-written Page Objects, maps and correlates the live page, generates and reviews a scripted provider-neutral plan/test, compiles and executes it in Chrome, creates a real Selector Intelligence repair after selector drift, verifies that viewing the proposal does not mutate source, then applies it only after the browser clicks **Approve and apply**. The same test can select Firefox with the `studio.browser=firefox` system property.
+The fixture starts the loopback Studio host and a local login application, scans hand-written Page Objects, maps and correlates the live page, generates and reviews a scripted provider-neutral plan/test, compiles and executes it in Chrome, creates a real Selector Intelligence repair after selector drift, verifies that viewing the proposal does not mutate source, then applies it only after the browser clicks **Approve and apply**. A Firefox test selector exists, but this page does not treat it or the scripted agent as certification of the complete external-provider repair workflow.
 
 Screenshots are written to `selenium-test-lens-test-engineering-studio/target/studio-screenshots/`.
 

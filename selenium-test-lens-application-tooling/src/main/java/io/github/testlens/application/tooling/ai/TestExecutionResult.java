@@ -22,6 +22,6 @@ public record TestExecutionResult(ContractHeader header,String scenarioId,Outcom
         assertionEvidenceRefs=canonical(assertionEvidenceRefs);runtimeEventRefs=canonical(runtimeEventRefs);
         screenshotRefs=canonical(screenshotRefs);selectorDiagnosticRefs=canonical(selectorDiagnosticRefs);
     }
-    public enum Outcome{PASS,FAIL,NOT_RUN,INCONCLUSIVE}
+    public enum Outcome{PASS,FAIL,NOT_RUN,INCONCLUSIVE,TIMED_OUT}
     private static List<String>canonical(List<String>v){return(v==null?List.<String>of():v).stream().filter(java.util.Objects::nonNull).distinct().sorted().toList();}
 }

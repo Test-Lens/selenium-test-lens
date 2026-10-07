@@ -13,7 +13,9 @@ public final class StudioProjections {
     public record CorrelationCounts(int exact, int strong, int probable, int ambiguous, int noMatch, int conflict) { }
     public record ProjectConfigurationProjection(String projectId,String name,String root,String build,String status,
             String configurationSource,List<String> mainSourceRoots,List<String> testSourceRoots,String workspace,
-            String browser,boolean headless,List<String> evidence,List<String> limitations){ }
+            String browser,boolean headless,Capability browserCapability,Capability agentCapability,
+            Capability compilationCapability,List<String> evidence,List<String> limitations){ }
+    public record Capability(String status,String reason){ }
     public record ApplicationOverviewProjection(StageProjection stage, ApplicationCounts counts,
                                                 List<PageSummary> pages, List<QualityCount> selectorQuality) { }
     public record PageSummary(String id, String name, int states, int elements, int transitions, int limitations) { }

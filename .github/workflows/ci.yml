@@ -203,6 +203,71 @@ jobs:
             **/target/failsafe-reports/**
             **/target/ui-test-lens/**
 
+  linux-external-certification:
+    name: Linux external consumer (JDK 17, Chrome)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Set up Chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          install-chromedriver: true
+
+      - name: Report Linux certification environment
+        env:
+          TEST_CHROME_BINARY: ${{ steps.setup-chrome.outputs.chrome-path }}
+          TEST_CHROMEDRIVER_BINARY: ${{ steps.setup-chrome.outputs.chromedriver-path }}
+        shell: bash
+        run: |
+          java -version
+          mvn --version
+          pwsh --version
+          test -x "$TEST_CHROME_BINARY"
+          "$TEST_CHROME_BINARY" --version
+          test -x "$TEST_CHROMEDRIVER_BINARY"
+          "$TEST_CHROMEDRIVER_BINARY" --version
+
+      - name: Certify staged external Studio consumer
+        env:
+          TMPDIR: ${{ runner.temp }}/test-lens-s15-temp
+          MAVEN_OPTS: >-
+            -Dwebdriver.chrome.driver=${{ steps.setup-chrome.outputs.chromedriver-path }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:TMPDIR | Out-Null
+          $repository = Join-Path $env:TMPDIR "empty-maven-repository"
+          ./scripts/certify-0.5.0-external-consumer-linux.ps1 `
+            -Version 0.5.0-SNAPSHOT `
+            -MavenRepository $repository
+
+          $spaceConsumer = Join-Path "${{ runner.temp }}" "test lens consumer with spaces"
+          Copy-Item -LiteralPath ./scripts/fixtures/s15-external-consumer `
+            -Destination $spaceConsumer -Recurse -Force
+          & mvn "-Dmaven.repo.local=$repository" -f (Join-Path $spaceConsumer "pom.xml") test-compile
+          if ($LASTEXITCODE -ne 0) { throw "External consumer path-with-spaces compilation failed" }
+
+      - name: Upload external certification diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-external-certification-failure
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/test-lens-s15-temp/**/studio-*.log
+            ${{ runner.temp }}/test-lens-s15-temp/**/target/surefire-reports/**
+
   headed-chrome-smoke:
     name: Headed Chrome smoke (non-blocking)
     if: github.event_name == 'workflow_dispatch'

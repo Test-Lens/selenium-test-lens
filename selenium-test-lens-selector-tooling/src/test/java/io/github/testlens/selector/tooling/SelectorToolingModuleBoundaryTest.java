@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SelectorToolingModuleBoundaryTest {
     @Test
-    void parserDependencyExistsOnlyInNonPublishedToolingModule() throws Exception {
+    void parserDependencyExistsOnlyInPublishedToolingAndNeverLeaksIntoRuntime() throws Exception {
         Path root = Path.of(System.getProperty("maven.multiModuleProjectDirectory", ".."))
                 .toAbsolutePath().normalize();
         String tooling = Files.readString(root.resolve("selenium-test-lens-selector-tooling/pom.xml"));
@@ -23,7 +23,10 @@ class SelectorToolingModuleBoundaryTest {
         assertTrue(tooling.contains("jackson-core"));
         assertFalse(tooling.contains("jackson-databind"));
         assertFalse(tooling.contains("jackson-annotations"));
-        assertTrue(tooling.contains("<maven.deploy.skip>true</maven.deploy.skip>"));
+        assertFalse(tooling.contains("<maven.deploy.skip>true</maven.deploy.skip>"));
+        String publicationPolicy=Files.readString(root.resolve("scripts/config/publication-policy.json"));
+        assertTrue(publicationPolicy.contains("\"selenium-test-lens-selector-tooling\""));
+        assertTrue(publicationPolicy.contains("\"PUBLISHED_TOOLING\""));
 
         String engine = Files.readString(root.resolve("selenium-test-lens-selector-engine/pom.xml"));
         assertFalse(engine.contains("jackson"));

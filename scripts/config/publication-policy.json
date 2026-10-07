@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "latestReleasedVersion": "0.4.0",
+  "roles": {
+    "PUBLISHED_STABLE": [
+      "selenium-test-lens-parent",
+      "selenium-test-lens-core",
+      "selenium-test-lens-overlay",
+      "selenium-test-lens",
+      "selenium-test-lens-junit5",
+      "selenium-test-lens-testng",
+      "selenium-test-lens-allure",
+      "selenium-test-lens-react"
+    ],
+    "PUBLISHED_TOOLING": [
+      "selenium-test-lens-application-model",
+      "selenium-test-lens-selector-engine",
+      "selenium-test-lens-selector-live",
+      "selenium-test-lens-application-mapper",
+      "selenium-test-lens-application-tooling",
+      "selenium-test-lens-selector-tooling",
+      "selenium-test-lens-test-engineering-studio",
+      "test-lens-test-engineering-maven-plugin"
+    ],
+    "INTERNAL": [
+      "selenium-test-lens-compatibility-engine",
+      "selenium-test-lens-compatibility-tooling",
+      "selenium-test-lens-migration-tooling"
+    ],
+    "TEST_ONLY": [
+      "selenium-test-lens-browser-tests"
+    ],
+    "DEMO": [
+      "selenium-test-lens-selector-lab",
+      "selenium-test-lens-examples"
+    ],
+    "FUTURE": []
+  }
+}

@@ -107,6 +107,7 @@ nav:
           - Drift, security & troubleshooting: advanced/application-mapping/drift-security-troubleshooting.md
       - AI test engineering foundation: ai/test-engineering.md
       - AI workflow orchestration: ai/workflow-orchestration.md
+      - Studio getting started: ai/test-engineering-studio-getting-started.md
       - Test Engineering Studio: ai/test-engineering-studio.md
       - 0.5.0 publication candidates: ai/0.5.0-publication-candidates.md
       - Steps & business assertions: advanced/steps-business-assertions.md
@@ -195,9 +196,9 @@ extra:
   version:
     provider: mike
     default: latest
-    current: 0.4.0
+    current: 0.5.0-SNAPSHOT
     is_dev: true
-    is_snapshot: false
+    is_snapshot: true
     stable_url: https://test-lens.github.io/selenium-test-lens/latest/
   analytics:
     provider: google

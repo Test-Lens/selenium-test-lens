@@ -9,6 +9,7 @@ import java.nio.file.*;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class TargetedRepairSourceCompilerTest {
@@ -20,6 +21,15 @@ class TargetedRepairSourceCompilerTest {
         assertDoesNotThrow(()->compiler.compile(proposal("src/test/java/example/LoginPage.java")));
         Files.writeString(source,"package example; final class LoginPage { broken syntax }");
         assertThrows(Exception.class,()->compiler.compile(proposal("src/test/java/example/LoginPage.java")));
+    }
+    @Test void installsVerifiedRepairBytecodeInExistingProjectTestOutput() throws Exception {
+        Path sourceRoot=root.resolve("src/test/java"),output=root.resolve("target/test-classes");
+        Path source=sourceRoot.resolve("example/LoginPage.java");Files.createDirectories(source.getParent());Files.createDirectories(output);
+        Files.writeString(source,"package example; public final class LoginPage { public boolean repaired(){ return true; } }");
+        String classpath=String.join(java.io.File.pathSeparator,System.getProperty("java.class.path"),output.toString());
+        TargetedRepairSourceCompiler compiler=new TargetedRepairSourceCompiler(root,17,classpath,List.of(sourceRoot),List.of(output));
+        compiler.compile(proposal("src/test/java/example/LoginPage.java"));
+        assertTrue(Files.isRegularFile(output.resolve("example/LoginPage.class")));
     }
     private static RepairProposal proposal(String path){
         ContractHeader header=new ContractHeader(ContractHeader.SCHEMA_VERSION,ContractHeader.Status.READY,List.of(),List.of(),ContractHeader.Confidence.LIVE_VALIDATED);
