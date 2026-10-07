@@ -108,6 +108,7 @@ nav:
       - AI test engineering foundation: ai/test-engineering.md
       - AI workflow orchestration: ai/workflow-orchestration.md
       - Test Engineering Studio: ai/test-engineering-studio.md
+      - 0.5.0 publication candidates: ai/0.5.0-publication-candidates.md
       - Steps & business assertions: advanced/steps-business-assertions.md
       - Network diagnostics: advanced/network.md
       - Overlay policies: advanced/overlay-policies.md

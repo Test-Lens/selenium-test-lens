@@ -12,6 +12,53 @@ Test Engineering Studio is a local, persistent interface over the deterministic 
 
 ![Project overview populated by the browser fixture](../assets/media/test-engineering-studio/project-overview.png)
 
+## Launch Studio from the source checkout
+
+The development launcher is configured through the Studio module's `exec-maven-plugin`. Build the unpublished reactor modules once, then start the loopback host for one explicit project root:
+
+```powershell
+mvn -pl selenium-test-lens-test-engineering-studio -am -DskipTests install
+mvn -f selenium-test-lens-test-engineering-studio/pom.xml exec:java -Dexec.args="--project D:\work\my-selenium-tests"
+```
+
+Use `--no-open` when the host must print its loopback URL without opening the default browser:
+
+```powershell
+mvn -f selenium-test-lens-test-engineering-studio/pom.xml exec:java -Dexec.args="--project D:\work\my-selenium-tests --no-open"
+```
+
+Stop the Maven process to stop the Studio host. The launcher does not close a caller-owned WebDriver. This standalone development entry point currently supplies neither a WebDriver provider nor an external agent gateway, so it is useful for project discovery, source scanning and inspection of persisted state; mapping and agent workflow actions require an embedded launcher configured with those host-owned integrations.
+
+## Configuration and autodiscovery
+
+Studio resolves the project root without following a project-root symlink and then reads optional `.test-lens/project.json`. The effective precedence is:
+
+1. explicit `ProjectDiscovery.Request` overrides supplied by an embedding host;
+2. `.test-lens/project.json`;
+3. Maven/Gradle layout autodetection;
+4. conservative defaults.
+
+The command-line launcher currently exposes only `--project` and `--no-open`; it does not expose every programmatic override as a flag. A minimal project file is:
+
+```json
+{
+  "schemaVersion": 1,
+  "applicationName": "Checkout tests",
+  "sourceRoots": ["src/main/java", "src/test/java"],
+  "classpathEntries": ["target/classes", "target/test-classes"],
+  "workspaceDirectory": ".test-lens",
+  "startUrl": "http://127.0.0.1:8080/login",
+  "browser": {
+    "name": "CHROME",
+    "headless": true
+  }
+}
+```
+
+All paths must remain under the selected project root and may not traverse symbolic links. `startUrl` must be absolute HTTP(S), without user information or secret-like query parameters. Secret-like field names and credential-shaped configuration values are rejected. Do not put passwords, tokens, cookies or auth-state content in this file.
+
+Maven projects are detected from `pom.xml`, with conventional `src/main/java`, `src/test/java`, `target/classes` and `target/test-classes` paths retained only when present. Gradle layout is detected for diagnostics, but the current descriptor reports Gradle projects as unsupported rather than pretending the complete workflow is ready. The Overview page shows the resolved source, roots, browser mode, workspace label and host operation status.
+
 ## Project setup
 
 Open one explicit project root, then use the setup actions in order:
@@ -82,6 +129,25 @@ Bounded projections are written below the selected project root:
 
 The UI reads projections instead of transferring full models or source trees on every request. Correlations and problems are paged with bounded offsets and limits. Refreshing the browser performs read-only `GET` requests; it does not rerun agents, tests, mapping or repair application.
 
+Each workflow also has a versioned snapshot under `<resolved-workspace>/ai/sessions/<runId>.json` (by default `.test-lens/ai/sessions/<runId>.json`). Studio lists the bounded workflow summaries and loads one selected detail by `runId`; selecting a workflow is read-only.
+
+On host restart, snapshots are validated before they are exposed. A successfully restored workflow is marked `resumed`. Work that was in `PLAN_GENERATING` or `IMPLEMENTATION_GENERATING` becomes `AGENT_EXECUTION_INTERRUPTED`; work that was executing or verifying becomes `EXECUTION_INTERRUPTED`. Studio never assumes an interrupted process completed.
+
+Freshness compares the persisted source fingerprint with the currently indexed project:
+
+- `FRESH` workflows expose only actions valid for their restored state;
+- `STALE` means the project source changed and the old reviewed artifacts cannot be executed or applied as current evidence;
+- `MISSING` means there is no current source fingerprint;
+- `INVALID` identifies a snapshot that could not be safely restored.
+
+The UI renders `availableActions` supplied by the backend rather than reconstructing the workflow state machine. Unsupported regeneration labels remain informational until the local action allowlist has a matching endpoint; the browser never posts an invented action.
+
+The launcher passes the resolved in-root `workspaceDirectory` to `StudioWorkspaceStore`; `.test-lens` is only the default. Persistence rejects a workspace outside the project root or one reached through a symbolic link.
+
+### Moving a project
+
+Stop Studio before moving the directory. Move the complete project, including the configured workspace directory (`.test-lens` by default), then launch again with the new `--project` path. The default project ID derives from application name and detected build system rather than the absolute root, so a normal move can retain identity. Source fingerprints still decide whether artifacts are fresh; changed source roots or files can correctly make a restored workflow stale. Absolute paths outside the new root, symlinked workspaces and copied snapshots without their reviewed source are rejected or must be regenerated.
+
 ## Local transport security
 
 The tooling host binds an ephemeral port on `127.0.0.1` only. It uses a random 256-bit session token, exact Host and same-origin checks, bounded JSON bodies, CSP, an action allowlist and one in-process operation lock. It exposes no arbitrary file-write or command endpoint. Backend strings and source diffs are rendered as text, not HTML.
@@ -105,7 +171,11 @@ Screenshots are written to `selenium-test-lens-test-engineering-studio/target/st
 - `AGENT_NOT_AVAILABLE`: configure a real external runner profile or use the scripted executor only for offline fixture tests.
 - `OPERATION_IN_PROGRESS`: wait for the current mapping, agent, compile, run or apply operation.
 - `SOURCE_PRECONDITION_FAILED`: source changed after proposal creation; regenerate correlation and repair evidence.
+- `AGENT_EXECUTION_INTERRUPTED` / `EXECUTION_INTERRUPTED`: the previous host stopped during work. Use only the backend-provided next action; Studio does not resume a subprocess in place.
+- `STALE`, `MISSING` or `INVALID` workflow: inspect the workflow banner and limitations. Refresh/reindex the project and regenerate the indicated reviewed artifact rather than forcing an old run.
 - `PARTIAL`: open Limitations. Do not interpret a bounded or unsupported region as complete mapping.
 - Empty correlations: scan and map before correlation, then verify source roots and page identity.
 
 See [AI workflow orchestration](workflow-orchestration.md) for S11/S12 contracts and [existing Page Object correlation](../advanced/application-mapping/existing-page-objects.md) for evidence semantics.
+
+For the packaging boundary between source-only development modules and a future consumer release, see [0.5.0 publication candidates](0.5.0-publication-candidates.md).
