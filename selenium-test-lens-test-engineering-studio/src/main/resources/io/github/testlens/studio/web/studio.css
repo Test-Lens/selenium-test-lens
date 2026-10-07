@@ -35,8 +35,10 @@ button.primary, button.secondary, button.danger, .header-actions button, .action
 button.primary, .action-row button:not(.secondary):not(.danger) { border: 1px solid #0369a1; color: #fff; background: #075985; }
 button.secondary, .header-actions button { border: 1px solid #94a3b8; color: #334155; background: #fff; }
 button.danger { border: 1px solid #b42318; color: #b42318; background: #fff; }
-.operation-status, .error-banner { margin: 1rem 1.5rem 0; padding: .7rem .9rem; border-radius: .5rem; }
+.operation-status, .error-banner, .workflow-banner { margin: 1rem 1.5rem 0; padding: .7rem .9rem; border-radius: .5rem; }
 .operation-status { color: #075985; background: #e0f2fe; border: 1px solid #7dd3fc; }.error-banner { color: #7f1d1d; background: #fef2f2; border: 1px solid #fecaca; }
+.workflow-banner { color: #5b3a08; background: #fffbeb; border: 1px solid #fcd34d; }
+.workflow-banner p { margin: 0; }.workflow-banner p + p { margin-top: .35rem; }.workflow-banner .action-row { margin-top: .55rem; }
 .workspace-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 1rem; padding: 1rem 1.5rem 2rem; }
 .primary-view, .details-panel { min-width: 0; }.details-panel { align-self: start; position: sticky; top: 1rem; }
 .card, .details-card, .empty-state { margin-bottom: .85rem; padding: 1rem; border: 1px solid var(--line); border-radius: .62rem; background: var(--panel); box-shadow: var(--shadow); }
@@ -59,6 +61,6 @@ textarea { min-height: 125px; resize: vertical; }.field-label { display: block; 
 details { margin-top: .6rem; }summary { cursor: pointer; color: #075985; font-weight: 700; }.raw-json { max-height: 300px; white-space: pre-wrap; overflow-wrap: anywhere; }
 [hidden] { display: none !important; }
 @media (max-width: 1020px) { .workspace-grid { grid-template-columns: minmax(0, 1fr); }.details-panel { position: static; }.stage-grid { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 720px) { .studio-shell { grid-template-columns: 1fr; }.navigation { position: static; height: auto; }.navigation nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }.navigation section { margin: 0; }.navigation footer { display: none; }.workspace-header { align-items: flex-start; padding: 1rem; }.workspace-grid { padding: .8rem 1rem; }.operation-status, .error-banner { margin-left: 1rem; margin-right: 1rem; }.stage-grid, .metrics-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 720px) { .studio-shell { grid-template-columns: 1fr; }.navigation { position: static; height: auto; }.navigation nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }.navigation section { margin: 0; }.navigation footer { display: none; }.workspace-header { align-items: flex-start; padding: 1rem; }.workspace-grid { padding: .8rem 1rem; }.operation-status, .error-banner, .workflow-banner { margin-left: 1rem; margin-right: 1rem; }.stage-grid, .metrics-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 460px) { .navigation nav { grid-template-columns: 1fr; }.navigation section { border-bottom: 1px solid #243147; }.workspace-header { flex-direction: column; }.stage-grid, .metrics-grid { grid-template-columns: 1fr; }.filter-row { flex-direction: column; }.filter-row select { max-width: none; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }

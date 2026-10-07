@@ -11,6 +11,9 @@ public final class StudioProjections {
     public record SourceCounts(int files, int pageObjects, int components, int tests, int locatorDeclarations, int usageEdges) { }
     public record ApplicationCounts(int pages, int states, int elements, int transitions, int sharedComponents) { }
     public record CorrelationCounts(int exact, int strong, int probable, int ambiguous, int noMatch, int conflict) { }
+    public record ProjectConfigurationProjection(String projectId,String name,String root,String build,String status,
+            String configurationSource,List<String> mainSourceRoots,List<String> testSourceRoots,String workspace,
+            String browser,boolean headless,List<String> evidence,List<String> limitations){ }
     public record ApplicationOverviewProjection(StageProjection stage, ApplicationCounts counts,
                                                 List<PageSummary> pages, List<QualityCount> selectorQuality) { }
     public record PageSummary(String id, String name, int states, int elements, int transitions, int limitations) { }
@@ -48,8 +51,12 @@ public final class StudioProjections {
     public record WorkflowDetailProjection(String runId, String requirement, TestPlanProjection plan,
                                            ImplementationProjection implementation, ExecutionProjection execution,
                                            DiagnosisProjection diagnosis, RepairProjection repair,
-                                           List<TimelineItem> timeline, WorkflowMetrics metrics, String status) { }
+                                           List<TimelineItem> timeline, WorkflowMetrics metrics, String status,
+                                           String freshness,boolean resumed,List<String> availableActions,
+                                           List<String> limitations,String updatedAt) { }
+    public record WorkflowSummaryProjection(String runId,String requirement,String state,String freshness,
+                                            String updatedAt,boolean resumed,List<String> availableActions){ }
     public record StudioSnapshot(ProjectStatusProjection project, ApplicationOverviewProjection application,
                                  PageObjectCorrelationProjection correlations, ProblemsProjection problems,
-                                 List<WorkflowRunProjection> workflows, List<RepairProjection> repairs) { }
+                                 List<WorkflowSummaryProjection> workflows, List<RepairProjection> repairs) { }
 }

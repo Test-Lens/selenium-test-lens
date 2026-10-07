@@ -22,7 +22,7 @@ public final class TestEngineeringStudioServer implements AutoCloseable {
     public static final int MAX_REQUEST_BYTES=64*1024;
     private static final String WEB_ROOT="/io/github/testlens/studio/web/";
     private static final Set<String> ACTIONS=Set.of("SCAN_PROJECT","MAP_APPLICATION","CORRELATE","REFRESH_PROJECT",
-            "CREATE_REQUIREMENT","GENERATE_PLAN","GENERATE_IMPLEMENTATION","RUN","DIAGNOSE","PREPARE_REPAIR","RERUN","APPROVE_REPAIR","REJECT_REPAIR");
+            "CREATE_REQUIREMENT","GENERATE_PLAN","REGENERATE_PLAN","GENERATE_IMPLEMENTATION","RUN","DIAGNOSE","PREPARE_REPAIR","RERUN","APPROVE_REPAIR","REJECT_REPAIR");
     private final TestEngineeringStudioService service;
     private final HttpServer server;
     private final String token;
@@ -71,7 +71,7 @@ public final class TestEngineeringStudioServer implements AutoCloseable {
         if(exchange.getRequestBody().read()!=-1){sendError(exchange,400,"GET_BODY_REJECTED");return;}
         String path=exchange.getRequestURI().getPath();Map<String,String> query=query(exchange.getRequestURI().getRawQuery());
         Object response=switch(path){
-            case "/api/project"->service.projectOverview();case "/api/application"->service.applicationOverview();
+            case "/api/project"->service.projectOverview();case "/api/config"->service.projectConfiguration();case "/api/application"->service.applicationOverview();
             case "/api/correlations"->service.correlations(integer(query,"offset",0),integer(query,"limit",100));
             case "/api/problems"->service.problems(integer(query,"offset",0),integer(query,"limit",100));
             case "/api/workflow"->service.workflow(query.get("runId"));case "/api/workflows"->service.workflowHistory();case "/api/repairs"->service.repairHistory();
@@ -90,6 +90,7 @@ public final class TestEngineeringStudioServer implements AutoCloseable {
             case "CORRELATE"->service.correlate();case "REFRESH_PROJECT"->service.refreshProject();
             case "CREATE_REQUIREMENT"->Map.of("runId",service.createRequirement(string(request,"requirement",16_384)));
             case "GENERATE_PLAN"->service.generatePlan(string(request,"runId",256));
+            case "REGENERATE_PLAN"->service.generatePlan(string(request,"runId",256));
             case "GENERATE_IMPLEMENTATION"->service.generateImplementation(string(request,"runId",256));
             case "RUN"->service.runWorkflow(string(request,"runId",256));
             case "DIAGNOSE"->service.diagnoseWorkflow(string(request,"runId",256));

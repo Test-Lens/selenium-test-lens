@@ -45,8 +45,20 @@ public final class ReviewableCoordinatorWorkflowGateway implements StudioWorkflo
     }
 
     @Override public void prepare(String runId, TestEngineeringRequest request, AgentContextPack context) {
-        if (sessions.containsKey(runId)) throw new IllegalStateException("Workflow context is already prepared");
+        sessions.remove(runId);
         inputs.put(runId, new CoordinatorWorkflowGateway.Input(request, context));
+    }
+
+    @Override public void restoreReviewedArtifacts(String runId,TestPlan plan,TestImplementationProposal implementation){
+        CoordinatorWorkflowGateway.Input input=requireInput(runId);
+        if(plan==null)throw new IllegalArgumentException("A reviewed plan is required for restore");
+        AgentExecutor.AgentResult planResult=new AgentExecutor.AgentResult("restored",ArtifactEnvelope.create("plan-1",runId,List.of("context"),1,plan));
+        AgentExecutor.AgentResult implementationResult=null;List<StudioWorkflowGateway.PolicyCheck> checks=List.of();
+        if(implementation!=null){implementationResult=new AgentExecutor.AgentResult("restored",ArtifactEnvelope.create("implementation-1",runId,List.of("plan-1"),1,implementation));
+            GeneratedTestPolicyValidator.ValidationResult validation=policyValidator.validate(input.request(),generatedSourcePath.apply(input.request()),implementation.sourcePatch());
+            List<StudioWorkflowGateway.PolicyCheck> restoredChecks=new java.util.ArrayList<>();restoredChecks.add(new StudioWorkflowGateway.PolicyCheck("EXISTING_PAGE_OBJECTS_ONLY",implementation.selectorAccessPolicy()==TestImplementationProposal.SelectorAccessPolicy.PAGE_OBJECTS_ONLY,implementation.selectorAccessPolicy().name()));
+            for(GeneratedTestPolicyValidator.Rule rule:GeneratedTestPolicyValidator.Rule.values())restoredChecks.add(new StudioWorkflowGateway.PolicyCheck(rule.name(),validation.violations().stream().noneMatch(value->value.rule()==rule),"RESTORED_AND_REVALIDATED"));checks=List.copyOf(restoredChecks);}
+        sessions.put(runId,new Session(input,planResult,implementationResult,null,checks));
     }
 
     @Override
@@ -146,4 +158,5 @@ public final class ReviewableCoordinatorWorkflowGateway implements StudioWorkflo
                            List<StudioWorkflowGateway.PolicyCheck> policy) {
         private Session(CoordinatorWorkflowGateway.Input input,AgentExecutor.AgentResult plan,AgentExecutor.AgentResult implementation,AgentWorkflowCoordinator.Result result){this(input,plan,implementation,result,List.of());}
     }
+    @Override public boolean supportsReviewedArtifactRestore(){return true;}
 }

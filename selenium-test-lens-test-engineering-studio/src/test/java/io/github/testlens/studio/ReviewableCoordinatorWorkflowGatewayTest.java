@@ -79,6 +79,16 @@ class ReviewableCoordinatorWorkflowGatewayTest {
         assertEquals(1,repairCompiles.get());assertEquals(2,executions.get());assertNotNull(gateway.execution("run-rerun"));
     }
 
+    @Test void restoredReviewedArtifactsContinueWithoutCallingArchitectOrImplementer() throws Exception {
+        AtomicInteger calls=new AtomicInteger(),executions=new AtomicInteger();TestPlan plan=new TestPlan(ready(),List.of());
+        TestImplementationProposal implementation=new TestImplementationProposal(ready(),"restored","package example; public final class GeneratedTest { public static void execute() {} }",TestImplementationProposal.SelectorAccessPolicy.PAGE_OBJECTS_ONLY,List.of("LoginPage.login"),List.of());
+        AgentExecutor noGeneration=command->{if(command.role()==AgentExecutor.Role.TEST_ARCHITECT||command.role()==AgentExecutor.Role.TEST_IMPLEMENTER)calls.incrementAndGet();return scripted(review()).execute(command);};
+        var gateway=new ReviewableCoordinatorWorkflowGateway(noGeneration,replay->coordinator(replay,executions));
+        gateway.prepare("run-restored",request(),context());gateway.restoreReviewedArtifacts("run-restored",plan,implementation);
+        WorkflowReport report=gateway.run("run-restored");
+        assertEquals(TestEngineeringRun.State.SUCCESS,report.finalState());assertEquals(0,calls.get());assertEquals(1,executions.get());
+    }
+
     private static AgentWorkflowCoordinator coordinator(AgentExecutor agents, AtomicInteger executions) {
         return new AgentWorkflowCoordinator(new TestEngineeringWorkflow(WorkflowPolicy.defaults()), agents,
                 new TargetedJavaCompiler(), (request, output) -> {

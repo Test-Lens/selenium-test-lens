@@ -18,4 +18,5 @@
         <dependency><groupId>io.github.test-lens</groupId><artifactId>selenium-test-lens-selector-tooling</artifactId><version>${project.version}</version></dependency>
         <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
     </dependencies>
+    <build><plugins><plugin><groupId>org.codehaus.mojo</groupId><artifactId>exec-maven-plugin</artifactId><version>3.5.0</version><configuration><mainClass>io.github.testlens.studio.launcher.Main</mainClass></configuration></plugin></plugins></build>
 </project>

@@ -13,6 +13,8 @@ import io.github.testlens.core.trace.TraceStatus;
 import io.github.testlens.core.trace.UiTestLensSession;
 import io.github.testlens.selector.tooling.*;
 import io.github.testlens.studio.transport.TestEngineeringStudioServer;
+import io.github.testlens.studio.launcher.StudioLauncherService;
+import io.github.testlens.studio.project.ProjectDiscovery;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.openqa.selenium.*;
@@ -90,11 +92,11 @@ class TestEngineeringStudioBrowserIT {
                         new GeneratedTestPolicyValidator(GeneratedTestPolicyValidator.Policy.defaults()),
                         ignored->Path.of("src/test/java/generated/InvalidPasswordTest.java"),
                         new TargetedRepairSourceCompiler(project,17,fixtureClasspath));
-                var configuration = new TestEngineeringStudioService.Configuration(project,
-                        List.of(project.resolve("src/test/java")), List.of(), List.of("src/test/java"), "Fixture app");
-                TestEngineeringStudioService service = new TestEngineeringStudioService(configuration, gateway, () -> target);
-                try (TestEngineeringStudioServer server = new TestEngineeringStudioServer(service)) {
-                    server.start(); studio.get(server.uri().toString());
+                Files.writeString(project.resolve("pom.xml"),"<project><modelVersion>4.0.0</modelVersion><artifactId>fixture-app</artifactId></project>");
+                var descriptor=new ProjectDiscovery().discover(project);
+                StudioLauncherService launcher=new StudioLauncherService(gateway,()->target);
+                try (var launched=launcher.launch(descriptor,new StudioLauncherService.LaunchOptions(false))) {
+                    TestEngineeringStudioService service=launched.service();studio.get(launched.uri().toString());
                     click(studio, "Scan project"); awaitText(studio, "2 files scanned"); screenshot(studio, "project-overview");
                     click(studio, "Start mapping"); awaitText(studio, "pages mapped");
                     click(studio, "Correlate"); awaitText(studio, "elements correlated");
@@ -153,7 +155,7 @@ class TestEngineeringStudioBrowserIT {
 
                     awaitText(studio, "Run verification"); click(studio, "Run verification");
                     new WebDriverWait(studio, Duration.ofSeconds(30)).until(ignored ->
-                            service.workflowHistory().stream().anyMatch(run -> "SUCCESS".equals(run.finalState())));
+                            service.workflowHistory().stream().anyMatch(run -> "SUCCESS".equals(run.state())));
                     assertEquals(2, workflowExecutions.get(), "verification must rerun the exact generated test");
                     assertEquals(0, agents.remaining());
                     assertTrue(service.repairHistory().stream().anyMatch(repair ->

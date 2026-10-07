@@ -10,6 +10,10 @@ import java.util.List;
 /** Host-supplied bridge to the real S12 workflow. No domain decisions belong here. */
 public interface StudioWorkflowGateway {
     default void prepare(String runId, TestEngineeringRequest request, AgentContextPack context) { }
+    default boolean supportsReviewedArtifactRestore() { return false; }
+    default void restoreReviewedArtifacts(String runId, TestPlan plan, TestImplementationProposal implementation) {
+        throw unsupported("workflow restore");
+    }
     default TestPlan generatePlan(String runId, String requirement) throws AgentExecutor.AgentExecutionException { throw unsupported("plan"); }
     default TestImplementationProposal generateImplementation(String runId) throws AgentExecutor.AgentExecutionException { throw unsupported("implementation"); }
     default List<PolicyCheck> implementationPolicy(String runId) { return List.of(); }

@@ -18,10 +18,13 @@ import io.github.testlens.application.tooling.json.ApplicationModelJson;
 import io.github.testlens.application.tooling.json.StrictJson;
 import io.github.testlens.studio.projection.*;
 import io.github.testlens.studio.workspace.StudioWorkspaceStore;
+import io.github.testlens.studio.workspace.WorkflowSessionSnapshot;
+import io.github.testlens.studio.project.ProjectDescriptor;
 import org.openqa.selenium.WebDriver;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -61,21 +64,29 @@ public final class TestEngineeringStudioService {
     private final Map<String,ExecutionProjection> executions=new ConcurrentHashMap<>();
     private final Map<String,DiagnosisProjection> diagnoses=new ConcurrentHashMap<>();
     private final Map<String,RepairState> repairs=new ConcurrentHashMap<>();
+    private final Map<String,WorkflowSessionSnapshot> sessions=new ConcurrentHashMap<>();
     private volatile ExistingProjectIndex sourceIndex;
     private volatile ApplicationModel applicationModel;
     private volatile PageObjectCorrelation correlation;
     private volatile ApplicationMapper guidedMapper;
     private volatile String hydrationFailure;
+    private volatile ProjectDescriptor projectDescriptor;
 
     public TestEngineeringStudioService(Configuration configuration, StudioWorkflowGateway workflows,
                                         Supplier<WebDriver> driverProvider) {
         this(configuration,workflows,driverProvider,new ExistingProjectIndexer(),new PageObjectCorrelator(),new TrustedRepairApplier(),new StudioWorkspaceStore(configuration.projectRoot()));
+    }
+    public TestEngineeringStudioService(Configuration configuration, StudioWorkflowGateway workflows,
+                                        Supplier<WebDriver> driverProvider, Path workspaceDirectory) {
+        this(configuration,workflows,driverProvider,new ExistingProjectIndexer(),new PageObjectCorrelator(),
+                new TrustedRepairApplier(),StudioWorkspaceStore.atWorkspace(workspaceDirectory));
     }
     TestEngineeringStudioService(Configuration configuration,StudioWorkflowGateway workflows,Supplier<WebDriver> driverProvider,
                                  ExistingProjectIndexer indexer,PageObjectCorrelator correlator,TrustedRepairApplier repairApplier,StudioWorkspaceStore store){
         this.configuration=Objects.requireNonNull(configuration);this.workflows=workflows;this.driverProvider=driverProvider;
         this.indexer=Objects.requireNonNull(indexer);this.correlator=Objects.requireNonNull(correlator);this.repairApplier=Objects.requireNonNull(repairApplier);this.store=Objects.requireNonNull(store);
         hydratePersistedProject();
+        hydrateWorkflowSessions();
     }
 
     public ProjectStatusProjection scanProject() throws IOException {
@@ -101,33 +112,35 @@ public final class TestEngineeringStudioService {
         if(requirement==null||requirement.isBlank()||requirement.length()>16_384)throw new IllegalArgumentException("Requirement must contain 1..16384 characters");
         String safeRequirement=redaction.redact(requirement.trim());
         if(safeRequirement==null||safeRequirement.isBlank())throw new IllegalArgumentException("Requirement was rejected by redaction policy");
-        String runId="run-"+UUID.randomUUID(); requirements.put(runId,safeRequirement); persistHistories(); return runId;
+        String runId="run-"+UUID.randomUUID(); requirements.put(runId,safeRequirement);Instant now=Instant.now();sessions.put(runId,new WorkflowSessionSnapshot(1,runId,safeRequirement,WorkflowSessionSnapshot.State.CREATED,now,now,currentFingerprint(),currentFingerprint(),WorkflowSessionSnapshot.Freshness.FRESH,null,null,null,null,null,null,null,false,List.of()));persistSession(runId);persistHistories(); return runId;
     }
-    public TestPlanProjection generatePlan(String runId)throws AgentExecutor.AgentExecutionException,IOException{return exclusiveAgent(()->{String text=requirement(runId);prepareWorkflow(runId,text);TestPlanProjection result=projections.plan(requireWorkflow().generatePlan(runId,text));plans.put(runId,result);persistHistories();return result;});}
-    public ImplementationProjection generateImplementation(String runId)throws AgentExecutor.AgentExecutionException,IOException{return exclusiveAgent(()->{TestImplementationProposal proposal=requireWorkflow().generateImplementation(runId);ImplementationProjection result=projections.implementation(proposal,requireWorkflow().implementationPolicy(runId));implementations.put(runId,result);persistHistories();return result;});}
-    public WorkflowRunProjection runWorkflow(String runId)throws AgentExecutor.AgentExecutionException,IOException{return exclusiveAgent(()->{requirement(runId);ImplementationProjection implementation=implementations.get(runId);if(implementation==null||implementation.stage().status()==StageStatus.BLOCKED)throw new IllegalStateException("Implementation must pass deterministic policy before Run");WorkflowReport report=requireWorkflow().run(runId);reports.put(runId,report);refreshWorkflowArtifacts(runId);registerGatewayRepair(runId);persistHistories();return projections.workflow(report);});}
-    public WorkflowRunProjection rerun(String runId)throws AgentExecutor.AgentExecutionException,IOException{return exclusiveAgent(()->{RepairState repair=repairs.values().stream().filter(value->value.runId().equals(runId)&&"APPROVED".equals(value.decision())&&TrustedRepairApplier.Status.APPLIED.name().equals(value.applyStatus())).findFirst().orElseThrow(()->new IllegalStateException("An applied repair for this workflow is required before verification"));WorkflowReport report=requireWorkflow().rerun(runId,repair.proposal());reports.put(runId,report);refreshWorkflowArtifacts(runId);registerGatewayRepair(runId);persistHistories();return projections.workflow(report);});}
+    public TestPlanProjection generatePlan(String runId)throws AgentExecutor.AgentExecutionException,IOException{return exclusiveAgent(()->{String text=requirement(runId);WorkflowSessionSnapshot current=requireSession(runId);requireAction(runId,current.freshness()==WorkflowSessionSnapshot.Freshness.FRESH?"GENERATE_PLAN":"REGENERATE_PLAN");refreshWorkflowInputsIfStale(runId);prepareWorkflow(runId,text);beginPlanGeneration(runId);TestPlan plan;try{plan=requireWorkflow().generatePlan(runId,text);}catch(AgentExecutor.AgentExecutionException failure){updateSession(runId,WorkflowSessionSnapshot.State.AGENT_EXECUTION_INTERRUPTED,null,null,null,null,null,null,null);throw failure;}TestPlanProjection result=projections.plan(plan);plans.put(runId,result);updateSession(runId,WorkflowSessionSnapshot.State.PLAN_READY_FOR_REVIEW,plan,null,null,null,null,null,null);persistHistories();return result;});}
+    public ImplementationProjection generateImplementation(String runId)throws AgentExecutor.AgentExecutionException,IOException{return exclusiveAgent(()->{requireAction(runId,"GENERATE_IMPLEMENTATION");assertFresh(runId);beginImplementationGeneration(runId);TestImplementationProposal proposal;try{proposal=requireWorkflow().generateImplementation(runId);}catch(AgentExecutor.AgentExecutionException failure){updateSession(runId,WorkflowSessionSnapshot.State.AGENT_EXECUTION_INTERRUPTED,null,null,null,null,null,null,null);throw failure;}ImplementationProjection result=projections.implementation(proposal,requireWorkflow().implementationPolicy(runId));implementations.put(runId,result);updateSession(runId,WorkflowSessionSnapshot.State.IMPLEMENTATION_READY_FOR_REVIEW,null,proposal,null,null,null,null,null);persistHistories();return result;});}
+    public WorkflowRunProjection runWorkflow(String runId)throws AgentExecutor.AgentExecutionException,IOException{return exclusiveAgent(()->{requirement(runId);requireAction(runId,"RUN");assertFresh(runId);ImplementationProjection implementation=implementations.get(runId);if(implementation==null||implementation.stage().status()==StageStatus.BLOCKED)throw new IllegalStateException("Implementation must pass deterministic policy before Run");updateSession(runId,WorkflowSessionSnapshot.State.EXECUTION_RUNNING,null,null,null,null,null,null,null);WorkflowReport report;try{report=requireWorkflow().run(runId);}catch(AgentExecutor.AgentExecutionException failure){updateSession(runId,WorkflowSessionSnapshot.State.EXECUTION_INTERRUPTED,null,null,null,null,null,null,null);throw failure;}reports.put(runId,report);refreshWorkflowArtifacts(runId);registerGatewayRepair(runId);RepairProposal repair=requireWorkflow().repair(runId);WorkflowSessionSnapshot.State state="SUCCESS".equals(report.finalState().name())?WorkflowSessionSnapshot.State.SUCCESS:(repair==null?WorkflowSessionSnapshot.State.EXECUTION_FAILED:WorkflowSessionSnapshot.State.REPAIR_READY_FOR_REVIEW);updateSession(runId,state,null,null,requireWorkflow().execution(runId),requireWorkflow().diagnosis(runId),repair,null,null);persistHistories();return projections.workflow(report);});}
+    public WorkflowRunProjection rerun(String runId)throws AgentExecutor.AgentExecutionException,IOException{return exclusiveAgent(()->{requireAction(runId,"RERUN");assertFresh(runId);WorkflowSessionSnapshot session=requireSession(runId);RepairProposal selected=Objects.requireNonNull(session.repair(),"Applied repair is missing from workflow snapshot");RepairState repair=requireRepair(repairKey(runId,selected.proposalId()));if(!"APPROVED".equals(repair.decision())||!TrustedRepairApplier.Status.APPLIED.name().equals(repair.applyStatus()))throw new IllegalStateException("An applied repair for this workflow is required before verification");updateSession(runId,WorkflowSessionSnapshot.State.VERIFICATION_RUNNING,null,null,null,null,repair.proposal(),repair.decision(),repair.applyStatus());WorkflowReport report;try{report=requireWorkflow().rerun(runId,repair.proposal());}catch(AgentExecutor.AgentExecutionException failure){updateSession(runId,WorkflowSessionSnapshot.State.EXECUTION_INTERRUPTED,null,null,null,null,repair.proposal(),repair.decision(),repair.applyStatus());throw failure;}reports.put(runId,report);refreshWorkflowArtifacts(runId);RepairProposal nextRepair=requireWorkflow().repair(runId);boolean success="SUCCESS".equals(report.finalState().name());boolean hasNewRepair=!success&&nextRepair!=null&&!nextRepair.proposalId().equals(repair.proposal().proposalId());if(hasNewRepair)registerRepairProposal(runId,nextRepair);RepairProposal persistedRepair=hasNewRepair?nextRepair:repair.proposal();String decision=hasNewRepair?null:repair.decision();String applyStatus=hasNewRepair?null:repair.applyStatus();WorkflowSessionSnapshot.State state=success?WorkflowSessionSnapshot.State.SUCCESS:(hasNewRepair?WorkflowSessionSnapshot.State.REPAIR_READY_FOR_REVIEW:WorkflowSessionSnapshot.State.FAILED);updateSession(runId,state,null,null,requireWorkflow().execution(runId),requireWorkflow().diagnosis(runId),persistedRepair,decision,applyStatus);persistHistories();return projections.workflow(report);});}
     public ExecutionProjection execution(String runId){return executions.get(runId);}
     public DiagnosisProjection diagnosis(String runId){return diagnoses.get(runId);}
-    public DiagnosisProjection diagnoseWorkflow(String runId)throws IOException{return exclusive(()->{FailureClassification value=requireWorkflow().diagnosis(runId);if(value==null)throw new IllegalStateException("Workflow has no diagnosis");DiagnosisProjection result=projections.diagnosis(value);diagnoses.put(runId,result);persistHistories();return result;});}
-    public RepairProjection prepareRepair(String runId)throws IOException{RepairProposal proposal=requireWorkflow().repair(runId);if(proposal==null)throw new IllegalStateException("Workflow has no repair proposal");return registerRepairProposal(runId,proposal);}
+    public DiagnosisProjection diagnoseWorkflow(String runId)throws IOException{return exclusive(()->{requireAction(runId,"DIAGNOSE");FailureClassification value=requireWorkflow().diagnosis(runId);if(value==null)throw new IllegalStateException("Workflow has no diagnosis");DiagnosisProjection result=projections.diagnosis(value);diagnoses.put(runId,result);RepairProposal repair=requireWorkflow().repair(runId);WorkflowSessionSnapshot.State state=repair==null?WorkflowSessionSnapshot.State.EXECUTION_FAILED:WorkflowSessionSnapshot.State.REPAIR_READY_FOR_REVIEW;updateSession(runId,state,null,null,null,value,repair,null,null);persistHistories();return result;});}
+    public RepairProjection prepareRepair(String runId)throws IOException{return exclusive(()->{WorkflowSessionSnapshot session=requireSession(runId);if(session.freshness()!=WorkflowSessionSnapshot.Freshness.FRESH||session.state()!=WorkflowSessionSnapshot.State.REPAIR_READY_FOR_REVIEW)throw new IllegalStateException("Repair preparation is not available for workflow "+runId);RepairProposal proposal=requireWorkflow().repair(runId);if(proposal==null)throw new IllegalStateException("Workflow has no repair proposal");return registerRepairProposal(runId,proposal);});}
 
     public RepairProjection registerRepairProposal(String runId,RepairProposal proposal)throws IOException{
         requirement(runId);Objects.requireNonNull(proposal);if(sourceIndex==null)throw new IllegalStateException("Source index is required");String key=repairKey(runId,proposal.proposalId());
         repairs.compute(key,(ignored,old)->old==null?new RepairState(runId,proposal,sourceIndex.projectFingerprint(),null,null):old);
-        persistHistories();return repairProjection(key);
+        WorkflowSessionSnapshot session=requireSession(runId);sessions.put(runId,session.withNewRepair(proposal,Instant.now()));persistSession(runId);persistHistories();return repairProjection(key);
     }
     public RepairProjection registerRepairProposal(RepairProposal proposal)throws IOException{return registerRepairProposal(onlyRunId(),proposal);}
     public RepairProjection rejectRepair(String runId,String proposalId)throws IOException{
-        String key=repairKey(runId,proposalId);repairs.compute(key,(ignored,state)->{if(state==null)throw new IllegalArgumentException("Unknown repair proposal for workflow");if(state.decision()!=null)throw new IllegalStateException("Repair decision already recorded");return new RepairState(state.runId(),state.proposal(),state.projectFingerprint(),"REJECTED",null);});
-        persistHistories();return repairProjection(key);
+        return exclusive(()->{requireAction(runId,"REJECT_REPAIR");String key=repairKey(runId,proposalId);repairs.compute(key,(ignored,state)->{if(state==null)throw new IllegalArgumentException("Unknown repair proposal for workflow");if(state.decision()!=null)throw new IllegalStateException("Repair decision already recorded");return new RepairState(state.runId(),state.proposal(),state.projectFingerprint(),"REJECTED",null);});
+            updateSession(runId,WorkflowSessionSnapshot.State.REPAIR_REJECTED,null,null,null,null,repairs.get(key).proposal(),"REJECTED",null);persistHistories();return repairProjection(key);});
     }
     public RepairProjection rejectRepair(String proposalId)throws IOException{return rejectRepair(onlyRunId(),proposalId);}
     public RepairProjection approveRepair(String runId,String proposalId)throws IOException{
-        return exclusive(()->{String key=repairKey(runId,proposalId);RepairState state=requireRepair(key);if(state.decision()!=null)throw new IllegalStateException("Repair decision already recorded");
-            if(sourceIndex==null||!Objects.equals(sourceIndex.projectFingerprint(),state.projectFingerprint())){repairs.put(key,new RepairState(state.runId(),state.proposal(),state.projectFingerprint(),"APPROVE_FAILED",TrustedRepairApplier.Status.SOURCE_PRECONDITION_FAILED.name()));persistHistories();return repairProjection(key);}
+        return exclusive(()->{requireAction(runId,"APPROVE_REPAIR");String key=repairKey(runId,proposalId);RepairState state=requireRepair(key);if(state.decision()!=null)throw new IllegalStateException("Repair decision already recorded");
+            if(sourceIndex==null||!Objects.equals(sourceIndex.projectFingerprint(),state.projectFingerprint())){repairs.put(key,new RepairState(state.runId(),state.proposal(),state.projectFingerprint(),"APPROVE_FAILED",TrustedRepairApplier.Status.SOURCE_PRECONDITION_FAILED.name()));markStale(runId,"SOURCE_CHANGED");persistHistories();return repairProjection(key);}
             TrustedRepairApplier.ApplyResult applied=repairApplier.apply(configuration.projectRoot(),new TrustedRepairApplier.ApplyRequest(state.proposal(),sourceIndex,configuration.allowedRepairPrefixes(),true));
-            repairs.put(key,new RepairState(state.runId(),state.proposal(),state.projectFingerprint(),applied.status()==TrustedRepairApplier.Status.APPLIED?"APPROVED":"APPROVE_FAILED",applied.status().name()));persistHistories();return repairProjection(key);});
+            if(applied.status()==TrustedRepairApplier.Status.APPLIED){sourceIndex=indexer.index(new ExistingProjectIndexer.Request(configuration.projectRoot(),configuration.sourceRoots(),configuration.classpathEntries()));}
+            String repairFingerprint=applied.status()==TrustedRepairApplier.Status.APPLIED?sourceIndex.projectFingerprint():state.projectFingerprint();
+            repairs.put(key,new RepairState(state.runId(),state.proposal(),repairFingerprint,applied.status()==TrustedRepairApplier.Status.APPLIED?"APPROVED":"APPROVE_FAILED",applied.status().name()));WorkflowSessionSnapshot.State next=applied.status()==TrustedRepairApplier.Status.APPLIED?WorkflowSessionSnapshot.State.REPAIR_APPLIED_VERIFICATION_PENDING:WorkflowSessionSnapshot.State.REPAIR_READY_FOR_REVIEW;updateSession(runId,next,null,null,null,null,state.proposal(),repairs.get(key).decision(),applied.status().name());if(applied.status()!=TrustedRepairApplier.Status.APPLIED)markStale(runId,"REPAIR_APPLY_FAILED");persistHistories();return repairProjection(key);});
     }
     public RepairProjection approveRepair(String proposalId)throws IOException{return approveRepair(onlyRunId(),proposalId);}
 
@@ -135,20 +148,22 @@ public final class TestEngineeringStudioService {
     public ApplicationOverviewProjection applicationOverview(){return projections.application(applicationModel);}
     public PageObjectCorrelationProjection correlations(int offset,int limit){return projections.correlations(correlation,offset,limit);}
     public ProblemsProjection problems(int offset,int limit){return projections.problems(sourceIndex,applicationModel,correlation,offset,limit);}
-    public List<WorkflowRunProjection> workflowHistory(){return reports.values().stream().sorted(Comparator.comparing(WorkflowReport::runId)).limit(500).map(projections::workflow).toList();}
+    public List<WorkflowSummaryProjection> workflowHistory(){return sessions.values().stream().sorted(Comparator.comparing(WorkflowSessionSnapshot::updatedAt).reversed()).limit(500).map(value->new WorkflowSummaryProjection(value.workflowId(),value.requirement(),value.state().name(),value.freshness().name(),value.updatedAt().toString(),value.resumed(),value.availableActions())).toList();}
     public List<RepairProjection> repairHistory(){return repairs.keySet().stream().sorted().limit(500).map(this::repairProjection).toList();}
     public WorkflowDetailProjection workflow(String runId){
         String selected=runId;if(selected==null||selected.isBlank())selected=requirements.keySet().stream().sorted().reduce((a,b)->b).orElse(null);
-        if(selected==null)return new WorkflowDetailProjection(null,null,null,null,null,null,null,List.of(),null,"NOT_STARTED");
-        String selectedRun=selected;WorkflowReport report=reports.get(selectedRun);WorkflowRunProjection run=report==null?null:projections.workflow(report);
-        RepairProjection repair=repairs.entrySet().stream().filter(value->value.getValue().runId().equals(selectedRun)).sorted(Map.Entry.comparingByKey()).map(value->repairProjection(value.getKey())).reduce((a,b)->b).orElse(null);
+        if(selected==null)return new WorkflowDetailProjection(null,null,null,null,null,null,null,List.of(),null,"NOT_STARTED","FRESH",false,List.of(),List.of(),null);
+        String selectedRun=selected;WorkflowReport report=reports.get(selectedRun);WorkflowRunProjection run=report==null?null:projections.workflow(report);WorkflowSessionSnapshot snapshot=sessions.get(selectedRun);
+        RepairProjection repair=snapshot==null||snapshot.repair()==null?null:repairProjection(repairKey(selectedRun,snapshot.repair().proposalId()));
         return new WorkflowDetailProjection(selectedRun,requirements.get(selectedRun),plans.get(selectedRun),implementations.get(selectedRun),
                 execution(selectedRun),diagnosis(selectedRun),repair,
-                run==null?List.of():run.timeline(),run==null?null:run.metrics(),run==null?"NOT_STARTED":run.finalState());
+                run==null?List.of():run.timeline(),run==null?null:run.metrics(),snapshot==null?(run==null?"NOT_STARTED":run.finalState()):snapshot.state().name(),snapshot==null?"FRESH":snapshot.freshness().name(),snapshot!=null&&snapshot.resumed(),snapshot==null?List.of():snapshot.availableActions(),snapshot==null?List.of():snapshot.limitations(),snapshot==null?null:snapshot.updatedAt().toString());
     }
     public StudioSnapshot snapshot(){return new StudioSnapshot(projectOverview(),applicationOverview(),correlations(0,100),problems(0,100),workflowHistory(),repairHistory());}
     public boolean operationRunning(){return operationRunning.get();}
     public StudioWorkspaceStore workspace(){return store;}
+    public void attachProjectDescriptor(ProjectDescriptor descriptor){this.projectDescriptor=Objects.requireNonNull(descriptor);}
+    public ProjectConfigurationProjection projectConfiguration(){ProjectDescriptor value=projectDescriptor;if(value==null)return null;Path root=value.projectRoot();java.util.function.Function<Path,String> relative=path->{Path normalized=path.toAbsolutePath().normalize();return normalized.startsWith(root)?root.relativize(normalized).toString().replace('\\','/'):"<outside-project>";};return new ProjectConfigurationProjection(value.projectId(),value.applicationName(),root.toString(),value.buildSystem().name(),value.status().name(),value.configurationSource().name(),value.mainSourceRoots().stream().map(relative).toList(),value.testSourceRoots().stream().map(relative).toList(),relative.apply(value.workspaceDirectory()),value.browser().browser().name(),value.browser().headless(),value.evidence(),value.limitations());}
 
     private void registerGatewayRepair(String runId)throws IOException{RepairProposal proposal=workflows.repair(runId);if(proposal!=null)registerRepairProposal(runId,proposal);}
     private void refreshWorkflowArtifacts(String runId){TestExecutionResult execution=requireWorkflow().execution(runId);if(execution==null)executions.remove(runId);else executions.put(runId,projections.execution(execution));FailureClassification diagnosis=requireWorkflow().diagnosis(runId);if(diagnosis==null)diagnoses.remove(runId);else diagnoses.put(runId,projections.diagnosis(diagnosis));}
@@ -176,6 +191,8 @@ public final class TestEngineeringStudioService {
         requireWorkflow().prepare(runId,request,context);
     }
     private String requirement(String runId){String value=requirements.get(runId);if(value==null)throw new IllegalArgumentException("Unknown workflow run");return value;}
+    private WorkflowSessionSnapshot requireSession(String runId){return Objects.requireNonNull(sessions.get(runId),"Workflow session is missing");}
+    private void requireAction(String runId,String action){if(!requireSession(runId).availableActions().contains(action))throw new IllegalStateException("Action "+action+" is not available for workflow "+runId);}
     private String onlyRunId(){if(requirements.size()!=1)throw new IllegalStateException("runId is required when the workspace does not contain exactly one workflow");return requirements.keySet().iterator().next();}
     private static String repairKey(String runId,String proposalId){if(runId==null||runId.isBlank()||proposalId==null||proposalId.isBlank())throw new IllegalArgumentException("runId and proposalId are required");return runId+'\u0000'+proposalId;}
     private Map<String,String> freshness(){Map<String,String> value=new TreeMap<>();String fp=sourceIndex==null?null:sourceIndex.projectFingerprint();for(var kind:StudioWorkspaceStore.ArtifactKind.values())try{value.put(label(kind),store.freshness(kind,fp).name());}catch(IOException ignored){value.put(label(kind),"STALE");}return value;}
@@ -191,6 +208,48 @@ public final class TestEngineeringStudioService {
             applicationModel=restored;sourceIndex=reindexed;correlation=recomputed;hydrationFailure=null;
         }catch(IOException|RuntimeException failure){applicationModel=null;sourceIndex=null;correlation=null;hydrationFailure=failure.getClass().getSimpleName();}
     }
+    private void hydrateWorkflowSessions(){
+        try{for(String workflowId:store.workflowIds())try{
+                WorkflowSessionSnapshot stored=WorkflowSessionSnapshot.fromDocument(store.readWorkflow(workflowId).orElseThrow());
+                WorkflowSessionSnapshot.Freshness freshness=currentFingerprint()==null?WorkflowSessionSnapshot.Freshness.MISSING:Objects.equals(stored.sourceFingerprint(),currentFingerprint())?WorkflowSessionSnapshot.Freshness.FRESH:WorkflowSessionSnapshot.Freshness.STALE;
+                List<String> reasons=freshness==WorkflowSessionSnapshot.Freshness.FRESH?stored.limitations():List.of("SOURCE_CHANGED");WorkflowSessionSnapshot restored=stored.restoredAfterInterruption(freshness,reasons);validateSnapshot(restored);sessions.put(workflowId,restored);requirements.put(workflowId,restored.requirement());persistSession(workflowId);
+                if(restored.plan()!=null)plans.put(workflowId,projections.plan(restored.plan()));if(restored.execution()!=null)executions.put(workflowId,projections.execution(restored.execution()));if(restored.diagnosis()!=null)diagnoses.put(workflowId,projections.diagnosis(restored.diagnosis()));
+                if(restored.plan()!=null&&freshness==WorkflowSessionSnapshot.Freshness.FRESH&&workflows!=null&&workflows.supportsReviewedArtifactRestore()){prepareWorkflow(workflowId,restored.requirement());workflows.restoreReviewedArtifacts(workflowId,restored.plan(),restored.implementation());if(restored.implementation()!=null)implementations.put(workflowId,projections.implementation(restored.implementation(),workflows.implementationPolicy(workflowId)));}
+                else if(restored.implementation()!=null)implementations.put(workflowId,projections.implementation(restored.implementation(),List.of()));
+                if(restored.repair()!=null){String key=repairKey(workflowId,restored.repair().proposalId());repairs.put(key,new RepairState(workflowId,restored.repair(),stored.projectFingerprint(),restored.repairDecision(),restored.repairApplyStatus()));}
+            }catch(Exception failure){Instant now=Instant.now();String requirement="Unavailable workflow "+workflowId;sessions.put(workflowId,new WorkflowSessionSnapshot(1,workflowId,requirement,WorkflowSessionSnapshot.State.CORRUPTED,now,now,null,null,WorkflowSessionSnapshot.Freshness.INVALID,null,null,null,null,null,null,null,true,List.of("CORRUPTED_SNAPSHOT:"+failure.getClass().getSimpleName())));requirements.put(workflowId,requirement);}
+        }catch(IOException failure){hydrationFailure="WORKFLOW_SESSION_DISCOVERY_FAILED:"+failure.getClass().getSimpleName();}
+    }
+    private void validateSnapshot(WorkflowSessionSnapshot value){switch(value.state()){
+        case PLAN_READY_FOR_REVIEW-> {if(value.plan()==null)throw new IllegalArgumentException("Plan artifact is missing");}
+        case IMPLEMENTATION_READY_FOR_REVIEW,EXECUTION_FAILED,REPAIR_READY_FOR_REVIEW,REPAIR_REJECTED,REPAIR_APPLIED_VERIFICATION_PENDING,SUCCESS,FAILED,EXECUTION_INTERRUPTED->{if(value.plan()==null||value.implementation()==null)throw new IllegalArgumentException("Reviewed artifacts are missing");}
+        default->{}}
+        if((value.state()==WorkflowSessionSnapshot.State.REPAIR_READY_FOR_REVIEW||value.state()==WorkflowSessionSnapshot.State.REPAIR_REJECTED||value.state()==WorkflowSessionSnapshot.State.REPAIR_APPLIED_VERIFICATION_PENDING)&&value.repair()==null)throw new IllegalArgumentException("Repair artifact is missing");
+    }
+    private void persistSession(String runId)throws IOException{WorkflowSessionSnapshot value=sessions.get(runId);if(value!=null)store.writeWorkflow(runId,value.toDocument());}
+    private void refreshWorkflowInputsIfStale(String runId)throws IOException{
+        WorkflowSessionSnapshot session=Objects.requireNonNull(sessions.get(runId),"Workflow session is missing");
+        if(session.freshness()==WorkflowSessionSnapshot.Freshness.FRESH)return;
+        sourceIndex=indexer.index(new ExistingProjectIndexer.Request(configuration.projectRoot(),configuration.sourceRoots(),configuration.classpathEntries()));
+        if(applicationModel==null)throw new IllegalStateException("Application model is required to regenerate a stale plan");
+        correlation=correlator.correlate(applicationModel,sourceIndex,CorrelationOverrides.none());persistProjectArtifacts();
+    }
+    private void beginPlanGeneration(String runId)throws IOException{
+        WorkflowSessionSnapshot old=Objects.requireNonNull(sessions.get(runId),"Workflow session is missing");Instant now=Instant.now();
+        WorkflowSessionSnapshot value=new WorkflowSessionSnapshot(1,runId,old.requirement(),WorkflowSessionSnapshot.State.PLAN_GENERATING,old.createdAt(),now,currentFingerprint(),currentFingerprint(),WorkflowSessionSnapshot.Freshness.FRESH,null,null,null,null,null,null,null,old.resumed(),List.of());
+        sessions.put(runId,value);plans.remove(runId);implementations.remove(runId);executions.remove(runId);diagnoses.remove(runId);persistSession(runId);
+    }
+    private void beginImplementationGeneration(String runId)throws IOException{
+        WorkflowSessionSnapshot old=Objects.requireNonNull(sessions.get(runId),"Workflow session is missing");if(old.plan()==null)throw new IllegalStateException("Reviewed plan is required");Instant now=Instant.now();
+        WorkflowSessionSnapshot value=new WorkflowSessionSnapshot(1,runId,old.requirement(),WorkflowSessionSnapshot.State.IMPLEMENTATION_GENERATING,old.createdAt(),now,currentFingerprint(),currentFingerprint(),WorkflowSessionSnapshot.Freshness.FRESH,old.plan(),null,null,null,null,null,null,old.resumed(),old.limitations());
+        sessions.put(runId,value);implementations.remove(runId);executions.remove(runId);diagnoses.remove(runId);persistSession(runId);
+    }
+    private void updateSession(String runId,WorkflowSessionSnapshot.State state,TestPlan plan,TestImplementationProposal implementation,TestExecutionResult execution,FailureClassification diagnosis,RepairProposal repair,String decision,String applyStatus)throws IOException{
+        WorkflowSessionSnapshot old=Objects.requireNonNull(sessions.get(runId),"Workflow session is missing");WorkflowSessionSnapshot value=new WorkflowSessionSnapshot(1,runId,old.requirement(),state,old.createdAt(),Instant.now(),currentFingerprint(),currentFingerprint(),old.freshness(),plan==null?old.plan():plan,implementation==null?old.implementation():implementation,execution==null?old.execution():execution,diagnosis==null?old.diagnosis():diagnosis,repair==null?old.repair():repair,decision==null?old.repairDecision():decision,applyStatus==null?old.repairApplyStatus():applyStatus,old.resumed(),old.limitations());sessions.put(runId,value);persistSession(runId);
+    }
+    private void markStale(String runId,String reason)throws IOException{WorkflowSessionSnapshot old=sessions.get(runId);if(old==null)return;WorkflowSessionSnapshot value=old.restored(WorkflowSessionSnapshot.Freshness.STALE,List.of(reason));sessions.put(runId,value);persistSession(runId);}
+    private void assertFresh(String runId)throws IOException{WorkflowSessionSnapshot session=Objects.requireNonNull(sessions.get(runId),"Workflow session is missing");if(session.freshness()!=WorkflowSessionSnapshot.Freshness.FRESH)throw new IllegalStateException("Workflow is stale");ExistingProjectIndex current=indexer.index(new ExistingProjectIndexer.Request(configuration.projectRoot(),configuration.sourceRoots(),configuration.classpathEntries()));if(!Objects.equals(session.sourceFingerprint(),current.projectFingerprint())){sourceIndex=current;markStale(runId,"SOURCE_CHANGED");throw new IllegalStateException("Workflow is stale");}}
+    private String currentFingerprint(){return sourceIndex==null?null:sourceIndex.projectFingerprint();}
     private void persistHistories()throws IOException{String fp=sourceIndex==null?null:sourceIndex.projectFingerprint();store.write(StudioWorkspaceStore.ArtifactKind.WORKFLOW_HISTORY,Map.of("requirements",new TreeMap<>(requirements),"plans",new TreeMap<>(plans),"implementations",new TreeMap<>(implementations),"executions",new TreeMap<>(executions),"diagnoses",new TreeMap<>(diagnoses),"runs",workflowHistory()),fp);store.write(StudioWorkspaceStore.ArtifactKind.REPAIR_HISTORY,repairHistory(),fp);}
     private <T> T exclusive(IoOperation<T> operation)throws IOException{if(!operationRunning.compareAndSet(false,true))throw new IllegalStateException("A Studio operation is already running");try{return operation.run();}finally{operationRunning.set(false);}}
     private <T> T exclusiveAgent(AgentOperation<T> operation)throws AgentExecutor.AgentExecutionException,IOException{if(!operationRunning.compareAndSet(false,true))throw new IllegalStateException("A Studio operation is already running");try{return operation.run();}finally{operationRunning.set(false);}}

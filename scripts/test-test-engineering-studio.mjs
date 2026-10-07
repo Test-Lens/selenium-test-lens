@@ -36,7 +36,7 @@ class MiniDocument {
     this.ids = new Map(); this.listeners = new Map(); this.activeElement = null; this.readyState = "loading";
     this.documentElement = new MiniNode("html", this); this.documentElement.dataset.sessionToken = "session-from-bootstrap";
     this.body = new MiniNode("body", this); this.body.dataset = {}; this.meta = new MiniNode("meta", this); this.meta.content = "session-token";
-    ["view-title", "project-label", "problem-count", "primary-view", "details-panel", "operation-status", "error-banner", "studio-content", "connection-status"].forEach(id => {
+    ["view-title", "project-label", "problem-count", "primary-view", "details-panel", "operation-status", "error-banner", "workflow-banner", "studio-content", "connection-status"].forEach(id => {
       const item = new MiniNode(id === "studio-content" ? "main" : "div", this); item.id = id; this.ids.set(id, item);
       if (id === "connection-status") { const parent = new MiniNode("footer", this); parent.appendChild(item); }
     });
@@ -59,6 +59,8 @@ const project = {
   freshness: { ApplicationModel: "FRESH", PageObjectIndex: "FRESH", UsageGraph: "FRESH", Correlations: "FRESH" }
 };
 const application = { stage: { status: "PARTIAL", evidence: [{ code: "OBSERVATIONS", detail: "1" }], limitations: [{ code: "CLOSED_SHADOW_ROOT", detail: "Closed shadow root could not be inspected" }], artifacts: [{ id: "application-model", label: "ApplicationModel", freshness: "FRESH" }], actions: [] }, counts: project.application, pages: [] };
+const config = { projectId: "project-1", name: "Example checkout", root: "C:/work/checkout", build: "MAVEN", status: "READY", configurationSource: "PROJECT_CONFIG", mainSourceRoots: ["src/main/java"], testSourceRoots: ["src/test/java"], workspace: ".test-lens", browser: "CHROME", headless: true, evidence: ["loaded .test-lens/project.json schema 1"], limitations: [] };
+const hostStatus = { operationRunning: false };
 const problems = { stage: { status: "NEEDS_REVIEW" }, offset: 0, limit: 50, total: 2, problems: [{ id: "p1", category: "AMBIGUOUS_CORRELATION", severity: "WARNING", status: "OPEN", location: "LoginPage.java:42", evidence: ["two candidates"], affectedArtifacts: ["LoginPage"], suggestedAction: "Review correlation" }] };
 const correlations = { stage: { status: "NEEDS_REVIEW" }, offset: 0, limit: 50, total: 19, counts: project.correlation, items: [{ applicationElementId: "LOGIN_SUBMIT", sourceElementId: "LoginPage.loginButton", state: "EXACT", evidence: ["CANONICAL_SELECTOR_MATCH", "SAME_PAGE_IDENTITY"] }] };
 const workflow = {
@@ -70,17 +72,24 @@ const workflow = {
   repair: { stage: { status: "NEEDS_REVIEW", evidence: ["SAME_TARGET", "UNIQUE"] }, proposalId: "repair-1", logicalPath: "LoginPage.java", oldSelector: "By.id(\"old\")", newSelector: "By.cssSelector(\"[data-testid='login-submit']\")", selectorEvidence: ["VERIFIED_IN_SCOPE", "SAME_TARGET", "UNIQUE", "STABLE"], affectedMethods: ["login"], affectedTests: ["LoginTest"] },
   timeline: [{ event: "Requirement created", status: "PASS" }, { event: "Repair proposed", status: "NEEDS_REVIEW" }]
 };
+const workflowHistory = [
+  { runId: "run-1", requirement: workflow.requirement, state: "REPAIR_READY_FOR_REVIEW", freshness: "FRESH", updatedAt: "2026-10-07T10:00:00Z", resumed: false, availableActions: ["APPROVE_REPAIR", "REJECT_REPAIR"] },
+  { runId: "run-2", requirement: "Checkout succeeds", state: "SUCCESS", freshness: "FRESH", updatedAt: "2026-10-06T09:00:00Z", resumed: true, availableActions: [] }
+];
 
 function response(body, status = 200) { return { ok: status >= 200 && status < 300, status, async json() { return body; } }; }
-function fixtureFetch(calls) {
+function fixtureFetch(calls, selectedWorkflow = workflow) {
   return async (url, options = {}) => {
     calls.push({ url, options });
     if (url === "/api/actions") return response({ ok: true, project, workflow });
-    if (url.startsWith("/api/project")) return response(project);
+    if (url === "/api/project") return response(project);
+    if (url === "/api/config") return response(config);
+    if (url === "/api/status") return response(hostStatus);
     if (url.startsWith("/api/application")) return response(application);
     if (url.startsWith("/api/problems")) return response(problems);
     if (url.startsWith("/api/correlations")) return response(correlations);
-    if (url.startsWith("/api/workflow")) return response(workflow);
+    if (url === "/api/workflows") return response(workflowHistory);
+    if (url.startsWith("/api/workflow")) return response(url.includes("run-2") ? { ...selectedWorkflow, runId: "run-2", requirement: "Checkout succeeds", status: "SUCCESS", timeline: [] } : selectedWorkflow);
     return response({ error: { code: "NOT_FOUND" } }, 404);
   };
 }
@@ -92,18 +101,44 @@ assert.match(html, /data-view="repairs"/);
 assert.match(css, /prefers-reduced-motion/);
 assert.match(css, /focus-visible/);
 assert.doesNotMatch(source, /\.innerHTML\s*=/, "backend text must never be assigned through innerHTML");
-for (const endpoint of ["/api/project", "/api/application", "/api/problems", "/api/correlations", "/api/workflow", "/api/actions"]) assert.ok(source.includes(endpoint), `missing ${endpoint}`);
+for (const endpoint of ["/api/project", "/api/config", "/api/status", "/api/application", "/api/problems", "/api/correlations", "/api/workflows", "/api/workflow", "/api/actions"]) assert.ok(source.includes(endpoint), `missing ${endpoint}`);
 for (const action of studioModule.ACTIONS) assert.ok(source.includes(action), `missing action ${action}`);
 
 {
   const calls = []; const document = new MiniDocument();
   const studio = studioModule.createStudio({ document, fetch: fixtureFetch(calls), location: { origin: "http://127.0.0.1" } });
   studio.start(); await settle();
-  assert.equal(calls.length, 5, "initial load must issue only projection GETs");
+  assert.equal(calls.length, 8, "initial load must issue only bounded projection GETs");
   assert.ok(calls.every(call => !call.options.method || call.options.method === "GET"), "refresh must not run or apply anything");
-  assert.match(document.getElementById("project-label").textContent, /Project/);
+  assert.match(document.getElementById("project-label").textContent, /Example checkout.*checkout/);
   assert.match(document.getElementById("primary-view").textContent, /19/, "real projection counts must drive the view");
+  assert.match(document.getElementById("primary-view").textContent, /Example checkout.*MAVEN.*\.test-lens/, "resolved project configuration must be visible");
   assert.match(document.getElementById("details-panel").textContent, /SOURCE_FINGERPRINT.*verified/, "projection evidence must drive the evidence panel");
+}
+
+{
+  const calls = []; const document = new MiniDocument();
+  const studio = studioModule.createStudio({ document, fetch: fixtureFetch(calls), location: { origin: "http://127.0.0.1" } });
+  studio.start(); await settle(); studio.state.view = "history"; studio.render();
+  const workflowButton = walk(document.getElementById("primary-view")).find(item => item.dataset.workflowRunId === "run-2");
+  assert.ok(workflowButton, "persisted workflow summaries must be selectable");
+  document.dispatch("click", workflowButton); await settle();
+  assert.ok(calls.some(call => call.url === "/api/workflow?runId=run-2"), "selection must fetch the chosen bounded workflow detail");
+  assert.equal(studio.state.workflow.runId, "run-2");
+}
+
+{
+  const interrupted = { ...workflow, status: "AGENT_EXECUTION_INTERRUPTED", freshness: "STALE", resumed: true, availableActions: ["REGENERATE_PLAN"] };
+  const calls = []; const document = new MiniDocument();
+  const studio = studioModule.createStudio({ document, fetch: fixtureFetch(calls, interrupted), location: { origin: "http://127.0.0.1" } });
+  studio.start(); await settle();
+  const banner = document.getElementById("workflow-banner");
+  assert.equal(banner.hidden, false);
+  assert.match(banner.textContent, /restored.*stale.*agent operation.*regenerate plan/i, "resumed, stale, interrupted and backend-provided actions must be explicit");
+  const regenerate = walk(banner).find(item => item.tagName === "BUTTON" && /regenerate plan/i.test(item.textContent));
+  assert.ok(regenerate, "backend-provided plan regeneration must be actionable");
+  document.dispatch("click", regenerate); await settle();
+  assert.ok(calls.some(call => call.options && call.options.body && JSON.parse(call.options.body).action === "REGENERATE_PLAN"), "regeneration must use the explicit allowlisted action");
 }
 
 for (const [label, expected] of [["Approve and apply", "APPROVE_REPAIR"], ["Reject", "REJECT_REPAIR"]]) {
