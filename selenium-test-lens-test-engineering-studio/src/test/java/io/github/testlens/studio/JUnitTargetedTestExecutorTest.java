@@ -110,9 +110,15 @@ class JUnitTargetedTestExecutorTest {
         JUnitTargetedTestExecutor.copyBrowserEnvironment(Map.of(
                 "SE_BROWSER_PATH","/configured/chrome",
                 "SE_BROWSER_NO_SANDBOX","true",
+                "SE_BROWSER_DIAGNOSTICS_DIR","/controlled/browser-diagnostics",
+                "SE_BROWSER_PROFILE_ROOT","/controlled/browser-profiles",
                 "webdriver.chrome.driver","/untrusted/driver",
                 "SECRET_TOKEN","secret"),target);
-        assertEquals(Map.of("SE_BROWSER_PATH","/configured/chrome","SE_BROWSER_NO_SANDBOX","true"),target);
+        assertEquals(Map.of(
+                "SE_BROWSER_PATH","/configured/chrome",
+                "SE_BROWSER_NO_SANDBOX","true",
+                "SE_BROWSER_DIAGNOSTICS_DIR","/controlled/browser-diagnostics",
+                "SE_BROWSER_PROFILE_ROOT","/controlled/browser-profiles"),target);
     }
 
     private static void assertTimedOut(String name,String body)throws Exception{assertEquals(TargetedTestExecutor.Status.TIMED_OUT,executor(profile(name)).execute(request(name,Duration.ofMillis(500)),compiled(name,body)).status());}

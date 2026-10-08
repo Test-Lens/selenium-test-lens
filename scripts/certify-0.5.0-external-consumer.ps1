@@ -98,7 +98,10 @@ function Invoke-StudioAction($session, [string]$origin, [string]$token, [hashtab
         } catch {
             $diagnostic = "read-only diagnostic unavailable: $($_.Exception.Message)"
         }
-        throw "Studio action $($body.action) failed: $serverError; readOnlyState=$diagnostic"
+        $browserDiagnostics = if ($serverError -match 'BROWSER_SESSION_FAILED') {
+            Get-TestLensChromeDriverDiagnosticTail -MaximumCharacters 8192
+        } else { "<not requested>" }
+        throw "Studio action $($body.action) failed: $serverError; readOnlyState=$diagnostic; browserDiagnostics=$browserDiagnostics"
     }
 }
 

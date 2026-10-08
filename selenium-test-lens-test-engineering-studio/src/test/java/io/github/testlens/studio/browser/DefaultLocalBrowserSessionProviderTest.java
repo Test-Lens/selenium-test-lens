@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 
 import java.lang.reflect.Proxy;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -104,6 +106,54 @@ class DefaultLocalBrowserSessionProviderTest {
 
         assertEquals(List.of("--headless=new", "--no-sandbox"), chromeArguments(configured));
         assertEquals(List.of("--headless=new"), chromeArguments(unrelated));
+    }
+
+    @Test
+    void verboseDriverLoggingRequiresAnExplicitDiagnosticsDirectory() throws Exception {
+        Path diagnostics = Files.createTempDirectory("test-lens-browser-diagnostics-");
+        try {
+            assertNull(DefaultLocalBrowserSessionProvider.diagnosticChromeDriverService(ignored -> null));
+
+            var service = DefaultLocalBrowserSessionProvider.diagnosticChromeDriverService(
+                    name -> name.equals(DefaultLocalBrowserSessionProvider.SELENIUM_DIAGNOSTICS_DIRECTORY)
+                            ? diagnostics.toString() : null);
+
+            assertNotNull(service);
+            try (var files = Files.list(diagnostics)) {
+                assertEquals(1, files.filter(path -> path.getFileName().toString().matches("chromedriver-.*\\.log")).count());
+            }
+        } finally {
+            try (var files = Files.list(diagnostics)) {
+                files.forEach(path -> {
+                    try { Files.deleteIfExists(path); } catch (Exception ignored) { }
+                });
+            }
+            Files.deleteIfExists(diagnostics);
+        }
+    }
+
+    @Test
+    void certificationProfileUsesAControlledWritableRoot() throws Exception {
+        Path root = Files.createTempDirectory("test-lens-browser-profiles-");
+        try {
+            var options = DefaultLocalBrowserSessionProvider.chromeOptions(request(Ownership.STUDIO_OWNED),
+                    name -> name.equals(DefaultLocalBrowserSessionProvider.SELENIUM_PROFILE_DIRECTORY)
+                            ? root.toString() : null);
+
+            String argument = chromeArguments(options).stream()
+                    .filter(value -> value.startsWith("--user-data-dir="))
+                    .findFirst().orElseThrow();
+            Path profile = Path.of(argument.substring("--user-data-dir=".length()));
+            assertTrue(Files.isDirectory(profile));
+            assertTrue(profile.toRealPath().startsWith(root.toRealPath()));
+        } finally {
+            try (var profiles = Files.list(root)) {
+                profiles.forEach(path -> {
+                    try { Files.deleteIfExists(path); } catch (Exception ignored) { }
+                });
+            }
+            Files.deleteIfExists(root);
+        }
     }
 
     private static DefaultLocalBrowserSessionProvider provider(BrowserAvailability availability,

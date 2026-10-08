@@ -243,6 +243,10 @@ jobs:
           echo "SE_BROWSER_PATH=${SE_BROWSER_PATH:-<unset>}"
           echo "SE_BROWSER_NO_SANDBOX=${SE_BROWSER_NO_SANDBOX:-<unset>}"
           echo "webdriver.chrome.driver=<not supplied by certification job>"
+          echo "driverResolution=SELENIUM_MANAGER"
+          crashpad_handler="$(dirname "$SE_BROWSER_PATH")/chrome_crashpad_handler"
+          if [ -e "$crashpad_handler" ]; then stat -c 'chrome_crashpad_handler=%A' "$crashpad_handler"; fi
+          df -h /dev/shm | tail -n 1
           for candidate in google-chrome chrome chromium chromium-browser chromedriver; do
             resolved="$(command -v "$candidate" 2>/dev/null || true)"
             if [ -n "$resolved" ]; then echo "PATH candidate $candidate=$resolved"; fi
@@ -265,8 +269,17 @@ jobs:
             $env:TMPDIR = $tempRoot
             $env:TEMP = $tempRoot
             $env:TMP = $tempRoot
+            $env:SE_BROWSER_DIAGNOSTICS_DIR = Join-Path $tempRoot "browser-diagnostics"
+            New-Item -ItemType Directory -Force -Path $env:SE_BROWSER_DIAGNOSTICS_DIR | Out-Null
+            $env:SE_BROWSER_PROFILE_ROOT = Join-Path $tempRoot "browser-profiles"
+            New-Item -ItemType Directory -Force -Path $env:SE_BROWSER_PROFILE_ROOT | Out-Null
             $repositoryRoot = (Get-Location).Path
             Import-Module (Join-Path $repositoryRoot "scripts/ReleaseReactor.psm1") -Force
+            Import-Module (Join-Path $repositoryRoot "scripts/StudioCertificationSupport.psm1") -Force
+            Invoke-TestLensChromeStartupSmoke `
+              -BrowserBinary $env:SE_BROWSER_PATH `
+              -TempRoot (Join-Path $tempRoot "chrome-smoke") `
+              -NoSandbox | Out-Host
             $rootPom = Read-TestLensPom (Join-Path $repositoryRoot "pom.xml")
             $reactorVersion = Get-TestLensPomText $rootPom "/m:project/m:version"
             ./scripts/check-reactor-versions.ps1 -ExpectedVersion $reactorVersion | Out-Host

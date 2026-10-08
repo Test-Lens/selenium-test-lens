@@ -2,11 +2,15 @@ package io.github.testlens.studio.browser;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.manager.SeleniumManager;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -19,6 +23,8 @@ import java.util.function.Function;
 public final class DefaultLocalBrowserSessionProvider implements BrowserSessionProvider {
     static final String SELENIUM_BROWSER_PATH = "SE_BROWSER_PATH";
     static final String SELENIUM_NO_SANDBOX = "SE_BROWSER_NO_SANDBOX";
+    static final String SELENIUM_DIAGNOSTICS_DIRECTORY = "SE_BROWSER_DIAGNOSTICS_DIR";
+    static final String SELENIUM_PROFILE_DIRECTORY = "SE_BROWSER_PROFILE_ROOT";
     private final BrowserPreflightProbe probe;
     private final LocalDriverFactory driverFactory;
 
@@ -84,7 +90,11 @@ public final class DefaultLocalBrowserSessionProvider implements BrowserSessionP
     private static WebDriver createLocalDriver(BrowserRequest request) {
         return switch (request.browser()) {
             case CHROME -> {
-                yield new ChromeDriver(chromeOptions(request, System::getenv));
+                ChromeOptions options = chromeOptions(request, System::getenv);
+                ChromeDriverService diagnosticService = diagnosticChromeDriverService(System::getenv);
+                yield diagnosticService == null
+                        ? new ChromeDriver(options)
+                        : new ChromeDriver(diagnosticService, options);
             }
             case FIREFOX -> {
                 FirefoxOptions options = new FirefoxOptions();
@@ -94,13 +104,53 @@ public final class DefaultLocalBrowserSessionProvider implements BrowserSessionP
         };
     }
 
+    static ChromeDriverService diagnosticChromeDriverService(Function<String, String> environment) {
+        String configuredDirectory = Objects.toString(
+                environment.apply(SELENIUM_DIAGNOSTICS_DIRECTORY), "").trim();
+        if (configuredDirectory.isEmpty()) return null;
+
+        try {
+            Path directory = Path.of(configuredDirectory).toAbsolutePath().normalize();
+            Files.createDirectories(directory);
+            if (Files.isSymbolicLink(directory)) {
+                throw new IllegalArgumentException("Browser diagnostics directory must not be a symbolic link");
+            }
+            Path realDirectory = directory.toRealPath();
+            Path logFile = Files.createTempFile(realDirectory, "chromedriver-", ".log");
+            return new ChromeDriverService.Builder()
+                    .withVerbose(true)
+                    .withReadableTimestamp(true)
+                    .withLogFile(logFile.toFile())
+                    .build();
+        } catch (IOException failure) {
+            throw new IllegalStateException("Unable to prepare browser diagnostics", failure);
+        }
+    }
+
     static ChromeOptions chromeOptions(BrowserRequest request, Function<String, String> environment) {
         ChromeOptions options = new ChromeOptions();
         String configuredBinary = configuredBrowserPath(environment);
         if (configuredBinary != null) options.setBinary(configuredBinary);
         if (request.headless()) options.addArguments("--headless=new");
         if (environmentFlag(environment, SELENIUM_NO_SANDBOX)) options.addArguments("--no-sandbox");
+        String profileDirectory = controlledChromeProfile(environment);
+        if (profileDirectory != null) options.addArguments("--user-data-dir=" + profileDirectory);
         return options;
+    }
+
+    private static String controlledChromeProfile(Function<String, String> environment) {
+        String configuredRoot = Objects.toString(environment.apply(SELENIUM_PROFILE_DIRECTORY), "").trim();
+        if (configuredRoot.isEmpty()) return null;
+        try {
+            Path root = Path.of(configuredRoot).toAbsolutePath().normalize();
+            Files.createDirectories(root);
+            if (Files.isSymbolicLink(root)) {
+                throw new IllegalArgumentException("Browser profile root must not be a symbolic link");
+            }
+            return Files.createTempDirectory(root.toRealPath(), "chrome-profile-").toString();
+        } catch (IOException failure) {
+            throw new IllegalStateException("Unable to prepare browser profile", failure);
+        }
     }
 
     private static String configuredBrowserPath(Function<String, String> environment) {

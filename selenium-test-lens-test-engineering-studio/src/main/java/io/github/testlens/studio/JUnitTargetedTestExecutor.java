@@ -108,6 +108,8 @@ final class JUnitTargetedTestExecutor implements CompiledTargetedTestExecutor {
     static void copyBrowserEnvironment(Map<String,String> source,Map<String,String> target){
         copyEnvironment(source,target,"SE_BROWSER_PATH");
         copyEnvironment(source,target,"SE_BROWSER_NO_SANDBOX");
+        copyEnvironment(source,target,"SE_BROWSER_DIAGNOSTICS_DIR");
+        copyEnvironment(source,target,"SE_BROWSER_PROFILE_ROOT");
     }
     private static void copyEnvironment(Map<String,String> source,Map<String,String> target,String name){
         String value=source.get(name);if(value!=null&&!value.isBlank())target.put(name,value);

@@ -68,20 +68,43 @@ foreach ($diagnosticContract in @(
     'SE_BROWSER_PATH=${SE_BROWSER_PATH:-<unset>}',
     'SE_BROWSER_NO_SANDBOX=${SE_BROWSER_NO_SANDBOX:-<unset>}',
     'webdriver.chrome.driver=<not supplied by certification job>',
+    'driverResolution=SELENIUM_MANAGER',
+    'chrome_crashpad_handler=%A',
+    'df -h /dev/shm',
     'PATH candidate $candidate=$resolved'
 )) {
     if (-not $linuxJob.Contains($diagnosticContract)) {
         throw "Linux certification is missing bounded browser diagnostic: $diagnosticContract"
     }
 }
+foreach ($startupContract in @(
+    '$env:SE_BROWSER_DIAGNOSTICS_DIR = Join-Path $tempRoot "browser-diagnostics"',
+    '$env:SE_BROWSER_PROFILE_ROOT = Join-Path $tempRoot "browser-profiles"',
+    'Invoke-TestLensChromeStartupSmoke',
+    '-BrowserBinary $env:SE_BROWSER_PATH',
+    '-NoSandbox'
+)) {
+    if (-not $linuxJob.Contains($startupContract)) {
+        throw "Linux certification is missing Chrome startup evidence contract: $startupContract"
+    }
+}
 if ($ciWorkflow.Contains('check-public-api-since.ps1 -BaselineTag v0.3.1 -ExpectedSince 0.4.0')) {
     throw "Current API since gate must derive its release line instead of using the 0.4.0 baseline"
 }
 $certificationSource = [IO.File]::ReadAllText((Join-Path $PSScriptRoot "certify-0.5.0-external-consumer.ps1"))
-foreach ($diagnosticContract in @('api/status', 'api/project', 'api/config', 'readOnlyState=', '4096')) {
+foreach ($diagnosticContract in @('api/status', 'api/project', 'api/config', 'readOnlyState=', '4096', 'Get-TestLensChromeDriverDiagnosticTail', 'browserDiagnostics=')) {
     if (-not $certificationSource.Contains($diagnosticContract)) {
         throw "External certification failure diagnostic is missing contract: $diagnosticContract"
     }
+}
+
+$browserDiagnosticRoot = Join-Path $testRoot "browser diagnostics"
+[IO.Directory]::CreateDirectory($browserDiagnosticRoot) | Out-Null
+$browserDiagnosticLog = Join-Path $browserDiagnosticRoot "chromedriver-contract.log"
+[IO.File]::WriteAllText($browserDiagnosticLog, (("prefix`n" * 200) + "token=do-not-leak`nChrome startup failure"))
+$browserDiagnosticTail = Get-TestLensChromeDriverDiagnosticTail -Directory $browserDiagnosticRoot -MaximumCharacters 512
+if ($browserDiagnosticTail.Contains("do-not-leak") -or -not $browserDiagnosticTail.Contains("[REDACTED]") -or -not $browserDiagnosticTail.Contains("Chrome startup failure")) {
+    throw "ChromeDriver diagnostic tail must be bounded, redacted, and preserve the failure tail"
 }
 
 $readSequence = [pscustomobject]@{ Count = 0 }
