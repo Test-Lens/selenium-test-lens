@@ -65,6 +65,7 @@ jobs:
           $sourceVersion = $pom.SelectSingleNode('/m:project/m:version',$ns).InnerText.Trim()
           if ($sourceVersion -ne $env:DOCS_REDEPLOY_VERSION) { throw "Root POM version '$sourceVersion' does not match requested redeploy '$($env:DOCS_REDEPLOY_VERSION)'." }
           ./scripts/check-reactor-versions.ps1 -ExpectedVersion $env:DOCS_REDEPLOY_VERSION
+          ./scripts/check-release-doc-repair.ps1 -Version $env:DOCS_REDEPLOY_VERSION -SourceRef '${{ github.event.inputs.source_ref }}'
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -91,6 +92,7 @@ jobs:
           ./scripts/check-product-overview.ps1 -SiteDirectory "${env:RUNNER_TEMP}/release-site"
           ./scripts/check-doc-signatures.ps1
           ./scripts/check-doc-version-boundary.ps1
+          ./scripts/test-release-doc-repair.ps1
           ./scripts/validate-stable-doc-examples.ps1
           ./scripts/validate-versioned-docs.ps1
       - name: Validate workflow YAML

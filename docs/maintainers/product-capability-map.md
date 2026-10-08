@@ -1,14 +1,16 @@
-# Product capability map for release 0.4.0
+# Product capability map for release 0.5.0
 
-This inventory is the maintenance source behind the documentation landing page. It records consumer-facing behavior that is present in the published `0.4.0` artifacts, rather than treating the latest release notes, `@since` tags, or repository module names as a product catalog.
+This inventory is the maintenance source behind the documentation landing page. It records behavior shipped by the immutable `v0.5.0` release, separates supported consumer entry points from published implementation dependencies, and does not treat every technically public Java class as stable API.
 
 ## Audit boundary
 
-- **Consumer target:** `io.github.test-lens:*:0.4.0`, confirmed in Maven Central metadata on 2026-10-05.
-- **Release implementation:** annotated tag `v0.4.0` (`7946e533357ba9143aba06efdf7a3ada55f787c8`).
-- **Repairable documentation source:** `release/0.4.0`; documentation-only repairs may differ from the immutable tag but must not change released API semantics.
-- **Published API artifacts:** `selenium-test-lens-core`, `selenium-test-lens-overlay`, `selenium-test-lens`, `selenium-test-lens-junit5`, `selenium-test-lens-testng`, `selenium-test-lens-allure`, and `selenium-test-lens-react` (plus the parent POM).
-- **Not published for consumers:** examples, browser tests, selector engine/live/lab/tooling, compatibility engine/tooling, and migration tooling use `maven.deploy.skip`. They may document architecture or future work, but are not product capabilities advertised on the stable landing page.
+- **Consumer target:** `io.github.test-lens:*:0.5.0` and the fully qualified Studio goal `io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.0:studio`.
+- **Release implementation:** annotated tag `v0.5.0` (`ad22a8580f7c820e9d7f3e7a87fbbaf00ea0b9be`).
+- **Repairable documentation source:** an explicitly reviewed post-tag documentation commit prepared on `main` and selectively applied to `release/0.5.0`; `redeploy-release` verifies the 0.5.0 source version and changes documentation only, without moving the tag or changing released runtime/API semantics.
+- **Published stable artifacts:** parent POM, `selenium-test-lens-core`, `selenium-test-lens-overlay`, `selenium-test-lens`, `selenium-test-lens-junit5`, `selenium-test-lens-testng`, `selenium-test-lens-allure`, and `selenium-test-lens-react`.
+- **Published tooling dependencies:** `selenium-test-lens-application-model`, `selenium-test-lens-application-mapper`, `selenium-test-lens-application-tooling`, `selenium-test-lens-selector-engine`, `selenium-test-lens-selector-live`, `selenium-test-lens-selector-tooling`, `selenium-test-lens-test-engineering-studio`, and `test-lens-test-engineering-maven-plugin`.
+- **Not published for consumers:** examples, browser tests, Selector Lab, compatibility engine/tooling, and migration tooling retain `maven.deploy.skip`; they are test, demo, or internal maintenance surfaces.
+- **API compatibility boundary:** the generated 0.5.0 catalog contains 728 public types and 5,235 callables. The compatibility promise covers the explicitly classified 120 `USER_API` and 143 `ADVANCED_API` types, not all public classes in tooling JARs.
 
 The exact public type and callable inventory remains generated in the [public API catalog](../reference/public-api-catalog.md). This map groups that surface by user problem and records representative evidence; it is not a replacement for signature documentation.
 
@@ -65,21 +67,52 @@ The exact public type and callable inventory remains generated in the [public AP
 | Named steps and business assertions | Adds domain-level step and assertion results to the same trace without replacing runner assertions/lifecycle. | `step(...)`, `UiStep*`, `BusinessAssertions`; `selenium-test-lens` | Optional composition API; failures retain documented result/throwing behavior. | [Steps/business assertions](../advanced/steps-business-assertions.md) | step/business unit tests and examples; public in `v0.4.0`. First-version badge omitted. |
 | Execution/observability modes | Selects headed/headless execution separately from DEFAULT/FAST presentation and passed-session trace retention. | `BrowserExecutionConfig`, `ObservabilityMode`, `TestLensOptions`; `selenium-test-lens` | 0.4.0. FAST changes presentation defaults, not Selenium/action/assertion/retry semantics or failed-session evidence. | [Configuration](../configuration.md#browser-execution-and-observability) | execution/mode unit tests and `HeadlessExecutionConfigIT`; introduced in 0.4.0. |
 
+## Selector Intelligence
+
+| Capability | Released 0.5.0 behavior | Boundary and evidence |
+|---|---|---|
+| Candidate generation and ranking | Existing `CandidateGenerator` and `CandidateRanker` produce and order deterministic candidates. Mapper and repair reuse this engine rather than implementing locator heuristics. | Published selector-engine dependency; tooling API unless explicitly classified otherwise. |
+| Live validation and target identity | `LiveCandidateAnalysisService` resolves candidates in the explicit browser scope, records match count, uniqueness and executability, and requires same-target comparison before recommendation. | Published selector-live dependency; analysis objects retaining `WebElement` remain internal/tooling. |
+| Stability policies | Generated-looking IDs, hashes, counters, UUIDs, and framework tokens are evidence rather than final verdicts. Exact or structural project policy may declare a candidate stable or unstable without bypassing uniqueness and target checks. | [Selector Intelligence](../features/selector-intelligence.md); engine and policy contract tests. |
+| Selector Audit and Find Similar | Java declaration discovery, evidence-based audit, bounded history, and deterministic similarity relations support review and impact analysis. Similarity never means same element. | Published selector-tooling implementation dependency; JavaParser-backed classes are not stable USER API. |
+| Selector Lab | Read-only inspection UI over supplied selector evidence. | Unpublished demo module with `maven.deploy.skip`; not a 0.5.0 consumer entry point. |
+
+## Application and existing-project intelligence
+
+| Capability | Released 0.5.0 behavior | Boundary and evidence |
+|---|---|---|
+| Application Model | Selenium-free, versioned and deterministic pages, states, meaningful elements, transitions, provenance, completeness, limitations, and redacted selector projections. | Published tooling format with `schemaVersion`; the whole Java model tree is not a stable interchange API promise. |
+| Application Mapper | Bounded current-page and guided observation plus conservative opt-in safe exploration, backed by live Selector Intelligence. | `ApplicationMapper` advanced facade; caller owns authentication, navigation, and browser context. |
+| Existing project index | Conservatively indexes Java Page Objects/components, locator declarations, methods, inheritance, JUnit/TestNG tests, and source fingerprints. | `ExistingProjectIndexer`; published tooling implementation, not a general Java compiler API. |
+| Correlation and usage graph | Correlates application elements with source declarations using selector, page/context, and live evidence; builds bounded test to method to field to selector to application-element impact. | `PageObjectCorrelator` and `UsageGraph`; ambiguous or probable evidence never authorizes repair apply. |
+
+## Test Engineering Studio and reviewed repair
+
+| Capability | Released 0.5.0 behavior | Boundary and evidence |
+|---|---|---|
+| Turnkey Studio | The Maven goal discovers an existing project, opens a persistent `.test-lens/` workspace, and serves a token-protected loopback UI for scan, map, correlate, plan, proposal, run, diagnosis, and repair review. | `test-lens-test-engineering-maven-plugin:0.5.0:studio` and the small `TestEngineeringStudio` launcher facade. |
+| Browser and agent providers | Local Chrome/Firefox use Selenium Manager; provider-neutral SPIs support trusted project browser factories and external agents with preflight and explicit ownership. | `BrowserSessionProvider` and `AgentExecutorProvider`; no provider SDK is added to the ordinary runtime. |
+| Bounded external-agent workflow | Architect, implementer, verifier, stabilizer, and reviewer exchange versioned structured artifacts over bounded context. Generated tests are Page-Object-only by default and checked for raw selectors, direct WebDriver, sleeps, JavaScript, retries, and path violations. | External runner has bounded IO, timeout, environment allowlist, and no silent scripted fallback. |
+| Targeted subprocess execution | JUnit class loading, static initialization, instance/setup/test execution, Lens finalization, and cleanup run in one child JVM under an absolute deadline. | Timeout, `System.exit`, halt/crash, and interruption-resistant test code cannot kill or outlive the Studio/workflow host; diagnostics and protocol are bounded. |
+| Evidence-based repair | Failure classification, exact/strong source correlation, live candidate validation, same-target, uniqueness, stability, and usage impact produce a `PROPOSE_ONLY` `RepairProposal`. | AI never invents the replacement; proposal creation does not mutate source. |
+| Trusted repair and resume | Only explicit human approval invokes the trusted host, which rechecks roots, symlinks, source/declaration fingerprints, old selector, and double-apply state. Workflow snapshots restore review state without silently rerunning agents, tests, or repairs. | Studio repair and restart clean-room/browser certifications. |
+
 ## Documentation tools versus runtime integrations
 
 | Tool | What it actually does | Boundary and evidence |
 |---|---|---|
 | HUD Studio | Configures and previews the production HUD renderer, then generates matching Java configuration. Source-navigation behavior is safely simulated in the public demo. | Documentation-only tool in `docs/demo/hud-studio`; validated by HUD Studio scripts and `HudStudioDocumentationLayoutIT`. It is not a separate runtime renderer or IDE probe. |
 | AI Integration Builder | Generates one release-bound instruction for an external coding agent from selected integration choices. | Documentation JavaScript, not an embedded model or guaranteed installer. Target version comes from `extra.ai_integration.target_release`; checked by `check-ai-integration-builder.ps1`. |
+| Test Engineering Studio | Executes the reviewed local tooling workflow through the Maven goal and loopback host. | Opt-in published tooling; normal `selenium-test-lens` runtime does not start it or acquire its dependencies. |
 
 ## Version evidence policy
 
-The landing page uses a release badge for the current stable documentation and `New in 0.4.0` only inside the What's new section. It deliberately avoids broad `Since` badges where the capability predates later improvements or where tag archaeology proves availability but not the first exact release of every overload. When a first version is stated in this map, it is supported by a release tag, archived documentation/release notes, and tests or examples from that line; `@since` alone is not the evidence.
+The landing page uses 0.5.0 as the current stable release. A capability belongs here only when the immutable release tag, staged artifact set, focused tests, and clean-room certification support it. Publication of an implementation dependency does not promote all of its public classes into the compatibility promise. When a first version is stated in this map, it is supported by a release tag, archived documentation/release notes, and tests or examples from that line; `@since` alone is not the evidence.
 
 When maintaining this map:
 
 1. verify the symbol and behavior against the target tag or published artifact;
-2. confirm the artifact is deployed, not merely a reactor module;
+2. confirm publication role and type-level API classification independently;
 3. cite a contract test/example and the focused guide;
 4. separate a long-standing capability from a later improvement;
-5. keep internal tooling, roadmap work, and documentation utilities out of the consumer capability list.
+5. keep demos, test fixtures, parser internals, workflow storage, HTTP internals, process models, and trusted mutation implementations out of the advertised stable API.
