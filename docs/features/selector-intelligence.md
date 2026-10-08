@@ -8,30 +8,23 @@ Examples include selectors copied from browser developer tools, long CSS chains,
 class names, framework-generated identifiers, and the same locator repeated across Page Objects and tests. The
 opposite problem matters too: an identifier can *look* random while being a stable application contract.
 
-!!! important "Availability in 0.4.x"
-    Test Lens 0.4.0 contains this capability as internal, non-published tooling foundations. The selector modules
-    are not Maven Central artifacts, and 0.4.x does not provide a supported public CLI, Maven goal, Gradle task, or
-    `TestLens` method that launches Selector Audit or Selector Lab. This page explains the implemented model and
-    intended workflow so that the capability is discoverable without presenting an internal API as a supported
-    product entry point.
+!!! important "Availability in 0.5.0"
+    Selector engine, live analysis, and source tooling are published implementation dependencies of Test Engineering Studio. The supported user entry point is the Studio Maven goal; JavaParser-backed scanners and other technically public tooling classes are not stable USER API. Selector Lab remains an unpublished demo tool.
 
-    Installing `selenium-test-lens:0.4.0` does not enable a background source scan or Lab UI. Normal Test Lens and
-    FAST execution remain unchanged.
+    Installing `selenium-test-lens:0.5.0` alone does not enable a background source scan or UI. Normal Test Lens and FAST execution remain unchanged.
 
 ## Capability map
 
-| Capability | Browser required? | What exists in 0.4.0 |
+| Capability | Browser required? | 0.5.0 availability |
 |---|---:|---|
-| Static declaration discovery | No | Internal Java-only source indexer |
-| Selector Audit | No | Internal offline report model plus deterministic JSON and optional HTML viewer |
-| Stability heuristics and project policy | No | Internal engine and strict policy-file tooling |
-| Find Similar and bounded history | No | Internal analysis over a caller-supplied catalog and optional evidence |
-| Selector Lab | Yes | Internal, explicit, blocking, read-only browser workflow |
-| Live candidate analysis | Yes | Internal analysis against a caller-owned `WebDriver`, target, and current DOM |
+| Static declaration discovery | No | Published Studio implementation dependency |
+| Selector Audit | No | Published tooling model with deterministic JSON and optional HTML viewer |
+| Stability heuristics and project policy | No | Published engine and strict policy-file tooling |
+| Find Similar and bounded history | No | Published tooling over a caller-supplied catalog and optional evidence |
+| Selector Lab | Yes | Unpublished demo, not a 0.5.0 user entry point |
+| Live candidate analysis | Yes | Published analysis used by Mapper and repair against an explicit browser target |
 
-No row in this table is a promise of a public 0.4.x launcher. Maintainers working from source can follow the linked
-design contracts; published-library users should treat this page as an availability boundary, not an installation
-guide.
+Publication supports Studio composition; it is not a compatibility promise for every class. Use the documented Maven goal rather than constructing scanners, live services, or repair internals directly.
 
 ## What problem does it solve?
 
@@ -87,9 +80,8 @@ code, annotation processors, build tools, helper methods, or static initializers
 excluded by default. The local index may contain selector values and should be treated as sensitive ignored build
 output.
 
-!!! note "No supported 0.4.x command"
-    The source indexer and Audit runner have internal source-level entry points, but no stable public command wraps
-    them in 0.4.x. There is therefore no supported command line to copy from this guide.
+!!! note "Supported entry point"
+    Use the [Test Engineering Studio Maven goal](../ai/test-engineering-studio-getting-started.md). There is no separate stable Selector Audit or Selector Lab CLI in 0.5.0.
 
 ## Generated-looking IDs are evidence, not a verdict
 
@@ -278,8 +270,7 @@ result estimates review scope; it does not assert that every match finds the sam
 
 ## Typical workflow
 
-Because 0.4.x has no public launcher, the first six steps describe the implemented internal tooling workflow rather
-than commands available from Maven Central:
+Studio orchestrates the first six steps through reviewed project actions:
 
 1. Trusted tooling builds the Java declaration index from an explicit project root, source roots, and optional
    classpath entries.
@@ -292,8 +283,7 @@ than commands available from Maven Central:
 6. Live analysis verifies candidates only in the current context and DOM state.
 7. A developer deliberately changes selectors in the application's own test source, reviews the diff, and reruns
    the relevant tests.
-8. Once a supported launcher exists, rerunning the static Audit would close the loop; 0.4.x does not expose that
-   launcher to published consumers.
+8. Re-scan and rerun the relevant tests to close the loop.
 
 ## What Selector Intelligence does not do
 
@@ -304,10 +294,10 @@ than commands available from Maven Central:
     - A stable policy does not override a wrong target, invalid selector, or no match.
     - Similar selectors are not necessarily interchangeable or attached to the same element.
     - Live evidence describes the observed session, context, and DOM state—not every application state.
-    - Selector Lab does not silently rewrite source and has no Apply/Fix action in 0.4.x.
+    - Selector Lab does not silently rewrite source; Studio repair remains proposal-first and requires explicit trusted approval.
     - Audit does not automatically fail CI.
     - Kotlin source analysis and closed shadow roots are not supported in V1.
-    - The four selector modules are not supported Maven Central coordinates in 0.4.0.
+    - Published selector tooling remains outside the stable USER API unless a type is explicitly classified otherwise.
 
 ## Deeper implementation contracts
 

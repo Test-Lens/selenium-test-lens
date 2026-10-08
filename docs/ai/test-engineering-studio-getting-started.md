@@ -1,12 +1,12 @@
 ---
 title: Test Engineering Studio getting started
-description: Launch the 0.5.0 development Test Engineering Studio from Maven, configure a project safely, and run its reviewed local workflow.
+description: Launch Test Engineering Studio 0.5.0 from Maven, configure a project safely, and run its reviewed local workflow.
 ---
 
 # Test Engineering Studio getting started
 
-!!! warning "0.5.0 development / release-candidate preparation"
-    The Maven goal on this page targets `0.5.0-SNAPSHOT` built from the current source checkout. The latest published release is 0.4.0, which does not contain Test Engineering Studio or this Maven plugin. This page is not a 0.5.0 release announcement.
+!!! info "Opt-in tooling"
+    Studio is distributed separately from the lightweight `selenium-test-lens` runtime. Invoking the Maven goal is explicit; upgrading the runtime alone does not start indexing, browsers, agents, or an HTTP host.
 
 Test Engineering Studio is a local UI for application mapping and the reviewed AI test-engineering workflow. It uses the current Maven project's source roots and test classpath, starts a loopback-only host, and performs no scan, browser action, agent call, source edit, or repair until the corresponding UI action is selected.
 
@@ -18,26 +18,20 @@ Test Engineering Studio is a local UI for application mapping and the reviewed A
 - a running application URL when mapping or executing a generated test;
 - Codex CLI with the required `exec` capabilities for real agent stages, or a project-provided `AgentExecutorProvider` on the test classpath.
 
-The source contains a bounded local Firefox provider, but the 0.5.0 external-consumer repair workflow is not claimed as Firefox-certified here. The repository's end-to-end repair fixture uses a deterministic scripted agent; it does not certify a real external provider through repair and verification.
+The local provider supports Chrome and Firefox. Release certification uses a deterministic scripted agent for repeatable end-to-end repair evidence; real Codex execution is an additional opt-in certification.
 
-## 1. Install the development snapshot
+## 1. Launch Studio
 
-Until 0.5.0 is actually published, install the current reactor into your local Maven repository from the Test Lens checkout:
-
-```powershell
-mvn -DskipTests install
-```
-
-Then change to the root of the Maven Selenium project you want Studio to inspect. Run the fully qualified goal so the invocation does not depend on local plugin-prefix metadata:
+Change to the root of the Maven Selenium project you want Studio to inspect. Run the fully qualified goal so the invocation does not depend on local plugin-prefix metadata:
 
 ```powershell
-mvn io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.0-SNAPSHOT:studio
+mvn io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.0:studio
 ```
 
 The goal runs through `test-compile`, resolves the test classpath, opens Studio in the default browser, prints its `127.0.0.1` URL, and waits until the Maven process is stopped. To print the URL without opening a browser:
 
 ```powershell
-mvn -DtestLens.studio.openBrowser=false io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.0-SNAPSHOT:studio
+mvn -DtestLens.studio.openBrowser=false io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.0:studio
 ```
 
 Stopping Maven stops the Studio host and Studio-owned browser session. It does not repeat or approve a workflow.
@@ -149,6 +143,8 @@ The browser SPI implements synchronous `preflight(BrowserRequest)` and `open(Bro
 
 Provider selection fails closed when the test classpath is absent, no implementation is found, or more than one implementation is registered. Studio closes the provider class loader when its launch handle closes. A custom provider is trusted project code; its network, credentials and process policy are the provider owner's responsibility and must not be placed in Studio JSON or projections.
 
+Targeted execution runs in a separate JVM. A custom browser provider needed by that fork must therefore be reconstructable there: use a public provider class with a public no-argument constructor and obtain non-secret settings through the documented project/local configuration boundary. Anonymous classes, captured lambdas, and stateful provider instances cannot be transferred to the child JVM.
+
 ### Timeouts and attempts
 
 The built-in Codex CLI preflight has a five-second bound. Its agent execution timeout is three minutes, and the current public Studio bootstrap gives targeted compilation/test execution the same three-minute bound. The workflow permits at most two bounded attempts; it does not loop until a generated test passes. These launcher defaults are not configurable through `project.json` or `local.json` in this release-candidate source.
@@ -179,13 +175,13 @@ The local process is still trusted tooling with access to the selected project a
 
 ## Upgrading an existing 0.4.x project
 
-The Studio plugin is tooling for the 0.5.0 line. Adding or invoking it does not require changing the behavior of a 0.4.x Test Lens runtime integration: existing `TestLens.attach(...)`, actions, waits, retries, HUD, reports and runner lifecycle remain unchanged. Do not replace a stable `0.4.x` runtime dependency with `0.5.0-SNAPSHOT` merely to try Studio in a release project. Use an isolated branch/worktree and a locally installed development snapshot until the 0.5.0 artifacts are actually released.
+The Studio plugin is opt-in tooling for the 0.5.0 line. Existing `TestLens.attach(...)`, actions, waits, retries, HUD, reports and runner lifecycle remain compatible; projects that only use the runtime do not acquire Studio or source-analysis dependencies.
 
 Continue with the [Studio workflow reference](test-engineering-studio.md), [application-mapping tutorial](../advanced/application-mapping/tutorial.md), and [AI workflow contracts](workflow-orchestration.md).
 
 ## Troubleshooting
 
-- **The fully qualified Maven goal cannot be resolved:** confirm that the complete `0.5.0-SNAPSHOT` reactor was installed in the same local Maven repository used by the consumer project. The goal is not in the 0.4.0 release.
+- **The fully qualified Maven goal cannot be resolved:** confirm that version `0.5.0` is available in the Maven repository configured for the consumer project and that the complete plugin coordinates are used.
 - **`test-compile` or dependency resolution fails before Studio opens:** fix the consumer project's normal Maven test compilation/classpath first. The plugin intentionally requires test dependency resolution and does not construct a substitute classpath.
 - **Browser preflight is `NOT_AVAILABLE`:** verify the configured browser is installed and Selenium Manager can resolve it. `CONFIGURATION_INVALID` or `UNSUPPORTED` requires correcting the selected provider/request rather than repeatedly clicking Map.
 - **Agent preflight is `NOT_AVAILABLE`, `VERSION_UNSUPPORTED`, or `PROFILE_INVALID`:** verify the absolute executable, required `codex exec` flags, or safe logical profile. Preflight never falls back silently from a selected custom provider.

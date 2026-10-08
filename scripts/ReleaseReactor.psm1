@@ -83,10 +83,11 @@ function Assert-TestLensDevelopmentVersion {
         [Parameter(Mandatory = $true)][string]$Version,
         [string]$PublicationPolicyPath = (Join-Path $PSScriptRoot "config/publication-policy.json")
     )
-    if ($Version -notmatch '^(\d+)\.(\d+)\.(\d+)(?:-SNAPSHOT)?$') {
+    if ($Version -notmatch '^(\d+)\.(\d+)\.(\d+)(-SNAPSHOT)?$') {
         throw "Development version '$Version' is not a supported semantic Maven version"
     }
     $developmentBase = [version]::new([int]$Matches[1], [int]$Matches[2], [int]$Matches[3])
+    $isSnapshot = -not [string]::IsNullOrWhiteSpace($Matches[4])
     $policy = Read-TestLensPublicationPolicy $PublicationPolicyPath
     $declaredRelease = [version]$policy.LatestReleasedVersion
     $tagOutput = @(& git -C $RepositoryRoot tag --list "v*.*.*" 2>&1)
@@ -107,8 +108,12 @@ function Assert-TestLensDevelopmentVersion {
     if ($releases.Count -gt 0 -and $releases[0].Version -eq $declaredRelease) {
         $latestLabel = "latest local release tag '$($releases[0].Tag)'"
     }
-    if ($developmentBase -le $latestRelease) {
-        throw "Development version '$Version' must be newer than $latestLabel"
+    if ($isSnapshot) {
+        if ($developmentBase -le $latestRelease) {
+            throw "Development version '$Version' must be newer than $latestLabel"
+        }
+    } elseif ($developmentBase -ne $declaredRelease) {
+        throw "Release version '$Version' must equal publication policy latestReleasedVersion '$($policy.LatestReleasedVersion)'"
     }
 }
 
@@ -130,8 +135,18 @@ function Get-TestLensReactorModel {
     if (-not (Test-Path -LiteralPath $repositoryPom -PathType Leaf)) {
         throw "RepositoryRoot does not contain root pom.xml: $repositoryPom"
     }
-    $gitRootOutput = @(& git -C $repository rev-parse --show-toplevel 2>&1)
-    if ($LASTEXITCODE -ne 0) {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        # Windows PowerShell promotes native stderr to ErrorRecord when the
+        # caller uses Stop. Capture Git's diagnostic so this boundary can
+        # expose the stable release-tooling error below on every host.
+        $ErrorActionPreference = "Continue"
+        $gitRootOutput = @(& git -C $repository rev-parse --show-toplevel 2>&1)
+        $gitRootExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    if ($gitRootExitCode -ne 0) {
         throw "RepositoryRoot is not a Git worktree: $repository ($($gitRootOutput -join ' '))"
     }
     $gitRoot = [IO.Path]::GetFullPath(($gitRootOutput | Select-Object -Last 1).ToString()).TrimEnd(

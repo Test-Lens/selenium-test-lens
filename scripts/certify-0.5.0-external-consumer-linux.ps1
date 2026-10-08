@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$Version = "0.5.0-SNAPSHOT",
+    [string]$Version = "0.5.0",
     [string]$MavenRepository,
     [switch]$SkipStage,
     [switch]$Firefox

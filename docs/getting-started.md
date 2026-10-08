@@ -13,7 +13,7 @@ This guide shows the shortest path from the Maven dependency to a working Lens s
 - Maven 3.x or Gradle
 - A Selenium `WebDriver` created by your test project
 
-The current Test Lens for Selenium release is `0.4.0`, verified with Selenium 4.39.0.
+The current Test Lens for Selenium release is `0.5.0`, verified with Selenium 4.39.0.
 
 Looking to assess selectors across an existing project? The 0.4.0 source includes browser-free Selector Audit,
 stability-policy, Find Similar, and read-only Lab foundations. They are not yet exposed by a supported public 0.4.x
@@ -28,7 +28,7 @@ Add the main Test Lens for Selenium runtime to your Maven project:
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.4.0</version>
+    <version>0.5.0</version>
 </dependency>
 ```
 
@@ -38,7 +38,7 @@ The same stable release is available to Gradle consumers.
 
     ```kotlin
     dependencies {
-        testImplementation("io.github.test-lens:selenium-test-lens:0.4.0")
+        testImplementation("io.github.test-lens:selenium-test-lens:0.5.0")
     }
     ```
 
@@ -46,7 +46,7 @@ The same stable release is available to Gradle consumers.
 
     ```groovy
     dependencies {
-        testImplementation 'io.github.test-lens:selenium-test-lens:0.4.0'
+        testImplementation 'io.github.test-lens:selenium-test-lens:0.5.0'
     }
     ```
 
@@ -70,7 +70,7 @@ Add the optional JUnit 5 integration as a test dependency. It brings the lifecyc
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-junit5</artifactId>
-    <version>0.4.0</version>
+    <version>0.5.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -228,7 +228,7 @@ The HUD is only a diagnostic aid and does not change test execution or assertion
 - [Use the JUnit 5 lifecycle extension](integrations/junit5.md)
 - [Use locators, actions, waits, and assertions](elements/index.md)
 - [Configure Test Lens](configuration.md)
-- [Review what's new in 0.4.0](whats-new-0.4.0.md)
+- [Review what's new in 0.5.0](whats-new-0.5.0.md)
 - [Migrate from 0.2.x](migrating-0.2-to-0.3.md)
 - [Migrate incrementally from raw Selenium](migration.md)
 - [Add the optional React/SPA helpers module](framework-integration.md#optional-reactspa-helpers-module)

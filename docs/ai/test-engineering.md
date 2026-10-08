@@ -2,8 +2,8 @@
 
 Test Lens prepares deterministic, provider-neutral inputs for test-engineering agents. It does not embed an OpenAI, Anthropic, Gemini, or other model SDK, and it does not run an autonomous agent scheduler.
 
-!!! warning "Development availability"
-    These contracts are source-only 0.5.0 development work in `selenium-test-lens-application-tooling`. They are not part of Maven 0.4.0. The existing [AI-assisted integration builder](../ai-assisted-integration.md) remains a separate documentation tool that generates integration instructions.
+!!! info "Opt-in tooling contracts"
+    These provider-neutral contracts support the 0.5.0 Studio workflow. Internal coordinators, persistence, parsers, process models, and repair writers are not stable USER API.
 
 The AI boundary begins only after deterministic observation and generation:
 

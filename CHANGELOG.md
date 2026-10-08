@@ -4,16 +4,28 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-08
+
 ### Added
 
-- Prepared the 0.5.0 Test Engineering Studio Maven entry point, project/test-classpath bootstrap, split commit-safe and
+- Added the 0.5.0 Test Engineering Studio Maven entry point, project/test-classpath bootstrap, split commit-safe and
   machine-local configuration, local browser and Codex CLI preflight, persistent reviewed workflows, and explicit
-  trusted repair approval. This is release-candidate preparation; 0.4.0 remains the latest published release.
-- Added a canonical Studio getting-started guide for the fully qualified `0.5.0-SNAPSHOT:studio` goal, including
+  trusted repair approval.
+- Added a canonical Studio getting-started guide for the fully qualified `0.5.0:studio` goal, including
   workspace ignore policy, security boundaries, preflight limits, and migration guidance that leaves 0.4.x runtime
   behavior unchanged.
+- Added deterministic Application Mapping, existing Page Object/source correlation, bounded usage graphs and agent
+  context, Page-Object-only generated-test validation, targeted compile/run orchestration, and evidence-based failure
+  classification and repair proposals.
+- Added local Chrome and Firefox browser providers plus provider-neutral browser and external-agent extension points.
 
 ### Fixed
+
+- Isolated the complete targeted JUnit lifecycle in a bounded child JVM so timeouts, interrupt-resistant tests,
+  crashes, and `System.exit(...)` cannot terminate or permanently block Studio; results use a strict versioned
+  protocol with bounded redacted output.
+- Replaced the client-side documentation-root redirect with a crawlable self-canonical version gateway, aligned
+  latest/historical/dev canonical and robots behavior, and added redirect, canonical, sitemap, and HTTP SEO gates.
 
 - Preserved per-operation source locations when semantic HUD rows advance to a terminal payload that omits repeated
   source metadata, and refined active source links with compact purple JetBrains Mono-first typography, distinct
@@ -266,7 +278,8 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 - Central Publisher Portal publication remains a manual, reviewed operation.
 - Legacy browser runtime aliases are still maintained for compatibility.
 
-[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.2.0...v0.3.0

@@ -1,9 +1,11 @@
 param(
     [Parameter(Mandatory)][string]$TestLensRepository,
-    [Parameter(Mandatory)][string]$ReleaseVersion
+    [Parameter(Mandatory)][string]$ReleaseVersion,
+    [string]$PublicationPolicyPath = (Join-Path $PSScriptRoot "config/publication-policy.json")
 )
 
 $ErrorActionPreference = "Stop"
+Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
 $repository = [IO.Path]::GetFullPath($TestLensRepository)
 if (-not (Test-Path -LiteralPath $repository -PathType Container)) {
     throw "Test Lens repository does not exist: $repository"
@@ -11,15 +13,8 @@ if (-not (Test-Path -LiteralPath $repository -PathType Container)) {
 $versionPath = Join-Path $repository ("io/github/test-lens")
 $jars = @(Get-ChildItem -LiteralPath $versionPath -Recurse -Filter "*-$ReleaseVersion.jar" |
     Where-Object { $_.Name -notmatch '-(sources|javadoc)\.jar$' })
-$expectedArtifactIds = @(
-    "selenium-test-lens-core",
-    "selenium-test-lens-overlay",
-    "selenium-test-lens",
-    "selenium-test-lens-react",
-    "selenium-test-lens-junit5",
-    "selenium-test-lens-testng",
-    "selenium-test-lens-allure"
-)
+$policy = Read-TestLensPublicationPolicy $PublicationPolicyPath
+$expectedArtifactIds = @($policy.Published | Where-Object { $_ -ne "selenium-test-lens-parent" } | Sort-Object -Unique)
 $actualArtifactIds = @($jars | ForEach-Object { $_.Directory.Parent.Name } | Sort-Object -Unique)
 $missingArtifactIds = @($expectedArtifactIds | Where-Object { $_ -notin $actualArtifactIds })
 $unexpectedArtifactIds = @($actualArtifactIds | Where-Object { $_ -notin $expectedArtifactIds })

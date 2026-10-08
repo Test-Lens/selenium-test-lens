@@ -2,8 +2,8 @@
 
 Application Mapper turns explicit browser observations into a deterministic, redacted model of an application. It is a tooling workflow built on the existing Selector Intelligence pipeline; it is not a background crawler and it does not change normal Test Lens execution.
 
-!!! warning "Development availability"
-    The application model, mapper, and tooling modules are source-only development work for 0.5.0. They are not included in the published `selenium-test-lens:0.4.0` artifact and are not available as supported Maven Central dependencies. Build and test these APIs from the current source reactor only. Do not present this page as an installation guide for 0.4.0.
+!!! info "Opt-in 0.5.0 tooling"
+    Application mapping is distributed for Test Engineering Studio as separate tooling artifacts. It is not pulled into the lightweight `selenium-test-lens` runtime, and technically public implementation classes are not automatically part of the stable USER API.
 
 The workflow has three deliberately separate layers:
 

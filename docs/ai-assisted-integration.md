@@ -10,7 +10,7 @@ Use the AI Integration Builder to prepare one complete prompt for a coding agent
 !!! tip "Start new integrations from latest"
     This page follows the current [`latest` documentation](https://test-lens.github.io/selenium-test-lens/latest/), which is the recommended starting point for a new integration. Older Test Lens versions and their documentation remain available and may still work correctly. They can produce a less complete or less effective integration because later releases may include fixes, improved APIs and lifecycle adapters, newer diagnostics and observability, or corrected integration patterns.
 
-The builder's selectable surface is the published 0.4.0 consumer boundary:
+The builder's selectable surface is the published 0.5.0 runtime consumer boundary:
 
 | Choice | Public artifact/API |
 |---|---|
@@ -20,7 +20,7 @@ The builder's selectable surface is the published 0.4.0 consumer boundary:
 | Allure evidence attachment | `selenium-test-lens-allure`; `AllureTestLens` |
 | React/SPA helpers | `selenium-test-lens-react`; `ReactSupport` and the documented helper types |
 
-Selector Intelligence/Lab, compatibility analysis and migration tooling are not builder choices because their reactor modules are not published consumer artifacts in 0.4.0. CI vendors, Grid and cloud providers are discovered constraints, not Test Lens feature adapters.
+Test Engineering Studio, compatibility analysis, migration tooling, and Selector Lab are not runtime-builder choices. Studio has its own Maven entry point; CI vendors, Grid, and cloud providers remain discovered constraints rather than Test Lens runtime feature adapters.
 
 ## AI Integration Builder
 

@@ -10,7 +10,7 @@ The optional `selenium-test-lens-testng` module defaults to one `WebDriver`, `Te
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-testng</artifactId>
-    <version>0.4.0</version>
+    <version>0.5.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -18,10 +18,10 @@ The optional `selenium-test-lens-testng` module defaults to one `WebDriver`, `Te
 Declare Selenium separately at the version selected by the test project. TestNG is a dependency of this adapter only; core, overlay, the main runtime, React, and the JUnit 5 adapter do not depend on it.
 
 Gradle Kotlin DSL uses
-`testImplementation("io.github.test-lens:selenium-test-lens-testng:0.4.0")`;
+`testImplementation("io.github.test-lens:selenium-test-lens-testng:0.5.0")`;
 Groovy DSL uses
-`testImplementation 'io.github.test-lens:selenium-test-lens-testng:0.4.0'`.
-These coordinates are part of the 0.4.0 release.
+`testImplementation 'io.github.test-lens:selenium-test-lens-testng:0.5.0'`.
+These coordinates are part of the 0.5.0 release.
 
 ## Factory and listener
 

@@ -10,7 +10,7 @@ hide:
 
 <img class="lens-home-logo" src="assets/brand/test-lens-logo-horizontal.png" alt="Selenium Test Lens" width="720" height="184">
 
-<span class="lens-release-badge">Current stable release: 0.4.0</span>
+<span class="lens-release-badge">Current stable release: 0.5.0</span>
 
 # Understand what your Selenium test did—and keep the evidence
 
@@ -24,7 +24,7 @@ Adopt it gradually: keep your runner, WebDriver factory, Page Objects, raw Selen
 [Integrate with AI](ai-assisted-integration.md){ .md-button }
 [Explore capabilities](#product-capabilities){ .md-button }
 
-<small>`latest` currently resolves to release 0.4.0. [Read what changed in 0.4.0](whats-new-0.4.0.md) or [browse exact public signatures](reference/public-api-catalog.md).</small>
+<small>`latest` serves release 0.5.0. [Read what changed in 0.5.0](whats-new-0.5.0.md) or [browse exact public signatures](reference/public-api-catalog.md).</small>
 
 </div>
 
@@ -245,7 +245,7 @@ The [AI Integration Builder](ai-assisted-integration.md) creates a version-bound
 
 | Surface | Requirement and boundary |
 |---|---|
-| Base library | Java 17+, the `io.github.test-lens:selenium-test-lens:0.4.0` artifact, and Selenium kept as an explicit consumer dependency. Lens attaches to a caller-owned driver. |
+| Base library | Java 17+, the `io.github.test-lens:selenium-test-lens:0.5.0` artifact, and Selenium kept as an explicit consumer dependency. Lens attaches to a caller-owned driver. |
 | JUnit 5 / TestNG | Optional published adapter artifacts. Use them only when the adapter should own the configured driver/session lifecycle. |
 | Allure | Optional `selenium-test-lens-allure` artifact and an active Allure lifecycle. It publishes finalized evidence; it is not the evidence collector. |
 | React/SPA | Optional `selenium-test-lens-react` artifact. Detection is based on observable DOM states and known markup conventions. |
@@ -253,9 +253,9 @@ The [AI Integration Builder](ai-assisted-integration.md) creates a version-bound
 | Source Navigation | Captured source metadata, an enabled feature, active navigation mode, valid local project mapping, and a supported local provider. |
 | Evidence and upload | Local files remain local unless the consumer or CI stores them, Allure attaches them, or `ReportUploader` explicitly sends a package. |
 
-Selector analysis, compatibility tooling, migration tooling, examples, and browser-test modules exist in the repository but are not published as consumer artifacts in 0.4.0. [See the maintained product capability inventory](maintainers/product-capability-map.md) for the release boundary and evidence behind this overview.
+Selector/application tooling and Studio are separately published implementation dependencies in 0.5.0; their technical Java surfaces are not all stable USER API. Compatibility tooling, migration tooling, Selector Lab, examples, and browser-test modules remain unpublished. [See the maintained product capability inventory](maintainers/product-capability-map.md) for the release boundary and evidence behind this overview.
 
-## What's new in 0.4.0
+## What's new in 0.5.0
 
 The product overview above describes the complete release. These are selected changes relative to earlier versions:
 
@@ -265,7 +265,7 @@ The product overview above describes the complete release. These are selected ch
 - TestNG `PER_CLASS` can reuse an adapter-owned driver for sequential methods while preserving a fresh Lens session per physical invocation.
 - Trace retention, source metadata, bounded Smart Click behavior, network startup diagnostics, and runner lifecycle contracts were strengthened.
 
-[Read the complete 0.4.0 release overview](whats-new-0.4.0.md) · [Read the changelog](https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md)
+[Read the complete 0.5.0 release overview](whats-new-0.5.0.md) · [Read the changelog](https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md)
 
 ## Explore the documentation
 

@@ -123,6 +123,7 @@ nav:
   - Migration:
       - From raw Selenium: migration.md
   - Releases:
+      - What's new in 0.5.0: whats-new-0.5.0.md
       - What's new in 0.4.0: whats-new-0.4.0.md
       - What's new in 0.3.1: whats-new-0.3.1.md
       - What's new in 0.3.0: whats-new-0.3.0.md
@@ -158,8 +159,8 @@ nav:
       - Compatibility run manifests: maintainers/compatibility-run-manifests.md
       - Migration Git preflight and checkpoints: maintainers/migration-git-checkpoints.md
       - Changelog: https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md
-      - Maven Central: https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.4.0
-      - Javadoc: https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.4.0/
+      - Maven Central: https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.0
+      - Javadoc: https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.0/
 markdown_extensions:
   - admonition
   - attr_list
@@ -190,16 +191,16 @@ validation:
 
 extra:
   ai_integration:
-    target_release: 0.4.0
+    target_release: 0.5.0
     public_docs_root: https://test-lens.github.io/selenium-test-lens/
   build:
     source_revision: !ENV [DOCS_SOURCE_REVISION, local-unverified]
   version:
     provider: mike
     default: latest
-    current: 0.5.0-SNAPSHOT
+    current: 0.5.0
     is_dev: true
-    is_snapshot: true
+    is_snapshot: false
     stable_url: https://test-lens.github.io/selenium-test-lens/latest/
   analytics:
     provider: google

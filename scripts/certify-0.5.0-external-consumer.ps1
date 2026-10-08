@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$Version = "0.5.0-SNAPSHOT",
+    [string]$Version = "0.5.0",
     [string]$MavenRepository,
     [switch]$SkipStage,
     [switch]$Firefox
@@ -26,7 +26,7 @@ Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot "fixtures/s15-external-consu
     Copy-Item -LiteralPath $_.FullName -Destination $consumer -Recurse
 }
 $consumerPom = Join-Path $consumer "pom.xml"
-$consumerPomText = [System.IO.File]::ReadAllText($consumerPom).Replace("0.5.0-SNAPSHOT", $Version)
+$consumerPomText = [System.IO.File]::ReadAllText($consumerPom).Replace("0.5.0", $Version)
 [System.IO.File]::WriteAllText($consumerPom, $consumerPomText, [System.Text.UTF8Encoding]::new($false))
 if ($Firefox) {
     $projectConfig = Join-Path $consumer ".test-lens/project.json"

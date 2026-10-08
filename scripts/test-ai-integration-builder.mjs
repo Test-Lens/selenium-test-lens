@@ -16,7 +16,7 @@ assert.equal(builder.VERSION_TOKEN, '{{TEST_LENS_TARGET_RELEASE}}');
 assert.deepEqual(Array.from(builder.BIDI_MINIMUM), [4, 39, 0]);
 
 const release = {
-  targetRelease: '0.4.0',
+  targetRelease: '0.5.0',
   publicDocsRoot: 'https://test-lens.github.io/selenium-test-lens/',
   sourceKind: 'release'
 };
@@ -24,24 +24,23 @@ const promptFor = options => builder.buildPrompt({ ...release, style: 'manual', 
 
 const latestTarget = builder.resolveDocumentationTarget({ ...release, sourceRevision: 'abc123' }, 'https://test-lens.github.io/selenium-test-lens/latest/ai-assisted-integration/');
 assert.equal(latestTarget.valid, true);
-assert.equal(latestTarget.docsBase, 'https://test-lens.github.io/selenium-test-lens/0.4.0/');
-const numericTarget = builder.resolveDocumentationTarget({ ...release, sourceRevision: 'abc123' }, 'https://test-lens.github.io/selenium-test-lens/0.4.0/ai-assisted-integration/');
+assert.equal(latestTarget.docsBase, 'https://test-lens.github.io/selenium-test-lens/0.5.0/');
+const numericTarget = builder.resolveDocumentationTarget({ ...release, sourceRevision: 'abc123' }, 'https://test-lens.github.io/selenium-test-lens/0.5.0/ai-assisted-integration/');
 assert.equal(numericTarget.valid, true);
 const devTarget = builder.resolveDocumentationTarget({ ...release, sourceKind: 'development' }, 'http://127.0.0.1:8000/selenium-test-lens/dev/ai-assisted-integration/');
 assert.equal(devTarget.valid, true);
-assert.equal(devTarget.docsBase, 'https://test-lens.github.io/selenium-test-lens/0.4.0/');
-assert.equal(builder.resolveDocumentationTarget({ ...release, targetRelease: '0.4.1' }, 'https://test-lens.github.io/selenium-test-lens/0.4.0/ai-assisted-integration/').valid, false);
+assert.equal(devTarget.docsBase, 'https://test-lens.github.io/selenium-test-lens/0.5.0/');
+assert.equal(builder.resolveDocumentationTarget({ ...release, targetRelease: '0.5.1' }, 'https://test-lens.github.io/selenium-test-lens/0.5.0/ai-assisted-integration/').valid, false);
 assert.equal(builder.resolveDocumentationTarget({ ...release, targetRelease: '' }, 'https://test-lens.github.io/selenium-test-lens/latest/').valid, false);
 assert.equal(builder.resolveDocumentationTarget({ ...release, publicDocsRoot: 'http://localhost:8000/' }, 'http://localhost:8000/').valid, false);
 
 const pinnedPrompt = promptFor({ capabilities: ['hud'] });
-assert.match(pinnedPrompt, /selenium-test-lens:0\.4\.0/);
-assert.match(pinnedPrompt, /https:\/\/test-lens\.github\.io\/selenium-test-lens\/0\.4\.0\//);
+assert.match(pinnedPrompt, /selenium-test-lens:0\.5\.0/);
+assert.match(pinnedPrompt, /https:\/\/test-lens\.github\.io\/selenium-test-lens\/0\.5\.0\//);
 assert.doesNotMatch(pinnedPrompt, /selenium-test-lens\/(?:latest|dev)\//);
 assert.doesNotMatch(pinnedPrompt, /localhost|127\.0\.0\.1|file:\/\//);
-const laterLatestPrompt = builder.buildPrompt({ ...release, targetRelease: '0.5.0', style: 'manual', capabilities: ['hud'] });
-assert.match(laterLatestPrompt, /selenium-test-lens:0\.5\.0/);
-assert.match(pinnedPrompt, /selenium-test-lens:0\.4\.0/, 'previous prompt meaning remains pinned');
+const repeatedPrompt = builder.buildPrompt({ ...release, style: 'manual', capabilities: ['hud'] });
+assert.equal(repeatedPrompt, pinnedPrompt, 'release prompt remains deterministically pinned');
 
 assert.equal(builder.seleniumAssessment('', true).kind, 'unknown');
 assert.equal(builder.seleniumAssessment('not-a-version', true).kind, 'invalid');

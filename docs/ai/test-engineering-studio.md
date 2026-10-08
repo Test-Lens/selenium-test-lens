@@ -1,16 +1,16 @@
 ---
 title: Test Engineering Studio
-description: Use the development Test Engineering Studio to scan a Selenium project, map its application, review generated tests, run them, and approve evidence-backed repairs.
+description: Use Test Engineering Studio 0.5.0 to scan a Selenium project, map its application, review generated tests, run them, and approve evidence-backed repairs.
 ---
 
 # Test Engineering Studio
 
-!!! warning "Development tooling"
-    Test Engineering Studio is source-only work for the next Test Lens release. It is not included in Maven 0.4.0 and is not a remotely hosted service.
+!!! info "Local opt-in tooling"
+    Test Engineering Studio 0.5.0 is launched explicitly from the Maven plugin. It is a loopback-only local tool, not a remotely hosted service or a background feature of the runtime dependency.
 
 Test Engineering Studio is a local, persistent interface over the deterministic Application Mapper, existing-Page-Object index, `ContextSlicer`, S12 agent workflow, targeted compiler and trusted repair boundary. It is separate from the runtime HUD.
 
-Start with the [Maven getting-started guide](test-engineering-studio-getting-started.md) for the canonical 0.5.0 development goal, project/local configuration split, preflight and repository policy.
+Start with the [Maven getting-started guide](test-engineering-studio-getting-started.md) for the canonical 0.5.0 goal, project/local configuration split, preflight and repository policy.
 
 ![Project overview populated by the browser fixture](../assets/media/test-engineering-studio/project-overview.png)
 

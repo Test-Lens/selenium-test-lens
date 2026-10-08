@@ -1,9 +1,9 @@
 # AI test workflow orchestration
 
-Test Lens 0.5.0 development tooling connects a verified application model and existing Page Object API to a provider-neutral, auditable test-engineering workflow. The deterministic layers decide what source exists, which elements it represents, what context is relevant, whether proposed Java compiles, and what the targeted test actually reported. An external agent reasons only over that bounded evidence.
+Test Lens 0.5.0 tooling connects a verified application model and existing Page Object API to a provider-neutral, auditable test-engineering workflow. The deterministic layers decide what source exists, which elements it represents, what context is relevant, whether proposed Java compiles, and what the targeted test actually reported. An external agent reasons only over that bounded evidence.
 
-!!! warning "Unpublished development API"
-    The workflow classes are source-only in `selenium-test-lens-application-tooling`. They are not part of the published 0.4.0 artifacts. No OpenAI, Anthropic, Gemini, or other provider SDK is included, and Test Lens does not contact an AI service.
+!!! info "Provider-neutral tooling"
+    The workflow is opt-in tooling. No OpenAI, Anthropic, Gemini, or other provider SDK is included, and Test Lens does not contact an AI service unless an explicitly selected external executor does so.
 
 ## Prepare source-aware context
 

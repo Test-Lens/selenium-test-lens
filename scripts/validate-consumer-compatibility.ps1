@@ -39,7 +39,7 @@ finally {
     if ($null -ne $prepared -and ($succeeded -or -not $KeepWorkDirectoryOnFailure)) {
         Remove-TestLensTemporaryDirectory `
             -Path $prepared.WorkDirectory `
-            -RequiredNamePrefix "selenium-test-lens-clean-room-"
+            -RequiredNamePrefix "tlcr-"
     } elseif ($null -ne $prepared) {
         Write-Warning "Preserved compatibility work directory: $($prepared.WorkDirectory)"
     }

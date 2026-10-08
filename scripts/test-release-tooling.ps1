@@ -8,7 +8,7 @@ $consumerRoot = Join-Path $testRoot "consumer without git"
 Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
 
 $publicationPolicy = Read-TestLensPublicationPolicy (Join-Path $PSScriptRoot "config/publication-policy.json")
-if ($publicationPolicy.LatestReleasedVersion -ne "0.4.0") {
+if ($publicationPolicy.LatestReleasedVersion -ne "0.5.0") {
     throw "Latest released version guard regression"
 }
 foreach ($role in @("PUBLISHED_STABLE", "PUBLISHED_TOOLING", "INTERNAL", "TEST_ONLY", "DEMO", "FUTURE")) {
@@ -115,21 +115,28 @@ try {
     Assert-Throws { & (Join-Path $PSScriptRoot "validate-release-packaging.ps1") -RepositoryRoot $fixtureRoot -MatrixOnly } "internal module deploy enabled"
     [IO.File]::WriteAllText($internalPom, $originalInternal)
 
-    [IO.File]::WriteAllText($corePom, $originalCore.Replace('<version>0.5.0-SNAPSHOT</version>', '<version>9.9.9</version>'))
+    [IO.File]::WriteAllText($corePom, $originalCore.Replace('<version>0.5.0</version>', '<version>9.9.9</version>'))
     Assert-Throws { & (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot } "wrong module version"
     [IO.File]::WriteAllText($corePom, $originalCore)
 
     $trackedPoms = @(& git -C $fixtureRoot ls-files -- "pom.xml" ":(glob)**/pom.xml")
     foreach ($relative in $trackedPoms) {
         $path = Join-Path $fixtureRoot $relative
-        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.0-SNAPSHOT", "0.4.0-SNAPSHOT"))
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.0", "0.5.1"))
     }
     Assert-ThrowsLike {
         & (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot
-    } "*must be newer than latest local release tag 'v0.4.0'*" "development version reuses latest release"
+    } "*must equal publication policy latestReleasedVersion '0.5.0'*" "release version differs from policy"
     foreach ($relative in $trackedPoms) {
         $path = Join-Path $fixtureRoot $relative
-        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.4.0-SNAPSHOT", "0.5.0-SNAPSHOT"))
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.1", "0.5.0-SNAPSHOT"))
+    }
+    Assert-ThrowsLike {
+        & (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot
+    } "*must be newer than declared released version '0.5.0'*" "development version reuses declared release"
+    foreach ($relative in $trackedPoms) {
+        $path = Join-Path $fixtureRoot $relative
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.0-SNAPSHOT", "0.5.0"))
     }
 
     $browserPom = Join-Path $fixtureRoot "selenium-test-lens-browser-tests/pom.xml"
@@ -145,7 +152,7 @@ try {
     Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.5.0" -WhatIf } "non-patch target"
     foreach ($pomPath in @(git -C $fixtureRoot ls-files -- "pom.xml" ":(glob)**/pom.xml")) {
         $path = Join-Path $fixtureRoot $pomPath
-        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.0-SNAPSHOT", "0.5.1-SNAPSHOT"))
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.0", "0.5.1-SNAPSHOT"))
     }
     & git -C $fixtureRoot add -- pom.xml */pom.xml
     & git -C $fixtureRoot -c user.name=release-fixture -c user.email=release-fixture.invalid commit -q -m patch-snapshot
