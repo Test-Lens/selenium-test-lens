@@ -50,6 +50,16 @@ function Read-TestLensPublicationPolicy([string]$Path) {
     if ($duplicates.Count -gt 0) {
         throw "Publication policy classifies artifacts more than once: $($duplicates -join ', ')"
     }
+    $nonReactorPomPaths = @($policy.nonReactorPomPaths | ForEach-Object { $_.ToString().Trim().Replace('\','/') } | Where-Object { $_ })
+    foreach ($path in $nonReactorPomPaths) {
+        if ($path -notmatch '^[^/].*/pom\.xml$' -or $path.Contains('../') -or [IO.Path]::IsPathRooted($path)) {
+            throw "Publication policy nonReactorPomPaths contains an unsafe path: $path"
+        }
+    }
+    $duplicatePomPaths = @($nonReactorPomPaths | Group-Object | Where-Object Count -gt 1 | ForEach-Object Name)
+    if ($duplicatePomPaths.Count -gt 0) {
+        throw "Publication policy classifies non-reactor POM paths more than once: $($duplicatePomPaths -join ', ')"
+    }
     return [pscustomobject]@{
         Published = @($published)
         Nonpublished = @($nonpublished)
@@ -63,6 +73,7 @@ function Read-TestLensPublicationPolicy([string]$Path) {
         LatestReleasedVersion = $latestReleasedVersion
         Classified = @($classified)
         CentralExcluded = @($nonpublished | Sort-Object -Unique)
+        NonReactorPomPaths = @($nonReactorPomPaths)
     }
 }
 
@@ -158,8 +169,14 @@ function Get-TestLensReactorModel {
     $tracked = @($trackedOutput | ForEach-Object { $_.ToString().Replace('\','/') } | Sort-Object -Unique)
     $expectedKnown = @("pom.xml") + @($knownModules | ForEach-Object { $_.TrimEnd('/','\').Replace('\','/') + "/pom.xml" })
     $expectedKnown = @($expectedKnown | Sort-Object -Unique)
+    $publicationPolicy = Read-TestLensPublicationPolicy $PublicationPolicyPath
+    $nonReactorPomPaths = @($publicationPolicy.NonReactorPomPaths)
+    $missingNonReactorPoms = @($nonReactorPomPaths | Where-Object { $_ -notin $tracked })
+    if ($missingNonReactorPoms.Count -gt 0) {
+        throw "Publication policy non-reactor POM paths are missing or untracked: $($missingNonReactorPoms -join ', ')"
+    }
     $missing = @($expectedKnown | Where-Object { $_ -notin $tracked })
-    $unexpected = @($tracked | Where-Object { $_ -notin $expectedKnown })
+    $unexpected = @($tracked | Where-Object { $_ -notin $expectedKnown -and $_ -notin $nonReactorPomPaths })
     if ($missing.Count -gt 0) { throw "Reactor POMs are missing or untracked: $($missing -join ', ')" }
     if ($unexpected.Count -gt 0) { throw "Tracked POMs are not classified by the root Maven module graph: $($unexpected -join ', ')" }
 

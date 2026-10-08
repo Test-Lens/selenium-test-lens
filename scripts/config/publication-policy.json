@@ -1,6 +1,9 @@
 {
   "schemaVersion": 2,
   "latestReleasedVersion": "0.4.0",
+  "nonReactorPomPaths": [
+    "scripts/fixtures/s15-external-consumer/pom.xml"
+  ],
   "roles": {
     "PUBLISHED_STABLE": [
       "selenium-test-lens-parent",

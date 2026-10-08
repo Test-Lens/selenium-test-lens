@@ -19,6 +19,9 @@ foreach ($role in @("PUBLISHED_STABLE", "PUBLISHED_TOOLING", "INTERNAL", "TEST_O
 if ("selenium-test-lens-selector-tooling" -notin $publicationPolicy.PublishedTooling) {
     throw "Selector tooling must be a published tooling dependency"
 }
+if ($publicationPolicy.NonReactorPomPaths -notcontains "scripts/fixtures/s15-external-consumer/pom.xml") {
+    throw "Clean-room consumer POM must be classified as a non-reactor test fixture"
+}
 
 function Assert-Throws([scriptblock]$Action, [string]$Name) {
     try { & $Action | Out-Null } catch { return }
@@ -41,7 +44,7 @@ try {
         Copy-Item -LiteralPath (Join-Path $repositoryRoot $relative) -Destination $destination
     }
     & git -C $fixtureRoot init -q
-    & git -C $fixtureRoot add -- pom.xml */pom.xml
+    & git -C $fixtureRoot add -- .
     if ($LASTEXITCODE -ne 0) { throw "Cannot initialize release-tooling fixture" }
     & git -C $fixtureRoot -c user.name=release-fixture -c user.email=release-fixture.invalid commit -q -m initial
     if ($LASTEXITCODE -ne 0) { throw "Cannot commit release-tooling fixture" }
@@ -79,6 +82,9 @@ try {
         }
         if ($model.TrackedPomPaths -contains "nested disposable fixture/pom.xml") {
             throw "Untracked fixture POM was included in tracked reactor metadata"
+        }
+        if ($model.TrackedPomPaths -notcontains "scripts/fixtures/s15-external-consumer/pom.xml") {
+            throw "Tracked clean-room fixture POM was not observed by the release model"
         }
         $normal = @(& (Join-Path $PSScriptRoot "check-reactor-versions.ps1") `
             -RepositoryRoot $fixtureRoot -ReleaseSourceRoot $releaseSourceRoot)
