@@ -47,7 +47,9 @@ it only uploads the complete current `gh-pages` branch.
 To repair the generated documentation of an already published release, use the exceptional manual
 `redeploy-release` operation. Supply the existing `MAJOR.MINOR.PATCH`, the exact
 `release/MAJOR.MINOR.PATCH` source ref, and confirmation `redeploy-docs-MAJOR.MINOR.PATCH`. This
-rebuilds only that version, moves `latest` to it, and sets the root default to `latest`. It does not
+source ref must branch from the immutable release tag and contain only an approved documentation/release-support
+repair. The workflow compares it with `vMAJOR.MINOR.PATCH` and rejects runtime, API, POM, or unrelated CI changes.
+It rebuilds only that version, moves `latest` to it, and sets the root default to `latest`. It does not
 move the release tag and must never be used to change the semantics of an already released API.
 Normal tag-driven `release` publication remains immutable and rejects an existing version.
 
