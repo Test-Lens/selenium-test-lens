@@ -278,7 +278,26 @@ class TestEngineeringStudioBrowserIT {
     private static void awaitText(WebDriver driver,String text) { new WebDriverWait(driver,Duration.ofSeconds(30)).until(d -> d.findElement(By.tagName("body")).getText().contains(text)); }
     private static String quote(String value) { return "'"+value.replace("'","")+"'"; }
     private static void screenshot(WebDriver driver,String name) throws Exception { Path out=Path.of("target","studio-screenshots",name+"-"+System.getProperty("studio.browser","chrome")+".png");Files.createDirectories(out.getParent());Files.write(out,((TakesScreenshot)driver).getScreenshotAs(OutputType.BYTES)); }
-    private static WebDriver driver() { if("firefox".equalsIgnoreCase(System.getProperty("studio.browser","chrome")))return new FirefoxDriver(new FirefoxOptions().addArguments("-headless").addArguments("--width=1440","--height=1000"));return new ChromeDriver(new ChromeOptions().addArguments("--headless=new","--window-size=1440,1000","--disable-gpu","--no-sandbox")); }
+    private static WebDriver driver() {
+        if ("firefox".equalsIgnoreCase(System.getProperty("studio.browser", "chrome"))) {
+            return new FirefoxDriver(firefoxOptions());
+        }
+        return new ChromeDriver(chromeOptions());
+    }
+
+    static ChromeOptions chromeOptions() {
+        ChromeOptions options = new ChromeOptions();
+        String configuredBinary = System.getProperty("test.chrome.binary", "").trim();
+        if (!configuredBinary.isEmpty()) options.setBinary(configuredBinary);
+        return options.addArguments("--headless=new", "--window-size=1440,1000", "--disable-gpu", "--no-sandbox");
+    }
+
+    private static FirefoxOptions firefoxOptions() {
+        FirefoxOptions options = new FirefoxOptions();
+        String configuredBinary = System.getProperty("test.firefox.binary", "").trim();
+        if (!configuredBinary.isEmpty()) options.setBinary(configuredBinary);
+        return options.addArguments("-headless").addArguments("--width=1440", "--height=1000");
+    }
     private ExistingProjectIndex indexProject(){return new ExistingProjectIndexer().index(new ExistingProjectIndexer.Request(project,List.of(project.resolve("src/test/java")),List.of()));}
     private static ApplicationModel.ElementModel loginButton(ApplicationModel model){List<ApplicationModel.ElementModel> elements=model.pages().stream().flatMap(page->page.elements().stream()).toList();return elements.stream().filter(element->element.preferredSelector()!=null&&(element.preferredSelector().value().contains("old-login-button")||element.preferredSelector().value().contains("login-submit"))).findFirst().orElseThrow(()->new AssertionError("Login button missing: "+elements.stream().map(value->value.semanticName()+"="+(value.preferredSelector()==null?"none":value.preferredSelector().value())).toList()));}
 
