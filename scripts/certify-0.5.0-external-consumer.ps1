@@ -74,8 +74,32 @@ function Start-Studio([string]$suffix) {
 
 function Invoke-StudioAction($session, [string]$origin, [string]$token, [hashtable]$body) {
     Write-Host ("Studio action: " + $body.action)
-    return Invoke-RestMethod -Uri ($origin + "api/actions") -Method Post -WebSession $session `
-        -Headers @{ Origin = $origin.TrimEnd('/'); "X-Test-Lens-Session" = $token } -ContentType "application/json" -Body ($body | ConvertTo-Json -Compress)
+    try {
+        return Invoke-RestMethod -Uri ($origin + "api/actions") -Method Post -WebSession $session `
+            -Headers @{ Origin = $origin.TrimEnd('/'); "X-Test-Lens-Session" = $token } -ContentType "application/json" -Body ($body | ConvertTo-Json -Compress)
+    } catch {
+        $serverError = if ([string]::IsNullOrWhiteSpace($_.ErrorDetails.Message)) { $_.Exception.Message } else { $_.ErrorDetails.Message.Trim() }
+        try {
+            $status = Invoke-RestMethod -Uri ($origin + "api/status") -WebSession $session
+            $project = Invoke-RestMethod -Uri ($origin + "api/project") -WebSession $session
+            $configuration = Invoke-RestMethod -Uri ($origin + "api/config") -WebSession $session
+            $enabledActions = @($project.stage.actions | Where-Object enabled | ForEach-Object id)
+            $diagnostic = [ordered]@{
+                operationRunning = [bool]$status.operationRunning
+                projectStatus = $project.status
+                stageStatus = $project.stage.status
+                availableActions = $enabledActions
+                browserCapability = $configuration.browserCapability
+                agentCapability = $configuration.agentCapability
+                compilationCapability = $configuration.compilationCapability
+                limitations = @($project.limitations)
+            } | ConvertTo-Json -Compress -Depth 6
+            if ($diagnostic.Length -gt 4096) { $diagnostic = $diagnostic.Substring(0, 4096) + "...[truncated]" }
+        } catch {
+            $diagnostic = "read-only diagnostic unavailable: $($_.Exception.Message)"
+        }
+        throw "Studio action $($body.action) failed: $serverError; readOnlyState=$diagnostic"
+    }
 }
 
 function Wait-StudioActionAvailable($session, [string]$origin, [string]$action, [TimeSpan]$timeout = ([TimeSpan]::FromSeconds(30))) {

@@ -9,6 +9,7 @@ import org.openqa.selenium.manager.SeleniumManager;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Lazy local provider. Selenium Manager is consulted only by an explicit preflight/open call,
@@ -16,6 +17,7 @@ import java.util.Objects;
  * @since 0.5.0
  */
 public final class DefaultLocalBrowserSessionProvider implements BrowserSessionProvider {
+    static final String SELENIUM_BROWSER_PATH = "SE_BROWSER_PATH";
     private final BrowserPreflightProbe probe;
     private final LocalDriverFactory driverFactory;
 
@@ -64,7 +66,15 @@ public final class DefaultLocalBrowserSessionProvider implements BrowserSessionP
             case CHROME -> "chrome";
             case FIREFOX -> "firefox";
         };
-        var paths = SeleniumManager.getInstance().getBinaryPaths(List.of("--browser", browserName));
+        var arguments = new java.util.ArrayList<>(List.of("--browser", browserName));
+        if (request.browser() == Browser.CHROME) {
+            String configuredBinary = configuredBrowserPath(System::getenv);
+            if (configuredBinary != null) {
+                arguments.add("--browser-path");
+                arguments.add(configuredBinary);
+            }
+        }
+        var paths = SeleniumManager.getInstance().getBinaryPaths(arguments);
         return paths.getDriverPath() == null || paths.getDriverPath().isBlank()
                 ? BrowserAvailability.NOT_AVAILABLE
                 : BrowserAvailability.AVAILABLE;
@@ -73,9 +83,7 @@ public final class DefaultLocalBrowserSessionProvider implements BrowserSessionP
     private static WebDriver createLocalDriver(BrowserRequest request) {
         return switch (request.browser()) {
             case CHROME -> {
-                ChromeOptions options = new ChromeOptions();
-                if (request.headless()) options.addArguments("--headless=new");
-                yield new ChromeDriver(options);
+                yield new ChromeDriver(chromeOptions(request, System::getenv));
             }
             case FIREFOX -> {
                 FirefoxOptions options = new FirefoxOptions();
@@ -83,6 +91,19 @@ public final class DefaultLocalBrowserSessionProvider implements BrowserSessionP
                 yield new FirefoxDriver(options);
             }
         };
+    }
+
+    static ChromeOptions chromeOptions(BrowserRequest request, Function<String, String> environment) {
+        ChromeOptions options = new ChromeOptions();
+        String configuredBinary = configuredBrowserPath(environment);
+        if (configuredBinary != null) options.setBinary(configuredBinary);
+        if (request.headless()) options.addArguments("--headless=new");
+        return options;
+    }
+
+    private static String configuredBrowserPath(Function<String, String> environment) {
+        String value = Objects.toString(environment.apply(SELENIUM_BROWSER_PATH), "").trim();
+        return value.isEmpty() ? null : value;
     }
 
     @FunctionalInterface

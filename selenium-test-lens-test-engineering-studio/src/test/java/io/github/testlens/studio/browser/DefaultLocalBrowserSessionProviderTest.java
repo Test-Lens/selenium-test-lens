@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 
 import java.lang.reflect.Proxy;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -75,6 +76,20 @@ class DefaultLocalBrowserSessionProviderTest {
         assertEquals(0, creates.get());
     }
 
+    @Test
+    void configuredSeleniumBrowserPathWinsOverDefaultChromeDiscovery() {
+        BrowserRequest request = request(Ownership.STUDIO_OWNED);
+
+        var configured = DefaultLocalBrowserSessionProvider.chromeOptions(request,
+                name -> name.equals(DefaultLocalBrowserSessionProvider.SELENIUM_BROWSER_PATH)
+                        ? "/toolcache/chrome-155/chrome" : null);
+        var defaults = DefaultLocalBrowserSessionProvider.chromeOptions(request, ignored -> null);
+
+        assertEquals("/toolcache/chrome-155/chrome", chromeOptions(configured).get("binary"));
+        assertFalse(chromeOptions(defaults).containsKey("binary"),
+                "an absent SE_BROWSER_PATH must preserve Selenium's default discovery");
+    }
+
     private static DefaultLocalBrowserSessionProvider provider(BrowserAvailability availability,
                                                                AtomicInteger probes,
                                                                AtomicInteger creates,
@@ -108,5 +123,10 @@ class DefaultLocalBrowserSessionProviderTest {
         if (type == float.class) return 0F;
         if (type == double.class) return 0D;
         return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> chromeOptions(org.openqa.selenium.chrome.ChromeOptions options) {
+        return (Map<String, Object>) options.asMap().get(org.openqa.selenium.chrome.ChromeOptions.CAPABILITY);
     }
 }

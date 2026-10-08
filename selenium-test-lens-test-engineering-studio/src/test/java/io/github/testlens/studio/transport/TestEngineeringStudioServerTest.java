@@ -1,6 +1,8 @@
 package io.github.testlens.studio.transport;
 
 import io.github.testlens.studio.TestEngineeringStudioService;
+import io.github.testlens.studio.browser.*;
+import io.github.testlens.studio.projection.StudioProjections.Capability;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -31,6 +33,30 @@ class TestEngineeringStudioServerTest {
             assertEquals(400,client.send(forged,HttpResponse.BodyHandlers.discarding()).statusCode());
             assertTrue(server.uri().getHost().equals("127.0.0.1")||server.uri().getHost().equals("0:0:0:0:0:0:0:1"));
             assertTrue(java.util.Base64.getUrlDecoder().decode(server.sessionToken()).length>=32);
+        }
+    }
+
+    @Test void reportsBrowserSessionCreationFailureWithoutExposingExceptionDetails() throws Exception {
+        BrowserSessionProvider provider=new BrowserSessionProvider(){
+            @Override public BrowserAvailability preflight(BrowserRequest request){return BrowserAvailability.AVAILABLE;}
+            @Override public BrowserSession open(BrowserRequest request){throw new IllegalStateException("Unable to open local CHROME session",new IllegalStateException("sensitive driver detail"));}
+        };
+        var service=new TestEngineeringStudioService(new TestEngineeringStudioService.Configuration(root,List.of(),List.of(),List.of(),"fixture"),null,provider,root.resolve(".test-lens"));
+        service.attachCapabilities(new Capability("AVAILABLE","test"),new Capability("NOT_AVAILABLE","test"),new Capability("AVAILABLE","test"));
+        try(var server=new TestEngineeringStudioServer(service)){
+            server.start();HttpClient client=HttpClient.newHttpClient();URI actions=server.uri().resolve("api/actions");
+            var request=HttpRequest.newBuilder(actions)
+                    .header(TestEngineeringStudioServer.TOKEN_HEADER,server.sessionToken())
+                    .header("Origin",server.uri().toString().replaceAll("/$",""))
+                    .header("Content-Type","application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString("{\"action\":\"MAP_APPLICATION\",\"mode\":\"CURRENT_PAGE\"}"))
+                    .build();
+
+            var response=client.send(request,HttpResponse.BodyHandlers.ofString());
+
+            assertEquals(409,response.statusCode());
+            assertTrue(response.body().contains("BROWSER_SESSION_FAILED"));
+            assertFalse(response.body().contains("sensitive driver detail"));
         }
     }
 }

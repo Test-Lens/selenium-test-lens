@@ -120,7 +120,12 @@ public final class TestEngineeringStudioServer implements AutoCloseable {
     private static long parseLength(String value){if(value==null)return-1;try{return Long.parseLong(value);}catch(NumberFormatException failure){throw new IllegalArgumentException("Content-Length");}}
     private static String randomToken(){byte[] bytes=new byte[32];new SecureRandom().nextBytes(bytes);return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);}
     private static boolean constantTime(String expected,String actual){if(actual==null)return false;byte[] left=expected.getBytes(StandardCharsets.US_ASCII),right=actual.getBytes(StandardCharsets.US_ASCII);int difference=left.length^right.length;for(int i=0;i<left.length;i++)difference|=left[i]^(i<right.length?right[i]:0);return difference==0;}
-    private static String safeCode(String message){return message!=null&&message.contains("already running")?"OPERATION_IN_PROGRESS":"STATE_CONFLICT";}
+    private static String safeCode(String message){
+        if(message!=null&&message.contains("already running"))return "OPERATION_IN_PROGRESS";
+        if(message!=null&&message.startsWith("Unable to open local "))return "BROWSER_SESSION_FAILED";
+        if(message!=null&&(message.startsWith("Local browser is not available")||message.startsWith("No browser session provider")))return "BROWSER_UNAVAILABLE";
+        return "STATE_CONFLICT";
+    }
     private static void sendJson(HttpExchange exchange,int status,Object body)throws IOException{byte[] bytes=StrictJson.write(body);exchange.getResponseHeaders().set("Content-Type","application/json; charset=utf-8");exchange.sendResponseHeaders(status,bytes.length);exchange.getResponseBody().write(bytes);}
     private static void sendError(HttpExchange exchange,int status,String code)throws IOException{sendJson(exchange,status,Map.of("error",code));}
     private static final class PayloadTooLargeException extends IOException{}
