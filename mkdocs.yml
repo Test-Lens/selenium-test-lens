@@ -141,6 +141,7 @@ nav:
       - Existing-project AI workflow ADR: maintainers/existing-project-ai-workflow-architecture.md
       - Consumer compatibility: consumer-compatibility.md
       - Publishing versioned docs: maintainers/documentation-versioning.md
+      - Search Console recovery: maintainers/search-console-recovery.md
       - Releasing Test Lens 0.4.x: maintainers/release-0.4.x.md
       - 0.4.0 release certification: maintainers/release-certification-0.4.0.md
       - 0.4.0 media inventory: maintainers/media-inventory-0.4.0.md

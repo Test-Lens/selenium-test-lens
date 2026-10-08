@@ -22,6 +22,9 @@
   <meta name="twitter:title" content="{{ social_title | striptags | e }}">
   <meta name="twitter:description" content="{{ social_description | e }}">
   <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+  {% if config.extra.version.is_dev %}
+    <meta name="robots" content="noindex,follow">
+  {% endif %}
   {% if config.extra.ai_integration is defined %}
     <meta name="test-lens-integration-target" content="{{ config.extra.ai_integration.target_release | e }}">
     <meta name="test-lens-docs-public-root" content="{{ config.extra.ai_integration.public_docs_root | e }}">

@@ -42,6 +42,53 @@ function Invoke-GitPush {
     }
 }
 
+function Publish-RootSeoFiles {
+    param(
+        [Parameter(Mandatory=$true)][string]$Branch,
+        [switch]$NoPush
+    )
+
+    $worktree = Join-Path ([IO.Path]::GetTempPath()) ("test-lens-docs-root-" + [guid]::NewGuid().ToString("N"))
+    & git worktree add $worktree $Branch
+    if ($LASTEXITCODE -ne 0) { throw "Unable to create a temporary worktree for documentation SEO files." }
+    try {
+        $utf8 = [Text.UTF8Encoding]::new($false)
+        $sitemap = @'
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://test-lens.github.io/selenium-test-lens/latest/sitemap.xml</loc>
+  </sitemap>
+</sitemapindex>
+'@
+        $robots = @'
+User-agent: *
+Allow: /
+Disallow: /selenium-test-lens/dev/
+Sitemap: https://test-lens.github.io/selenium-test-lens/sitemap.xml
+'@
+        [IO.File]::WriteAllText((Join-Path $worktree "sitemap.xml"), $sitemap.TrimStart(), $utf8)
+        [IO.File]::WriteAllText((Join-Path $worktree "robots.txt"), $robots.TrimStart(), $utf8)
+
+        Push-Location $worktree
+        try {
+            & git add -- sitemap.xml robots.txt
+            if ($LASTEXITCODE -ne 0) { throw "Unable to stage documentation SEO files." }
+            $changes = @(& git status --porcelain -- sitemap.xml robots.txt)
+            if ($changes.Count -gt 0) {
+                & git commit -m "docs: publish crawlable documentation entry metadata"
+                if ($LASTEXITCODE -ne 0) { throw "Unable to commit documentation SEO files." }
+            }
+        } finally {
+            Pop-Location
+        }
+    } finally {
+        & git worktree remove --force $worktree
+        if ($LASTEXITCODE -ne 0) { throw "Unable to remove the temporary documentation SEO worktree." }
+    }
+    if (-not $NoPush) { Invoke-GitPush -RefSpec "$Branch`:$Branch" }
+}
+
 Push-Location $root
 try {
     Invoke-Mike -Arguments @("--version") -FailureMessage "Unable to read the pinned mike version"
@@ -109,9 +156,14 @@ try {
     }
     Invoke-Mike -Arguments $deployArguments -FailureMessage $deployFailure
 
-    [string[]]$defaultArguments = @("set-default", "latest", "--branch", $Branch)
+    [string[]]$defaultArguments = @(
+        "set-default", "latest",
+        "--branch", $Branch,
+        "--template", "overrides/mike-root.html"
+    )
     if (-not $NoPush) { $defaultArguments += "--push" }
-    Invoke-Mike -Arguments $defaultArguments -FailureMessage "mike failed to set root default to latest"
+    Invoke-Mike -Arguments $defaultArguments -FailureMessage "mike failed to publish the crawlable documentation root"
+    Publish-RootSeoFiles -Branch $Branch -NoPush:$NoPush
 } finally {
     Pop-Location
 }

@@ -125,6 +125,7 @@ try {
     $fixtureScripts = Join-Path $repo "scripts"
     New-Item -ItemType Directory -Path $fixtureScripts | Out-Null
     Copy-Item -LiteralPath (Join-Path $root "scripts/publish-versioned-docs.ps1") -Destination $fixtureScripts
+    Copy-Item -LiteralPath (Join-Path $root "scripts/check-doc-seo.ps1") -Destination $fixtureScripts
     Copy-Item -LiteralPath (Join-Path $root "docs-hooks") -Destination $repo -Recurse
     $runtimeSource = Join-Path $root "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"
     $runtimeFixture = Join-Path $repo "selenium-test-lens-overlay/src/main/resources/uitestlens/runtime"
@@ -276,7 +277,7 @@ try {
         foreach ($requiredArgument in @(
             "mike arguments: deploy 0.2.0 latest",
             "--update-aliases",
-            "mike arguments: set-default latest --branch gh-pages"
+            "mike arguments: set-default latest --branch gh-pages --template overrides/mike-root.html"
         )) {
             if (-not $redeployText.Contains($requiredArgument)) {
                 throw "Redeploy mike arguments missing: $requiredArgument"
@@ -298,7 +299,9 @@ try {
             throw "redeploy-release did not retain latest on repaired 0.2.0."
         }
         $redeployedRoot = [IO.File]::ReadAllText((Join-Path $redeployStage "index.html"))
-        if (-not $redeployedRoot.Contains('url=latest/')) { throw "redeploy-release did not set root default to latest." }
+        if ($redeployedRoot.Contains('window.location.replace') -or -not $redeployedRoot.Contains('href="latest/"')) {
+            throw "redeploy-release did not preserve the crawlable root entry linking to latest."
+        }
         if ((TreeHash (Join-Path $redeployStage "latest")) -ne (TreeHash (Join-Path $redeployStage "0.2.0"))) {
             throw "redeploy-release latest alias differs from repaired 0.2.0."
         }
@@ -423,13 +426,18 @@ try {
         }
         $stableGuide = [IO.File]::ReadAllText((Join-Path $stage2 "$latestStableVersion/getting-started/index.html"))
         if (-not $stableGuide.Contains("edit/v$latestStableVersion/docs/getting-started.md")) { throw "Tagged release edit link does not target its tag." }
-        $rootRedirect = [IO.File]::ReadAllText((Join-Path $stage2 "index.html"))
-        if (-not $rootRedirect.Contains('url=latest/')) { throw "Root default does not redirect to latest." }
+        $rootLanding = [IO.File]::ReadAllText((Join-Path $stage2 "index.html"))
+        if ($rootLanding.Contains('window.location.replace') -or $rootLanding.Contains('http-equiv="refresh"')) {
+            throw "Root documentation entry must contain crawlable content, not a client redirect."
+        }
+        if (-not $rootLanding.Contains('href="latest/"')) { throw "Root documentation entry does not link directly to latest." }
+        & ./scripts/check-doc-seo.ps1 -SiteDirectory $stage2 -CurrentVersion $latestStableVersion -HistoricalVersion "0.2.0"
+        if ($LASTEXITCODE -ne 0) { throw "Documentation SEO contract validation failed." }
         if ((TreeHash (Join-Path $stage2 "latest")) -ne (TreeHash (Join-Path $stage2 $latestStableVersion))) {
             throw "latest does not serve the published stable $latestStableVersion documentation."
         }
         Write-Host ("Versioned docs metadata: " + ($versions | ConvertTo-Json -Compress))
-        Write-Host "Versioned docs simulation OK: dev=$developmentTitle; latest/root=$latestStableVersion; history preserved."
+        Write-Host "Versioned docs simulation OK: dev=$developmentTitle; latest=$latestStableVersion; crawlable root and history preserved."
         $ok = $true
     } finally { Pop-Location }
 } finally {

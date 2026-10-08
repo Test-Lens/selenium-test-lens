@@ -15,7 +15,10 @@ versions: verify the symbol against the corresponding release tag before adding 
 - `/dev/` is rebuilt from `main`; its display name is read from the root POM. A release-preparation commit may temporarily make it mirror the release version until the post-release snapshot bump. It never moves `latest`.
 - A `vMAJOR.MINOR.PATCH` tag is accepted only when every reactor POM has that exact non-snapshot version. The immutable version must not already exist. The workflow publishes from the tagged commit, assigns `latest`, and sets the root default to `latest`.
 - `/0.1.0/` uses the archived sources in `docs-versions/0.1.0`, because tag `v0.1.0` predates the complete MkDocs site. Its edit link is disabled.
-- The root URL and `/latest/` resolve to the latest stable release, never to `dev`.
+- The root URL is a crawlable, self-canonical documentation gateway that links directly to `/latest/`; it is not
+  a JavaScript or meta-refresh redirect. `/latest/` directly serves the latest stable release, never `dev`.
+- The root sitemap index references only `/latest/sitemap.xml`. Development pages are `noindex,follow` and are
+  excluded from the production sitemap.
 
 The AI Integration Builder is bound at build time to `extra.ai_integration.target_release`. Development pages label that stable consumer target explicitly; release builds override it from `DOCS_RELEASE_VERSION`. The rendered HTML also records the checked-out source revision and whether the source is `development` or `release`. Coordinates and copied API links use the numeric target path, never the page's potentially moving `/latest/`, `/dev/`, localhost, or filesystem URL. `scripts/check-ai-integration-builder.ps1` fails the build when these metadata contracts disagree or are missing.
 
@@ -36,7 +39,7 @@ The bootstrap is complete. Its workflow operation deliberately refuses to overwr
 
 ## Verification and recovery
 
-Run `./scripts/validate-versioned-docs.ps1` locally in PowerShell 7. It creates a disposable Git repository, bootstraps stable and dev documentation, hashes 0.1.0 across a dev redeploy, rejects a duplicate stable deployment, simulates the next stable release, and removes the temporary repository. `mike list --branch gh-pages` in a read-only clone shows deployed metadata.
+Run `./scripts/validate-versioned-docs.ps1` locally in PowerShell 7. It creates a disposable Git repository, bootstraps stable and dev documentation, hashes 0.1.0 across a dev redeploy, rejects a duplicate stable deployment, simulates the next stable release, validates the crawlable root/canonical/sitemap/redirect contract over local HTTP, and removes the temporary repository. `mike list --branch gh-pages` in a read-only clone shows deployed metadata. See the [Search Console recovery runbook](search-console-recovery.md) for post-deploy checks.
 
 To redeploy the existing Pages artifact/tree without rebuilding documentation, choose `redeploy-pages`;
 it only uploads the complete current `gh-pages` branch.
