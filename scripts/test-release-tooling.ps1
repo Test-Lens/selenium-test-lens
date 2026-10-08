@@ -7,6 +7,16 @@ $releaseSourceRoot = Join-Path $testRoot "release source without git"
 $consumerRoot = Join-Path $testRoot "consumer without git"
 Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
 Import-Module (Join-Path $PSScriptRoot "StudioCertificationSupport.psm1") -Force
+Import-Module (Join-Path $PSScriptRoot "PublicApiReleaseLine.psm1") -Force
+
+$release040 = Resolve-TestLensApiReleaseLine -CurrentVersion "0.4.0" -ReleaseTags @("v0.3.1")
+if ($release040.BaselineTag -ne "v0.3.1" -or $release040.ExpectedSince -ne "0.4.0") {
+    throw "0.4.0 API release-line contract regression"
+}
+$release050 = Resolve-TestLensApiReleaseLine -CurrentVersion "0.5.0" -ReleaseTags @("v0.3.1", "v0.4.0", "v0.5.0")
+if ($release050.BaselineTag -ne "v0.4.0" -or $release050.ExpectedSince -ne "0.5.0") {
+    throw "0.5.0 API release-line contract regression"
+}
 
 $publicationPolicy = Read-TestLensPublicationPolicy (Join-Path $PSScriptRoot "config/publication-policy.json")
 if ($publicationPolicy.LatestReleasedVersion -ne "0.5.0") {
@@ -50,6 +60,24 @@ if (-not $linuxJob.Contains('SE_BROWSER_PATH: ${{ steps.setup-chrome.outputs.chr
 }
 if ($linuxJob.Contains('MAVEN_OPTS:')) {
     throw "Linux certification must not pin a driver without the matching browser binary"
+}
+foreach ($diagnosticContract in @(
+    'SE_BROWSER_PATH=${SE_BROWSER_PATH:-<unset>}',
+    'webdriver.chrome.driver=<not supplied by certification job>',
+    'PATH candidate $candidate=$resolved'
+)) {
+    if (-not $linuxJob.Contains($diagnosticContract)) {
+        throw "Linux certification is missing bounded browser diagnostic: $diagnosticContract"
+    }
+}
+if ($ciWorkflow.Contains('check-public-api-since.ps1 -BaselineTag v0.3.1 -ExpectedSince 0.4.0')) {
+    throw "Current API since gate must derive its release line instead of using the 0.4.0 baseline"
+}
+$certificationSource = [IO.File]::ReadAllText((Join-Path $PSScriptRoot "certify-0.5.0-external-consumer.ps1"))
+foreach ($diagnosticContract in @('api/status', 'api/project', 'api/config', 'readOnlyState=', '4096')) {
+    if (-not $certificationSource.Contains($diagnosticContract)) {
+        throw "External certification failure diagnostic is missing contract: $diagnosticContract"
+    }
 }
 
 $readSequence = [pscustomobject]@{ Count = 0 }

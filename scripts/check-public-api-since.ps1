@@ -1,11 +1,23 @@
 [CmdletBinding()]
 param(
     [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$BaselineTag = "v0.3.1",
-    [string]$ExpectedSince = "0.4.0"
+    [string]$BaselineTag,
+    [string]$ExpectedSince
 )
 
 $ErrorActionPreference = "Stop"
+Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
+Import-Module (Join-Path $PSScriptRoot "PublicApiReleaseLine.psm1") -Force
+$rootPom = Read-TestLensPom (Join-Path $RepositoryRoot "pom.xml")
+$reactorVersion = Get-TestLensPomText $rootPom "/m:project/m:version"
+if ([string]::IsNullOrWhiteSpace($BaselineTag) -or [string]::IsNullOrWhiteSpace($ExpectedSince)) {
+    $tags = @(& git -C $RepositoryRoot tag --list "v*.*.*")
+    if ($LASTEXITCODE -ne 0) { throw "Unable to read release tags" }
+    $releaseLine = Resolve-TestLensApiReleaseLine -CurrentVersion $reactorVersion -ReleaseTags $tags
+    if ([string]::IsNullOrWhiteSpace($BaselineTag)) { $BaselineTag = $releaseLine.BaselineTag }
+    if ([string]::IsNullOrWhiteSpace($ExpectedSince)) { $ExpectedSince = $releaseLine.ExpectedSince }
+}
+Write-Host "API release line: reactor=$reactorVersion baseline=$BaselineTag expectedSince=$ExpectedSince"
 $manifestPath = Join-Path $RepositoryRoot "docs/reference/public-api-manifest.txt"
 if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
     throw "Public API manifest does not exist: $manifestPath"
@@ -25,6 +37,27 @@ function Read-ManifestSummary([string[]]$Lines, [string]$Label) {
 
 function Read-PublicTypes([string[]]$Lines) {
     @($Lines | Where-Object { $_ -like 'TYPE *' } | ForEach-Object { $_.Substring(5) })
+}
+
+function Read-CompatibilityProjection([string[]]$ManifestLines, [object[]]$ClassificationRows, [string]$Label) {
+    $compatibility = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    @($ClassificationRows | Where-Object { $_.Classification -in @("USER_API", "ADVANCED_API") }) |
+        ForEach-Object { [void]$compatibility.Add($_.Type) }
+    if ($compatibility.Count -eq 0) { throw "$Label classification has no USER_API or ADVANCED_API types" }
+
+    $types = [Collections.Generic.List[string]]::new()
+    $callables = 0
+    $included = $false
+    foreach ($line in $ManifestLines) {
+        if ($line -like 'TYPE *') {
+            $type = $line.Substring(5)
+            $included = $compatibility.Contains($type)
+            if ($included) { $types.Add($type) }
+        } elseif ($included -and $line -match '^\s+public .*\(') {
+            $callables++
+        }
+    }
+    return [pscustomobject]@{ Types = $types.ToArray(); Callables = $callables }
 }
 
 function Get-RepositoryRelativePath([string]$Root, [string]$Path) {
@@ -51,9 +84,14 @@ if ($LASTEXITCODE -ne 0 -or $baselineLines.Count -eq 0) {
 }
 
 $current = Read-ManifestSummary $currentLines "Current"
-$baseline = Read-ManifestSummary $baselineLines $BaselineTag
+$baselineClassificationLines = @(& git -C $RepositoryRoot show "${BaselineTag}:docs/reference/public-api-classification.csv")
+if ($LASTEXITCODE -ne 0 -or $baselineClassificationLines.Count -eq 0) {
+    throw "Unable to read the public API classification from $BaselineTag"
+}
+$baselineClassification = @($baselineClassificationLines | ConvertFrom-Csv)
+$baselineProjection = Read-CompatibilityProjection $baselineLines $baselineClassification $BaselineTag
 $baselineTypes = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
-Read-PublicTypes $baselineLines | ForEach-Object { [void]$baselineTypes.Add($_) }
+$baselineProjection.Types | ForEach-Object { [void]$baselineTypes.Add($_) }
 $newTypes = @(Read-PublicTypes $currentLines | Where-Object { -not $baselineTypes.Contains($_) })
 
 $sourceRoots = @(
@@ -126,8 +164,8 @@ foreach ($type in $newTypes) {
 }
 
 Write-Host ("Public API inventory: {0} types, {1} callables" -f $current.Types, $current.Callables)
-Write-Host ("Baseline {0}: {1} types, {2} callables" -f $BaselineTag, $baseline.Types, $baseline.Callables)
-Write-Host ("Added since baseline: {0} types, {1} callables" -f ($current.Types - $baseline.Types), ($current.Callables - $baseline.Callables))
+Write-Host ("Baseline compatibility projection {0}: {1} types, {2} callables" -f $BaselineTag, $baselineProjection.Types.Count, $baselineProjection.Callables)
+Write-Host ("Compatibility delta since baseline: {0} types, {1} callables" -f ($current.Types - $baselineProjection.Types.Count), ($current.Callables - $baselineProjection.Callables))
 
 if ($violations.Count -gt 0) {
     $violations | ForEach-Object { Write-Error $_ -ErrorAction Continue }
