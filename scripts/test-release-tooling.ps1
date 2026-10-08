@@ -22,6 +22,24 @@ if ("selenium-test-lens-selector-tooling" -notin $publicationPolicy.PublishedToo
 if ($publicationPolicy.NonReactorPomPaths -notcontains "scripts/fixtures/s15-external-consumer/pom.xml") {
     throw "Clean-room consumer POM must be classified as a non-reactor test fixture"
 }
+$ciWorkflow = [IO.File]::ReadAllText((Join-Path $repositoryRoot ".github/workflows/ci.yml"))
+if ($ciWorkflow.Contains("-Version 0.5.0-SNAPSHOT")) {
+    throw "Linux certification must not hardcode a development version"
+}
+foreach ($contract in @(
+    'Read-TestLensPom (Join-Path $repositoryRoot "pom.xml")',
+    'Get-TestLensPomText $rootPom "/m:project/m:version"',
+    '-Version $reactorVersion',
+    '$env:TMPDIR = $tempRoot',
+    '$env:TEMP = $tempRoot',
+    '$env:TMP = $tempRoot',
+    'Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue'
+)) {
+    if (-not $ciWorkflow.Contains($contract)) { throw "Linux certification workflow is missing contract: $contract" }
+}
+if ($ciWorkflow -match '(?m)^\s+TMPDIR:\s*') {
+    throw "Linux certification must create its temp root before exporting TMPDIR"
+}
 
 function Assert-Throws([scriptblock]$Action, [string]$Name) {
     try { & $Action | Out-Null } catch { return }
@@ -77,6 +95,10 @@ try {
             -RepositoryRoot $fixtureRoot `
             -ReleaseSourceRoot $releaseSourceRoot `
             -IncludeBrowserIt
+        $releasePom = Read-TestLensPom (Join-Path $fixtureRoot "pom.xml")
+        if ((Get-TestLensPomText $releasePom "/m:project/m:version") -ne "0.5.0") {
+            throw "Release certification version must be derived as 0.5.0 from the root POM"
+        }
         if ($model.TrackedPomPaths -contains "target/generated/pom.xml") {
             throw "Generated target POM was included in tracked reactor metadata"
         }
@@ -130,6 +152,10 @@ try {
     foreach ($relative in $trackedPoms) {
         $path = Join-Path $fixtureRoot $relative
         [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.1", "0.5.0-SNAPSHOT"))
+    }
+    $snapshotPom = Read-TestLensPom (Join-Path $fixtureRoot "pom.xml")
+    if ((Get-TestLensPomText $snapshotPom "/m:project/m:version") -ne "0.5.0-SNAPSHOT") {
+        throw "Development certification version must be derived as 0.5.0-SNAPSHOT from the root POM"
     }
     Assert-ThrowsLike {
         & (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot
