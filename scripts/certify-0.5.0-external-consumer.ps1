@@ -86,13 +86,13 @@ function Invoke-StudioAction($session, [string]$origin, [string]$token, [hashtab
             $enabledActions = @($project.stage.actions | Where-Object enabled | ForEach-Object id)
             $diagnostic = [ordered]@{
                 operationRunning = [bool]$status.operationRunning
-                projectStatus = $project.status
+                projectStatus = $configuration.status
                 stageStatus = $project.stage.status
                 availableActions = $enabledActions
                 browserCapability = $configuration.browserCapability
                 agentCapability = $configuration.agentCapability
                 compilationCapability = $configuration.compilationCapability
-                limitations = @($project.limitations)
+                limitations = @($project.stage.limitations | Where-Object { $null -ne $_ })
             } | ConvertTo-Json -Compress -Depth 6
             if ($diagnostic.Length -gt 4096) { $diagnostic = $diagnostic.Substring(0, 4096) + "...[truncated]" }
         } catch {

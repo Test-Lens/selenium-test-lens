@@ -58,11 +58,15 @@ if ([string]::IsNullOrWhiteSpace($linuxJob)) {
 if (-not $linuxJob.Contains('SE_BROWSER_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}')) {
     throw "Linux certification must pass the setup-chrome binary to Selenium Manager"
 }
+if (-not $linuxJob.Contains('SE_BROWSER_NO_SANDBOX: "true"')) {
+    throw "Linux certification must explicitly disable the unusable archive Chrome sandbox"
+}
 if ($linuxJob.Contains('MAVEN_OPTS:')) {
     throw "Linux certification must not pin a driver without the matching browser binary"
 }
 foreach ($diagnosticContract in @(
     'SE_BROWSER_PATH=${SE_BROWSER_PATH:-<unset>}',
+    'SE_BROWSER_NO_SANDBOX=${SE_BROWSER_NO_SANDBOX:-<unset>}',
     'webdriver.chrome.driver=<not supplied by certification job>',
     'PATH candidate $candidate=$resolved'
 )) {

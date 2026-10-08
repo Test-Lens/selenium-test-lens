@@ -102,7 +102,7 @@ public final class TestEngineeringStudio {
             if(!roleAvailability.available()){agentAvailability=roleAvailability;break;}
         }
         delegate.service().attachCapabilities(
-                new Capability(browserAvailability.name(),browserAvailability==BrowserAvailability.AVAILABLE?"Local browser preflight passed":"Local browser preflight did not pass"),
+                new Capability(browserAvailability.name(),browserAvailability==BrowserAvailability.AVAILABLE?"Browser binary and driver resolution configured; session not started":"Local browser preflight did not pass"),
                 new Capability(agentAvailability.status().name(),agentAvailability.reason()),
                 new Capability(javax.tools.ToolProvider.getSystemJavaCompiler()==null?"NOT_AVAILABLE":"AVAILABLE",javax.tools.ToolProvider.getSystemJavaCompiler()==null?"A JDK compiler is required":"JDK compiler available"));
         return new LaunchHandle(delegate);

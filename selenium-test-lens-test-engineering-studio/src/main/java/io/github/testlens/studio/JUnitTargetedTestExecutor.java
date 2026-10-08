@@ -17,6 +17,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -59,6 +60,7 @@ final class JUnitTargetedTestExecutor implements CompiledTargetedTestExecutor {
             builder.environment().clear();
             allowEnvironment(builder,"PATH");allowEnvironment(builder,"Path");allowEnvironment(builder,"SYSTEMROOT");
             allowEnvironment(builder,"WINDIR");allowEnvironment(builder,"TEMP");allowEnvironment(builder,"TMP");
+            copyBrowserEnvironment(System.getenv(),builder.environment());
             if(expired(deadline))return timedOut(request.timeout());
             process=builder.start();
             stdout=BoundedCapture.start(process.getInputStream(),"test-lens-targeted-stdout");
@@ -103,6 +105,13 @@ final class JUnitTargetedTestExecutor implements CompiledTargetedTestExecutor {
     private static boolean expired(long deadline){return System.nanoTime()>=deadline;}
     private static long remainingMillis(long deadline){return Math.max(1,TimeUnit.NANOSECONDS.toMillis(Math.max(1,deadline-System.nanoTime())));}
     private static void allowEnvironment(ProcessBuilder builder,String name){String value=System.getenv(name);if(value!=null)builder.environment().put(name,value);}
+    static void copyBrowserEnvironment(Map<String,String> source,Map<String,String> target){
+        copyEnvironment(source,target,"SE_BROWSER_PATH");
+        copyEnvironment(source,target,"SE_BROWSER_NO_SANDBOX");
+    }
+    private static void copyEnvironment(Map<String,String> source,Map<String,String> target,String name){
+        String value=source.get(name);if(value!=null&&!value.isBlank())target.put(name,value);
+    }
     private static void trackDescendants(Process process,List<ProcessHandle> descendants){
         process.toHandle().descendants().forEach(handle->{if(!descendants.contains(handle))descendants.add(handle);});
     }

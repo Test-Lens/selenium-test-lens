@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -103,6 +104,16 @@ class JUnitTargetedTestExecutorTest {
     }
 
     @Test void providerPreparationSharesTheAbsoluteDeadline() throws Exception {assertEquals(TargetedTestExecutor.Status.TIMED_OUT,executor(profile("slow-open")).execute(request("Prepared",Duration.ofMillis(500)),compiled("Prepared","@org.junit.jupiter.api.Test void test() {}" )).status());}
+
+    @Test void targetedChildReceivesOnlyExplicitBrowserBootstrapEnvironment() {
+        Map<String,String> target=new LinkedHashMap<>();
+        JUnitTargetedTestExecutor.copyBrowserEnvironment(Map.of(
+                "SE_BROWSER_PATH","/configured/chrome",
+                "SE_BROWSER_NO_SANDBOX","true",
+                "webdriver.chrome.driver","/untrusted/driver",
+                "SECRET_TOKEN","secret"),target);
+        assertEquals(Map.of("SE_BROWSER_PATH","/configured/chrome","SE_BROWSER_NO_SANDBOX","true"),target);
+    }
 
     private static void assertTimedOut(String name,String body)throws Exception{assertEquals(TargetedTestExecutor.Status.TIMED_OUT,executor(profile(name)).execute(request(name,Duration.ofMillis(500)),compiled(name,body)).status());}
     private static JUnitTargetedTestExecutor executor(String profile){return new JUnitTargetedTestExecutor(new ForkedTestBrowserSessionProvider(),new BrowserRequest(Purpose.TEST_EXECUTION,Browser.CHROME,Ownership.STUDIO_OWNED,true,profile),List.of(),null);}

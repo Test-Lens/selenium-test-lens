@@ -36,10 +36,10 @@ class TestEngineeringStudioServerTest {
         }
     }
 
-    @Test void reportsBrowserSessionCreationFailureWithoutExposingExceptionDetails() throws Exception {
+    @Test void reportsBoundedRedactedBrowserSessionCreationDiagnostics() throws Exception {
         BrowserSessionProvider provider=new BrowserSessionProvider(){
             @Override public BrowserAvailability preflight(BrowserRequest request){return BrowserAvailability.AVAILABLE;}
-            @Override public BrowserSession open(BrowserRequest request){throw new IllegalStateException("Unable to open local CHROME session",new IllegalStateException("sensitive driver detail"));}
+            @Override public BrowserSession open(BrowserRequest request){throw new IllegalStateException("Unable to open local CHROME session",new IllegalStateException("session not created; password=top-secret "+"x".repeat(4_000)));}
         };
         var service=new TestEngineeringStudioService(new TestEngineeringStudioService.Configuration(root,List.of(),List.of(),List.of(),"fixture"),null,provider,root.resolve(".test-lens"));
         service.attachCapabilities(new Capability("AVAILABLE","test"),new Capability("NOT_AVAILABLE","test"),new Capability("AVAILABLE","test"));
@@ -56,7 +56,13 @@ class TestEngineeringStudioServerTest {
 
             assertEquals(409,response.statusCode());
             assertTrue(response.body().contains("BROWSER_SESSION_FAILED"));
-            assertFalse(response.body().contains("sensitive driver detail"));
+            assertTrue(response.body().contains("IllegalStateException"));
+            assertTrue(response.body().contains("session not created"));
+            assertTrue(response.body().contains("[REDACTED]"));
+            assertFalse(response.body().contains("top-secret"));
+            assertTrue(response.body().length()<5_000,"browser failure diagnostics must remain bounded");
+            assertTrue(response.body().contains("driverResolution"));
+            assertTrue(response.body().contains("headlessMode"));
         }
     }
 }

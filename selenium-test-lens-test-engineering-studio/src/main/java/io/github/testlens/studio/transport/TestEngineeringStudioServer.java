@@ -5,11 +5,14 @@ import com.sun.net.httpserver.HttpServer;
 import io.github.testlens.application.mapper.ApplicationMapperOptions;
 import io.github.testlens.application.tooling.json.StrictJson;
 import io.github.testlens.application.tooling.ai.workflow.AgentExecutor;
+import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.studio.TestEngineeringStudioService;
 
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -63,7 +66,7 @@ public final class TestEngineeringStudioServer implements AutoCloseable {
         }catch(PayloadTooLargeException failure){sendError(exchange,413,"PAYLOAD_TOO_LARGE");}
         catch(AgentExecutor.AgentExecutionException failure){sendError(exchange,502,failure.code().name());}
         catch(IllegalArgumentException failure){sendError(exchange,400,"INVALID_REQUEST");}
-        catch(IllegalStateException failure){sendError(exchange,409,safeCode(failure.getMessage()));}
+        catch(IllegalStateException failure){String code=safeCode(failure.getMessage());if("BROWSER_SESSION_FAILED".equals(code))sendBrowserSessionFailure(exchange,failure);else sendError(exchange,409,code);}
         catch(Exception failure){sendError(exchange,500,"OPERATION_FAILED");}
         finally{exchange.close();}
     }
@@ -126,6 +129,35 @@ public final class TestEngineeringStudioServer implements AutoCloseable {
         if(message!=null&&(message.startsWith("Local browser is not available")||message.startsWith("No browser session provider")))return "BROWSER_UNAVAILABLE";
         return "STATE_CONFLICT";
     }
+    private void sendBrowserSessionFailure(HttpExchange exchange,IllegalStateException failure)throws IOException{
+        Map<String,Object> body=new LinkedHashMap<>();body.put("error","BROWSER_SESSION_FAILED");
+        var configuration=service.projectConfiguration();
+        String browser=configuration==null?"UNKNOWN":bounded(configuration.browser(),32);
+        boolean headless=configuration!=null&&configuration.headless();
+        String configuredBinary=bounded(System.getenv("SE_BROWSER_PATH"),1024);
+        Path binary=safePath(configuredBinary);
+        String explicitDriver=bounded(System.getProperty("webdriver.chrome.driver"),1024);
+        Path driver=explicitDriver==null?pathCandidate("chromedriver"):safePath(explicitDriver);
+        Throwable underlying=rootCause(failure);
+        body.put("browser",browser);body.put("configuredBinary",configuredBinary==null?"":configuredBinary);
+        body.put("optionsBinary",configuredBinary==null?"DEFAULT_DISCOVERY":configuredBinary);
+        body.put("binaryExists",binary!=null&&Files.isRegularFile(binary));
+        body.put("binaryExecutable",binary!=null&&Files.isExecutable(binary));body.put("headless",headless);
+        body.put("headlessMode",headless&&"CHROME".equals(browser)?"--headless=new":headless?"HEADLESS":"HEADED");
+        body.put("sandboxMode","true".equalsIgnoreCase(Objects.toString(System.getenv("SE_BROWSER_NO_SANDBOX"),""))?"DISABLED_BY_HOST_CONFIGURATION":"DEFAULT");
+        body.put("driverResolution",explicitDriver==null?"SELENIUM_MANAGER":"SYSTEM_PROPERTY");
+        body.put("driverPath",driver==null?"":bounded(driver.toString(),1024));
+        body.put("driverVersion",driver==null?"":commandVersion(driver));
+        body.put("exceptionType",underlying.getClass().getSimpleName());
+        body.put("message",safeMessage(underlying.getMessage()));
+        sendJson(exchange,409,body);
+    }
+    private static Throwable rootCause(Throwable value){Throwable current=value;for(int depth=0;depth<12&&current.getCause()!=null&&current.getCause()!=current;depth++)current=current.getCause();return current;}
+    private static String safeMessage(String value){String redacted=RedactionPolicy.defaults().redact(Objects.toString(value,"Browser session creation failed"));return bounded(redacted.replaceAll("[\\r\\n]+"," "),2048);}
+    private static String bounded(String value,int limit){if(value==null||value.isBlank())return null;String normalized=value.trim();return normalized.length()<=limit?normalized:normalized.substring(0,limit)+"...";}
+    private static Path safePath(String value){try{return value==null?null:Path.of(value).toAbsolutePath().normalize();}catch(RuntimeException ignored){return null;}}
+    private static Path pathCandidate(String executable){String path=System.getenv("PATH");if(path==null)return null;for(String root:path.split(java.util.regex.Pattern.quote(File.pathSeparator))){try{Path candidate=Path.of(root).resolve(executable).toAbsolutePath().normalize();if(Files.isRegularFile(candidate)&&Files.isExecutable(candidate))return candidate;}catch(RuntimeException ignored){}}return null;}
+    private static String commandVersion(Path executable){Process process=null;try{process=new ProcessBuilder(executable.toString(),"--version").redirectErrorStream(true).start();if(!process.waitFor(2,java.util.concurrent.TimeUnit.SECONDS)){process.destroyForcibly();return "VERSION_TIMEOUT";}return bounded(new String(process.getInputStream().readNBytes(512),StandardCharsets.UTF_8).replaceAll("[\\r\\n]+"," "),512);}catch(Exception ignored){return "VERSION_UNAVAILABLE";}finally{if(process!=null&&process.isAlive())process.destroyForcibly();}}
     private static void sendJson(HttpExchange exchange,int status,Object body)throws IOException{byte[] bytes=StrictJson.write(body);exchange.getResponseHeaders().set("Content-Type","application/json; charset=utf-8");exchange.sendResponseHeaders(status,bytes.length);exchange.getResponseBody().write(bytes);}
     private static void sendError(HttpExchange exchange,int status,String code)throws IOException{sendJson(exchange,status,Map.of("error",code));}
     private static final class PayloadTooLargeException extends IOException{}

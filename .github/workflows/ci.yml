@@ -230,6 +230,7 @@ jobs:
           TEST_CHROME_BINARY: ${{ steps.setup-chrome.outputs.chrome-path }}
           TEST_CHROMEDRIVER_BINARY: ${{ steps.setup-chrome.outputs.chromedriver-path }}
           SE_BROWSER_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+          SE_BROWSER_NO_SANDBOX: "true"
         shell: bash
         run: |
           java -version
@@ -240,6 +241,7 @@ jobs:
           test -x "$TEST_CHROMEDRIVER_BINARY"
           "$TEST_CHROMEDRIVER_BINARY" --version
           echo "SE_BROWSER_PATH=${SE_BROWSER_PATH:-<unset>}"
+          echo "SE_BROWSER_NO_SANDBOX=${SE_BROWSER_NO_SANDBOX:-<unset>}"
           echo "webdriver.chrome.driver=<not supplied by certification job>"
           for candidate in google-chrome chrome chromium chromium-browser chromedriver; do
             resolved="$(command -v "$candidate" 2>/dev/null || true)"
@@ -251,6 +253,10 @@ jobs:
           # Keep Selenium Manager's browser/driver resolution coherent. Supplying only
           # webdriver.chrome.driver made ChromeDriver 155 launch the system Chrome 154.
           SE_BROWSER_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+          # Chrome for Testing is an archive install without a usable SUID sandbox
+          # on the Ubuntu runner. This is explicit CI host configuration; Studio
+          # keeps Chrome sandboxing enabled by default everywhere else.
+          SE_BROWSER_NO_SANDBOX: "true"
         shell: pwsh
         run: |
           $tempRoot = Join-Path "${{ runner.temp }}" ("test-lens-s15-temp-" + [guid]::NewGuid().ToString("N"))

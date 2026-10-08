@@ -18,6 +18,7 @@ import java.util.function.Function;
  */
 public final class DefaultLocalBrowserSessionProvider implements BrowserSessionProvider {
     static final String SELENIUM_BROWSER_PATH = "SE_BROWSER_PATH";
+    static final String SELENIUM_NO_SANDBOX = "SE_BROWSER_NO_SANDBOX";
     private final BrowserPreflightProbe probe;
     private final LocalDriverFactory driverFactory;
 
@@ -98,12 +99,17 @@ public final class DefaultLocalBrowserSessionProvider implements BrowserSessionP
         String configuredBinary = configuredBrowserPath(environment);
         if (configuredBinary != null) options.setBinary(configuredBinary);
         if (request.headless()) options.addArguments("--headless=new");
+        if (environmentFlag(environment, SELENIUM_NO_SANDBOX)) options.addArguments("--no-sandbox");
         return options;
     }
 
     private static String configuredBrowserPath(Function<String, String> environment) {
         String value = Objects.toString(environment.apply(SELENIUM_BROWSER_PATH), "").trim();
         return value.isEmpty() ? null : value;
+    }
+
+    private static boolean environmentFlag(Function<String,String> environment,String name){
+        return "true".equalsIgnoreCase(Objects.toString(environment.apply(name),"").trim());
     }
 
     @FunctionalInterface

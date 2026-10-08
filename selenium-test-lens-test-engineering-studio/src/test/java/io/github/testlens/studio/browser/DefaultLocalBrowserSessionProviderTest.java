@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 
 import java.lang.reflect.Proxy;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -88,6 +89,21 @@ class DefaultLocalBrowserSessionProviderTest {
         assertEquals("/toolcache/chrome-155/chrome", chromeOptions(configured).get("binary"));
         assertFalse(chromeOptions(defaults).containsKey("binary"),
                 "an absent SE_BROWSER_PATH must preserve Selenium's default discovery");
+        assertEquals(List.of("--headless=new"), chromeArguments(defaults),
+                "sandboxing must remain enabled unless the host explicitly disables it");
+    }
+
+    @Test
+    void noSandboxRequiresExplicitHostConfiguration() {
+        BrowserRequest request = request(Ownership.STUDIO_OWNED);
+
+        var configured = DefaultLocalBrowserSessionProvider.chromeOptions(request,
+                name -> name.equals(DefaultLocalBrowserSessionProvider.SELENIUM_NO_SANDBOX) ? "true" : null);
+        var unrelated = DefaultLocalBrowserSessionProvider.chromeOptions(request,
+                name -> name.equals(DefaultLocalBrowserSessionProvider.SELENIUM_NO_SANDBOX) ? "false" : null);
+
+        assertEquals(List.of("--headless=new", "--no-sandbox"), chromeArguments(configured));
+        assertEquals(List.of("--headless=new"), chromeArguments(unrelated));
     }
 
     private static DefaultLocalBrowserSessionProvider provider(BrowserAvailability availability,
@@ -128,5 +144,10 @@ class DefaultLocalBrowserSessionProviderTest {
     @SuppressWarnings("unchecked")
     private static Map<String, Object> chromeOptions(org.openqa.selenium.chrome.ChromeOptions options) {
         return (Map<String, Object>) options.asMap().get(org.openqa.selenium.chrome.ChromeOptions.CAPABILITY);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static java.util.List<String> chromeArguments(org.openqa.selenium.chrome.ChromeOptions options) {
+        return (java.util.List<String>) chromeOptions(options).get("args");
     }
 }
