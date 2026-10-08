@@ -6,6 +6,7 @@ $fixtureRoot = Join-Path $testRoot "source repository"
 $releaseSourceRoot = Join-Path $testRoot "release source without git"
 $consumerRoot = Join-Path $testRoot "consumer without git"
 Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
+Import-Module (Join-Path $PSScriptRoot "StudioCertificationSupport.psm1") -Force
 
 $publicationPolicy = Read-TestLensPublicationPolicy (Join-Path $PSScriptRoot "config/publication-policy.json")
 if ($publicationPolicy.LatestReleasedVersion -ne "0.5.0") {
@@ -39,6 +40,45 @@ foreach ($contract in @(
 }
 if ($ciWorkflow -match '(?m)^\s+TMPDIR:\s*') {
     throw "Linux certification must create its temp root before exporting TMPDIR"
+}
+$linuxJob = [regex]::Match($ciWorkflow, '(?ms)^  linux-external-certification:.*?(?=^  [A-Za-z0-9_-]+:|\z)').Value
+if ([string]::IsNullOrWhiteSpace($linuxJob)) {
+    throw "Linux external-consumer job is missing"
+}
+if (-not $linuxJob.Contains('SE_BROWSER_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}')) {
+    throw "Linux certification must pass the setup-chrome binary to Selenium Manager"
+}
+if ($linuxJob.Contains('MAVEN_OPTS:')) {
+    throw "Linux certification must not pin a driver without the matching browser binary"
+}
+
+$readSequence = [pscustomobject]@{ Count = 0 }
+$ready = Wait-TestLensStudioActionAvailable -Action "MAP_APPLICATION" -Timeout ([TimeSpan]::FromSeconds(1)) -PollMilliseconds 1 -ReadState {
+    $readSequence.Count++
+    if ($readSequence.Count -eq 1) {
+        return [pscustomobject]@{ OperationRunning = $true; AvailableActions = @() }
+    }
+    return [pscustomobject]@{ OperationRunning = $false; AvailableActions = @("MAP_APPLICATION") }
+}
+if ($readSequence.Count -ne 2 -or $ready.OperationRunning) {
+    throw "Studio action availability wait did not observe backend readiness"
+}
+
+$timeoutWatch = [Diagnostics.Stopwatch]::StartNew()
+try {
+    Wait-TestLensStudioActionAvailable -Action "MAP_APPLICATION" -Timeout ([TimeSpan]::FromMilliseconds(25)) -PollMilliseconds 2 -ReadState {
+        [pscustomobject]@{ OperationRunning = $true; AvailableActions = @("SCAN_PROJECT") }
+    } | Out-Null
+    throw "Expected Studio action availability timeout"
+} catch {
+    if ($_.Exception.Message -notlike "Timed out waiting for Studio action 'MAP_APPLICATION'; operationRunning=True; availableActions=SCAN_PROJECT; timeoutMs=25*") {
+        throw "Studio action timeout diagnostic regression: $($_.Exception.Message)"
+    }
+} finally {
+    $timeoutWatch.Stop()
+}
+if ($timeoutWatch.Elapsed -gt [TimeSpan]::FromSeconds(2)) {
+    throw "Studio action availability timeout was not bounded"
 }
 
 function Assert-Throws([scriptblock]$Action, [string]$Name) {

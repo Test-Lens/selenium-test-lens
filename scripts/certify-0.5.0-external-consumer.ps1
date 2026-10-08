@@ -7,6 +7,7 @@ param(
 )
 $ErrorActionPreference = "Stop"
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+Import-Module (Join-Path $PSScriptRoot "StudioCertificationSupport.psm1") -Force
 $rootPom = [xml](Get-Content -Raw (Join-Path $repoRoot "pom.xml"))
 $rootVersion = [string]$rootPom.project.version
 if (-not $SkipStage -and $Version -ne $rootVersion) { throw "Requested certification version $Version does not match reactor version $rootVersion" }
@@ -77,6 +78,19 @@ function Invoke-StudioAction($session, [string]$origin, [string]$token, [hashtab
         -Headers @{ Origin = $origin.TrimEnd('/'); "X-Test-Lens-Session" = $token } -ContentType "application/json" -Body ($body | ConvertTo-Json -Compress)
 }
 
+function Wait-StudioActionAvailable($session, [string]$origin, [string]$action, [TimeSpan]$timeout = ([TimeSpan]::FromSeconds(30))) {
+    $expected = $action.ToLowerInvariant().Replace('_', '-')
+    Wait-TestLensStudioActionAvailable -Action $action -Timeout $timeout -ReadState {
+        $status = Invoke-RestMethod -Uri ($origin + "api/status") -WebSession $session
+        $project = Invoke-RestMethod -Uri ($origin + "api/project") -WebSession $session
+        $available = @($project.stage.actions | Where-Object { $_.enabled -and $_.id -eq $expected } | ForEach-Object { $action })
+        [pscustomobject]@{
+            OperationRunning = [bool]$status.operationRunning
+            AvailableActions = $available
+        }
+    } | Out-Null
+}
+
 try {
     $fixture = Start-Process -FilePath "java.exe" -ArgumentList @("-cp", (Join-Path $consumer "target/test-classes"), "example.FixtureApplication", "$fixturePort") -WorkingDirectory $consumer -WindowStyle Hidden -PassThru
     Start-Sleep -Milliseconds 500
@@ -89,7 +103,9 @@ try {
     if ($config.browserCapability.status -ne "AVAILABLE") { throw "Browser preflight failed: $($config.browserCapability.status)" }
     if ($config.agentCapability.status -ne "AVAILABLE") { throw "Agent preflight failed: $($config.agentCapability.status)" }
     $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "SCAN_PROJECT" }
+    Wait-StudioActionAvailable $studioSession $first.Uri "MAP_APPLICATION"
     $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "MAP_APPLICATION"; mode = "CURRENT_PAGE" }
+    Wait-StudioActionAvailable $studioSession $first.Uri "CORRELATE"
     $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "CORRELATE" }
     $created = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "CREATE_REQUIREMENT"; requirement = "Login with invalid password shows an error" }
     $runId = $created.result.runId
