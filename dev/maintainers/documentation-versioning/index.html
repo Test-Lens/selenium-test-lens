@@ -97,7 +97,7 @@
     <meta name="test-lens-integration-target" content="0.5.0">
     <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
     <meta name="test-lens-docs-source-kind" content="development">
-    <meta name="test-lens-docs-source-revision" content="aa6fa84ca8792f6ae525b9b3c00565450ace7e4e">
+    <meta name="test-lens-docs-source-revision" content="fe511210c4973416f8cfd877621643f05d31b392">
   
 
   </head>
@@ -4128,6 +4128,13 @@ versions: verify the symbol against the corresponding release tag before adding 
 <p>Run <code>./scripts/validate-versioned-docs.ps1</code> locally in PowerShell 7. It creates a disposable Git repository, bootstraps stable and dev documentation, hashes 0.1.0 across a dev redeploy, rejects a duplicate stable deployment, simulates the next stable release, validates the crawlable root/canonical/sitemap/redirect contract over local HTTP, and removes the temporary repository. <code>mike list --branch gh-pages</code> in a read-only clone shows deployed metadata. See the <a href="../search-console-recovery/">Search Console recovery runbook</a> for post-deploy checks.</p>
 <p>To redeploy the existing Pages artifact/tree without rebuilding documentation, choose <code>redeploy-pages</code>;
 it only uploads the complete current <code>gh-pages</code> branch.</p>
+<p>If an immutable release tag exists but its original tag-triggered documentation job never recorded that
+version in Mike, prepare a reviewed <code>release/MAJOR.MINOR.PATCH</code> branch from the tag containing only approved
+documentation/release-support repairs. Run <code>publish-missing-release</code> with that exact source ref and confirmation
+<code>publish-missing-docs-MAJOR.MINOR.PATCH</code>. The workflow verifies the immutable tag, matching reactor version,
+and <code>check-release-doc-repair</code> docs-only diff before Mike is invoked. It succeeds only when the version is absent
+from <code>gh-pages</code>; if the version already exists, the operation refuses and directs maintainers to
+<code>redeploy-release</code>. This recovery mode is not a replacement for normal tag-driven publication.</p>
 <p>To repair the generated documentation of an already published release, use the exceptional manual
 <code>redeploy-release</code> operation. Supply the existing <code>MAJOR.MINOR.PATCH</code>, the exact
 <code>release/MAJOR.MINOR.PATCH</code> source ref, and confirmation <code>redeploy-docs-MAJOR.MINOR.PATCH</code>. This
