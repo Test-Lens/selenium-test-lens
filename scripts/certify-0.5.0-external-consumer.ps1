@@ -82,17 +82,31 @@ function Invoke-StudioAction($session, [string]$origin, [string]$token, [hashtab
         try {
             $status = Invoke-RestMethod -Uri ($origin + "api/status") -WebSession $session
             $project = Invoke-RestMethod -Uri ($origin + "api/project") -WebSession $session
+            $application = Invoke-RestMethod -Uri ($origin + "api/application") -WebSession $session
             $configuration = Invoke-RestMethod -Uri ($origin + "api/config") -WebSession $session
+            $workflow = if ($body.ContainsKey("runId") -and -not [string]::IsNullOrWhiteSpace([string]$body.runId)) {
+                Invoke-RestMethod -Uri ($origin + "api/workflow?runId=" + [uri]::EscapeDataString([string]$body.runId)) -WebSession $session
+            } else { $null }
             $enabledActions = @($project.stage.actions | Where-Object enabled | ForEach-Object id)
             $diagnostic = [ordered]@{
+                action = [string]$body.action
+                httpStatus = if ($null -ne $_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { $null }
                 operationRunning = [bool]$status.operationRunning
                 projectStatus = $configuration.status
                 stageStatus = $project.stage.status
                 availableActions = $enabledActions
+                mappedPages = @($application.pages | ForEach-Object { $_.name } | Select-Object -First 8)
+                mappedPageCount = $application.counts.pages
+                mappedElementCount = $application.counts.elements
+                workflowId = if ($null -eq $workflow) { $null } else { $workflow.runId }
+                workflowState = if ($null -eq $workflow) { $null } else { $workflow.status }
+                workflowFreshness = if ($null -eq $workflow) { $null } else { $workflow.freshness }
+                workflowActions = if ($null -eq $workflow) { @() } else { @($workflow.availableActions) }
+                requirementPresent = $null -ne $workflow -and -not [string]::IsNullOrWhiteSpace([string]$workflow.requirement)
                 browserCapability = $configuration.browserCapability
                 agentCapability = $configuration.agentCapability
                 compilationCapability = $configuration.compilationCapability
-                limitations = @($project.stage.limitations | Where-Object { $null -ne $_ })
+                limitations = @($project.stage.limitations | Where-Object { $null -ne $_ }) + $(if ($null -eq $workflow) { @() } else { @($workflow.limitations | Where-Object { $null -ne $_ }) })
             } | ConvertTo-Json -Compress -Depth 6
             if ($diagnostic.Length -gt 4096) { $diagnostic = $diagnostic.Substring(0, 4096) + "...[truncated]" }
         } catch {
@@ -103,6 +117,19 @@ function Invoke-StudioAction($session, [string]$origin, [string]$token, [hashtab
         } else { "<not requested>" }
         throw "Studio action $($body.action) failed: $serverError; readOnlyState=$diagnostic; browserDiagnostics=$browserDiagnostics"
     }
+}
+
+function Wait-StudioWorkflowActionAvailable($session, [string]$origin, [string]$runId, [string]$action, [TimeSpan]$timeout = ([TimeSpan]::FromSeconds(30))) {
+    Wait-TestLensStudioActionAvailable -Action $action -Timeout $timeout -ReadState {
+        $status = Invoke-RestMethod -Uri ($origin + "api/status") -WebSession $session
+        $workflow = Invoke-RestMethod -Uri ($origin + "api/workflow?runId=" + [uri]::EscapeDataString($runId)) -WebSession $session
+        [pscustomobject]@{
+            OperationRunning = [bool]$status.operationRunning
+            AvailableActions = @($workflow.availableActions)
+            WorkflowId = $workflow.runId
+            WorkflowState = $workflow.status
+        }
+    } | Out-Null
 }
 
 function Wait-StudioActionAvailable($session, [string]$origin, [string]$action, [TimeSpan]$timeout = ([TimeSpan]::FromSeconds(30))) {
@@ -132,12 +159,20 @@ try {
     $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "SCAN_PROJECT" }
     Wait-StudioActionAvailable $studioSession $first.Uri "MAP_APPLICATION"
     $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "MAP_APPLICATION"; mode = "CURRENT_PAGE" }
+    $mappedApplication = Invoke-RestMethod -Uri ($first.Uri + "api/application") -WebSession $studioSession
+    $mappedPageNames = @($mappedApplication.pages | ForEach-Object { [string]$_.name })
+    if (-not ($mappedPageNames | Where-Object { $_ -match '(?i)login' })) {
+        throw "MAP_APPLICATION observed the wrong browser page; pages=$([string]::Join(',', $mappedPageNames)); elements=$($mappedApplication.counts.elements)"
+    }
     Wait-StudioActionAvailable $studioSession $first.Uri "CORRELATE"
     $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "CORRELATE" }
     $created = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "CREATE_REQUIREMENT"; requirement = "Login with invalid password shows an error" }
     $runId = $created.result.runId
+    if ([string]::IsNullOrWhiteSpace([string]$runId)) { throw "CREATE_REQUIREMENT did not return a workflow runId" }
+    Wait-StudioWorkflowActionAvailable $studioSession $first.Uri $runId "GENERATE_PLAN"
     try { $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "GENERATE_PLAN"; runId = $runId } }
-    catch { $detail=Invoke-RestMethod -Uri ($first.Uri+"api/workflow?runId="+[uri]::EscapeDataString($runId)) -WebSession $studioSession; throw "GENERATE_PLAN failed; state=$($detail.state), freshness=$($detail.freshness), limitations=$([string]::Join(',',@($detail.limitations))); error=$($_.Exception.Message)" }
+    catch { $detail=Invoke-RestMethod -Uri ($first.Uri+"api/workflow?runId="+[uri]::EscapeDataString($runId)) -WebSession $studioSession; throw "GENERATE_PLAN failed; runId=$runId, state=$($detail.status), freshness=$($detail.freshness), availableActions=$([string]::Join(',',@($detail.availableActions))), limitations=$([string]::Join(',',@($detail.limitations))); error=$($_.Exception.Message)" }
+    Wait-StudioWorkflowActionAvailable $studioSession $first.Uri $runId "GENERATE_IMPLEMENTATION"
     $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "GENERATE_IMPLEMENTATION"; runId = $runId }
     $run = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "RUN"; runId = $runId }
     if ($run.result.finalState -ne "SUCCESS") { throw "External targeted execution did not succeed: $(($run | ConvertTo-Json -Depth 8 -Compress))" }
@@ -147,7 +182,10 @@ try {
     $null = Invoke-WebRequest -UseBasicParsing -Uri ("http://127.0.0.1:$fixturePort/change")
     $repairCreated = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "CREATE_REQUIREMENT"; requirement = "Login selector regression must be repaired without weakening the test" }
     $repairRunId = $repairCreated.result.runId
+    if ([string]::IsNullOrWhiteSpace([string]$repairRunId)) { throw "CREATE_REQUIREMENT did not return a repair workflow runId" }
+    Wait-StudioWorkflowActionAvailable $studioSession $first.Uri $repairRunId "GENERATE_PLAN"
     $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "GENERATE_PLAN"; runId = $repairRunId }
+    Wait-StudioWorkflowActionAvailable $studioSession $first.Uri $repairRunId "GENERATE_IMPLEMENTATION"
     $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "GENERATE_IMPLEMENTATION"; runId = $repairRunId }
     $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "RUN"; runId = $repairRunId }
     $failed = Invoke-RestMethod -Uri ($first.Uri + "api/workflow?runId=" + [uri]::EscapeDataString($repairRunId)) -WebSession $studioSession

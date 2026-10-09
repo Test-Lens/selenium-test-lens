@@ -119,12 +119,19 @@ public final class TestEngineeringStudioService implements AutoCloseable {
                 if(session.ownership()!=Ownership.STUDIO_OWNED&&browserRequest(Purpose.MAPPING).ownership()==Ownership.STUDIO_OWNED)
                     throw new IllegalStateException("Browser provider returned unexpected session ownership");
                 WebDriver driver=session.driver();
-                if(projectDescriptor!=null&&projectDescriptor.startUrl()!=null){String current=driver.getCurrentUrl();if(current==null||current.isBlank()||current.startsWith("data:")||"about:blank".equals(current))driver.get(projectDescriptor.startUrl().toString());}
+                if(projectDescriptor!=null&&projectDescriptor.startUrl()!=null){String current=driver.getCurrentUrl();if(requiresConfiguredStartNavigation(current))driver.get(projectDescriptor.startUrl().toString());}
                 ApplicationMapper mapper;
                 if(mode==ApplicationMapperOptions.Mode.GUIDED&&guidedMapper!=null)mapper=guidedMapper;
                 else { mapper=ApplicationMapper.start(driver,ApplicationMapperOptions.builder(configuration.applicationName()).mode(Objects.requireNonNull(mode)).build());if(mode==ApplicationMapperOptions.Mode.GUIDED){guidedMapper=mapper;guidedBrowserSession=session;retained=true;} }
                 mapper.observe(); if(mode==ApplicationMapperOptions.Mode.SAFE_EXPLORE)mapper.safeExplore(); applicationModel=mapper.model(); correlation=null;persistProjectArtifacts();return projections.application(applicationModel);
             } finally { if(mode!=ApplicationMapperOptions.Mode.GUIDED||!retained)session.close(); }});
+    }
+
+    static boolean requiresConfiguredStartNavigation(String currentUrl){
+        if(currentUrl==null||currentUrl.isBlank())return true;
+        String normalized=currentUrl.toLowerCase(Locale.ROOT);
+        return normalized.startsWith("data:")||normalized.startsWith("about:")
+                ||normalized.startsWith("chrome://")||normalized.startsWith("edge://");
     }
 
     private BrowserRequest browserRequest(Purpose purpose){

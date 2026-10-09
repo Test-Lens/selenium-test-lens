@@ -65,4 +65,24 @@ class TestEngineeringStudioServerTest {
             assertTrue(response.body().contains("headlessMode"));
         }
     }
+
+    @Test void invalidActionPayloadRetainsBoundedReasonWithoutWeakeningValidation() throws Exception {
+        var service=new TestEngineeringStudioService(new TestEngineeringStudioService.Configuration(root,List.of(),List.of(),List.of(),"fixture"),null,null);
+        try(var server=new TestEngineeringStudioServer(service)){
+            server.start();HttpClient client=HttpClient.newHttpClient();URI actions=server.uri().resolve("api/actions");
+            var request=HttpRequest.newBuilder(actions)
+                    .header(TestEngineeringStudioServer.TOKEN_HEADER,server.sessionToken())
+                    .header("Origin",server.uri().toString().replaceAll("/$",""))
+                    .header("Content-Type","application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString("{\"action\":\"GENERATE_PLAN\"}"))
+                    .build();
+
+            var response=client.send(request,HttpResponse.BodyHandlers.ofString());
+
+            assertEquals(400,response.statusCode());
+            assertTrue(response.body().contains("INVALID_REQUEST"));
+            assertTrue(response.body().contains("runId"));
+            assertTrue(response.body().length()<512);
+        }
+    }
 }

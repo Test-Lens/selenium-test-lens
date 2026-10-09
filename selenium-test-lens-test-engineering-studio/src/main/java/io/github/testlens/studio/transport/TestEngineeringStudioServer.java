@@ -65,7 +65,7 @@ public final class TestEngineeringStudioServer implements AutoCloseable {
             sendError(exchange,405,"METHOD_NOT_ALLOWED");
         }catch(PayloadTooLargeException failure){sendError(exchange,413,"PAYLOAD_TOO_LARGE");}
         catch(AgentExecutor.AgentExecutionException failure){sendError(exchange,502,failure.code().name());}
-        catch(IllegalArgumentException failure){sendError(exchange,400,"INVALID_REQUEST");}
+        catch(IllegalArgumentException failure){sendInvalidRequest(exchange,failure);}
         catch(IllegalStateException failure){String code=safeCode(failure.getMessage());if("BROWSER_SESSION_FAILED".equals(code))sendBrowserSessionFailure(exchange,failure);else sendError(exchange,409,code);}
         catch(Exception failure){sendError(exchange,500,"OPERATION_FAILED");}
         finally{exchange.close();}
@@ -159,6 +159,9 @@ public final class TestEngineeringStudioServer implements AutoCloseable {
     private static Path pathCandidate(String executable){String path=System.getenv("PATH");if(path==null)return null;for(String root:path.split(java.util.regex.Pattern.quote(File.pathSeparator))){try{Path candidate=Path.of(root).resolve(executable).toAbsolutePath().normalize();if(Files.isRegularFile(candidate)&&Files.isExecutable(candidate))return candidate;}catch(RuntimeException ignored){}}return null;}
     private static String commandVersion(Path executable){Process process=null;try{process=new ProcessBuilder(executable.toString(),"--version").redirectErrorStream(true).start();if(!process.waitFor(2,java.util.concurrent.TimeUnit.SECONDS)){process.destroyForcibly();return "VERSION_TIMEOUT";}return bounded(new String(process.getInputStream().readNBytes(512),StandardCharsets.UTF_8).replaceAll("[\\r\\n]+"," "),512);}catch(Exception ignored){return "VERSION_UNAVAILABLE";}finally{if(process!=null&&process.isAlive())process.destroyForcibly();}}
     private static void sendJson(HttpExchange exchange,int status,Object body)throws IOException{byte[] bytes=StrictJson.write(body);exchange.getResponseHeaders().set("Content-Type","application/json; charset=utf-8");exchange.sendResponseHeaders(status,bytes.length);exchange.getResponseBody().write(bytes);}
+    private static void sendInvalidRequest(HttpExchange exchange,IllegalArgumentException failure)throws IOException{
+        Map<String,Object> body=new LinkedHashMap<>();body.put("error","INVALID_REQUEST");body.put("reason",safeMessage(failure.getMessage()));sendJson(exchange,400,body);
+    }
     private static void sendError(HttpExchange exchange,int status,String code)throws IOException{sendJson(exchange,status,Map.of("error",code));}
     private static final class PayloadTooLargeException extends IOException{}
 }
