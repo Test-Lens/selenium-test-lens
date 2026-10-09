@@ -76,9 +76,13 @@
     var target = source && source.getAttribute('data-navigation-target');
     if (!source || !target) return;
     var allowed = sourceCompatibility().navigationAllowed;
+    var label = String(source.textContent || 'source location');
     source.setAttribute('data-navigable', String(allowed));
     source.setAttribute('tabindex', allowed ? '0' : '-1');
     if (allowed) source.setAttribute('href', target); else source.removeAttribute('href');
+    source.setAttribute('aria-label', allowed
+      ? 'Open source ' + label + ' in the configured IDE'
+      : 'Source location ' + label + ' is unavailable');
     source.setAttribute('title', allowed
       ? 'Open source in the configured IDE. Right-click to copy link address.'
       : sourceCompatibility().detail+' '+sourceCompatibility().action);
@@ -259,7 +263,11 @@
         : (typography ? typography.uiStack : '"Test Lens Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif');
   }
 
-  function viewportWidth() { return positiveNumber(window.innerWidth) || 1024; }
+  function viewportWidth() {
+    var inner = positiveNumber(window.innerWidth);
+    var client = positiveNumber(document.documentElement && document.documentElement.clientWidth);
+    return inner && client ? Math.min(inner, client) : (inner || client || 1024);
+  }
   function viewportHeight() { return positiveNumber(window.innerHeight) || 768; }
   function clamp(value, minimum, maximum) { return Math.max(minimum, Math.min(maximum, value)); }
 
@@ -308,9 +316,12 @@
       + '.stl-hud-context-header[data-layout="STACKED"]>.stl-hud-header-item{flex:0 0 auto;width:100%;}'
       + '.stl-hud-meta-row{white-space:nowrap;}'
       + '.stl-hud-meta-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}';
-    style.textContent += '#selenium-hud-panel{pointer-events:auto}.stl-hud-source-location{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:.9em;text-decoration:underline;text-underline-offset:2px;pointer-events:none;cursor:default}'
+    style.textContent += '#selenium-hud-panel{pointer-events:auto}.stl-hud-source-location{display:none;max-width:100%;color:#a78bfa;font-family:"JetBrains Mono",Consolas,ui-monospace,"SFMono-Regular",Menlo,Monaco,monospace;font-size:10.5px;font-weight:400;letter-spacing:-.025em;line-height:1.35;overflow-wrap:anywhere;text-decoration:none;pointer-events:none;cursor:default}'
       + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location{display:block}'
-      + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location[data-navigable="true"]{pointer-events:auto;cursor:pointer}'
+      + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location[data-navigable="true"]{pointer-events:auto;cursor:pointer;text-decoration:underline;text-underline-offset:2px}'
+      + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location[data-navigable="true"]:hover{color:#c4b5fd;text-decoration-thickness:2px}'
+      + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location[data-navigable="true"]:focus-visible{color:#ddd6fe;outline:2px solid #8b5cf6;outline-offset:2px;border-radius:2px}'
+      + '#selenium-hud-panel.source-navigation-active .stl-hud-source-location[data-navigable="false"]{opacity:.72}'
       + '.stl-hud-source-status{display:none;color:var(--ui-test-lens-hud-accent,#38bdf8);font-size:9px;letter-spacing:.03em;margin:2px 0 4px}'
       + '.stl-hud-source-status-reason{color:var(--ui-test-lens-hud-warning,#f59e0b);margin-top:2px}'
       + '.stl-hud-source-compatibility-details{color:var(--ui-test-lens-hud-muted-fg,#cbd5e1);white-space:pre-wrap;margin-top:2px}'
@@ -956,7 +967,14 @@
     var row = operationRow(logs, semantic.operationId, semantic.category);
     var newRow = !row;
     if (!row) row = document.createElement('div');
-    else row.textContent = '';
+    else {
+      var previousSource = row.querySelector && row.querySelector('.stl-hud-source-location');
+      if (previousSource) {
+        if (!sourceLabel) sourceLabel = previousSource.textContent;
+        if (!navigationTarget) navigationTarget = previousSource.getAttribute('data-navigation-target');
+      }
+      row.textContent = '';
+    }
     row.className = 'stl-hud-event';
     row.setAttribute('data-category', semantic.category);
     row.setAttribute('data-phase', semantic.phase);
@@ -1028,6 +1046,7 @@
       source.className = 'stl-hud-source-location';
       source.textContent = String(sourceLabel);
       source.setAttribute('data-navigable', 'false');
+      source.setAttribute('aria-label', 'Source location ' + String(sourceLabel) + ' is unavailable');
       if (navigationTarget) {
         source.setAttribute('data-navigation-target', String(navigationTarget));
         configureSourceTarget(source);
