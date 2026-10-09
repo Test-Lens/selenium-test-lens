@@ -146,6 +146,13 @@ class SeleniumBiDiNetworkCaptureSourceTest {
     }
 
     @Test
+    void chromeRedirectResponsesUseEventLocalRequestDataAcrossSupportedCallbackOrderings() {
+        assertChromeRedirectOrdering("request-0", "request-1", "response-0", "response-1");
+        assertChromeRedirectOrdering("request-0", "response-0", "request-1", "response-1");
+        assertChromeRedirectOrdering("request-0", "request-1", "response-1", "response-0");
+    }
+
+    @Test
     void responseCorrelationDoesNotDependOnStandaloneRequestIdentityMultiplicityOrArrival() {
         FakeModule module = new FakeModule();
         RecordingSink sink = new RecordingSink();
@@ -239,6 +246,40 @@ class SeleniumBiDiNetworkCaptureSourceTest {
         return sink;
     }
 
+    private static void assertChromeRedirectOrdering(String... callbacks) {
+        FakeModule module = new FakeModule();
+        RecordingSink sink = new RecordingSink();
+        SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.defaults(), sink);
+
+        for (String callback : callbacks) {
+            switch (callback) {
+                case "request-0" -> module.before.accept(BeforeRequestSent.fromJsonMap(
+                        base("shared", "/redirect", 0, 100)));
+                case "request-1" -> module.before.accept(BeforeRequestSent.fromJsonMap(
+                        base("shared", "/redirect-middle", 1, 105)));
+                case "response-0" -> module.response.accept(ResponseDetails.fromJsonMap(response(
+                        "shared", "/redirect", "/redirect", 0, 302, 110, 1, 2)));
+                case "response-1" -> module.response.accept(ResponseDetails.fromJsonMap(response(
+                        "shared", "/api/final", "/redirect-middle", 1, 200, 115, 2, 3)));
+                default -> throw new IllegalArgumentException("Unknown callback: " + callback);
+            }
+        }
+
+        List<NetworkEvent> responses = sink.events.stream()
+                .filter(event -> event.response() != null)
+                .sorted(java.util.Comparator.comparing(event -> event.attributes().get("redirectCount")))
+                .toList();
+        assertEquals(List.of("0", "1"), responses.stream()
+                .map(event -> event.attributes().get("redirectCount")).toList());
+        assertEquals(List.of("/redirect", "/api/final"), responses.stream()
+                .map(event -> event.correlatedRequest().url()).toList());
+        assertEquals(List.of("/redirect", "/api/final"), responses.stream()
+                .map(event -> event.response().url()).toList());
+        assertTrue(responses.stream().allMatch(event -> "shared".equals(event.response().requestId())));
+        assertTrue(responses.stream().allMatch(event ->
+                event.response().requestId().equals(event.correlatedRequest().id())));
+    }
+
     private static Map<String, Object> base(String id, String url, long redirect, long timestamp) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("context", "ctx-1");
@@ -254,10 +295,16 @@ class SeleniumBiDiNetworkCaptureSourceTest {
 
     private static Map<String, Object> response(String id, String url, long redirect, int status,
                                                  long timestamp, double requestTime, double responseEnd) {
-        Map<String, Object> map = base(id, url, redirect, timestamp);
-        map.put("request", request(id, url, requestTime, responseEnd));
+        return response(id, url, url, redirect, status, timestamp, requestTime, responseEnd);
+    }
+
+    private static Map<String, Object> response(String id, String requestUrl, String responseUrl,
+                                                 long redirect, int status, long timestamp,
+                                                 double requestTime, double responseEnd) {
+        Map<String, Object> map = base(id, requestUrl, redirect, timestamp);
+        map.put("request", request(id, requestUrl, requestTime, responseEnd));
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("url", url);
+        response.put("url", responseUrl);
         response.put("protocol", "http/1.1");
         response.put("status", status);
         response.put("statusText", "Created");

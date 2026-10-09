@@ -129,7 +129,7 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
     private static void responseCompleted(ResponseDetails event, NetworkDiagnosticsOptions options, NetworkCaptureSink sink) {
         RequestData request = event.getRequest();
         ResponseData response = event.getResponseData();
-        String url = response == null ? (request == null ? "" : safe(request.getUrl())) : safe(response.getUrl());
+        String url = responseUrl(request, response);
         if (options.isIgnored(url)) {
             sink.ignored();
             return;
@@ -155,6 +155,17 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
                 headers(response == null ? List.of() : response.getHeaders(), options));
         NetworkRequest correlatedRequest = correlatedRequest(request, event.getTimestamp(), options);
         sink.recorded(NetworkEvent.response(mapped, correlatedRequest, timestamp(event.getTimestamp()), attributes));
+    }
+
+    private static String responseUrl(RequestData request, ResponseData response) {
+        String requestUrl = request == null ? "" : safe(request.getUrl());
+        if (!requestUrl.isBlank()) {
+            // RequestData is local to this responseCompleted event and identifies the redirect hop.
+            // Chromium can expose the preceding hop in ResponseData.url while the event-local request
+            // already contains the URL whose response completed.
+            return requestUrl;
+        }
+        return response == null ? "" : safe(response.getUrl());
     }
 
     private static NetworkRequest correlatedRequest(RequestData request, long timestamp,
