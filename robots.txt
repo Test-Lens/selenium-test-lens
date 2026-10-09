@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /selenium-test-lens/dev/
+Sitemap: https://test-lens.github.io/selenium-test-lens/sitemap.xml
