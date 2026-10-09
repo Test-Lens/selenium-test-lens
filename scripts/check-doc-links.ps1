@@ -56,6 +56,32 @@ if (Test-Path $versionedDocsRoot) {
 $linkPattern = "\[[^\]]+\]\(([^)]+)\)"
 $failures = New-Object System.Collections.Generic.List[string]
 
+$readmePath = Join-Path $root "README.md"
+$readmeLines = @(Get-Content -Path $readmePath)
+for ($i = 0; $i -lt $readmeLines.Count; $i++) {
+    $line = $readmeLines[$i]
+    if ($line -notmatch '^\|\s*`(?<version>\d+\.\d+\.\d+)`\s*\|') {
+        continue
+    }
+
+    $version = $Matches["version"]
+    $expectedDocumentation = "https://test-lens.github.io/selenium-test-lens/$version/"
+    $expectedArtifact = "https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/$version"
+    $expectedRelease = "https://github.com/Test-Lens/selenium-test-lens/releases/tag/v$version"
+    if (-not $line.Contains("($expectedDocumentation)")) {
+        $failures.Add("README.md:$($i + 1) -> version $version must link to its pinned documentation: $expectedDocumentation")
+    }
+    if (-not $line.Contains("($expectedArtifact)")) {
+        $failures.Add("README.md:$($i + 1) -> version $version must link to its Maven Central artifact: $expectedArtifact")
+    }
+    if (-not $line.Contains("($expectedRelease)")) {
+        $failures.Add("README.md:$($i + 1) -> version $version must link to its GitHub Release: $expectedRelease")
+    }
+    if ($line.Contains("/selenium-test-lens/latest/")) {
+        $failures.Add("README.md:$($i + 1) -> a concrete version row must not link to the moving latest alias")
+    }
+}
+
 foreach ($file in $files) {
     $sourceRelativeToDocs = $null
     if ($file.StartsWith($docsRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
