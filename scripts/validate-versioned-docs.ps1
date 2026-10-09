@@ -150,9 +150,12 @@ try {
     }
     $workflow = [IO.File]::ReadAllText((Join-Path $root ".github/workflows/docs.yml"))
     foreach ($requiredWorkflowContract in @(
-        "bootstrap-0.1.0, redeploy-release, redeploy-pages",
-        "github.event.inputs.operation == 'redeploy-release' && github.event.inputs.source_ref",
+        "bootstrap-0.1.0, publish-missing-release, redeploy-release, redeploy-pages",
+        "github.event.inputs.operation == 'publish-missing-release' || github.event.inputs.operation == 'redeploy-release'",
+        "github.event.inputs.operation == 'publish-missing-release'",
         "github.event.inputs.operation != 'validate-only' && 'main'",
+        "./scripts/check-release-doc-repair.ps1 -Version `$env:DOCS_REDEPLOY_VERSION -SourceRef `$env:DOCS_REDEPLOY_SOURCE_REF",
+        "./scripts/publish-versioned-docs.ps1 -Operation publish-missing-release",
         "./scripts/publish-versioned-docs.ps1 -Operation redeploy-release",
         "edit/`$(`$env:DOCS_REDEPLOY_SOURCE_REF)/docs/",
         "redeploy-pages does not rebuild docs"
@@ -219,6 +222,22 @@ try {
             throw "First pushed dev deployment did not create gh-pages in the local bare remote."
         }
         & ./scripts/publish-versioned-docs.ps1 -Operation bootstrap-0.1.0 -Confirmation publish-immutable-0.1.0
+
+        $missingVersion = "9.8.7"
+        $env:DOCS_RELEASE_VERSION = $missingVersion
+        $env:DOCS_RELEASE_EDIT_URI = "edit/release/$missingVersion/docs/"
+        & ./scripts/publish-versioned-docs.ps1 -Operation publish-missing-release -Version $missingVersion `
+            -Confirmation "publish-missing-docs-$missingVersion" -NoPush
+        $missingMetadata = (& git show gh-pages`:versions.json) -join "`n" | ConvertFrom-Json
+        $missingRelease = $missingMetadata | Where-Object version -eq $missingVersion
+        if ($null -eq $missingRelease -or $missingRelease.aliases -notcontains "latest") {
+            throw "publish-missing-release did not create the previously absent immutable version."
+        }
+        Assert-Fails {
+            & ./scripts/publish-versioned-docs.ps1 -Operation publish-missing-release -Version $missingVersion `
+                -Confirmation "publish-missing-docs-$missingVersion" -NoPush
+        } "use redeploy-release for an existing version"
+
         $stage = Join-Path $work "site-one"
         New-Item -ItemType Directory -Path $stage | Out-Null
         & git archive gh-pages -o (Join-Path $work "pages-one.tar")

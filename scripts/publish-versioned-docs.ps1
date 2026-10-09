@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("dev", "release", "redeploy-release", "bootstrap-0.1.0")]
+    [ValidateSet("dev", "release", "publish-missing-release", "redeploy-release", "bootstrap-0.1.0")]
     [string]$Operation,
     [string]$Version,
     [string]$Confirmation,
@@ -131,6 +131,15 @@ try {
         }
         if ($Confirmation -ne "redeploy-docs-$Version") {
             throw "Exact redeploy confirmation 'redeploy-docs-$Version' is required."
+        }
+    } elseif ($Operation -eq "publish-missing-release") {
+        # Recovery for a tag whose original documentation job never reached Mike. Source safety is
+        # enforced by check-release-doc-repair before this operation is allowed to publish.
+        if ($versionExists) {
+            throw "Documentation version '$Version' already exists on $Branch; use redeploy-release for an existing version."
+        }
+        if ($Confirmation -ne "publish-missing-docs-$Version") {
+            throw "Exact first-publication confirmation 'publish-missing-docs-$Version' is required."
         }
     } elseif ($versionExists) {
         throw "Immutable documentation version '$Version' already exists on $Branch."

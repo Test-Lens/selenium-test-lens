@@ -44,6 +44,14 @@ Run `./scripts/validate-versioned-docs.ps1` locally in PowerShell 7. It creates 
 To redeploy the existing Pages artifact/tree without rebuilding documentation, choose `redeploy-pages`;
 it only uploads the complete current `gh-pages` branch.
 
+If an immutable release tag exists but its original tag-triggered documentation job never recorded that
+version in Mike, prepare a reviewed `release/MAJOR.MINOR.PATCH` branch from the tag containing only approved
+documentation/release-support repairs. Run `publish-missing-release` with that exact source ref and confirmation
+`publish-missing-docs-MAJOR.MINOR.PATCH`. The workflow verifies the immutable tag, matching reactor version,
+and `check-release-doc-repair` docs-only diff before Mike is invoked. It succeeds only when the version is absent
+from `gh-pages`; if the version already exists, the operation refuses and directs maintainers to
+`redeploy-release`. This recovery mode is not a replacement for normal tag-driven publication.
+
 To repair the generated documentation of an already published release, use the exceptional manual
 `redeploy-release` operation. Supply the existing `MAJOR.MINOR.PATCH`, the exact
 `release/MAJOR.MINOR.PATCH` source ref, and confirmation `redeploy-docs-MAJOR.MINOR.PATCH`. This
