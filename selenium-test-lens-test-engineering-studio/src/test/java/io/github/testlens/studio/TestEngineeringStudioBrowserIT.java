@@ -122,6 +122,8 @@ class TestEngineeringStudioBrowserIT {
                     Path pageSource = project.resolve(PAGE_OBJECT);
                     String unchanged = Files.readString(pageSource);
                     click(studio,"Run");
+                    new WebDriverWait(studio,Duration.ofSeconds(30)).until(
+                            ignored->workflowExecutions.get()==1);
                     new WebDriverWait(studio,Duration.ofSeconds(30)).until(ignored->!service.operationRunning());
                     assertEquals(1,workflowExecutions.get(),studio.findElement(By.tagName("body")).getText());
                     assertInstanceOf(org.openqa.selenium.NoSuchElementException.class,workflowFailure.get(),studio.findElement(By.tagName("body")).getText());

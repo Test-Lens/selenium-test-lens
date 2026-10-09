@@ -1,5 +1,74 @@
 Set-StrictMode -Version Latest
 
+$script:LinuxUnixSocketPathBytes = 108
+$script:LinuxChromeSocketSafetyMarginBytes = 16
+$script:MaximumLinuxChromeTempRootBytes = 48
+$script:CertificationOwnershipMarker = ".test-lens-certification-owned"
+
+function Get-TestLensCertificationTempRootPath {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$RunnerTemp,
+        [Parameter(Mandatory)][bool]$Linux,
+        [string]$RandomId = ([guid]::NewGuid().ToString("N"))
+    )
+
+    if ([string]::IsNullOrWhiteSpace($RunnerTemp)) { throw "Runner temp root must not be blank" }
+    if ($RandomId -notmatch '^[a-fA-F0-9]{8,32}$') { throw "Certification temp random id must contain 8-32 hexadecimal characters" }
+    if (-not $Linux) { return Join-Path $RunnerTemp ("test-lens-s15-temp-" + $RandomId) }
+
+    # Linux sockaddr_un.sun_path is 108 bytes. Reserve space for Chromium's
+    # org.chromium.Chromium.<random>/SingletonSocket subtree plus a 16-byte margin.
+    $path = "/tmp/tl-" + $RandomId.Substring(0, 8).ToLowerInvariant()
+    $rootBytes = [Text.Encoding]::UTF8.GetByteCount($path)
+    $projected = $path + "/org.chromium.Chromium." + ("x" * 16) + "/SingletonSocket"
+    $projectedBytes = [Text.Encoding]::UTF8.GetByteCount($projected)
+    $safeSocketBudget = $script:LinuxUnixSocketPathBytes - $script:LinuxChromeSocketSafetyMarginBytes
+    if ($rootBytes -gt $script:MaximumLinuxChromeTempRootBytes -or $projectedBytes -gt $safeSocketBudget) {
+        throw "Linux certification temp root exceeds the Chrome Unix-socket path budget; rootBytes=$rootBytes; projectedSocketBytes=$projectedBytes; safeSocketBudget=$safeSocketBudget"
+    }
+    return $path
+}
+
+function New-TestLensCertificationTempRoot {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$RunnerTemp,
+        [Parameter(Mandatory)][bool]$Linux
+    )
+
+    for ($attempt = 0; $attempt -lt 5; $attempt++) {
+        $path = Get-TestLensCertificationTempRootPath -RunnerTemp $RunnerTemp -Linux $Linux
+        if (Test-Path -LiteralPath $path) { continue }
+        [IO.Directory]::CreateDirectory($path) | Out-Null
+        $item = Get-Item -LiteralPath $path -Force
+        if ($item.LinkType) { throw "Certification temp root must not be a symbolic link" }
+        if ($Linux) {
+            & chmod 700 -- $path
+            if ($LASTEXITCODE -ne 0) { throw "Could not restrict Linux certification temp-root permissions" }
+        }
+        [IO.File]::WriteAllText((Join-Path $path $script:CertificationOwnershipMarker), "owned")
+        $probe = Join-Path $path "write-probe"
+        [IO.File]::WriteAllText($probe, "ok")
+        Remove-Item -LiteralPath $probe -Force
+        return (Resolve-Path -LiteralPath $path).Path
+    }
+    throw "Could not allocate a unique certification temp root"
+}
+
+function Remove-TestLensCertificationTempRoot {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Container)) { return }
+    $item = Get-Item -LiteralPath $Path -Force
+    if ($item.LinkType) { throw "Refusing to remove a symlinked certification temp root" }
+    if (-not (Test-Path -LiteralPath (Join-Path $item.FullName $script:CertificationOwnershipMarker) -PathType Leaf)) {
+        throw "Refusing to remove a temp root without the certification ownership marker"
+    }
+    Remove-Item -LiteralPath $item.FullName -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 function Wait-TestLensStudioActionAvailable {
     [CmdletBinding()]
     param(
@@ -157,4 +226,4 @@ function Invoke-TestLensChromeStartupSmoke {
     }
 }
 
-Export-ModuleMember -Function Wait-TestLensStudioActionAvailable, Protect-TestLensDiagnosticText, Get-TestLensChromeDriverDiagnosticTail, Invoke-TestLensChromeStartupSmoke
+Export-ModuleMember -Function Get-TestLensCertificationTempRootPath, New-TestLensCertificationTempRoot, Remove-TestLensCertificationTempRoot, Wait-TestLensStudioActionAvailable, Protect-TestLensDiagnosticText, Get-TestLensChromeDriverDiagnosticTail, Invoke-TestLensChromeStartupSmoke

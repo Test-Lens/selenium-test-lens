@@ -41,15 +41,28 @@ foreach ($contract in @(
     'Read-TestLensPom (Join-Path $repositoryRoot "pom.xml")',
     'Get-TestLensPomText $rootPom "/m:project/m:version"',
     '-Version $reactorVersion',
+    'New-TestLensCertificationTempRoot -RunnerTemp "${{ runner.temp }}" -Linux $true',
     '$env:TMPDIR = $tempRoot',
     '$env:TEMP = $tempRoot',
     '$env:TMP = $tempRoot',
-    'Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue'
+    'Remove-TestLensCertificationTempRoot -Path $tempRoot'
 )) {
     if (-not $ciWorkflow.Contains($contract)) { throw "Linux certification workflow is missing contract: $contract" }
 }
 if ($ciWorkflow -match '(?m)^\s+TMPDIR:\s*') {
     throw "Linux certification must create its temp root before exporting TMPDIR"
+}
+
+$longRunnerTemp = "/home/runner/work/_temp/test-lens-s15-temp-436950dba8224e59aa046300ad98cb4a"
+$shortLinuxTemp = Get-TestLensCertificationTempRootPath -RunnerTemp $longRunnerTemp -Linux $true -RandomId "436950dba8224e59aa046300ad98cb4a"
+if ($shortLinuxTemp -ne "/tmp/tl-436950db" -or $shortLinuxTemp.StartsWith($longRunnerTemp, [StringComparison]::Ordinal)) {
+    throw "Linux certification must choose a real short /tmp root instead of the long runner temp path"
+}
+$projectedSingletonSocket = $shortLinuxTemp + "/org.chromium.Chromium." + ("x" * 16) + "/SingletonSocket"
+$projectedSocketBytes = [Text.Encoding]::UTF8.GetByteCount($projectedSingletonSocket)
+$safeSocketBudget = 108 - 16 # Linux sockaddr_un.sun_path minus the certification safety margin.
+if ([Text.Encoding]::UTF8.GetByteCount($shortLinuxTemp) -gt 48 -or $projectedSocketBytes -gt $safeSocketBudget) {
+    throw "Linux Chrome SingletonSocket path budget regression: root=$shortLinuxTemp; projectedBytes=$projectedSocketBytes; safeBudget=$safeSocketBudget"
 }
 $linuxJob = [regex]::Match($ciWorkflow, '(?ms)^  linux-external-certification:.*?(?=^  [A-Za-z0-9_-]+:|\z)').Value
 if ([string]::IsNullOrWhiteSpace($linuxJob)) {

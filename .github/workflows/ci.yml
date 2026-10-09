@@ -263,8 +263,10 @@ jobs:
           SE_BROWSER_NO_SANDBOX: "true"
         shell: pwsh
         run: |
-          $tempRoot = Join-Path "${{ runner.temp }}" ("test-lens-s15-temp-" + [guid]::NewGuid().ToString("N"))
-          New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
+          $repositoryRoot = (Get-Location).Path
+          Import-Module (Join-Path $repositoryRoot "scripts/ReleaseReactor.psm1") -Force
+          Import-Module (Join-Path $repositoryRoot "scripts/StudioCertificationSupport.psm1") -Force
+          $tempRoot = New-TestLensCertificationTempRoot -RunnerTemp "${{ runner.temp }}" -Linux $true
           try {
             $env:TMPDIR = $tempRoot
             $env:TEMP = $tempRoot
@@ -273,9 +275,6 @@ jobs:
             New-Item -ItemType Directory -Force -Path $env:SE_BROWSER_DIAGNOSTICS_DIR | Out-Null
             $env:SE_BROWSER_PROFILE_ROOT = Join-Path $tempRoot "browser-profiles"
             New-Item -ItemType Directory -Force -Path $env:SE_BROWSER_PROFILE_ROOT | Out-Null
-            $repositoryRoot = (Get-Location).Path
-            Import-Module (Join-Path $repositoryRoot "scripts/ReleaseReactor.psm1") -Force
-            Import-Module (Join-Path $repositoryRoot "scripts/StudioCertificationSupport.psm1") -Force
             Invoke-TestLensChromeStartupSmoke `
               -BrowserBinary $env:SE_BROWSER_PATH `
               -TempRoot (Join-Path $tempRoot "chrome-smoke") `
@@ -294,7 +293,7 @@ jobs:
             & mvn "-Dmaven.repo.local=$repository" -f (Join-Path $spaceConsumer "pom.xml") test-compile
             if ($LASTEXITCODE -ne 0) { throw "External consumer path-with-spaces compilation failed" }
           } finally {
-            Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+            Remove-TestLensCertificationTempRoot -Path $tempRoot
           }
 
       - name: Upload external certification diagnostics
