@@ -19,4 +19,50 @@
         <dependency><groupId>org.junit.platform</groupId><artifactId>junit-platform-launcher</artifactId><version>1.10.2</version></dependency>
     </dependencies>
     <build><plugins><plugin><groupId>org.codehaus.mojo</groupId><artifactId>exec-maven-plugin</artifactId><version>3.5.0</version><configuration><mainClass>io.github.testlens.studio.launcher.Main</mainClass></configuration></plugin></plugins></build>
+    <profiles>
+        <profile>
+            <id>browser-it</id>
+            <properties>
+                <browser>chrome</browser>
+                <headed>false</headed>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven.surefire.plugin.version}</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/TestEngineeringStudioBrowserIT.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${maven.failsafe.plugin.version}</version>
+                        <configuration>
+                            <includes>
+                                <include>**/TestEngineeringStudioBrowserIT.java</include>
+                            </includes>
+                            <systemPropertyVariables>
+                                <browser>${browser}</browser>
+                                <studio.browser>${browser}</studio.browser>
+                                <headed>${headed}</headed>
+                            </systemPropertyVariables>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

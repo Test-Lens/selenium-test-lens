@@ -1,12 +1,56 @@
 package io.github.testlens.application.tooling.ai.workflow;
 
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseResult;
+import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.Position;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.MethodReferenceExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.SimpleName;
+import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.BreakStmt;
+import com.github.javaparser.ast.stmt.CatchClause;
+import com.github.javaparser.ast.stmt.ContinueStmt;
+import com.github.javaparser.ast.stmt.DoStmt;
+import com.github.javaparser.ast.stmt.ForEachStmt;
+import com.github.javaparser.ast.stmt.ForStmt;
+import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.ReturnStmt;
+import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.stmt.SynchronizedStmt;
+import com.github.javaparser.ast.stmt.ThrowStmt;
+import com.github.javaparser.ast.stmt.TryStmt;
+import com.github.javaparser.ast.stmt.WhileStmt;
+import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.ast.type.UnionType;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
-/** Bounded, comment/string-aware policy validation for generated Java test patches. @since 0.5.0 */
+/**
+ * Deterministic, comment- and literal-aware policy validation for complete generated Java test sources.
+ * Assertion-failure swallowing is an independent mandatory safety rule. The existing
+ * {@link Policy#blockLoops()} option continues to control only retry-loop detection.
+ *
+ * @since 0.5.0
+ */
 public final class GeneratedTestPolicyValidator {
+    private static final int MAX_EVIDENCE_CHARACTERS = 160;
+    private static final int CONTINUES = 1;
+    private static final int THROWS = 2;
+    private static final int EXITS_WITHOUT_THROWING = 4;
+    private static final Set<String> BY_FACTORIES = Set.of("id", "name", "className", "cssSelector", "xpath",
+            "tagName", "linkText", "partialLinkText");
     private final Policy policy;
 
     public GeneratedTestPolicyValidator(Policy policy) { this.policy = policy == null ? Policy.defaults() : policy; }
@@ -17,38 +61,52 @@ public final class GeneratedTestPolicyValidator {
         List<Violation> violations = new ArrayList<>();
         String normalizedPath = relativePath.normalize().toString().replace('\\', '/');
         if (normalizedPath.startsWith("../") || normalizedPath.equals("..")) {
-            violations.add(new Violation(Rule.FORBIDDEN_PATH, 1, 1, normalizedPath));
+            violations.add(new Violation(Rule.FORBIDDEN_PATH, 1, 1, bounded(normalizedPath)));
         }
         for (String forbidden : policy.forbiddenPathPrefixes()) {
             String prefix = forbidden.replace('\\', '/');
             if (normalizedPath.equals(prefix) || normalizedPath.startsWith(prefix.endsWith("/") ? prefix : prefix + "/")) {
-                violations.add(new Violation(Rule.FORBIDDEN_PATH, 1, 1, normalizedPath));
+                violations.add(new Violation(Rule.FORBIDDEN_PATH, 1, 1, bounded(normalizedPath)));
             }
         }
         if (source.length() > policy.maxCharacters()) {
             violations.add(new Violation(Rule.SIZE_LIMIT, 1, 1, "characters=" + source.length()));
-            return new ValidationResult(violations);
+            return new ValidationResult(deduplicate(violations));
         }
 
-        List<Token> tokens = tokenize(maskCommentsAndLiterals(source));
-        for (int i = 0; i < tokens.size(); i++) {
-            Token token = tokens.get(i);
-            if (policy.blockRawBy() && sequence(tokens, i, "By", ".")) add(violations, Rule.RAW_BY, token, source);
-            if (policy.blockDriverLookup() && (token.text().equals("findElement") || token.text().equals("findElements"))
-                    && i > 0 && tokens.get(i - 1).text().equals(".")) {
-                add(violations, Rule.DRIVER_LOOKUP, token, source);
+        CompilationUnit unit;
+        try {
+            JavaParser parser = new JavaParser(new ParserConfiguration()
+                    .setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17));
+            ParseResult<CompilationUnit> parsed = parser.parse(source);
+            if (!parsed.isSuccessful() || parsed.getResult().isEmpty()) {
+                String evidence = parsed.getProblems().isEmpty()
+                        ? "Java source could not be parsed"
+                        : parsed.getProblems().get(0).getMessage();
+                violations.add(new Violation(Rule.SOURCE_PARSE_FAILED, 1, 1, bounded(evidence)));
+                return new ValidationResult(deduplicate(violations));
             }
-            if (policy.blockJavascript() && (token.text().equals("JavascriptExecutor") || token.text().equals("executeScript"))) {
-                add(violations, Rule.JAVASCRIPT, token, source);
-            }
-            if (policy.blockSleeps() && sequence(tokens, i, "Thread", ".", "sleep")) add(violations, Rule.THREAD_SLEEP, token, source);
-            if (policy.blockRetryAnnotations() && token.text().equals("@") && i + 1 < tokens.size()
-                    && isRetryAnnotation(tokens.get(i + 1).text())) add(violations, Rule.RETRY_ANNOTATION, token, source);
-            if (policy.blockLoops() && isRetryLoop(tokens, i)) {
-                add(violations, Rule.RETRY_LOOP, token, source);
-            }
+            unit = parsed.getResult().orElseThrow();
+        } catch (RuntimeException failure) {
+            violations.add(new Violation(Rule.SOURCE_PARSE_FAILED, 1, 1,
+                    bounded("Java source could not be parsed: " + failure.getClass().getSimpleName())));
+            return new ValidationResult(deduplicate(violations));
         }
-        return new ValidationResult(violations);
+
+        List<Violation> analysis = new ArrayList<>();
+        if (policy.blockRawBy()) detectRawBy(unit, source, analysis);
+        if (policy.blockDriverLookup()) detectDriverLookup(unit, source, analysis);
+        if (policy.blockJavascript()) detectJavascript(unit, source, analysis);
+        if (policy.blockSleeps()) detectSleeps(unit, source, analysis);
+        if (policy.blockRetryAnnotations()) detectRetryAnnotations(unit, source, analysis);
+        if (policy.blockLoops()) detectRetryLoops(unit, source, analysis);
+        detectSwallowedAssertionFailures(unit, source, analysis);
+        analysis.sort(Comparator.comparingInt(Violation::line)
+                .thenComparingInt(Violation::column)
+                .thenComparing(value -> value.rule().ordinal())
+                .thenComparing(Violation::evidence));
+        violations.addAll(analysis);
+        return new ValidationResult(deduplicate(violations));
     }
 
     public ValidationResult validate(TestEngineeringRequest request, Path relativePath, String source) {
@@ -58,96 +116,189 @@ public final class GeneratedTestPolicyValidator {
                 .anyMatch(prefix -> path.equals(prefix) || path.startsWith(prefix.endsWith("/") ? prefix : prefix + "/"));
         if (allowed) return base;
         List<Violation> violations = new ArrayList<>(base.violations());
-        violations.add(new Violation(Rule.OUTSIDE_ALLOWED_PATHS, 1, 1, path));
-        return new ValidationResult(violations);
+        violations.add(new Violation(Rule.OUTSIDE_ALLOWED_PATHS, 1, 1, bounded(path)));
+        return new ValidationResult(deduplicate(violations));
+    }
+
+    private static void detectRawBy(CompilationUnit unit, String source, List<Violation> violations) {
+        for (SimpleName name : unit.findAll(SimpleName.class, candidate -> candidate.asString().equals("By"))) {
+            Node owner = name.getParentNode().orElse(null);
+            if (owner instanceof NameExpr && isMemberScope(owner)
+                    || owner instanceof FieldAccessExpr access && access.getName().equals(name) && isMemberScope(access)) {
+                add(violations, Rule.RAW_BY, name, source);
+            }
+        }
+        Set<String> staticallyImportedFactories = unit.getImports().stream()
+                .filter(importDeclaration -> importDeclaration.isStatic())
+                .filter(importDeclaration -> importDeclaration.getNameAsString().startsWith("org.openqa.selenium.By"))
+                .flatMap(importDeclaration -> importDeclaration.isAsterisk()
+                        ? BY_FACTORIES.stream()
+                        : java.util.stream.Stream.of(importDeclaration.getName().getIdentifier()))
+                .filter(BY_FACTORIES::contains)
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
+        unit.findAll(MethodCallExpr.class).stream()
+                .filter(call -> call.getScope().isEmpty())
+                .filter(call -> staticallyImportedFactories.contains(call.getNameAsString()))
+                .forEach(call -> add(violations, Rule.RAW_BY, call.getName(), source));
+    }
+
+    private static boolean isMemberScope(Node node) {
+        Node parent = node.getParentNode().orElse(null);
+        return parent instanceof MethodCallExpr call && call.getScope().filter(node::equals).isPresent()
+                || parent instanceof FieldAccessExpr access && access.getScope().equals(node)
+                || parent instanceof MethodReferenceExpr reference && reference.getScope().equals(node);
+    }
+
+    private static void detectDriverLookup(CompilationUnit unit, String source, List<Violation> violations) {
+        unit.findAll(MethodCallExpr.class).stream()
+                .filter(call -> call.getScope().isPresent())
+                .filter(call -> Set.of("findElement", "findElements").contains(call.getNameAsString()))
+                .forEach(call -> add(violations, Rule.DRIVER_LOOKUP, call.getName(), source));
+    }
+
+    private static void detectJavascript(CompilationUnit unit, String source, List<Violation> violations) {
+        unit.findAll(SimpleName.class).stream()
+                .filter(name -> name.asString().equals("JavascriptExecutor"))
+                .forEach(name -> add(violations, Rule.JAVASCRIPT, name, source));
+        unit.findAll(MethodCallExpr.class).stream()
+                .filter(call -> call.getNameAsString().equals("executeScript"))
+                .forEach(call -> add(violations, Rule.JAVASCRIPT, call.getName(), source));
+    }
+
+    private static void detectSleeps(CompilationUnit unit, String source, List<Violation> violations) {
+        boolean staticallyImported = unit.getImports().stream().anyMatch(importDeclaration -> importDeclaration.isStatic()
+                && (importDeclaration.getNameAsString().equals("java.lang.Thread.sleep")
+                || importDeclaration.isAsterisk() && importDeclaration.getNameAsString().equals("java.lang.Thread")));
+        unit.findAll(MethodCallExpr.class).stream()
+                .filter(call -> call.getNameAsString().equals("sleep"))
+                .filter(call -> call.getScope().map(GeneratedTestPolicyValidator::isThreadScope).orElse(staticallyImported))
+                .forEach(call -> add(violations, Rule.THREAD_SLEEP, call.getName(), source));
+        unit.findAll(MethodReferenceExpr.class).stream()
+                .filter(reference -> reference.getIdentifier().equals("sleep"))
+                .filter(reference -> isThreadScope(reference.getScope()))
+                .forEach(reference -> add(violations, Rule.THREAD_SLEEP, reference, source));
+    }
+
+    private static boolean isThreadScope(Node scope) {
+        String value = scope.toString();
+        return value.equals("Thread") || value.equals("java.lang.Thread");
+    }
+
+    private static void detectRetryAnnotations(CompilationUnit unit, String source, List<Violation> violations) {
+        unit.findAll(AnnotationExpr.class).stream()
+                .filter(annotation -> isRetryAnnotation(annotation.getNameAsString()))
+                .forEach(annotation -> add(violations, Rule.RETRY_ANNOTATION, annotation, source));
+    }
+
+    private static void detectRetryLoops(CompilationUnit unit, String source, List<Violation> violations) {
+        unit.findAll(Statement.class).stream()
+                .filter(statement -> statement instanceof ForStmt || statement instanceof ForEachStmt
+                        || statement instanceof WhileStmt || statement instanceof DoStmt)
+                .filter(GeneratedTestPolicyValidator::containsRetrySignal)
+                .forEach(loop -> add(violations, Rule.RETRY_LOOP, loop, source));
+    }
+
+    private static boolean containsRetrySignal(Statement loop) {
+        boolean namedSignal = loop.findAll(SimpleName.class).stream()
+                .map(SimpleName::asString)
+                .anyMatch(GeneratedTestPolicyValidator::isRetrySignal);
+        return namedSignal || loop.findAll(TryStmt.class).stream()
+                .anyMatch(GeneratedTestPolicyValidator::isStructuralRetryAttempt);
+    }
+
+    private static boolean isStructuralRetryAttempt(TryStmt attempt) {
+        boolean exitsOnSuccess = !attempt.getTryBlock().findAll(ReturnStmt.class).isEmpty()
+                || !attempt.getTryBlock().findAll(BreakStmt.class).isEmpty();
+        boolean caughtFailureContinuesLoop = attempt.getCatchClauses().stream()
+                .anyMatch(catchClause -> flow(catchClause.getBody()) != THROWS);
+        return exitsOnSuccess && caughtFailureContinuesLoop;
+    }
+
+    private static boolean isRetrySignal(String identifier) {
+        String lower = identifier.toLowerCase(Locale.ROOT).replace("_", "");
+        return lower.contains("retry") || lower.contains("rerun") || lower.equals("runagain");
+    }
+
+    private static void detectSwallowedAssertionFailures(
+            CompilationUnit unit, String source, List<Violation> violations) {
+        unit.findAll(CatchClause.class).stream()
+                .filter(catchClause -> catchesAssertionFailure(catchClause.getParameter().getType()))
+                .filter(catchClause -> flow(catchClause.getBody()) != THROWS)
+                .forEach(catchClause -> add(violations, Rule.ASSERTION_FAILURE_SWALLOWED, catchClause, source));
+    }
+
+    private static boolean catchesAssertionFailure(Type type) {
+        if (type instanceof UnionType union) return union.getElements().stream()
+                .anyMatch(GeneratedTestPolicyValidator::catchesAssertionFailure);
+        if (!type.isClassOrInterfaceType()) return false;
+        String name = type.asClassOrInterfaceType().getNameAsString();
+        return name.equals("AssertionError") || name.equals("Error") || name.equals("Throwable");
+    }
+
+    private static int flow(Statement statement) {
+        if (statement instanceof ThrowStmt) return THROWS;
+        if (statement instanceof ReturnStmt || statement instanceof BreakStmt || statement instanceof ContinueStmt) {
+            return EXITS_WITHOUT_THROWING;
+        }
+        if (statement instanceof BlockStmt block) {
+            int outcomes = CONTINUES;
+            for (Statement child : block.getStatements()) {
+                if ((outcomes & CONTINUES) == 0) break;
+                outcomes = outcomes & ~CONTINUES | flow(child);
+            }
+            return outcomes;
+        }
+        if (statement instanceof IfStmt conditional) {
+            int otherwise = conditional.getElseStmt().map(GeneratedTestPolicyValidator::flow).orElse(CONTINUES);
+            return flow(conditional.getThenStmt()) | otherwise;
+        }
+        if (statement instanceof SynchronizedStmt synchronizedStatement) {
+            return flow(synchronizedStatement.getBody());
+        }
+        if (statement instanceof TryStmt tryStatement) {
+            int outcomes = flow(tryStatement.getTryBlock());
+            for (CatchClause catchClause : tryStatement.getCatchClauses()) outcomes |= flow(catchClause.getBody());
+            if (tryStatement.getFinallyBlock().isEmpty()) return outcomes;
+            int finallyOutcomes = flow(tryStatement.getFinallyBlock().orElseThrow());
+            int result = finallyOutcomes & ~CONTINUES;
+            if ((finallyOutcomes & CONTINUES) != 0) result |= outcomes;
+            return result;
+        }
+        if (statement.isExpressionStmt() || statement.isLocalClassDeclarationStmt()
+                || statement.isExplicitConstructorInvocationStmt() || statement.isEmptyStmt()
+                || statement.isAssertStmt()) return CONTINUES;
+        return CONTINUES | EXITS_WITHOUT_THROWING;
+    }
+
+    private static void add(List<Violation> violations, Rule rule, Node node, String source) {
+        Position begin = node.getBegin().orElse(new Position(1, 1));
+        violations.add(new Violation(rule, begin.line, begin.column, evidence(node, source)));
+    }
+
+    private static String evidence(Node node, String source) {
+        if (node.getRange().isEmpty()) return bounded(node.toString());
+        int line = node.getRange().orElseThrow().begin.line;
+        String[] lines = source.split("\\R", -1);
+        return line > 0 && line <= lines.length ? bounded(lines[line - 1].strip()) : bounded(node.toString());
+    }
+
+    private static String bounded(String evidence) {
+        String singleLine = evidence == null ? "" : evidence.replace('\n', ' ').replace('\r', ' ').strip();
+        return singleLine.length() <= MAX_EVIDENCE_CHARACTERS
+                ? singleLine : singleLine.substring(0, MAX_EVIDENCE_CHARACTERS);
+    }
+
+    private static List<Violation> deduplicate(List<Violation> violations) {
+        Map<ViolationKey, Violation> unique = new LinkedHashMap<>();
+        for (Violation violation : violations) {
+            unique.putIfAbsent(new ViolationKey(violation.rule(), violation.line(), violation.column()), violation);
+        }
+        return List.copyOf(unique.values());
     }
 
     private static boolean isRetryAnnotation(String token) {
-        String lower = token.toLowerCase(Locale.ROOT);
-        return lower.contains("retry") || lower.equals("repeatedtest");
-    }
-
-    private static boolean isRetryLoop(List<Token> tokens, int loopIndex) {
-        String keyword = tokens.get(loopIndex).text();
-        if (!keyword.equals("for") && !keyword.equals("while") && !keyword.equals("do")) return false;
-        int limit = Math.min(tokens.size(), loopIndex + 128);
-        int braces = 0;
-        boolean enteredBody = false;
-        for (int i = loopIndex + 1; i < limit; i++) {
-            String token = tokens.get(i).text();
-            if (token.equals("{")) { braces++; enteredBody = true; }
-            else if (token.equals("}") && enteredBody && --braces <= 0) break;
-            String lower = token.toLowerCase(Locale.ROOT);
-            if (lower.contains("retry") || lower.contains("rerun")) return true;
-            if (!enteredBody && token.equals(";")) break;
-        }
-        return false;
-    }
-
-    private static void add(List<Violation> violations, Rule rule, Token token, String source) {
-        int start = Math.max(0, token.offset() - 24);
-        int end = Math.min(source.length(), token.offset() + token.text().length() + 40);
-        String evidence = source.substring(start, end).replace('\n', ' ').replace('\r', ' ').strip();
-        violations.add(new Violation(rule, token.line(), token.column(), evidence));
-    }
-
-    private static boolean sequence(List<Token> tokens, int offset, String... expected) {
-        if (offset < 0 || offset + expected.length > tokens.size()) return false;
-        for (int i = 0; i < expected.length; i++) if (!tokens.get(offset + i).text().equals(expected[i])) return false;
-        return true;
-    }
-
-    private static char[] maskCommentsAndLiterals(String source) {
-        char[] result = source.toCharArray();
-        Mode mode = Mode.CODE;
-        boolean escaped = false;
-        for (int i = 0; i < result.length; i++) {
-            char c = result[i];
-            char next = i + 1 < result.length ? result[i + 1] : '\0';
-            if (mode == Mode.CODE && c == '/' && next == '/') { result[i] = result[++i] = ' '; mode = Mode.LINE_COMMENT; continue; }
-            if (mode == Mode.CODE && c == '/' && next == '*') { result[i] = result[++i] = ' '; mode = Mode.BLOCK_COMMENT; continue; }
-            if (mode == Mode.CODE && c == '"' && next == '"' && i + 2 < result.length && result[i + 2] == '"') {
-                result[i] = result[++i] = result[++i] = ' '; mode = Mode.TEXT_BLOCK; continue;
-            }
-            if (mode == Mode.CODE && c == '"') { result[i] = ' '; mode = Mode.STRING; escaped = false; continue; }
-            if (mode == Mode.CODE && c == '\'') { result[i] = ' '; mode = Mode.CHARACTER; escaped = false; continue; }
-            if (mode == Mode.LINE_COMMENT) { if (c == '\n') mode = Mode.CODE; else result[i] = ' '; continue; }
-            if (mode == Mode.BLOCK_COMMENT) {
-                if (c == '*' && next == '/') { result[i] = result[++i] = ' '; mode = Mode.CODE; }
-                else if (c != '\n' && c != '\r') result[i] = ' ';
-                continue;
-            }
-            if (mode == Mode.TEXT_BLOCK) {
-                if (c == '"' && next == '"' && i + 2 < result.length && result[i + 2] == '"') {
-                    result[i] = result[++i] = result[++i] = ' '; mode = Mode.CODE;
-                } else if (c != '\n' && c != '\r') result[i] = ' ';
-                continue;
-            }
-            if (mode == Mode.STRING || mode == Mode.CHARACTER) {
-                char closing = mode == Mode.STRING ? '"' : '\'';
-                if (c == closing && !escaped) mode = Mode.CODE;
-                if (c != '\n' && c != '\r') result[i] = ' ';
-                if (c == '\\' && !escaped) escaped = true; else escaped = false;
-            }
-        }
-        return result;
-    }
-
-    private static List<Token> tokenize(char[] source) {
-        List<Token> tokens = new ArrayList<>();
-        int line = 1, column = 1;
-        for (int i = 0; i < source.length;) {
-            char c = source[i];
-            if (c == '\n') { line++; column = 1; i++; continue; }
-            if (Character.isWhitespace(c)) { column++; i++; continue; }
-            int offset = i, startColumn = column;
-            if (Character.isJavaIdentifierStart(c)) {
-                i++; column++;
-                while (i < source.length && Character.isJavaIdentifierPart(source[i])) { i++; column++; }
-            } else { i++; column++; }
-            tokens.add(new Token(new String(source, offset, i - offset), offset, line, startColumn));
-        }
-        return tokens;
+        String simpleName = token.substring(token.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
+        return simpleName.contains("retry") || simpleName.equals("repeatedtest");
     }
 
     public record Policy(List<String> forbiddenPathPrefixes, int maxCharacters, boolean blockRawBy,
@@ -168,7 +319,6 @@ public final class GeneratedTestPolicyValidator {
     }
     public record Violation(Rule rule, int line, int column, String evidence) { }
     public enum Rule { RAW_BY, DRIVER_LOOKUP, THREAD_SLEEP, JAVASCRIPT, RETRY_ANNOTATION, RETRY_LOOP,
-        FORBIDDEN_PATH, OUTSIDE_ALLOWED_PATHS, SIZE_LIMIT }
-    private record Token(String text, int offset, int line, int column) { }
-    private enum Mode { CODE, LINE_COMMENT, BLOCK_COMMENT, STRING, CHARACTER, TEXT_BLOCK }
+        ASSERTION_FAILURE_SWALLOWED, FORBIDDEN_PATH, OUTSIDE_ALLOWED_PATHS, SIZE_LIMIT, SOURCE_PARSE_FAILED }
+    private record ViolationKey(Rule rule, int line, int column) { }
 }

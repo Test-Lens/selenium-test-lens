@@ -415,9 +415,11 @@ public static final io.github.testlens.application.tooling.ai.workflow.Generated
 public static final io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator$Rule JAVASCRIPT
 public static final io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator$Rule RETRY_ANNOTATION
 public static final io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator$Rule RETRY_LOOP
+public static final io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator$Rule ASSERTION_FAILURE_SWALLOWED
 public static final io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator$Rule FORBIDDEN_PATH
 public static final io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator$Rule OUTSIDE_ALLOWED_PATHS
 public static final io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator$Rule SIZE_LIMIT
+public static final io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator$Rule SOURCE_PARSE_FAILED
 public static io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator$Rule[] values()
 public static io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator$Rule valueOf(java.lang.String)
 ```

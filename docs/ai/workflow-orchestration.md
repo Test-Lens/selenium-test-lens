@@ -23,7 +23,7 @@ Source excerpts are not included by default. If host tooling needs one, it shoul
 
 ## Provider-neutral execution boundary
 
-`AgentExecutor` receives an `AgentCommand` containing a run ID, a role, bounded artifact envelopes, and instructions, then returns a structured result payload. `ScriptedAgentExecutor` keeps CI deterministic. `ExternalAgentRunner` is the tooling-side implementation for an explicitly configured subprocess; neither implementation adds a provider SDK or a network dependency to Test Lens runtime.
+`AgentExecutor` receives an `AgentCommand` containing a run ID, a role, bounded artifact envelopes, and instructions, then returns a structured result payload. `ScriptedAgentExecutor` keeps CI deterministic; passing that fixture proves the deterministic gates and state transitions, not the quality of a real AI model. `ExternalAgentRunner` is the tooling-side implementation for an explicitly configured subprocess; neither implementation adds a provider SDK or a network dependency to Test Lens runtime.
 
 Available roles include:
 
@@ -99,22 +99,27 @@ CREATED
 
 `BLOCKED`, `FAILED`, `REJECTED`, and `NEEDS_HUMAN_REVIEW` are terminal. `WorkflowPolicy` independently bounds implementation corrections, reruns, repair proposals, artifacts, and audit entries. Reaching a correction, rerun, or repair bound requests human review; there is no infinite self-healing loop.
 
-Every `ArtifactEnvelope` belongs to one run, has a digest, and can name parent artifacts. The reducer rejects duplicate artifact IDs, unknown parents, and cross-run artifacts. `TestEngineeringRun` records state transitions and metrics for agent calls, compilations, executions, corrections, reruns, and repairs.
+Every `ArtifactEnvelope` belongs to one run, has a digest, and can name parent artifacts. The envelope snapshots supported payloads before calculating that digest: byte arrays are copied on input and output, while the immutable workflow contract records are retained. Unknown objects, arrays, collections, and maps are rejected instead of relying on a mutable object's `toString()`. The public constructor and `create(...)` factory enforce the same rule. This deliberately narrows the otherwise generic type parameter to the payload types used by the workflow; adding another payload type requires an explicit immutability decision.
+
+The reducer rejects duplicate artifact IDs, unknown parents, and cross-run artifacts. `TestEngineeringRun` records state transitions and metrics for agent calls, compilations, executions, corrections, reruns, and repairs.
 
 `AgentWorkflowCoordinator` connects this reducer to an injected `AgentExecutor`, `TargetedJavaCompiler`, targeted-test boundary, failure classifier, and stabilizer. It requests architect, implementer, and reviewer results through the same executor abstraction, enforces `PAGE_OBJECTS_ONLY`, retries compile correction only up to `maxImplementationAttempts`, never executes after a policy or compile failure, and routes failed execution through classification before an optional `PROPOSE_ONLY` repair.
 
 ## Page Objects only is enforced
 
-The implementer instruction is backed by `GeneratedTestPolicyValidator`. Its default policy rejects Java test patches containing:
+The implementer instruction is backed by `GeneratedTestPolicyValidator`. The proposal contains a complete Java 17 compilation unit, not a diff. The validator checks the source-size bound before parsing, parses the complete source into an AST, and rejects an unsuccessful parse as `SOURCE_PARSE_FAILED`; an unparseable proposal is never treated as a successful partial analysis. Its default policy rejects generated Java containing:
 
 - `By.*` declarations or calls;
 - `driver.findElement` or `findElements`;
-- `Thread.sleep`;
+- `Thread.sleep`, `java.lang.Thread.sleep`, matching method references, and unqualified `sleep(...)` only when imported statically from `java.lang.Thread`;
 - direct `JavascriptExecutor` or `executeScript` use;
-- retry annotations and retry-like loops;
+- retry annotations (short or qualified) and retry-like `for`, enhanced `for`, `while`, or `do/while` loops;
+- a catch of `AssertionError`, `Error`, or `Throwable` that has any path which can return, break, continue, or complete normally instead of throwing;
 - changes outside request-approved paths or in protected production/build paths.
 
-The scanner masks comments, string literals, character literals, and text blocks before token checks, so an explanatory string does not become a false selector violation. The validator is intentionally a bounded test-patch policy, not a replacement Java compiler or security sandbox.
+`catch (Exception)` does not catch `AssertionError` and is not rejected by this rule. A catch may add diagnostics and then throw on every path; ordinary data iteration, Page Object calls, `assertThrows`, and project wait APIs remain allowed. Comments, string and character literals, and text blocks are AST literals rather than executable calls, so explanatory text does not become a violation. The analysis is syntax-aware but intentionally does not resolve arbitrary custom type hierarchies or prove business correctness. It is a deterministic generated-source policy, not a replacement Java compiler, a security sandbox, or evidence that a generated test asserts the right product behavior.
+
+The coordinator applies this gate to every full implementation attempt, including corrected implementations, before compilation. Studio also validates generated and restored reviewed implementations before replay. A policy rejection records a failed `POLICY_VALIDATION` step with zero compile and execution attempts. Selector repair is a separate, narrowly targeted contract: `TrustedRepairApplier` validates the indexed declaration, fingerprints, allowed path and exact replacement, then the repair verifier compiles the final persisted source. It is not passed through the generated-test path policy because a legitimate Page Object repair can target `src/main/java`.
 
 If the required Page Object operation is absent, the result is `PageObjectCapabilityMissing`. A `PageObjectExtensionProposal` may describe a mechanical method using an already-correlated declaration. If a new locator is required, the request is delegated to Selector Intelligence; the agent does not paste a guessed CSS or XPath into the test.
 

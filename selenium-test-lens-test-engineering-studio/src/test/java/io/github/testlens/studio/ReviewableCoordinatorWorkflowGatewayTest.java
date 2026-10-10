@@ -89,6 +89,49 @@ class ReviewableCoordinatorWorkflowGatewayTest {
         assertEquals(TestEngineeringRun.State.SUCCESS,report.finalState());assertEquals(0,calls.get());assertEquals(1,executions.get());
     }
 
+    @Test void rejectedImplementationCannotCreateCoordinatorCompileOrExecute() throws Exception {
+        AtomicInteger coordinatorCreations = new AtomicInteger();
+        AtomicInteger executions = new AtomicInteger();
+        String swallowed = "package example; public final class GeneratedTest { public static void execute() { "
+                + "try { throw new AssertionError(); } catch (AssertionError ignored) { } } }";
+        TestImplementationProposal implementation = new TestImplementationProposal(ready(), "unsafe", swallowed,
+                TestImplementationProposal.SelectorAccessPolicy.PAGE_OBJECTS_ONLY, List.of("LoginPage.login"), List.of());
+        var gateway = new ReviewableCoordinatorWorkflowGateway(scripted(new TestPlan(ready(), List.of()), implementation),
+                replay -> { coordinatorCreations.incrementAndGet(); return coordinator(replay, executions); });
+        gateway.prepare("run-swallow", request(), context());
+        gateway.generatePlan("run-swallow", "requirement");
+        gateway.generateImplementation("run-swallow");
+
+        assertTrue(gateway.implementationPolicy("run-swallow").stream().anyMatch(check -> !check.passed()));
+        assertThrows(IllegalStateException.class, () -> gateway.run("run-swallow"));
+        assertEquals(0, coordinatorCreations.get(), "policy rejection must happen before compiler pipeline construction");
+        assertEquals(0, executions.get());
+    }
+
+    @Test void restoredImplementationIsRevalidatedAndBlockedBeforeRerunRepairCompiler() throws Exception {
+        AtomicInteger coordinatorCreations = new AtomicInteger();
+        AtomicInteger repairCompiles = new AtomicInteger();
+        AtomicInteger executions = new AtomicInteger();
+        TestPlan plan = new TestPlan(ready(), List.of());
+        TestImplementationProposal unsafe = new TestImplementationProposal(ready(), "restored-unsafe",
+                "package example; public final class GeneratedTest { void test() { try { throw new AssertionError(); } catch (Throwable ignored) { } } }",
+                TestImplementationProposal.SelectorAccessPolicy.PAGE_OBJECTS_ONLY, List.of("LoginPage.login"), List.of());
+        var gateway = new ReviewableCoordinatorWorkflowGateway(scripted(review()),
+                replay -> { coordinatorCreations.incrementAndGet(); return coordinator(replay, executions); },
+                new GeneratedTestPolicyValidator(GeneratedTestPolicyValidator.Policy.defaults()),
+                ignored -> Path.of("src/test/java/example/GeneratedTest.java"),
+                proposal -> repairCompiles.incrementAndGet());
+        gateway.prepare("run-restored-unsafe", request(), context());
+        gateway.restoreReviewedArtifacts("run-restored-unsafe", plan, unsafe);
+
+        assertTrue(gateway.implementationPolicy("run-restored-unsafe").stream().anyMatch(check -> !check.passed()));
+        assertThrows(IllegalStateException.class, () -> gateway.run("run-restored-unsafe"));
+        assertThrows(IllegalStateException.class, () -> gateway.rerun("run-restored-unsafe", repair()));
+        assertEquals(0, coordinatorCreations.get());
+        assertEquals(0, repairCompiles.get(), "a blocked reviewed implementation cannot reach repair compilation");
+        assertEquals(0, executions.get());
+    }
+
     private static AgentWorkflowCoordinator coordinator(AgentExecutor agents, AtomicInteger executions) {
         return new AgentWorkflowCoordinator(new TestEngineeringWorkflow(WorkflowPolicy.defaults()), agents,
                 new TargetedJavaCompiler(), (request, output) -> {

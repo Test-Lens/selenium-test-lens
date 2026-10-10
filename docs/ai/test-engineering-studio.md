@@ -158,13 +158,17 @@ Requirements and context use the existing `RedactionPolicy`. Cookies, authorizat
 
 ## Run the development fixture
 
-From the repository root, run the complete Chrome fixture:
+From the repository root, run the complete Chrome fixture, including the real-DOM Studio navigation regression, through the Studio Failsafe profile:
 
 ```powershell
-mvn -pl selenium-test-lens-test-engineering-studio test
+mvn -Pbrowser-it -pl selenium-test-lens-test-engineering-studio -am `
+  -Dbrowser=chrome -Dheaded=false `
+  -Dit.test=TestEngineeringStudioBrowserIT verify
 ```
 
-The fixture starts the loopback Studio host and a local login application, scans hand-written Page Objects, maps and correlates the live page, generates and reviews a scripted provider-neutral plan/test, compiles and executes it in Chrome, creates a real Selector Intelligence repair after selector drift, verifies that viewing the proposal does not mutate source, then applies it only after the browser clicks **Approve and apply**. A Firefox test selector exists, but this page does not treat it or the scripted agent as certification of the complete external-provider repair workflow.
+The successful run creates `selenium-test-lens-test-engineering-studio/target/failsafe-reports/io.github.testlens.studio.TestEngineeringStudioBrowserIT.txt`. In the current module, Surefire also discovers this class because its name starts with `Test`; do not infer that behavior for arbitrary `*IT` names. The Failsafe report above is the explicit evidence for the documented `browser-it` command.
+
+The fixture starts the loopback Studio host and a local login application, checks active navigation in a real DOM, scans hand-written Page Objects, maps and correlates the live page, generates and reviews a scripted provider-neutral plan/test, compiles and executes it in Chrome, creates a real Selector Intelligence repair after selector drift, verifies that viewing the proposal does not mutate source, then applies it only after the browser clicks **Approve and apply**. A Firefox selector exists, but neither this fixture nor its `ScriptedAgentExecutor` certifies the quality of a real model or the complete external-provider repair workflow.
 
 Screenshots are written to `selenium-test-lens-test-engineering-studio/target/studio-screenshots/`.
 

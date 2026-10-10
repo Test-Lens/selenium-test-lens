@@ -36,6 +36,11 @@ class MiniDocument {
     this.ids = new Map(); this.listeners = new Map(); this.activeElement = null; this.readyState = "loading";
     this.documentElement = new MiniNode("html", this); this.documentElement.dataset.sessionToken = "session-from-bootstrap";
     this.body = new MiniNode("body", this); this.body.dataset = {}; this.meta = new MiniNode("meta", this); this.meta.content = "session-token";
+    this.navigation = new MiniNode("nav", this);
+    ["overview", "application", "page-objects", "problems", "requirements", "plans", "runs", "repairs", "history"].forEach(view => {
+      const button = new MiniNode("button", this); button.dataset.view = view; button.textContent = view; this.navigation.appendChild(button);
+    });
+    this.body.appendChild(this.navigation);
     ["view-title", "project-label", "problem-count", "primary-view", "details-panel", "operation-status", "error-banner", "workflow-banner", "studio-content", "connection-status"].forEach(id => {
       const item = new MiniNode(id === "studio-content" ? "main" : "div", this); item.id = id; this.ids.set(id, item);
       if (id === "connection-status") { const parent = new MiniNode("footer", this); parent.appendChild(item); }
@@ -45,7 +50,12 @@ class MiniDocument {
   createDocumentFragment() { return new MiniNode("#fragment", this); }
   getElementById(id) { return this.ids.get(id) || null; }
   querySelector(selector) { if (selector === 'meta[name="test-lens-session"]') return this.meta; if (selector === '[data-filter="text"]') return null; return null; }
-  querySelectorAll() { return []; }
+  querySelectorAll(selector) {
+    const values = selector === "[data-view]" ? this.navigation.children : [];
+    const collection = { length: values.length, item(index) { return values[index] || null; } };
+    values.forEach((value, index) => { collection[index] = value; });
+    return collection;
+  }
   addEventListener(type, listener) { if (!this.listeners.has(type)) this.listeners.set(type, []); this.listeners.get(type).push(listener); }
   dispatch(type, target, extra = {}) { for (const listener of this.listeners.get(type) || []) listener({ target, key: extra.key, preventDefault() {} }); }
 }
@@ -114,6 +124,31 @@ for (const action of studioModule.ACTIONS) assert.ok(source.includes(action), `m
   assert.match(document.getElementById("primary-view").textContent, /19/, "real projection counts must drive the view");
   assert.match(document.getElementById("primary-view").textContent, /Example checkout.*MAVEN.*\.test-lens/, "resolved project configuration must be visible");
   assert.match(document.getElementById("details-panel").textContent, /SOURCE_FINGERPRINT.*verified/, "projection evidence must drive the evidence panel");
+}
+
+{
+  const calls = []; const document = new MiniDocument();
+  const studio = studioModule.createStudio({ document, fetch: fixtureFetch(calls), location: { origin: "http://127.0.0.1" } });
+  studio.start(); await settle();
+  const views = document.querySelectorAll("[data-view]");
+  assert.equal(Array.isArray(views), false, "the DOM contract uses an array-like NodeList, not an Array");
+  let previous = null;
+  for (let index = 0; index < views.length; index += 1) {
+    const target = views.item(index);
+    document.dispatch("click", target);
+    assert.equal(studio.state.view, target.dataset.view, `navigation must select ${target.dataset.view}`);
+    assert.equal(target.attributes["aria-current"], "page", `${target.dataset.view} must be the current view`);
+    assert.equal(Array.from({ length: views.length }, (_, i) => views.item(i)).filter(item => item.attributes["aria-current"] === "page").length, 1,
+      "exactly one navigation item must be current");
+    if (previous) assert.equal(previous.attributes["aria-current"], "false", "the previously selected view must be cleared");
+    studio.render();
+    assert.equal(target.attributes["aria-current"], "page", "rerender must preserve current navigation state");
+    previous = target;
+  }
+  const back = views.item(views.length - 2);
+  document.dispatch("click", back);
+  assert.equal(back.attributes["aria-current"], "page", "back navigation must restore the previous view");
+  assert.equal(previous.attributes["aria-current"], "false");
 }
 
 {

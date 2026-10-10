@@ -97,6 +97,7 @@ class TestEngineeringStudioBrowserIT {
                 StudioLauncherService launcher=new StudioLauncherService(gateway,()->target);
                 try (var launched=launcher.launch(descriptor,new StudioLauncherService.LaunchOptions(false))) {
                     TestEngineeringStudioService service=launched.service();studio.get(launched.uri().toString());
+                    assertRealDomNavigation(studio);
                     click(studio, "Scan project"); awaitText(studio, "2 files scanned"); screenshot(studio, "project-overview");
                     click(studio, "Start mapping"); awaitText(studio, "pages mapped");
                     click(studio, "Correlate"); awaitText(studio, "elements correlated");
@@ -277,6 +278,25 @@ class TestEngineeringStudioBrowserIT {
     private record WorkflowExecution(boolean passed,Throwable failure,UiTestLensSession session){}
 
     private static void click(WebDriver driver,String text) { new WebDriverWait(driver,Duration.ofSeconds(20)).until(d -> d.findElements(By.xpath("//button[normalize-space()="+quote(text)+"]")).stream().filter(WebElement::isEnabled).findFirst().orElse(null)).click(); }
+    private static void assertRealDomNavigation(WebDriver driver) {
+        List<WebElement> views = driver.findElements(By.cssSelector("nav [data-view]"));
+        assertEquals(9, views.size(), "the complete Studio navigation must be present in the real DOM");
+        WebElement previous = null;
+        for (WebElement view : views) {
+            view.click();
+            assertEquals("page", view.getAttribute("aria-current"));
+            assertEquals(1, driver.findElements(By.cssSelector("nav [data-view][aria-current='page']")).size(),
+                    "exactly one real DOM navigation item must be current");
+            if (previous != null) assertEquals("false", previous.getAttribute("aria-current"));
+            previous = view;
+        }
+        WebElement back = views.get(views.size() - 2);
+        back.click();
+        assertEquals("page", back.getAttribute("aria-current"), "back navigation must select the prior view");
+        assertEquals("false", previous.getAttribute("aria-current"));
+        views.get(0).click();
+        assertEquals("page", views.get(0).getAttribute("aria-current"), "rerender must retain the selected view");
+    }
     private static void awaitText(WebDriver driver,String text) { new WebDriverWait(driver,Duration.ofSeconds(30)).until(d -> d.findElement(By.tagName("body")).getText().contains(text)); }
     private static String quote(String value) { return "'"+value.replace("'","")+"'"; }
     private static void screenshot(WebDriver driver,String name) throws Exception { Path out=Path.of("target","studio-screenshots",name+"-"+System.getProperty("studio.browser","chrome")+".png");Files.createDirectories(out.getParent());Files.write(out,((TakesScreenshot)driver).getScreenshotAs(OutputType.BYTES)); }

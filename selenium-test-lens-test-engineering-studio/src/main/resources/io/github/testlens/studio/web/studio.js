@@ -206,7 +206,7 @@
     function render() {
       byId("view-title").textContent = TITLES[state.view] || "Test Engineering";
       byId("project-label").textContent = [first(state.config, ["name"], first(state.project, ["projectName"], "Project")), first(state.config, ["root"], first(state.project, ["rootLabel"], ""))].filter(Boolean).join(" · ");
-      list(document.querySelectorAll("[data-view]")).forEach(function (item) { if (item.closest && item.closest("nav")) item.setAttribute("aria-current", item.dataset.view === state.view ? "page" : "false"); });
+      Array.from(document.querySelectorAll("[data-view]")).forEach(function (item) { if (item.closest && item.closest("nav")) item.setAttribute("aria-current", item.dataset.view === state.view ? "page" : "false"); });
       var totalProblems = Number(first(state.problems, ["total"], first(state.project && state.project.counts, ["problems"], 0))); var badge = byId("problem-count"); badge.textContent = String(totalProblems); badge.hidden = totalProblems < 1;
       updateWorkflowBanner(); ({ overview: renderOverview, application: renderApplication, "page-objects": renderCorrelations, problems: renderProblems, requirements: renderRequirements, plans: renderPlans, runs: renderRuns, repairs: renderRepairs, history: renderHistory }[state.view] || renderOverview)();
     }

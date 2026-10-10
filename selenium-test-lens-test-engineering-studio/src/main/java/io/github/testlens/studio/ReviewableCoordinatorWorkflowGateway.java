@@ -120,11 +120,7 @@ public final class ReviewableCoordinatorWorkflowGateway implements StudioWorkflo
 
     @Override
     public WorkflowReport run(String runId) throws AgentExecutor.AgentExecutionException {
-        Session session = requireSession(runId);
-        if (session.implementation() == null) {
-            throw new IllegalStateException("Implementation must be reviewed before Run");
-        }
-        if(session.policy().isEmpty()||session.policy().stream().anyMatch(value->!value.passed()))throw new IllegalStateException("Implementation is blocked by deterministic policy");
+        Session session = requireRunnableSession(runId);
         AgentExecutor replay = command -> switch (command.role()) {
             case TEST_ARCHITECT -> session.plan();
             case TEST_IMPLEMENTER -> session.implementation();
@@ -137,12 +133,22 @@ public final class ReviewableCoordinatorWorkflowGateway implements StudioWorkflo
                 session.input().context().header().limitations());
     }
 
+    private Session requireRunnableSession(String runId) {
+        Session session = requireSession(runId);
+        if (session.implementation() == null) {
+            throw new IllegalStateException("Implementation must be reviewed before Run");
+        }
+        if(session.policy().isEmpty()||session.policy().stream().anyMatch(value->!value.passed()))throw new IllegalStateException("Implementation is blocked by deterministic policy");
+        return session;
+    }
+
     @Override public TestExecutionResult execution(String runId) { return artifact(runId, TestExecutionResult.class); }
     @Override public FailureClassification diagnosis(String runId) { return artifact(runId, FailureClassification.class); }
     @Override public RepairProposal repair(String runId) { return artifact(runId, RepairProposal.class); }
     @Override public List<StudioWorkflowGateway.PolicyCheck> implementationPolicy(String runId){return requireSession(runId).policy();}
     @Override public WorkflowReport rerun(String runId,RepairProposal appliedRepair)throws AgentExecutor.AgentExecutionException{
         if(appliedRepair==null)throw new IllegalStateException("Applied repair is required for repair verification");
+        requireRunnableSession(runId);
         repairSourceCompiler.compile(appliedRepair);
         return run(runId);
     }

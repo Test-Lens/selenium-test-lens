@@ -8,7 +8,9 @@ import io.github.testlens.application.tooling.ai.FailureClassification;
 import io.github.testlens.application.tooling.ai.TestImplementationProposal;
 import io.github.testlens.application.tooling.ai.TestPlan;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class AgentWorkflowCoordinatorTest {
+    @TempDir Path temporaryDirectory;
     @Test void runsScriptedPlanImplementationCompileExecutionAndReview() throws Exception {
         AtomicInteger executions = new AtomicInteger();
         var result = coordinator(scripted(plan(), implementation(validSource()), review()),
@@ -63,7 +66,7 @@ class AgentWorkflowCoordinatorTest {
 
     @Test void exhaustedCompilationAttemptsStopExecution() throws Exception {
         AtomicInteger executions = new AtomicInteger();
-        var result = coordinator(scripted(plan(), implementation("final class GeneratedTest { missing }")),
+        var result = coordinator(scripted(plan(), implementation("final class GeneratedTest { MissingType missing; }")),
                 (request, output) -> { executions.incrementAndGet(); return new TargetedTestExecutor.ExecutionResult(true, 1, List.of()); }, 1)
                 .run("run-compile-fail", request(), context());
 
@@ -75,7 +78,7 @@ class AgentWorkflowCoordinatorTest {
 
     @Test void boundedCorrectionCanReplaceBrokenImplementation() throws Exception {
         AtomicInteger executions = new AtomicInteger();
-        var result = coordinator(scripted(plan(), implementation("final class GeneratedTest { missing }"),
+        var result = coordinator(scripted(plan(), implementation("final class GeneratedTest { MissingType missing; }"),
                         implementation(validSource()), review()),
                 (request, output) -> { executions.incrementAndGet(); return new TargetedTestExecutor.ExecutionResult(true, 1, List.of("pass")); }, 2)
                 .run("run-corrected", request(), context());
@@ -109,6 +112,85 @@ class AgentWorkflowCoordinatorTest {
                         .run("run-blocked-plan", request(), context()));
 
         assertEquals(AgentExecutor.AgentFailureCode.AGENT_OUTPUT_INVALID, failure.code());
+    }
+
+    @Test void swallowedAssertionProposalFailsPolicyBeforeCompileExecutionOrSourceApplication() throws Exception {
+        AtomicInteger executions = new AtomicInteger();
+        Path generated = temporaryDirectory.resolve("example/GeneratedTest.java");
+        String swallowing = """
+                package example;
+                public final class GeneratedTest {
+                  public static void execute() {
+                    try { throw new AssertionError("failed"); }
+                    catch (AssertionError ignored) { System.err.println("ignored"); }
+                  }
+                }
+                """;
+        var result = coordinator(scripted(plan(), implementation(swallowing), review()),
+                (request, output) -> { executions.incrementAndGet(); return new TargetedTestExecutor.ExecutionResult(true, 1, List.of()); }, 2)
+                .run("run-swallowed-assertion", request(), context());
+
+        assertEquals(TestEngineeringRun.State.FAILED, result.run().state());
+        assertEquals(0, result.metrics().compileAttempts());
+        assertEquals(0, result.metrics().executionAttempts());
+        assertEquals(0, executions.get());
+        AgentWorkflowCoordinator.Step policy = result.steps().stream()
+                .filter(step -> step.name().equals("POLICY_VALIDATION")).findFirst().orElseThrow();
+        assertEquals(AgentWorkflowCoordinator.Status.FAIL, policy.status());
+        assertFalse(policy.summary().isBlank());
+        WorkflowReport report = result.toWorkflowReport(0, List.of());
+        assertTrue(report.steps().stream().anyMatch(step -> step.name().equals("POLICY_VALIDATION")
+                && step.status() == WorkflowReport.Status.FAIL && !step.summary().isBlank()));
+        assertFalse(Files.exists(generated), "the coordinator validates and compiles in memory; it must not claim source application");
+    }
+
+    @Test void correctedFinalSourceIsRevalidatedBeforeItsCompile() throws Exception {
+        AtomicInteger executions = new AtomicInteger();
+        String unsafeCorrection = """
+                package example;
+                public final class GeneratedTest {
+                  public static void execute() {
+                    try { throw new AssertionError("failed"); } catch (AssertionError ignored) { }
+                  }
+                }
+                """;
+        var result = coordinator(scripted(plan(), implementation("package example; final class GeneratedTest { MissingType missing; }"),
+                        implementation(unsafeCorrection), review()),
+                (request, output) -> { executions.incrementAndGet(); return new TargetedTestExecutor.ExecutionResult(true, 1, List.of()); }, 2)
+                .run("run-unsafe-correction", request(), context());
+
+        assertEquals(TestEngineeringRun.State.FAILED, result.run().state());
+        assertEquals(1, result.metrics().compileAttempts(), "only the first, policy-safe source reaches compilation");
+        assertEquals(0, result.metrics().executionAttempts());
+        assertEquals(0, executions.get());
+        assertEquals(2, result.steps().stream().filter(step -> step.name().equals("POLICY_VALIDATION")).count());
+        assertEquals(AgentWorkflowCoordinator.Status.FAIL, result.steps().stream()
+                .filter(step -> step.name().equals("POLICY_VALIDATION")).reduce((a, b) -> b).orElseThrow().status());
+    }
+
+    @Test void pageObjectStyleSourceCompilesExecutesAndRealAssertionFailureRemainsFailed() throws Exception {
+        String source = """
+                package example;
+                public final class GeneratedTest {
+                  static final class LoginPage { boolean errorVisible() { return true; } }
+                  public static String execute() {
+                    LoginPage page = new LoginPage();
+                    if (!page.errorVisible()) throw new AssertionError("error not visible");
+                    return "page-object-bytecode";
+                  }
+                }
+                """;
+        var result = coordinator(scripted(plan(), implementation(source)),
+                (request, output) -> {
+                    Class<?> generated = output.loadClass(request.testClass(), getClass().getClassLoader());
+                    assertEquals("page-object-bytecode", generated.getMethod("execute").invoke(null));
+                    return new TargetedTestExecutor.ExecutionResult(false, 1, List.of("assertion failed"));
+                }, 2).run("run-real-assertion", request(), context());
+
+        assertEquals(TestEngineeringRun.State.NEEDS_HUMAN_REVIEW, result.run().state());
+        assertEquals(1, result.metrics().compileAttempts());
+        assertEquals(1, result.metrics().executionAttempts());
+        assertTrue(result.steps().stream().anyMatch(step -> step.name().equals("EXECUTION_FAIL")));
     }
 
     private static AgentWorkflowCoordinator coordinator(AgentExecutor executor, CompiledTargetedTestExecutor tests,
