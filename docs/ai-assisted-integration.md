@@ -10,7 +10,7 @@ Use the AI Integration Builder to prepare one complete prompt for a coding agent
 !!! tip "Start new integrations from latest"
     This page follows the current [`latest` documentation](https://test-lens.github.io/selenium-test-lens/latest/), which is the recommended starting point for a new integration. Older Test Lens versions and their documentation remain available and may still work correctly. They can produce a less complete or less effective integration because later releases may include fixes, improved APIs and lifecycle adapters, newer diagnostics and observability, or corrected integration patterns.
 
-The builder's selectable surface is the published 0.5.0 runtime consumer boundary:
+The builder's selectable surface is the published 0.5.1 runtime consumer boundary:
 
 | Choice | Public artifact/API |
 |---|---|

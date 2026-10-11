@@ -1,6 +1,6 @@
 # AI test workflow orchestration
 
-Test Lens 0.5.0 tooling connects a verified application model and existing Page Object API to a provider-neutral, auditable test-engineering workflow. The deterministic layers decide what source exists, which elements it represents, what context is relevant, whether proposed Java compiles, and what the targeted test actually reported. An external agent reasons only over that bounded evidence.
+Test Lens 0.5.1 tooling connects a verified application model and existing Page Object API to a provider-neutral, auditable test-engineering workflow. The deterministic layers decide what source exists, which elements it represents, what context is relevant, whether proposed Java compiles, and what the targeted test actually reported. An external agent reasons only over that bounded evidence.
 
 !!! info "Provider-neutral tooling"
     The workflow is opt-in tooling. No OpenAI, Anthropic, Gemini, or other provider SDK is included, and Test Lens does not contact an AI service unless an explicitly selected external executor does so.
@@ -105,6 +105,11 @@ The reducer rejects duplicate artifact IDs, unknown parents, and cross-run artif
 
 `AgentWorkflowCoordinator` connects this reducer to an injected `AgentExecutor`, `TargetedJavaCompiler`, targeted-test boundary, failure classifier, and stabilizer. It requests architect, implementer, and reviewer results through the same executor abstraction, enforces `PAGE_OBJECTS_ONLY`, retries compile correction only up to `maxImplementationAttempts`, never executes after a policy or compile failure, and routes failed execution through classification before an optional `PROPOSE_ONLY` repair.
 
+In 0.5.1, reviewer approval is additionally bound to a `ReviewerEvidencePack`. The pack records whether compilation
+evidence is available, whether required API assertions were exercised, whether an assertion failure could be swallowed,
+whether the expected control path was observed, and which quality findings remain. Missing or inconsistent evidence is
+not converted into approval merely because a process exited successfully.
+
 ## Page Objects only is enforced
 
 The implementer instruction is backed by `GeneratedTestPolicyValidator`. The proposal contains a complete Java 17 compilation unit, not a diff. The validator checks the source-size bound before parsing, parses the complete source into an AST, and rejects an unsuccessful parse as `SOURCE_PARSE_FAILED`; an unparseable proposal is never treated as a successful partial analysis. Its default policy rejects generated Java containing:
@@ -123,11 +128,20 @@ The coordinator applies this gate to every full implementation attempt, includin
 
 If the required Page Object operation is absent, the result is `PageObjectCapabilityMissing`. A `PageObjectExtensionProposal` may describe a mechanical method using an already-correlated declaration. If a new locator is required, the request is delegated to Selector Intelligence; the agent does not paste a guessed CSS or XPath into the test.
 
+The Studio path also checks Page Object manifest readiness and resolves each reference through the canonical indexed
+API. Source API Verification confirms that the referenced class and method still exist in the indexed source before
+compilation. Ambiguous, missing, stale, or incompatible references fail closed and retain bounded diagnostics rather
+than falling back to a similarly named method.
+
 ## Compile and run only the target
 
 `TargetedJavaCompiler` compiles proposed in-memory source with the JDK compiler. Each source unit has a relative path and expected current-content fingerprint. A mismatch returns `SOURCE_PRECONDITION_FAILED`; it never compiles against a silently changed source. Diagnostics are bounded and the compile step must pass before execution.
 
 `CompiledTargetedTestExecutor` is the injected host boundary used by `AgentWorkflowCoordinator`. It receives the run ID, test class, runner selectors, positive timeout, and the exact immutable `CompiledOutput` produced by the successful compile step. This prevents a targeted runner from accidentally executing a stale installed class with the same name. The host implementation owns JUnit or TestNG invocation and collection of Test Lens trace, assertion, runtime, screenshot-reference, and selector-diagnostic evidence. It should run the requested test or scenario, not the complete reactor by default. `TargetedTestExecutor.ExecutionResult` remains the bounded result projection.
+
+The generic boundary can be implemented for different engines, but the complete 0.5.1 Test Engineering Studio
+generated-test execution path uses JUnit 5. TestNG remains supported by its runtime adapter and is outside the current
+end-to-end Studio workflow.
 
 ## Classify before repair
 

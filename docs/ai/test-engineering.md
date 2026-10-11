@@ -3,7 +3,7 @@
 Test Lens prepares deterministic, provider-neutral inputs for test-engineering agents. It does not embed an OpenAI, Anthropic, Gemini, or other model SDK, and it does not run an autonomous agent scheduler.
 
 !!! info "Opt-in tooling contracts"
-    These provider-neutral contracts support the 0.5.0 Studio workflow. Internal coordinators, persistence, parsers, process models, and repair writers are not stable USER API.
+    These provider-neutral contracts support the 0.5.1 Studio workflow. Internal coordinators, persistence, parsers, process models, and repair writers are not stable USER API.
 
 The AI boundary begins only after deterministic observation and generation:
 
@@ -65,6 +65,10 @@ TestPlan -> implementation proposal -> compile -> targeted execution
 ```
 
 The caller bounds attempts. The contracts do not implement an infinite self-healing loop.
+
+The complete Studio execution path currently targets JUnit 5. TestNG source can remain relevant to the bounded project
+index, and the published TestNG runtime adapter remains supported, but Studio does not generate and execute a complete
+TestNG workflow in this release.
 
 `FailureClassification.Category` separates product defects, test logic defects, selector instability, timing/synchronization, assertion expectations, test data, environment, authentication, page-model drift, and unknown causes. A stabilizer must use Test Lens runtime evidence and the relevant model slice instead of receiving the entire application or repository.
 

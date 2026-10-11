@@ -10,7 +10,7 @@ hide:
 
 <img class="lens-home-logo" src="assets/brand/test-lens-logo-horizontal.png" alt="Selenium Test Lens" width="720" height="184">
 
-<span class="lens-release-badge">Current stable release: 0.5.0</span>
+<span class="lens-release-badge">Current release documentation: 0.5.1</span>
 
 # Understand what your Selenium test did—and keep the evidence
 
@@ -24,7 +24,7 @@ Adopt it gradually: keep your runner, WebDriver factory, Page Objects, raw Selen
 [Integrate with AI](ai-assisted-integration.md){ .md-button }
 [Explore capabilities](#product-capabilities){ .md-button }
 
-<small>`latest` serves release 0.5.0. [Read what changed in 0.5.0](whats-new-0.5.0.md) or [browse exact public signatures](reference/public-api-catalog.md).</small>
+<small>This source targets versioned release 0.5.1; the production `latest` alias is changed only by the separate documentation publication step. [Read what changed in 0.5.1](whats-new-0.5.1.md) or [browse exact public signatures](reference/public-api-catalog.md).</small>
 
 </div>
 
@@ -245,7 +245,7 @@ The [AI Integration Builder](ai-assisted-integration.md) creates a version-bound
 
 | Surface | Requirement and boundary |
 |---|---|
-| Base library | Java 17+, the `io.github.test-lens:selenium-test-lens:0.5.0` artifact, and Selenium kept as an explicit consumer dependency. Lens attaches to a caller-owned driver. |
+| Base library | Java 17+, the `io.github.test-lens:selenium-test-lens:0.5.1` artifact, and Selenium kept as an explicit consumer dependency. Lens attaches to a caller-owned driver. |
 | JUnit 5 / TestNG | Optional published adapter artifacts. Use them only when the adapter should own the configured driver/session lifecycle. |
 | Allure | Optional `selenium-test-lens-allure` artifact and an active Allure lifecycle. It publishes finalized evidence; it is not the evidence collector. |
 | React/SPA | Optional `selenium-test-lens-react` artifact. Detection is based on observable DOM states and known markup conventions. |
@@ -253,19 +253,20 @@ The [AI Integration Builder](ai-assisted-integration.md) creates a version-bound
 | Source Navigation | Captured source metadata, an enabled feature, active navigation mode, valid local project mapping, and a supported local provider. |
 | Evidence and upload | Local files remain local unless the consumer or CI stores them, Allure attaches them, or `ReportUploader` explicitly sends a package. |
 
-Selector/application tooling and Studio are separately published implementation dependencies in 0.5.0; their technical Java surfaces are not all stable USER API. Compatibility tooling, migration tooling, Selector Lab, examples, and browser-test modules remain unpublished. [See the maintained product capability inventory](maintainers/product-capability-map.md) for the release boundary and evidence behind this overview.
+Selector/application tooling and Studio are separately published implementation dependencies in 0.5.1; their technical Java surfaces are not all stable USER API. Compatibility tooling, migration tooling, Selector Lab, examples, and browser-test modules remain unpublished. [See the maintained product capability inventory](maintainers/product-capability-map.md) for the release boundary and evidence behind this overview.
 
-## What's new in 0.5.0
+## What's new in 0.5.1
 
-The product overview above describes the complete release. These are selected changes relative to earlier versions:
+The patch release keeps the existing runtime contracts and focuses on the reviewed Studio workflow:
 
-- Explicit native Selenium observation connects supported ordinary `WebDriver`/`WebElement` calls to semantic diagnostics without changing native execution semantics.
-- Independent browser-execution and `DEFAULT`/`FAST` observability modes make live presentation cost explicit while preserving failure evidence.
-- Semantic operation lifecycles correlate action, wait/retry, assertion, locator, and terminal status across HUD, highlights, reports, and trace.
-- TestNG `PER_CLASS` can reuse an adapter-owned driver for sequential methods while preserving a fresh Lens session per physical invocation.
-- Trace retention, source metadata, bounded Smart Click behavior, network startup diagnostics, and runner lifecycle contracts were strengthened.
+- Architect, Implementer, and Reviewer actions now preserve structured diagnostics and explicit reviewer evidence.
+- Canonical Page Object references, manifest readiness, and source API verification block invented or stale capabilities.
+- Interrupted RUN work is recovered conservatively and cannot be presented as a completed execution.
+- Selector self-healing remains proposal-first, fingerprint-bound, explicitly approved, and verified after apply.
+- Generated-source and agent-output inspection reports value-free redaction findings, while false-green assertion swallowing is rejected.
+- Full generated-test execution in Studio targets JUnit 5. The published TestNG runtime adapter remains supported outside that Studio workflow.
 
-[Read the complete 0.5.0 release overview](whats-new-0.5.0.md) · [Read the changelog](https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md)
+[Read the complete 0.5.1 release overview](whats-new-0.5.1.md) · [Read the changelog](https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md)
 
 ## Explore the documentation
 

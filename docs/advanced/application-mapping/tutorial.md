@@ -1,6 +1,6 @@
 # Guided mapping end-to-end
 
-This tutorial mirrors the 0.5.0 real-browser vertical contract. For the supported external entry point, start with the [Studio Maven guide](../../ai/test-engineering-studio-getting-started.md).
+This tutorial mirrors the 0.5.1 real-browser vertical contract. For the supported external entry point, start with the [Studio Maven guide](../../ai/test-engineering-studio-getting-started.md).
 
 ## 1. Prepare the caller-owned session
 
@@ -153,7 +153,7 @@ Retain only the model history and context packs needed by the project. Keep `.te
 
 ## Continue from an existing Selenium project
 
-The previous steps demonstrate browser-to-model mapping. The 0.5.0 development source also contains a vertical workflow for a project that already has hand-written Page Objects and tests. The following sequence is an integration outline: supply the consuming project's real roots, classpath, runner, and lifecycle instead of copying placeholder paths.
+The previous steps demonstrate browser-to-model mapping. The opt-in 0.5.1 tooling also contains a vertical workflow for a project that already has hand-written Page Objects and tests. The following sequence is an integration outline: supply the consuming project's real roots, classpath, runner, and lifecycle instead of copying placeholder paths.
 
 ### 10. Index the existing source
 

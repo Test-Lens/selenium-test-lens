@@ -8,20 +8,20 @@ Examples include selectors copied from browser developer tools, long CSS chains,
 class names, framework-generated identifiers, and the same locator repeated across Page Objects and tests. The
 opposite problem matters too: an identifier can *look* random while being a stable application contract.
 
-!!! important "Availability in 0.5.0"
+!!! important "Availability in 0.5.1"
     Selector engine, live analysis, and source tooling are published implementation dependencies of Test Engineering Studio. The supported user entry point is the Studio Maven goal; JavaParser-backed scanners and other technically public tooling classes are not stable USER API. Selector Lab remains an unpublished demo tool.
 
-    Installing `selenium-test-lens:0.5.0` alone does not enable a background source scan or UI. Normal Test Lens and FAST execution remain unchanged.
+    Installing `selenium-test-lens:0.5.1` alone does not enable a background source scan or UI. Normal Test Lens and FAST execution remain unchanged.
 
 ## Capability map
 
-| Capability | Browser required? | 0.5.0 availability |
+| Capability | Browser required? | 0.5.1 availability |
 |---|---:|---|
 | Static declaration discovery | No | Published Studio implementation dependency |
 | Selector Audit | No | Published tooling model with deterministic JSON and optional HTML viewer |
 | Stability heuristics and project policy | No | Published engine and strict policy-file tooling |
 | Find Similar and bounded history | No | Published tooling over a caller-supplied catalog and optional evidence |
-| Selector Lab | Yes | Unpublished demo, not a 0.5.0 user entry point |
+| Selector Lab | Yes | Unpublished demo, not a 0.5.1 user entry point |
 | Live candidate analysis | Yes | Published analysis used by Mapper and repair against an explicit browser target |
 
 Publication supports Studio composition; it is not a compatibility promise for every class. Use the documented Maven goal rather than constructing scanners, live services, or repair internals directly.
@@ -81,7 +81,7 @@ excluded by default. The local index may contain selector values and should be t
 output.
 
 !!! note "Supported entry point"
-    Use the [Test Engineering Studio Maven goal](../ai/test-engineering-studio-getting-started.md). There is no separate stable Selector Audit or Selector Lab CLI in 0.5.0.
+    Use the [Test Engineering Studio Maven goal](../ai/test-engineering-studio-getting-started.md). There is no separate stable Selector Audit or Selector Lab CLI in 0.5.1.
 
 ## Generated-looking IDs are evidence, not a verdict
 

@@ -4,6 +4,34 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-11
+
+### Fixed
+
+- Stabilized the reviewed Test Engineering Studio Architect, Implementer, and Reviewer workflow, including bounded
+  diagnostics, persisted-run recovery, and evidence-backed reviewer decisions. Interrupted `RUN` work is recovered
+  conservatively and is never reported as completed.
+- Hardened Page Object manifest readiness and canonical API-reference validation. Generated tests are checked against
+  the indexed source API before compilation, and missing or ambiguous capabilities fail closed instead of being
+  replaced with invented selectors or direct Selenium calls.
+- Added the Reviewer Evidence Pack so compilation, required-API assertions, swallowed-failure checks, control-path
+  status, and quality findings remain explicit inputs to review rather than an inferred green result.
+- Tightened controlled selector self-healing. A repair still requires selector-instability evidence, exact trusted
+  source/declaration fingerprints, an approved proposal, and post-apply verification; opening a proposal or obtaining
+  a passing rerun alone cannot authorize a source change.
+- Hardened external-agent and generated-source handling with value-free redaction findings, bounded structured
+  diagnostics, artifact-reference validation, and protections against credential-shaped output, mutable provenance,
+  and false-green tests that swallow assertion failures.
+
+### Compatibility
+
+- Preserved the existing runtime, JUnit 5, TestNG, React, and Allure public contracts and Maven coordinates. The new
+  classified `USER_API` additions are `RedactionPolicy.SensitiveContentRule`,
+  `RedactionPolicy.SensitiveContentFinding`, and `RedactionPolicy.StructuredRedactionFinding`, together with the
+  corresponding generated-source and structured-agent-output inspection methods on `RedactionPolicy`.
+- The complete Studio generated-test execution path targets JUnit 5. TestNG remains supported by the published
+  runtime adapter, but TestNG execution is outside the current end-to-end Studio workflow.
+
 ## [0.5.0] - 2026-10-08
 
 ### Added
@@ -278,7 +306,8 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 - Central Publisher Portal publication remains a manual, reviewed operation.
 - Legacy browser runtime aliases are still maintained for compatibility.
 
-[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.0...v0.3.1

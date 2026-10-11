@@ -1,7 +1,7 @@
 # Application drift, security, and troubleshooting
 
-!!! warning "Development availability"
-    Application drift, model history, and repair contracts are source-only 0.5.0 development tooling. They are not part of the published Maven 0.4.0 artifacts.
+!!! info "Tooling availability"
+    Application drift, model history, and repair contracts are distributed in the opt-in 0.5.1 tooling artifacts. They are not pulled into the lightweight runtime and are not automatically part of the stable USER API.
 
 ## Detect semantic drift
 

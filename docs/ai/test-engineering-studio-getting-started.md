@@ -1,6 +1,6 @@
 ---
 title: Test Engineering Studio getting started
-description: Launch Test Engineering Studio 0.5.0 from Maven, configure a project safely, and run its reviewed local workflow.
+description: Launch Test Engineering Studio 0.5.1 from Maven, configure a project safely, and run its reviewed local workflow.
 ---
 
 # Test Engineering Studio getting started
@@ -25,13 +25,13 @@ The local provider supports Chrome and Firefox. Release certification uses a det
 Change to the root of the Maven Selenium project you want Studio to inspect. Run the fully qualified goal so the invocation does not depend on local plugin-prefix metadata:
 
 ```powershell
-mvn io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.0:studio
+mvn io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.1:studio
 ```
 
 The goal runs through `test-compile`, resolves the test classpath, opens Studio in the default browser, prints its `127.0.0.1` URL, and waits until the Maven process is stopped. To print the URL without opening a browser:
 
 ```powershell
-mvn -DtestLens.studio.openBrowser=false io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.0:studio
+mvn -DtestLens.studio.openBrowser=false io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.1:studio
 ```
 
 Stopping Maven stops the Studio host and Studio-owned browser session. It does not repeat or approve a workflow.
@@ -175,13 +175,16 @@ The local process is still trusted tooling with access to the selected project a
 
 ## Upgrading an existing 0.4.x project
 
-The Studio plugin is opt-in tooling for the 0.5.0 line. Existing `TestLens.attach(...)`, actions, waits, retries, HUD, reports and runner lifecycle remain compatible; projects that only use the runtime do not acquire Studio or source-analysis dependencies.
+The Studio plugin is opt-in tooling for the 0.5.1 line. Existing `TestLens.attach(...)`, actions, waits, retries, HUD, reports and runner lifecycle remain compatible; projects that only use the runtime do not acquire Studio or source-analysis dependencies.
+
+The complete generated-test workflow in Studio targets JUnit 5. The published TestNG adapter remains supported for
+ordinary Test Lens runtime integration, but TestNG generated-test execution is outside the current Studio scope.
 
 Continue with the [Studio workflow reference](test-engineering-studio.md), [application-mapping tutorial](../advanced/application-mapping/tutorial.md), and [AI workflow contracts](workflow-orchestration.md).
 
 ## Troubleshooting
 
-- **The fully qualified Maven goal cannot be resolved:** confirm that version `0.5.0` is available in the Maven repository configured for the consumer project and that the complete plugin coordinates are used.
+- **The fully qualified Maven goal cannot be resolved:** confirm that version `0.5.1` is available in the Maven repository configured for the consumer project and that the complete plugin coordinates are used.
 - **`test-compile` or dependency resolution fails before Studio opens:** fix the consumer project's normal Maven test compilation/classpath first. The plugin intentionally requires test dependency resolution and does not construct a substitute classpath.
 - **Browser preflight is `NOT_AVAILABLE`:** verify the configured browser is installed and Selenium Manager can resolve it. `CONFIGURATION_INVALID` or `UNSUPPORTED` requires correcting the selected provider/request rather than repeatedly clicking Map.
 - **Agent preflight is `NOT_AVAILABLE`, `VERSION_UNSUPPORTED`, or `PROFILE_INVALID`:** verify the absolute executable, required `codex exec` flags, or safe logical profile. Preflight never falls back silently from a selected custom provider.

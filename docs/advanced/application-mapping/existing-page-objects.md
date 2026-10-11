@@ -1,9 +1,9 @@
 # Existing Page Object correlation
 
-Application mapping does not assume a greenfield test suite. The source-only 0.5.0 tooling can build a deterministic index of existing Java Page Objects, components, helpers, and JUnit 5 or TestNG tests, then correlate their selector declarations with observed `ApplicationModel` elements.
+Application mapping does not assume a greenfield test suite. The opt-in 0.5.1 tooling can build a deterministic index of existing Java Page Objects, components, helpers, and JUnit 5 or TestNG tests, then correlate their selector declarations with observed `ApplicationModel` elements.
 
-!!! warning "Development availability"
-    `ExistingProjectIndexer`, source correlation, and source-aware context slicing are unpublished development APIs. They are built from the current reactor and are not present in Maven Central 0.4.0. They do not change the runtime behavior of an existing Test Lens test.
+!!! info "Tooling availability"
+    `ExistingProjectIndexer`, source correlation, and source-aware context slicing are distributed in separate 0.5.1 tooling artifacts. The catalog classifies these surfaces as TOOLING or INTERNAL rather than stable USER API, and they do not change the runtime behavior of an existing Test Lens test.
 
 ## One declaration index
 

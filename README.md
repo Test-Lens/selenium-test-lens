@@ -8,20 +8,21 @@
 
 | Version | Status | Maven Central | Documentation | GitHub Release |
 |---|---|---|---|---|
-| `0.5.0` | Current release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.0) | [Documentation — 0.5.0](https://test-lens.github.io/selenium-test-lens/0.5.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.0) |
+| `0.5.1` | Current release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1) | [Documentation — 0.5.1](https://test-lens.github.io/selenium-test-lens/0.5.1/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.1) |
+| `0.5.0` | Previous release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.0) | [Documentation — 0.5.0](https://test-lens.github.io/selenium-test-lens/0.5.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.0) |
 | `0.4.0` | Previous release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.4.0) | [Documentation — 0.4.0](https://test-lens.github.io/selenium-test-lens/0.4.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.4.0) |
 | `0.3.1` | Previous release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1) | [Documentation — 0.3.1](https://test-lens.github.io/selenium-test-lens/0.3.1/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.3.1) |
 | `0.3.0` | Historical release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.0) | [Documentation — 0.3.0](https://test-lens.github.io/selenium-test-lens/0.3.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.3.0) |
 | `0.2.0` | Historical release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0) | [Documentation — 0.2.0](https://test-lens.github.io/selenium-test-lens/0.2.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.2.0) |
 | `0.1.0` | Historical release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0) | [Documentation — 0.1.0](https://test-lens.github.io/selenium-test-lens/0.1.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.1.0) |
 
-Install release 0.5.0 (Java 17 or newer):
+Install release 0.5.1 (Java 17 or newer):
 
 ```xml
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.5.0</version>
+    <version>0.5.1</version>
 </dependency>
 ```
 
@@ -44,13 +45,13 @@ try {
 }
 ```
 
-[Product overview](https://test-lens.github.io/selenium-test-lens/latest/) · [Getting started](https://test-lens.github.io/selenium-test-lens/latest/getting-started/) · [Test Engineering Studio](https://test-lens.github.io/selenium-test-lens/latest/ai/test-engineering-studio-getting-started/) · [What's new in 0.5.0](https://test-lens.github.io/selenium-test-lens/0.5.0/whats-new-0.5.0/) · [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.0) · [Development documentation](https://test-lens.github.io/selenium-test-lens/dev/)
+[Product overview](https://test-lens.github.io/selenium-test-lens/0.5.1/) · [Getting started](https://test-lens.github.io/selenium-test-lens/0.5.1/getting-started/) · [Test Engineering Studio](https://test-lens.github.io/selenium-test-lens/0.5.1/ai/test-engineering-studio-getting-started/) · [What's new in 0.5.1](https://test-lens.github.io/selenium-test-lens/0.5.1/whats-new-0.5.1/) · [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.1) · [Development documentation](https://test-lens.github.io/selenium-test-lens/dev/)
 
 ![Test Lens 0.4.0 semantic action and assertion lifecycle](docs/assets/media/hud-action-assertion-lifecycle.webp)
 
 ## Why Test Lens
 
-Release `0.5.0` adds the opt-in Test Engineering Studio, application mapping, existing Page Object correlation, bounded agent workflows, isolated targeted execution, and explicit evidence-backed repair approval while preserving the lightweight runtime. See the concise [0.5.0 overview](https://test-lens.github.io/selenium-test-lens/0.5.0/whats-new-0.5.0/).
+Release `0.5.1` stabilizes the opt-in Test Engineering Studio workflow with canonical Page Object source verification, Reviewer Evidence Packs, conservative RUN recovery, value-free agent diagnostics, and controlled selector repair approval while preserving the existing runtime contracts. Full Studio generated-test execution targets JUnit 5; the published TestNG runtime adapter remains supported outside that Studio workflow. See the concise [0.5.1 overview](https://test-lens.github.io/selenium-test-lens/0.5.1/whats-new-0.5.1/).
 
 ### Native interactions with visible recovery
 
@@ -120,8 +121,8 @@ Text redaction is not pixel processing. `VisualRedactionOptions` separately mask
 
 ## Advanced capabilities
 
-- **Selector Intelligence (0.5.0 tooling):** browser-free declaration discovery, evidence-first stability policy, Find Similar, offline Audit, and live candidate analysis back mapping and repair. Published tooling artifacts remain outside the stable Java compatibility promise. [Capability and availability guide](docs/features/selector-intelligence.md)
-- **Test Engineering Studio (0.5.0):** launch the reviewed project workflow from Maven for application mapping, bounded AI context, targeted execution, and explicit evidence-backed repair approval. [Studio getting started](docs/ai/test-engineering-studio-getting-started.md)
+- **Selector Intelligence (0.5.1 tooling):** browser-free declaration discovery, evidence-first stability policy, Find Similar, offline Audit, and live candidate analysis back mapping and controlled repair. Published tooling artifacts remain outside the stable Java compatibility promise. [Capability and availability guide](docs/features/selector-intelligence.md)
+- **Test Engineering Studio (0.5.1):** launch the reviewed JUnit 5 project workflow from Maven for application mapping, bounded AI context, targeted execution, reviewer evidence, RUN recovery, and explicit evidence-backed repair approval. [Studio getting started](docs/ai/test-engineering-studio-getting-started.md)
 - **WebDriver BiDi network diagnostics (0.2.0):** passive observation, correlation, waits, assertions, safe snapshots, and HUD filtering. It is not interception, mocking, or CDP. The manual event/wait/assertion path existed in `0.1.0`. [Network diagnostics](docs/advanced/network.md)
 - **Managed Auth State (0.3.0):** restore/validate/recreate cookies and web storage with tri-state validation, one-login maximum, canonical-path locking and atomic replacement; low-level origin-isolated capture/restore remains available. [Authentication state](docs/advanced/auth-state.md)
 - **Managed Test State & Resources (0.3.0):** typed state isolated to one physical invocation, explicitly shared suite/run state, and exactly-once LIFO cleanup for temporary resources across pass, failure, skip, retry, and parallel runner execution. [Managed test state](docs/features/managed-test-state.md)
@@ -139,7 +140,7 @@ Gradle Kotlin DSL:
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.test-lens:selenium-test-lens:0.5.0")
+    testImplementation("io.github.test-lens:selenium-test-lens:0.5.1")
 }
 ```
 
@@ -147,7 +148,7 @@ Gradle Groovy DSL:
 
 ```groovy
 dependencies {
-    testImplementation 'io.github.test-lens:selenium-test-lens:0.5.0'
+    testImplementation 'io.github.test-lens:selenium-test-lens:0.5.1'
 }
 ```
 
@@ -166,7 +167,7 @@ mvn -Pbrowser-it -Dbrowser=chrome -Dheaded=false verify
 mvn -Pbrowser-it -Dbrowser=firefox -Dheaded=false verify
 ```
 
-See [browser integration tests](docs/browser-integration-tests.md), the [changelog](CHANGELOG.md), [Maven Central 0.5.0](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.0), [GitHub Releases](https://github.com/Test-Lens/selenium-test-lens/releases), and the [published Javadoc for 0.5.0](https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.0/).
+See [browser integration tests](docs/browser-integration-tests.md), the [changelog](CHANGELOG.md), [Maven Central 0.5.1](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1), [GitHub Releases](https://github.com/Test-Lens/selenium-test-lens/releases), and the [published Javadoc for 0.5.1](https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/).
 
 ## License
 
