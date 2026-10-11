@@ -81,6 +81,15 @@ if (-not $linuxJob.Contains('SE_BROWSER_NO_SANDBOX: "true"')) {
 if ($linuxJob.Contains('MAVEN_OPTS:')) {
     throw "Linux certification must not pin a driver without the matching browser binary"
 }
+foreach ($spaceConsumerContract in @(
+    '$spaceConsumerPom = Join-Path $spaceConsumer "pom.xml"',
+    '.Replace("0.5.0", $reactorVersion)',
+    '"-Dmaven.repo.local=$repository" -f $spaceConsumerPom test-compile'
+)) {
+    if (-not $linuxJob.Contains($spaceConsumerContract)) {
+        throw "Path-with-spaces consumer must compile the staged reactor version: $spaceConsumerContract"
+    }
+}
 foreach ($diagnosticContract in @(
     'SE_BROWSER_PATH=${SE_BROWSER_PATH:-<unset>}',
     'SE_BROWSER_NO_SANDBOX=${SE_BROWSER_NO_SANDBOX:-<unset>}',
@@ -103,6 +112,18 @@ foreach ($startupContract in @(
 )) {
     if (-not $linuxJob.Contains($startupContract)) {
         throw "Linux certification is missing Chrome startup evidence contract: $startupContract"
+    }
+}
+$browserJob = [regex]::Match($ciWorkflow, '(?ms)^  browser-integration:.*?(?=^  [A-Za-z0-9_-]+:|\z)').Value
+if ([string]::IsNullOrWhiteSpace($browserJob)) {
+    throw "Browser integration job is missing"
+}
+foreach ($childBrowserContract in @(
+    'SE_BROWSER_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}',
+    'SE_BROWSER_NO_SANDBOX: "true"'
+)) {
+    if (-not $browserJob.Contains($childBrowserContract)) {
+        throw "Chrome BrowserIT must configure the sanitized targeted-test child: $childBrowserContract"
     }
 }
 if ($ciWorkflow.Contains('check-public-api-since.ps1 -BaselineTag v0.3.1 -ExpectedSince 0.4.0')) {

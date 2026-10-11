@@ -178,6 +178,12 @@ jobs:
 
       - name: Run Chrome real-browser integration tests
         if: matrix.browser == 'chrome'
+        env:
+          # The targeted JUnit executor runs in a sanitized child process and only
+          # forwards the explicit SE_BROWSER_* host configuration. Chrome for
+          # Testing is an archive install without a usable SUID sandbox here.
+          SE_BROWSER_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+          SE_BROWSER_NO_SANDBOX: "true"
         run: >-
           mvn -Pbrowser-it -Dbrowser=chrome -Dheaded=false
           -Dtest.chrome.binary="${{ steps.setup-chrome.outputs.chrome-path }}"
@@ -290,7 +296,10 @@ jobs:
             $spaceConsumer = Join-Path $tempRoot "test lens consumer with spaces"
             Copy-Item -LiteralPath ./scripts/fixtures/s15-external-consumer `
               -Destination $spaceConsumer -Recurse -Force
-            & mvn "-Dmaven.repo.local=$repository" -f (Join-Path $spaceConsumer "pom.xml") test-compile
+            $spaceConsumerPom = Join-Path $spaceConsumer "pom.xml"
+            $spaceConsumerPomText = [System.IO.File]::ReadAllText($spaceConsumerPom).Replace("0.5.0", $reactorVersion)
+            [System.IO.File]::WriteAllText($spaceConsumerPom, $spaceConsumerPomText, [System.Text.UTF8Encoding]::new($false))
+            & mvn "-Dmaven.repo.local=$repository" -f $spaceConsumerPom test-compile
             if ($LASTEXITCODE -ne 0) { throw "External consumer path-with-spaces compilation failed" }
           } finally {
             Remove-TestLensCertificationTempRoot -Path $tempRoot
@@ -340,6 +349,10 @@ jobs:
           "$TEST_CHROMEDRIVER_BINARY" --version
 
       - name: Run headed Chrome smoke under Xvfb
+        env:
+          # Keep the sanitized targeted-test child on the same verified browser.
+          SE_BROWSER_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+          SE_BROWSER_NO_SANDBOX: "true"
         run: >-
           xvfb-run -a mvn -Pbrowser-it -Dbrowser=chrome -Dheaded=true
           -Dtest.chrome.binary="${{ steps.setup-chrome.outputs.chrome-path }}"

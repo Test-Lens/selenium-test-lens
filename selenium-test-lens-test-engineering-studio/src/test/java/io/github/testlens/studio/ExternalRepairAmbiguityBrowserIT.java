@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -147,7 +148,7 @@ class ExternalRepairAmbiguityBrowserIT {
             assertEquals(0,compiler.run(null,null,null,"-d",classes.toString(),source.toString()));
             int port;
             try(ServerSocket socket=new ServerSocket(0)){port=socket.getLocalPort();}
-            Path java=Path.of(System.getProperty("java.home"),"bin","java.exe");
+            Path java=javaExecutable(Path.of(System.getProperty("java.home")),System.getProperty("os.name",""));
             Process process=new ProcessBuilder(java.toString(),"-cp",classes.toString(),
                     "example.FixtureApplication",Integer.toString(port)).redirectErrorStream(true).start();
             URI uri=URI.create("http://127.0.0.1:"+port+"/");
@@ -178,5 +179,14 @@ class ExternalRepairAmbiguityBrowserIT {
             process.destroy();
             if(!process.waitFor(5,TimeUnit.SECONDS)){process.destroyForcibly();process.waitFor(5,TimeUnit.SECONDS);}
         }
+    }
+
+    static Path javaExecutable(Path javaHome,String osName){
+        boolean windows=osName.toLowerCase(Locale.ROOT).startsWith("windows");
+        Path executable=javaHome.resolve("bin").resolve(windows?"java.exe":"java")
+                .toAbsolutePath().normalize();
+        if(!Files.isRegularFile(executable))
+            throw new IllegalStateException("Java executable does not exist: "+executable);
+        return executable;
     }
 }
