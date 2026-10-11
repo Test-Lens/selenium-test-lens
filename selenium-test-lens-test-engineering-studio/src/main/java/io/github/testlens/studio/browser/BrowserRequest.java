@@ -2,7 +2,7 @@ package io.github.testlens.studio.browser;
 
 import java.util.Objects;
 
-/** Explicit browser bootstrap request. Creating a request performs no browser work. @since 0.5.0 */
+/** Explicit browser bootstrap request. Creating a request performs no browser work. @since 0.5.1 */
 public record BrowserRequest(Purpose purpose, Browser browser, Ownership ownership, boolean headless,String profileId) {
     public BrowserRequest {
         Objects.requireNonNull(purpose, "purpose");

@@ -9,6 +9,8 @@ import io.github.testlens.studio.project.ProjectDescriptor;
 import io.github.testlens.studio.project.ProjectDiscovery;
 import io.github.testlens.studio.project.StudioConfigurationLoader;
 import io.github.testlens.studio.projection.StudioProjections.Capability;
+import io.github.testlens.studio.workspace.StudioWorkspaceStore;
+import io.github.testlens.selector.tooling.ExistingProjectIndexer;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,11 +26,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.ServiceLoader;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Supplier;
 
 /**
  * Consumer bootstrap for the local Test Engineering Studio distribution.
  * It composes the existing deterministic services and starts no browser or agent until a user action requests one.
- * @since 0.5.0
+ * @since 0.5.1
  */
 public final class TestEngineeringStudio {
     private TestEngineeringStudio() { }
@@ -39,7 +42,8 @@ public final class TestEngineeringStudio {
         LoadedProvider<BrowserSessionProvider> loadedBrowsers=loadConfiguredProvider(
                 machine.browserProvider(),"LOCAL",BrowserSessionProvider.class,request.testClasspath());
         BrowserSessionProvider browsers=loadedBrowsers==null?new DefaultLocalBrowserSessionProvider():loadedBrowsers.provider();
-        Path staging=request.projectRoot().toAbsolutePath().normalize().resolve(".test-lens/ai/runner");
+        ProjectDescriptor discovered=new ProjectDiscovery().discover(request.projectRoot());
+        Path staging=discovered.workspaceDirectory().resolve("ai/runner");
         LoadedProvider<AgentExecutorProvider> loadedAgents=loadConfiguredProvider(
                 machine.agentProvider(),"CODEX",AgentExecutorProvider.class,request.testClasspath());
         AgentExecutorProvider agents=loadedAgents==null
@@ -84,11 +88,16 @@ public final class TestEngineeringStudio {
         AgentExecutor routed=roleRouting(agentProvider,config.agentProfiles());
         List<Path> effectiveClasspath=request.testClasspath().isEmpty()?descriptor.classpathEntries():request.testClasspath();
         String classpath=effectiveClasspath.stream().map(Path::toString).collect(java.util.stream.Collectors.joining(File.pathSeparator));
+        Supplier<String> currentPageObjectSourceFingerprint=()->new ExistingProjectIndexer().index(
+                new ExistingProjectIndexer.Request(descriptor.projectRoot(),descriptor.sourceRoots(),effectiveClasspath))
+                .projectFingerprint();
         ReviewableCoordinatorWorkflowGateway gateway=new ReviewableCoordinatorWorkflowGateway(routed,
-                (executor,input)->coordinator(executor,input,browsers,executionRequest,descriptor,effectiveClasspath,classpath),
+                (executor,input)->coordinator(executor,input,browsers,executionRequest,descriptor,effectiveClasspath,
+                        classpath,currentPageObjectSourceFingerprint),
                 new GeneratedTestPolicyValidator(GeneratedTestPolicyValidator.Policy.defaults()),
                 TestEngineeringStudio::generatedSourcePath,
-                new TargetedRepairSourceCompiler(root,17,classpath,descriptor.sourceRoots(),effectiveClasspath));
+                new TargetedRepairSourceCompiler(root,17,classpath,descriptor.sourceRoots(),effectiveClasspath),
+                currentPageObjectSourceFingerprint);
         StudioLauncherService launcher=StudioLauncherService.withBrowserProvider(gateway,browsers);
         StudioLauncherService.LaunchHandle delegate=launcher.launch(descriptor,new StudioLauncherService.LaunchOptions(request.openBrowser()));
         delegate.service().attachBrowserProfile(config.browserProfile());
@@ -110,18 +119,24 @@ public final class TestEngineeringStudio {
 
     private static AgentWorkflowCoordinator coordinator(AgentExecutor executor, CoordinatorWorkflowGateway.Input input,
             BrowserSessionProvider browsers, BrowserRequest browserRequest, ProjectDescriptor descriptor,
-            List<Path> classpathEntries, String classpath) {
+            List<Path> classpathEntries, String classpath,
+            Supplier<String> currentPageObjectSourceFingerprint) {
         TestEngineeringRequest request=input.request();Path source=generatedSourcePath(request);
         AgentWorkflowCoordinator.Configuration configuration=new AgentWorkflowCoordinator.Configuration(source,
                 request.target().testClass(),"",17,classpath,50,Duration.ofMinutes(3),List.of(),2);
         BrowserRequest mappingRequest=new BrowserRequest(Purpose.MAPPING,browserRequest.browser(),
                 Ownership.STUDIO_OWNED,browserRequest.headless(),browserRequest.profileId());
-        ExternalRepairPipeline repairs=new ExternalRepairPipeline(descriptor.projectRoot(),descriptor.sourceRoots(),
-                classpathEntries,browsers,mappingRequest,descriptor.startUrl());
+        ExternalRepairPipeline repairs=externalRepairPipeline(descriptor,classpathEntries,browsers,mappingRequest);
         return new AgentWorkflowCoordinator(new TestEngineeringWorkflow(WorkflowPolicy.defaults()),executor,
                 new TargetedJavaCompiler(),new JUnitTargetedTestExecutor(browsers,browserRequest,classpathEntries,descriptor.startUrl()),
                 new GeneratedTestPolicyValidator(GeneratedTestPolicyValidator.Policy.defaults()),repairs.classifier(),
-                repairs.stabilizer(),configuration);
+                repairs.stabilizer(),configuration,currentPageObjectSourceFingerprint);
+    }
+
+    static ExternalRepairPipeline externalRepairPipeline(ProjectDescriptor descriptor,List<Path> classpathEntries,
+            BrowserSessionProvider browsers,BrowserRequest mappingRequest){
+        return new ExternalRepairPipeline(descriptor.projectRoot(),descriptor.sourceRoots(),classpathEntries,browsers,
+                mappingRequest,descriptor.startUrl(),StudioWorkspaceStore.atWorkspace(descriptor.workspaceDirectory()));
     }
 
     private static AgentExecutor roleRouting(AgentExecutorProvider provider,Map<String,String> profiles){
@@ -138,13 +153,13 @@ public final class TestEngineeringStudio {
 
     private static Path generatedSourcePath(TestEngineeringRequest request){String root=request.allowedPaths().isEmpty()?"src/test/java":request.allowedPaths().get(0);return Path.of(root).resolve(request.target().testClass().replace('.','/')+".java");}
 
-    /** Maven/project-derived launch request. Paths are canonicalized by project discovery. @since 0.5.0 */
+    /** Maven/project-derived launch request. Paths are canonicalized by project discovery. @since 0.5.1 */
     public record LaunchRequest(Path projectRoot,List<Path> mainSourceRoots,List<Path> testSourceRoots,
                                 List<Path> testClasspath,boolean openBrowser){
         public LaunchRequest{Objects.requireNonNull(projectRoot,"projectRoot");mainSourceRoots=List.copyOf(mainSourceRoots==null?List.of():mainSourceRoots);testSourceRoots=List.copyOf(testSourceRoots==null?List.of():testSourceRoots);testClasspath=List.copyOf(testClasspath==null?List.of():testClasspath);}
     }
 
-    /** Running Studio host. Closing it never repeats workflows or repairs. @since 0.5.0 */
+    /** Running Studio host. Closing it never repeats workflows or repairs. @since 0.5.1 */
     public static final class LaunchHandle implements AutoCloseable {
         private final StudioLauncherService.LaunchHandle delegate;private final CountDownLatch closed=new CountDownLatch(1);private final List<AutoCloseable> resources;
         private LaunchHandle(StudioLauncherService.LaunchHandle delegate){this(delegate,List.of());}

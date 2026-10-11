@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class StudioWorkflowResumeTest {
     @TempDir Path root;
 
-    @Test void planAndImplementationResumeWithoutCallingAgentsAgain() throws Exception {
+    @Test void persistedReviewedArtifactsRemainVisibleButCannotPretendToBeSafelyResumable() throws Exception {
         prepareProject();persistModel();var descriptor=new ProjectDiscovery().discover(root);String runId;
         CountingGateway firstGateway=new CountingGateway();
         try(var host=new StudioLauncherService(firstGateway,null).launch(descriptor,new StudioLauncherService.LaunchOptions(false))){
@@ -36,8 +36,12 @@ class StudioWorkflowResumeTest {
             var workflow=host.service().workflow(runId);
             assertTrue(workflow.resumed());assertEquals("IMPLEMENTATION_READY_FOR_REVIEW",workflow.status());
             assertEquals("FRESH",workflow.freshness());assertNotNull(workflow.plan());assertNotNull(workflow.implementation());
-            assertEquals(List.of("RUN"),workflow.availableActions());assertEquals(0,restoredGateway.planCalls.get());
-            assertEquals(0,restoredGateway.implementationCalls.get());assertEquals(1,restoredGateway.restoreCalls.get());
+            assertEquals(List.of(),workflow.availableActions());
+            assertTrue(workflow.limitations().contains("RESUME_UNAVAILABLE"));
+            assertEquals(0,restoredGateway.planCalls.get());assertEquals(0,restoredGateway.implementationCalls.get());
+            assertEquals(0,restoredGateway.restoreCalls.get());
+            IllegalStateException blocked=assertThrows(IllegalStateException.class,()->host.service().runWorkflow(runId));
+            assertEquals("RESUME_UNAVAILABLE",blocked.getMessage());
         }
         StudioWorkflowGateway inspectionOnly=ignored->{throw new UnsupportedOperationException("workflow unavailable");};
         try(var host=new StudioLauncherService(inspectionOnly,null).launch(descriptor,new StudioLauncherService.LaunchOptions(false))){
@@ -48,18 +52,19 @@ class StudioWorkflowResumeTest {
     @Test void changedSourceMakesRestoredProposalStaleAndBlocksRun() throws Exception {
         Path sourceRoot=prepareProject();persistModel();CountingGateway firstGateway=new CountingGateway();TestEngineeringStudioService first=service(sourceRoot,firstGateway);
         String runId=first.createRequirement("Login with invalid password shows an error");first.generatePlan(runId);first.generateImplementation(runId);
-        Files.writeString(sourceRoot.resolve("LoginPage.java"),"import org.openqa.selenium.By; final class LoginPage { private final By loginButton = By.id(\"changed\"); }");
+        Files.writeString(sourceRoot.resolve("LoginPage.java"),"package example; import org.openqa.selenium.By; public final class LoginPage { private final By loginButton = By.id(\"changed\"); public LoginPage(){} public boolean login(){ return true; } }");
 
         CountingGateway restoredGateway=new CountingGateway();TestEngineeringStudioService restarted=service(sourceRoot,restoredGateway);
         var workflow=restarted.workflow(runId);
         assertEquals("STALE",workflow.freshness());
         assertTrue(workflow.limitations().contains("SOURCE_CHANGED"));
-        assertEquals(List.of("REGENERATE_PLAN"),workflow.availableActions());
+        assertTrue(workflow.limitations().contains("RESUME_UNAVAILABLE"));
+        assertEquals(List.of(),workflow.availableActions());
         assertThrows(IllegalStateException.class,()->restarted.runWorkflow(runId));
         assertEquals(0,restoredGateway.restoreCalls.get(),"stale artifacts must not be injected into the workflow engine");
-        restarted.generatePlan(runId);
-        assertEquals(1,restoredGateway.planCalls.get());
-        assertEquals("PLAN_READY_FOR_REVIEW",restarted.workflow(runId).status());
+        IllegalStateException blocked=assertThrows(IllegalStateException.class,()->restarted.generatePlan(runId));
+        assertEquals("RESUME_UNAVAILABLE",blocked.getMessage());
+        assertEquals(0,restoredGateway.planCalls.get());
     }
 
     @Test void corruptedWorkflowSnapshotDoesNotPreventHostStartup() throws Exception {
@@ -77,21 +82,44 @@ class StudioWorkflowResumeTest {
         }
     }
 
+    @Test void sourceChangeAtRunBoundaryLeavesRecoverableStaleSession() throws Exception {
+        Path sourceRoot=prepareProject();persistModel();
+        CountingGateway gateway=new CountingGateway(true);
+        TestEngineeringStudioService studio=service(sourceRoot,gateway);
+        String runId=studio.createRequirement("Login with invalid password shows an error");
+        studio.generatePlan(runId);studio.generateImplementation(runId);
+
+        assertThrows(PageObjectCapabilityException.class,()->studio.runWorkflow(runId));
+
+        var workflow=studio.workflow(runId);
+        assertEquals("EXECUTION_INTERRUPTED",workflow.status());
+        assertEquals("STALE",workflow.freshness());
+        assertEquals(List.of("REGENERATE_PLAN"),workflow.availableActions());
+        assertTrue(workflow.limitations().contains("PAGE_OBJECT_MANIFEST_STALE"));
+    }
+
     private TestEngineeringStudioService service(Path sourceRoot, StudioWorkflowGateway gateway){
         return new TestEngineeringStudioService(new TestEngineeringStudioService.Configuration(root,List.of(sourceRoot),List.of(),List.of("src/test/java"),"fixture"),gateway,null);
     }
-    private Path prepareProject() throws Exception {Path sourceRoot=root.resolve("src/test/java");Files.createDirectories(sourceRoot);Files.writeString(root.resolve("pom.xml"),"<project><modelVersion>4.0.0</modelVersion><artifactId>fixture</artifactId></project>");Files.writeString(sourceRoot.resolve("LoginPage.java"),"import org.openqa.selenium.By; final class LoginPage { private final By loginButton = By.id(\"old-login\"); }");return sourceRoot;}
+    private Path prepareProject() throws Exception {Path sourceRoot=root.resolve("src/test/java");Files.createDirectories(sourceRoot);Files.writeString(root.resolve("pom.xml"),"<project><modelVersion>4.0.0</modelVersion><artifactId>fixture</artifactId></project>");Files.writeString(sourceRoot.resolve("LoginPage.java"),"package example; import org.openqa.selenium.By; public final class LoginPage { private final By loginButton = By.id(\"old-login\"); public LoginPage(){} public boolean login(){ return true; } }");return sourceRoot;}
     private void persistModel() throws Exception {new StudioWorkspaceStore(root).write(StudioWorkspaceStore.ArtifactKind.APPLICATION_MODEL,StrictJson.readObject(new ApplicationModelJson().write(model())),"initial");}
 
     private static final class CountingGateway implements StudioWorkflowGateway {
         private final AtomicInteger planCalls=new AtomicInteger(),implementationCalls=new AtomicInteger(),restoreCalls=new AtomicInteger();
+        private final boolean staleAtRun;
+        private CountingGateway(){this(false);}
+        private CountingGateway(boolean staleAtRun){this.staleAtRun=staleAtRun;}
         @Override public void prepare(String runId,io.github.testlens.application.tooling.ai.workflow.TestEngineeringRequest request,AgentContextPack context){}
         @Override public TestPlan generatePlan(String runId,String requirement){planCalls.incrementAndGet();return new TestPlan(ready(),List.of());}
         @Override public TestImplementationProposal generateImplementation(String runId){implementationCalls.incrementAndGet();return implementation();}
         @Override public List<PolicyCheck> implementationPolicy(String runId){return List.of(new PolicyCheck("PAGE_OBJECTS_ONLY",true,"safe"));}
         @Override public void restoreReviewedArtifacts(String runId,TestPlan plan,TestImplementationProposal implementation){restoreCalls.incrementAndGet();}
         @Override public boolean supportsReviewedArtifactRestore(){return true;}
-        @Override public io.github.testlens.application.tooling.ai.workflow.WorkflowReport run(String runId){throw new AssertionError("run must remain blocked in this test");}
+        @Override public io.github.testlens.application.tooling.ai.workflow.WorkflowReport run(String runId){
+            if(staleAtRun)throw PageObjectCapabilityException.staleManifest(
+                    "$.context.pageObjectCapabilities.sourceFingerprint");
+            throw new AssertionError("run must remain blocked in this test");
+        }
         private static TestImplementationProposal implementation(){return new TestImplementationProposal(ready(),"invalid-password","package fixture; final class InvalidPasswordTest {}",TestImplementationProposal.SelectorAccessPolicy.PAGE_OBJECTS_ONLY,List.of("LoginPage.login"),List.of());}
     }
     private static ContractHeader ready(){return new ContractHeader(ContractHeader.SCHEMA_VERSION,ContractHeader.Status.READY,List.of("fixture"),List.of(),ContractHeader.Confidence.OBSERVED);}

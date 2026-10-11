@@ -179,6 +179,34 @@ try {
 
     $pageObject = Join-Path $consumer "src/test/java/example/LoginPage.java"
     $unchanged = [System.IO.File]::ReadAllText($pageObject)
+
+    $null = Invoke-WebRequest -UseBasicParsing -Uri ("http://127.0.0.1:$fixturePort/product-defect")
+    $defectCreated = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "CREATE_REQUIREMENT"; requirement = "Invalid credentials must not authenticate and must show the expected error" }
+    $defectRunId = $defectCreated.result.runId
+    Wait-StudioWorkflowActionAvailable $studioSession $first.Uri $defectRunId "GENERATE_PLAN"
+    $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "GENERATE_PLAN"; runId = $defectRunId }
+    Wait-StudioWorkflowActionAvailable $studioSession $first.Uri $defectRunId "GENERATE_IMPLEMENTATION"
+    $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "GENERATE_IMPLEMENTATION"; runId = $defectRunId }
+    $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "RUN"; runId = $defectRunId }
+    $defect = Invoke-RestMethod -Uri ($first.Uri + "api/workflow?runId=" + [uri]::EscapeDataString($defectRunId)) -WebSession $studioSession
+    if ($defect.diagnosis.category -ne "PRODUCT_DEFECT" -or $null -ne $defect.repair) { throw "Product defect was not preserved as a non-repairable failure" }
+    if ([System.IO.File]::ReadAllText($pageObject) -ne $unchanged) { throw "Product-defect diagnosis mutated the Page Object" }
+
+    $null = Invoke-WebRequest -UseBasicParsing -Uri ("http://127.0.0.1:$fixturePort/ambiguous")
+    $ambiguousCreated = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "CREATE_REQUIREMENT"; requirement = "Login selector regression must not select the Register action" }
+    $ambiguousRunId = $ambiguousCreated.result.runId
+    Wait-StudioWorkflowActionAvailable $studioSession $first.Uri $ambiguousRunId "GENERATE_PLAN"
+    $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "GENERATE_PLAN"; runId = $ambiguousRunId }
+    Wait-StudioWorkflowActionAvailable $studioSession $first.Uri $ambiguousRunId "GENERATE_IMPLEMENTATION"
+    $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "GENERATE_IMPLEMENTATION"; runId = $ambiguousRunId }
+    $null = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "RUN"; runId = $ambiguousRunId }
+    $ambiguous = Invoke-RestMethod -Uri ($first.Uri + "api/workflow?runId=" + [uri]::EscapeDataString($ambiguousRunId)) -WebSession $studioSession
+    if ($ambiguous.diagnosis.category -ne "UNKNOWN") { throw "Ambiguous selector failure was not classified as UNKNOWN" }
+    if ($null -ne $ambiguous.repair) { throw "Ambiguous selector analysis produced a repair without sufficient semantic evidence" }
+    if ($ambiguous.availableActions -contains "APPROVE_REPAIR") { throw "Ambiguous selector repair was made approvable" }
+    if ([System.IO.File]::ReadAllText($pageObject) -ne $unchanged) { throw "Ambiguous selector analysis mutated source without approval" }
+
+    $null = Invoke-WebRequest -UseBasicParsing -Uri ("http://127.0.0.1:$fixturePort/reset")
     $null = Invoke-WebRequest -UseBasicParsing -Uri ("http://127.0.0.1:$fixturePort/change")
     $repairCreated = Invoke-StudioAction $studioSession $first.Uri $token @{ action = "CREATE_REQUIREMENT"; requirement = "Login selector regression must be repaired without weakening the test" }
     $repairRunId = $repairCreated.result.runId
@@ -207,7 +235,12 @@ try {
     $null = Invoke-WebRequest -UseBasicParsing -Uri $second.Uri -SessionVariable resumedSession
     $workflows = Invoke-RestMethod -Uri ($second.Uri + "api/workflows") -WebSession $resumedSession
     if (-not ($workflows | Where-Object { $_.runId -eq $runId })) { throw "Workflow was not restored after Studio restart" }
-    if (-not ($workflows | Where-Object { $_.runId -eq $repairRunId -and $_.state -eq "SUCCESS" })) { throw "Verified repair workflow was not restored after Studio restart" }
+    if (-not ($workflows | Where-Object { $_.runId -eq $repairRunId -and $_.state -eq "SUCCESS" })) {
+        $safeWorkflowState = @($workflows | ForEach-Object {
+            [ordered]@{ runId = $_.runId; state = $_.state; freshness = $_.freshness; resumed = $_.resumed }
+        }) | ConvertTo-Json -Compress
+        throw "Verified repair workflow was not restored after Studio restart: $safeWorkflowState"
+    }
     } finally { Stop-HarnessProcessTree $second.Process }
 } finally {
     if ($null -ne $second) { Stop-HarnessProcessTree $second.Process }

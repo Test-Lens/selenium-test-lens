@@ -32,7 +32,13 @@
     AGENT_PROCESS_FAILED: "The agent process failed. Open diagnostics for the captured runner output.",
     AGENT_OUTPUT_INVALID: "The agent returned output that could not be validated.",
     AGENT_CONTEXT_REJECTED: "The selected context was rejected by the agent runner.",
+    PAGE_OBJECT_CAPABILITY_MISSING: "The verified Page Object does not provide a capability required by this plan. Revise the requirement or extend the Page Object through the reviewed workflow.",
+    PAGE_OBJECT_CAPABILITY_CONTEXT_CONFLICT: "The Implementer refusal conflicts with the verified Page Object contract. Review the plan and context before retrying.",
+    PLAN_PAGE_OBJECT_INCOMPATIBLE: "The plan is incompatible with the verified Page Object method or construction contract.",
+    PAGE_OBJECT_EXTENSION_PROPOSAL: "The Implementer proposed a Page Object extension. Review the requirement and Page Object before generating the test.",
+    RUN_LIFECYCLE_FAILED: "The run did not reach a trustworthy final result. Review the bounded run diagnostic before starting a new workflow.",
     SOURCE_PRECONDITION_FAILED: "Source changed after this proposal was created. The repair is stale and was not applied.",
+    RESUME_UNAVAILABLE: "This saved workflow is available for history only. Start a new workflow to use current verified project context.",
     OPERATION_ALREADY_RUNNING: "An equivalent operation is already running for this workspace.",
     UNAUTHORIZED: "The local Studio session is no longer valid. Reopen Studio from the tooling host."
   };
@@ -55,9 +61,19 @@
     return result.length > 50000 ? result.slice(0, 50000) + "\n… projection truncated in Studio" : result;
   }
   function describeError(error) {
-    var code = first(error, ["code", "reasonCode", "error"], "REQUEST_FAILED");
+    if (typeof error === "string") error = { code: error };
+    var code = first(error, ["code", "error", "reasonCode"], "REQUEST_FAILED");
     var detail = first(error, ["message", "detail"], "The local tooling request failed.");
-    return { code: text(code), message: ERROR_MESSAGES[code] || text(detail) };
+    var stage = first(error, ["stage"], null);
+    var reason = first(error, ["reasonCode"], null);
+    var specific = detail && detail !== "The local tooling request failed.";
+    var message = specific ? text(detail) : (ERROR_MESSAGES[code] || text(detail));
+    if (stage && stage !== "AGENT") {
+      var stageLabel = { TEST_ARCHITECT: "Architect", TEST_IMPLEMENTER: "Implementer", CODE_REVIEWER: "Reviewer" }[stage] || text(stage);
+      message = stageLabel + " - " + message;
+    }
+    if (reason && reason !== code && message.indexOf(reason) < 0) message += " (" + text(reason) + ")";
+    return { code: text(code), message: message };
   }
 
   function createStudio(environment) {
@@ -95,6 +111,7 @@
       if (workflow.resumed) messages.push("This workflow was restored from the local project workspace after a Studio restart.");
       if (freshness !== "FRESH") messages.push("Workflow artifacts are " + freshness.replace(/_/g, " ").toLowerCase() + ". Review or regenerate them before continuing.");
       if (status.indexOf("INTERRUPTED") >= 0) messages.push("The previous " + (status.indexOf("AGENT") >= 0 ? "agent operation" : "execution") + " was interrupted. Studio did not assume it completed.");
+      if (status === "AGENT_FAILED") messages.push("The agent operation failed. Review the diagnostic above and retry only after correcting the cause.");
       var available = list(workflow.availableActions); if (messages.length && available.length) messages.push("Available next actions: " + available.map(function (item) { return item.replace(/_/g, " ").toLowerCase(); }).join(", ") + ".");
       messages.forEach(function (message) { add(banner, node("p", "", message)); });
       var supported = available.filter(function (action) { return ACTIONS.has(action); }); if (supported.length) { var row = node("div", "action-row"); supported.forEach(function (action) { add(row, button(action.replace(/_/g, " "), action, "secondary", { runId: workflow.runId })); }); add(banner, row); }
@@ -187,6 +204,8 @@
       if (implementation) { var istage = stageOf(implementation); var proposed = card("Proposed test", istage.status, first(implementation, ["file", "scenarioId", "summary"], istage.summary)); renderDiff(proposed, first(implementation, ["diff", "patch", "source", "sourcePatch"], "")); var policy = list(first(implementation, ["policy", "policyResults"], [])); if (policy.length) { add(proposed, node("h3", "", "Policy")); var pList = node("ul", "evidence-list"); policy.forEach(function (entry) { var pass = typeof entry === "string" || first(entry, ["pass", "allowed"], false); add(pList, node("li", pass ? "policy-pass" : "policy-fail", (pass ? "PASS · " : "BLOCKED · ") + text(typeof entry === "string" ? entry : first(entry, ["rule", "message", "code"], "Policy rule")))); }); add(proposed, pList); } var blocked = normalizedStatus(istage.status) === "BLOCKED" || policy.some(function (entry) { return typeof entry !== "string" && first(entry, ["pass", "allowed"], true) === false; }); var runRow = node("div", "action-row"); var run = button(blocked ? "Execution blocked by policy" : "Run", "RUN"); run.disabled = state.busy || blocked || !workflowAllows("RUN"); add(runRow, run); add(proposed, runRow); add(fragment, proposed); }
       if (execution) { var estage = stageOf(execution); var executionCard = card("Execution", estage.status, estage.summary); var table = node("table", "facts"); var body = node("tbody"); [["Compilation", first(execution, ["compilationStatus", "compileStatus", "compilation"], "—")], ["Execution", first(execution, ["executionStatus", "testStatus", "execution"], estage.status)], ["Duration", first(execution, ["duration", "durationMs", "durationMillis"], "—")], ["Failed action", first(execution, ["failedAction"], "—")], ["Exception", first(execution, ["exception", "exceptionType", "failureSummary"], "—")]].forEach(function (entry) { var row = node("tr"); add(row, node("th", "", entry[0]), node("td", "", text(entry[1]))); add(body, row); }); add(table, body); add(executionCard, table); var trace = list(first(execution, ["trace", "steps"], [])); if (trace.length) { add(executionCard, node("h3", "", "Test Lens trace")); var traceList = node("ul", "list"); trace.forEach(function (entry) { var success = normalizedStatus(first(entry, ["status"], "PASS")) === "PASS"; add(traceList, node("li", success ? "trace-pass" : "trace-fail", (success ? "✓ " : "✗ ") + text(typeof entry === "string" ? entry : first(entry, ["summary", "action", "message"], "Trace event")))); }); add(executionCard, traceList); } if (normalizedStatus(estage.status) === "FAILED" && !diagnosis) actions(executionCard, workflowActions(["DIAGNOSE"])); add(executionCard, rawDetails("Raw diagnostics", first(execution, ["diagnostics"], execution))); add(fragment, executionCard); }
       if (diagnosis) { var dstage = stageOf(diagnosis); var diagnosisCard = card("Diagnosis · " + text(first(diagnosis, ["classification", "failureClassification", "category"], "UNCLASSIFIED")), dstage.status, dstage.summary); if (list(diagnosis.counterEvidence).length) { add(diagnosisCard, node("h3", "", "Counter-evidence"), renderList(diagnosis.counterEvidence, "evidence-list limitations")); } actions(diagnosisCard, workflowActions(list(dstage.actions).length ? dstage.actions : ["PREPARE_REPAIR"])); add(fragment, diagnosisCard); }
+      if (workflow.review) { var review = workflow.review; var reviewCard = card("Reviewer · " + text(review.verdict, "UNKNOWN"), review.verdict === "APPROVE" ? "PASS" : "NEEDS_REVIEW", "Structured findings from verified workflow artifacts."); var diagnostic = review.contractDiagnostic; if (diagnostic) add(reviewCard, node("p", "status-detail", [diagnostic.validationStage, diagnostic.reasonCode, diagnostic.location, diagnostic.evidenceAvailability].filter(Boolean).join(" · "))); var findings = list(review.findings); if (findings.length) { var findingList = node("ul", "evidence-list limitations"); findings.forEach(function (finding) { add(findingList, node("li", "", [finding.category, finding.ruleId, finding.artifactRef, finding.problemCategory, finding.requiredAction, finding.location, finding.evidenceAvailability].filter(Boolean).join(" · "))); }); add(reviewCard, findingList); } if (list(workflow.reviewHistory).length) add(reviewCard, rawDetails("Review and implementation versions", workflow.reviewHistory)); add(fragment, reviewCard); }
+      if (workflow.runDiagnostic) { var runDiagnostic = workflow.runDiagnostic; var runCard = card("Run interrupted", "NEEDS_REVIEW", "Studio has no trustworthy completed result for this run."); add(runCard, renderList([runDiagnostic.reason, runDiagnostic.status, runDiagnostic.location, runDiagnostic.recoveryPersisted ? "RECOVERY_PERSISTED" : "RECOVERY_NOT_PERSISTED"], "evidence-list limitations")); add(fragment, runCard); }
       showPrimary(fragment); detailsFor(diagnosis || execution || implementation, diagnosis || execution || implementation);
     }
     function repairId(repair) { return first(repair, ["proposalId", "id", "repairProposalId"], ""); }
@@ -216,7 +235,10 @@
       try { response = await fetchFn(path, options || { method: "GET", credentials: "same-origin", cache: "no-store" }); }
       catch (error) { throw { code: "TOOLING_HOST_UNAVAILABLE", message: "Cannot reach the local Test Engineering host." }; }
       var body = null; try { body = await response.json(); } catch (ignored) { body = null; }
-      if (!response.ok || (body && body.ok === false)) throw (body && (body.error || body)) || { code: "HTTP_" + response.status, message: "Tooling host request failed." };
+      if (!response.ok || (body && body.ok === false)) {
+        if (body && typeof body === "object") throw body;
+        throw { code: "HTTP_" + response.status, message: "Tooling host request failed." };
+      }
       return body;
     }
     async function loadAll() {
@@ -252,7 +274,13 @@
         var refreshed = await Promise.all([request("/api/project"), request("/api/config"), request("/api/status"), request("/api/application"), request("/api/problems"), request("/api/correlations"), request("/api/workflows"), request("/api/workflow" + workflowQuery)]);
         state.project = refreshed[0]; state.config = refreshed[1]; state.hostStatus = refreshed[2]; state.application = refreshed[3]; state.problems = refreshed[4]; state.correlations = refreshed[5]; state.workflows = refreshed[6]; state.workflow = refreshed[7];
         if (action === "CREATE_REQUIREMENT") state.view = "plans"; else if (action === "GENERATE_IMPLEMENTATION" || action === "RUN" || action === "DIAGNOSE") state.view = "runs"; else if (action === "PREPARE_REPAIR" || action === "APPROVE_REPAIR" || action === "REJECT_REPAIR") state.view = "repairs";
-      } catch (error) { showError(error); } finally { setBusy(false); render(); }
+      } catch (error) {
+        showError(error);
+        if (payload.runId) {
+          try { state.workflow = await request("/api/workflow?runId=" + encodeURIComponent(payload.runId)); }
+          catch (ignored) { /* Preserve the original action failure in the error banner. */ }
+        }
+      } finally { setBusy(false); render(); }
     }
     function setBusy(value, message) { state.busy = value; var status = byId("operation-status"); if (status) { status.hidden = !value; status.textContent = value ? text(message, "Working…") : ""; } }
     function setConnection(connected) { var footer = byId("connection-status"); if (!footer) return; footer.parentElement.className = connected ? "connected" : "disconnected"; footer.textContent = connected ? "Local tooling connected" : "Local tooling unavailable"; }

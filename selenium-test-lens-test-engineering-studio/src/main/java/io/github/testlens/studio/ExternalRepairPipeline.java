@@ -40,13 +40,21 @@ final class ExternalRepairPipeline {
     private final BrowserSessionProvider browsers;
     private final BrowserRequest mappingRequest;
     private final URI startUrl;
+    private final StudioWorkspaceStore workspace;
     private Analysis lastAnalysis;
     private String lastAnalysisFailure;
 
     ExternalRepairPipeline(Path projectRoot,List<Path> sourceRoots,List<Path> classpath,
                            BrowserSessionProvider browsers,BrowserRequest mappingRequest,URI startUrl) {
+        this(projectRoot,sourceRoots,classpath,browsers,mappingRequest,startUrl,new StudioWorkspaceStore(projectRoot));
+    }
+
+    ExternalRepairPipeline(Path projectRoot,List<Path> sourceRoots,List<Path> classpath,
+                           BrowserSessionProvider browsers,BrowserRequest mappingRequest,URI startUrl,
+                           StudioWorkspaceStore workspace) {
         this.projectRoot=projectRoot;this.sourceRoots=List.copyOf(sourceRoots);this.classpath=List.copyOf(classpath);
         this.browsers=browsers;this.mappingRequest=mappingRequest;this.startUrl=startUrl;
+        this.workspace=Objects.requireNonNull(workspace);
     }
 
     AgentWorkflowCoordinator.FailureClassifier classifier(){return this::classify;}
@@ -54,11 +62,13 @@ final class ExternalRepairPipeline {
 
     private synchronized FailureClassification classify(TestExecutionResult execution) {
         List<String> executionEvidence=evidence(execution);
-        boolean productMismatch=executionEvidence.stream().anyMatch(ExternalRepairPipeline::isAssertionFailure);
+        boolean missingElement=executionEvidence.stream().anyMatch(ExternalRepairPipeline::isMissingElement);
+        boolean productMismatch=!missingElement&&executionEvidence.stream().anyMatch(ExternalRepairPipeline::isAssertionFailure);
         Analysis analysis=null;
         lastAnalysisFailure=null;
-        if(!productMismatch&&executionEvidence.stream().anyMatch(ExternalRepairPipeline::isMissingElement)){
+        if(missingElement){
             try{analysis=analyze(execution,executionEvidence);}
+            catch(AmbiguousReplacementException failure){analysis=null;lastAnalysisFailure="SELECTOR_TARGET_AMBIGUOUS";}
             catch(Exception failure){analysis=null;lastAnalysisFailure=boundedFailure(failure);}
         }
         lastAnalysis=analysis;
@@ -85,9 +95,9 @@ final class ExternalRepairPipeline {
     }
 
     private Analysis analyze(TestExecutionResult execution,List<String> executionEvidence)throws Exception{
-        ApplicationModel baseline=baselineModel();
         ExistingProjectIndex index=new ExistingProjectIndexer().index(new ExistingProjectIndexer.Request(
                 projectRoot,sourceRoots,classpath));
+        ApplicationModel baseline=baselineModel(index.projectFingerprint());
         PageObjectCorrelation correlation=new PageObjectCorrelator().correlate(baseline,index,CorrelationOverrides.none());
         ApplicationModel changed=mapCurrentApplication();
         for(ApplicationModel.ElementModel before:elements(baseline)){
@@ -111,11 +121,20 @@ final class ExternalRepairPipeline {
         return null;
     }
 
-    private ApplicationModel baselineModel()throws Exception{
-        Object projection=new StudioWorkspaceStore(projectRoot).read(StudioWorkspaceStore.ArtifactKind.APPLICATION_MODEL)
-                .orElseThrow(()->new IllegalStateException("A persisted baseline application model is required"))
-                .get("projection");
-        return new ApplicationModelJson().read(StrictJson.write(projection));
+    private ApplicationModel baselineModel(String currentFingerprint)throws Exception{
+        java.util.Map<String,Object> document;
+        try{
+            document=workspace.read(StudioWorkspaceStore.ArtifactKind.APPLICATION_MODEL)
+                    .orElseThrow(()->new IllegalStateException("MODEL_MISSING: persisted application model is required in the configured workspace"));
+        }catch(IllegalStateException failure){throw failure;}
+        catch(Exception failure){throw new IllegalStateException("MODEL_READ_FAILED: "+failure.getClass().getSimpleName(),failure);}
+        if(!Objects.equals(currentFingerprint,document.get("sourceFingerprint")))
+            throw new IllegalStateException("MODEL_STALE: application model fingerprint does not match the current source index");
+        try{
+            Object projection=document.get("projection");
+            if(projection==null)throw new IllegalArgumentException("projection is missing");
+            return new ApplicationModelJson().read(StrictJson.write(projection));
+        }catch(Exception failure){throw new IllegalStateException("MODEL_READ_FAILED: "+failure.getClass().getSimpleName(),failure);}
     }
 
     private ApplicationModel mapCurrentApplication()throws Exception{
@@ -146,26 +165,31 @@ final class ExternalRepairPipeline {
     }
     private static ApplicationModel.ElementModel replacementTarget(ApplicationModel.ElementModel before,ApplicationModel changed){
         List<ApplicationModel.ElementModel> values=elements(changed);
-        ApplicationModel.ElementModel exact=values.stream().filter(value->value.elementId().equals(before.elementId())).findFirst().orElse(null);
-        if(exact!=null)return exact;
         List<ApplicationModel.ElementModel> semantic=values.stream()
                 .filter(value->value.semanticName().equals(before.semanticName()))
                 .filter(value->value.type()==before.type())
                 .filter(value->Objects.equals(value.semanticRole(),before.semanticRole())).toList();
+        if(semantic.size()>1)throw new AmbiguousReplacementException();
         if(semantic.size()==1)return semantic.get(0);
+        ApplicationModel.ElementModel exact=values.stream()
+                .filter(value->value.elementId().equals(before.elementId())).findFirst().orElse(null);
+        if(exact!=null)return exact;
         List<ApplicationModel.ElementModel> accessible=values.stream()
                 .filter(value->before.accessibleName()!=null&&!before.accessibleName().isBlank())
                 .filter(value->Objects.equals(value.accessibleName(),before.accessibleName()))
                 .filter(value->value.type()==before.type())
                 .filter(value->Objects.equals(value.semanticRole(),before.semanticRole())).toList();
+        if(accessible.size()>1)throw new AmbiguousReplacementException();
         if(accessible.size()==1)return accessible.get(0);
         List<ApplicationModel.ElementModel> labelled=values.stream()
                 .filter(value->before.label()!=null&&!before.label().isBlank())
                 .filter(value->Objects.equals(value.label(),before.label()))
                 .filter(value->value.type()==before.type())
                 .filter(value->Objects.equals(value.semanticRole(),before.semanticRole())).toList();
+        if(labelled.size()>1)throw new AmbiguousReplacementException();
         return labelled.size()==1?labelled.get(0):null;
     }
+    private static final class AmbiguousReplacementException extends RuntimeException { }
     private static boolean isMissingElement(String value){return value.contains("NoSuchElementException")||value.contains("no such element");}
     private static boolean isAssertionFailure(String value){return value.contains("AssertionFailedError")||value.contains("AssertionError");}
     private static String boundedFailure(Exception failure){String value=REDACTION.redact("Selector repair analysis failed: "+failure.getClass().getSimpleName()+": "+String.valueOf(failure.getMessage()));return value.length()<=500?value:value.substring(0,500);}

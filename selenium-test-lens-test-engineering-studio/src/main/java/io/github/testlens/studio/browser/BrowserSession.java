@@ -5,7 +5,7 @@ import org.openqa.selenium.WebDriver;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** Browser plus its explicit lifecycle ownership. @since 0.5.0 */
+/** Browser plus its explicit lifecycle ownership. @since 0.5.1 */
 public final class BrowserSession implements AutoCloseable {
     private final WebDriver driver;
     private final Ownership ownership;

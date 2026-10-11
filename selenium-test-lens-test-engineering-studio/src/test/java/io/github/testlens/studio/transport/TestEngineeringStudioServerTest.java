@@ -85,4 +85,10 @@ class TestEngineeringStudioServerTest {
             assertTrue(response.body().length()<512);
         }
     }
+
+    @Test void mapsUnavailablePersistentResumeToSpecificConflictCode() {
+        assertEquals("RESUME_UNAVAILABLE", TestEngineeringStudioServer.safeCode("RESUME_UNAVAILABLE"));
+        assertEquals("STATE_CONFLICT", TestEngineeringStudioServer.safeCode(
+                "Action RUN is not available for workflow run-1"));
+    }
 }

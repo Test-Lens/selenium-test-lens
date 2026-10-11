@@ -95,7 +95,12 @@ public final class StudioProjectionFactory {
     }
 
     public WorkflowRunProjection workflow(WorkflowReport report) {
-        StageStatus status = switch (report.finalState().name()) { case "COMPLETED" -> StageStatus.PASS; case "FAILED" -> StageStatus.FAILED; case "HUMAN_REVIEW_REQUIRED" -> StageStatus.NEEDS_REVIEW; default -> StageStatus.PARTIAL; };
+        StageStatus status = switch (report.finalState().name()) {
+            case "SUCCESS" -> StageStatus.PASS;
+            case "FAILED", "REJECTED", "BLOCKED" -> StageStatus.FAILED;
+            case "NEEDS_HUMAN_REVIEW" -> StageStatus.NEEDS_REVIEW;
+            default -> StageStatus.PARTIAL;
+        };
         var m=report.metrics();
         return new WorkflowRunProjection(new StageProjection(status,List.of(),report.limitations().stream().map(v->new Item("WORKFLOW",v)).toList(),
                 List.of(new Artifact(report.runId(),"WorkflowReport","FRESH")),List.of()),report.runId(),report.requirement(),report.finalState().name(),
@@ -121,6 +126,27 @@ public final class StudioProjectionFactory {
         return new ExecutionProjection(header(value.header(),"ExecutionResult"),value.scenarioId(),value.compileOutcome().name(),value.executionOutcome().name(),value.durationMillis(),
                 bounded(value.traceEvidenceRefs(),MAX_LIST_ITEMS),bounded(value.selectorDiagnosticRefs(),MAX_LIST_ITEMS),bounded(value.failureSummary(),16_384));
     }
+    public ReviewProjection review(CodeReviewResult value){
+        if(value==null)return null;
+        List<ReviewFindingProjection> findings=value.findings().stream().limit(32).map(finding->new ReviewFindingProjection(
+                        finding.category().name(),finding.severity().name(),finding.ruleId(),finding.artifactRef(),
+                        finding.problemCategory().name(),finding.requiredAction().name(),finding.safeLocation().name(),
+                        finding.evidenceAvailability().name())).toList();
+        CodeReviewResult.Finding contract=value.verdict()==CodeReviewResult.Verdict.BLOCK
+                ?value.findings().stream().filter(finding->finding.category()==CodeReviewResult.Category.REVIEW_UNSUBSTANTIATED)
+                    .findFirst().orElse(null):null;
+        ReviewContractDiagnosticProjection diagnostic=contract==null?null:new ReviewContractDiagnosticProjection(
+                "REVIEW_CONTRACT",contract.ruleId(),"$.result.payload","DOMAIN_VALIDATION",
+                value.header().schemaVersion(),contract.artifactRef(),contract.evidenceAvailability().name());
+        return new ReviewProjection(value.verdict().name(),bounded(value.reviewedArtifactRefs(),100),findings,diagnostic);
+    }
+
+    public List<ReviewCycleProjection> reviewHistory(List<io.github.testlens.studio.workspace.WorkflowSessionSnapshot.ReviewCycleSnapshot> values){
+        return (values==null?List.<io.github.testlens.studio.workspace.WorkflowSessionSnapshot.ReviewCycleSnapshot>of():values)
+                .stream().limit(2).map(value->new ReviewCycleProjection(value.implementationVersion(),
+                        value.implementationArtifactRef(),value.executionArtifactRef(),value.reviewArtifactRef(),
+                        value.compileOutcome(),value.executionOutcome(),value.durationMillis(),review(value.review()))).toList();
+    }
     public DiagnosisProjection diagnosis(FailureClassification value) {
         StageProjection stage=header(value.header(),"FailureClassification");
         stage=new StageProjection(stage.status(),value.evidenceRefs().stream().map(v->new Item("EVIDENCE",v)).toList(),stage.limitations(),stage.artifacts(),stage.actions());
@@ -133,7 +159,10 @@ public final class StudioProjectionFactory {
         return new RepairProjection(new StageProjection(status,evidence.stream().map(v->new Item("SELECTOR",v)).toList(),
                 value.risks().stream().map(v->new Item("RISK",v)).toList(),List.of(new Artifact(value.proposalId(),"RepairProposal",stale?"STALE":"FRESH")),
                 List.of(new Action("approve-repair","Approve and apply",!stale&&decision==null),new Action("reject-repair","Reject",decision==null))),
-                value.proposalId(),decision,applyStatus,value.sourceTarget()==null?null:value.sourceTarget().logicalPath(),value.oldSelector(),value.newSelector(),evidence,value.affectedMethods(),value.affectedTests(),value.risks());
+                value.proposalId(),decision,applyStatus,value.sourceTarget()==null?null:value.sourceTarget().logicalPath(),value.oldSelector(),value.newSelector(),evidence,
+                value.replacementEvidence()!=null&&value.replacementEvidence().unique(),
+                value.replacementEvidence()==null?null:value.replacementEvidence().sameTarget(),
+                value.affectedMethods(),value.affectedTests(),value.risks());
     }
 
     private static StageProjection header(ContractHeader h,String artifact) {

@@ -1,5 +1,7 @@
 package io.github.testlens.studio.projection;
 
+import io.github.testlens.application.tooling.ai.CodeReviewResult;
+import io.github.testlens.application.tooling.ai.ContractHeader;
 import io.github.testlens.application.tooling.source.PageObjectCorrelation;
 import org.junit.jupiter.api.Test;
 
@@ -32,5 +34,53 @@ class StudioProjectionFactoryTest {
                 List.of(new StageProjection.Item("L","limit")),List.of(),List.of());
         assertEquals(500,stage.evidence().size());
         assertEquals("limit",stage.limitations().get(0).detail());
+    }
+
+    @Test void reviewProjectionExposesOnlyBoundedTypedFeedback() {
+        ContractHeader header=new ContractHeader(ContractHeader.SCHEMA_VERSION,ContractHeader.Status.READY,
+                List.of("fixture"),List.of(),ContractHeader.Confidence.OBSERVED);
+        CodeReviewResult.Finding finding=new CodeReviewResult.Finding(
+                CodeReviewResult.Category.ASSERTION_INSUFFICIENT,CodeReviewResult.Severity.ERROR,
+                "ASSERTION_REQUIRED","implementation-1",CodeReviewResult.ProblemCategory.ASSERTION,
+                CodeReviewResult.RequiredAction.ADD_ASSERTION,CodeReviewResult.SafeLocation.ASSERTION,
+                CodeReviewResult.EvidenceAvailability.VERIFIED);
+        CodeReviewResult review=new CodeReviewResult(header,CodeReviewResult.Verdict.REQUEST_CHANGES,
+                List.of("implementation-1","quality-1","compile-success-1","execution-1"),List.of(finding));
+
+        var projection=new StudioProjectionFactory().review(review);
+
+        assertEquals("REQUEST_CHANGES",projection.verdict());
+        assertEquals(List.of("compile-success-1","execution-1","implementation-1","quality-1"),
+                projection.reviewedArtifactRefs());
+        var projected=projection.findings().get(0);
+        assertEquals("ASSERTION_INSUFFICIENT",projected.category());
+        assertEquals("ASSERTION_REQUIRED",projected.ruleId());
+        assertEquals("implementation-1",projected.artifactRef());
+        assertEquals("ADD_ASSERTION",projected.requiredAction());
+        assertEquals("VERIFIED",projected.evidenceAvailability());
+        assertNull(projection.contractDiagnostic());
+    }
+
+    @Test void blockedReviewProjectionPreservesExactStaticContractReason() {
+        ContractHeader header=new ContractHeader(ContractHeader.SCHEMA_VERSION,ContractHeader.Status.BLOCKED,
+                List.of("discarded prose"),List.of("discarded limitation"),ContractHeader.Confidence.OBSERVED);
+        CodeReviewResult.Finding finding=new CodeReviewResult.Finding(
+                CodeReviewResult.Category.REVIEW_UNSUBSTANTIATED,CodeReviewResult.Severity.ERROR,
+                CodeReviewResult.RuleId.ARTIFACT_REFERENCE_INVALID.name(),"implementation-1",
+                CodeReviewResult.ProblemCategory.REVIEW_CONTRACT,CodeReviewResult.RequiredAction.HUMAN_REVIEW,
+                CodeReviewResult.SafeLocation.EXECUTION_EVIDENCE,CodeReviewResult.EvidenceAvailability.VERIFIED);
+        CodeReviewResult review=new CodeReviewResult(header,CodeReviewResult.Verdict.BLOCK,
+                List.of("implementation-1"),List.of(finding));
+
+        var diagnostic=new StudioProjectionFactory().review(review).contractDiagnostic();
+
+        assertNotNull(diagnostic);
+        assertEquals("REVIEW_CONTRACT",diagnostic.validationStage());
+        assertEquals("ARTIFACT_REFERENCE_INVALID",diagnostic.reasonCode());
+        assertEquals("$.result.payload",diagnostic.location());
+        assertEquals("DOMAIN_VALIDATION",diagnostic.category());
+        assertEquals(ContractHeader.SCHEMA_VERSION,diagnostic.contractVersion());
+        assertEquals("implementation-1",diagnostic.artifactRef());
+        assertEquals("VERIFIED",diagnostic.evidenceAvailability());
     }
 }

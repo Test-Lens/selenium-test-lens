@@ -7,6 +7,7 @@ import io.github.testlens.application.tooling.json.StrictJson;
 import io.github.testlens.application.tooling.ai.workflow.AgentExecutor;
 import io.github.testlens.core.redaction.RedactionPolicy;
 import io.github.testlens.studio.TestEngineeringStudioService;
+import io.github.testlens.studio.PageObjectCapabilityException;
 
 import java.io.*;
 import java.net.*;
@@ -64,7 +65,9 @@ public final class TestEngineeringStudioServer implements AutoCloseable {
             }
             sendError(exchange,405,"METHOD_NOT_ALLOWED");
         }catch(PayloadTooLargeException failure){sendError(exchange,413,"PAYLOAD_TOO_LARGE");}
-        catch(AgentExecutor.AgentExecutionException failure){sendError(exchange,502,failure.code().name());}
+        catch(PageObjectCapabilityException failure){sendCapabilityRefusal(exchange,failure);}
+        catch(AgentExecutor.AgentExecutionException failure){sendAgentError(exchange,failure);}
+        catch(TestEngineeringStudioService.RunLifecycleException failure){sendRunLifecycleError(exchange,failure);}
         catch(IllegalArgumentException failure){sendInvalidRequest(exchange,failure);}
         catch(IllegalStateException failure){String code=safeCode(failure.getMessage());if("BROWSER_SESSION_FAILED".equals(code))sendBrowserSessionFailure(exchange,failure);else sendError(exchange,409,code);}
         catch(Exception failure){sendError(exchange,500,"OPERATION_FAILED");}
@@ -123,7 +126,8 @@ public final class TestEngineeringStudioServer implements AutoCloseable {
     private static long parseLength(String value){if(value==null)return-1;try{return Long.parseLong(value);}catch(NumberFormatException failure){throw new IllegalArgumentException("Content-Length");}}
     private static String randomToken(){byte[] bytes=new byte[32];new SecureRandom().nextBytes(bytes);return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);}
     private static boolean constantTime(String expected,String actual){if(actual==null)return false;byte[] left=expected.getBytes(StandardCharsets.US_ASCII),right=actual.getBytes(StandardCharsets.US_ASCII);int difference=left.length^right.length;for(int i=0;i<left.length;i++)difference|=left[i]^(i<right.length?right[i]:0);return difference==0;}
-    private static String safeCode(String message){
+    static String safeCode(String message){
+        if("RESUME_UNAVAILABLE".equals(message))return "RESUME_UNAVAILABLE";
         if(message!=null&&message.contains("already running"))return "OPERATION_IN_PROGRESS";
         if(message!=null&&message.startsWith("Unable to open local "))return "BROWSER_SESSION_FAILED";
         if(message!=null&&(message.startsWith("Local browser is not available")||message.startsWith("No browser session provider")))return "BROWSER_UNAVAILABLE";
@@ -161,6 +165,47 @@ public final class TestEngineeringStudioServer implements AutoCloseable {
     private static void sendJson(HttpExchange exchange,int status,Object body)throws IOException{byte[] bytes=StrictJson.write(body);exchange.getResponseHeaders().set("Content-Type","application/json; charset=utf-8");exchange.sendResponseHeaders(status,bytes.length);exchange.getResponseBody().write(bytes);}
     private static void sendInvalidRequest(HttpExchange exchange,IllegalArgumentException failure)throws IOException{
         Map<String,Object> body=new LinkedHashMap<>();body.put("error","INVALID_REQUEST");body.put("reason",safeMessage(failure.getMessage()));sendJson(exchange,400,body);
+    }
+    private static void sendAgentError(HttpExchange exchange,AgentExecutor.AgentExecutionException failure)throws IOException{
+        AgentExecutor.AgentFailureDiagnostic diagnostic=failure.diagnostic()==null
+                ?new AgentExecutor.AgentFailureDiagnostic("UNSPECIFIED_FAILURE","boundary",Map.of())
+                :failure.diagnostic();
+        Map<String,Object> body=new LinkedHashMap<>();
+        body.put("error",failure.code().name());
+        body.put("stage",diagnostic.metadata().getOrDefault("role","AGENT"));
+        body.put("reasonCode",diagnostic.reasonCode());
+        body.put("location",diagnostic.location());
+        body.put("message",safeMessage(failure.getMessage()));
+        body.put("metadata",diagnostic.metadata());
+        sendJson(exchange,502,body);
+    }
+    private static void sendRunLifecycleError(HttpExchange exchange,
+            TestEngineeringStudioService.RunLifecycleException failure)throws IOException{
+        Map<String,Object> body=new LinkedHashMap<>();body.put("error","RUN_LIFECYCLE_FAILED");
+        String stage=failure.location().startsWith("RERUN")?"RERUN":"RUN";
+        body.put("stage",stage);body.put("reasonCode",failure.reason().name());
+        body.put("status",failure.status().name());body.put("recoveryPersisted",failure.recoveryPersisted());
+        body.put("location",failure.location());
+        int status=failure.reason()==io.github.testlens.studio.workspace.WorkflowSessionSnapshot.RunReason.START_PERSISTENCE_FAILED
+                ||failure.reason()==io.github.testlens.studio.workspace.WorkflowSessionSnapshot.RunReason.RECOVERY_PERSISTENCE_FAILED
+                ?503:500;
+        sendJson(exchange,status,body);
+    }
+    private static void sendCapabilityRefusal(HttpExchange exchange,PageObjectCapabilityException failure)throws IOException{
+        Map<String,Object> body=new LinkedHashMap<>();
+        body.put("error",failure.reasonCode());
+        body.put("stage","TEST_IMPLEMENTER");
+        body.put("reasonCode",failure.reasonCode());
+        body.put("location",failure.location());
+        body.put("capabilityCategory",failure.refusalCategory().name());
+        body.put("sourceFingerprintMatched",failure.sourceFingerprintMatched());
+        body.put("metadata",failure.diagnosticMetadata());
+        if(failure.verifiedPageId()!=null)body.put("verifiedPageId",failure.verifiedPageId());
+        body.put("message","PAGE_OBJECT_CAPABILITY_CONTEXT_CONFLICT".equals(failure.reasonCode())
+                ?"The Implementer refusal conflicts with the verified Page Object contract. Review the plan and context."
+                :"The verified Page Object capabilities do not support the requested implementation.");
+        body.put("nextAction",failure.nextAction());
+        sendJson(exchange,409,body);
     }
     private static void sendError(HttpExchange exchange,int status,String code)throws IOException{sendJson(exchange,status,Map.of("error",code));}
     private static final class PayloadTooLargeException extends IOException{}

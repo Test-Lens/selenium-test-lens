@@ -45,6 +45,7 @@
                         <configuration>
                             <includes>
                                 <include>**/TestEngineeringStudioBrowserIT.java</include>
+                                <include>**/ExternalRepairAmbiguityBrowserIT.java</include>
                             </includes>
                             <systemPropertyVariables>
                                 <browser>${browser}</browser>
