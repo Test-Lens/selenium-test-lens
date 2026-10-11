@@ -37,7 +37,9 @@ public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExe
 public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException(java.lang.String, java.lang.Throwable)
 public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException(io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode, java.lang.String)
 public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException(io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode, java.lang.String, java.lang.Throwable)
+public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException(io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode, java.lang.String, java.lang.Throwable, io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureDiagnostic)
 public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode code()
+public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureDiagnostic diagnostic()
 ```
 
 ## `io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode` {#io-github-testlens-application-tooling-ai-workflow-agentexecutor-agentfailurecode}
@@ -55,6 +57,23 @@ public static final io.github.testlens.application.tooling.ai.workflow.AgentExec
 public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode AGENT_CONTEXT_REJECTED
 public static io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode[] values()
 public static io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureDiagnostic` {#io-github-testlens-application-tooling-ai-workflow-agentexecutor-agentfailurediagnostic}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `ADVANCED_API`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureDiagnostic(java.lang.String, java.lang.String, java.util.Map<java.lang.String, java.lang.String>)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String reasonCode()
+public java.lang.String location()
+public java.util.Map<java.lang.String, java.lang.String> metadata()
 ```
 
 ## `io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentResult` {#io-github-testlens-application-tooling-ai-workflow-agentexecutor-agentresult}
@@ -277,7 +296,9 @@ public java.lang.String summary()
 
 ```java
 public io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator(io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow, io.github.testlens.application.tooling.ai.workflow.AgentExecutor, io.github.testlens.application.tooling.ai.workflow.TargetedJavaCompiler, io.github.testlens.application.tooling.ai.workflow.TargetedTestExecutor, io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$FailureClassifier, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$Stabilizer, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$Configuration)
+public io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator(io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow, io.github.testlens.application.tooling.ai.workflow.AgentExecutor, io.github.testlens.application.tooling.ai.workflow.TargetedJavaCompiler, io.github.testlens.application.tooling.ai.workflow.TargetedTestExecutor, io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$FailureClassifier, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$Stabilizer, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$Configuration, java.util.function.Supplier<java.lang.String>)
 public io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator(io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow, io.github.testlens.application.tooling.ai.workflow.AgentExecutor, io.github.testlens.application.tooling.ai.workflow.TargetedJavaCompiler, io.github.testlens.application.tooling.ai.workflow.CompiledTargetedTestExecutor, io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$FailureClassifier, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$Stabilizer, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$Configuration)
+public io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator(io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow, io.github.testlens.application.tooling.ai.workflow.AgentExecutor, io.github.testlens.application.tooling.ai.workflow.TargetedJavaCompiler, io.github.testlens.application.tooling.ai.workflow.CompiledTargetedTestExecutor, io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$FailureClassifier, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$Stabilizer, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$Configuration, java.util.function.Supplier<java.lang.String>)
 public io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator$Result run(java.lang.String, io.github.testlens.application.tooling.ai.workflow.TestEngineeringRequest, io.github.testlens.application.tooling.ai.AgentContextPack) throws io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException
 ```
 
@@ -291,6 +312,7 @@ public io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinat
 ```java
 public io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope(java.lang.String, java.lang.String, java.util.List<java.lang.String>, int, java.lang.String, T)
 public static <T> io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope<T> create(java.lang.String, java.lang.String, java.util.List<java.lang.String>, int, T)
+public T payload()
 public static java.lang.String digest(java.lang.Object)
 public final java.lang.String toString()
 public final int hashCode()
@@ -300,7 +322,6 @@ public java.lang.String runId()
 public java.util.List<java.lang.String> parents()
 public int attempt()
 public java.lang.String payloadDigest()
-public T payload()
 ```
 
 ## `io.github.testlens.application.tooling.ai.workflow.CompiledTargetedTestExecutor` {#io-github-testlens-application-tooling-ai-workflow-compiledtargetedtestexecutor}
@@ -504,6 +525,249 @@ public io.github.testlens.application.tooling.ai.workflow.PageObjectCapabilityMi
 public java.lang.String extensionClass()
 public java.lang.String proposedMethod()
 public java.util.List<java.lang.String> evidence()
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$CompilationEvidence$Status` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidence-compilationevidence-status}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$CompilationEvidence$Status PASS
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$CompilationEvidence$Status[] values()
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$CompilationEvidence$Status valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$CompilationEvidence` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidence-compilationevidence}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$CompilationEvidence(io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$CompilationEvidence$Status, int, java.lang.String)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$CompilationEvidence$Status status()
+public int generatedClassCount()
+public java.lang.String implementationDigest()
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$ControlPathStatus` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidence-controlpathstatus}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$ControlPathStatus UNCONDITIONAL
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$ControlPathStatus EARLY_RETURN_PRESENT
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$ControlPathStatus UNRESOLVED
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$ControlPathStatus[] values()
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$ControlPathStatus valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$QualityEvidence` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidence-qualityevidence}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$QualityEvidence(io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$QualityStatus, int, int, io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$RequiredApiAssertionStatus, io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$ControlPathStatus, io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$SwallowedFailureStatus, java.lang.String, java.lang.String)
+public boolean completeForApproval()
+public boolean safeForReview()
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$QualityStatus status()
+public int junitTestMethodCount()
+public int assertionCount()
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$RequiredApiAssertionStatus requiredApiInsideAssertion()
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$ControlPathStatus controlPath()
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$SwallowedFailureStatus swallowedFailures()
+public java.lang.String implementationDigest()
+public java.lang.String sourceFingerprint()
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$QualityStatus` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidence-qualitystatus}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$QualityStatus COMPLETE
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$QualityStatus PARTIAL
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$QualityStatus[] values()
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$QualityStatus valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$RequiredApiAssertionStatus` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidence-requiredapiassertionstatus}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$RequiredApiAssertionStatus VERIFIED
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$RequiredApiAssertionStatus NOT_VERIFIED
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$RequiredApiAssertionStatus NOT_APPLICABLE
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$RequiredApiAssertionStatus UNRESOLVED
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$RequiredApiAssertionStatus[] values()
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$RequiredApiAssertionStatus valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$SwallowedFailureStatus` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidence-swallowedfailurestatus}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$SwallowedFailureStatus NONE
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$SwallowedFailureStatus PRESENT
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$SwallowedFailureStatus UNRESOLVED
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$SwallowedFailureStatus[] values()
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$SwallowedFailureStatus valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidence}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `class`
+
+```java
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidence$QualityEvidence analyze(io.github.testlens.application.tooling.ai.TestImplementationProposal, java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$ArtifactType` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidencepack-artifacttype}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$ArtifactType CONTEXT
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$ArtifactType PLAN
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$ArtifactType IMPLEMENTATION
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$ArtifactType COMPILATION
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$ArtifactType QUALITY
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$ArtifactType EXECUTION
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$ArtifactType[] values()
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$ArtifactType valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Availability` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidencepack-availability}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Availability AVAILABLE
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Availability UNAVAILABLE
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Availability[] values()
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Availability valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Evidence` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidencepack-evidence}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Evidence(java.lang.String, io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$ArtifactType, java.lang.String, int, java.lang.String, java.util.List<java.lang.String>, io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Availability, boolean, java.util.List<io.github.testlens.application.tooling.ai.CodeReviewResult$Category>, java.util.List<java.lang.String>)
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Evidence(java.lang.String, io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$ArtifactType, java.lang.String, int, java.lang.String, java.util.List<java.lang.String>, io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Availability, boolean, java.util.List<io.github.testlens.application.tooling.ai.CodeReviewResult$Category>, java.util.List<java.lang.String>, java.util.List<io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$FindingContract>)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String artifactId()
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$ArtifactType artifactType()
+public java.lang.String runId()
+public int attempt()
+public java.lang.String payloadDigest()
+public java.util.List<java.lang.String> parents()
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Availability availability()
+public boolean requiredForApproval()
+public java.util.List<io.github.testlens.application.tooling.ai.CodeReviewResult$Category> supportedFindingCategories()
+public java.util.List<java.lang.String> allowedRuleIds()
+public java.util.List<io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$FindingContract> supportedFindingContracts()
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$FindingContract` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidencepack-findingcontract}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$FindingContract(io.github.testlens.application.tooling.ai.CodeReviewResult$Category, java.lang.String, io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory, io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction, io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation)
+public boolean matches(io.github.testlens.application.tooling.ai.CodeReviewResult$Finding)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public io.github.testlens.application.tooling.ai.CodeReviewResult$Category category()
+public java.lang.String ruleId()
+public io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory problemCategory()
+public io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction requiredAction()
+public io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation safeLocation()
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$IntegrityStatus` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidencepack-integritystatus}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$IntegrityStatus VALID
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$IntegrityStatus EVIDENCE_UNAVAILABLE
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$IntegrityStatus EVIDENCE_DIGEST_MISMATCH
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$IntegrityStatus EVIDENCE_LINEAGE_INVALID
+public static final io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$IntegrityStatus IMPLEMENTATION_FINGERPRINT_MISMATCH
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$IntegrityStatus[] values()
+public static io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$IntegrityStatus valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack` {#io-github-testlens-application-tooling-ai-workflow-reviewerevidencepack}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack(java.lang.String, int, java.lang.String, java.lang.String, java.lang.String, java.util.List<io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Evidence>, java.util.List<java.lang.String>, java.util.List<java.lang.String>)
+public io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$IntegrityStatus verify(java.util.List<io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope<?>>, java.lang.String)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String runId()
+public int attempt()
+public java.lang.String implementationArtifactId()
+public java.lang.String implementationDigest()
+public java.lang.String sourceFingerprint()
+public java.util.List<io.github.testlens.application.tooling.ai.workflow.ReviewerEvidencePack$Evidence> evidence()
+public java.util.List<java.lang.String> requiredReviewedArtifactRefs()
+public java.util.List<java.lang.String> allowedRuleIds()
 ```
 
 ## `io.github.testlens.application.tooling.ai.workflow.ScriptedAgentExecutor` {#io-github-testlens-application-tooling-ai-workflow-scriptedagentexecutor}
@@ -835,6 +1099,7 @@ public static final io.github.testlens.application.tooling.ai.workflow.TestEngin
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State PLAN_READY
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State IMPLEMENTATION_REQUESTED
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State IMPLEMENTATION_READY
+public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State QUALITY_READY
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State COMPILE_FAILED
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State EXECUTION_READY
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State EXECUTION_FAILED
@@ -843,6 +1108,7 @@ public static final io.github.testlens.application.tooling.ai.workflow.TestEngin
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State AWAITING_TRUSTED_APPLY
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State RERUN_REQUIRED
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State REVIEW_REQUESTED
+public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State REVIEW_CHANGES_REQUESTED
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State SUCCESS
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State REJECTED
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun$State BLOCKED
@@ -910,6 +1176,7 @@ public static final io.github.testlens.application.tooling.ai.workflow.TestEngin
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow$EventType PLAN_PRODUCED
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow$EventType REQUEST_IMPLEMENTATION
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow$EventType IMPLEMENTATION_PRODUCED
+public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow$EventType QUALITY_VERIFIED
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow$EventType COMPILE_SUCCEEDED
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow$EventType COMPILE_FAILED
 public static final io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow$EventType REQUEST_CORRECTION
@@ -940,6 +1207,7 @@ public static io.github.testlens.application.tooling.ai.workflow.TestEngineering
 ```java
 public io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow(io.github.testlens.application.tooling.ai.workflow.WorkflowPolicy)
 public io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow(io.github.testlens.application.tooling.ai.workflow.WorkflowPolicy, io.github.testlens.core.redaction.RedactionPolicy, java.util.List<java.lang.String>)
+public boolean canRequestCorrection(io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun)
 public io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun reduce(io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun, io.github.testlens.application.tooling.ai.workflow.TestEngineeringWorkflow$Event)
 ```
 

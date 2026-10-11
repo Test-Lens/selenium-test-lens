@@ -1,6 +1,6 @@
 # Generated stable/advanced API compatibility manifest. Do not edit by hand.
-# Types: 263
-# Public callable methods/constructors: 2061
+# Types: 267
+# Public callable methods/constructors: 2089
 # Regenerate: mvn -DskipTests compile; ./scripts/check-public-api.ps1 -Update
 
 MODULE selenium-test-lens-core
@@ -241,6 +241,30 @@ TYPE io.github.testlens.core.redaction.RedactionPolicy$Builder
   public io.github.testlens.core.redaction.RedactionPolicy$Builder sensitiveKey(java.lang.String)
   public io.github.testlens.core.redaction.RedactionPolicy$Builder secret(java.lang.String)
   public io.github.testlens.core.redaction.RedactionPolicy build()
+TYPE io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentFinding
+  public io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentFinding(io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentRule, java.lang.String)
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentRule rule()
+  public java.lang.String category()
+TYPE io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentRule
+  public static final io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentRule AUTHORIZATION_CREDENTIAL
+  public static final io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentRule CREDENTIAL_URL
+  public static final io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentRule JWT
+  public static final io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentRule LITERAL_SECRET
+  public static final io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentRule SENSITIVE_KEY_VALUE
+  public static final io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentRule SENSITIVE_JSON_KEY_VALUE
+  public static io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentRule[] values()
+  public static io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentRule valueOf(java.lang.String)
+TYPE io.github.testlens.core.redaction.RedactionPolicy$StructuredRedactionFinding
+  public io.github.testlens.core.redaction.RedactionPolicy$StructuredRedactionFinding(java.lang.String, java.lang.String, java.lang.String)
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public java.lang.String rule()
+  public java.lang.String category()
+  public java.lang.String location()
 TYPE io.github.testlens.core.redaction.RedactionPolicy
   public static io.github.testlens.core.redaction.RedactionPolicy defaults()
   public static io.github.testlens.core.redaction.RedactionPolicy disabled()
@@ -249,6 +273,10 @@ TYPE io.github.testlens.core.redaction.RedactionPolicy
   public java.lang.String replacement()
   public int additionalSensitiveKeyCount()
   public int literalSecretCount()
+  public java.lang.String redactStructuredAgentOutput(java.lang.String, java.util.Set<java.lang.String>)
+  public java.util.List<io.github.testlens.core.redaction.RedactionPolicy$StructuredRedactionFinding> inspectStructuredAgentOutput(java.lang.String, java.util.Set<java.lang.String>)
+  public java.util.List<io.github.testlens.core.redaction.RedactionPolicy$StructuredRedactionFinding> inspectStructuredAgentOutput(java.lang.String, java.util.Set<java.lang.String>, java.util.function.BiPredicate<java.lang.String, java.lang.String>)
+  public java.util.List<io.github.testlens.core.redaction.RedactionPolicy$SensitiveContentFinding> inspectGeneratedSource(java.lang.String)
   public java.lang.String redact(java.lang.String)
   public java.lang.String redact(java.lang.String, java.lang.String)
   public java.lang.String redactUrl(java.lang.String)
@@ -2638,7 +2666,9 @@ TYPE io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecu
   public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException(java.lang.String, java.lang.Throwable)
   public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException(io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode, java.lang.String)
   public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException(io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode, java.lang.String, java.lang.Throwable)
+  public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException(io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode, java.lang.String, java.lang.Throwable, io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureDiagnostic)
   public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode code()
+  public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureDiagnostic diagnostic()
 TYPE io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode
   public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode AGENT_NOT_AVAILABLE
   public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode AGENT_TIMEOUT
@@ -2647,6 +2677,14 @@ TYPE io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailu
   public static final io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode AGENT_CONTEXT_REJECTED
   public static io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode[] values()
   public static io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureCode valueOf(java.lang.String)
+TYPE io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureDiagnostic
+  public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureDiagnostic(java.lang.String, java.lang.String, java.util.Map<java.lang.String, java.lang.String>)
+  public final java.lang.String toString()
+  public final int hashCode()
+  public final boolean equals(java.lang.Object)
+  public java.lang.String reasonCode()
+  public java.lang.String location()
+  public java.util.Map<java.lang.String, java.lang.String> metadata()
 TYPE io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentResult
   public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentResult(java.lang.String, io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope<?>)
   public final java.lang.String toString()
@@ -2674,6 +2712,7 @@ TYPE io.github.testlens.application.tooling.ai.workflow.AgentExecutor
 TYPE io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope
   public io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope(java.lang.String, java.lang.String, java.util.List<java.lang.String>, int, java.lang.String, T)
   public static <T> io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope<T> create(java.lang.String, java.lang.String, java.util.List<java.lang.String>, int, T)
+  public T payload()
   public static java.lang.String digest(java.lang.Object)
   public final java.lang.String toString()
   public final int hashCode()
@@ -2683,7 +2722,6 @@ TYPE io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope
   public java.util.List<java.lang.String> parents()
   public int attempt()
   public java.lang.String payloadDigest()
-  public T payload()
 TYPE io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderAvailability
   public io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$ProviderAvailability(io.github.testlens.application.tooling.ai.workflow.runner.provider.AgentExecutorProvider$Status, java.lang.String, java.lang.String)
   public boolean available()

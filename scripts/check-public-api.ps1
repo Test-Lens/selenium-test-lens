@@ -49,6 +49,7 @@ foreach ($entry in $modules.GetEnumerator()) {
     [Array]::Sort($classFiles, [System.Collections.Generic.Comparer[object]]::Create(
         { param($left, $right) [StringComparer]::Ordinal.Compare($left.FullName, $right.FullName) }
     ))
+    Write-Host "Public API scan: module=$($entry.Key) classes=$($classFiles.Count)"
 
     foreach ($classFile in $classFiles) {
         $relative = $classFile.FullName.Substring($classesRoot.Length + 1)

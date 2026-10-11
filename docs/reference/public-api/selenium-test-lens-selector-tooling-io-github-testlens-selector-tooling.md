@@ -7,6 +7,22 @@ search:
 
 Generated binary-surface details. For behavior and examples, return to the [functional reference](../index.md) or follow the mapped documentation link.
 
+## `io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility` {#io-github-testlens-selector-tooling-existingprojectindex-accessibility}
+
+- Artifact/module: `selenium-test-lens-selector-tooling`
+- Package: `io.github.testlens.selector.tooling`
+- Classification: `TOOLING`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility PUBLIC
+public static final io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility PROTECTED
+public static final io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility PACKAGE_PRIVATE
+public static final io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility PRIVATE
+public static io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility[] values()
+public static io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility valueOf(java.lang.String)
+```
+
 ## `io.github.testlens.selector.tooling.ExistingProjectIndex$ClassClassification` {#io-github-testlens-selector-tooling-existingprojectindex-classclassification}
 
 - Artifact/module: `selenium-test-lens-selector-tooling`
@@ -32,7 +48,9 @@ public static io.github.testlens.selector.tooling.ExistingProjectIndex$ClassClas
 - Type kind: `record`
 
 ```java
+public io.github.testlens.selector.tooling.ExistingProjectIndex$ClassEntry(java.lang.String, java.lang.String, java.lang.String, java.lang.String, io.github.testlens.selector.tooling.ExistingProjectIndex$ClassClassification, io.github.testlens.selector.tooling.ExistingProjectIndex$Origin, java.util.List<java.lang.String>, io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility, java.util.List<io.github.testlens.selector.tooling.ExistingProjectIndex$ConstructorEntry>)
 public io.github.testlens.selector.tooling.ExistingProjectIndex$ClassEntry(java.lang.String, java.lang.String, java.lang.String, java.lang.String, io.github.testlens.selector.tooling.ExistingProjectIndex$ClassClassification, io.github.testlens.selector.tooling.ExistingProjectIndex$Origin, java.util.List<java.lang.String>)
+public io.github.testlens.selector.tooling.ExistingProjectIndex$ClassEntry(java.lang.String, java.lang.String, java.lang.String, java.lang.String, io.github.testlens.selector.tooling.ExistingProjectIndex$ClassClassification, io.github.testlens.selector.tooling.ExistingProjectIndex$Origin, java.util.List<java.lang.String>, io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility, java.util.List<io.github.testlens.selector.tooling.ExistingProjectIndex$ConstructorEntry>, boolean)
 public final java.lang.String toString()
 public final int hashCode()
 public final boolean equals(java.lang.Object)
@@ -43,6 +61,9 @@ public java.lang.String simpleName()
 public io.github.testlens.selector.tooling.ExistingProjectIndex$ClassClassification classification()
 public io.github.testlens.selector.tooling.ExistingProjectIndex$Origin origin()
 public java.util.List<java.lang.String> extendsTypes()
+public io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility accessibility()
+public java.util.List<io.github.testlens.selector.tooling.ExistingProjectIndex$ConstructorEntry> constructors()
+public boolean directlyInstantiable()
 ```
 
 ## `io.github.testlens.selector.tooling.ExistingProjectIndex$Completeness` {#io-github-testlens-selector-tooling-existingprojectindex-completeness}
@@ -57,6 +78,24 @@ public static final io.github.testlens.selector.tooling.ExistingProjectIndex$Com
 public static final io.github.testlens.selector.tooling.ExistingProjectIndex$Completeness PARTIAL
 public static io.github.testlens.selector.tooling.ExistingProjectIndex$Completeness[] values()
 public static io.github.testlens.selector.tooling.ExistingProjectIndex$Completeness valueOf(java.lang.String)
+```
+
+## `io.github.testlens.selector.tooling.ExistingProjectIndex$ConstructorEntry` {#io-github-testlens-selector-tooling-existingprojectindex-constructorentry}
+
+- Artifact/module: `selenium-test-lens-selector-tooling`
+- Package: `io.github.testlens.selector.tooling`
+- Classification: `TOOLING`
+- Type kind: `record`
+
+```java
+public io.github.testlens.selector.tooling.ExistingProjectIndex$ConstructorEntry(java.lang.String, java.util.List<io.github.testlens.selector.tooling.ExistingProjectIndex$Parameter>, io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility, boolean)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String signature()
+public java.util.List<io.github.testlens.selector.tooling.ExistingProjectIndex$Parameter> parameters()
+public io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility accessibility()
+public boolean implicit()
 ```
 
 ## `io.github.testlens.selector.tooling.ExistingProjectIndex$Edge` {#io-github-testlens-selector-tooling-existingprojectindex-edge}
@@ -160,6 +199,7 @@ public static io.github.testlens.selector.tooling.ExistingProjectIndex$MethodCla
 
 ```java
 public io.github.testlens.selector.tooling.ExistingProjectIndex$MethodEntry(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.util.List<io.github.testlens.selector.tooling.ExistingProjectIndex$Parameter>, java.lang.String, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>, io.github.testlens.selector.tooling.ExistingProjectIndex$MethodClassification)
+public io.github.testlens.selector.tooling.ExistingProjectIndex$MethodEntry(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.util.List<io.github.testlens.selector.tooling.ExistingProjectIndex$Parameter>, java.lang.String, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>, io.github.testlens.selector.tooling.ExistingProjectIndex$MethodClassification, io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility, boolean)
 public final java.lang.String toString()
 public final int hashCode()
 public final boolean equals(java.lang.Object)
@@ -173,6 +213,8 @@ public java.util.List<java.lang.String> actions()
 public java.util.List<java.lang.String> declarationRefs()
 public java.util.List<java.lang.String> outgoingTypes()
 public io.github.testlens.selector.tooling.ExistingProjectIndex$MethodClassification classification()
+public io.github.testlens.selector.tooling.ExistingProjectIndex$Accessibility accessibility()
+public boolean staticMethod()
 ```
 
 ## `io.github.testlens.selector.tooling.ExistingProjectIndex$Metrics` {#io-github-testlens-selector-tooling-existingprojectindex-metrics}

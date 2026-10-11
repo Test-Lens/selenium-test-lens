@@ -79,6 +79,26 @@ public synchronized java.util.List<java.lang.String> workflowIds() throws java.i
 public java.nio.file.Path workspaceRoot()
 ```
 
+## `io.github.testlens.studio.workspace.WorkflowSessionSnapshot$AgentFailureSnapshot` {#io-github-testlens-studio-workspace-workflowsessionsnapshot-agentfailuresnapshot}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio.workspace`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.studio.workspace.WorkflowSessionSnapshot$AgentFailureSnapshot(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.util.Map<java.lang.String, java.lang.String>)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String code()
+public java.lang.String stage()
+public java.lang.String reasonCode()
+public java.lang.String location()
+public java.lang.String message()
+public java.util.Map<java.lang.String, java.lang.String> metadata()
+```
+
 ## `io.github.testlens.studio.workspace.WorkflowSessionSnapshot$Freshness` {#io-github-testlens-studio-workspace-workflowsessionsnapshot-freshness}
 
 - Artifact/module: `selenium-test-lens-test-engineering-studio`
@@ -93,6 +113,78 @@ public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$
 public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$Freshness INVALID
 public static io.github.testlens.studio.workspace.WorkflowSessionSnapshot$Freshness[] values()
 public static io.github.testlens.studio.workspace.WorkflowSessionSnapshot$Freshness valueOf(java.lang.String)
+```
+
+## `io.github.testlens.studio.workspace.WorkflowSessionSnapshot$ReviewCycleSnapshot` {#io-github-testlens-studio-workspace-workflowsessionsnapshot-reviewcyclesnapshot}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio.workspace`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.studio.workspace.WorkflowSessionSnapshot$ReviewCycleSnapshot(int, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, long, io.github.testlens.application.tooling.ai.CodeReviewResult)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public int implementationVersion()
+public java.lang.String implementationArtifactRef()
+public java.lang.String executionArtifactRef()
+public java.lang.String reviewArtifactRef()
+public java.lang.String compileOutcome()
+public java.lang.String executionOutcome()
+public long durationMillis()
+public io.github.testlens.application.tooling.ai.CodeReviewResult review()
+```
+
+## `io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunDiagnosticSnapshot` {#io-github-testlens-studio-workspace-workflowsessionsnapshot-rundiagnosticsnapshot}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio.workspace`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunDiagnosticSnapshot(io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunReason, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunStatus, java.lang.String, boolean)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunReason reason()
+public io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunStatus status()
+public java.lang.String location()
+public boolean recoveryPersisted()
+```
+
+## `io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunReason` {#io-github-testlens-studio-workspace-workflowsessionsnapshot-runreason}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio.workspace`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunReason START_PERSISTENCE_FAILED
+public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunReason EXECUTION_RESULT_UNKNOWN
+public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunReason POST_EXECUTION_PROCESSING_FAILED
+public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunReason THREAD_INTERRUPTED
+public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunReason RECOVERY_PERSISTENCE_FAILED
+public static io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunReason[] values()
+public static io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunReason valueOf(java.lang.String)
+```
+
+## `io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunStatus` {#io-github-testlens-studio-workspace-workflowsessionsnapshot-runstatus}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio.workspace`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunStatus NOT_STARTED
+public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunStatus INTERRUPTED
+public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunStatus RECOVERY_NOT_PERSISTED
+public static io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunStatus[] values()
+public static io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunStatus valueOf(java.lang.String)
 ```
 
 ## `io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State` {#io-github-testlens-studio-workspace-workflowsessionsnapshot-state}
@@ -116,6 +208,8 @@ public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$
 public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State REPAIR_APPLIED_VERIFICATION_PENDING
 public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State SUCCESS
 public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State FAILED
+public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State NEEDS_HUMAN_REVIEW
+public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State AGENT_FAILED
 public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State AGENT_EXECUTION_INTERRUPTED
 public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State EXECUTION_INTERRUPTED
 public static final io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State CORRUPTED
@@ -132,7 +226,10 @@ public static io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State 
 
 ```java
 public static final int SCHEMA_VERSION
+public io.github.testlens.studio.workspace.WorkflowSessionSnapshot(int, java.lang.String, java.lang.String, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State, java.time.Instant, java.time.Instant, java.lang.String, java.lang.String, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$Freshness, io.github.testlens.application.tooling.ai.TestPlan, io.github.testlens.application.tooling.ai.TestImplementationProposal, io.github.testlens.application.tooling.ai.TestExecutionResult, io.github.testlens.application.tooling.ai.FailureClassification, io.github.testlens.application.tooling.ai.RepairProposal, java.lang.String, java.lang.String, boolean, java.util.List<java.lang.String>, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$AgentFailureSnapshot, io.github.testlens.application.tooling.ai.CodeReviewResult, java.util.List<io.github.testlens.studio.workspace.WorkflowSessionSnapshot$ReviewCycleSnapshot>, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunDiagnosticSnapshot)
 public io.github.testlens.studio.workspace.WorkflowSessionSnapshot(int, java.lang.String, java.lang.String, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State, java.time.Instant, java.time.Instant, java.lang.String, java.lang.String, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$Freshness, io.github.testlens.application.tooling.ai.TestPlan, io.github.testlens.application.tooling.ai.TestImplementationProposal, io.github.testlens.application.tooling.ai.TestExecutionResult, io.github.testlens.application.tooling.ai.FailureClassification, io.github.testlens.application.tooling.ai.RepairProposal, java.lang.String, java.lang.String, boolean, java.util.List<java.lang.String>)
+public io.github.testlens.studio.workspace.WorkflowSessionSnapshot(int, java.lang.String, java.lang.String, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State, java.time.Instant, java.time.Instant, java.lang.String, java.lang.String, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$Freshness, io.github.testlens.application.tooling.ai.TestPlan, io.github.testlens.application.tooling.ai.TestImplementationProposal, io.github.testlens.application.tooling.ai.TestExecutionResult, io.github.testlens.application.tooling.ai.FailureClassification, io.github.testlens.application.tooling.ai.RepairProposal, java.lang.String, java.lang.String, boolean, java.util.List<java.lang.String>, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$AgentFailureSnapshot)
+public io.github.testlens.studio.workspace.WorkflowSessionSnapshot(int, java.lang.String, java.lang.String, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$State, java.time.Instant, java.time.Instant, java.lang.String, java.lang.String, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$Freshness, io.github.testlens.application.tooling.ai.TestPlan, io.github.testlens.application.tooling.ai.TestImplementationProposal, io.github.testlens.application.tooling.ai.TestExecutionResult, io.github.testlens.application.tooling.ai.FailureClassification, io.github.testlens.application.tooling.ai.RepairProposal, java.lang.String, java.lang.String, boolean, java.util.List<java.lang.String>, io.github.testlens.studio.workspace.WorkflowSessionSnapshot$AgentFailureSnapshot, io.github.testlens.application.tooling.ai.CodeReviewResult, java.util.List<io.github.testlens.studio.workspace.WorkflowSessionSnapshot$ReviewCycleSnapshot>)
 public io.github.testlens.studio.workspace.WorkflowSessionSnapshot restored(io.github.testlens.studio.workspace.WorkflowSessionSnapshot$Freshness, java.util.List<java.lang.String>)
 public io.github.testlens.studio.workspace.WorkflowSessionSnapshot restoredAfterInterruption(io.github.testlens.studio.workspace.WorkflowSessionSnapshot$Freshness, java.util.List<java.lang.String>)
 public io.github.testlens.studio.workspace.WorkflowSessionSnapshot withNewRepair(io.github.testlens.application.tooling.ai.RepairProposal, java.time.Instant)
@@ -160,4 +257,8 @@ public java.lang.String repairDecision()
 public java.lang.String repairApplyStatus()
 public boolean resumed()
 public java.util.List<java.lang.String> limitations()
+public io.github.testlens.studio.workspace.WorkflowSessionSnapshot$AgentFailureSnapshot agentFailure()
+public io.github.testlens.application.tooling.ai.CodeReviewResult review()
+public java.util.List<io.github.testlens.studio.workspace.WorkflowSessionSnapshot$ReviewCycleSnapshot> reviewHistory()
+public io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunDiagnosticSnapshot runDiagnostic()
 ```

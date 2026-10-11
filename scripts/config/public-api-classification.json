@@ -37,6 +37,10 @@
       "classification": "ADVANCED_API"
     },
     {
+      "type": "io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentFailureDiagnostic",
+      "classification": "ADVANCED_API"
+    },
+    {
       "type": "io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException",
       "classification": "ADVANCED_API"
     },

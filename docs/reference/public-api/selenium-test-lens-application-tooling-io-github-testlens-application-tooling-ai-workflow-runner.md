@@ -56,12 +56,13 @@ public io.github.testlens.application.tooling.ai.workflow.runner.AgentProfile$Ou
 - Type kind: `record`
 
 ```java
-public io.github.testlens.application.tooling.ai.workflow.runner.AgentProtocolCodec$DecodedResult(java.lang.String, java.lang.Object)
+public io.github.testlens.application.tooling.ai.workflow.runner.AgentProtocolCodec$DecodedResult(java.lang.String, java.lang.Object, java.lang.String)
 public final java.lang.String toString()
 public final int hashCode()
 public final boolean equals(java.lang.Object)
 public java.lang.String resultType()
 public java.lang.Object payload()
+public java.lang.String payloadBasePath()
 ```
 
 ## `io.github.testlens.application.tooling.ai.workflow.runner.AgentProtocolCodec` {#io-github-testlens-application-tooling-ai-workflow-runner-agentprotocolcodec}
@@ -166,6 +167,111 @@ public io.github.testlens.application.tooling.ai.workflow.runner.ExternalAgentRu
 public io.github.testlens.application.tooling.ai.workflow.runner.ExternalAgentRunner(io.github.testlens.application.tooling.ai.workflow.runner.AgentProfile, java.nio.file.Path, io.github.testlens.application.tooling.ai.workflow.runner.AgentProtocolCodec, io.github.testlens.core.redaction.RedactionPolicy, java.util.List<java.lang.String>, java.util.List<io.github.testlens.application.tooling.ai.workflow.runner.ExternalAgentRunner$SourceExcerpt>, java.util.Map<java.lang.String, java.lang.String>)
 public io.github.testlens.application.tooling.ai.workflow.runner.ExternalAgentRunner(io.github.testlens.application.tooling.ai.workflow.runner.AgentProfile, java.nio.file.Path, io.github.testlens.application.tooling.ai.workflow.runner.AgentProtocolCodec, io.github.testlens.core.redaction.RedactionPolicy, java.util.List<java.lang.String>, java.util.List<io.github.testlens.application.tooling.ai.workflow.runner.ExternalAgentRunner$SourceExcerpt>, java.util.Map<java.lang.String, java.lang.String>, java.util.function.Consumer<io.github.testlens.application.tooling.ai.workflow.runner.ExternalAgentRunner$ExecutionMetrics>)
 public io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentResult execute(io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentCommand) throws io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$SourceDiagnostic` {#io-github-testlens-application-tooling-ai-workflow-runner-pageobjectapireferencevalidator-sourcediagnostic}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow.runner`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$SourceDiagnostic(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+public java.util.Map<java.lang.String, java.lang.String> safeMetadata()
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String validationStage()
+public java.lang.String ruleId()
+public java.lang.String problemCategory()
+public java.lang.String astNodeKind()
+public java.lang.String receiverCategory()
+public java.lang.String manifestMatch()
+public java.lang.String fingerprintStatus()
+public java.lang.String signatureStatus()
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$SourceVerification` {#io-github-testlens-application-tooling-ai-workflow-runner-pageobjectapireferencevalidator-sourceverification}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow.runner`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$SourceVerification(boolean, java.lang.String, java.util.List<java.lang.String>, java.util.List<java.lang.String>, io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$SourceDiagnostic, java.util.Map<java.lang.String, java.lang.String>)
+public io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$SourceVerification(boolean, java.lang.String, java.util.List<java.lang.String>, java.util.List<java.lang.String>)
+public io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$SourceVerification(boolean, java.lang.String, java.util.List<java.lang.String>, java.util.List<java.lang.String>, io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$SourceDiagnostic)
+public java.lang.String location()
+public java.util.Map<java.lang.String, java.lang.String> safeMetadata()
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public boolean valid()
+public java.lang.String reason()
+public java.util.List<java.lang.String> verifiedReferences()
+public java.util.List<java.lang.String> diagnostics()
+public io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$SourceDiagnostic sourceDiagnostic()
+public java.util.Map<java.lang.String, java.lang.String> manifestMetadata()
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$Validation` {#io-github-testlens-application-tooling-ai-workflow-runner-pageobjectapireferencevalidator-validation}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow.runner`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$Validation(boolean, java.lang.String, int)
+public java.lang.String location()
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public boolean valid()
+public java.lang.String reason()
+public int itemIndex()
+```
+
+## `io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator` {#io-github-testlens-application-tooling-ai-workflow-runner-pageobjectapireferencevalidator}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai.workflow.runner`
+- Classification: `INTERNAL`
+- Type kind: `class`
+
+```java
+public static final java.lang.String FINGERPRINT_INSTRUCTION
+public static final java.lang.String INVALID_REFERENCE_STRUCTURE
+public static final java.lang.String METHOD_SEPARATOR_MISMATCH
+public static final java.lang.String PARAMETER_TYPE_FORMAT
+public static final java.lang.String METHOD_MISSING
+public static final java.lang.String ARITY_MISMATCH
+public static final java.lang.String AMBIGUOUS_OVERLOAD
+public static final java.lang.String DECLARING_CLASS_MISMATCH
+public static final java.lang.String UNTRUSTED_REFERENCE
+public static final java.lang.String MANIFEST_MISSING
+public static final java.lang.String MANIFEST_INCOMPLETE
+public static final java.lang.String MANIFEST_STALE
+public static final java.lang.String REFERENCE_REQUIRED
+public static final java.lang.String DECLARED_REFERENCE_UNUSED
+public static final java.lang.String DECLARATION_OMITTED
+public static final java.lang.String SOURCE_PARSE_FAILED
+public static final java.lang.String METHOD_NOT_IN_MANIFEST
+public static final java.lang.String RECEIVER_UNRESOLVED
+public static final java.lang.String METHOD_SIGNATURE_MISMATCH
+public static final java.lang.String UNDECLARED_REFERENCE
+public static final java.lang.String SOURCE_USAGE_UNVERIFIED
+public static final java.util.Set<java.lang.String> SOURCE_REJECTION_CODES
+public static final java.util.Set<java.lang.String> SOURCE_WARNING_CODES
+public static final java.lang.String SYNTAX_INVALID
+public io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator(io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapabilityManifest, java.lang.String)
+public io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$Validation validate(java.util.List<java.lang.String>)
+public io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$Validation validateSourceUsage(java.lang.String, java.util.List<java.lang.String>)
+public io.github.testlens.application.tooling.ai.workflow.runner.PageObjectApiReferenceValidator$SourceVerification verifySource(java.lang.String, java.util.List<java.lang.String>)
+public java.util.List<java.lang.String> allowedReferences()
+public java.util.List<java.lang.String> normalize(java.util.List<java.lang.String>)
 ```
 
 ## `io.github.testlens.application.tooling.ai.workflow.runner.RoleDispatchingAgentExecutor` {#io-github-testlens-application-tooling-ai-workflow-runner-roledispatchingagentexecutor}

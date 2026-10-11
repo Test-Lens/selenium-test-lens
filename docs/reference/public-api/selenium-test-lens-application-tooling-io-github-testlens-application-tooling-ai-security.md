@@ -16,11 +16,13 @@ Generated binary-surface details. For behavior and examples, return to the [func
 
 ```java
 public io.github.testlens.application.tooling.ai.security.AgentArtifactSecurityGate$Finding(java.lang.String, java.lang.String)
+public io.github.testlens.application.tooling.ai.security.AgentArtifactSecurityGate$Finding(java.lang.String, java.lang.String, java.lang.String)
 public final java.lang.String toString()
 public final int hashCode()
 public final boolean equals(java.lang.Object)
 public java.lang.String code()
 public java.lang.String detail()
+public java.lang.String location()
 ```
 
 ## `io.github.testlens.application.tooling.ai.security.AgentArtifactSecurityGate$Result` {#io-github-testlens-application-tooling-ai-security-agentartifactsecuritygate-result}
@@ -63,4 +65,7 @@ public static io.github.testlens.application.tooling.ai.security.AgentArtifactSe
 ```java
 public io.github.testlens.application.tooling.ai.security.AgentArtifactSecurityGate()
 public io.github.testlens.application.tooling.ai.security.AgentArtifactSecurityGate$Result validate(java.lang.String, java.util.List<java.lang.String>, io.github.testlens.core.redaction.RedactionPolicy, java.util.List<java.lang.String>)
+public io.github.testlens.application.tooling.ai.security.AgentArtifactSecurityGate$Result validateStructuredAgentOutput(java.lang.String, io.github.testlens.core.redaction.RedactionPolicy, java.util.List<java.lang.String>, java.util.Set<java.lang.String>)
+public io.github.testlens.application.tooling.ai.security.AgentArtifactSecurityGate$Result validateStructuredAgentOutput(java.lang.String, io.github.testlens.core.redaction.RedactionPolicy, java.util.List<java.lang.String>, java.util.Set<java.lang.String>, java.util.function.BiPredicate<java.lang.String, java.lang.String>)
+public io.github.testlens.application.tooling.ai.security.AgentArtifactSecurityGate$Result validateGeneratedSource(java.lang.String, io.github.testlens.core.redaction.RedactionPolicy, java.util.List<java.lang.String>)
 ```

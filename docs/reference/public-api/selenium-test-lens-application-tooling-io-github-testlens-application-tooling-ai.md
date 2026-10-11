@@ -7,6 +7,22 @@ search:
 
 Generated binary-surface details. For behavior and examples, return to the [functional reference](../index.md) or follow the mapped documentation link.
 
+## `io.github.testlens.application.tooling.ai.AgentContextPack$CapabilityParameter` {#io-github-testlens-application-tooling-ai-agentcontextpack-capabilityparameter}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.AgentContextPack$CapabilityParameter(java.lang.String, java.lang.String)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String name()
+public java.lang.String type()
+```
+
 ## `io.github.testlens.application.tooling.ai.AgentContextPack$Completeness` {#io-github-testlens-application-tooling-ai-agentcontextpack-completeness}
 
 - Artifact/module: `selenium-test-lens-application-tooling`
@@ -20,6 +36,25 @@ public static final io.github.testlens.application.tooling.ai.AgentContextPack$C
 public static final io.github.testlens.application.tooling.ai.AgentContextPack$Completeness FAILED
 public static io.github.testlens.application.tooling.ai.AgentContextPack$Completeness[] values()
 public static io.github.testlens.application.tooling.ai.AgentContextPack$Completeness valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.AgentContextPack$ConstructorCapability` {#io-github-testlens-application-tooling-ai-agentcontextpack-constructorcapability}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.AgentContextPack$ConstructorCapability(java.lang.String, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$CapabilityParameter>, java.lang.String, java.lang.String, boolean)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String signature()
+public java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$CapabilityParameter> parameters()
+public java.lang.String accessibility()
+public java.lang.String acquisition()
+public boolean implicit()
 ```
 
 ## `io.github.testlens.application.tooling.ai.AgentContextPack$ElementContext` {#io-github-testlens-application-tooling-ai-agentcontextpack-elementcontext}
@@ -63,6 +98,157 @@ public java.util.List<java.lang.String> relevantMethodIds()
 public java.util.List<java.lang.String> includedBecause()
 ```
 
+## `io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCompleteness` {#io-github-testlens-application-tooling-ai-agentcontextpack-manifestcompleteness}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCompleteness COMPLETE
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCompleteness PARTIAL
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCompleteness[] values()
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCompleteness valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.AgentContextPack$ManifestConstructionStatus` {#io-github-testlens-application-tooling-ai-agentcontextpack-manifestconstructionstatus}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestConstructionStatus VERIFIED
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestConstructionStatus UNRESOLVED
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestConstructionStatus NOT_REQUIRED
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestConstructionStatus[] values()
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestConstructionStatus valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCorrelationStatus` {#io-github-testlens-application-tooling-ai-agentcontextpack-manifestcorrelationstatus}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCorrelationStatus EXACT
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCorrelationStatus STRONG
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCorrelationStatus MIXED
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCorrelationStatus INSUFFICIENT
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCorrelationStatus[] values()
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCorrelationStatus valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.AgentContextPack$ManifestInheritedApiStatus` {#io-github-testlens-application-tooling-ai-agentcontextpack-manifestinheritedapistatus}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestInheritedApiStatus VERIFIED
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestInheritedApiStatus UNRESOLVED
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestInheritedApiStatus NOT_APPLICABLE
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestInheritedApiStatus[] values()
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestInheritedApiStatus valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.AgentContextPack$ManifestOriginStage` {#io-github-testlens-application-tooling-ai-agentcontextpack-manifestoriginstage}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestOriginStage SOURCE_CONTEXT_SLICE
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestOriginStage RESTORED_SNAPSHOT
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestOriginStage UNSPECIFIED
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestOriginStage[] values()
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestOriginStage valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason` {#io-github-testlens-application-tooling-ai-agentcontextpack-manifestpartialreason}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason SOURCE_INDEX_INCOMPLETE
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason REQUIRED_CLASS_MISSING
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason REQUIRED_API_UNRESOLVED
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason CONSTRUCTION_UNRESOLVED
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason CORRELATION_INSUFFICIENT
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason MANIFEST_TRUNCATED
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason FINGERPRINT_MISMATCH
+public static final io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason MANIFEST_STALE
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason[] values()
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.AgentContextPack$ManifestProvenance` {#io-github-testlens-application-tooling-ai-agentcontextpack-manifestprovenance}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.AgentContextPack$ManifestProvenance(java.lang.String, io.github.testlens.application.tooling.ai.AgentContextPack$ManifestOriginStage, java.lang.String, int, int, int, int, io.github.testlens.application.tooling.ai.AgentContextPack$ManifestConstructionStatus, io.github.testlens.application.tooling.ai.AgentContextPack$ManifestInheritedApiStatus, io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCorrelationStatus, boolean, int, int, int, boolean, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason>)
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestProvenance unspecified(java.lang.String, io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCompleteness)
+public static io.github.testlens.application.tooling.ai.AgentContextPack$ManifestProvenance empty()
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String indexFingerprint()
+public io.github.testlens.application.tooling.ai.AgentContextPack$ManifestOriginStage originStage()
+public java.lang.String sourceIndexCompleteness()
+public int selectedPageObjectCount()
+public int verifiedClassCount()
+public int verifiedMethodCount()
+public int unresolvedClassCount()
+public io.github.testlens.application.tooling.ai.AgentContextPack$ManifestConstructionStatus constructionStatus()
+public io.github.testlens.application.tooling.ai.AgentContextPack$ManifestInheritedApiStatus inheritedApiStatus()
+public io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCorrelationStatus correlationStatus()
+public boolean truncated()
+public int maxClasses()
+public int maxMethods()
+public int maxSerializedCharacters()
+public boolean sourcesChanged()
+public java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ManifestPartialReason> partialReasons()
+```
+
+## `io.github.testlens.application.tooling.ai.AgentContextPack$MethodCapability` {#io-github-testlens-application-tooling-ai-agentcontextpack-methodcapability}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.AgentContextPack$MethodCapability(java.lang.String, java.lang.String, java.lang.String, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$CapabilityParameter>, java.lang.String, boolean, java.lang.String, java.util.List<java.lang.String>)
+public io.github.testlens.application.tooling.ai.AgentContextPack$MethodCapability(java.lang.String, java.lang.String, java.lang.String, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$CapabilityParameter>, java.lang.String, boolean, java.lang.String, java.lang.String, java.util.List<java.lang.String>)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String methodId()
+public java.lang.String name()
+public java.lang.String signature()
+public java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$CapabilityParameter> parameters()
+public java.lang.String returnType()
+public boolean staticMethod()
+public java.lang.String declaringType()
+public java.lang.String classification()
+public java.util.List<java.lang.String> applicationElementIds()
+```
+
 ## `io.github.testlens.application.tooling.ai.AgentContextPack$PageContext` {#io-github-testlens-application-tooling-ai-agentcontextpack-pagecontext}
 
 - Artifact/module: `selenium-test-lens-application-tooling`
@@ -81,6 +267,48 @@ public java.lang.String urlPattern()
 public java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$StateContext> states()
 public java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ElementContext> elements()
 public java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$TransitionContext> transitions()
+```
+
+## `io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapability` {#io-github-testlens-application-tooling-ai-agentcontextpack-pageobjectcapability}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapability(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ConstructorCapability>, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$MethodCapability>)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String classId()
+public java.lang.String pageId()
+public java.lang.String qualifiedName()
+public java.lang.String logicalPath()
+public java.lang.String accessibility()
+public java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ConstructorCapability> constructors()
+public java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$MethodCapability> methods()
+```
+
+## `io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapabilityManifest` {#io-github-testlens-application-tooling-ai-agentcontextpack-pageobjectcapabilitymanifest}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapabilityManifest(java.lang.String, io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCompleteness, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapability>, java.util.List<java.lang.String>)
+public io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapabilityManifest(java.lang.String, io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCompleteness, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapability>, java.util.List<java.lang.String>, io.github.testlens.application.tooling.ai.AgentContextPack$ManifestProvenance)
+public static io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapabilityManifest empty()
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String sourceFingerprint()
+public io.github.testlens.application.tooling.ai.AgentContextPack$ManifestCompleteness completeness()
+public java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapability> classes()
+public java.util.List<java.lang.String> limitations()
+public io.github.testlens.application.tooling.ai.AgentContextPack$ManifestProvenance provenance()
 ```
 
 ## `io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectClassContext` {#io-github-testlens-application-tooling-ai-agentcontextpack-pageobjectclasscontext}
@@ -231,6 +459,7 @@ public java.lang.String confidence()
 ```java
 public io.github.testlens.application.tooling.ai.AgentContextPack(io.github.testlens.application.tooling.ai.ContractHeader, io.github.testlens.application.tooling.ai.AgentTask, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$PageContext>, java.util.Map<java.lang.String, java.util.List<java.lang.String>>, java.util.List<java.lang.String>, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ScopeDecision>, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ScopeDecision>, io.github.testlens.application.tooling.ai.AgentContextPack$Completeness)
 public io.github.testlens.application.tooling.ai.AgentContextPack(io.github.testlens.application.tooling.ai.ContractHeader, io.github.testlens.application.tooling.ai.AgentTask, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$PageContext>, java.util.Map<java.lang.String, java.util.List<java.lang.String>>, java.util.List<java.lang.String>, io.github.testlens.application.tooling.ai.AgentContextPack$SourceContext, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ScopeDecision>, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ScopeDecision>, io.github.testlens.application.tooling.ai.AgentContextPack$Completeness)
+public io.github.testlens.application.tooling.ai.AgentContextPack(io.github.testlens.application.tooling.ai.ContractHeader, io.github.testlens.application.tooling.ai.AgentTask, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$PageContext>, java.util.Map<java.lang.String, java.util.List<java.lang.String>>, java.util.List<java.lang.String>, io.github.testlens.application.tooling.ai.AgentContextPack$SourceContext, io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapabilityManifest, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ScopeDecision>, java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ScopeDecision>, io.github.testlens.application.tooling.ai.AgentContextPack$Completeness)
 public final java.lang.String toString()
 public final int hashCode()
 public final boolean equals(java.lang.Object)
@@ -240,6 +469,7 @@ public java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack
 public java.util.Map<java.lang.String, java.util.List<java.lang.String>> pageObjectApis()
 public java.util.List<java.lang.String> existingTestConventions()
 public io.github.testlens.application.tooling.ai.AgentContextPack$SourceContext source()
+public io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapabilityManifest pageObjectCapabilities()
 public java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ScopeDecision> included()
 public java.util.List<io.github.testlens.application.tooling.ai.AgentContextPack$ScopeDecision> excluded()
 public io.github.testlens.application.tooling.ai.AgentContextPack$Completeness completeness()
@@ -283,6 +513,102 @@ public java.util.List<java.lang.String> requiredElementIds()
 public java.util.List<java.lang.String> constraints()
 ```
 
+## `io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category` {#io-github-testlens-application-tooling-ai-canonicalpageobjectapireference-category}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category VALID
+public static final io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category INVALID_REFERENCE_STRUCTURE
+public static final io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category METHOD_SEPARATOR_MISMATCH
+public static final io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category PARAMETER_TYPE_FORMAT
+public static final io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category METHOD_MISSING
+public static final io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category ARITY_MISMATCH
+public static final io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category AMBIGUOUS_OVERLOAD
+public static final io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category DECLARING_CLASS_MISMATCH
+public static final io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category UNTRUSTED_REFERENCE
+public static io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category[] values()
+public static io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Resolution` {#io-github-testlens-application-tooling-ai-canonicalpageobjectapireference-resolution}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Resolution(boolean, io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category, io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public boolean valid()
+public io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Category category()
+public io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference reference()
+```
+
+## `io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference` {#io-github-testlens-application-tooling-ai-canonicalpageobjectapireference}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference(java.lang.String, java.lang.String, java.util.List<java.lang.String>)
+public java.lang.String render()
+public static io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference parse(java.lang.String)
+public static io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference of(java.lang.String, io.github.testlens.application.tooling.ai.AgentContextPack$MethodCapability)
+public static io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference of(java.lang.String, java.lang.String, java.util.List<java.lang.String>)
+public static java.util.List<io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference> allowed(io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapabilityManifest)
+public static io.github.testlens.application.tooling.ai.CanonicalPageObjectApiReference$Resolution resolve(java.lang.String, io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapabilityManifest)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String owner()
+public java.lang.String method()
+public java.util.List<java.lang.String> parameterTypes()
+```
+
+## `io.github.testlens.application.tooling.ai.CodeReviewResult$Category` {#io-github-testlens-application-tooling-ai-codereviewresult-category}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$Category ASSERTION_INSUFFICIENT
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$Category REQUIREMENT_NOT_COVERED
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$Category PAGE_OBJECT_MISUSE
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$Category TEST_DATA_INVALID
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$Category TEST_LIFECYCLE_PROBLEM
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$Category EXECUTION_EVIDENCE_INSUFFICIENT
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$Category UNSAFE_IMPLEMENTATION
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$Category REVIEW_UNSUBSTANTIATED
+public static io.github.testlens.application.tooling.ai.CodeReviewResult$Category[] values()
+public static io.github.testlens.application.tooling.ai.CodeReviewResult$Category valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.CodeReviewResult$EvidenceAvailability` {#io-github-testlens-application-tooling-ai-codereviewresult-evidenceavailability}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$EvidenceAvailability VERIFIED
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$EvidenceAvailability PARTIAL
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$EvidenceAvailability UNAVAILABLE
+public static io.github.testlens.application.tooling.ai.CodeReviewResult$EvidenceAvailability[] values()
+public static io.github.testlens.application.tooling.ai.CodeReviewResult$EvidenceAvailability valueOf(java.lang.String)
+```
+
 ## `io.github.testlens.application.tooling.ai.CodeReviewResult$Finding` {#io-github-testlens-application-tooling-ai-codereviewresult-finding}
 
 - Artifact/module: `selenium-test-lens-application-tooling`
@@ -291,15 +617,112 @@ public java.util.List<java.lang.String> constraints()
 - Type kind: `record`
 
 ```java
+public io.github.testlens.application.tooling.ai.CodeReviewResult$Finding(io.github.testlens.application.tooling.ai.CodeReviewResult$Category, io.github.testlens.application.tooling.ai.CodeReviewResult$Severity, java.lang.String, java.lang.String, io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory, io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction, io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation, io.github.testlens.application.tooling.ai.CodeReviewResult$EvidenceAvailability)
 public io.github.testlens.application.tooling.ai.CodeReviewResult$Finding(io.github.testlens.application.tooling.ai.CodeReviewResult$Severity, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
-public final java.lang.String toString()
-public final int hashCode()
-public final boolean equals(java.lang.Object)
-public io.github.testlens.application.tooling.ai.CodeReviewResult$Severity severity()
 public java.lang.String code()
 public java.lang.String location()
 public java.lang.String detail()
 public java.lang.String recommendation()
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public io.github.testlens.application.tooling.ai.CodeReviewResult$Category category()
+public io.github.testlens.application.tooling.ai.CodeReviewResult$Severity severity()
+public java.lang.String ruleId()
+public java.lang.String artifactRef()
+public io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory problemCategory()
+public io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction requiredAction()
+public io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation safeLocation()
+public io.github.testlens.application.tooling.ai.CodeReviewResult$EvidenceAvailability evidenceAvailability()
+```
+
+## `io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory` {#io-github-testlens-application-tooling-ai-codereviewresult-problemcategory}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory ASSERTION
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory REQUIREMENT
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory PAGE_OBJECT
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory TEST_DATA
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory LIFECYCLE
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory EVIDENCE
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory SAFETY
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory REVIEW_CONTRACT
+public static io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory[] values()
+public static io.github.testlens.application.tooling.ai.CodeReviewResult$ProblemCategory valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction` {#io-github-testlens-application-tooling-ai-codereviewresult-requiredaction}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction ADD_ASSERTION
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction COVER_REQUIREMENT
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction USE_VERIFIED_PAGE_OBJECT
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction FIX_TEST_DATA
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction FIX_TEST_LIFECYCLE
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction PROVIDE_EXECUTION_EVIDENCE
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction REMOVE_UNSAFE_IMPLEMENTATION
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction HUMAN_REVIEW
+public static io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction[] values()
+public static io.github.testlens.application.tooling.ai.CodeReviewResult$RequiredAction valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId` {#io-github-testlens-application-tooling-ai-codereviewresult-ruleid}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId ASSERTION_REQUIRED
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId REQUIREMENT_COVERAGE_REQUIRED
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId VERIFIED_PAGE_OBJECT_REQUIRED
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId PAGE_OBJECT_CONTRACT
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId TEST_DATA_CONTRACT
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId LIFECYCLE_INTEGRITY
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId EXECUTION_EVIDENCE_REQUIRED
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId UNSAFE_CODE
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId REVIEW_EVIDENCE_BINDING
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId ARTIFACT_REFERENCE_INVALID
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId EVIDENCE_UNAVAILABLE
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId EVIDENCE_DIGEST_MISMATCH
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId EVIDENCE_LINEAGE_INVALID
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId IMPLEMENTATION_FINGERPRINT_MISMATCH
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId FEEDBACK_UNSUBSTANTIATED
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId DECISION_CONTRADICTORY
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId REVIEW_CONTRACT_INVALID
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId LEGACY_REVIEW_FINDING
+public static io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId[] values()
+public static io.github.testlens.application.tooling.ai.CodeReviewResult$RuleId valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation` {#io-github-testlens-application-tooling-ai-codereviewresult-safelocation}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation GENERATED_TEST
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation TEST_METHOD
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation ASSERTION
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation PAGE_OBJECT_CALL
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation TEST_DATA
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation LIFECYCLE
+public static final io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation EXECUTION_EVIDENCE
+public static io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation[] values()
+public static io.github.testlens.application.tooling.ai.CodeReviewResult$SafeLocation valueOf(java.lang.String)
 ```
 
 ## `io.github.testlens.application.tooling.ai.CodeReviewResult$Severity` {#io-github-testlens-application-tooling-ai-codereviewresult-severity}
@@ -342,6 +765,7 @@ public static io.github.testlens.application.tooling.ai.CodeReviewResult$Verdict
 ```java
 public io.github.testlens.application.tooling.ai.CodeReviewResult(io.github.testlens.application.tooling.ai.ContractHeader, java.util.List<io.github.testlens.application.tooling.ai.CodeReviewResult$Finding>)
 public io.github.testlens.application.tooling.ai.CodeReviewResult(io.github.testlens.application.tooling.ai.ContractHeader, io.github.testlens.application.tooling.ai.CodeReviewResult$Verdict, java.util.List<java.lang.String>, java.util.List<io.github.testlens.application.tooling.ai.CodeReviewResult$Finding>)
+public static java.util.List<java.lang.String> allowedRuleIds()
 public final java.lang.String toString()
 public final int hashCode()
 public final boolean equals(java.lang.Object)
@@ -550,6 +974,60 @@ public java.lang.String rootCause()
 public java.util.List<java.lang.String> affectedIds()
 public java.util.List<java.lang.String> evidenceRefs()
 public java.util.List<java.lang.String> counterEvidenceRefs()
+```
+
+## `io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Assessment` {#io-github-testlens-application-tooling-ai-pageobjectmanifestreadiness-assessment}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Assessment(io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status, io.github.testlens.application.tooling.ai.AgentContextPack$ManifestProvenance)
+public boolean ready()
+public java.lang.String reasonCode()
+public java.util.Map<java.lang.String, java.lang.String> safeMetadata()
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status status()
+public io.github.testlens.application.tooling.ai.AgentContextPack$ManifestProvenance provenance()
+```
+
+## `io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status` {#io-github-testlens-application-tooling-ai-pageobjectmanifestreadiness-status}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status READY
+public static final io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status SOURCE_INDEX_INCOMPLETE
+public static final io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status REQUIRED_CLASS_MISSING
+public static final io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status REQUIRED_API_UNRESOLVED
+public static final io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status CONSTRUCTION_UNRESOLVED
+public static final io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status CORRELATION_INSUFFICIENT
+public static final io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status MANIFEST_TRUNCATED
+public static final io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status FINGERPRINT_MISMATCH
+public static final io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status MANIFEST_STALE
+public static io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status[] values()
+public static io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status valueOf(java.lang.String)
+```
+
+## `io.github.testlens.application.tooling.ai.PageObjectManifestReadiness` {#io-github-testlens-application-tooling-ai-pageobjectmanifestreadiness}
+
+- Artifact/module: `selenium-test-lens-application-tooling`
+- Package: `io.github.testlens.application.tooling.ai`
+- Classification: `INTERNAL`
+- Type kind: `class`
+
+```java
+public static final java.util.Set<java.lang.String> REJECTION_REASON_CODES
+public static java.lang.String reasonCode(io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Status)
+public static io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Assessment assess(io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapabilityManifest, java.lang.String)
+public static io.github.testlens.application.tooling.ai.PageObjectManifestReadiness$Assessment assess(io.github.testlens.application.tooling.ai.AgentContextPack$PageObjectCapabilityManifest, java.lang.String, java.util.Set<java.lang.String>)
 ```
 
 ## `io.github.testlens.application.tooling.ai.PromptPackRenderer$PromptLimitException` {#io-github-testlens-application-tooling-ai-promptpackrenderer-promptlimitexception}
