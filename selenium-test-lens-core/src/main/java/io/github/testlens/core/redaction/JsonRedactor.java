@@ -1,6 +1,8 @@
 package io.github.testlens.core.redaction;
 
 import java.util.function.Predicate;
+import java.util.function.BiFunction;
+import java.util.function.BiConsumer;
 import java.util.function.UnaryOperator;
 
 /** Bounded JSON scanner used only at the diagnostic redaction boundary. */
@@ -13,13 +15,28 @@ final class JsonRedactor {
                          Predicate<String> sensitiveKey,
                          UnaryOperator<String> redactText,
                          String replacement) {
+        return redact(input, sensitiveKey, (path, value) -> redactText.apply(value), replacement);
+    }
+
+    static String redact(String input,
+                         Predicate<String> sensitiveKey,
+                         BiFunction<String, String, String> redactText,
+                         String replacement) {
+        return redact(input, sensitiveKey, redactText, replacement, (path, kind) -> { });
+    }
+
+    static String redact(String input,
+                         Predicate<String> sensitiveKey,
+                         BiFunction<String, String, String> redactText,
+                         String replacement,
+                         BiConsumer<String, ChangeKind> changes) {
         int first = firstNonWhitespace(input);
         if (first >= input.length() || !couldBeJson(input.charAt(first))) return null;
         try {
-            Parser parser = new Parser(input, sensitiveKey, redactText, replacement);
+            Parser parser = new Parser(input, sensitiveKey, redactText, replacement, changes);
             StringBuilder output = new StringBuilder(input.length());
             parser.copyWhitespace(output);
-            parser.parseValue(output, 0);
+            parser.parseValue(output, 0, "$");
             parser.copyWhitespace(output);
             if (!parser.atEnd()) throw new ParseFailure();
             return output.toString();
@@ -30,12 +47,30 @@ final class JsonRedactor {
 
     static String decodeStringContent(String raw) {
         try {
-            Parser parser = new Parser("\"" + raw + "\"", ignored -> false, value -> value, "");
+            Parser parser = new Parser("\"" + raw + "\"", ignored -> false, (path, value) -> value, "",
+                    (path, kind) -> { });
             StringToken token = parser.parseString();
             return parser.atEnd() ? token.decoded() : null;
         } catch (ParseFailure invalid) {
             return null;
         }
+    }
+
+    static boolean isJsonObject(String input) {
+        int first = firstNonWhitespace(input);
+        return first < input.length() && input.charAt(first) == '{'
+                && redact(input, ignored -> false, value -> value, "") != null;
+    }
+
+    static String nonEmptyTopLevelStringMember(String input, String member) {
+        int first = firstNonWhitespace(input);
+        if (first >= input.length() || input.charAt(first) != '{') return null;
+        String[] matched = new String[1];
+        String parsed = redact(input, ignored -> false, (path, value) -> {
+            if (("$." + member).equals(path) && !value.isEmpty()) matched[0] = value;
+            return value;
+        }, "");
+        return parsed == null ? null : matched[0];
     }
 
     static String escape(String value) {
@@ -81,33 +116,38 @@ final class JsonRedactor {
 
     private record StringToken(int start, int end, String decoded) {}
 
+    enum ChangeKind { SENSITIVE_KEY_VALUE, TEXT }
+
     private static final class Parser {
         private final String input;
         private final Predicate<String> sensitiveKey;
-        private final UnaryOperator<String> redactText;
+        private final BiFunction<String, String, String> redactText;
         private final String replacement;
+        private final BiConsumer<String, ChangeKind> changes;
         private int index;
 
         private Parser(String input,
                        Predicate<String> sensitiveKey,
-                       UnaryOperator<String> redactText,
-                       String replacement) {
+                       BiFunction<String, String, String> redactText,
+                       String replacement,
+                       BiConsumer<String, ChangeKind> changes) {
             this.input = input;
             this.sensitiveKey = sensitiveKey;
             this.redactText = redactText;
             this.replacement = replacement;
+            this.changes = changes;
         }
 
         private boolean atEnd() {
             return index == input.length();
         }
 
-        private void parseValue(StringBuilder output, int depth) {
+        private void parseValue(StringBuilder output, int depth, String path) {
             if (depth > MAX_DEPTH || index >= input.length()) throw new ParseFailure();
             switch (input.charAt(index)) {
-                case '{' -> parseObject(output, depth + 1);
-                case '[' -> parseArray(output, depth + 1);
-                case '\"' -> copyRedactedString(output);
+                case '{' -> parseObject(output, depth + 1, path);
+                case '[' -> parseArray(output, depth + 1, path);
+                case '\"' -> copyRedactedString(output, path);
                 case 't' -> copyLiteral(output, "true");
                 case 'f' -> copyLiteral(output, "false");
                 case 'n' -> copyLiteral(output, "null");
@@ -115,23 +155,25 @@ final class JsonRedactor {
             }
         }
 
-        private void parseObject(StringBuilder output, int depth) {
+        private void parseObject(StringBuilder output, int depth, String path) {
             append(output, index++);
             copyWhitespace(output);
             if (consume('}', output)) return;
             while (true) {
                 if (index >= input.length() || input.charAt(index) != '\"') throw new ParseFailure();
                 StringToken key = parseString();
-                String safeKey = redactText.apply(key.decoded());
-                appendString(output, key, safeKey);
+                String safeKey = redactText.apply(path + ".<key>", key.decoded());
+                appendString(output, key, safeKey, path + ".<key>");
                 copyWhitespace(output);
                 require(':', output);
                 copyWhitespace(output);
+                String childPath = path + "." + key.decoded();
                 if (sensitiveKey.test(key.decoded())) {
-                    parseValue(null, depth);
+                    changes.accept(childPath, ChangeKind.SENSITIVE_KEY_VALUE);
+                    parseValue(null, depth, childPath);
                     appendEncoded(output, replacement);
                 } else {
-                    parseValue(output, depth);
+                    parseValue(output, depth, childPath);
                 }
                 copyWhitespace(output);
                 if (consume('}', output)) return;
@@ -140,12 +182,12 @@ final class JsonRedactor {
             }
         }
 
-        private void parseArray(StringBuilder output, int depth) {
+        private void parseArray(StringBuilder output, int depth, String path) {
             append(output, index++);
             copyWhitespace(output);
             if (consume(']', output)) return;
             while (true) {
-                parseValue(output, depth);
+                parseValue(output, depth, path + "[]");
                 copyWhitespace(output);
                 if (consume(']', output)) return;
                 require(',', output);
@@ -153,9 +195,9 @@ final class JsonRedactor {
             }
         }
 
-        private void copyRedactedString(StringBuilder output) {
+        private void copyRedactedString(StringBuilder output, String path) {
             StringToken token = parseString();
-            appendString(output, token, redactText.apply(token.decoded()));
+            appendString(output, token, redactText.apply(path, token.decoded()), path);
         }
 
         private StringToken parseString() {
@@ -251,10 +293,13 @@ final class JsonRedactor {
             return true;
         }
 
-        private void appendString(StringBuilder output, StringToken token, String safeValue) {
+        private void appendString(StringBuilder output, StringToken token, String safeValue, String path) {
             if (output == null) return;
             if (safeValue.equals(token.decoded())) output.append(input, token.start(), token.end());
-            else appendEncoded(output, safeValue);
+            else {
+                changes.accept(path, ChangeKind.TEXT);
+                appendEncoded(output, safeValue);
+            }
         }
 
         private static void appendEncoded(StringBuilder output, String value) {

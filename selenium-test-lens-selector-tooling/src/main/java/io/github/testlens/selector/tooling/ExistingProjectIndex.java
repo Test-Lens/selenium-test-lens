@@ -39,6 +39,7 @@ public record ExistingProjectIndex(
     public enum ClassClassification { PAGE_OBJECT, COMPONENT, BASE_PAGE, TEST_HELPER, UNKNOWN }
     public enum Origin { HAND_WRITTEN, GENERATED_BASE, GENERATED_EXTENSION, UNKNOWN }
     public enum MethodClassification { ACTION, QUERY, ASSERTION, NAVIGATION, WORKFLOW, UTILITY, UNKNOWN }
+    public enum Accessibility { PUBLIC, PROTECTED, PACKAGE_PRIVATE, PRIVATE }
     public enum TestFramework { JUNIT5, TESTNG, UNKNOWN }
     public enum EdgeType { TEST_TO_METHOD, METHOD_TO_METHOD, METHOD_TO_DECLARATION }
     public enum Completeness { COMPLETE, PARTIAL }
@@ -47,8 +48,25 @@ public record ExistingProjectIndex(
     public record SourceFile(String logicalPath,String contentFingerprint) { }
 
     public record ClassEntry(String id, String logicalPath, String qualifiedName, String simpleName,
-                             ClassClassification classification, Origin origin, List<String> extendsTypes) {
-        public ClassEntry { extendsTypes = List.copyOf(extendsTypes); }
+                             ClassClassification classification, Origin origin, List<String> extendsTypes,
+                             Accessibility accessibility, List<ConstructorEntry> constructors,
+                             boolean directlyInstantiable) {
+        public ClassEntry(String id, String logicalPath, String qualifiedName, String simpleName,
+                          ClassClassification classification, Origin origin, List<String> extendsTypes,
+                          Accessibility accessibility, List<ConstructorEntry> constructors) {
+            this(id, logicalPath, qualifiedName, simpleName, classification, origin, extendsTypes,
+                    accessibility, constructors, true);
+        }
+        public ClassEntry(String id, String logicalPath, String qualifiedName, String simpleName,
+                          ClassClassification classification, Origin origin, List<String> extendsTypes) {
+            this(id, logicalPath, qualifiedName, simpleName, classification, origin, extendsTypes,
+                    Accessibility.PUBLIC, List.of(), true);
+        }
+        public ClassEntry {
+            extendsTypes = List.copyOf(extendsTypes);
+            accessibility = accessibility == null ? Accessibility.PACKAGE_PRIVATE : accessibility;
+            constructors = canonical(constructors, Comparator.comparing(ConstructorEntry::signature));
+        }
     }
 
     public record ValueProjection(String resolution, String fingerprint) { }
@@ -67,10 +85,26 @@ public record ExistingProjectIndex(
 
     public record Parameter(String name, String type) { }
 
+    public record ConstructorEntry(String signature, List<Parameter> parameters,
+                                   Accessibility accessibility, boolean implicit) {
+        public ConstructorEntry {
+            parameters = List.copyOf(parameters == null ? List.of() : parameters);
+            accessibility = accessibility == null ? Accessibility.PACKAGE_PRIVATE : accessibility;
+        }
+    }
+
     public record MethodEntry(String id, String ownerClassId, String name, String signature,
                               List<Parameter> parameters, String returnType, List<String> actions,
                               List<String> declarationRefs, List<String> outgoingTypes,
-                              MethodClassification classification) {
+                              MethodClassification classification, Accessibility accessibility,
+                              boolean staticMethod) {
+        public MethodEntry(String id, String ownerClassId, String name, String signature,
+                           List<Parameter> parameters, String returnType, List<String> actions,
+                           List<String> declarationRefs, List<String> outgoingTypes,
+                           MethodClassification classification) {
+            this(id, ownerClassId, name, signature, parameters, returnType, actions, declarationRefs,
+                    outgoingTypes, classification, Accessibility.PUBLIC, false);
+        }
         public MethodEntry {
             parameters = List.copyOf(parameters);
             actions = List.copyOf(actions);

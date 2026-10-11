@@ -169,16 +169,82 @@ class AiContractsTest {
         RepairProposal repair = new RepairProposal(HEADER, "repair-1", RepairProposal.ApplicationPolicy.PROPOSE_ONLY,
                 "selector", "live evidence", "#old", "#new", List.of("same-target"), List.of("stable"), List.of("LoginTest"));
         CodeReviewResult review = new CodeReviewResult(HEADER, List.of(
-                new CodeReviewResult.Finding(CodeReviewResult.Severity.WARNING, "RAW_SELECTOR", "LoginTest", "raw", "use Page Object")));
+                new CodeReviewResult.Finding(CodeReviewResult.Category.PAGE_OBJECT_MISUSE,
+                        CodeReviewResult.Severity.WARNING, "VERIFIED_PAGE_OBJECT_REQUIRED", "implementation-1",
+                        CodeReviewResult.ProblemCategory.PAGE_OBJECT,
+                        CodeReviewResult.RequiredAction.USE_VERIFIED_PAGE_OBJECT,
+                        CodeReviewResult.SafeLocation.PAGE_OBJECT_CALL,
+                        CodeReviewResult.EvidenceAvailability.VERIFIED)));
 
         assertEquals(List.of("a", "b"), plan.scenarios().get(0).preconditions());
         assertEquals(List.of("a", "b"), implementation.pageObjectApisUsed());
         assertEquals(TestExecutionResult.Outcome.NOT_RUN, execution.executionOutcome());
         assertEquals(FailureClassification.Category.UNKNOWN, failure.category());
         assertEquals(RepairProposal.ApplicationPolicy.PROPOSE_ONLY, repair.applicationPolicy());
-        assertEquals("RAW_SELECTOR", review.findings().get(0).code());
+        assertEquals("VERIFIED_PAGE_OBJECT_REQUIRED", review.findings().get(0).ruleId());
+        assertTrue(CodeReviewResult.allowedRuleIds().contains("REVIEW_CONTRACT_INVALID"));
         assertThrows(IllegalArgumentException.class, () -> new RepairProposal(HEADER, "bad", null,
                 "x", "y", null, null, List.of(), List.of(), List.of()));
+    }
+
+    @Test
+    void reviewerContractRequiresActionableErrorForRequestChangesAndForbidsErrorOnApprove() {
+        CodeReviewResult.Finding assertionDefect = new CodeReviewResult.Finding(
+                CodeReviewResult.Category.ASSERTION_INSUFFICIENT, CodeReviewResult.Severity.ERROR,
+                "ASSERTION_REQUIRED", "implementation-1", CodeReviewResult.ProblemCategory.ASSERTION,
+                CodeReviewResult.RequiredAction.ADD_ASSERTION, CodeReviewResult.SafeLocation.ASSERTION,
+                CodeReviewResult.EvidenceAvailability.VERIFIED);
+
+        CodeReviewResult requested = new CodeReviewResult(HEADER, CodeReviewResult.Verdict.REQUEST_CHANGES,
+                List.of("execution-1", "implementation-1"), List.of(assertionDefect));
+
+        assertEquals(CodeReviewResult.Verdict.REQUEST_CHANGES, requested.verdict());
+        assertEquals(List.of("execution-1", "implementation-1"), requested.reviewedArtifactRefs());
+        assertThrows(IllegalArgumentException.class, () -> new CodeReviewResult(HEADER,
+                CodeReviewResult.Verdict.REQUEST_CHANGES, List.of("implementation-1"), List.of()));
+        assertThrows(IllegalArgumentException.class, () -> new CodeReviewResult(HEADER,
+                CodeReviewResult.Verdict.APPROVE, List.of("implementation-1"), List.of(assertionDefect)));
+    }
+
+    @Test
+    void reviewerContractDiscardsFreeFormHeaderTextBeforePersistenceOrCorrection() {
+        ContractHeader reviewerHeader = new ContractHeader(ContractHeader.SCHEMA_VERSION,
+                ContractHeader.Status.READY, List.of("arbitrary reviewer instruction"),
+                List.of("unbounded correction prose"), ContractHeader.Confidence.AI_PROPOSED);
+        CodeReviewResult.Finding assertionDefect = new CodeReviewResult.Finding(
+                CodeReviewResult.Category.ASSERTION_INSUFFICIENT, CodeReviewResult.Severity.ERROR,
+                "ASSERTION_REQUIRED", "implementation-1", CodeReviewResult.ProblemCategory.ASSERTION,
+                CodeReviewResult.RequiredAction.ADD_ASSERTION, CodeReviewResult.SafeLocation.ASSERTION,
+                CodeReviewResult.EvidenceAvailability.VERIFIED);
+
+        CodeReviewResult result = new CodeReviewResult(reviewerHeader,
+                CodeReviewResult.Verdict.REQUEST_CHANGES, List.of("implementation-1"),
+                List.of(assertionDefect));
+
+        assertEquals(List.of(), result.header().evidence());
+        assertEquals(List.of(), result.header().limitations());
+        assertEquals(ContractHeader.Status.READY, result.header().status());
+        assertEquals(ContractHeader.Confidence.AI_PROPOSED, result.header().confidence());
+    }
+
+    @Test
+    void reviewerContractRejectsUnboundedOrDynamicReferences() {
+        assertThrows(IllegalArgumentException.class, () -> new CodeReviewResult.Finding(
+                CodeReviewResult.Category.REVIEW_UNSUBSTANTIATED, CodeReviewResult.Severity.ERROR,
+                "invalid rule with spaces", "implementation-1", CodeReviewResult.ProblemCategory.REVIEW_CONTRACT,
+                CodeReviewResult.RequiredAction.HUMAN_REVIEW, CodeReviewResult.SafeLocation.GENERATED_TEST,
+                CodeReviewResult.EvidenceAvailability.UNAVAILABLE));
+        assertThrows(IllegalArgumentException.class, () -> new CodeReviewResult(HEADER,
+                CodeReviewResult.Verdict.APPROVE, List.of("../../sourcePatch"), List.of()));
+        assertThrows(IllegalArgumentException.class, () -> new CodeReviewResult.Finding(
+                CodeReviewResult.Category.REVIEW_UNSUBSTANTIATED, CodeReviewResult.Severity.ERROR,
+                "UNKNOWN_BUT_SAFE_RULE", "implementation-1", CodeReviewResult.ProblemCategory.REVIEW_CONTRACT,
+                CodeReviewResult.RequiredAction.HUMAN_REVIEW, CodeReviewResult.SafeLocation.GENERATED_TEST,
+                CodeReviewResult.EvidenceAvailability.UNAVAILABLE));
+        assertDoesNotThrow(() -> new CodeReviewResult(HEADER, CodeReviewResult.Verdict.APPROVE,
+                List.of("a".repeat(128)), List.of()));
+        assertThrows(IllegalArgumentException.class, () -> new CodeReviewResult(HEADER,
+                CodeReviewResult.Verdict.APPROVE, List.of("a".repeat(129)), List.of()));
     }
 
     @Test

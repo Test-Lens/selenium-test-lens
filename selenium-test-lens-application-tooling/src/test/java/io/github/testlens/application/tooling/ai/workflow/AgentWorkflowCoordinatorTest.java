@@ -12,11 +12,14 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -25,6 +28,23 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class AgentWorkflowCoordinatorTest {
     @TempDir Path temporaryDirectory;
+    @Test void legacyConstructorUsesTrustedContextFingerprint() throws Exception {
+        var executor = scripted(plan(), pageObjectImplementation(correctedAssertionSource()), review());
+        var coordinator = new AgentWorkflowCoordinator(new TestEngineeringWorkflow(WorkflowPolicy.defaults()), executor,
+                new TargetedJavaCompiler(),
+                (CompiledTargetedTestExecutor) (request, output) ->
+                        new TargetedTestExecutor.ExecutionResult(true, 1, List.of("assertion-reached")),
+                new GeneratedTestPolicyValidator(GeneratedTestPolicyValidator.Policy.defaults()),
+                execution -> new FailureClassification(ready(), FailureClassification.Category.UNKNOWN,
+                        "unclassified", execution.traceEvidenceRefs(), List.of(), List.of()),
+                AgentWorkflowCoordinator.Stabilizer.none(),
+                new AgentWorkflowCoordinator.Configuration(Path.of("src/test/java/example/GeneratedTest.java"),
+                        "example.GeneratedTest", null, 17, System.getProperty("java.class.path"), 10,
+                        Duration.ofSeconds(5), List.of("example.GeneratedTest"), 2));
+
+        assertEquals(TestEngineeringRun.State.SUCCESS,
+                coordinator.run("run-legacy-constructor", request(), context()).run().state());
+    }
     @Test void runsScriptedPlanImplementationCompileExecutionAndReview() throws Exception {
         AtomicInteger executions = new AtomicInteger();
         var result = coordinator(scripted(plan(), implementation(validSource()), review()),
@@ -36,7 +56,7 @@ class AgentWorkflowCoordinatorTest {
                 }, 2)
                 .run("run-success", request(), context());
 
-        assertEquals(TestEngineeringRun.State.SUCCESS, result.run().state());
+        assertEquals(TestEngineeringRun.State.SUCCESS, result.run().state(), () -> result.steps().toString());
         assertEquals(1, executions.get());
         assertEquals(3, result.metrics().agentAttempts());
         assertEquals(1, result.metrics().compileAttempts());
@@ -51,13 +71,50 @@ class AgentWorkflowCoordinatorTest {
         assertTrue(report.json().length > 0);
     }
 
+    @Test void reviewerReceivesFingerprintBoundCatalogWithMatchingArtifactDigests() throws Exception {
+        AtomicReference<AgentExecutor.AgentCommand> reviewerCommand = new AtomicReference<>();
+        AgentExecutor delegate = scripted(plan(), pageObjectImplementation(correctedAssertionSource()), review());
+        AgentExecutor capturing = command -> {
+            if (command.role() == AgentExecutor.Role.CODE_REVIEWER) reviewerCommand.set(command);
+            return delegate.execute(command);
+        };
+
+        var result = coordinator(capturing,
+                (request, output) -> new TargetedTestExecutor.ExecutionResult(true, 1,
+                        List.of("assertion-reached")), 2)
+                .run("run-review-catalog", request(), context());
+
+        assertEquals(TestEngineeringRun.State.SUCCESS, result.run().state(), () -> result.steps().toString());
+        AgentExecutor.AgentCommand command = reviewerCommand.get();
+        ReviewerEvidencePack pack = command.inputs().stream().map(ArtifactEnvelope::payload)
+                .filter(ReviewerEvidencePack.class::isInstance).map(ReviewerEvidencePack.class::cast)
+                .findFirst().orElseThrow();
+        assertEquals("fp", pack.sourceFingerprint());
+        assertEquals("implementation-1", pack.implementationArtifactId());
+        assertEquals(List.of("compile-success-1", "execution-1", "implementation-1", "quality-1"),
+                pack.requiredReviewedArtifactRefs());
+        for (ReviewerEvidencePack.Evidence evidence : pack.evidence()) {
+            ArtifactEnvelope<?> artifact = command.inputs().stream()
+                    .filter(value -> value.artifactId().equals(evidence.artifactId())).findFirst().orElseThrow();
+            assertEquals(artifact.payloadDigest(), evidence.payloadDigest());
+            assertEquals(artifact.runId(), evidence.runId());
+            assertEquals(artifact.attempt(), evidence.attempt());
+            assertEquals(artifact.parents().stream().sorted().toList(), evidence.parents());
+        }
+        ArtifactEnvelope<?> implementation = command.inputs().stream()
+                .filter(value -> value.artifactId().equals(pack.implementationArtifactId())).findFirst().orElseThrow();
+        TestImplementationProposal proposal = (TestImplementationProposal) implementation.payload();
+        assertEquals(ArtifactEnvelope.digest(proposal.sourcePatch().getBytes(StandardCharsets.UTF_8)),
+                pack.implementationDigest());
+    }
+
     @Test void policyViolationStopsBeforeCompileAndExecution() throws Exception {
         AtomicInteger executions = new AtomicInteger();
         var result = coordinator(scripted(plan(), implementation("final class GeneratedTest { Object x = By.id(\"x\"); }")),
                 (request, output) -> { executions.incrementAndGet(); return new TargetedTestExecutor.ExecutionResult(true, 1, List.of()); }, 2)
                 .run("run-policy", request(), context());
 
-        assertEquals(TestEngineeringRun.State.FAILED, result.run().state());
+        assertEquals(TestEngineeringRun.State.FAILED, result.run().state(), () -> result.steps().toString());
         assertEquals(0, executions.get());
         assertEquals(0, result.metrics().compileAttempts());
         assertTrue(result.steps().stream().anyMatch(step -> step.name().equals("POLICY_VALIDATION")
@@ -66,7 +123,7 @@ class AgentWorkflowCoordinatorTest {
 
     @Test void exhaustedCompilationAttemptsStopExecution() throws Exception {
         AtomicInteger executions = new AtomicInteger();
-        var result = coordinator(scripted(plan(), implementation("final class GeneratedTest { MissingType missing; }")),
+        var result = coordinator(scripted(plan(), implementation(uncompilableSource())),
                 (request, output) -> { executions.incrementAndGet(); return new TargetedTestExecutor.ExecutionResult(true, 1, List.of()); }, 1)
                 .run("run-compile-fail", request(), context());
 
@@ -78,16 +135,186 @@ class AgentWorkflowCoordinatorTest {
 
     @Test void boundedCorrectionCanReplaceBrokenImplementation() throws Exception {
         AtomicInteger executions = new AtomicInteger();
-        var result = coordinator(scripted(plan(), implementation("final class GeneratedTest { MissingType missing; }"),
-                        implementation(validSource()), review()),
+        var result = coordinator(scripted(plan(), implementation(uncompilableSource()),
+                        implementation(validSource()), review(2)),
                 (request, output) -> { executions.incrementAndGet(); return new TargetedTestExecutor.ExecutionResult(true, 1, List.of("pass")); }, 2)
                 .run("run-corrected", request(), context());
 
-        assertEquals(TestEngineeringRun.State.SUCCESS, result.run().state());
+        assertEquals(TestEngineeringRun.State.SUCCESS, result.run().state(), () -> result.steps().toString());
         assertEquals(1, executions.get());
         assertEquals(2, result.metrics().compileAttempts());
         assertEquals(4, result.metrics().agentAttempts());
         assertEquals(1, result.run().metrics().corrections());
+    }
+
+    @Test void reviewCorrectionIsRevalidatedRecompiledReexecutedAndApprovedWithVersionedHistory() throws Exception {
+        AtomicInteger executions = new AtomicInteger();
+        var result = coordinator(scripted(plan(), pageObjectImplementation(assertionDefectSource()),
+                        assertionRequestChanges(1), pageObjectImplementation(correctedAssertionSource()), review(2)),
+                (request, output) -> {
+                    executions.incrementAndGet();
+                    return new TargetedTestExecutor.ExecutionResult(true, 1,
+                            List.of("junit-test-executed", "assertion-reached"));
+                }, 2).run("run-review-correction", request(), context());
+
+        assertEquals(TestEngineeringRun.State.SUCCESS, result.run().state(), () -> result.steps().toString());
+        assertEquals(2, executions.get(), "the corrected implementation must have its own real execution evidence");
+        assertEquals(2, result.metrics().compileAttempts());
+        assertEquals(2, result.metrics().executionAttempts());
+        assertEquals(1, result.run().metrics().corrections());
+        assertEquals(List.of("implementation-1", "execution-1", "review-1", "implementation-2", "execution-2", "review-2"),
+                result.run().artifacts().stream().map(ArtifactEnvelope::artifactId)
+                        .filter(id -> id.startsWith("implementation-") || id.startsWith("execution-")
+                                || id.startsWith("review-"))
+                        .toList());
+        assertEquals(2, result.steps().stream().filter(step -> step.name().equals("POLICY_VALIDATION")).count());
+        assertEquals(2, result.steps().stream().filter(step -> step.name().equals("COMPILE_PASS")).count());
+        assertEquals(2, result.steps().stream().filter(step -> step.name().equals("EXECUTION_PASS")).count());
+        assertEquals(2, result.steps().stream().filter(step -> step.name().equals("REVIEW")).count());
+    }
+
+    @Test void unsafeReviewCorrectionStopsBeforeItsCompileExecutionAndSecondReview() throws Exception {
+        AtomicInteger executions = new AtomicInteger();
+        String unsafeCorrection = correctedAssertionSource().replace("assertTrue(",
+                "org.openqa.selenium.By.id(\"forbidden\"); assertTrue(");
+        var result = coordinator(scripted(plan(), pageObjectImplementation(assertionDefectSource()),
+                        assertionRequestChanges(1), pageObjectImplementation(unsafeCorrection)),
+                (request, output) -> {
+                    executions.incrementAndGet();
+                    return new TargetedTestExecutor.ExecutionResult(true, 1, List.of("assertion-reached"));
+                }, 2).run("run-review-unsafe-correction", request(), context());
+
+        assertEquals(TestEngineeringRun.State.FAILED, result.run().state(), () -> result.steps().toString());
+        assertEquals(1, result.metrics().compileAttempts(), "the rejected correction must never reach compilation");
+        assertEquals(1, result.metrics().executionAttempts(), "the rejected correction must never be executed");
+        assertEquals(1, executions.get());
+        assertEquals(1, result.steps().stream().filter(step -> step.name().equals("REVIEW")).count());
+        assertEquals(AgentWorkflowCoordinator.Status.FAIL, result.steps().stream()
+                .filter(step -> step.name().equals("POLICY_VALIDATION")).reduce((left, right) -> right)
+                .orElseThrow().status());
+    }
+
+    @Test void reviewFindingForUnknownArtifactFailsClosedWithoutCorrection() throws Exception {
+        AtomicInteger executions = new AtomicInteger();
+        CodeReviewResult invalidReference = requestChanges(1, "missing-artifact",
+                CodeReviewResult.Category.ASSERTION_INSUFFICIENT,
+                CodeReviewResult.EvidenceAvailability.VERIFIED);
+        var result = coordinator(scripted(plan(), pageObjectImplementation(assertionDefectSource()), invalidReference),
+                (request, output) -> {
+                    executions.incrementAndGet();
+                    return new TargetedTestExecutor.ExecutionResult(true, 1, List.of("assertion-reached"));
+                }, 2).run("run-review-missing-artifact", request(), context());
+
+        assertEquals(TestEngineeringRun.State.NEEDS_HUMAN_REVIEW, result.run().state());
+        assertEquals(1, executions.get());
+        assertTrue(result.steps().stream().anyMatch(step -> step.name().equals("REVIEW_CONTRACT")
+                && step.status() == AgentWorkflowCoordinator.Status.BLOCKED
+                && step.summary().equals("FINDING_ARTIFACT_INVALID")));
+        assertHostBlocked(result, "ARTIFACT_REFERENCE_INVALID");
+    }
+
+    @Test void unsubstantiatedReviewerFindingDoesNotTriggerCorrection() throws Exception {
+        AtomicInteger executions = new AtomicInteger();
+        CodeReviewResult falseFinding = requestChanges(1, "implementation-1",
+                CodeReviewResult.Category.ASSERTION_INSUFFICIENT,
+                CodeReviewResult.EvidenceAvailability.VERIFIED);
+        var result = coordinator(scripted(plan(), pageObjectImplementation(correctedAssertionSource()), falseFinding),
+                (request, output) -> {
+                    executions.incrementAndGet();
+                    return new TargetedTestExecutor.ExecutionResult(true, 1, List.of("assertion-reached"));
+                }, 2).run("run-review-unsubstantiated", request(), context());
+
+        assertEquals(TestEngineeringRun.State.NEEDS_HUMAN_REVIEW, result.run().state());
+        assertEquals(1, executions.get());
+        assertEquals(1, result.metrics().compileAttempts());
+        assertTrue(result.steps().stream().anyMatch(step -> step.name().equals("REVIEW_CONTRACT")
+                && step.summary().equals("FEEDBACK_UNSUBSTANTIATED")));
+        assertHostBlocked(result, "FEEDBACK_UNSUBSTANTIATED");
+    }
+
+    @Test void reviewerCannotApproveWhenTargetedExecutionReportsNoExecutedTest() throws Exception {
+        var result = coordinator(scripted(plan(), pageObjectImplementation(correctedAssertionSource()), review()),
+                (request, output) -> new TargetedTestExecutor.ExecutionResult(true, 0, List.of()), 2)
+                .run("run-review-no-execution-evidence", request(), context());
+
+        assertEquals(TestEngineeringRun.State.NEEDS_HUMAN_REVIEW, result.run().state());
+        assertTrue(result.steps().stream().anyMatch(step -> step.name().equals("REVIEW_CONTRACT")
+                && step.summary().equals("APPROVAL_EVIDENCE_INCOMPLETE")));
+        assertHostBlocked(result, "DECISION_CONTRADICTORY");
+    }
+
+    @Test void reviewerCannotApproveAfterPageObjectFingerprintChangesDuringRun() throws Exception {
+        AtomicReference<String> fingerprint = new AtomicReference<>("fp");
+        AgentExecutor delegate = scripted(plan(), pageObjectImplementation(correctedAssertionSource()), review());
+        AgentExecutor changing = command -> {
+            AgentExecutor.AgentResult result = delegate.execute(command);
+            if (command.role() == AgentExecutor.Role.CODE_REVIEWER) fingerprint.set("changed-during-review");
+            return result;
+        };
+
+        var result = coordinator(changing,
+                (request, output) -> new TargetedTestExecutor.ExecutionResult(true, 1, List.of("assertion-reached")),
+                2, fingerprint::get).run("run-review-fingerprint-change", request(), context());
+
+        assertEquals(TestEngineeringRun.State.NEEDS_HUMAN_REVIEW, result.run().state());
+        assertTrue(result.steps().stream().anyMatch(step -> step.name().equals("REVIEW_CONTRACT")
+                && step.summary().equals("IMPLEMENTATION_FINGERPRINT_MISMATCH")));
+        assertHostBlocked(result, "IMPLEMENTATION_FINGERPRINT_MISMATCH");
+    }
+
+    @Test void sourceFingerprintChangeAfterCompileStopsBeforeExecution() throws Exception {
+        AtomicInteger fingerprintReads = new AtomicInteger();
+        AtomicInteger executions = new AtomicInteger();
+        Supplier<String> changingFingerprint = () -> fingerprintReads.incrementAndGet() >= 3 ? "changed" : "fp";
+
+        var result = coordinator(scripted(plan(), pageObjectImplementation(correctedAssertionSource()), review()),
+                (request, output) -> {
+                    executions.incrementAndGet();
+                    return new TargetedTestExecutor.ExecutionResult(true, 1, List.of("assertion-reached"));
+                }, 2, changingFingerprint).run("run-fingerprint-before-execute", request(), context());
+
+        assertEquals(TestEngineeringRun.State.NEEDS_HUMAN_REVIEW, result.run().state());
+        assertEquals(1, result.metrics().compileAttempts());
+        assertEquals(0, result.metrics().executionAttempts());
+        assertEquals(0, executions.get());
+        assertTrue(result.steps().stream().anyMatch(step -> step.name().equals("SOURCE_FINGERPRINT")
+                && step.summary().equals("IMPLEMENTATION_FINGERPRINT_MISMATCH")));
+    }
+
+    @Test void oneSupportedFindingCannotAuthorizeAnotherUnsubstantiatedFinding() throws Exception {
+        CodeReviewResult.Finding assertion = assertionRequestChanges(1).findings().get(0);
+        CodeReviewResult.Finding falseLifecycle = new CodeReviewResult.Finding(
+                CodeReviewResult.Category.TEST_LIFECYCLE_PROBLEM, CodeReviewResult.Severity.ERROR,
+                CodeReviewResult.RuleId.LIFECYCLE_INTEGRITY.name(), "quality-1",
+                CodeReviewResult.ProblemCategory.LIFECYCLE,
+                CodeReviewResult.RequiredAction.FIX_TEST_LIFECYCLE,
+                CodeReviewResult.SafeLocation.LIFECYCLE,
+                CodeReviewResult.EvidenceAvailability.VERIFIED);
+        CodeReviewResult mixed = new CodeReviewResult(reviewCompleted(), CodeReviewResult.Verdict.REQUEST_CHANGES,
+                List.of("implementation-1", "quality-1", "compile-success-1", "execution-1"),
+                List.of(assertion, falseLifecycle));
+
+        var result = coordinator(scripted(plan(), pageObjectImplementation(assertionDefectSource()), mixed),
+                (request, output) -> new TargetedTestExecutor.ExecutionResult(true, 1,
+                        List.of("assertion-reached")), 2).run("run-mixed-review-findings", request(), context());
+
+        assertEquals(TestEngineeringRun.State.NEEDS_HUMAN_REVIEW, result.run().state());
+        assertTrue(result.steps().stream().anyMatch(step -> step.name().equals("REVIEW_CONTRACT")
+                && step.summary().equals("FEEDBACK_UNSUBSTANTIATED")));
+        assertHostBlocked(result, "FEEDBACK_UNSUBSTANTIATED");
+    }
+
+    @Test void exhaustedReviewCorrectionBoundStopsWithoutAnotherImplementerCall() throws Exception {
+        var result = coordinator(scripted(plan(), pageObjectImplementation(assertionDefectSource()), assertionRequestChanges(1)),
+                (request, output) -> new TargetedTestExecutor.ExecutionResult(true, 1,
+                        List.of("assertion-reached")), 1)
+                .run("run-review-bound", request(), context());
+
+        assertEquals(TestEngineeringRun.State.NEEDS_HUMAN_REVIEW, result.run().state());
+        assertEquals(1, result.metrics().compileAttempts());
+        assertEquals(1, result.metrics().executionAttempts());
+        assertEquals(3, result.metrics().agentAttempts());
+        assertEquals(0, result.run().metrics().corrections());
     }
 
     @Test void failedExecutionRoutesToClassificationWithoutCallingReviewerOrApplyingSource() throws Exception {
@@ -154,7 +381,7 @@ class AgentWorkflowCoordinatorTest {
                   }
                 }
                 """;
-        var result = coordinator(scripted(plan(), implementation("package example; final class GeneratedTest { MissingType missing; }"),
+        var result = coordinator(scripted(plan(), implementation(uncompilableSource()),
                         implementation(unsafeCorrection), review()),
                 (request, output) -> { executions.incrementAndGet(); return new TargetedTestExecutor.ExecutionResult(true, 1, List.of()); }, 2)
                 .run("run-unsafe-correction", request(), context());
@@ -171,8 +398,11 @@ class AgentWorkflowCoordinatorTest {
     @Test void pageObjectStyleSourceCompilesExecutesAndRealAssertionFailureRemainsFailed() throws Exception {
         String source = """
                 package example;
+                import org.junit.jupiter.api.Test;
+                import static org.junit.jupiter.api.Assertions.assertTrue;
                 public final class GeneratedTest {
                   static final class LoginPage { boolean errorVisible() { return true; } }
+                  @Test void invalidPasswordShowsError() { assertTrue(new LoginPage().errorVisible()); }
                   public static String execute() {
                     LoginPage page = new LoginPage();
                     if (!page.errorVisible()) throw new AssertionError("error not visible");
@@ -180,7 +410,8 @@ class AgentWorkflowCoordinatorTest {
                   }
                 }
                 """;
-        var result = coordinator(scripted(plan(), implementation(source)),
+        var result = coordinator(scripted(plan(), implementationWithReference(source,
+                        "example.GeneratedTest.LoginPage#errorVisible()")),
                 (request, output) -> {
                     Class<?> generated = output.loadClass(request.testClass(), getClass().getClassLoader());
                     assertEquals("page-object-bytecode", generated.getMethod("execute").invoke(null));
@@ -195,6 +426,10 @@ class AgentWorkflowCoordinatorTest {
 
     private static AgentWorkflowCoordinator coordinator(AgentExecutor executor, CompiledTargetedTestExecutor tests,
                                                         int maxAttempts) {
+        return coordinator(executor, tests, maxAttempts, () -> "fp");
+    }
+    private static AgentWorkflowCoordinator coordinator(AgentExecutor executor, CompiledTargetedTestExecutor tests,
+                                                        int maxAttempts, Supplier<String> fingerprint) {
         return new AgentWorkflowCoordinator(new TestEngineeringWorkflow(WorkflowPolicy.defaults()), executor,
                 new TargetedJavaCompiler(), tests,
                 new GeneratedTestPolicyValidator(GeneratedTestPolicyValidator.Policy.defaults()),
@@ -202,8 +437,8 @@ class AgentWorkflowCoordinatorTest {
                         "unclassified", execution.traceEvidenceRefs(), List.of(), List.of()),
                 AgentWorkflowCoordinator.Stabilizer.none(),
                 new AgentWorkflowCoordinator.Configuration(Path.of("src/test/java/example/GeneratedTest.java"),
-                        "example.GeneratedTest", null, 17, "", 10, Duration.ofSeconds(5),
-                        List.of("example.GeneratedTest"), maxAttempts));
+                        "example.GeneratedTest", null, 17, System.getProperty("java.class.path"), 10, Duration.ofSeconds(5),
+                        List.of("example.GeneratedTest"), maxAttempts), fingerprint);
     }
 
     private static AgentExecutor scripted(Object... payloads) {
@@ -229,22 +464,111 @@ class AgentWorkflowCoordinatorTest {
                 "Invalid password shows an error", List.of("login"), List.of("login-error"),
                 List.of("login-submit"), List.of("Page Objects only")), List.of(),
                 Map.of("LoginPage", List.of("login(String,String)", "errorVisible()")),
-                List.of("JUnit 5"), List.of(), List.of(), AgentContextPack.Completeness.COMPLETE_FOR_REQUESTED_SCOPE);
+                List.of("JUnit 5"), AgentContextPack.SourceContext.empty(),
+                new AgentContextPack.PageObjectCapabilityManifest("fp",
+                        AgentContextPack.ManifestCompleteness.COMPLETE, List.of(), List.of()),
+                List.of(), List.of(), AgentContextPack.Completeness.COMPLETE_FOR_REQUESTED_SCOPE);
     }
 
     private static TestPlan plan() { return new TestPlan(ready(), List.of()); }
     private static TestImplementationProposal implementation(String source) {
+        return implementationWithReference(source, "example.GeneratedTest.LoginPage#login(String,String)");
+    }
+    private static TestImplementationProposal implementationWithReference(String source, String reference) {
         return new TestImplementationProposal(ready(), "invalid-password", source,
-                TestImplementationProposal.SelectorAccessPolicy.PAGE_OBJECTS_ONLY, List.of("LoginPage.login"), List.of());
+                TestImplementationProposal.SelectorAccessPolicy.PAGE_OBJECTS_ONLY, List.of(reference), List.of());
+    }
+    private static TestImplementationProposal pageObjectImplementation(String source) {
+        return new TestImplementationProposal(ready(), "invalid-password", source,
+                TestImplementationProposal.SelectorAccessPolicy.PAGE_OBJECTS_ONLY,
+                List.of("example.GeneratedTest.LoginPage#invalidPasswordShowsExpectedError(String,String)"), List.of());
     }
     private static CodeReviewResult review() {
-        return new CodeReviewResult(ready(), CodeReviewResult.Verdict.APPROVE, List.of("implementation"), List.of());
+        return review(1);
+    }
+    private static CodeReviewResult review(int attempt) {
+        return new CodeReviewResult(reviewCompleted(), CodeReviewResult.Verdict.APPROVE,
+                List.of("implementation-" + attempt, "quality-" + attempt,
+                        "compile-success-" + attempt, "execution-" + attempt), List.of());
+    }
+    private static CodeReviewResult assertionRequestChanges(int attempt) {
+        return requestChanges(attempt, "quality-" + attempt,
+                CodeReviewResult.Category.ASSERTION_INSUFFICIENT,
+                CodeReviewResult.EvidenceAvailability.VERIFIED);
+    }
+    private static CodeReviewResult requestChanges(int attempt, String findingArtifact,
+                                                   CodeReviewResult.Category category,
+                                                   CodeReviewResult.EvidenceAvailability evidence) {
+        CodeReviewResult.Finding finding = new CodeReviewResult.Finding(category,
+                CodeReviewResult.Severity.ERROR, "ASSERTION_REQUIRED", findingArtifact,
+                CodeReviewResult.ProblemCategory.ASSERTION, CodeReviewResult.RequiredAction.ADD_ASSERTION,
+                CodeReviewResult.SafeLocation.ASSERTION, evidence);
+        return new CodeReviewResult(reviewCompleted(), CodeReviewResult.Verdict.REQUEST_CHANGES,
+                List.of("implementation-" + attempt, "quality-" + attempt,
+                        "compile-success-" + attempt, "execution-" + attempt), List.of(finding));
     }
     private static String validSource() {
-        return "package example; public final class GeneratedTest { public static String execute() { return \"agent-bytecode\"; } }";
+        return "package example; import org.junit.jupiter.api.Test; import static org.junit.jupiter.api.Assertions.assertTrue; "
+                + "public final class GeneratedTest { static final class LoginPage { boolean login(String u,String p){return true;} } "
+                + "@Test void generated() { assertTrue(new LoginPage().login(\"user\",\"invalid\")); } "
+                + "public static String execute() { return \"agent-bytecode\"; } }";
+    }
+    private static String uncompilableSource() {
+        return "package example; import org.junit.jupiter.api.Test; import static org.junit.jupiter.api.Assertions.assertTrue; "
+                + "public final class GeneratedTest { static final class LoginPage { boolean login(String u,String p){return true;} } "
+                + "@Test void generated() { assertTrue(new LoginPage().login(\"user\",\"invalid\")); MissingType missing; } }";
+    }
+    private static String assertionDefectSource() {
+        return """
+                package example;
+                import org.junit.jupiter.api.Test;
+                import static org.junit.jupiter.api.Assertions.assertTrue;
+                public final class GeneratedTest {
+                  static final class LoginPage {
+                    boolean invalidPasswordShowsExpectedError(String user, String password) { return true; }
+                  }
+                  @Test void invalidPassword() {
+                    new LoginPage().invalidPasswordShowsExpectedError("user", "invalid");
+                    assertTrue(true);
+                  }
+                }
+                """;
+    }
+    private static String correctedAssertionSource() {
+        return """
+                package example;
+                import org.junit.jupiter.api.Test;
+                import static org.junit.jupiter.api.Assertions.assertTrue;
+                public final class GeneratedTest {
+                  static final class LoginPage {
+                    boolean invalidPasswordShowsExpectedError(String user, String password) { return true; }
+                  }
+                  @Test void invalidPassword() {
+                    assertTrue(new LoginPage().invalidPasswordShowsExpectedError("user", "invalid"));
+                  }
+                }
+                """;
     }
     private static ContractHeader ready() {
         return new ContractHeader(ContractHeader.SCHEMA_VERSION, ContractHeader.Status.READY,
                 List.of("fixture"), List.of(), ContractHeader.Confidence.OBSERVED);
+    }
+
+    private static ContractHeader reviewCompleted() {
+        return new ContractHeader(ContractHeader.SCHEMA_VERSION, ContractHeader.Status.COMPLETED,
+                List.of("discarded reviewer prose"), List.of("discarded reviewer limitation"),
+                ContractHeader.Confidence.AI_PROPOSED);
+    }
+
+    private static void assertHostBlocked(AgentWorkflowCoordinator.Result result, String ruleId) {
+        CodeReviewResult block = result.run().artifacts().stream()
+                .filter(artifact -> artifact.artifactId().startsWith("review-block-"))
+                .map(ArtifactEnvelope::payload).filter(CodeReviewResult.class::isInstance)
+                .map(CodeReviewResult.class::cast).findFirst().orElseThrow();
+        assertEquals(CodeReviewResult.Verdict.BLOCK, block.verdict());
+        assertEquals(ContractHeader.Status.BLOCKED, block.header().status());
+        assertEquals(List.of(), block.header().evidence());
+        assertEquals(List.of(), block.header().limitations());
+        assertEquals(ruleId, block.findings().get(0).ruleId());
     }
 }

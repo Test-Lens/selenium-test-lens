@@ -1,6 +1,7 @@
 package io.github.testlens.application.tooling.ai.workflow.runner;
 
 import io.github.testlens.application.tooling.ai.security.AgentArtifactSecurityGate;
+import io.github.testlens.application.tooling.ai.TestImplementationProposal;
 import io.github.testlens.application.tooling.ai.workflow.AgentExecutor;
 import io.github.testlens.application.tooling.ai.workflow.ArtifactEnvelope;
 import io.github.testlens.core.redaction.RedactionPolicy;
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static io.github.testlens.application.tooling.ai.workflow.AgentExecutor.AgentFailureCode;
+import static io.github.testlens.application.tooling.ai.workflow.AgentExecutor.AgentFailureDiagnostic;
 
 /**
  * Bounded subprocess implementation of the provider-neutral {@link AgentExecutor} boundary.
@@ -77,10 +79,22 @@ public final class ExternalAgentRunner implements AgentExecutor {
 
     @Override
     public AgentResult execute(AgentCommand command) throws AgentExecutionException {
+        FailureTrace trace = new FailureTrace();
+        trace.startedNanos = System.nanoTime();
+        try {
+            return execute(command, trace);
+        } catch (AgentExecutionException failure) {
+            throw augmented(failure, command, trace);
+        }
+    }
+
+    private AgentResult execute(AgentCommand command, FailureTrace trace) throws AgentExecutionException {
         if (command.role() != profile.role()) {
             throw failure(AgentFailureCode.AGENT_CONTEXT_REJECTED,
-                    "Agent profile role does not match command role", null);
+                    "Agent profile role does not match command role", null,
+                    "ROLE_PROFILE_MISMATCH", "command.role");
         }
+        PageObjectApiReferenceValidator pageObjectApiValidator = PageObjectApiReferenceValidator.from(command);
         byte[] input;
         byte[] schema;
         try {
@@ -94,11 +108,14 @@ public final class ExternalAgentRunner implements AgentExecutor {
                     externalInstructions);
             input = codec.encodeCommand(externalCommand);
             schema = codec.outputSchema(command.role());
+            trace.inputBytes = input.length;
         } catch (RuntimeException invalid) {
-            throw failure(AgentFailureCode.AGENT_CONTEXT_REJECTED, "Agent command cannot be serialized", invalid);
+            throw failure(AgentFailureCode.AGENT_CONTEXT_REJECTED, "Agent command cannot be serialized", invalid,
+                    "COMMAND_SERIALIZATION_FAILED", "command");
         }
         if (input.length > profile.maxInputBytes()) {
-            throw failure(AgentFailureCode.AGENT_CONTEXT_REJECTED, "Agent command exceeds maxInputBytes", null);
+            throw failure(AgentFailureCode.AGENT_CONTEXT_REJECTED, "Agent command exceeds maxInputBytes", null,
+                    "INPUT_OVERSIZE", "command");
         }
         requireSafe(input, command.inputs().stream().map(ArtifactEnvelope::artifactId).toList(), true);
 
@@ -126,40 +143,85 @@ public final class ExternalAgentRunner implements AgentExecutor {
 
             Process process;
             try {
+                trace.processStatus = "STARTING";
                 process = builder.start();
             } catch (IOException unavailable) {
-                throw failure(AgentFailureCode.AGENT_NOT_AVAILABLE, "External agent process could not be started", unavailable);
+                trace.processStatus = "START_FAILED";
+                throw failure(AgentFailureCode.AGENT_NOT_AVAILABLE, "External agent process could not be started",
+                        unavailable, "PROCESS_START_FAILED", "process.start");
             }
+            trace.processStatus = "RUNNING";
             ProcessOutcome outcome = communicate(process, input);
+            trace.exitCode = outcome.timedOut() ? null : outcome.exitCode();
+            trace.processStatus = outcome.timedOut() ? "TIMED_OUT" : "EXITED";
             if (outcome.timedOut()) {
-                throw failure(AgentFailureCode.AGENT_TIMEOUT, "External agent exceeded its timeout", null);
+                throw failure(AgentFailureCode.AGENT_TIMEOUT, "External agent exceeded its timeout", null,
+                        "PROCESS_TIMEOUT", "process.wait");
             }
             if (outcome.diagnosticsOverflow()) {
-                throw failure(AgentFailureCode.AGENT_PROCESS_FAILED, "External agent diagnostics exceeded their bound", null);
+                throw failure(AgentFailureCode.AGENT_PROCESS_FAILED,
+                        "External agent diagnostics exceeded their bound", null,
+                        "DIAGNOSTIC_OVERFLOW", "process.diagnostics");
             }
             if (outcome.exitCode() != 0) {
                 throw failure(AgentFailureCode.AGENT_PROCESS_FAILED,
-                        "External agent exited with code " + outcome.exitCode(), null);
+                        "External agent exited with a non-zero code", null,
+                        "PROCESS_NONZERO_EXIT", "process.exit");
             }
 
             byte[] output = switch (profile.outputTransport()) {
                 case STDOUT -> {
+                    trace.outputBytes = outcome.stdoutBytes();
                     if (outcome.stdoutOverflow()) {
                         throw failure(AgentFailureCode.AGENT_OUTPUT_INVALID,
-                                "External agent stdout exceeded maxOutputBytes", null);
+                                "External agent output exceeded maxOutputBytes", null,
+                                "OUTPUT_OVERSIZE", "result");
                     }
                     yield outcome.stdout();
                 }
-                case FILE -> readOutput(stageReal, outputFile);
+                case FILE -> readOutput(stageReal, outputFile, trace);
             };
             outputBytes = output.length;
-            requireSafe(output, List.of(), false);
+            trace.outputBytes = output.length;
+            if (output.length == 0) {
+                throw failure(AgentFailureCode.AGENT_OUTPUT_INVALID, "External agent returned empty output", null,
+                        "OUTPUT_EMPTY", "result");
+            }
+            if (command.role() == Role.TEST_IMPLEMENTER) {
+                requireStructuredImplementerOutputSafe(output, pageObjectApiValidator);
+            } else {
+                requireSafe(output, List.of(), false);
+            }
             AgentProtocolCodec.DecodedResult decoded;
             try {
                 decoded = codec.decode(command.role(), output);
             } catch (RuntimeException invalid) {
+                AgentProtocolCodec.DecodeFailure decodeFailure = AgentProtocolCodec.decodeFailure(invalid);
+                String reason = decodeFailure.name();
+                if (decodeFailure == AgentProtocolCodec.DecodeFailure.MALFORMED_JSON
+                        && likelyTruncatedJson(output)) {
+                    reason = "TRUNCATED_JSON";
+                }
+                String location = AgentProtocolCodec.decodeLocation(invalid);
                 throw failure(AgentFailureCode.AGENT_OUTPUT_INVALID,
-                        "External agent returned invalid structured output", invalid);
+                        "External agent output is invalid at " + location + ": "
+                                + AgentProtocolCodec.decodeDetail(invalid), null, reason, location);
+            }
+            Object acceptedPayload = decoded.payload();
+            if (decoded.payload() instanceof TestImplementationProposal implementation) {
+                PageObjectApiReferenceValidator.SourceVerification verification =
+                        pageObjectApiValidator.verifySource(implementation.sourcePatch(),
+                                implementation.pageObjectApisUsed());
+                if (!verification.valid()) {
+                    String validationLocation = decoded.payloadBasePath() + ".sourcePatch";
+                    throw failure(AgentFailureCode.AGENT_OUTPUT_INVALID,
+                            "External agent output contains unverifiable Page Object API usage", null,
+                            verification.reason(), validationLocation, verification.safeMetadata());
+                }
+                acceptedPayload = new TestImplementationProposal(implementation.header(), implementation.scenarioId(),
+                        implementation.sourcePatch(), implementation.selectorAccessPolicy(),
+                        verification.verifiedReferences(),
+                        implementation.missingCapabilities());
             }
             String digest = ArtifactEnvelope.digest(output);
             int attempt = command.inputs().stream().mapToInt(ArtifactEnvelope::attempt).max().orElse(0) + 1;
@@ -167,7 +229,7 @@ public final class ExternalAgentRunner implements AgentExecutor {
             String artifactId = "agent-" + command.role().name().toLowerCase(java.util.Locale.ROOT)
                     + "-" + digest.substring(0, 16);
             ArtifactEnvelope<?> artifact = ArtifactEnvelope.create(artifactId, command.runId(), parents, attempt,
-                    decoded.payload());
+                    acceptedPayload);
             executionStatus = ExecutionStatus.SUCCESS;
             return new AgentResult(profile.id() + ":" + digest.substring(0, 16), artifact);
         } catch (AgentExecutionException expected) {
@@ -175,7 +237,8 @@ public final class ExternalAgentRunner implements AgentExecutor {
                     ? ExecutionStatus.TIMEOUT : ExecutionStatus.FAILED;
             throw expected;
         } catch (IOException failure) {
-            throw failure(AgentFailureCode.AGENT_PROCESS_FAILED, "External agent I/O failed", failure);
+            throw failure(AgentFailureCode.AGENT_PROCESS_FAILED, "External agent I/O failed", failure,
+                    "PROCESS_IO_FAILED", "process.io");
         } finally {
             if (stage != null) {
                 try {
@@ -228,7 +291,8 @@ public final class ExternalAgentRunner implements AgentExecutor {
             throws AgentExecutionException, IOException {
         if (!Files.exists(profile.executable(), LinkOption.NOFOLLOW_LINKS)
                 || !Files.isRegularFile(profile.executable(), LinkOption.NOFOLLOW_LINKS)) {
-            throw failure(AgentFailureCode.AGENT_NOT_AVAILABLE, "Configured agent executable is unavailable", null);
+            throw failure(AgentFailureCode.AGENT_NOT_AVAILABLE, "Configured agent executable is unavailable", null,
+                    "PROCESS_START_FAILED", "process.executable");
         }
         Path executable = profile.executable().toRealPath();
         List<String> values = new ArrayList<>();
@@ -263,7 +327,8 @@ public final class ExternalAgentRunner implements AgentExecutor {
             BoundedBytes out = await(stdout);
             BoundedBytes error = await(stderr);
             return new ProcessOutcome(finished ? process.exitValue() : -1, !finished, out.bytes(), out.overflow(),
-                    error.overflow() || (profile.outputTransport() == AgentProfile.OutputTransport.FILE && out.overflow()));
+                    error.overflow() || (profile.outputTransport() == AgentProfile.OutputTransport.FILE && out.overflow()),
+                    out.totalBytes());
         } catch (InterruptedException interrupted) {
             Thread.currentThread().interrupt();
             terminate(process);
@@ -273,14 +338,21 @@ public final class ExternalAgentRunner implements AgentExecutor {
         }
     }
 
-    private byte[] readOutput(Path stage, Path outputFile) throws IOException, AgentExecutionException {
+    private byte[] readOutput(Path stage, Path outputFile, FailureTrace trace)
+            throws IOException, AgentExecutionException {
         if (!Files.exists(outputFile, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(outputFile)
                 || !outputFile.toRealPath().startsWith(stage) || !Files.isRegularFile(outputFile, LinkOption.NOFOLLOW_LINKS)) {
             throw failure(AgentFailureCode.AGENT_OUTPUT_INVALID, "External agent output path is unsafe", null);
         }
         long size = Files.size(outputFile);
-        if (size < 1 || size > profile.maxOutputBytes()) {
-            throw failure(AgentFailureCode.AGENT_OUTPUT_INVALID, "External agent output size is invalid", null);
+        trace.outputBytes = size;
+        if (size < 1) {
+            throw failure(AgentFailureCode.AGENT_OUTPUT_INVALID, "External agent returned empty output", null,
+                    "OUTPUT_EMPTY", "result");
+        }
+        if (size > profile.maxOutputBytes()) {
+            throw failure(AgentFailureCode.AGENT_OUTPUT_INVALID, "External agent output exceeded maxOutputBytes", null,
+                    "OUTPUT_OVERSIZE", "result");
         }
         return Files.readAllBytes(outputFile);
     }
@@ -289,10 +361,31 @@ public final class ExternalAgentRunner implements AgentExecutor {
         String text = new String(bytes, StandardCharsets.UTF_8);
         var result = securityGate.validate(text, references, redaction, canaries);
         if (result.status() != AgentArtifactSecurityGate.Status.PASS) {
+            List<String> codes = result.findings().stream().map(AgentArtifactSecurityGate.Finding::code)
+                    .distinct().sorted().toList();
+            String reason = codes.size() == 1 ? codes.get(0) : "MULTIPLE_SECURITY_FINDINGS";
+            String location = result.findings().size() == 1
+                    && !"text".equals(result.findings().get(0).location())
+                    ? result.findings().get(0).location() : input ? "command" : "result";
             throw failure(input ? AgentFailureCode.AGENT_CONTEXT_REJECTED : AgentFailureCode.AGENT_OUTPUT_INVALID,
-                    (input ? "External agent context" : "External agent output") + " failed the security gate: "
-                            + result.findings().stream().map(AgentArtifactSecurityGate.Finding::code).toList(), null);
+                    (input ? "External agent context" : "External agent output") + " failed the security gate", null,
+                    reason, location);
         }
+    }
+
+    private void requireStructuredImplementerOutputSafe(byte[] output,
+            PageObjectApiReferenceValidator pageObjectApiValidator) throws AgentExecutionException {
+        var result = securityGate.validateStructuredAgentOutput(
+                new String(output, StandardCharsets.UTF_8), redaction, canaries,
+                Set.of("$.payload.sourcePatch", "$.result.payload.sourcePatch"),
+                pageObjectApiValidator::isTrustedStructuredValue);
+        if (result.status() == AgentArtifactSecurityGate.Status.PASS) return;
+        List<String> codes = result.findings().stream().map(AgentArtifactSecurityGate.Finding::code)
+                .distinct().sorted().toList();
+        String reason = codes.size() == 1 ? codes.get(0) : "MULTIPLE_SECURITY_FINDINGS";
+        String location = result.findings().size() == 1 ? result.findings().get(0).location() : "$.multiple";
+        throw failure(AgentFailureCode.AGENT_OUTPUT_INVALID,
+                "External agent output failed the security gate", null, reason, location);
     }
 
     private static Path safeFile(Path stage, String name, byte[] content) throws IOException {
@@ -308,13 +401,15 @@ public final class ExternalAgentRunner implements AgentExecutor {
         ByteArrayOutputStream output = new ByteArrayOutputStream(Math.min(limit, 8_192));
         byte[] buffer = new byte[8_192];
         int read;
+        long total = 0;
         boolean overflow = false;
         while ((read = input.read(buffer)) >= 0) {
+            total += read;
             int remaining = limit - output.size();
             if (remaining > 0) output.write(buffer, 0, Math.min(read, remaining));
             if (read > remaining) overflow = true;
         }
-        return new BoundedBytes(output.toByteArray(), overflow);
+        return new BoundedBytes(output.toByteArray(), overflow, total);
     }
 
     private static void write(OutputStream output, byte[] bytes) throws IOException {
@@ -364,9 +459,63 @@ public final class ExternalAgentRunner implements AgentExecutor {
         }
     }
 
+    private static boolean likelyTruncatedJson(byte[] output) {
+        String text = new String(output, StandardCharsets.UTF_8).strip();
+        if (!text.startsWith("{")) return false;
+        int depth = 0;
+        boolean quoted = false;
+        boolean escaped = false;
+        for (int index = 0; index < text.length(); index++) {
+            char character = text.charAt(index);
+            if (quoted) {
+                if (escaped) escaped = false;
+                else if (character == '\\') escaped = true;
+                else if (character == '"') quoted = false;
+                continue;
+            }
+            if (character == '"') quoted = true;
+            else if (character == '{' || character == '[') depth++;
+            else if (character == '}' || character == ']') {
+                depth--;
+                if (depth < 0) return false;
+            }
+        }
+        return quoted || escaped || depth > 0;
+    }
+
+    private AgentExecutionException augmented(AgentExecutionException failure, AgentCommand command,
+                                              FailureTrace trace) {
+        AgentFailureDiagnostic original = failure.diagnostic();
+        String reason = original == null ? "BOUNDARY_FAILURE" : original.reasonCode();
+        String location = original == null ? "boundary" : original.location();
+        Map<String, String> metadata = new java.util.TreeMap<>();
+        if (original != null) metadata.putAll(original.metadata());
+        metadata.put("role", command == null || command.role() == null ? "UNKNOWN" : command.role().name());
+        metadata.put("profileId", profile.id());
+        metadata.put("inputBytes", Long.toString(trace.inputBytes));
+        metadata.put("outputBytes", Long.toString(trace.outputBytes));
+        metadata.put("durationMillis", Long.toString(
+                Duration.ofNanos(System.nanoTime() - trace.startedNanos).toMillis()));
+        metadata.put("processStatus", trace.processStatus);
+        if (trace.exitCode != null) metadata.put("exitCode", Integer.toString(trace.exitCode));
+        return new AgentExecutionException(failure.code(), failure.getMessage(), failure.getCause(),
+                new AgentFailureDiagnostic(reason, location, metadata));
+    }
+
     private static AgentExecutionException failure(AgentFailureCode code, String message, Throwable cause) {
-        return cause == null ? new AgentExecutionException(code, message)
-                : new AgentExecutionException(code, message, cause);
+        return failure(code, message, cause, "BOUNDARY_FAILURE", "boundary");
+    }
+
+    private static AgentExecutionException failure(AgentFailureCode code, String message, Throwable cause,
+                                                   String reasonCode, String location) {
+        return failure(code, message, cause, reasonCode, location, Map.of());
+    }
+
+    private static AgentExecutionException failure(AgentFailureCode code, String message, Throwable cause,
+                                                   String reasonCode, String location,
+                                                   Map<String, String> metadata) {
+        AgentFailureDiagnostic diagnostic = new AgentFailureDiagnostic(reasonCode, location, metadata);
+        return new AgentExecutionException(code, message, cause, diagnostic);
     }
 
     public record SourceExcerpt(Path logicalPath, String content, String contentFingerprint) {
@@ -391,7 +540,15 @@ public final class ExternalAgentRunner implements AgentExecutor {
 
     public enum ExecutionStatus { SUCCESS, FAILED, TIMEOUT }
 
-    private record BoundedBytes(byte[] bytes, boolean overflow) { }
+    private record BoundedBytes(byte[] bytes, boolean overflow, long totalBytes) { }
     private record ProcessOutcome(int exitCode, boolean timedOut, byte[] stdout, boolean stdoutOverflow,
-                                  boolean diagnosticsOverflow) { }
+                                  boolean diagnosticsOverflow, long stdoutBytes) { }
+
+    private static final class FailureTrace {
+        private long startedNanos;
+        private long inputBytes;
+        private long outputBytes;
+        private String processStatus = "NOT_STARTED";
+        private Integer exitCode;
+    }
 }

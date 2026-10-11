@@ -4,7 +4,7 @@ import io.github.testlens.application.tooling.ai.workflow.AgentExecutor;
 
 import java.util.Objects;
 
-/** Provider-neutral bootstrap boundary for selecting a configured agent executor. @since 0.5.0 */
+/** Provider-neutral bootstrap boundary for selecting a configured agent executor. @since 0.5.1 */
 public interface AgentExecutorProvider {
     ProviderAvailability availability();
 
@@ -20,10 +20,10 @@ public interface AgentExecutorProvider {
 
     AgentExecutor executorFor(AgentExecutor.Role role, String logicalProfileId);
 
-    /** Provider preflight disposition. @since 0.5.0 */
+    /** Provider preflight disposition. @since 0.5.1 */
     enum Status { AVAILABLE, NOT_AVAILABLE, VERSION_UNSUPPORTED, PROFILE_INVALID }
 
-    /** Bounded provider preflight result. @since 0.5.0 */
+    /** Bounded provider preflight result. @since 0.5.1 */
     record ProviderAvailability(Status status, String reason, String providerVersion) {
         private static final int MAX_REASON_LENGTH = 512;
         private static final int MAX_VERSION_LENGTH = 128;
@@ -42,7 +42,7 @@ public interface AgentExecutorProvider {
         }
     }
 
-    /** Failure raised when a requested provider/profile is unavailable. @since 0.5.0 */
+    /** Failure raised when a requested provider/profile is unavailable. @since 0.5.1 */
     final class ProviderUnavailableException extends IllegalStateException {
         private final ProviderAvailability availability;
 

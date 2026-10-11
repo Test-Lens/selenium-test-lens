@@ -14,7 +14,7 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
 
-/** Immutable provenance envelope for an agent artifact. @since 0.5.0 */
+/** Immutable provenance envelope for an agent artifact. @since 0.5.1 */
 public record ArtifactEnvelope<T>(String artifactId, String runId, List<String> parents, int attempt,
                                   String payloadDigest, T payload) {
     public ArtifactEnvelope {
@@ -70,6 +70,9 @@ public record ArtifactEnvelope<T>(String artifactId, String runId, List<String> 
                 || payload instanceof AgentContextPack
                 || payload instanceof TestPlan
                 || payload instanceof AgentWorkflowCoordinator.CompilationFeedback
+                || payload instanceof ReviewerEvidence.QualityEvidence
+                || payload instanceof ReviewerEvidence.CompilationEvidence
+                || payload instanceof ReviewerEvidencePack
                 || payload instanceof PageObjectCapabilityMissing
                 || payload instanceof PageObjectExtensionProposal
                 || payload instanceof TestImplementationProposal

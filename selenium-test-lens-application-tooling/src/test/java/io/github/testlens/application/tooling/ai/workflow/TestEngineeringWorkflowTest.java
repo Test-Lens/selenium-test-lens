@@ -258,6 +258,11 @@ class TestEngineeringWorkflowTest {
     }
 
     private static CodeReviewResult review(CodeReviewResult.Verdict verdict) {
-        return new CodeReviewResult(ready(), verdict, List.of("implementation"), List.of());
+        List<CodeReviewResult.Finding> findings = verdict == CodeReviewResult.Verdict.APPROVE ? List.of() : List.of(
+                new CodeReviewResult.Finding(CodeReviewResult.Category.ASSERTION_INSUFFICIENT,
+                        CodeReviewResult.Severity.ERROR, "ASSERTION_REQUIRED", "implementation",
+                        CodeReviewResult.ProblemCategory.ASSERTION, CodeReviewResult.RequiredAction.ADD_ASSERTION,
+                        CodeReviewResult.SafeLocation.ASSERTION, CodeReviewResult.EvidenceAvailability.VERIFIED));
+        return new CodeReviewResult(ready(), verdict, List.of("implementation"), findings);
     }
 }
