@@ -92,12 +92,26 @@ if ($overviewNav -lt 0 -or $gettingNav -le $overviewNav -or $studioNav -le $gett
     throw "Navigation must expose Test Engineering Studio directly between Getting Started and Using Test Lens, before Releases."
 }
 foreach ($navContract in @(
+    'Overview: ai/test-engineering-studio.md',
     'Quick Start: ai/test-engineering-studio-getting-started.md',
     'Generate Tests with AI: ai/generate-tests-with-ai.md',
-    'Selector Self-Healing: ai/test-engineering-studio.md#review-a-repair',
     'AI Integration Prompt Builder: ai-assisted-integration.md'
 )) {
     if (-not $mkdocs.Contains($navContract)) { throw "Navigation is missing discoverability contract: $navContract" }
+}
+$studioNavMatch = [regex]::Match($mkdocs, '(?ms)^  - Test Engineering Studio:\r?\n(?<section>.*?)(?=^  - |\z)')
+if (-not $studioNavMatch.Success) { throw "Navigation is missing the Test Engineering Studio section." }
+$studioNav = $studioNavMatch.Groups['section'].Value
+if ($studioNav -match '#') { throw "Test Engineering Studio navigation must use Markdown files, not URL fragments." }
+$studioTargets = [regex]::Matches($studioNav, '(?m)^[ \t]+-[^\r\n]*?:[ \t]+([^\r\n]+\.md)[ \t]*$') | ForEach-Object { $_.Groups[1].Value }
+if (@($studioTargets | Select-Object -Unique).Count -ne @($studioTargets).Count) { throw "Test Engineering Studio navigation must not list the same Markdown page more than once." }
+$studioOverview = Get-Content -LiteralPath (Resolve-Path (Join-Path $PSScriptRoot '..\docs\ai\test-engineering-studio.md')) -Raw
+$studioQuickStart = Get-Content -LiteralPath (Resolve-Path (Join-Path $PSScriptRoot '..\docs\ai\test-engineering-studio-getting-started.md')) -Raw
+foreach ($sectionContract in @('## Run and diagnose', '## Review a repair', '## Configuration and autodiscovery', '## Troubleshooting')) {
+    if (-not $studioOverview.Contains($sectionContract)) { throw "Studio overview is missing section: $sectionContract" }
+}
+foreach ($sectionContract in @('## 2. Split project and machine-local configuration', '## Troubleshooting')) {
+    if (-not $studioQuickStart.Contains($sectionContract)) { throw "Studio Quick Start is missing section: $sectionContract" }
 }
 foreach ($tutorialContract in @(
     '# Generate your first Selenium test with AI',
