@@ -1,11 +1,11 @@
 ---
 title: What's new in 0.5.1
-description: Test Engineering Studio workflow, Page Object verification, recovery, reviewer evidence, and controlled selector-healing fixes in Selenium Test Lens 0.5.1.
+description: Test Engineering Studio workflow, Page Object verification, recovery, reviewer evidence, and controlled selector-healing fixes in Test Lens 0.5.1.
 ---
 
 # What's new in 0.5.1
 
-Selenium Test Lens 0.5.1 is a patch release focused on making the opt-in Test Engineering Studio workflow
+Test Lens 0.5.1 is a patch release focused on making the opt-in Test Engineering Studio workflow
 deterministic, reviewable, and recoverable. It preserves the existing runtime contracts and Maven coordinates from
 0.5.0; it does not add background agents, autonomous source editing, TestNG execution to Studio, or a broader
 self-healing loop.

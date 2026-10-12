@@ -1,6 +1,6 @@
 ---
-title: Selenium Test Lens — product overview
-description: Selenium observability and AI-assisted test engineering: add runtime diagnostics to Java tests or use the local Test Engineering Studio to generate, run, review, and safely repair tests.
+title: Selenium observability and AI-assisted test engineering
+description: Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects. Its opt-in Test Engineering Studio generates, executes, reviews, and safely repairs JUnit 5 tests.
 hide:
   - navigation
   - toc
@@ -8,13 +8,13 @@ hide:
 
 <div class="lens-hero" markdown>
 
-<img class="lens-home-logo" src="assets/brand/test-lens-logo-horizontal.png" alt="Selenium Test Lens" width="720" height="184">
+<img class="lens-home-logo" src="assets/brand/test-lens-logo-horizontal.png" alt="Test Lens" width="720" height="184">
 
 <span class="lens-release-badge">Current stable release: 0.5.1</span>
 
-# Selenium observability and AI-assisted test engineering
+# Test Lens — Selenium observability and AI-assisted test engineering
 
-**Selenium Test Lens combines an observability library for the WebDriver your project already owns with an opt-in local AI Test Engineering Studio for generating, executing, reviewing, and carefully repairing tests.**
+**Test Lens combines an observability library for the WebDriver your project already owns with an opt-in local AI Test Engineering Studio for generating, executing, reviewing, and carefully repairing tests.**
 
 Watch actions, waits, assertions, retries, and selected network activity while a test runs. After finalization, investigate the same session through a structured trace, HTML/JSON reports, screenshots, and—on failure—a portable evidence bundle.
 

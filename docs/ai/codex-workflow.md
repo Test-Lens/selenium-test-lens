@@ -1,4 +1,4 @@
-# Konfiguracja Codexa dla Selenium Test Lens
+# Konfiguracja Codexa dla Test Lens
 
 Status: zestaw przygotowany bez dostępu do repo Lensa. Walidacja składni nie zastępuje próby w zainstalowanym kliencie Codexa.
 

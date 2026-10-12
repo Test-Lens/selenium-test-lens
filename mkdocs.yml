@@ -1,5 +1,5 @@
 site_name: Test Lens
-site_description: Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.
+site_description: Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects. Its opt-in Test Engineering Studio generates, executes, reviews, and safely repairs JUnit 5 tests.
 site_url: https://test-lens.github.io/selenium-test-lens/
 repo_name: Test-Lens/selenium-test-lens
 repo_url: https://github.com/Test-Lens/selenium-test-lens
@@ -55,7 +55,7 @@ theme:
     - toc.follow
 
 nav:
-  - Overview: index.md
+  - Test Lens Overview: index.md
   - Getting Started:
       - Installation & first test: getting-started.md
       - AI Integration Prompt Builder: ai-assisted-integration.md

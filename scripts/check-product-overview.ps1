@@ -21,8 +21,9 @@ if (-not $targetMatch.Success) { throw "mkdocs.yml must define one concrete AI i
 $targetRelease = $targetMatch.Groups[1].Value
 
 foreach ($contract in @(
-    'title: Selenium Test Lens',
-    '# Selenium observability and AI-assisted test engineering',
+    'title: Selenium observability and AI-assisted test engineering',
+    'description: Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects.',
+    ('# Test Lens ' + [char]0x2014 + ' Selenium observability and AI-assisted test engineering'),
     '[Use Test Lens in your Selenium tests](getting-started.md)',
     '[Generate and repair tests with AI](ai/test-engineering-studio-getting-started.md)',
     '[AI Integration Prompt Builder](ai-assisted-integration.md)',
@@ -83,7 +84,7 @@ foreach ($mapContract in @(
     if (-not $capabilityMap.Contains($mapContract)) { throw "Capability map is missing contract: $mapContract" }
 }
 
-$overviewNav = $mkdocs.IndexOf('- Overview: index.md')
+$overviewNav = $mkdocs.IndexOf('- Test Lens Overview: index.md')
 $gettingNav = $mkdocs.IndexOf('- Getting Started:')
 $studioNav = $mkdocs.IndexOf('- Test Engineering Studio:')
 $usingNav = $mkdocs.IndexOf('- Using Test Lens:')
@@ -133,15 +134,15 @@ if ($SiteDirectory) {
     if (-not (Test-Path -LiteralPath $htmlPath -PathType Leaf)) { throw "Built overview is missing: $htmlPath" }
     $html = [IO.File]::ReadAllText($htmlPath)
     foreach ($renderedContract in @(
-        '<title>Selenium Test Lens',
-        'name="description" content="Selenium observability and AI-assisted test engineering',
+        '<title>Selenium observability and AI-assisted test engineering - Test Lens</title>',
+        'name="description" content="Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects.',
         'href="getting-started/"',
         'href="ai/test-engineering-studio-getting-started/"',
         'href="ai/generate-tests-with-ai/"',
         'href="ai-assisted-integration/"',
         'href="#product-capabilities"',
         'id="product-capabilities"',
-        'alt="Selenium Test Lens"',
+        'alt="Test Lens"',
         'width="720"',
         'height="184"',
         'loading="lazy"'
