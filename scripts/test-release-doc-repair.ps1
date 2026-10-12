@@ -24,6 +24,11 @@ try {
     & git -C $testRoot -c user.name=docs-fixture -c user.email=docs-fixture.invalid commit -q -m docs-repair
     & (Join-Path $root "scripts/check-release-doc-repair.ps1") -Version 0.5.0 -SourceRef release/0.5.0 -RepositoryRoot $testRoot | Out-Null
 
+    [IO.File]::WriteAllText((Join-Path $testRoot "scripts/check-hud-studio.ps1"), "# approved rendered documentation contract`n")
+    & git -C $testRoot add -- scripts/check-hud-studio.ps1
+    & git -C $testRoot -c user.name=docs-fixture -c user.email=docs-fixture.invalid commit -q -m docs-checker-repair
+    & (Join-Path $root "scripts/check-release-doc-repair.ps1") -Version 0.5.0 -SourceRef release/0.5.0 -RepositoryRoot $testRoot | Out-Null
+
     Assert-Throws {
         & (Join-Path $root "scripts/check-release-doc-repair.ps1") -Version 0.5.0 -SourceRef main -RepositoryRoot $testRoot
     } "wrong source ref"

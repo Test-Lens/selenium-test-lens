@@ -33,6 +33,7 @@ $allowedExact = @(
     "scripts/check-doc-signatures.ps1",
     "scripts/check-doc-version-boundary.ps1",
     "scripts/check-hud-demo.ps1",
+    "scripts/check-hud-studio.ps1",
     "scripts/check-product-overview.ps1",
     "scripts/check-release-doc-repair.ps1",
     "scripts/publish-versioned-docs.ps1",
