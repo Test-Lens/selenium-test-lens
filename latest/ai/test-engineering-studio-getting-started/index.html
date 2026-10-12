@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Launch Test Engineering Studio 0.5.0 from Maven, configure a project safely, and run its reviewed local workflow.">
+        <meta name="description" content="Launch Test Engineering Studio 0.5.1 from Maven, configure a project safely, and run its reviewed local workflow.">
       
       
       
@@ -82,20 +82,20 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Test Lens">
   <meta property="og:title" content="Test Engineering Studio getting started - Test Lens">
-  <meta property="og:description" content="Launch Test Engineering Studio 0.5.0 from Maven, configure a project safely, and run its reviewed local workflow.">
+  <meta property="og:description" content="Launch Test Engineering Studio 0.5.1 from Maven, configure a project safely, and run its reviewed local workflow.">
   <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/ai/test-engineering-studio-getting-started/">
   <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
   <meta property="og:image:alt" content="Test Lens">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Test Engineering Studio getting started - Test Lens">
-  <meta name="twitter:description" content="Launch Test Engineering Studio 0.5.0 from Maven, configure a project safely, and run its reviewed local workflow.">
+  <meta name="twitter:description" content="Launch Test Engineering Studio 0.5.1 from Maven, configure a project safely, and run its reviewed local workflow.">
   <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
   
   
-    <meta name="test-lens-integration-target" content="0.5.0">
+    <meta name="test-lens-integration-target" content="0.5.1">
     <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
     <meta name="test-lens-docs-source-kind" content="release">
-    <meta name="test-lens-docs-source-revision" content="783a1cac30be37902812820483dcf26edd43922b">
+    <meta name="test-lens-docs-source-revision" content="f4906f5c297d86b8f1eea9efa105219d5320dddd">
   
 
   </head>
@@ -130,7 +130,7 @@
             
   <style>.tl-version-switcher{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-bottom:.25rem}.tl-version-switcher select{max-width:15rem}</style>
   <nav class="tl-version-switcher" aria-label="Documentation version"
-       data-current-version="0.5.0">
+       data-current-version="0.5.1">
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
@@ -477,7 +477,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../whats-new-0.5.0/" class="md-tabs__link">
+        <a href="../../whats-new-0.5.1/" class="md-tabs__link">
           
   
   
@@ -2982,6 +2982,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../whats-new-0.5.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../whats-new-0.5.0/" class="md-nav__link">
         
   
@@ -4021,7 +4049,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1" class="md-nav__link">
         
   
   
@@ -4049,7 +4077,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/" class="md-nav__link">
         
   
   
@@ -4247,7 +4275,7 @@
 
 
   
-    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/release/0.5.0/docs/ai/test-engineering-studio-getting-started.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/release/0.5.1/docs/ai/test-engineering-studio-getting-started.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -4272,10 +4300,10 @@
 <p>The local provider supports Chrome and Firefox. Release certification uses a deterministic scripted agent for repeatable end-to-end repair evidence; real Codex execution is an additional opt-in certification.</p>
 <h2 id="1-launch-studio">1. Launch Studio<a class="headerlink" href="#1-launch-studio" title="Permanent link">&para;</a></h2>
 <p>Change to the root of the Maven Selenium project you want Studio to inspect. Run the fully qualified goal so the invocation does not depend on local plugin-prefix metadata:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">mvn</span> <span class="n">io</span><span class="p">.</span><span class="n">github</span><span class="p">.</span><span class="nb">test-lens</span><span class="p">:</span><span class="nb">test-lens</span><span class="n">-test-engineering-maven-plugin</span><span class="p">:</span><span class="n">0</span><span class="p">.</span><span class="n">5</span><span class="p">.</span><span class="n">0</span><span class="p">:</span><span class="n">studio</span>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">mvn</span> <span class="n">io</span><span class="p">.</span><span class="n">github</span><span class="p">.</span><span class="nb">test-lens</span><span class="p">:</span><span class="nb">test-lens</span><span class="n">-test-engineering-maven-plugin</span><span class="p">:</span><span class="n">0</span><span class="p">.</span><span class="n">5</span><span class="p">.</span><span class="n">1</span><span class="p">:</span><span class="n">studio</span>
 </span></code></pre></div>
 <p>The goal runs through <code>test-compile</code>, resolves the test classpath, opens Studio in the default browser, prints its <code>127.0.0.1</code> URL, and waits until the Maven process is stopped. To print the URL without opening a browser:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">mvn</span> <span class="n">-DtestLens</span><span class="p">.</span><span class="n">studio</span><span class="p">.</span><span class="n">openBrowser</span><span class="p">=</span><span class="n">false</span> <span class="n">io</span><span class="p">.</span><span class="n">github</span><span class="p">.</span><span class="nb">test-lens</span><span class="p">:</span><span class="nb">test-lens</span><span class="n">-test-engineering-maven-plugin</span><span class="p">:</span><span class="n">0</span><span class="p">.</span><span class="n">5</span><span class="p">.</span><span class="n">0</span><span class="p">:</span><span class="n">studio</span>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">mvn</span> <span class="n">-DtestLens</span><span class="p">.</span><span class="n">studio</span><span class="p">.</span><span class="n">openBrowser</span><span class="p">=</span><span class="n">false</span> <span class="n">io</span><span class="p">.</span><span class="n">github</span><span class="p">.</span><span class="nb">test-lens</span><span class="p">:</span><span class="nb">test-lens</span><span class="n">-test-engineering-maven-plugin</span><span class="p">:</span><span class="n">0</span><span class="p">.</span><span class="n">5</span><span class="p">.</span><span class="n">1</span><span class="p">:</span><span class="n">studio</span>
 </span></code></pre></div>
 <p>Stopping Maven stops the Studio host and Studio-owned browser session. It does not repeat or approve a workflow.</p>
 <h2 id="2-split-project-and-machine-local-configuration">2. Split project and machine-local configuration<a class="headerlink" href="#2-split-project-and-machine-local-configuration" title="Permanent link">&para;</a></h2>
@@ -4381,11 +4409,13 @@
 <p>Studio binds an ephemeral <code>127.0.0.1</code> port and uses a random session token, exact Host/origin validation, CSP, bounded request bodies, explicit action allowlists, and a single mutating operation at a time. The browser UI receives bounded projections rather than arbitrary repository files. Agent context is redacted and sliced; normal runtime does not initialize Studio, scan the DOM, or start an agent.</p>
 <p>The local process is still trusted tooling with access to the selected project and explicitly started browser/agent processes. Review configuration, generated source, repair evidence and diffs as code. Do not expose the loopback URL/session token or workspace artifacts in logs shared outside the machine.</p>
 <h2 id="upgrading-an-existing-04x-project">Upgrading an existing 0.4.x project<a class="headerlink" href="#upgrading-an-existing-04x-project" title="Permanent link">&para;</a></h2>
-<p>The Studio plugin is opt-in tooling for the 0.5.0 line. Existing <code>TestLens.attach(...)</code>, actions, waits, retries, HUD, reports and runner lifecycle remain compatible; projects that only use the runtime do not acquire Studio or source-analysis dependencies.</p>
+<p>The Studio plugin is opt-in tooling for the 0.5.1 line. Existing <code>TestLens.attach(...)</code>, actions, waits, retries, HUD, reports and runner lifecycle remain compatible; projects that only use the runtime do not acquire Studio or source-analysis dependencies.</p>
+<p>The complete generated-test workflow in Studio targets JUnit 5. The published TestNG adapter remains supported for
+ordinary Test Lens runtime integration, but TestNG generated-test execution is outside the current Studio scope.</p>
 <p>Continue with the <a href="../test-engineering-studio/">Studio workflow reference</a>, <a href="../../advanced/application-mapping/tutorial/">application-mapping tutorial</a>, and <a href="../workflow-orchestration/">AI workflow contracts</a>.</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>The fully qualified Maven goal cannot be resolved:</strong> confirm that version <code>0.5.0</code> is available in the Maven repository configured for the consumer project and that the complete plugin coordinates are used.</li>
+<li><strong>The fully qualified Maven goal cannot be resolved:</strong> confirm that version <code>0.5.1</code> is available in the Maven repository configured for the consumer project and that the complete plugin coordinates are used.</li>
 <li><strong><code>test-compile</code> or dependency resolution fails before Studio opens:</strong> fix the consumer project's normal Maven test compilation/classpath first. The plugin intentionally requires test dependency resolution and does not construct a substitute classpath.</li>
 <li><strong>Browser preflight is <code>NOT_AVAILABLE</code>:</strong> verify the configured browser is installed and Selenium Manager can resolve it. <code>CONFIGURATION_INVALID</code> or <code>UNSUPPORTED</code> requires correcting the selected provider/request rather than repeatedly clicking Map.</li>
 <li><strong>Agent preflight is <code>NOT_AVAILABLE</code>, <code>VERSION_UNSUPPORTED</code>, or <code>PROFILE_INVALID</code>:</strong> verify the absolute executable, required <code>codex exec</code> flags, or safe logical profile. Preflight never falls back silently from a selected custom provider.</li>
@@ -4496,7 +4526,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.0", "default": "latest", "is_dev": false, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.1", "default": "latest", "is_dev": false, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

@@ -92,10 +92,10 @@
   <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
   
   
-    <meta name="test-lens-integration-target" content="0.5.0">
+    <meta name="test-lens-integration-target" content="0.5.1">
     <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
     <meta name="test-lens-docs-source-kind" content="release">
-    <meta name="test-lens-docs-source-revision" content="783a1cac30be37902812820483dcf26edd43922b">
+    <meta name="test-lens-docs-source-revision" content="f4906f5c297d86b8f1eea9efa105219d5320dddd">
   
 
   </head>
@@ -130,7 +130,7 @@
             
   <style>.tl-version-switcher{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-bottom:.25rem}.tl-version-switcher select{max-width:15rem}</style>
   <nav class="tl-version-switcher" aria-label="Documentation version"
-       data-current-version="0.5.0">
+       data-current-version="0.5.1">
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
@@ -477,7 +477,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../whats-new-0.5.0/" class="md-tabs__link">
+        <a href="../../whats-new-0.5.1/" class="md-tabs__link">
           
   
   
@@ -3068,6 +3068,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../whats-new-0.5.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../whats-new-0.5.0/" class="md-nav__link">
         
   
@@ -4107,7 +4135,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1" class="md-nav__link">
         
   
   
@@ -4135,7 +4163,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/" class="md-nav__link">
         
   
   
@@ -4416,7 +4444,7 @@
 
 
   
-    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/release/0.5.0/docs/features/selector-intelligence.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/release/0.5.1/docs/features/selector-intelligence.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -4432,9 +4460,9 @@ a selector can work today while still being difficult to understand or expensive
 class names, framework-generated identifiers, and the same locator repeated across Page Objects and tests. The
 opposite problem matters too: an identifier can <em>look</em> random while being a stable application contract.</p>
 <div class="admonition important">
-<p class="admonition-title">Availability in 0.5.0</p>
+<p class="admonition-title">Availability in 0.5.1</p>
 <p>Selector engine, live analysis, and source tooling are published implementation dependencies of Test Engineering Studio. The supported user entry point is the Studio Maven goal; JavaParser-backed scanners and other technically public tooling classes are not stable USER API. Selector Lab remains an unpublished demo tool.</p>
-<p>Installing <code>selenium-test-lens:0.5.0</code> alone does not enable a background source scan or UI. Normal Test Lens and FAST execution remain unchanged.</p>
+<p>Installing <code>selenium-test-lens:0.5.1</code> alone does not enable a background source scan or UI. Normal Test Lens and FAST execution remain unchanged.</p>
 </div>
 <h2 id="capability-map">Capability map<a class="headerlink" href="#capability-map" title="Permanent link">&para;</a></h2>
 <table>
@@ -4442,7 +4470,7 @@ opposite problem matters too: an identifier can <em>look</em> random while being
 <tr>
 <th>Capability</th>
 <th style="text-align: right;">Browser required?</th>
-<th>0.5.0 availability</th>
+<th>0.5.1 availability</th>
 </tr>
 </thead>
 <tbody>
@@ -4469,7 +4497,7 @@ opposite problem matters too: an identifier can <em>look</em> random while being
 <tr>
 <td>Selector Lab</td>
 <td style="text-align: right;">Yes</td>
-<td>Unpublished demo, not a 0.5.0 user entry point</td>
+<td>Unpublished demo, not a 0.5.1 user entry point</td>
 </tr>
 <tr>
 <td>Live candidate analysis</td>
@@ -4524,7 +4552,7 @@ excluded by default. The local index may contain selector values and should be t
 output.</p>
 <div class="admonition note">
 <p class="admonition-title">Supported entry point</p>
-<p>Use the <a href="../../ai/test-engineering-studio-getting-started/">Test Engineering Studio Maven goal</a>. There is no separate stable Selector Audit or Selector Lab CLI in 0.5.0.</p>
+<p>Use the <a href="../../ai/test-engineering-studio-getting-started/">Test Engineering Studio Maven goal</a>. There is no separate stable Selector Audit or Selector Lab CLI in 0.5.1.</p>
 </div>
 <h2 id="generated-looking-ids-are-evidence-not-a-verdict">Generated-looking IDs are evidence, not a verdict<a class="headerlink" href="#generated-looking-ids-are-evidence-not-a-verdict" title="Permanent link">&para;</a></h2>
 <p>Frameworks and build tools commonly produce values such as counters, UUIDs, hashes, or random-looking suffixes.
@@ -4802,7 +4830,7 @@ result estimates review scope; it does not assert that every match finds the sam
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.0", "default": "latest", "is_dev": false, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.1", "default": "latest", "is_dev": false, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

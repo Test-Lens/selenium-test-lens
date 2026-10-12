@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/whats-new-0.5.0/">
       
       
-        <link rel="prev" href="../migration/">
+        <link rel="prev" href="../whats-new-0.5.1/">
       
       
         <link rel="next" href="../whats-new-0.4.0/">
@@ -92,10 +92,10 @@
   <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
   
   
-    <meta name="test-lens-integration-target" content="0.5.0">
+    <meta name="test-lens-integration-target" content="0.5.1">
     <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
     <meta name="test-lens-docs-source-kind" content="release">
-    <meta name="test-lens-docs-source-revision" content="783a1cac30be37902812820483dcf26edd43922b">
+    <meta name="test-lens-docs-source-revision" content="f4906f5c297d86b8f1eea9efa105219d5320dddd">
   
 
   </head>
@@ -130,7 +130,7 @@
             
   <style>.tl-version-switcher{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-bottom:.25rem}.tl-version-switcher select{max-width:15rem}</style>
   <nav class="tl-version-switcher" aria-label="Documentation version"
-       data-current-version="0.5.0">
+       data-current-version="0.5.1">
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
@@ -477,7 +477,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../whats-new-0.5.1/" class="md-tabs__link">
           
   
   
@@ -2802,6 +2802,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../whats-new-0.5.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -3957,7 +3985,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1" class="md-nav__link">
         
   
   
@@ -3985,7 +4013,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/" class="md-nav__link">
         
   
   
@@ -4122,7 +4150,7 @@
 
 
   
-    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/release/0.5.0/docs/whats-new-0.5.0.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/release/0.5.1/docs/whats-new-0.5.0.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -4147,7 +4175,7 @@
 <p>The published selector and application artifacts are tooling dependencies. Their technically public implementation classes are not all part of the stable Java compatibility promise.</p>
 <h2 id="bounded-agent-workflow">Bounded agent workflow<a class="headerlink" href="#bounded-agent-workflow" title="Permanent link">&para;</a></h2>
 <p>Studio sends a task-specific projection rather than an entire repository or raw DOM. Provider-neutral contracts separate the architect, implementer, verifier, stabilizer, and reviewer roles. The default Codex CLI adapter is an external subprocess integration; CI can use the deterministic scripted provider.</p>
-<p>Generated tests are checked before compilation. Raw selectors, direct <code>WebDriver.findElement(...)</code>, <code>Thread.sleep(...)</code>, direct JavaScript execution, and writes outside the approved test target are rejected by default.</p>
+<p>Generated tests are checked as complete Java 17 sources before compilation. Raw selectors, direct <code>WebDriver.findElement(...)</code>, Java <code>Thread.sleep</code> calls and method references, direct JavaScript execution, retry constructs, assertion-failure swallowing, parse failures, and writes outside the approved test target are rejected. Ordinary iteration, Page Object calls, expected-exception assertions, and catches that always propagate the assertion failure remain allowed. This static gate prevents known unsafe constructs; it does not prove that a generated test is business-correct.</p>
 <h2 id="execution-and-repair-safety">Execution and repair safety<a class="headerlink" href="#execution-and-repair-safety" title="Permanent link">&para;</a></h2>
 <p>Targeted JUnit execution runs in a child JVM. Its absolute deadline covers class loading, static initialization, setup, test execution, Lens finalization, and cleanup. Timeout or <code>System.exit(...)</code> terminates only the child boundary, and the parent returns a bounded structured <code>TestExecutionResult</code>.</p>
 <p>A selector replacement is never invented by an agent. Selector Intelligence generates, live-validates, same-target checks, and ranks candidates. The safety boundary is explicit:</p>
@@ -4200,7 +4228,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../migration/" class="md-footer__link md-footer__link--prev" aria-label="Previous: From raw Selenium">
+          <a href="../whats-new-0.5.1/" class="md-footer__link md-footer__link--prev" aria-label="Previous: What&#39;s new in 0.5.1">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -4210,7 +4238,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                From raw Selenium
+                What's new in 0.5.1
               </div>
             </div>
           </a>
@@ -4260,7 +4288,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.0", "default": "latest", "is_dev": false, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.1", "default": "latest", "is_dev": false, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>

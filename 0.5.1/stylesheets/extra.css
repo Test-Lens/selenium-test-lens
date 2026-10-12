@@ -1,0 +1,84 @@
+.lens-hero {
+  margin: 1rem 0 2.5rem;
+  padding: 2.5rem clamp(1.25rem, 5vw, 4rem);
+  border: 1px solid color-mix(in srgb, var(--md-primary-fg-color) 28%, transparent);
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--md-accent-fg-color) 18%, transparent), transparent 38%),
+    linear-gradient(145deg, color-mix(in srgb, var(--md-primary-fg-color) 12%, var(--md-default-bg-color)), var(--md-default-bg-color));
+}
+
+.lens-home-logo {
+  display: block;
+  width: min(100%, 26rem);
+  height: auto;
+  margin: 0 0 1rem;
+  padding: 0.35rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.lens-hero h1 {
+  margin-bottom: 0.35rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.lens-hero > p:first-of-type {
+  max-width: 48rem;
+  margin-bottom: 1.5rem;
+  font-size: 1.12rem;
+}
+
+.lens-hero .md-button {
+  margin: 0.3rem 0.35rem 0.3rem 0;
+}
+
+.lens-release-badge {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 0.65rem;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--md-accent-fg-color) 45%, transparent);
+  border-radius: 999px;
+  color: var(--md-default-fg-color--light);
+  background: color-mix(in srgb, var(--md-accent-fg-color) 10%, transparent);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.lens-benefits > ul > li {
+  min-height: 9rem;
+}
+
+.lens-benefits > ul > li > p:last-child {
+  margin-bottom: 0;
+}
+
+.grid.cards > ul > li {
+  border-radius: 0.65rem;
+}
+
+@media (max-width: 44rem) {
+  .lens-hero {
+    margin-top: 0.5rem;
+    padding: 1.4rem 1rem;
+  }
+
+  .lens-hero h1 {
+    font-size: 1.7rem;
+    line-height: 1.12;
+  }
+
+  .lens-hero .md-button {
+    display: block;
+    width: 100%;
+    margin: 0.45rem 0 0;
+    text-align: center;
+  }
+
+  .lens-benefits > ul > li {
+    min-height: 0;
+  }
+}

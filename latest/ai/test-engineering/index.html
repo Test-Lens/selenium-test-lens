@@ -92,10 +92,10 @@
   <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
   
   
-    <meta name="test-lens-integration-target" content="0.5.0">
+    <meta name="test-lens-integration-target" content="0.5.1">
     <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
     <meta name="test-lens-docs-source-kind" content="release">
-    <meta name="test-lens-docs-source-revision" content="783a1cac30be37902812820483dcf26edd43922b">
+    <meta name="test-lens-docs-source-revision" content="f4906f5c297d86b8f1eea9efa105219d5320dddd">
   
 
   </head>
@@ -130,7 +130,7 @@
             
   <style>.tl-version-switcher{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-bottom:.25rem}.tl-version-switcher select{max-width:15rem}</style>
   <nav class="tl-version-switcher" aria-label="Documentation version"
-       data-current-version="0.5.0">
+       data-current-version="0.5.1">
     <strong>Version:</strong>
     <select aria-label="Choose documentation version" data-tl-version-select>
       <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
@@ -477,7 +477,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../whats-new-0.5.0/" class="md-tabs__link">
+        <a href="../../whats-new-0.5.1/" class="md-tabs__link">
           
   
   
@@ -2910,6 +2910,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../whats-new-0.5.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../whats-new-0.5.0/" class="md-nav__link">
         
   
@@ -3949,7 +3977,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1" class="md-nav__link">
         
   
   
@@ -3977,7 +4005,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/" class="md-nav__link">
         
   
   
@@ -4103,7 +4131,7 @@
 
 
   
-    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/release/0.5.0/docs/ai/test-engineering.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/release/0.5.1/docs/ai/test-engineering.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -4115,7 +4143,7 @@
 <p>Test Lens prepares deterministic, provider-neutral inputs for test-engineering agents. It does not embed an OpenAI, Anthropic, Gemini, or other model SDK, and it does not run an autonomous agent scheduler.</p>
 <div class="admonition info">
 <p class="admonition-title">Opt-in tooling contracts</p>
-<p>These provider-neutral contracts support the 0.5.0 Studio workflow. Internal coordinators, persistence, parsers, process models, and repair writers are not stable USER API.</p>
+<p>These provider-neutral contracts support the 0.5.1 Studio workflow. Internal coordinators, persistence, parsers, process models, and repair writers are not stable USER API.</p>
 </div>
 <p>The AI boundary begins only after deterministic observation and generation:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ApplicationModel + correlated existing/generated Page Object API + requirement + conventions
@@ -4190,6 +4218,9 @@
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>             -&gt; explicit review/apply -&gt; targeted rerun
 </span></code></pre></div>
 <p>The caller bounds attempts. The contracts do not implement an infinite self-healing loop.</p>
+<p>The complete Studio execution path currently targets JUnit 5. TestNG source can remain relevant to the bounded project
+index, and the published TestNG runtime adapter remains supported, but Studio does not generate and execute a complete
+TestNG workflow in this release.</p>
 <p><code>FailureClassification.Category</code> separates product defects, test logic defects, selector instability, timing/synchronization, assertion expectations, test data, environment, authentication, page-model drift, and unknown causes. A stabilizer must use Test Lens runtime evidence and the relevant model slice instead of receiving the entire application or repository.</p>
 <p>When selector instability is proven, replacement follows Selector Intelligence: candidate generation, live validation, same-target comparison, stability evidence, and ranking. <code>RepairProposal</code> is always <code>PROPOSE_ONLY</code> and names affected tests. It never silently changes a selector because a test happened to pass afterward.</p>
 <h2 id="security-and-transport">Security and transport<a class="headerlink" href="#security-and-transport" title="Permanent link">&para;</a></h2>
@@ -4296,7 +4327,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.0", "default": "latest", "is_dev": false, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.1", "default": "latest", "is_dev": false, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

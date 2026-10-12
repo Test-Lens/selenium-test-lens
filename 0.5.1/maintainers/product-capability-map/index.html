@@ -1,0 +1,4838 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+      
+      
+      
+        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/maintainers/product-capability-map/">
+      
+      
+        <link rel="prev" href="../../reference/advanced-low-level/">
+      
+      
+        <link rel="next" href="../../reference/public-api-catalog/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Product capability map - Test Lens</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/ai-integration-builder.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-T0B0XE6MS1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-T0B0XE6MS1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-T0B0XE6MS1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  
+  
+    
+  
+  
+  
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Test Lens">
+  <meta property="og:title" content="Product capability map - Test Lens">
+  <meta property="og:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/maintainers/product-capability-map/">
+  <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+  <meta property="og:image:alt" content="Test Lens">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Product capability map - Test Lens">
+  <meta name="twitter:description" content="Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.">
+  <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+  
+  
+    <meta name="test-lens-integration-target" content="0.5.1">
+    <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
+    <meta name="test-lens-docs-source-kind" content="release">
+    <meta name="test-lens-docs-source-revision" content="f4906f5c297d86b8f1eea9efa105219d5320dddd">
+  
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#product-capability-map-for-release-051" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+  <style>.tl-version-switcher{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-bottom:.25rem}.tl-version-switcher select{max-width:15rem}</style>
+  <nav class="tl-version-switcher" aria-label="Documentation version"
+       data-current-version="0.5.1">
+    <strong>Version:</strong>
+    <select aria-label="Choose documentation version" data-tl-version-select>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
+    </select>
+    <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
+  </nav>
+  <script>
+    (() => {
+      const nav = document.currentScript.previousElementSibling;
+      const select = nav.querySelector("[data-tl-version-select]");
+      const base = "https://test-lens.github.io/selenium-test-lens/";
+      const selectCurrent = () => {
+        const current = nav.dataset.currentVersion;
+        for (const option of select.options) option.selected = option.textContent === current;
+      };
+      select.addEventListener("change", () => { window.location.assign(select.value); });
+      selectCurrent();
+      fetch(base + "versions.json", { credentials: "same-origin" })
+        .then(response => response.ok ? response.json() : Promise.reject())
+        .then(versions => {
+          select.replaceChildren(...versions.map(item => {
+            const option = document.createElement("option");
+            option.value = base + item.version + "/";
+            option.textContent = item.title || item.version;
+            option.dataset.version = item.version;
+            option.selected = item.version === nav.dataset.currentVersion;
+            return option;
+          }));
+        })
+        .catch(() => selectCurrent());
+    })();
+  </script>
+  
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Test Lens" class="md-header__button md-logo" aria-label="Test Lens" data-md-component="logo">
+      
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Test Lens
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Product capability map
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Test-Lens/selenium-test-lens" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Test-Lens/selenium-test-lens
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Using Test Lens
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../observability/" class="md-tabs__link">
+          
+  
+  
+  Observability
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../security/redaction/" class="md-tabs__link">
+          
+  
+  
+  Security
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../advanced/" class="md-tabs__link">
+          
+  
+  
+  Advanced Features
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../integrations/" class="md-tabs__link">
+          
+  
+  
+  Integrations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../migration/" class="md-tabs__link">
+          
+  
+  
+  Migration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../whats-new-0.5.1/" class="md-tabs__link">
+          
+  
+  
+  Releases
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../reference/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Test Lens" class="md-nav__button md-logo" aria-label="Test Lens" data-md-component="logo">
+      
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
+
+    </a>
+    Test Lens
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Test-Lens/selenium-test-lens" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Test-Lens/selenium-test-lens
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation & first test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai-assisted-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI-assisted integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai/codex-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Codex contributor workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../framework-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Existing WebDriver integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Test Lens
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Using Test Lens
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/selector-intelligence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector Intelligence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/react-spa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    React & SPA resilience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/auth-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managed Auth State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/managed-test-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managed Test State & Resources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elements
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Elements
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elements overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/locators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Locators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/waiting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Waiting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/assertions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/information/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Element information
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/select-controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Select controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser Context
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Browser Context
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser context overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/windows-tabs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Windows & tabs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/alerts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerts, confirms & prompts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Observability
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/visual-diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live HUD & configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/hud-studio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HUD Studio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/screenshots-evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Screenshots & evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/trace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Trace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTML, JSON & ZIP reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/report-upload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Report upload
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/flakiness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flakiness and retry outcomes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/failure-bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Failure bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Security
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensitive-data redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/visual-redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced features overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_2" id="__nav_6_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Application Mapping
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Application Mapping
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/application-mapping/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview and models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/application-mapping/tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guided end-to-end tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/application-mapping/existing-page-objects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Existing Page Object correlation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/application-mapping/page-object-generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Page Object generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/application-mapping/drift-security-troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drift, security & troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai/test-engineering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI test engineering foundation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai/workflow-orchestration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI workflow orchestration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai/test-engineering-studio-getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Studio getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai/test-engineering-studio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Engineering Studio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai/0.5.0-publication-candidates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.0 publication candidates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/steps-business-assertions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steps & business assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Network diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/overlay-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overlay policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/visual-helpers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual helpers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/js-overlay-debug/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JsOverlayDebug advanced facade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/junit5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JUnit 5
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/testng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestNG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/allure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Allure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Migration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From raw Selenium
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Releases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.5.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.5.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.4.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.3.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.3.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migrating-0.2-to-0.3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating from 0.2.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/test-lens/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestLens
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration builders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/result-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result & data types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/core-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/advanced-low-level/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced / low-level API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product capability map
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product capability map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#audit-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Audit boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-and-daily-browser-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integration and daily browser work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#waiting-assertions-and-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Waiting, assertions, and recovery
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#live-diagnostics-and-persistent-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live diagnostics and persistent evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-data-protection-state-and-optional-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network, data protection, state, and optional modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selector-intelligence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Selector Intelligence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#application-and-existing-project-intelligence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application and existing-project intelligence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-engineering-studio-and-reviewed-repair" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Engineering Studio and reviewed repair
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-tools-versus-runtime-integrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation tools versus runtime integrations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-evidence-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version evidence policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/public-api-catalog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Binary API catalog (optional)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../application-mapper-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Application Mapper architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../existing-project-ai-workflow-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Existing-project AI workflow ADR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../consumer-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Consumer compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing versioned docs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../search-console-recovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Search Console recovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-0.4.x/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releasing Test Lens 0.4.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-certification-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 release certification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../media-inventory-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 media inventory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recording-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recording 0.4.0 media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../patch-release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.x patch-release lane
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-integration-tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Real-browser integration tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../performance-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime performance audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-declaration-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Static locator declaration index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-stability-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector stability policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-candidate-live-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector candidate live analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-find-similar-history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector similarity and cross-run history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Offline Selector Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-lab-readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read-only Selector Lab
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compatibility-run-manifests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility run manifests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migration-git-checkpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Git preflight and checkpoints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maven Central
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Javadoc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#audit-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Audit boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-and-daily-browser-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integration and daily browser work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#waiting-assertions-and-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Waiting, assertions, and recovery
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#live-diagnostics-and-persistent-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live diagnostics and persistent evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-data-protection-state-and-optional-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network, data protection, state, and optional modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selector-intelligence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Selector Intelligence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#application-and-existing-project-intelligence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application and existing-project intelligence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-engineering-studio-and-reviewed-repair" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Engineering Studio and reviewed repair
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-tools-versus-runtime-integrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation tools versus runtime integrations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-evidence-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version evidence policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/release/0.5.1/docs/maintainers/product-capability-map.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="product-capability-map-for-release-051">Product capability map for release 0.5.1<a class="headerlink" href="#product-capability-map-for-release-051" title="Permanent link">&para;</a></h1>
+<p>This inventory is the maintenance source behind the documentation landing page. It records behavior shipped by the immutable <code>v0.5.1</code> release, separates supported consumer entry points from published implementation dependencies, and does not treat every technically public Java class as stable API.</p>
+<h2 id="audit-boundary">Audit boundary<a class="headerlink" href="#audit-boundary" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Consumer target:</strong> <code>io.github.test-lens:*:0.5.1</code> and the fully qualified Studio goal <code>io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.1:studio</code>.</li>
+<li><strong>Release implementation:</strong> annotated tag <code>v0.5.1</code> (<code>9584d67b8efaf57ef76120786c0e245236e08041</code>).</li>
+<li><strong>Repairable documentation source:</strong> an explicitly reviewed post-tag documentation commit on <code>release/0.5.1</code>; <code>publish-missing-release</code> verifies that the versioned documentation is absent, publishes documentation only from the named release branch, and does not move the tag or change released runtime/API semantics.</li>
+<li><strong>Published stable artifacts:</strong> parent POM, <code>selenium-test-lens-core</code>, <code>selenium-test-lens-overlay</code>, <code>selenium-test-lens</code>, <code>selenium-test-lens-junit5</code>, <code>selenium-test-lens-testng</code>, <code>selenium-test-lens-allure</code>, and <code>selenium-test-lens-react</code>.</li>
+<li><strong>Published tooling dependencies:</strong> <code>selenium-test-lens-application-model</code>, <code>selenium-test-lens-application-mapper</code>, <code>selenium-test-lens-application-tooling</code>, <code>selenium-test-lens-selector-engine</code>, <code>selenium-test-lens-selector-live</code>, <code>selenium-test-lens-selector-tooling</code>, <code>selenium-test-lens-test-engineering-studio</code>, and <code>test-lens-test-engineering-maven-plugin</code>.</li>
+<li><strong>Not published for consumers:</strong> examples, browser tests, Selector Lab, compatibility engine/tooling, and migration tooling retain <code>maven.deploy.skip</code>; they are test, demo, or internal maintenance surfaces.</li>
+<li><strong>API compatibility boundary:</strong> the generated 0.5.1 catalog contains 791 public types and 5,700 callables. The compatibility promise covers the explicitly classified 123 <code>USER_API</code> and 144 <code>ADVANCED_API</code> types, not all public classes in tooling JARs.</li>
+</ul>
+<p>The exact public type and callable inventory remains generated in the <a href="../../reference/public-api-catalog/">public API catalog</a>. This map groups that surface by user problem and records representative evidence; it is not a replacement for signature documentation.</p>
+<h2 id="integration-and-daily-browser-work">Integration and daily browser work<a class="headerlink" href="#integration-and-daily-browser-work" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>User problem and released behavior</th>
+<th>Public entry point / artifact</th>
+<th>Activation, requirements, and limits</th>
+<th>Detailed docs</th>
+<th>Confirming example, test, and availability source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Attach to an existing driver</td>
+<td>Adds one Lens lifecycle around a consumer-owned <code>WebDriver</code>; manual finalization produces evidence but never closes the driver.</td>
+<td><code>TestLens.attach(...)</code>, <code>startSession</code>, <code>finishPassed/Failed/Skipped</code>; <code>selenium-test-lens</code></td>
+<td>Explicit setup and finalization. Existing factory, Page Objects, runner, and <code>quit()</code> ownership can remain.</td>
+<td><a href="../../getting-started/">Getting started</a>, <a href="../../reference/test-lens/">TestLens lifecycle</a></td>
+<td><code>SeleniumUsageExampleTest</code>, <code>TestLensTest</code>; present in <code>v0.1.0</code> and <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Observe ordinary Selenium</td>
+<td>A returned <code>WebDriver</code> facade and explicitly wrapped elements preserve supported native Selenium semantics while adding correlation, duration, source, redaction, and visual diagnostics. Commands delegate once.</td>
+<td><code>observeDriver()</code>, <code>observe(WebElement, label)</code>; <code>selenium-test-lens</code></td>
+<td>Opt-in in 0.4.0. Old references are not instrumented. Does not add Smart Click, waits, recovery, or JS fallback.</td>
+<td><a href="../../getting-started/#observe-ordinary-selenium-calls">Existing calls</a></td>
+<td><code>NativeSeleniumObservationTest</code>, <code>NativeSeleniumObservationIT</code>, <code>NativeSeleniumObservationExampleTest</code>; introduced in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Semantic and Selenium locators</td>
+<td>Builds lazy <code>UiLocator</code> values from <code>By</code> or test id, text, label, placeholder, alt text, and role/name intent.</td>
+<td><code>locator</code>, <code>getByTestId/Text/Label/Placeholder/AltText/Role</code>; <code>selenium-test-lens</code></td>
+<td>Lens-native API. Role/name uses browser/WebDriver accessibility data and does not implement the ARIA algorithm itself.</td>
+<td><a href="../../elements/locators/">Locators</a></td>
+<td><code>SemanticLocatorTest</code>, <code>UiLocatorSelectorsTest</code>, <code>PlaywrightStyleLocatorsExampleTest</code>; factories are present in <code>v0.4.0</code>, with strengthened accessibility behavior documented for 0.2.0+.</td>
+</tr>
+<tr>
+<td>Scoped queries and collections</td>
+<td>Searches descendants without escaping the selected parent; filters parents by descendants/text/attributes and provides ordered positional selection, snapshots, counts, and count waits.</td>
+<td><code>UiLocator.locator/filterHas/filterBy*/nth/first/last/resolveAll/count/waitUntilCount*</code>; <code>selenium-test-lens</code></td>
+<td>Lazy immutable pipeline; current frame/window only; no automatic shadow-root traversal.</td>
+<td><a href="../../elements/locators/#scoped-and-filtered-locators">Locators</a>, <a href="../../elements/collections/">collections</a></td>
+<td><code>CompositeLocatorTest</code>, <code>UiLocatorCollectionTest</code>; public in <code>v0.4.0</code>. First-version badges are omitted because individual pipeline operations evolved across early releases.</td>
+</tr>
+<tr>
+<td>Element state reads</td>
+<td>Reads text content, accessible name, visibility, enabled state, value, DOM attributes/properties, checked state, and selected option data.</td>
+<td><code>UiLocator.textContent/accessibleName/isVisible/isEnabled/value/attribute/property/isChecked/selected*</code>; <code>selenium-test-lens</code></td>
+<td>Reads the current resolved state; does not imply polling unless a wait/assertion method is used.</td>
+<td><a href="../../elements/information/">Element information</a>, <a href="../../elements/select-controls/">select controls</a></td>
+<td><code>UiLocatorTest</code>, <code>UiLocatorSelectTest</code>, <code>UiLocatorFormActionsTest</code>; public in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Actions and form controls</td>
+<td>Clicks, fills, clears, presses keys, hovers, double/right clicks, checks/unchecks, uploads, focuses, scrolls, and selects native options with operation diagnostics.</td>
+<td><code>UiLocator</code> action methods; <code>selenium-test-lens</code></td>
+<td>Method-specific Selenium/Actions/JS contracts. Upload requires valid local paths; select helpers require native <code>&lt;select&gt;</code>.</td>
+<td><a href="../../elements/actions/">Actions</a>, <a href="../../elements/select-controls/">select controls</a></td>
+<td><code>UiLocatorTest</code>, <code>UiLocatorFormActionsTest</code>, <code>UiLocatorSelectTest</code>; public in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Bounded Smart Click</td>
+<td>Uses one deadline across native click and controlled fallbacks, with target-owned hit testing for physical fallbacks and configurable final JS dispatch.</td>
+<td><code>UiLocator.click()</code>, <code>UiLocatorOptions.javascriptClickFallback</code>; <code>selenium-test-lens</code></td>
+<td>Lens-native only. Hidden/disabled targets fail; no ancestor substitution, DOM mutation, blind second click, or universal success guarantee.</td>
+<td><a href="../../elements/actions/#click-contract-bounded-fallback-cascade">Click contract</a></td>
+<td><code>SmartClickFallbackCascadeTest</code>, <code>HighlightClickContractTest</code>, real-browser contracts; behavior strengthened in 0.4.0, earlier click capability predates it.</td>
+</tr>
+<tr>
+<td>Browser context</td>
+<td>Wraps frame, parent/default content, window/tab, new-window, and alert/confirm/prompt work while preserving explicit context ownership.</td>
+<td><code>TestLens.switchToFrame/...Window</code>, <code>alert()</code>; <code>selenium-test-lens</code></td>
+<td>Uses current Selenium session; no automatic context discovery across arbitrary boundaries.</td>
+<td><a href="../../browser-context/">Browser context</a></td>
+<td><code>TestLensBrowserContextTest</code>, <code>TestLensAlertTest</code>, browser contracts; public in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Overlay/popup handling</td>
+<td>Diagnoses known blockers and executes configured actions for declared overlay policies.</td>
+<td><code>OverlayPolicy</code>, <code>OverlayHandler</code>, <code>Guards</code>; <code>selenium-test-lens</code></td>
+<td>Requires explicit selectors/actions; does not infer every application popup or guarantee recovery.</td>
+<td><a href="../../advanced/overlay-policies/">Overlay policies</a></td>
+<td><code>OverlayPolicyTest</code>, <code>OverlayHandlerTest</code>, <code>OverlayPolicyExampleTest</code>; public advanced API in <code>v0.4.0</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="waiting-assertions-and-recovery">Waiting, assertions, and recovery<a class="headerlink" href="#waiting-assertions-and-recovery" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>User problem and released behavior</th>
+<th>Public entry point / artifact</th>
+<th>Activation, requirements, and limits</th>
+<th>Detailed docs</th>
+<th>Confirming example, test, and availability source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Element and collection waits</td>
+<td>Re-resolves and polls visible, hidden, Selenium-clickable, text, and collection-count conditions using locator timeout/poll settings.</td>
+<td><code>UiLocator.waitUntil*</code>; <code>selenium-test-lens</code></td>
+<td>Explicit call. Clickability is not proof against the next interception. Polling is not recovery retry.</td>
+<td><a href="../../elements/waiting/">Waiting</a></td>
+<td><code>UiLocatorTest</code>, <code>UiLocatorCollectionTest</code>, <code>LocatorOptionsPropagationTest</code>; public in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Page/application waits</td>
+<td>Polls document ready states, an installed XHR/fetch-idle tracker, DOM stability, roots, and combined React/network stages.</td>
+<td><code>TestLens.waitForPageReady/waitForInteractiveOrComplete/waitForNetworkIdle</code>, <code>PageWaits</code>, <code>JsOverlayDebug</code>; <code>selenium-test-lens</code></td>
+<td>Each method has a narrower observation contract. XHR/fetch idle misses earlier and non-XHR/fetch resources. SPA helpers use observable DOM state.</td>
+<td><a href="../../elements/waiting/#page-and-javascript-waits">Page waits</a></td>
+<td><code>PageWaitsTest</code>, <code>PageWaitFacadeTest</code>; public in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Polling assertions</td>
+<td>Polls element, collection, and current-page conditions and returns structured results or throws structured assertion failures.</td>
+<td><code>UiExpect</code>, <code>UiPageExpect</code>, <code>UiAssertionOptions/Result/Error</code>; <code>selenium-test-lens</code></td>
+<td>State reads only; does not click or count polls as recovery. URL matching is raw/case-sensitive; title matching uses configured text semantics.</td>
+<td><a href="../../elements/assertions/">Assertions</a></td>
+<td><code>UiExpectTest</code>, <code>UiExpectStateAssertionsTest</code>, <code>UiPageExpectTest</code>, <code>RetryableAssertionsExampleTest</code>; public in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Recovery diagnostics and outcome policy</td>
+<td>Records failed physical attempts that lead to another attempt, summarizes recovered instability, and can report, warn, or reject an otherwise passed result after evidence.</td>
+<td><code>RetrySummary</code>, <code>RetryOutcomePolicy</code>, <code>UiLocatorOptions</code>; core/main artifacts</td>
+<td>Configured recovery only. Distinct from condition polling, runner retry, and CI job retry; does not promise elimination of flakiness.</td>
+<td><a href="../../observability/flakiness/">Flakiness</a></td>
+<td><code>UiLocatorRecoveryRetryTest</code>, <code>RetrySummaryTest</code>, runner retry policy tests; public in <code>v0.4.0</code>, with policies expanded before/through 0.4.0.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="live-diagnostics-and-persistent-evidence">Live diagnostics and persistent evidence<a class="headerlink" href="#live-diagnostics-and-persistent-evidence" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>User problem and released behavior</th>
+<th>Public entry point / artifact</th>
+<th>Activation, requirements, and limits</th>
+<th>Detailed docs</th>
+<th>Confirming example, test, and availability source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HUD and semantic event rows</td>
+<td>Shows current test/step plus action, wait, assertion, recovery, manual, and enabled network rows with correlated phases.</td>
+<td><code>HudOptions</code>, <code>HudPreset</code>, <code>TestLensOptions.hud</code>; overlay/main artifacts</td>
+<td>Enabled by normal observability configuration. Presets: MINIMAL, COMPACT, STANDARD, DEBUG. Best effort and not durable evidence.</td>
+<td><a href="../../observability/visual-diagnostics/">Visual diagnostics</a></td>
+<td><code>HudEventSemanticsTest</code>, <code>HudPresetRendererParityTest</code>, <code>RealBrowserContractsIT</code>; HUD exists since 0.1.0, configuration expanded later.</td>
+</tr>
+<tr>
+<td>Highlights and visual feedback</td>
+<td>Draws pointer-transparent, state-aware target decoration and wait/assertion feedback without activating the target.</td>
+<td><code>HighlightOptions</code>, <code>HighlightState</code>, <code>highlight(...)</code>; overlay/main artifacts</td>
+<td>Configurable and best effort. FAST disables automatic feedback unless explicitly overridden; manual behavior follows configuration.</td>
+<td><a href="../../observability/visual-diagnostics/#state-aware-highlights">Highlights</a></td>
+<td><code>HighlightActionsLifecycleTest</code>, <code>HighlightClickContractTest</code>; public in <code>v0.4.0</code>, configuration expanded in 0.3.x.</td>
+</tr>
+<tr>
+<td>Local source navigation</td>
+<td>Renders per-event source labels and dispatches a local IDE target through configured mapping/provider when enabled and active.</td>
+<td>Source-navigation options through <code>HudOptions</code>; overlay/main artifacts</td>
+<td>Requires captured source, mapping, allowed target, activation, and local provider/transport. An ON banner alone is insufficient.</td>
+<td><a href="../../observability/visual-diagnostics/#local-source-navigation">Source navigation</a></td>
+<td><code>SourceFileResolverTest</code>, <code>IdeNavigationUriProviderTest</code>, source-navigation browser contracts; public in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Structured logging and exporters</td>
+<td>Fans structured log entries to built-in or consumer sinks and exports text, JSON, or HTML views.</td>
+<td><code>UiTestLensLogger</code>, log entries/targets/sinks/exporters; <code>selenium-test-lens-core</code></td>
+<td>Advanced direct API; normal Lens lifecycle wires diagnostic logging. Redacted copies are sent to sinks.</td>
+<td><a href="../../observability/logging/">Logging</a></td>
+<td>logger, sink, and exporter unit tests plus <code>LoggingExportExampleTest</code>; public in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Trace and reports</td>
+<td>Preserves a bounded operation timeline and finalizes HTML/JSON output exactly once.</td>
+<td><code>UiTestLensSession</code>, trace models/exporters, <code>TestLensFinalizationResult</code>; core/main artifacts</td>
+<td>Output defaults under <code>target/ui-test-lens</code>; retention is bounded. Finalization never closes a consumer-owned driver.</td>
+<td><a href="../../observability/trace/">Trace</a>, <a href="../../observability/reports/">reports</a></td>
+<td>session, bounded-store, JSON/HTML exporter tests; trace/report present in <code>v0.1.0</code> and <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Screenshots</td>
+<td>Captures viewport evidence and bounded opt-in full-page scroll-and-stitch output through WebDriver.</td>
+<td><code>captureScreenshot</code>, <code>ScreenshotCaptureOptions/Result</code>; <code>selenium-test-lens</code></td>
+<td>VIEWPORT default. FULL_PAGE changes scroll position temporarily, is bounded, uses no CDP, and does not expand nested scrollers/iframes.</td>
+<td><a href="../../observability/screenshots-evidence/">Screenshots</a></td>
+<td><code>ScreenshotCaptureTest</code>, <code>FullPageScreenshotCaptureTest</code>, examples; viewport present early, full-page added in 0.2.0.</td>
+</tr>
+<tr>
+<td>Failure bundles</td>
+<td>On final failure, independently collects configured screenshots, trace/report, failure/context, runtime/config allowlists, network summary, manifest, directory, and ZIP.</td>
+<td><code>FailureBundleOptions</code>, normal failed finalization; <code>selenium-test-lens</code></td>
+<td>Best effort; collector failures do not replace the original failure. Page source/console are optional and bounded. CI owns retention.</td>
+<td><a href="../../observability/failure-bundles/">Failure bundles</a></td>
+<td><code>FailureBundleCaptureTest</code>, evidence browser tests; added in 0.2.0 and present in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Existing video attachment</td>
+<td>Adds metadata/reference for a recording supplied by the caller.</td>
+<td><code>VideoEvidence</code>, options/result; <code>selenium-test-lens</code></td>
+<td>Lens does not record or redact video.</td>
+<td><a href="../../observability/screenshots-evidence/#videoevidence">Video evidence</a></td>
+<td><code>VideoEvidenceTest</code>, <code>VideoEvidenceExampleTest</code>; public in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Explicit HTTP report upload</td>
+<td>Packages completed output and synchronously sends it to a configured endpoint with controlled auth, size, proxy, checksum, idempotency, and retry options.</td>
+<td><code>ReportUploader</code>, <code>ReportUploadOptions</code>; <code>selenium-test-lens</code></td>
+<td>Explicit <code>finish → upload → quit</code>; never automatic and never owns WebDriver. Receiver and CI retention are external.</td>
+<td><a href="../../observability/report-upload/">Report upload</a></td>
+<td><code>ReportUploaderTest</code>; public in <code>v0.4.0</code>. First-version badge omitted.</td>
+</tr>
+<tr>
+<td>Allure attachment</td>
+<td>Attaches selected finalized Lens evidence to the active Allure test/step.</td>
+<td><code>AllureTestLens.attach(...)</code>; <code>selenium-test-lens-allure</code></td>
+<td>Optional artifact and active Allure lifecycle. Does not recapture evidence or change Allure status.</td>
+<td><a href="../../integrations/allure/">Allure</a></td>
+<td><code>AllureTestLensTest</code>, <code>AllureRunnerIntegrationTest</code>; introduced in 0.3.0.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="network-data-protection-state-and-optional-modules">Network, data protection, state, and optional modules<a class="headerlink" href="#network-data-protection-state-and-optional-modules" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>User problem and released behavior</th>
+<th>Public entry point / artifact</th>
+<th>Activation, requirements, and limits</th>
+<th>Detailed docs</th>
+<th>Confirming example, test, and availability source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Passive BiDi network diagnostics</td>
+<td>Correlates requests, completed responses, redirects, and fetch errors; provides snapshots, waits, assertions, HUD filtering, evidence, and summaries.</td>
+<td><code>NetworkDiagnostics</code>, <code>NetworkDiagnosticsOptions</code>, network models; <code>selenium-test-lens</code></td>
+<td>Selenium Java 4.39.0+, compatible browser/driver/transport, BiDi-enabled session, explicit start. No interception, mocking, bodies, performance-log, or CDP fallback.</td>
+<td><a href="../../advanced/network/">Network</a></td>
+<td>network unit tests and <code>NetworkBiDiBrowserIT</code>; manual network events existed earlier, typed BiDi surface present in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Caller-supplied API preview</td>
+<td>Displays a modal around an API operation whose method/URL/payload/result preview is provided by the caller.</td>
+<td><code>apiCallWithModal(...)</code>; <code>selenium-test-lens</code></td>
+<td>Specialized visual helper. Does not observe browser traffic or perform interception.</td>
+<td><a href="../../advanced/visual-helpers/#apicallwithmodal">Visual helpers</a></td>
+<td>API overlay tests; public in <code>v0.4.0</code>.</td>
+</tr>
+<tr>
+<td>Diagnostic text redaction</td>
+<td>Creates redacted diagnostic copies for recognized credentials, configured keys/secrets, URLs, exceptions, network/API text, reports, and bundle text.</td>
+<td><code>RedactionPolicy</code>; <code>selenium-test-lens-core</code> and main options</td>
+<td>Enabled by default; configurable; explicit disable can expose secrets. Does not discover arbitrary personal data or transform replayable auth files/pixels/video.</td>
+<td><a href="../../security/redaction/">Text redaction</a></td>
+<td><code>RedactionPolicyTest</code> and boundary tests; central failure-bundle/redaction behavior added in 0.2.0.</td>
+</tr>
+<tr>
+<td>Screenshot visual redaction</td>
+<td>Adds browser-side SOLID/BLUR masks to configured regions and password inputs before screenshot publication.</td>
+<td><code>VisualRedactionOptions</code>; <code>selenium-test-lens</code></td>
+<td>Password SOLID defaults and STRICT fail-closed publication. Blur is not guaranteed anonymization; only Test Lens screenshot captures are covered.</td>
+<td><a href="../../security/visual-redaction/">Visual redaction</a></td>
+<td><code>VisualRedactionCaptureTest</code>, options tests, browser evidence contracts; introduced in 0.3.0.</td>
+</tr>
+<tr>
+<td>Managed Auth State</td>
+<td>Restores cookies/storage, validates through the application, performs at most one justified login, and atomically keeps/replaces state. Low-level capture/restore remains available.</td>
+<td><code>lens.authState().ensure(...)</code>, <code>AuthStateManager</code>; <code>selenium-test-lens</code></td>
+<td>Same-origin controlled setup with locking and tri-state validation. State files may contain live credentials; no automatic cross-origin SSO or logout.</td>
+<td><a href="../../advanced/auth-state/">Auth state</a></td>
+<td>managed/low-level auth unit tests and <code>ManagedAuthStateIT</code>; managed lifecycle introduced in 0.3.0.</td>
+</tr>
+<tr>
+<td>Managed test state/resources</td>
+<td>Isolates typed scenario state per physical invocation, shares suite state intentionally, and cleans resources exactly once in LIFO order.</td>
+<td><code>scenarioState</code>, <code>suiteState</code>, <code>resources</code>; <code>selenium-test-lens</code></td>
+<td>In-memory only; no disk/cross-JVM store. Runner adapters bind physical invocation boundaries.</td>
+<td><a href="../../features/managed-test-state/">Managed state</a></td>
+<td><code>ManagedTestStateTest</code>, JUnit/TestNG state tests; introduced in 0.3.0.</td>
+</tr>
+<tr>
+<td>React/SPA helpers</td>
+<td>Re-resolves across rerenders, checks observable busy/loading conventions, waits for roots/DOM stability, and handles known React Select markup.</td>
+<td><code>ReactSupport</code>, <code>ReactSafeExecutor</code>, actionability types; <code>selenium-test-lens-react</code></td>
+<td>Optional published module. No component-tree inspection, universal library support, or automatic frame/window/shadow traversal.</td>
+<td><a href="../../features/react-spa/">React/SPA</a></td>
+<td>React module tests and examples; published from 0.1.0 through 0.4.0, with individual behavior evolving.</td>
+</tr>
+<tr>
+<td>Runner adapters</td>
+<td>Maps physical invocation outcomes to Lens lifecycle and cleans up only adapter-owned drivers.</td>
+<td><code>TestLensExtension</code>; <code>TestLensTestNgListener</code>/factory/context; optional adapter artifacts</td>
+<td>Explicit runner configuration. JUnit/TestNG retries are new sessions; TestNG <code>PER_CLASS</code> requires sequential class methods.</td>
+<td><a href="../../framework-integration/">Framework integration</a>, <a href="../../integrations/junit5/">JUnit</a>, <a href="../../integrations/testng/">TestNG</a></td>
+<td>extension/listener tests and browser ITs; adapters published from 0.2.0, TestNG PER_CLASS added in 0.4.0.</td>
+</tr>
+<tr>
+<td>Named steps and business assertions</td>
+<td>Adds domain-level step and assertion results to the same trace without replacing runner assertions/lifecycle.</td>
+<td><code>step(...)</code>, <code>UiStep*</code>, <code>BusinessAssertions</code>; <code>selenium-test-lens</code></td>
+<td>Optional composition API; failures retain documented result/throwing behavior.</td>
+<td><a href="../../advanced/steps-business-assertions/">Steps/business assertions</a></td>
+<td>step/business unit tests and examples; public in <code>v0.4.0</code>. First-version badge omitted.</td>
+</tr>
+<tr>
+<td>Execution/observability modes</td>
+<td>Selects headed/headless execution separately from DEFAULT/FAST presentation and passed-session trace retention.</td>
+<td><code>BrowserExecutionConfig</code>, <code>ObservabilityMode</code>, <code>TestLensOptions</code>; <code>selenium-test-lens</code></td>
+<td>0.4.0. FAST changes presentation defaults, not Selenium/action/assertion/retry semantics or failed-session evidence.</td>
+<td><a href="../../configuration/#browser-execution-and-observability">Configuration</a></td>
+<td>execution/mode unit tests and <code>HeadlessExecutionConfigIT</code>; introduced in 0.4.0.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="selector-intelligence">Selector Intelligence<a class="headerlink" href="#selector-intelligence" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Released 0.5.1 behavior</th>
+<th>Boundary and evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Candidate generation and ranking</td>
+<td>Existing <code>CandidateGenerator</code> and <code>CandidateRanker</code> produce and order deterministic candidates. Mapper and repair reuse this engine rather than implementing locator heuristics.</td>
+<td>Published selector-engine dependency; tooling API unless explicitly classified otherwise.</td>
+</tr>
+<tr>
+<td>Live validation and target identity</td>
+<td><code>LiveCandidateAnalysisService</code> resolves candidates in the explicit browser scope, records match count, uniqueness and executability, and requires same-target comparison before recommendation.</td>
+<td>Published selector-live dependency; analysis objects retaining <code>WebElement</code> remain internal/tooling.</td>
+</tr>
+<tr>
+<td>Stability policies</td>
+<td>Generated-looking IDs, hashes, counters, UUIDs, and framework tokens are evidence rather than final verdicts. Exact or structural project policy may declare a candidate stable or unstable without bypassing uniqueness and target checks.</td>
+<td><a href="../../features/selector-intelligence/">Selector Intelligence</a>; engine and policy contract tests.</td>
+</tr>
+<tr>
+<td>Selector Audit and Find Similar</td>
+<td>Java declaration discovery, evidence-based audit, bounded history, and deterministic similarity relations support review and impact analysis. Similarity never means same element.</td>
+<td>Published selector-tooling implementation dependency; JavaParser-backed classes are not stable USER API.</td>
+</tr>
+<tr>
+<td>Selector Lab</td>
+<td>Read-only inspection UI over supplied selector evidence.</td>
+<td>Unpublished demo module with <code>maven.deploy.skip</code>; not a 0.5.1 consumer entry point.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="application-and-existing-project-intelligence">Application and existing-project intelligence<a class="headerlink" href="#application-and-existing-project-intelligence" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Released 0.5.1 behavior</th>
+<th>Boundary and evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Application Model</td>
+<td>Selenium-free, versioned and deterministic pages, states, meaningful elements, transitions, provenance, completeness, limitations, and redacted selector projections.</td>
+<td>Published tooling format with <code>schemaVersion</code>; the whole Java model tree is not a stable interchange API promise.</td>
+</tr>
+<tr>
+<td>Application Mapper</td>
+<td>Bounded current-page and guided observation plus conservative opt-in safe exploration, backed by live Selector Intelligence.</td>
+<td><code>ApplicationMapper</code> advanced facade; caller owns authentication, navigation, and browser context.</td>
+</tr>
+<tr>
+<td>Existing project index</td>
+<td>Conservatively indexes Java Page Objects/components, locator declarations, methods, inheritance, JUnit/TestNG tests, and source fingerprints.</td>
+<td><code>ExistingProjectIndexer</code>; published tooling implementation, not a general Java compiler API.</td>
+</tr>
+<tr>
+<td>Correlation and usage graph</td>
+<td>Correlates application elements with source declarations using selector, page/context, and live evidence; builds bounded test to method to field to selector to application-element impact.</td>
+<td><code>PageObjectCorrelator</code> and <code>UsageGraph</code>; ambiguous or probable evidence never authorizes repair apply.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="test-engineering-studio-and-reviewed-repair">Test Engineering Studio and reviewed repair<a class="headerlink" href="#test-engineering-studio-and-reviewed-repair" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Released 0.5.1 behavior</th>
+<th>Boundary and evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Turnkey Studio</td>
+<td>The Maven goal discovers an existing project, opens a persistent <code>.test-lens/</code> workspace, and serves a token-protected loopback UI for scan, map, correlate, plan, proposal, run, diagnosis, and repair review.</td>
+<td><code>test-lens-test-engineering-maven-plugin:0.5.1:studio</code> and the small <code>TestEngineeringStudio</code> launcher facade.</td>
+</tr>
+<tr>
+<td>Browser and agent providers</td>
+<td>Local Chrome/Firefox use Selenium Manager; provider-neutral SPIs support trusted project browser factories and external agents with preflight and explicit ownership.</td>
+<td><code>BrowserSessionProvider</code> and <code>AgentExecutorProvider</code>; no provider SDK is added to the ordinary runtime.</td>
+</tr>
+<tr>
+<td>Bounded external-agent workflow</td>
+<td>Architect, implementer, verifier, stabilizer, and reviewer exchange versioned structured artifacts over bounded context. Generated tests are Page-Object-only by default, checked against the canonical indexed Page Object API, and reviewed against a verified evidence pack.</td>
+<td>External runner has bounded IO, timeout, environment allowlist, and no silent scripted fallback.</td>
+</tr>
+<tr>
+<td>Targeted subprocess execution</td>
+<td>JUnit class loading, static initialization, instance/setup/test execution, Lens finalization, and cleanup run in one child JVM under an absolute deadline.</td>
+<td>Timeout, <code>System.exit</code>, halt/crash, and interruption-resistant test code cannot kill or outlive the Studio/workflow host; diagnostics and protocol are bounded.</td>
+</tr>
+<tr>
+<td>Evidence-based repair</td>
+<td>Failure classification, exact/strong source correlation, live candidate validation, same-target, uniqueness, stability, and usage impact produce a <code>PROPOSE_ONLY</code> <code>RepairProposal</code>.</td>
+<td>AI never invents the replacement; proposal creation does not mutate source.</td>
+</tr>
+<tr>
+<td>Trusted repair and resume</td>
+<td>Only explicit human approval invokes the trusted host, which rechecks roots, symlinks, fresh source/declaration fingerprints, old selector, live same-target uniqueness, and double-apply state. Workflow snapshots restore review state without silently rerunning agents, tests, or repairs; interrupted execution remains explicit and stale source requires refresh.</td>
+<td>Studio repair and restart clean-room/browser certifications.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="documentation-tools-versus-runtime-integrations">Documentation tools versus runtime integrations<a class="headerlink" href="#documentation-tools-versus-runtime-integrations" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>What it actually does</th>
+<th>Boundary and evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HUD Studio</td>
+<td>Configures and previews the production HUD renderer, then generates matching Java configuration. Source-navigation behavior is safely simulated in the public demo.</td>
+<td>Documentation-only tool in <code>docs/demo/hud-studio</code>; validated by HUD Studio scripts and <code>HudStudioDocumentationLayoutIT</code>. It is not a separate runtime renderer or IDE probe.</td>
+</tr>
+<tr>
+<td>AI Integration Builder</td>
+<td>Generates one release-bound instruction for an external coding agent from selected integration choices.</td>
+<td>Documentation JavaScript, not an embedded model or guaranteed installer. Target version comes from <code>extra.ai_integration.target_release</code>; checked by <code>check-ai-integration-builder.ps1</code>.</td>
+</tr>
+<tr>
+<td>Test Engineering Studio</td>
+<td>Executes the reviewed local tooling workflow through the Maven goal and loopback host.</td>
+<td>Opt-in published tooling; normal <code>selenium-test-lens</code> runtime does not start it or acquire its dependencies.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="version-evidence-policy">Version evidence policy<a class="headerlink" href="#version-evidence-policy" title="Permanent link">&para;</a></h2>
+<p>The landing page uses 0.5.1 as the current stable release. A capability belongs here only when the immutable release tag, staged artifact set, focused tests, and clean-room certification support it. Publication of an implementation dependency does not promote all of its public classes into the compatibility promise. When a first version is stated in this map, it is supported by a release tag, archived documentation/release notes, and tests or examples from that line; <code>@since</code> alone is not the evidence.</p>
+<p>When maintaining this map:</p>
+<ol>
+<li>verify the symbol and behavior against the target tag or published artifact;</li>
+<li>confirm publication role and type-level API classification independently;</li>
+<li>cite a contract test/example and the focused guide;</li>
+<li>separate a long-standing capability from a later improvement;</li>
+<li>keep demos, test fixtures, parser internals, workflow storage, HTTP internals, process models, and trusted mutation implementations out of the advertised stable API.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../../reference/advanced-low-level/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Advanced / low-level API">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Advanced / low-level API
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../reference/public-api-catalog/" class="md-footer__link md-footer__link--next" aria-label="Next: Binary API catalog (optional)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Binary API catalog (optional)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.1", "default": "latest", "is_dev": false, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
