@@ -10,7 +10,7 @@ hide:
 
 <img class="lens-home-logo" src="assets/brand/test-lens-logo-horizontal.png" alt="Selenium Test Lens" width="720" height="184">
 
-<span class="lens-release-badge">Current release documentation: 0.5.1</span>
+<span class="lens-release-badge">Current stable release: 0.5.1</span>
 
 # Understand what your Selenium test did—and keep the evidence
 
