@@ -58,10 +58,18 @@ nav:
   - Overview: index.md
   - Getting Started:
       - Installation & first test: getting-started.md
-      - AI-assisted integration: ai-assisted-integration.md
+      - AI Integration Prompt Builder: ai-assisted-integration.md
       - Codex contributor workflow: ai/codex-workflow.md
       - Existing WebDriver integration: framework-integration.md
       - Configuration: configuration.md
+  - Test Engineering Studio:
+      - Overview: ai/test-engineering-studio.md
+      - Quick Start: ai/test-engineering-studio-getting-started.md
+      - Generate Tests with AI: ai/generate-tests-with-ai.md
+      - Run and Review: ai/test-engineering-studio.md#run-and-diagnose
+      - Selector Self-Healing: ai/test-engineering-studio.md#review-a-repair
+      - Configuration and Security: ai/test-engineering-studio-getting-started.md#2-split-project-and-machine-local-configuration
+      - Troubleshooting: ai/test-engineering-studio.md#troubleshooting
   - Using Test Lens:
       - Product capabilities: capabilities.md
       - Selector Intelligence: features/selector-intelligence.md
@@ -107,8 +115,6 @@ nav:
           - Drift, security & troubleshooting: advanced/application-mapping/drift-security-troubleshooting.md
       - AI test engineering foundation: ai/test-engineering.md
       - AI workflow orchestration: ai/workflow-orchestration.md
-      - Studio getting started: ai/test-engineering-studio-getting-started.md
-      - Test Engineering Studio: ai/test-engineering-studio.md
       - 0.5.0 publication candidates: ai/0.5.0-publication-candidates.md
       - Steps & business assertions: advanced/steps-business-assertions.md
       - Network diagnostics: advanced/network.md

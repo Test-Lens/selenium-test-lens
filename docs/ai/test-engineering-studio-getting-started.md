@@ -16,7 +16,7 @@ Test Engineering Studio is a local UI for application mapping and the reviewed A
 - Maven and a Maven Selenium test project that reaches `test-compile`;
 - Chrome for the currently verified local end-to-end Studio path;
 - a running application URL when mapping or executing a generated test;
-- Codex CLI with the required `exec` capabilities for real agent stages, or a project-provided `AgentExecutorProvider` on the test classpath.
+- [Codex CLI](https://developers.openai.com/codex/cli), installed and signed in for its supported `exec` workflow, for real agent stages; alternatively, configure a project-provided `AgentExecutorProvider` on the test classpath.
 
 The local provider supports Chrome and Firefox. Release certification uses a deterministic scripted agent for repeatable end-to-end repair evidence; real Codex execution is an additional opt-in certification.
 
@@ -77,6 +77,8 @@ Create `.test-lens/local.json` only for settings tied to one workstation:
 ```
 
 `codexExecutable` must be an absolute path. Local profile entries override matching project profile entries. Unknown fields, symbolic-link configuration files, secret-shaped field names, bearer/JWT-shaped values, and secret-like URL query parameters fail closed.
+
+The default Codex provider discovers the executable automatically. On Windows it looks for native `codex.exe` on `PATH` and in its supported npm installation location. If discovery does not find your installation, set the absolute path in the machine-local `.test-lens/local.json`; do not put a machine-specific path in shared project configuration. Studio preflight checks the executable and required `exec` capabilities without sending a prompt.
 
 Do not store credentials in either file. The caller prepares authentication in the application or its normal test bootstrap; Studio does not persist passwords, cookies, tokens, authorization headers, or browser storage as configuration.
 

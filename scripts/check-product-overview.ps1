@@ -3,14 +3,16 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 $overviewPath = Join-Path $root "docs/index.md"
+$studioTutorialPath = Join-Path $root "docs/ai/generate-tests-with-ai.md"
 $mapPath = Join-Path $root "docs/maintainers/product-capability-map.md"
 $mkdocsPath = Join-Path $root "mkdocs.yml"
 
-foreach ($path in @($overviewPath, $mapPath, $mkdocsPath)) {
+foreach ($path in @($overviewPath, $studioTutorialPath, $mapPath, $mkdocsPath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Required overview source is missing: $path" }
 }
 
 $overview = [IO.File]::ReadAllText($overviewPath)
+$studioTutorial = [IO.File]::ReadAllText($studioTutorialPath)
 $capabilityMap = [IO.File]::ReadAllText($mapPath)
 $mkdocs = [IO.File]::ReadAllText($mkdocsPath)
 
@@ -20,10 +22,19 @@ $targetRelease = $targetMatch.Groups[1].Value
 
 foreach ($contract in @(
     'title: Selenium Test Lens',
-    '# Understand what your Selenium test did',
-    '[Get started](getting-started.md)',
-    '[Integrate with AI](ai-assisted-integration.md)',
+    '# Selenium observability and AI-assisted test engineering',
+    '[Use Test Lens in your Selenium tests](getting-started.md)',
+    '[Generate and repair tests with AI](ai/test-engineering-studio-getting-started.md)',
+    '[AI Integration Prompt Builder](ai-assisted-integration.md)',
     '[Explore capabilities](#product-capabilities)',
+    '## AI Test Engineering Studio',
+    ('Requirement ' + [char]0x2192 + ' AI Architect ' + [char]0x2192 + ' AI Implementer ' + [char]0x2192 + ' Validation ' + [char]0x2192 + ' Compile ' + [char]0x2192 + ' Selenium ' + [char]0x2192 + ' AI Reviewer'),
+    ('Failure ' + [char]0x2192 + ' Diagnosis ' + [char]0x2192 + ' Selector Candidate ' + [char]0x2192 + ' Review ' + [char]0x2192 + ' Approval ' + [char]0x2192 + ' Repair ' + [char]0x2192 + ' Rerun'),
+    'Approve and apply',
+    '### Quick start: run Studio from your Maven project',
+    'mvn io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.1:studio',
+    '### Choose the AI workflow that fits',
+    '| AI Integration Prompt Builder | Test Engineering Studio |',
     '## What Test Lens adds to Selenium',
     '## Why teams add Test Lens',
     '## Product capabilities',
@@ -74,9 +85,33 @@ foreach ($mapContract in @(
 
 $overviewNav = $mkdocs.IndexOf('- Overview: index.md')
 $gettingNav = $mkdocs.IndexOf('- Getting Started:')
+$studioNav = $mkdocs.IndexOf('- Test Engineering Studio:')
+$usingNav = $mkdocs.IndexOf('- Using Test Lens:')
 $releasesNav = $mkdocs.IndexOf('- Releases:')
-if ($overviewNav -lt 0 -or $gettingNav -le $overviewNav -or $releasesNav -le $gettingNav) {
-    throw "Navigation must separate Overview, Getting Started, and Releases in that order."
+if ($overviewNav -lt 0 -or $gettingNav -le $overviewNav -or $studioNav -le $gettingNav -or $usingNav -le $studioNav -or $releasesNav -le $usingNav) {
+    throw "Navigation must expose Test Engineering Studio directly between Getting Started and Using Test Lens, before Releases."
+}
+foreach ($navContract in @(
+    'Quick Start: ai/test-engineering-studio-getting-started.md',
+    'Generate Tests with AI: ai/generate-tests-with-ai.md',
+    'Selector Self-Healing: ai/test-engineering-studio.md#review-a-repair',
+    'AI Integration Prompt Builder: ai-assisted-integration.md'
+)) {
+    if (-not $mkdocs.Contains($navContract)) { throw "Navigation is missing discoverability contract: $navContract" }
+}
+foreach ($tutorialContract in @(
+    '# Generate your first Selenium test with AI',
+    'Verify that logging in with an invalid password displays the expected error and does not authenticate the user.',
+    'Scan project',
+    'Map application',
+    'Correlate Page Objects',
+    'Generate plan',
+    'Generate test',
+    'Approve and apply',
+    'Run verification',
+    'JUnit 5'
+)) {
+    if (-not $studioTutorial.Contains($tutorialContract)) { throw "Studio tutorial is missing discoverability contract: $tutorialContract" }
 }
 
 if ($SiteDirectory) {
@@ -85,8 +120,10 @@ if ($SiteDirectory) {
     $html = [IO.File]::ReadAllText($htmlPath)
     foreach ($renderedContract in @(
         '<title>Selenium Test Lens',
-        'name="description" content="Add observable Selenium interactions',
+        'name="description" content="Selenium observability and AI-assisted test engineering',
         'href="getting-started/"',
+        'href="ai/test-engineering-studio-getting-started/"',
+        'href="ai/generate-tests-with-ai/"',
         'href="ai-assisted-integration/"',
         'href="#product-capabilities"',
         'id="product-capabilities"',

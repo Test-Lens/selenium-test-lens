@@ -1,6 +1,6 @@
 ---
 title: Selenium Test Lens — product overview
-description: Add observable Selenium interactions, polling assertions, recovery diagnostics, browser HUD, reports, screenshots, and failure evidence to an existing Java test suite.
+description: Selenium observability and AI-assisted test engineering: add runtime diagnostics to Java tests or use the local Test Engineering Studio to generate, run, review, and safely repair tests.
 hide:
   - navigation
   - toc
@@ -12,21 +12,64 @@ hide:
 
 <span class="lens-release-badge">Current stable release: 0.5.1</span>
 
-# Understand what your Selenium test did—and keep the evidence
+# Selenium observability and AI-assisted test engineering
 
-**Selenium Test Lens is a Java library that adds observable interactions, reusable waits and assertions, visible recovery, and durable diagnostics to the WebDriver your project already owns.**
+**Selenium Test Lens combines an observability library for the WebDriver your project already owns with an opt-in local AI Test Engineering Studio for generating, executing, reviewing, and carefully repairing tests.**
 
 Watch actions, waits, assertions, retries, and selected network activity while a test runs. After finalization, investigate the same session through a structured trace, HTML/JSON reports, screenshots, and—on failure—a portable evidence bundle.
 
 Adopt it gradually: keep your runner, WebDriver factory, Page Objects, raw Selenium calls, and reporting stack. Attach Lens where diagnostics help, observe existing Selenium references explicitly, and move selected flows to the Lens-native locator API when its semantics are useful.
 
-[Get started](getting-started.md){ .md-button .md-button--primary }
-[Integrate with AI](ai-assisted-integration.md){ .md-button }
+[Use Test Lens in your Selenium tests](getting-started.md){ .md-button .md-button--primary }
+[Generate and repair tests with AI](ai/test-engineering-studio-getting-started.md){ .md-button }
+[AI Integration Prompt Builder](ai-assisted-integration.md){ .md-button }
 [Explore capabilities](#product-capabilities){ .md-button }
 
 <small>This source targets versioned release 0.5.1; the production `latest` alias is changed only by the separate documentation publication step. [Read what changed in 0.5.1](whats-new-0.5.1.md) or [browse exact public signatures](reference/public-api-catalog.md).</small>
 
 </div>
+
+## AI Test Engineering Studio
+
+Use the **local, opt-in Test Engineering Studio** when you want to work with tests—not just add runtime diagnostics. From a Maven Selenium project, Studio can scan source, map a running application, correlate existing Page Objects, and guide a reviewed AI workflow. The full generated-test workflow currently targets **JUnit 5**; the TestNG adapter remains available in the standard Test Lens runtime, but Studio does not yet execute its generated workflow through TestNG.
+
+```text
+Requirement → AI Architect → AI Implementer → Validation → Compile → Selenium → AI Reviewer
+```
+
+Studio validates generated source, compiles it, runs a targeted Selenium test, and presents execution evidence for review. A passing Selenium result is evidence for the run, not a substitute for the separate AI review.
+
+For a diagnosed selector failure, the controlled repair path is separate:
+
+```text
+Failure → Diagnosis → Selector Candidate → Review → Approval → Repair → Rerun
+```
+
+Repairs are proposals first. Source changes are applied only after an explicit **Approve and apply** action and a fresh safety/fingerprint check; ambiguous candidates or product defects must not be “fixed” by changing the expected behavior.
+
+![Test Engineering Studio project overview](assets/media/test-engineering-studio/project-overview.png){ loading=lazy width=1440 }
+
+[Launch Studio and generate your first test](ai/test-engineering-studio-getting-started.md){ .md-button .md-button--primary }
+[Follow the generate-a-test tutorial](ai/generate-tests-with-ai.md){ .md-button }
+[Learn about controlled selector repair](ai/test-engineering-studio.md#review-a-repair){ .md-button }
+
+### Quick start: run Studio from your Maven project
+
+With JDK 17+ and Maven, run this from the root of a Maven Selenium test project:
+
+```powershell
+mvn io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.1:studio
+```
+
+The goal starts the local interface and compiles the project's tests. To map or execute against an application, make its test environment available. Real AI stages additionally need an installed, authenticated Codex CLI (the default provider) or a configured project agent provider. On Windows, Studio discovers `codex.exe` from `PATH` and its supported npm installation location; a machine-specific absolute executable path can also be set in `.test-lens/local.json`. See [all prerequisites and configuration](ai/test-engineering-studio-getting-started.md).
+
+### Choose the AI workflow that fits
+
+| AI Integration Prompt Builder | Test Engineering Studio |
+|---|---|
+| Builds a version-aware prompt for an external coding agent to integrate Test Lens into an existing project. | Launches a local project-aware interface for mapping an application and generating/reviewing test code. |
+| Generates prompt text only; it does not inspect the repository, edit code, run Selenium, or review results. | Uses Codex CLI by default (or a configured project provider), validates and compiles generated JUnit 5 code, runs Selenium, and presents evidence for review. |
+| [Open the AI Integration Prompt Builder](ai-assisted-integration.md) | [Open the Studio Quick Start](ai/test-engineering-studio-getting-started.md) |
 
 ## What Test Lens adds to Selenium
 

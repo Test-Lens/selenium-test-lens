@@ -1,11 +1,13 @@
 ---
-title: AI-assisted integration
+title: AI Integration Prompt Builder
 description: Build a complete repository-aware prompt for integrating published Test Lens capabilities safely.
 ---
 
-# AI-assisted integration
+# AI Integration Prompt Builder
 
-Use the AI Integration Builder to prepare one complete prompt for a coding agent. The prompt tells the agent to inspect the real project first, preserve its WebDriver and runner contracts, select only published Test Lens APIs, implement the capabilities you choose, validate the result, and report what it actually ran.
+Use the **AI Integration Prompt Builder** to prepare one complete prompt for an external coding agent. It generates prompt text to help integrate Test Lens into an existing project; it does not inspect the repository, edit code, run tests, or review results itself.
+
+Looking to generate and run a Selenium test with AI instead? Use the separate local [Test Engineering Studio](ai/test-engineering-studio-getting-started.md) and its [first-test tutorial](ai/generate-tests-with-ai.md).
 
 !!! tip "Start new integrations from latest"
     This page follows the current [`latest` documentation](https://test-lens.github.io/selenium-test-lens/latest/), which is the recommended starting point for a new integration. Older Test Lens versions and their documentation remain available and may still work correctly. They can produce a less complete or less effective integration because later releases may include fixes, improved APIs and lifecycle adapters, newer diagnostics and observability, or corrected integration patterns.
@@ -22,7 +24,7 @@ The builder's selectable surface is the published 0.5.1 runtime consumer boundar
 
 Test Engineering Studio, compatibility analysis, migration tooling, and Selector Lab are not runtime-builder choices. Studio has its own Maven entry point; CI vendors, Grid, and cloud providers remain discovered constraints rather than Test Lens runtime feature adapters.
 
-## AI Integration Builder
+## AI Integration Prompt Builder
 
 The builder runs entirely in this page. It does not read or modify your repository and sends nothing to a server. Presets only change the selected capabilities; every result is the same full-detail integration prompt.
 
