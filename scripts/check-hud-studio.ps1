@@ -149,7 +149,7 @@ if (-not [string]::IsNullOrWhiteSpace($SiteDirectory)) {
         throw "Built versioned landing page does not use a version-relative favicon URL."
     }
     foreach ($metadata in @(
-        '<meta property="og:title" content="Selenium observability and AI-assisted test engineering - Test Lens">',
+        '<meta property="og:title" content="Selenium observability and diagnostic evidence - Test Lens">',
         '<meta property="og:description" content="Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects.',
         '<meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/">',
         '<meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">',

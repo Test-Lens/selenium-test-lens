@@ -5,6 +5,11 @@ description: Launch Test Engineering Studio 0.5.1 from Maven, configure a projec
 
 # Test Engineering Studio getting started
 
+!!! warning "Experimental feature — temporarily unavailable"
+
+    Test Engineering Studio is undergoing further stabilization and is not currently recommended for production use. Public documentation will be restored after end-to-end certification.
+
+
 !!! info "Opt-in tooling"
     Studio is distributed separately from the lightweight `selenium-test-lens` runtime. Invoking the Maven goal is explicit; upgrading the runtime alone does not start indexing, browsers, agents, or an HTTP host.
 

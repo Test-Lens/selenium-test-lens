@@ -5,6 +5,12 @@ description: Test Engineering Studio workflow, Page Object verification, recover
 
 # What's new in 0.5.1
 
+!!! warning "Experimental feature — temporarily unavailable"
+
+    Test Engineering Studio is undergoing further stabilization and is not currently recommended for production use. Public documentation will be restored after end-to-end certification.
+
+Studio remains experimental and has been temporarily withdrawn from publicly recommended features. The changes below describe the shipped patch; they do not establish production readiness.
+
 Test Lens 0.5.1 is a patch release focused on making the opt-in Test Engineering Studio workflow
 deterministic, reviewable, and recoverable. It preserves the existing runtime contracts and Maven coordinates from
 0.5.0; it does not add background agents, autonomous source editing, TestNG execution to Studio, or a broader
@@ -70,6 +76,4 @@ generated API catalog as internal tooling surfaces, not as a new stable runtime 
 - Studio remains opt-in local tooling. Updating the runtime dependency alone does not start indexing, a browser, an
   agent process, or the loopback Studio host.
 
-Continue with [Studio getting started](ai/test-engineering-studio-getting-started.md), the
-[Studio workflow reference](ai/test-engineering-studio.md), or the
-[exact public API catalog](reference/public-api-catalog.md).
+See the [exact public API catalog](reference/public-api-catalog.md).

@@ -7,8 +7,6 @@ description: Build a complete repository-aware prompt for integrating published 
 
 Use the **AI Integration Prompt Builder** to prepare one complete prompt for an external coding agent. It generates prompt text to help integrate Test Lens into an existing project; it does not inspect the repository, edit code, run tests, or review results itself.
 
-Looking to generate and run a Selenium test with AI instead? Use the separate local [Test Engineering Studio](ai/test-engineering-studio-getting-started.md) and its [first-test tutorial](ai/generate-tests-with-ai.md).
-
 !!! tip "Start new integrations from latest"
     This page follows the current [`latest` documentation](https://test-lens.github.io/selenium-test-lens/latest/), which is the recommended starting point for a new integration. Older Test Lens versions and their documentation remain available and may still work correctly. They can produce a less complete or less effective integration because later releases may include fixes, improved APIs and lifecycle adapters, newer diagnostics and observability, or corrected integration patterns.
 
@@ -22,7 +20,7 @@ The builder's selectable surface is the published 0.5.1 runtime consumer boundar
 | Allure evidence attachment | `selenium-test-lens-allure`; `AllureTestLens` |
 | React/SPA helpers | `selenium-test-lens-react`; `ReactSupport` and the documented helper types |
 
-Test Engineering Studio, compatibility analysis, migration tooling, and Selector Lab are not runtime-builder choices. Studio has its own Maven entry point; CI vendors, Grid, and cloud providers remain discovered constraints rather than Test Lens runtime feature adapters.
+Compatibility analysis, migration tooling, and Selector Lab are not runtime-builder choices. CI vendors, Grid, and cloud providers remain discovered constraints rather than Test Lens runtime feature adapters.
 
 ## AI Integration Prompt Builder
 

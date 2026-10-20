@@ -1,5 +1,10 @@
 # AI test engineering foundation
 
+!!! warning "Experimental feature — temporarily unavailable"
+
+    Test Engineering Studio is undergoing further stabilization and is not currently recommended for production use. Public documentation will be restored after end-to-end certification.
+
+
 Test Lens prepares deterministic, provider-neutral inputs for test-engineering agents. It does not embed an OpenAI, Anthropic, Gemini, or other model SDK, and it does not run an autonomous agent scheduler.
 
 !!! info "Opt-in tooling contracts"

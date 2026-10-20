@@ -4,7 +4,7 @@ This inventory is the maintenance source behind the documentation landing page. 
 
 ## Audit boundary
 
-- **Consumer target:** `io.github.test-lens:*:0.5.1` and the fully qualified Studio goal `io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.1:studio`.
+- **Consumer target:** `io.github.test-lens:*:0.5.1`.
 - **Release implementation:** annotated tag `v0.5.1` (`9584d67b8efaf57ef76120786c0e245236e08041`).
 - **Repairable documentation source:** an explicitly reviewed post-tag documentation commit on `release/0.5.1`; `publish-missing-release` verifies that the versioned documentation is absent, publishes documentation only from the named release branch, and does not move the tag or change released runtime/API semantics.
 - **Published stable artifacts:** parent POM, `selenium-test-lens-core`, `selenium-test-lens-overlay`, `selenium-test-lens`, `selenium-test-lens-junit5`, `selenium-test-lens-testng`, `selenium-test-lens-allure`, and `selenium-test-lens-react`.
@@ -88,6 +88,10 @@ The exact public type and callable inventory remains generated in the [public AP
 
 ## Test Engineering Studio and reviewed repair
 
+!!! warning "Experimental feature — temporarily unavailable"
+
+    Test Engineering Studio is undergoing further stabilization and is not currently recommended for production use. Public documentation will be restored after end-to-end certification.
+
 | Capability | Released 0.5.1 behavior | Boundary and evidence |
 |---|---|---|
 | Turnkey Studio | The Maven goal discovers an existing project, opens a persistent `.test-lens/` workspace, and serves a token-protected loopback UI for scan, map, correlate, plan, proposal, run, diagnosis, and repair review. | `test-lens-test-engineering-maven-plugin:0.5.1:studio` and the small `TestEngineeringStudio` launcher facade. |
@@ -103,7 +107,7 @@ The exact public type and callable inventory remains generated in the [public AP
 |---|---|---|
 | HUD Studio | Configures and previews the production HUD renderer, then generates matching Java configuration. Source-navigation behavior is safely simulated in the public demo. | Documentation-only tool in `docs/demo/hud-studio`; validated by HUD Studio scripts and `HudStudioDocumentationLayoutIT`. It is not a separate runtime renderer or IDE probe. |
 | AI Integration Builder | Generates one release-bound instruction for an external coding agent from selected integration choices. | Documentation JavaScript, not an embedded model or guaranteed installer. Target version comes from `extra.ai_integration.target_release`; checked by `check-ai-integration-builder.ps1`. |
-| Test Engineering Studio | Executes the reviewed local tooling workflow through the Maven goal and loopback host. | Opt-in published tooling; normal `selenium-test-lens` runtime does not start it or acquire its dependencies. |
+| Test Engineering Studio (experimental; temporarily unavailable) | Retained technical reference: executes the reviewed local tooling workflow through the Maven goal and loopback host. | Opt-in published tooling; normal `selenium-test-lens` runtime does not start it or acquire its dependencies. |
 
 ## Version evidence policy
 

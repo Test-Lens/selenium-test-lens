@@ -5,6 +5,11 @@ description: Follow the local Test Engineering Studio workflow from a Maven Sele
 
 # Generate your first Selenium test with AI
 
+!!! warning "Experimental feature — temporarily unavailable"
+
+    Test Engineering Studio is undergoing further stabilization and is not currently recommended for production use. Public documentation will be restored after end-to-end certification.
+
+
 This tutorial uses the local, opt-in **Test Engineering Studio**. It does not describe the separate AI Integration Prompt Builder, which creates prompt text for an external coding agent.
 
 Example requirement:

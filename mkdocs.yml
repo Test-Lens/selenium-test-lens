@@ -1,5 +1,5 @@
 site_name: Test Lens
-site_description: Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects. Its opt-in Test Engineering Studio generates, executes, reviews, and safely repairs JUnit 5 tests.
+site_description: Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects.
 site_url: https://test-lens.github.io/selenium-test-lens/
 repo_name: Test-Lens/selenium-test-lens
 repo_url: https://github.com/Test-Lens/selenium-test-lens
@@ -19,6 +19,12 @@ exclude_docs: |
 
 not_in_nav: |
   reference/public-api/*.md
+  ai/test-engineering-studio.md
+  ai/test-engineering-studio-getting-started.md
+  ai/generate-tests-with-ai.md
+  ai/workflow-orchestration.md
+  ai/test-engineering.md
+  ai/0.5.0-publication-candidates.md
 
 theme:
   name: material
@@ -62,10 +68,6 @@ nav:
       - Codex contributor workflow: ai/codex-workflow.md
       - Existing WebDriver integration: framework-integration.md
       - Configuration: configuration.md
-  - Test Engineering Studio:
-      - Overview: ai/test-engineering-studio.md
-      - Quick Start: ai/test-engineering-studio-getting-started.md
-      - Generate Tests with AI: ai/generate-tests-with-ai.md
   - Using Test Lens:
       - Product capabilities: capabilities.md
       - Selector Intelligence: features/selector-intelligence.md
@@ -109,9 +111,6 @@ nav:
           - Existing Page Object correlation: advanced/application-mapping/existing-page-objects.md
           - Page Object generation: advanced/application-mapping/page-object-generation.md
           - Drift, security & troubleshooting: advanced/application-mapping/drift-security-troubleshooting.md
-      - AI test engineering foundation: ai/test-engineering.md
-      - AI workflow orchestration: ai/workflow-orchestration.md
-      - 0.5.0 publication candidates: ai/0.5.0-publication-candidates.md
       - Steps & business assertions: advanced/steps-business-assertions.md
       - Network diagnostics: advanced/network.md
       - Overlay policies: advanced/overlay-policies.md

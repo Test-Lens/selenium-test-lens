@@ -9,7 +9,7 @@ class names, framework-generated identifiers, and the same locator repeated acro
 opposite problem matters too: an identifier can *look* random while being a stable application contract.
 
 !!! important "Availability in 0.5.1"
-    Selector engine, live analysis, and source tooling are published implementation dependencies of Test Engineering Studio. The supported user entry point is the Studio Maven goal; JavaParser-backed scanners and other technically public tooling classes are not stable USER API. Selector Lab remains an unpublished demo tool.
+    Selector engine, live analysis, and source tooling are published implementation dependencies of Test Engineering Studio. Studio is experimental and temporarily unavailable; JavaParser-backed scanners and other technically public tooling classes are not stable USER API. Selector Lab remains an unpublished demo tool.
 
     Installing `selenium-test-lens:0.5.1` alone does not enable a background source scan or UI. Normal Test Lens and FAST execution remain unchanged.
 
@@ -24,7 +24,7 @@ opposite problem matters too: an identifier can *look* random while being a stab
 | Selector Lab | Yes | Unpublished demo, not a 0.5.1 user entry point |
 | Live candidate analysis | Yes | Published analysis used by Mapper and repair against an explicit browser target |
 
-Publication supports Studio composition; it is not a compatibility promise for every class. Use the documented Maven goal rather than constructing scanners, live services, or repair internals directly.
+Publication supports Studio composition; it is not a compatibility promise for every class. The Studio entry point is temporarily withdrawn from public recommendations; the technical contracts below are retained for reference.
 
 ## What problem does it solve?
 
@@ -81,7 +81,7 @@ excluded by default. The local index may contain selector values and should be t
 output.
 
 !!! note "Supported entry point"
-    Use the [Test Engineering Studio Maven goal](../ai/test-engineering-studio-getting-started.md). There is no separate stable Selector Audit or Selector Lab CLI in 0.5.1.
+    Test Engineering Studio is experimental and temporarily unavailable. There is no separate stable Selector Audit or Selector Lab CLI in 0.5.1.
 
 ## Generated-looking IDs are evidence, not a verdict
 
@@ -270,7 +270,7 @@ result estimates review scope; it does not assert that every match finds the sam
 
 ## Typical workflow
 
-Studio orchestrates the first six steps through reviewed project actions:
+The retained tooling workflow consists of the following steps; its experimental Studio orchestration is temporarily unavailable:
 
 1. Trusted tooling builds the Java declaration index from an explicit project root, source roots, and optional
    classpath entries.

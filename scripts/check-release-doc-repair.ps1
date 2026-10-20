@@ -22,6 +22,8 @@ if ($sourceVersion -ne $Version) {
 }
 
 $allowedExact = @(
+    "README.md",
+    "CHANGELOG.md",
     ".github/workflows/docs.yml",
     "mkdocs.yml",
     "mkdocs-release.yml",

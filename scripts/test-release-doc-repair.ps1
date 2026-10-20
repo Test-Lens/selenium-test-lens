@@ -24,6 +24,13 @@ try {
     & git -C $testRoot -c user.name=docs-fixture -c user.email=docs-fixture.invalid commit -q -m docs-repair
     & (Join-Path $root "scripts/check-release-doc-repair.ps1") -Version 0.5.0 -SourceRef release/0.5.0 -RepositoryRoot $testRoot | Out-Null
 
+    foreach ($document in @('README.md', 'CHANGELOG.md')) {
+        [IO.File]::WriteAllText((Join-Path $testRoot $document), "Studio availability documentation update")
+    }
+    & git -C $testRoot add -- README.md CHANGELOG.md
+    & git -C $testRoot -c user.name=docs-fixture -c user.email=docs-fixture.invalid commit -q -m public-docs-repair
+    & (Join-Path $root "scripts/check-release-doc-repair.ps1") -Version 0.5.0 -SourceRef release/0.5.0 -RepositoryRoot $testRoot | Out-Null
+
     [IO.File]::WriteAllText((Join-Path $testRoot "scripts/check-hud-studio.ps1"), "# approved rendered documentation contract`n")
     & git -C $testRoot add -- scripts/check-hud-studio.ps1
     & git -C $testRoot -c user.name=docs-fixture -c user.email=docs-fixture.invalid commit -q -m docs-checker-repair
