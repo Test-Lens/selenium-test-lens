@@ -6,6 +6,10 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ## [0.5.1] - 2026-10-11
 
+### Documentation availability update
+
+Test Engineering Studio remains experimental and has been temporarily withdrawn from publicly recommended features pending further stabilization and end-to-end certification. This documentation hotfix does not change the released artifacts.
+
 ### Fixed
 
 - Stabilized the reviewed Test Engineering Studio Architect, Implementer, and Reviewer workflow, including bounded

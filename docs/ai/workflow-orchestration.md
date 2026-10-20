@@ -1,5 +1,10 @@
 # AI test workflow orchestration
 
+!!! warning "Experimental feature — temporarily unavailable"
+
+    Test Engineering Studio is undergoing further stabilization and is not currently recommended for production use. Public documentation will be restored after end-to-end certification.
+
+
 Test Lens 0.5.1 tooling connects a verified application model and existing Page Object API to a provider-neutral, auditable test-engineering workflow. The deterministic layers decide what source exists, which elements it represents, what context is relevant, whether proposed Java compiles, and what the targeted test actually reported. An external agent reasons only over that bounded evidence.
 
 !!! info "Provider-neutral tooling"

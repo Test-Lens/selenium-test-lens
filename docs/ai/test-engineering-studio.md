@@ -5,6 +5,11 @@ description: Use Test Engineering Studio 0.5.1 to scan a Selenium project, map i
 
 # Test Engineering Studio
 
+!!! warning "Experimental feature — temporarily unavailable"
+
+    Test Engineering Studio is undergoing further stabilization and is not currently recommended for production use. Public documentation will be restored after end-to-end certification.
+
+
 !!! info "Local opt-in tooling"
     Test Engineering Studio 0.5.1 is launched explicitly from the Maven plugin. It is a loopback-only local tool, not a remotely hosted service or a background feature of the runtime dependency.
 

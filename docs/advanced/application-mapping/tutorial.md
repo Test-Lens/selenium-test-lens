@@ -1,6 +1,6 @@
 # Guided mapping end-to-end
 
-This tutorial mirrors the 0.5.1 real-browser vertical contract. For the supported external entry point, start with the [Studio Maven guide](../../ai/test-engineering-studio-getting-started.md).
+This tutorial mirrors the 0.5.1 real-browser vertical contract. The experimental Studio entry point is temporarily unavailable.
 
 ## 1. Prepare the caller-owned session
 
