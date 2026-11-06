@@ -59,7 +59,6 @@ nav:
   - Getting Started:
       - Installation & first test: getting-started.md
       - AI-assisted integration: ai-assisted-integration.md
-      - Codex contributor workflow: ai/codex-workflow.md
       - Existing WebDriver integration: framework-integration.md
       - Configuration: configuration.md
   - Using Test Lens:
