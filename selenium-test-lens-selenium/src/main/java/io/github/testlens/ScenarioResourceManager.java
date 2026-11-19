@@ -75,14 +75,17 @@ public final class ScenarioResourceManager {
             entries.clear();
         }
         List<Throwable> failures = new ArrayList<>();
+        boolean interrupted = false;
         for (ResourceEntry<?> entry : pending) {
             try {
                 entry.runCleanup();
             } catch (Throwable failure) {
                 failures.add(failure);
+                if (failure instanceof InterruptedException) interrupted = true;
             }
         }
         synchronized (this) { state = State.CLOSED; }
+        if (interrupted) Thread.currentThread().interrupt();
         return List.copyOf(failures);
     }
 
