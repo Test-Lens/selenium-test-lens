@@ -13,6 +13,7 @@ import io.github.testlens.core.trace.export.TraceHtmlExportOptions;
 import io.github.testlens.core.trace.export.TraceHtmlExporter;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -83,6 +84,7 @@ public final class HtmlLogExporter implements UiTestLensLogExporter {
                         traceStatus(entry.status()),
                         firstNonBlank(entry.action(), entry.step(), entry.eventType().name()))
                 .timestamp(entry.timestamp())
+                .duration(measuredDuration(entry))
                 .message(limit(entry.message()))
                 .attribute("level", entry.level().name())
                 .attribute("eventType", entry.eventType().name())
@@ -111,6 +113,23 @@ public final class HtmlLogExporter implements UiTestLensLogExporter {
             builder.failure(failure);
         }
         return builder.build();
+    }
+
+    private static Duration measuredDuration(UiTestLensLogEntry entry) {
+        if (entry.status() != UiTestLensStatus.PASSED && entry.status() != UiTestLensStatus.FAILED) {
+            return Duration.ZERO;
+        }
+        boolean measured = !entry.metadata().getOrDefault("operationId", "").isBlank()
+                || entry.eventType() == UiTestLensEventType.SCREENSHOT_CAPTURE_PASSED
+                || entry.eventType() == UiTestLensEventType.SCREENSHOT_CAPTURE_FAILED;
+        if (!measured) return Duration.ZERO;
+        try {
+            String nanos = entry.metadata().get("durationNanos");
+            return nanos != null ? Duration.ofNanos(Math.max(0L, Long.parseLong(nanos)))
+                    : Duration.ofMillis(Math.max(0L, Long.parseLong(entry.metadata().get("durationMs"))));
+        } catch (NumberFormatException ignored) {
+            return Duration.ZERO;
+        }
     }
 
     private void appendTarget(TraceEvent.Builder builder, TargetDescriptor target) {

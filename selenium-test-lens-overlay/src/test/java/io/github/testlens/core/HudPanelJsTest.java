@@ -490,6 +490,19 @@ class HudPanelJsTest {
                 assert(lastLog().attributes['data-phase'] === 'PASSED', 'operation row did not become terminal');
                 assert(lastLog().querySelector('.stl-hud-event-duration').textContent === '\u00b7 143 ms', 'operation duration missing');
 
+                ['RUNNING','INFO','RETRYING','WARNING','DEBUG'].forEach(function(phase) {
+                  window.__uiTestLens.modules.hud.log('late target update','info',null,'ACTION',null,null,null,
+                    {category:'ACTION',phase:phase,operationId:'op-1',technical:false});
+                  assert(lastLog().attributes['data-phase'] === 'PASSED', 'late nonterminal event overwrote passed operation');
+                  assert(lastLog().querySelector('.stl-hud-event-duration').textContent === '\u00b7 143 ms', 'late event lost measured duration');
+                });
+                window.__uiTestLens.modules.hud.log('actual failure','error',null,'LOCATOR_ACTION_FAILED',null,null,null,
+                  {category:'ACTION',phase:'FAILED',operationId:'op-1',durationMs:150,technical:false});
+                assert(lastLog().attributes['data-phase'] === 'FAILED', 'later genuine failure was hidden');
+                window.__uiTestLens.modules.hud.log('late started','info',null,'ACTION',null,null,null,
+                  {category:'ACTION',phase:'RUNNING',operationId:'op-1',technical:false});
+                assert(lastLog().attributes['data-phase'] === 'FAILED', 'late running event overwrote failure');
+
                 window.__uiTestLens.modules.hud.clear();
                 window.__uiTestLens.modules.hud.logBatch([
                   {message:'running',level:'info',timestamp:null,eventType:'LOCATOR_ACTION_STARTED',semantics:{category:'ACTION',phase:'RUNNING',operationId:'batch-1',technical:false}},
