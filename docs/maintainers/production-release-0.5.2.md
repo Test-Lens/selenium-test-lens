@@ -97,9 +97,24 @@ The failing Grid scenario on Chrome **158.0.8127.36**, Grid **4.53.0**, and Java
 
 Changing Lens's URL preference cannot restore the missing 302 response or the response count. Fabricating it from the expected server behavior is not an acceptable fix. The exact browser/Grid component responsible remains under investigation; this evidence alone does not assign the defect exclusively to Chrome. A standalone public-Selenium-only reproducer is supplied in `consumer-tests/selenium-bidi/protocol-reproducer`, with no Lens dependency and no retry of failed stimuli. It tests 50 distinct redirects and writes bounded, sanitized raw events and peer journals. Local Windows runs are not evidence that the hosted Linux defect is fixed.
 
+The standalone reproducer subsequently established that **neither Lens nor Grid is necessary for the failure**:
+
+| Standalone Selenium-only run | Environment | Result |
+| --- | --- | --- |
+| [44530948312](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44530948312), `9819d4ca` | Linux, client 4.53.0, Grid 4.53.0, Chrome/ChromeDriver 158.0.8127.36 | FAIL at distinct stimulus 20: peer 302 `/redirect/20` then 200 `/final/20`; raw completed 200 `/redirect/20`, no completed final response |
+| [44531701988](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44531701988), `1c755c44` | Same hosted Linux versions, Grid | PASS for 50 distinct stimuli; this passing repeat does not waive the failure |
+| Same paired run, direct `ChromeDriver`, no Grid | Linux, client 4.53.0, Chrome/ChromeDriver 158.0.8127.36 | FAIL at stimulus 41 with the same incorrect 200/redirect and missing 302/final completion |
+| Local Windows probes | Grid 4.53.0, Chrome 158, clients 4.53.0 and 4.45.0 | 50 stimuli PASS per run; not a hosted-Linux certification |
+
+Both hosted failures set `outcome=PROTOCOL_MISMATCH`, `evidenceOverflow=false`, with one failing JUnit test and zero skipped tests. The tests stop at the first mismatch; the 50 stimuli are different requests, not retries of a failed action. Separate Grid and local Surefire artifacts and raw-event/peer-journal JSON are retained. The earlier diagnostic launch [44530051630](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44530051630) failed before executing this standalone test because a PowerShell Maven property needed quoting; `743a8da4` corrected it. That launch is NOT RUN for the standalone scenario, not a protocol failure or PASS.
+
+The remaining boundary is the Linux Chrome/ChromeDriver BiDi path. Pinpointing the vendor component or supplying an upstream correction remains outstanding; the observed data cannot be repaired truthfully from the Selenium event fields alone. The default release gate still uses stable Chrome and unchanged exact server-journal assertions. No older Chrome is substituted to hide the failure. Publication remains explicitly held even when an individual full matrix happens to pass.
+
 Release can resume only after a demonstrated correction produces correct real redirect traffic in the standalone probe and the unchanged same-JAR report assertions on Chrome 158/Grid, followed by all required hosted gates on the final source. A newer upstream component or a narrowly justified Lens correction must be tested, not assumed compatible.
 
 Separately, [PR #4](https://github.com/Test-Lens/selenium-test-lens/pull/4) fixed only an existing Studio browser fixture's readiness race. Its complete hosted checks passed before merge `5a47e7b0`; the release branch merges that approved baseline. There are no Studio production changes in the 0.5.2 diff, and the only Studio module change relative to current main remains its parent-version bump. The original working tree's HEAD, index, status and all 256 recorded file hashes remain unchanged.
+
+Public documentation checks after that merge confirmed identical SHA-256 values for all seven existing version index pages (0.1.0, 0.2.0, 0.3.0, 0.3.1, 0.4.0, 0.5.0, 0.5.1). `versions.json` still assigns `latest` to 0.5.1. The 0.5.2 main JAR remains absent from public Central (HTTP 404); no release tag or immutable publication has been created by this work.
 
 ## Complete documentation-example skip inventory
 

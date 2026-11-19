@@ -2,6 +2,8 @@
 
 Status: prepared, unpublished. This report separates reproduced product defects from unverified concerns and environment limitations. It supplements the [BiDi audit](selenium-bidi-audit.md) and [BiDi release validation](selenium-bidi-release-0.5.2.md).
 
+This is the completed local audit milestone. Subsequent production validation holds publication for a Chrome 158 BiDi redirect-integrity failure reproduced without Lens or Grid on hosted Linux. The current [production release evidence](production-release-0.5.2.md) supersedes this milestone's readiness verdict without changing its historical test results.
+
 ## A. Baseline and isolation
 
 - Actual release tag: `v0.5.1`, commit `e6e2a19f4873b9b1274dfdb17498ca8cd6e42cc3`.

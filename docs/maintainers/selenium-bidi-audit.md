@@ -2,6 +2,8 @@
 
 Verified 2026-11-19 against Maven Central binary and source JARs, then remediated in the development tree prepared for 0.5.2. Version 0.5.2 is not published; the executed evidence below originated in the audit tree before the isolated release preparation. These results do not apply retroactively to the published 0.5.1 JAR.
 
+Subsequent production validation holds publication for a Chrome 158 redirect-integrity failure reproduced on hosted Linux without Lens or Grid. See the current [production release evidence](production-release-0.5.2.md); the earlier compatibility results below are retained as historical milestones, not final release authorization.
+
 ## Artifacts and reproducibility
 
 Authoritative metadata: https://repo.maven.apache.org/maven2/org/seleniumhq/selenium/selenium-remote-driver/maven-metadata.xml
