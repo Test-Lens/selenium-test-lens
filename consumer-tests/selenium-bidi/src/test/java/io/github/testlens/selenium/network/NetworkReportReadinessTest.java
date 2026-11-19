@@ -112,6 +112,10 @@ class NetworkReportReadinessTest {
                         "headers", Map.of("Set-Cookie", secret), "body", secret));
         String row = NetworkReportCorrectnessTest.rawTrafficRow("network.responseCompleted", payload);
         assertEquals("network.responseCompleted method=GET requestUrl=/case/final hop=1 responseStatus=200 responseUrl=/case/redirect", row);
+        String started = NetworkReportCorrectnessTest.rawTrafficRow("network.responseStarted", payload);
+        assertEquals("network.responseStarted method=GET requestUrl=/case/final hop=1 responseStatus=200 responseUrl=/case/redirect", started);
+        assertFalse(started.contains(secret));
+        assertFalse(started.contains("password"));
         assertFalse(row.contains(secret));
         assertFalse(row.contains("password"));
         assertNull(NetworkReportCorrectnessTest.rawTrafficRow("network.beforeRequestSent",

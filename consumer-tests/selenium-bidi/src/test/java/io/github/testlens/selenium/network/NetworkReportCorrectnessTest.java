@@ -232,7 +232,7 @@ class NetworkReportCorrectnessTest {
     }
 
     static String rawTrafficRow(String type, Map<String, Object> payload) {
-        if (!List.of("network.beforeRequestSent", "network.responseCompleted", "network.fetchError").contains(type)) return null;
+        if (!List.of("network.beforeRequestSent", "network.responseStarted", "network.responseCompleted", "network.fetchError").contains(type)) return null;
         Map<?, ?> request = payload.get("request") instanceof Map<?, ?> value ? value : Map.of();
         Map<?, ?> response = payload.get("response") instanceof Map<?, ?> value ? value : Map.of();
         String requestUrl = diagnosticUrl(request.get("url") instanceof String value ? value : "");
@@ -258,7 +258,7 @@ class NetworkReportCorrectnessTest {
             if (!(driver instanceof ChromeDriver) || !(driver instanceof HasBiDi hasBiDi)) return new RawTrafficProbe(null);
             RawTrafficProbe probe = new RawTrafficProbe(hasBiDi.getBiDi());
             try {
-                for (String type : List.of("network.beforeRequestSent", "network.responseCompleted", "network.fetchError")) {
+                for (String type : List.of("network.beforeRequestSent", "network.responseStarted", "network.responseCompleted", "network.fetchError")) {
                     Event<Map<String, Object>> event = new Event<>(type, payload -> payload);
                     probe.listeners.add(SeleniumBiDiCompatibility.addListener(probe.connection, event,
                             payload -> probe.record(type, payload)));
