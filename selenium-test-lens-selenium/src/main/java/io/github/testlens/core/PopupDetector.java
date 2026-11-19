@@ -224,6 +224,7 @@ public boolean highlightPopupIfPresent(String label) {
      */
     public boolean closePopupIfPresent(String overlayLabel, String closeButtonLabel) {
         // 1) najpierw próba globalnego selektora (np. #acceptCookies)
+        BlockingOverlayHelper.requireNotInterrupted();
         WebElement button = findGlobalCloseButtonIfVisible();
         WebElement overlayRoot = null;
 
@@ -252,17 +253,14 @@ public boolean highlightPopupIfPresent(String label) {
                         (closeButtonLabel != null && !closeButtonLabel.isBlank()) ? closeButtonLabel : "CLOSE"
                 );
             }
+            BlockingOverlayHelper.requireNotInterrupted();
             button.click();
 
-            // dajmy chwilę na zniknięcie popupa
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            BlockingOverlayHelper.awaitDisappearance(overlayRoot != null ? overlayRoot : button);
 
             return true;
         } catch (Exception e) {
+            BlockingOverlayHelper.requireNotInterrupted();
             // jeżeli coś poszło nie tak – nie zabijamy testu, tylko mówimy, że się nie udało
             return false;
         }

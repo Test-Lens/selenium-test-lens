@@ -11,6 +11,7 @@ import io.github.testlens.core.logging.UiTestLensLogLevel;
 import io.github.testlens.core.logging.UiTestLensStatus;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 
 public class TypingActions {
@@ -49,12 +50,17 @@ public class TypingActions {
         if (element == null) {
             return;
         }
+        requireNotInterrupted();
         emitAction("type", UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null, value);
 
         try {
             if (!config.isEnabled()) {
+                requireNotInterrupted();
                 element.clear();
-                element.sendKeys(value);
+                if (value != null) {
+                    requireNotInterrupted();
+                    element.sendKeys(value);
+                }
                 emitAction("type", UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, value);
                 return;
             }
@@ -74,8 +80,10 @@ public class TypingActions {
                     element, hintText, duration
             );
 
+            requireNotInterrupted();
             element.clear();
             if (value != null) {
+                requireNotInterrupted();
                 element.sendKeys(value);
             }
             emitAction("type", UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, value);
@@ -87,6 +95,7 @@ public class TypingActions {
 
     public void clearAndType(WebElement input, String value) {
         if (input == null) return;
+        requireNotInterrupted();
         emitAction("clearAndType", UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null, value);
         try {
             js.executeScript(
@@ -95,15 +104,24 @@ public class TypingActions {
                             "try{arguments[0].click();}catch(e){}",
                     input
             );
+            requireNotInterrupted();
             input.sendKeys(org.openqa.selenium.Keys.chord(org.openqa.selenium.Keys.CONTROL, "a"));
+            requireNotInterrupted();
             input.sendKeys(org.openqa.selenium.Keys.BACK_SPACE);
             if (value != null) {
+                requireNotInterrupted();
                 input.sendKeys(value);
             }
             emitAction("clearAndType", UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, value);
         } catch (RuntimeException e) {
             emitAction("clearAndType", UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR, e, value);
             throw e;
+        }
+    }
+
+    private static void requireNotInterrupted() {
+        if (Thread.currentThread().isInterrupted()) {
+            throw new WebDriverException("Typing interrupted");
         }
     }
 

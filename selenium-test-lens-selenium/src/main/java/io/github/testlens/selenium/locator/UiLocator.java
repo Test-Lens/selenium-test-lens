@@ -124,7 +124,7 @@ public final class UiLocator {
             } catch (RuntimeException failure) {
                 lastFailure = failure;
                 boolean deadlineExhausted = System.nanoTime() >= deadlineNanos;
-                if (!shouldRetry(failure) || attempt >= options.maxRetries() || deadlineExhausted) {
+                if (!shouldRetryAction(failure, operationStarted) || attempt >= options.maxRetries() || deadlineExhausted) {
                     emit(UiTestLensEventType.LOCATOR_ACTION_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
                             "Locator action failed", action, attempt, null, failure);
                     overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.FAILURE);
@@ -597,6 +597,7 @@ public final class UiLocator {
         for (int attempt = 1; attempt <= options.maxRetries(); attempt++) {
             long attemptStarted = 0;
             boolean operationStarted = false;
+            boolean clickCompleted = false;
             try {
                 WebElement element = resolve();
                 lastElement = element;
@@ -620,6 +621,7 @@ public final class UiLocator {
                 requireActivation(control);
                 metadata.clickPerformed = true;
                 overlay.smartClickWithOverlayHandler(control.activationElement(), description.displayName(), false);
+                clickCompleted = true;
                 Confirmation confirmation = confirmCheckedState(target);
                 metadata.confirmationAttempts += confirmation.attempts();
                 metadata.finalState = confirmation.state();
@@ -629,7 +631,7 @@ public final class UiLocator {
                 return this;
             } catch (RuntimeException failure) {
                 lastFailure = failure;
-                if (!shouldRetry(failure) || attempt >= options.maxRetries()) {
+                if (clickCompleted || !shouldRetryAction(failure, operationStarted) || attempt >= options.maxRetries()) {
                     emitControl(UiTestLensEventType.LOCATOR_ACTION_FAILED, UiTestLensStatus.FAILED,
                             UiTestLensLogLevel.ERROR, "Locator action failed", action, attempt, metadata, failure);
                     overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.FAILURE);
@@ -890,7 +892,7 @@ public final class UiLocator {
                 return this;
             } catch (RuntimeException e) {
                 lastFailure = e;
-                if (!shouldRetry(e) || attempt >= options.maxRetries()) {
+                if (!shouldRetryAction(e, operationStarted) || attempt >= options.maxRetries()) {
                     emit(UiTestLensEventType.LOCATOR_ACTION_FAILED, UiTestLensStatus.FAILED, UiTestLensLogLevel.ERROR,
                             "Locator action failed", action, attempt, valueLength, e);
                     overlay.automaticHighlight(lastElement, description.displayName(), HighlightState.FAILURE);
@@ -992,6 +994,15 @@ public final class UiLocator {
         overlay.automaticHighlight(lastAssertionElement, description.displayName(), state);
     }
 
+    private boolean shouldRetryAction(RuntimeException failure, boolean operationStarted) {
+        // Once an action can have been dispatched, nested historical failures do not prove it was rejected.
+        if (operationStarted && !(failure instanceof StaleElementReferenceException)
+                && !(failure instanceof ElementClickInterceptedException)
+                && !(failure instanceof ElementNotInteractableException)) {
+            return false;
+        }
+        return shouldRetry(failure);
+    }
     private boolean shouldRetry(RuntimeException e) {
         Throwable effective = effectiveRetryCause(e);
         if (effective instanceof StaleElementReferenceException) {

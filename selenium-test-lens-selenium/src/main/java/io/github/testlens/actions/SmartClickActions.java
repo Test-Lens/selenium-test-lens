@@ -77,6 +77,7 @@ public class SmartClickActions {
         if (target == null) {
             return;
         }
+        requireNotInterrupted();
         emitClick("clickWithOverlayHandling", label, UiTestLensStatus.STARTED, UiTestLensLogLevel.INFO, null, false, null, false);
         try {
             runActionabilityCheck(target);
@@ -92,6 +93,7 @@ public class SmartClickActions {
             decorateClickTarget(target, label);
             long clickStarted = System.nanoTime();
             try {
+                requireNotInterrupted();
                 target.click();
                 emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, false, null, true);
                 return;
@@ -117,6 +119,7 @@ public class SmartClickActions {
                 clickTarget(target, label);
                 emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, true, "blockingOverlay", true);
             } else {
+                requireNotInterrupted();
                 target.click();
                 emitClick("clickWithOverlayHandling", label, UiTestLensStatus.PASSED, UiTestLensLogLevel.INFO, null, true, "directRetry", policyHandledBeforeClick);
             }
@@ -144,6 +147,7 @@ public class SmartClickActions {
         decorateClickTargetIfAbsent(target, label);
 
         try {
+            requireNotInterrupted();
             target.click();
             debugStrategy("NATIVE", "dispatched", null);
             return;
@@ -241,6 +245,7 @@ public class SmartClickActions {
     }
 
     private void requireLogicalClickTarget(WebElement target) {
+        requireNotInterrupted();
         if (!target.isDisplayed()) {
             throw new ElementNotInteractableException("Smart click target is hidden");
         }
@@ -379,17 +384,19 @@ public class SmartClickActions {
     }
 
     private boolean isClickInterceptError(Throwable e) {
-        Throwable current = e;
-        java.util.Set<Throwable> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
-        while (current != null && seen.add(current)) {
-            if (current instanceof ElementClickInterceptedException) return true;
-            current = current.getCause();
+        return e instanceof ElementClickInterceptedException;
+    }
+
+    private static void requireNotInterrupted() {
+        if (Thread.currentThread().isInterrupted()) {
+            throw new WebDriverException("Click interrupted");
         }
-        return false;
     }
 
     private void clickTarget(WebElement target, String label) {
+        requireNotInterrupted();
         decorateClickTarget(target, label);
+        requireNotInterrupted();
         target.click();
     }
 

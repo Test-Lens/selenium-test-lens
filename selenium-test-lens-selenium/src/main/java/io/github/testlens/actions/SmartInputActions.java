@@ -10,6 +10,8 @@ import io.github.testlens.core.logging.UiTestLensLogEntry;
 import io.github.testlens.core.logging.UiTestLensLogLevel;
 import io.github.testlens.core.logging.UiTestLensStatus;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.ElementNotInteractableException;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -92,14 +94,8 @@ public class SmartInputActions {
 
 
     private boolean isInputInterceptError(Throwable e) {
-        String msg = e.getMessage();
-        if (msg == null) return false;
-        msg = msg.toLowerCase();
-        return msg.contains("other element would receive the click")
-                || msg.contains("is not clickable at point")
-                || msg.contains("not interactable")
-                || msg.contains("is not clickable at point")
-                || msg.contains("intercepted");
+        return e instanceof ElementNotInteractableException
+                || e instanceof StaleElementReferenceException;
     }
 
     private void emitSmartInput(String label,
