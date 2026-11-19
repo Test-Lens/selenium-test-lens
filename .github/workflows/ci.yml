@@ -150,6 +150,14 @@ jobs:
         shell: pwsh
         run: ./scripts/validate-release-packaging.ps1
 
+      - name: Preserve reactor test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reactor-test-results
+          if-no-files-found: warn
+          path: '**/target/surefire-reports/TEST-*.xml'
+
   browser-integration:
     name: Browser integration (${{ matrix.browser }})
     runs-on: ubuntu-latest
