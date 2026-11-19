@@ -1,5 +1,7 @@
 # Selenium Test Lens 0.5.2
 
+**Draft, unpublished. Production release is held pending resolution of the Chrome 158/Grid redirect integrity failure.**
+
 **Prepared, unpublished.** Central publication, the immutable tag and GitHub Release have not been completed. Final validation of the current preparation HEAD is still in progress.
 
 ## Overview
@@ -45,7 +47,9 @@ If you disabled only Lens diagnostic capture as a 0.5.1 workaround, re-enable it
 
 The clean local reactor passed **1806 tests**, with **39 classified skips** and zero failures. The same-JAR matrix passed **1242 tests with zero failures/skips**, including local Chrome, Grid and report-data comparisons. Headed and headless runtime smokes each passed 5/5. Public API, strict documentation and packaging checks passed. Hosted release evidence is recorded separately in the production release report; local execution is not presented as hosted CI.
 
-Those completed runs precede the latest redirect correction. Commit `2d971211` passed **82 focused source regressions locally** and independent review found no concrete defects. The new nine-version matrix passed locally on `cdcc9344`: **1359 tests, zero failures and zero skips**, including Chrome 158, Grid and server-journal report comparisons. The identical Lens JAR SHA-256 was `972981F9C86FA796706768A36CF34D518ADDF8D46FDE8B55DB5832C6F79104FB`. Hosted release gates remain pending. Optional raw-wire probes are OFF by default; actual controlled-server journal assertions remain unchanged.
+Those completed runs precede the latest redirect correction. Commit `2d971211` passed **82 focused source regressions locally** and independent review found no concrete defects. The new nine-version matrix passed locally on `cdcc9344`: **1359 tests, zero failures and zero skips**, including Chrome 158, Grid and server-journal report comparisons. The identical Lens JAR SHA-256 was `972981F9C86FA796706768A36CF34D518ADDF8D46FDE8B55DB5832C6F79104FB`. A fresh local reactor passed **1811 tests with 39 classified skips**; the hosted Linux reactor passed **1816 with 34 skips**, including all five platform-dependent tests. Optional raw-wire probes are OFF by default; actual controlled-server journal assertions remain unchanged.
+
+One complete hosted manual run passed, but independent repeats exposed intermittent incorrect raw redirect traffic on Chrome 158.0.8127.36/Grid 4.53.0. These failing report-data checks block publication and are not waived by passing runs. The production report records both results and the standalone Selenium-only reproducer. This draft is not a declaration that the release gate is complete.
 
 ## Known limitations
 

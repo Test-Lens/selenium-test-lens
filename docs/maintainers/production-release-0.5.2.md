@@ -60,9 +60,46 @@ Baseline synchronization was separated from the patch: [PR #2](https://github.co
 
 Release version 0.5.2 was absent from local/remote tags, GitHub Releases and Central at initial preflight. Availability is checked again immediately before immutable actions. PR, hosted run IDs, merge SHA, Central deployment/public artifacts, tag, documentation URLs and post-release consumer evidence are recorded here as each completes.
 
+### Local signing validation
+
+After the maintainer entered the passphrase through local GPG pinentry, a new detached proof signature verified successfully. On the clean `cd00bef8` checkout the existing Maven profile then completed signed verification in 23.630 seconds. **All 61 signatures across the 16 publishable coordinates verified against the expected fingerprint**, covering the parent POM, 15 module POMs, main JARs, sources and Javadoc. The local inventory records each file's SHA-256 and signer in `target/gpg-release-preflight/all-published-artifact-signatures.json`. This is local signing/packaging evidence, not a Central deployment or final release certification.
+
+The signing command used the existing `central-release` profile and configured local `central` server credentials; their values were not logged. The explicit nonsecret overrides were:
+
+```powershell
+mvn -B -Pcentral-release -DskipTests `
+  '-Dgpg.keyname=7C21B14451B2C876E87796C2723272178ED7A876' `
+  '-Dgpg.executable=C:/Program Files/GnuPG/bin/gpg.exe' `
+  '-Dgpg.useagent=true' verify
+```
+
+The profile's batch/loopback arguments require an already primed `gpg-agent` cache; a separate `gpg --pinentry-mode ask --armor --detach-sign` proof provides the local pinentry step when that cache expires. No passphrase property, settings entry, environment variable, private-key export or key change was introduced. The GitHub runner has no access to the local key; the existing Release Check remains an unsigned validation workflow. Publication would use the established local, manually validated Central deployment process only after the release blocker is resolved.
+
 ## Current status
 
-PREPARED, UNPUBLISHED. Commit `2d971211` corrects a hosted Chrome 158 redirect-observation gap using real request metadata from response events. Its focused source regressions passed 82 tests locally and independent review found no concrete defects. Commit `cdcc9344` leaves optional raw-wire probes OFF by default without changing actual journal assertions. The new local nine-version same-JAR matrix passed 1359 tests with zero failures/skips, including Chrome 158, Grid and server-journal report comparisons. Lens SHA-256: `972981F9C86FA796706768A36CF34D518ADDF8D46FDE8B55DB5832C6F79104FB`. Hosted release gates remain pending. Earlier completed matrices below and in linked reports do not certify this new HEAD. No Central publication, immutable tag or GitHub Release exists yet. BrowserStack remains NOT RUN; post-release smoke is pending publication.
+**BLOCKED, UNPUBLISHED.** The maintainer explicitly requested holding publication until the Chrome 158 redirect issue below is resolved. No Central publication, immutable tag or GitHub Release has been created. BrowserStack and the public-artifact post-release smoke remain NOT RUN. No Chrome downgrade or weakened data assertion is used to pass the release gate.
+
+### Finalization checks and the remaining redirect blocker
+
+Commit `2d971211` retains real redirect request metadata with its observation phase; `cdcc9344` keeps optional raw-wire probes OFF by default. The focused source regressions passed 82 tests. Independent reviews found no actionable defects in either change. The new local nine-version same-JAR matrix passed **1359 tests, zero failures/skips**, including Chrome 158, Grid and server-journal report comparisons. Lens SHA-256: `972981F9C86FA796706768A36CF34D518ADDF8D46FDE8B55DB5832C6F79104FB`.
+
+| Check | Observed result | Evidence |
+| --- | --- | --- |
+| Fresh checkout, full reactor and release-profile packaging | PASS: 1811 tests, 39 classified skips, zero failures; sources/Javadoc and publication whitelist checked without signing | Clean `cd00bef8` checkout; local `production-final-verify-unsigned.log` and `production-packaging-check.log` |
+| Hosted Linux reactor | PASS: 1816 tests, 34 intentional skips, zero failures; all five Windows-only skipped tests executed successfully | [CI 44526160581](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44526160581), `reactor-test-results` artifact; the complete workflow is not a PASS because its matrix failed |
+| Hosted same-JAR matrix | 1359 PASS on one complete run; an independent repeat failed the Grid redirect journal comparison | [44525749243](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44525749243), [44526160581](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44526160581) |
+| Hosted complete manual CI, including headed Chrome and Firefox | PASS at `cd00bef8`, retained as evidence of that run, not a waiver for the intermittent failure | [44526149198](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44526149198) |
+| Hosted release packaging/clean-room gate | PASS at `cdcc9344`, signing intentionally disabled | [Release Check 44525892997](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44525892997) |
+| Public API | PASS: 791 types / 5700 callables; stable/advanced baseline delta zero | `check-public-api.ps1`, `check-public-api-since.ps1` |
+| Hosted strict documentation | PASS at `ad8605ac` | [Documentation 44527264850](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44527264850) |
+
+The failing Grid scenario on Chrome **158.0.8127.36**, Grid **4.53.0**, and Java **21** received a raw `network.responseStarted` and `network.responseCompleted` carrying **200 /case/redirect**, then `responseStarted` for **200 /case/final**, but no completed final response and no 302 response in any observed phase. The controlled HTTP peer journal contains **302 /case/redirect → 200 /case/final**. This was reproduced with client 4.39.0 in [diagnostic CI 44527256815](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44527256815); a normal run without probes failed with client 4.45.0. The bounded raw observer used Lens's existing connection and did not map through Lens's response model. Status remained STARTED with no callback failure or dropped events, so connection health alone does not establish complete or accurate traffic.
+
+Changing Lens's URL preference cannot restore the missing 302 response or the response count. Fabricating it from the expected server behavior is not an acceptable fix. The exact browser/Grid component responsible remains under investigation; this evidence alone does not assign the defect exclusively to Chrome. A standalone public-Selenium-only reproducer is supplied in `consumer-tests/selenium-bidi/protocol-reproducer`, with no Lens dependency and no retry of failed stimuli. It tests 50 distinct redirects and writes bounded, sanitized raw events and peer journals. Local Windows runs are not evidence that the hosted Linux defect is fixed.
+
+Release can resume only after a demonstrated correction produces correct real redirect traffic in the standalone probe and the unchanged same-JAR report assertions on Chrome 158/Grid, followed by all required hosted gates on the final source. A newer upstream component or a narrowly justified Lens correction must be tested, not assumed compatible.
+
+Separately, [PR #4](https://github.com/Test-Lens/selenium-test-lens/pull/4) fixed only an existing Studio browser fixture's readiness race. Its complete hosted checks passed before merge `5a47e7b0`; the release branch merges that approved baseline. There are no Studio production changes in the 0.5.2 diff, and the only Studio module change relative to current main remains its parent-version bump. The original working tree's HEAD, index, status and all 256 recorded file hashes remain unchanged.
 
 ## Complete documentation-example skip inventory
 
