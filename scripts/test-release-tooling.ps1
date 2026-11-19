@@ -17,9 +17,13 @@ $release050 = Resolve-TestLensApiReleaseLine -CurrentVersion "0.5.0" -ReleaseTag
 if ($release050.BaselineTag -ne "v0.4.0" -or $release050.ExpectedSince -ne "0.5.0") {
     throw "0.5.0 API release-line contract regression"
 }
+$release051 = Resolve-TestLensApiReleaseLine -CurrentVersion "0.5.1" -ReleaseTags @("v0.4.0", "v0.5.0")
+if ($release051.BaselineTag -ne "v0.5.0" -or $release051.ExpectedSince -ne "0.5.1") {
+    throw "0.5.1 API release-line contract regression"
+}
 
 $publicationPolicy = Read-TestLensPublicationPolicy (Join-Path $PSScriptRoot "config/publication-policy.json")
-if ($publicationPolicy.LatestReleasedVersion -ne "0.5.0") {
+if ($publicationPolicy.LatestReleasedVersion -ne "0.5.1") {
     throw "Latest released version guard regression"
 }
 foreach ($role in @("PUBLISHED_STABLE", "PUBLISHED_TOOLING", "INTERNAL", "TEST_ONLY", "DEMO", "FUTURE")) {
@@ -34,7 +38,7 @@ if ($publicationPolicy.NonReactorPomPaths -notcontains "scripts/fixtures/s15-ext
     throw "Clean-room consumer POM must be classified as a non-reactor test fixture"
 }
 $ciWorkflow = [IO.File]::ReadAllText((Join-Path $repositoryRoot ".github/workflows/ci.yml"))
-if ($ciWorkflow.Contains("-Version 0.5.0-SNAPSHOT")) {
+if ($ciWorkflow.Contains("-Version 0.5.1-SNAPSHOT")) {
     throw "Linux certification must not hardcode a development version"
 }
 foreach ($contract in @(
@@ -77,6 +81,15 @@ if (-not $linuxJob.Contains('SE_BROWSER_NO_SANDBOX: "true"')) {
 if ($linuxJob.Contains('MAVEN_OPTS:')) {
     throw "Linux certification must not pin a driver without the matching browser binary"
 }
+foreach ($spaceConsumerContract in @(
+    '$spaceConsumerPom = Join-Path $spaceConsumer "pom.xml"',
+    '.Replace("0.5.0", $reactorVersion)',
+    '"-Dmaven.repo.local=$repository" -f $spaceConsumerPom test-compile'
+)) {
+    if (-not $linuxJob.Contains($spaceConsumerContract)) {
+        throw "Path-with-spaces consumer must compile the staged reactor version: $spaceConsumerContract"
+    }
+}
 foreach ($diagnosticContract in @(
     'SE_BROWSER_PATH=${SE_BROWSER_PATH:-<unset>}',
     'SE_BROWSER_NO_SANDBOX=${SE_BROWSER_NO_SANDBOX:-<unset>}',
@@ -99,6 +112,18 @@ foreach ($startupContract in @(
 )) {
     if (-not $linuxJob.Contains($startupContract)) {
         throw "Linux certification is missing Chrome startup evidence contract: $startupContract"
+    }
+}
+$browserJob = [regex]::Match($ciWorkflow, '(?ms)^  browser-integration:.*?(?=^  [A-Za-z0-9_-]+:|\z)').Value
+if ([string]::IsNullOrWhiteSpace($browserJob)) {
+    throw "Browser integration job is missing"
+}
+foreach ($childBrowserContract in @(
+    'SE_BROWSER_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}',
+    'SE_BROWSER_NO_SANDBOX: "true"'
+)) {
+    if (-not $browserJob.Contains($childBrowserContract)) {
+        throw "Chrome BrowserIT must configure the sanitized targeted-test child: $childBrowserContract"
     }
 }
 if ($ciWorkflow.Contains('check-public-api-since.ps1 -BaselineTag v0.3.1 -ExpectedSince 0.4.0')) {
@@ -204,8 +229,8 @@ try {
             -ReleaseSourceRoot $releaseSourceRoot `
             -IncludeBrowserIt
         $releasePom = Read-TestLensPom (Join-Path $fixtureRoot "pom.xml")
-        if ((Get-TestLensPomText $releasePom "/m:project/m:version") -ne "0.5.0") {
-            throw "Release certification version must be derived as 0.5.0 from the root POM"
+        if ((Get-TestLensPomText $releasePom "/m:project/m:version") -ne "0.5.1") {
+            throw "Release certification version must be derived as 0.5.1 from the root POM"
         }
         if ($model.TrackedPomPaths -contains "target/generated/pom.xml") {
             throw "Generated target POM was included in tracked reactor metadata"
@@ -245,32 +270,32 @@ try {
     Assert-Throws { & (Join-Path $PSScriptRoot "validate-release-packaging.ps1") -RepositoryRoot $fixtureRoot -MatrixOnly } "internal module deploy enabled"
     [IO.File]::WriteAllText($internalPom, $originalInternal)
 
-    [IO.File]::WriteAllText($corePom, $originalCore.Replace('<version>0.5.0</version>', '<version>9.9.9</version>'))
+    [IO.File]::WriteAllText($corePom, $originalCore.Replace('<version>0.5.1</version>', '<version>9.9.9</version>'))
     Assert-Throws { & (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot } "wrong module version"
     [IO.File]::WriteAllText($corePom, $originalCore)
 
     $trackedPoms = @(& git -C $fixtureRoot ls-files -- "pom.xml" ":(glob)**/pom.xml")
     foreach ($relative in $trackedPoms) {
         $path = Join-Path $fixtureRoot $relative
-        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.0", "0.5.1"))
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.1", "0.5.2"))
     }
     Assert-ThrowsLike {
         & (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot
-    } "*must equal publication policy latestReleasedVersion '0.5.0'*" "release version differs from policy"
+    } "*must equal publication policy latestReleasedVersion '0.5.1'*" "release version differs from policy"
     foreach ($relative in $trackedPoms) {
         $path = Join-Path $fixtureRoot $relative
-        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.1", "0.5.0-SNAPSHOT"))
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.2", "0.5.1-SNAPSHOT"))
     }
     $snapshotPom = Read-TestLensPom (Join-Path $fixtureRoot "pom.xml")
-    if ((Get-TestLensPomText $snapshotPom "/m:project/m:version") -ne "0.5.0-SNAPSHOT") {
-        throw "Development certification version must be derived as 0.5.0-SNAPSHOT from the root POM"
+    if ((Get-TestLensPomText $snapshotPom "/m:project/m:version") -ne "0.5.1-SNAPSHOT") {
+        throw "Development certification version must be derived as 0.5.1-SNAPSHOT from the root POM"
     }
     Assert-ThrowsLike {
         & (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot
-    } "*must be newer than declared released version '0.5.0'*" "development version reuses declared release"
+    } "*must be newer than declared released version '0.5.1'*" "development version reuses declared release"
     foreach ($relative in $trackedPoms) {
         $path = Join-Path $fixtureRoot $relative
-        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.0-SNAPSHOT", "0.5.0"))
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.1-SNAPSHOT", "0.5.1"))
     }
 
     $browserPom = Join-Path $fixtureRoot "selenium-test-lens-browser-tests/pom.xml"
@@ -286,21 +311,21 @@ try {
     Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.5.0" -WhatIf } "non-patch target"
     foreach ($pomPath in @(git -C $fixtureRoot ls-files -- "pom.xml" ":(glob)**/pom.xml")) {
         $path = Join-Path $fixtureRoot $pomPath
-        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.0", "0.5.1-SNAPSHOT"))
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.1", "0.5.2-SNAPSHOT"))
     }
     & git -C $fixtureRoot add -- pom.xml */pom.xml
     & git -C $fixtureRoot -c user.name=release-fixture -c user.email=release-fixture.invalid commit -q -m patch-snapshot
     if ($LASTEXITCODE -ne 0) { throw "Cannot commit patch snapshot fixture" }
-    & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.5.1" -WhatIf | Out-Null
+    & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.5.2" -WhatIf | Out-Null
     if (@(& git -C $fixtureRoot status --porcelain).Count -ne 0) { throw "Patch preparation -WhatIf mutated the fixture" }
     $cleanCore = [IO.File]::ReadAllText($corePom)
     Add-Content -LiteralPath $corePom -Value "dirty"
-    Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.5.1" -WhatIf } "dirty worktree"
+    Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.5.2" -WhatIf } "dirty worktree"
     [IO.File]::WriteAllText($corePom, $cleanCore)
     $rootPom = Join-Path $fixtureRoot "pom.xml"
     $rootText = [IO.File]::ReadAllText($rootPom)
-    [IO.File]::WriteAllText($rootPom, $rootText.Replace("0.5.1-SNAPSHOT", "0.5.1"))
-    Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.5.1" -WhatIf } "wrong source snapshot"
+    [IO.File]::WriteAllText($rootPom, $rootText.Replace("0.5.2-SNAPSHOT", "0.5.2"))
+    Assert-Throws { & (Join-Path $PSScriptRoot "prepare-patch-release.ps1") -RepositoryRoot $fixtureRoot -TargetVersion "0.5.2" -WhatIf } "wrong source snapshot"
     [IO.File]::WriteAllText($rootPom, $rootText)
 
     foreach ($script in @("prepare-patch-release.ps1","check-patch-release.ps1")) {

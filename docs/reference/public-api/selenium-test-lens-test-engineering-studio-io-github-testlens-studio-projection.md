@@ -115,8 +115,30 @@ public io.github.testlens.studio.projection.StudioProjections$WorkflowRunProject
 public io.github.testlens.studio.projection.StudioProjections$TestPlanProjection plan(io.github.testlens.application.tooling.ai.TestPlan)
 public io.github.testlens.studio.projection.StudioProjections$ImplementationProjection implementation(io.github.testlens.application.tooling.ai.TestImplementationProposal, java.util.List<io.github.testlens.studio.StudioWorkflowGateway$PolicyCheck>)
 public io.github.testlens.studio.projection.StudioProjections$ExecutionProjection execution(io.github.testlens.application.tooling.ai.TestExecutionResult)
+public io.github.testlens.studio.projection.StudioProjections$ReviewProjection review(io.github.testlens.application.tooling.ai.CodeReviewResult)
+public java.util.List<io.github.testlens.studio.projection.StudioProjections$ReviewCycleProjection> reviewHistory(java.util.List<io.github.testlens.studio.workspace.WorkflowSessionSnapshot$ReviewCycleSnapshot>)
 public io.github.testlens.studio.projection.StudioProjections$DiagnosisProjection diagnosis(io.github.testlens.application.tooling.ai.FailureClassification)
 public io.github.testlens.studio.projection.StudioProjections$RepairProjection repair(io.github.testlens.application.tooling.ai.RepairProposal, java.lang.String, java.lang.String, boolean)
+```
+
+## `io.github.testlens.studio.projection.StudioProjections$AgentFailureProjection` {#io-github-testlens-studio-projection-studioprojections-agentfailureprojection}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio.projection`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.studio.projection.StudioProjections$AgentFailureProjection(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.util.Map<java.lang.String, java.lang.String>)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String code()
+public java.lang.String stage()
+public java.lang.String reasonCode()
+public java.lang.String location()
+public java.lang.String message()
+public java.util.Map<java.lang.String, java.lang.String> metadata()
 ```
 
 ## `io.github.testlens.studio.projection.StudioProjections$ApplicationCounts` {#io-github-testlens-studio-projection-studioprojections-applicationcounts}
@@ -446,7 +468,7 @@ public int count()
 - Type kind: `record`
 
 ```java
-public io.github.testlens.studio.projection.StudioProjections$RepairProjection(io.github.testlens.studio.projection.StageProjection, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>)
+public io.github.testlens.studio.projection.StudioProjections$RepairProjection(io.github.testlens.studio.projection.StageProjection, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.util.List<java.lang.String>, boolean, java.lang.String, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>)
 public final java.lang.String toString()
 public final int hashCode()
 public final boolean equals(java.lang.Object)
@@ -458,9 +480,113 @@ public java.lang.String logicalPath()
 public java.lang.String oldSelector()
 public java.lang.String newSelector()
 public java.util.List<java.lang.String> selectorEvidence()
+public boolean candidateUnique()
+public java.lang.String sameTarget()
 public java.util.List<java.lang.String> affectedMethods()
 public java.util.List<java.lang.String> affectedTests()
 public java.util.List<java.lang.String> risks()
+```
+
+## `io.github.testlens.studio.projection.StudioProjections$ReviewContractDiagnosticProjection` {#io-github-testlens-studio-projection-studioprojections-reviewcontractdiagnosticprojection}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio.projection`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.studio.projection.StudioProjections$ReviewContractDiagnosticProjection(java.lang.String, java.lang.String, java.lang.String, java.lang.String, int, java.lang.String, java.lang.String)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String validationStage()
+public java.lang.String reasonCode()
+public java.lang.String location()
+public java.lang.String category()
+public int contractVersion()
+public java.lang.String artifactRef()
+public java.lang.String evidenceAvailability()
+```
+
+## `io.github.testlens.studio.projection.StudioProjections$ReviewCycleProjection` {#io-github-testlens-studio-projection-studioprojections-reviewcycleprojection}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio.projection`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.studio.projection.StudioProjections$ReviewCycleProjection(int, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, long, io.github.testlens.studio.projection.StudioProjections$ReviewProjection)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public int implementationVersion()
+public java.lang.String implementationArtifactRef()
+public java.lang.String executionArtifactRef()
+public java.lang.String reviewArtifactRef()
+public java.lang.String compileOutcome()
+public java.lang.String executionOutcome()
+public long durationMillis()
+public io.github.testlens.studio.projection.StudioProjections$ReviewProjection review()
+```
+
+## `io.github.testlens.studio.projection.StudioProjections$ReviewFindingProjection` {#io-github-testlens-studio-projection-studioprojections-reviewfindingprojection}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio.projection`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.studio.projection.StudioProjections$ReviewFindingProjection(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String category()
+public java.lang.String severity()
+public java.lang.String ruleId()
+public java.lang.String artifactRef()
+public java.lang.String problemCategory()
+public java.lang.String requiredAction()
+public java.lang.String location()
+public java.lang.String evidenceAvailability()
+```
+
+## `io.github.testlens.studio.projection.StudioProjections$ReviewProjection` {#io-github-testlens-studio-projection-studioprojections-reviewprojection}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio.projection`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.studio.projection.StudioProjections$ReviewProjection(java.lang.String, java.util.List<java.lang.String>, java.util.List<io.github.testlens.studio.projection.StudioProjections$ReviewFindingProjection>)
+public io.github.testlens.studio.projection.StudioProjections$ReviewProjection(java.lang.String, java.util.List<java.lang.String>, java.util.List<io.github.testlens.studio.projection.StudioProjections$ReviewFindingProjection>, io.github.testlens.studio.projection.StudioProjections$ReviewContractDiagnosticProjection)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String verdict()
+public java.util.List<java.lang.String> reviewedArtifactRefs()
+public java.util.List<io.github.testlens.studio.projection.StudioProjections$ReviewFindingProjection> findings()
+public io.github.testlens.studio.projection.StudioProjections$ReviewContractDiagnosticProjection contractDiagnostic()
+```
+
+## `io.github.testlens.studio.projection.StudioProjections$RunDiagnosticProjection` {#io-github-testlens-studio-projection-studioprojections-rundiagnosticprojection}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio.projection`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.studio.projection.StudioProjections$RunDiagnosticProjection(java.lang.String, java.lang.String, java.lang.String, boolean)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public java.lang.String reason()
+public java.lang.String status()
+public java.lang.String location()
+public boolean recoveryPersisted()
 ```
 
 ## `io.github.testlens.studio.projection.StudioProjections$Scenario` {#io-github-testlens-studio-projection-studioprojections-scenario}
@@ -570,6 +696,9 @@ public java.lang.String summary()
 
 ```java
 public io.github.testlens.studio.projection.StudioProjections$WorkflowDetailProjection(java.lang.String, java.lang.String, io.github.testlens.studio.projection.StudioProjections$TestPlanProjection, io.github.testlens.studio.projection.StudioProjections$ImplementationProjection, io.github.testlens.studio.projection.StudioProjections$ExecutionProjection, io.github.testlens.studio.projection.StudioProjections$DiagnosisProjection, io.github.testlens.studio.projection.StudioProjections$RepairProjection, java.util.List<io.github.testlens.studio.projection.StudioProjections$TimelineItem>, io.github.testlens.studio.projection.StudioProjections$WorkflowMetrics, java.lang.String, java.lang.String, boolean, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.lang.String)
+public io.github.testlens.studio.projection.StudioProjections$WorkflowDetailProjection(java.lang.String, java.lang.String, io.github.testlens.studio.projection.StudioProjections$TestPlanProjection, io.github.testlens.studio.projection.StudioProjections$ImplementationProjection, io.github.testlens.studio.projection.StudioProjections$ExecutionProjection, io.github.testlens.studio.projection.StudioProjections$DiagnosisProjection, io.github.testlens.studio.projection.StudioProjections$RepairProjection, java.util.List<io.github.testlens.studio.projection.StudioProjections$TimelineItem>, io.github.testlens.studio.projection.StudioProjections$WorkflowMetrics, java.lang.String, java.lang.String, boolean, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.lang.String, io.github.testlens.studio.projection.StudioProjections$AgentFailureProjection)
+public io.github.testlens.studio.projection.StudioProjections$WorkflowDetailProjection(java.lang.String, java.lang.String, io.github.testlens.studio.projection.StudioProjections$TestPlanProjection, io.github.testlens.studio.projection.StudioProjections$ImplementationProjection, io.github.testlens.studio.projection.StudioProjections$ExecutionProjection, io.github.testlens.studio.projection.StudioProjections$DiagnosisProjection, io.github.testlens.studio.projection.StudioProjections$RepairProjection, java.util.List<io.github.testlens.studio.projection.StudioProjections$TimelineItem>, io.github.testlens.studio.projection.StudioProjections$WorkflowMetrics, java.lang.String, java.lang.String, boolean, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.lang.String, io.github.testlens.studio.projection.StudioProjections$AgentFailureProjection, io.github.testlens.studio.projection.StudioProjections$ReviewProjection, java.util.List<io.github.testlens.studio.projection.StudioProjections$ReviewCycleProjection>)
+public io.github.testlens.studio.projection.StudioProjections$WorkflowDetailProjection(java.lang.String, java.lang.String, io.github.testlens.studio.projection.StudioProjections$TestPlanProjection, io.github.testlens.studio.projection.StudioProjections$ImplementationProjection, io.github.testlens.studio.projection.StudioProjections$ExecutionProjection, io.github.testlens.studio.projection.StudioProjections$DiagnosisProjection, io.github.testlens.studio.projection.StudioProjections$RepairProjection, java.util.List<io.github.testlens.studio.projection.StudioProjections$TimelineItem>, io.github.testlens.studio.projection.StudioProjections$WorkflowMetrics, java.lang.String, java.lang.String, boolean, java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.lang.String, io.github.testlens.studio.projection.StudioProjections$AgentFailureProjection, io.github.testlens.studio.projection.StudioProjections$ReviewProjection, java.util.List<io.github.testlens.studio.projection.StudioProjections$ReviewCycleProjection>, io.github.testlens.studio.projection.StudioProjections$RunDiagnosticProjection)
 public final java.lang.String toString()
 public final int hashCode()
 public final boolean equals(java.lang.Object)
@@ -588,6 +717,10 @@ public boolean resumed()
 public java.util.List<java.lang.String> availableActions()
 public java.util.List<java.lang.String> limitations()
 public java.lang.String updatedAt()
+public io.github.testlens.studio.projection.StudioProjections$AgentFailureProjection agentFailure()
+public io.github.testlens.studio.projection.StudioProjections$ReviewProjection review()
+public java.util.List<io.github.testlens.studio.projection.StudioProjections$ReviewCycleProjection> reviewHistory()
+public io.github.testlens.studio.projection.StudioProjections$RunDiagnosticProjection runDiagnostic()
 ```
 
 ## `io.github.testlens.studio.projection.StudioProjections$WorkflowMetrics` {#io-github-testlens-studio-projection-studioprojections-workflowmetrics}

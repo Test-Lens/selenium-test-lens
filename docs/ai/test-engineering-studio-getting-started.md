@@ -1,9 +1,14 @@
 ---
 title: Test Engineering Studio getting started
-description: Launch Test Engineering Studio 0.5.0 from Maven, configure a project safely, and run its reviewed local workflow.
+description: Launch Test Engineering Studio 0.5.1 from Maven, configure a project safely, and run its reviewed local workflow.
 ---
 
 # Test Engineering Studio getting started
+
+!!! warning "Experimental feature — temporarily unavailable"
+
+    Test Engineering Studio is undergoing further stabilization and is not currently recommended for production use. Public documentation will be restored after end-to-end certification.
+
 
 !!! info "Opt-in tooling"
     Studio is distributed separately from the lightweight `selenium-test-lens` runtime. Invoking the Maven goal is explicit; upgrading the runtime alone does not start indexing, browsers, agents, or an HTTP host.
@@ -16,7 +21,7 @@ Test Engineering Studio is a local UI for application mapping and the reviewed A
 - Maven and a Maven Selenium test project that reaches `test-compile`;
 - Chrome for the currently verified local end-to-end Studio path;
 - a running application URL when mapping or executing a generated test;
-- Codex CLI with the required `exec` capabilities for real agent stages, or a project-provided `AgentExecutorProvider` on the test classpath.
+- [Codex CLI](https://developers.openai.com/codex/cli), installed and signed in for its supported `exec` workflow, for real agent stages; alternatively, configure a project-provided `AgentExecutorProvider` on the test classpath.
 
 The local provider supports Chrome and Firefox. Release certification uses a deterministic scripted agent for repeatable end-to-end repair evidence; real Codex execution is an additional opt-in certification.
 
@@ -25,13 +30,13 @@ The local provider supports Chrome and Firefox. Release certification uses a det
 Change to the root of the Maven Selenium project you want Studio to inspect. Run the fully qualified goal so the invocation does not depend on local plugin-prefix metadata:
 
 ```powershell
-mvn io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.0:studio
+mvn io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.1:studio
 ```
 
 The goal runs through `test-compile`, resolves the test classpath, opens Studio in the default browser, prints its `127.0.0.1` URL, and waits until the Maven process is stopped. To print the URL without opening a browser:
 
 ```powershell
-mvn -DtestLens.studio.openBrowser=false io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.0:studio
+mvn -DtestLens.studio.openBrowser=false io.github.test-lens:test-lens-test-engineering-maven-plugin:0.5.1:studio
 ```
 
 Stopping Maven stops the Studio host and Studio-owned browser session. It does not repeat or approve a workflow.
@@ -77,6 +82,8 @@ Create `.test-lens/local.json` only for settings tied to one workstation:
 ```
 
 `codexExecutable` must be an absolute path. Local profile entries override matching project profile entries. Unknown fields, symbolic-link configuration files, secret-shaped field names, bearer/JWT-shaped values, and secret-like URL query parameters fail closed.
+
+The default Codex provider discovers the executable automatically. On Windows it looks for native `codex.exe` on `PATH` and in its supported npm installation location. If discovery does not find your installation, set the absolute path in the machine-local `.test-lens/local.json`; do not put a machine-specific path in shared project configuration. Studio preflight checks the executable and required `exec` capabilities without sending a prompt.
 
 Do not store credentials in either file. The caller prepares authentication in the application or its normal test bootstrap; Studio does not persist passwords, cookies, tokens, authorization headers, or browser storage as configuration.
 
@@ -175,13 +182,16 @@ The local process is still trusted tooling with access to the selected project a
 
 ## Upgrading an existing 0.4.x project
 
-The Studio plugin is opt-in tooling for the 0.5.0 line. Existing `TestLens.attach(...)`, actions, waits, retries, HUD, reports and runner lifecycle remain compatible; projects that only use the runtime do not acquire Studio or source-analysis dependencies.
+The Studio plugin is opt-in tooling for the 0.5.1 line. Existing `TestLens.attach(...)`, actions, waits, retries, HUD, reports and runner lifecycle remain compatible; projects that only use the runtime do not acquire Studio or source-analysis dependencies.
+
+The complete generated-test workflow in Studio targets JUnit 5. The published TestNG adapter remains supported for
+ordinary Test Lens runtime integration, but TestNG generated-test execution is outside the current Studio scope.
 
 Continue with the [Studio workflow reference](test-engineering-studio.md), [application-mapping tutorial](../advanced/application-mapping/tutorial.md), and [AI workflow contracts](workflow-orchestration.md).
 
 ## Troubleshooting
 
-- **The fully qualified Maven goal cannot be resolved:** confirm that version `0.5.0` is available in the Maven repository configured for the consumer project and that the complete plugin coordinates are used.
+- **The fully qualified Maven goal cannot be resolved:** confirm that version `0.5.1` is available in the Maven repository configured for the consumer project and that the complete plugin coordinates are used.
 - **`test-compile` or dependency resolution fails before Studio opens:** fix the consumer project's normal Maven test compilation/classpath first. The plugin intentionally requires test dependency resolution and does not construct a substitute classpath.
 - **Browser preflight is `NOT_AVAILABLE`:** verify the configured browser is installed and Selenium Manager can resolve it. `CONFIGURATION_INVALID` or `UNSUPPORTED` requires correcting the selected provider/request rather than repeatedly clicking Map.
 - **Agent preflight is `NOT_AVAILABLE`, `VERSION_UNSUPPORTED`, or `PROFILE_INVALID`:** verify the absolute executable, required `codex exec` flags, or safe logical profile. Preflight never falls back silently from a selected custom provider.

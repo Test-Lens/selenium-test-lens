@@ -112,12 +112,19 @@ foreach ($htmlFile in Get-ChildItem -LiteralPath $site -Filter *.html -File -Rec
 
 if (-not $SkipHttp) {
     $python = $null
-    foreach ($candidate in @('python', 'python3')) {
+    foreach ($candidate in @('py', 'python', 'python3')) {
         $command = Get-Command $candidate -ErrorAction SilentlyContinue
-        if ($null -ne $command) { $python = $command.Source; break }
+        if ($null -eq $command -or [string]::IsNullOrWhiteSpace($command.Source)) { continue }
+        $resolved = @(& $command.Source -c 'import sys; print(sys.executable)' 2>$null)
+        if ($LASTEXITCODE -ne 0 -or $resolved.Count -ne 1) { continue }
+        $candidatePath = [string]$resolved[0]
+        if (-not (Test-Path -LiteralPath $candidatePath -PathType Leaf)) { continue }
+        $python = (Resolve-Path -LiteralPath $candidatePath).Path
+        break
     }
-    if ($null -eq $python) { throw "Python is required for the local generated-site HTTP validation." }
+    if ($null -eq $python) { throw "A usable Python interpreter is required for the local generated-site HTTP validation." }
 
+    Add-Type -AssemblyName System.Net.Http
     $listener = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback, 0)
     $listener.Start()
     $port = ([Net.IPEndPoint]$listener.LocalEndpoint).Port
@@ -129,12 +136,9 @@ if (-not $SkipHttp) {
     $start.CreateNoWindow = $true
     $start.RedirectStandardOutput = $true
     $start.RedirectStandardError = $true
-    $start.ArgumentList.Add('-m')
-    $start.ArgumentList.Add('http.server')
-    $start.ArgumentList.Add([string]$port)
-    $start.ArgumentList.Add('--bind')
-    $start.ArgumentList.Add('127.0.0.1')
+    $start.Arguments = "-m http.server $port --bind 127.0.0.1"
     $server = [Diagnostics.Process]::Start($start)
+    if ($null -eq $server) { throw "Unable to start the local generated-site HTTP server." }
     try {
         $handler = [Net.Http.HttpClientHandler]::new()
         $handler.AllowAutoRedirect = $false
@@ -156,7 +160,7 @@ if (-not $SkipHttp) {
         $client.Dispose()
         $handler.Dispose()
     } finally {
-        if (-not $server.HasExited) { $server.Kill($true) }
+        if (-not $server.HasExited) { $server.Kill() }
         $server.WaitForExit(5000) | Out-Null
         $server.Dispose()
     }

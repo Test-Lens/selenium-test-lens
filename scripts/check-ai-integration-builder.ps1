@@ -48,7 +48,7 @@ if ($pageText -match 'data-test-lens-version|data-docs-base' -or $scriptText -ma
 }
 
 foreach ($contract in @(
-    "AI-assisted integration: ai-assisted-integration.md",
+    "AI Integration Prompt Builder: ai-assisted-integration.md",
     "stylesheets/ai-integration-builder.css"
 )) {
     if (-not $mkdocsText.Contains($contract)) { throw "MkDocs AI integration contract missing: $contract" }

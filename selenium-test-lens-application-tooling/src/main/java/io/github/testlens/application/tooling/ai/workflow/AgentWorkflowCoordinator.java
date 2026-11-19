@@ -10,6 +10,7 @@ import io.github.testlens.application.tooling.ai.TestImplementationProposal;
 import io.github.testlens.application.tooling.ai.TestPlan;
 import io.github.testlens.application.tooling.json.StrictJson;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -31,19 +32,37 @@ public final class AgentWorkflowCoordinator {
     private final FailureClassifier classifier;
     private final Stabilizer stabilizer;
     private final Configuration configuration;
+    private final java.util.function.Supplier<String> currentPageObjectSourceFingerprint;
 
     public AgentWorkflowCoordinator(TestEngineeringWorkflow workflow, AgentExecutor agents,
                                     TargetedJavaCompiler compiler, TargetedTestExecutor tests,
                                     GeneratedTestPolicyValidator validator, FailureClassifier classifier,
                                     Stabilizer stabilizer, Configuration configuration) {
         this(workflow, agents, compiler, (request, ignoredOutput) -> tests.execute(request), validator,
-                classifier, stabilizer, configuration);
+                classifier, stabilizer, configuration, () -> null);
+    }
+
+    public AgentWorkflowCoordinator(TestEngineeringWorkflow workflow, AgentExecutor agents,
+                                    TargetedJavaCompiler compiler, TargetedTestExecutor tests,
+                                    GeneratedTestPolicyValidator validator, FailureClassifier classifier,
+                                    Stabilizer stabilizer, Configuration configuration,
+                                    java.util.function.Supplier<String> currentPageObjectSourceFingerprint) {
+        this(workflow, agents, compiler, (request, ignoredOutput) -> tests.execute(request), validator,
+                classifier, stabilizer, configuration, currentPageObjectSourceFingerprint);
     }
 
     public AgentWorkflowCoordinator(TestEngineeringWorkflow workflow, AgentExecutor agents,
                                     TargetedJavaCompiler compiler, CompiledTargetedTestExecutor tests,
                                     GeneratedTestPolicyValidator validator, FailureClassifier classifier,
                                     Stabilizer stabilizer, Configuration configuration) {
+        this(workflow, agents, compiler, tests, validator, classifier, stabilizer, configuration, () -> null);
+    }
+
+    public AgentWorkflowCoordinator(TestEngineeringWorkflow workflow, AgentExecutor agents,
+                                    TargetedJavaCompiler compiler, CompiledTargetedTestExecutor tests,
+                                    GeneratedTestPolicyValidator validator, FailureClassifier classifier,
+                                    Stabilizer stabilizer, Configuration configuration,
+                                    java.util.function.Supplier<String> currentPageObjectSourceFingerprint) {
         this.workflow = java.util.Objects.requireNonNull(workflow, "workflow");
         this.agents = java.util.Objects.requireNonNull(agents, "agents");
         this.compiler = java.util.Objects.requireNonNull(compiler, "compiler");
@@ -52,12 +71,15 @@ public final class AgentWorkflowCoordinator {
         this.classifier = java.util.Objects.requireNonNull(classifier, "classifier");
         this.stabilizer = java.util.Objects.requireNonNull(stabilizer, "stabilizer");
         this.configuration = java.util.Objects.requireNonNull(configuration, "configuration");
+        this.currentPageObjectSourceFingerprint = java.util.Objects.requireNonNull(
+                currentPageObjectSourceFingerprint, "currentPageObjectSourceFingerprint");
     }
 
     public Result run(String runId, TestEngineeringRequest request, AgentContextPack context)
             throws AgentExecutor.AgentExecutionException {
         java.util.Objects.requireNonNull(request, "request");
         java.util.Objects.requireNonNull(context, "context");
+        String runSourceFingerprint = currentPageObjectSourceFingerprint(context);
         MetricsAccumulator metrics = new MetricsAccumulator();
         List<Step> steps = new ArrayList<>();
         TestEngineeringRun run = TestEngineeringRun.create(runId, request);
@@ -85,6 +107,11 @@ public final class AgentWorkflowCoordinator {
         int implementationAttempt = 0;
         ArtifactEnvelope<TestImplementationProposal> implementationArtifact = null;
         TargetedJavaCompiler.CompilationResult compilation = null;
+        ArtifactEnvelope<CodeReviewResult> previousReviewArtifact = null;
+        ArtifactEnvelope<ReviewerEvidence.QualityEvidence> previousQualityArtifact = null;
+        ArtifactEnvelope<TestExecutionResult> previousExecutionArtifact = null;
+        ArtifactEnvelope<ReviewerEvidence.QualityEvidence> qualityArtifact = null;
+        ArtifactEnvelope<ReviewerEvidence.CompilationEvidence> compileSuccessArtifact = null;
         while (implementationAttempt < configuration.maxImplementationAttempts()) {
             implementationAttempt++;
             run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(implementationAttempt == 1
@@ -92,14 +119,21 @@ public final class AgentWorkflowCoordinator {
                     : TestEngineeringWorkflow.EventType.REQUEST_CORRECTION));
             List<ArtifactEnvelope<?>> implementationInputs = new ArrayList<>(List.of(contextArtifact, planArtifact));
             if (implementationArtifact != null) implementationInputs.add(implementationArtifact);
-            if (compilation != null) {
+            if (previousReviewArtifact != null) {
+                implementationInputs.add(previousReviewArtifact);
+                implementationInputs.add(previousQualityArtifact);
+                implementationInputs.add(previousExecutionArtifact);
+            } else if (compilation != null) {
                 CompilationFeedback feedback = CompilationFeedback.from(compilation);
                 implementationInputs.add(ArtifactEnvelope.create("compile-feedback-" + (implementationAttempt - 1), runId,
                         List.of(implementationArtifact.artifactId()), implementationAttempt - 1, feedback));
             }
             AgentCall implementationCall = call(runId, AgentExecutor.Role.TEST_IMPLEMENTER, implementationInputs,
-                    Map.of("expectedResult", "TestImplementationProposal",
-                            "attempt", Integer.toString(implementationAttempt)), metrics);
+                    Map.of("expectedResult", "TEST_IMPLEMENTATION_PROPOSAL | PAGE_OBJECT_CAPABILITY_MISSING | PAGE_OBJECT_EXTENSION_PROPOSAL",
+                            "attempt", Integer.toString(implementationAttempt),
+                            "correctionReason", previousReviewArtifact == null ? "NONE" : "TYPED_REVIEW_FINDINGS",
+                            "testLens.pageObjectSourceFingerprint",
+                            runSourceFingerprint), metrics);
             if (implementationCall.payload() instanceof PageObjectCapabilityMissing missing) {
                 ArtifactEnvelope<PageObjectCapabilityMissing> missingArtifact = ArtifactEnvelope.create(
                         "capability-missing", runId, List.of(planArtifact.artifactId()), implementationAttempt, missing);
@@ -124,8 +158,12 @@ public final class AgentWorkflowCoordinator {
             }
             requireUsableHeader("Implementer", implementation.header());
             String implementationId = "implementation-" + implementationAttempt;
+            List<String> implementationParents = previousReviewArtifact == null
+                    ? List.of(planArtifact.artifactId())
+                    : List.of(planArtifact.artifactId(), implementationArtifact.artifactId(),
+                            previousReviewArtifact.artifactId());
             implementationArtifact = ArtifactEnvelope.create(implementationId, runId,
-                    List.of(planArtifact.artifactId()), implementationAttempt, implementation);
+                    implementationParents, implementationAttempt, implementation);
             run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(
                     TestEngineeringWorkflow.EventType.IMPLEMENTATION_PRODUCED, implementationArtifact));
             steps.add(step(steps, "IMPLEMENTATION_READY", Status.PASS, implementationCall.durationMillis(),
@@ -146,34 +184,63 @@ public final class AgentWorkflowCoordinator {
             }
             steps.add(step(steps, "POLICY_VALIDATION", Status.PASS, 0, 0, 0, "Page Objects only"));
 
+            ReviewerEvidence.QualityEvidence quality = ReviewerEvidence.analyze(implementation,
+                    runSourceFingerprint);
+            qualityArtifact = ArtifactEnvelope.create(
+                    "quality-" + implementationAttempt, runId, List.of(implementationArtifact.artifactId()),
+                    implementationAttempt, quality);
+            run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(
+                    TestEngineeringWorkflow.EventType.QUALITY_VERIFIED, qualityArtifact));
+            steps.add(step(steps, "QUALITY_EVIDENCE",
+                    quality.status() == ReviewerEvidence.QualityStatus.COMPLETE ? Status.PASS : Status.BLOCKED,
+                    0, 0, 0, "status=" + quality.status() + ",tests=" + quality.junitTestMethodCount()
+                            + ",assertions=" + quality.assertionCount()));
+            if (!runSourceFingerprint.equals(currentPageObjectSourceFingerprint(context))) {
+                run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(
+                        TestEngineeringWorkflow.EventType.REQUIRE_HUMAN_REVIEW));
+                steps.add(step(steps, "SOURCE_FINGERPRINT", Status.BLOCKED, 0, 0, 0,
+                        ReviewValidationFailure.IMPLEMENTATION_FINGERPRINT_MISMATCH.name()));
+                return result(run, steps, metrics);
+            }
             long compileStart = System.nanoTime();
             compilation = compile(implementation);
             long compileMillis = elapsed(compileStart);
             metrics.compileDurationMillis += compileMillis;
             metrics.compileAttempts++;
             if (compilation.successful()) {
-                run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(
-                        TestEngineeringWorkflow.EventType.COMPILE_SUCCEEDED));
+                ReviewerEvidence.CompilationEvidence compileEvidence = new ReviewerEvidence.CompilationEvidence(
+                        ReviewerEvidence.CompilationEvidence.Status.PASS, compilation.generatedClasses(),
+                        quality.implementationDigest());
+                compileSuccessArtifact = ArtifactEnvelope.create(
+                        "compile-success-" + implementationAttempt, runId,
+                        List.of(implementationArtifact.artifactId(), qualityArtifact.artifactId()),
+                        implementationAttempt, compileEvidence);
+                run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(
+                        TestEngineeringWorkflow.EventType.COMPILE_SUCCEEDED, compileSuccessArtifact));
                 steps.add(step(steps, "COMPILE_PASS", Status.PASS, compileMillis, 0, 0,
                         "classes=" + compilation.generatedClasses()));
-                break;
+            } else {
+                ArtifactEnvelope<TargetedJavaCompiler.CompilationResult> compileArtifact = ArtifactEnvelope.create(
+                        "compile-" + implementationAttempt, runId, List.of(implementationArtifact.artifactId()),
+                        implementationAttempt, compilation);
+                run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(
+                        TestEngineeringWorkflow.EventType.COMPILE_FAILED, compileArtifact));
+                steps.add(step(steps, "COMPILE_FAIL", Status.FAIL, compileMillis, 0, 0,
+                        CompilationFeedback.from(compilation).diagnostics().toString()));
+                if (implementationAttempt >= configuration.maxImplementationAttempts()) {
+                    run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(
+                            TestEngineeringWorkflow.EventType.REQUIRE_HUMAN_REVIEW));
+                    return result(run, steps, metrics);
+                }
+                continue;
             }
-            ArtifactEnvelope<TargetedJavaCompiler.CompilationResult> compileArtifact = ArtifactEnvelope.create(
-                    "compile-" + implementationAttempt, runId, List.of(implementationArtifact.artifactId()),
-                    implementationAttempt, compilation);
-            run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(
-                    TestEngineeringWorkflow.EventType.COMPILE_FAILED, compileArtifact));
-            steps.add(step(steps, "COMPILE_FAIL", Status.FAIL, compileMillis, 0, 0,
-                    CompilationFeedback.from(compilation).diagnostics().toString()));
-            if (implementationAttempt >= configuration.maxImplementationAttempts()) {
-                run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(
-                        TestEngineeringWorkflow.EventType.REQUIRE_HUMAN_REVIEW));
-                return result(run, steps, metrics);
-            }
-        }
 
-        if (compilation == null || !compilation.successful() || implementationArtifact == null) {
-            throw new IllegalStateException("Compilation loop ended without a successful implementation");
+        if (!runSourceFingerprint.equals(currentPageObjectSourceFingerprint(context))) {
+            run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(
+                    TestEngineeringWorkflow.EventType.REQUIRE_HUMAN_REVIEW));
+            steps.add(step(steps, "SOURCE_FINGERPRINT", Status.BLOCKED, 0, 0, 0,
+                    ReviewValidationFailure.IMPLEMENTATION_FINGERPRINT_MISMATCH.name()));
+            return result(run, steps, metrics);
         }
         long executionStart = System.nanoTime();
         TargetedTestExecutor.ExecutionResult targeted;
@@ -188,32 +255,88 @@ public final class AgentWorkflowCoordinator {
         long executionMillis = elapsed(executionStart);
         metrics.executionDurationMillis += executionMillis;
         metrics.executionAttempts++;
-        TestExecutionResult execution = execution(targeted, executionMillis, request.target().scenarioId());
-        ArtifactEnvelope<TestExecutionResult> executionArtifact = ArtifactEnvelope.create("execution-1", runId,
-                List.of(implementationArtifact.artifactId()), 1, execution);
+        TestExecutionResult execution = execution(targeted, executionMillis, request.target().scenarioId(),
+                compileSuccessArtifact.artifactId());
+        ArtifactEnvelope<TestExecutionResult> executionArtifact = ArtifactEnvelope.create(
+                "execution-" + implementationAttempt, runId,
+                List.of(implementationArtifact.artifactId(), compileSuccessArtifact.artifactId()),
+                implementationAttempt, execution);
         if (targeted.successful()) {
             run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(
                     TestEngineeringWorkflow.EventType.EXECUTION_SUCCEEDED, executionArtifact));
             steps.add(step(steps, "EXECUTION_PASS", Status.PASS, executionMillis, 0, 0,
                     "tests=" + targeted.tests()));
-            AgentCall reviewCall = call(runId, AgentExecutor.Role.CODE_REVIEWER,
-                    List.of(contextArtifact, planArtifact, implementationArtifact, executionArtifact),
-                    Map.of("expectedResult", "CodeReviewResult"), metrics);
+            List<ArtifactEnvelope<?>> evidenceArtifacts = List.of(contextArtifact, planArtifact, implementationArtifact,
+                    compileSuccessArtifact, qualityArtifact, executionArtifact);
+            List<String> allowedReviewRefs = evidenceArtifacts.stream().map(ArtifactEnvelope::artifactId).toList();
+            List<String> requiredReviewRefs = List.of(implementationArtifact.artifactId(),
+                    compileSuccessArtifact.artifactId(), qualityArtifact.artifactId(), executionArtifact.artifactId());
+            ReviewerEvidencePack evidencePack = evidencePack(runId, implementationAttempt, evidenceArtifacts,
+                    requiredReviewRefs, implementationArtifact, currentPageObjectSourceFingerprint(context));
+            ArtifactEnvelope<ReviewerEvidencePack> evidencePackArtifact = ArtifactEnvelope.create(
+                    "review-evidence-" + implementationAttempt, runId, requiredReviewRefs,
+                    implementationAttempt, evidencePack);
+            List<ArtifactEnvelope<?>> reviewInputs = new ArrayList<>(evidenceArtifacts);
+            reviewInputs.add(evidencePackArtifact);
+            AgentCall reviewCall = call(runId, AgentExecutor.Role.CODE_REVIEWER, reviewInputs,
+                    Map.of("expectedResult", "CodeReviewResult",
+                            "reviewerEvidenceCatalog", evidencePackArtifact.artifactId(),
+                            "allowedReviewArtifactRefs", String.join(",", allowedReviewRefs),
+                            "requiredReviewedArtifactRefs", String.join(",", requiredReviewRefs),
+                            "allowedReviewRuleIds", String.join(",", evidencePack.allowedRuleIds())), metrics);
             if (!(reviewCall.payload() instanceof CodeReviewResult review)) {
                 throw new AgentExecutor.AgentExecutionException(AgentExecutor.AgentFailureCode.AGENT_OUTPUT_INVALID,
                         "Reviewer did not return CodeReviewResult");
             }
             requireUsableHeader("Reviewer", review.header());
-            ArtifactEnvelope<CodeReviewResult> reviewArtifact = ArtifactEnvelope.create("review-1", runId,
-                    List.of(executionArtifact.artifactId()), 1, review);
+            ReviewValidation reviewValidation = validateReview(review, allowedReviewRefs, requiredReviewRefs,
+                    qualityArtifact.payload(), execution, implementationArtifact, compileSuccessArtifact,
+                    currentPageObjectSourceFingerprint(context), evidencePack, evidenceArtifacts);
+            if (!reviewValidation.accepted()) {
+                CodeReviewResult blocked = hostBlockedReview(reviewValidation.reason(), requiredReviewRefs);
+                ArtifactEnvelope<CodeReviewResult> blockedArtifact = ArtifactEnvelope.create(
+                        "review-block-" + implementationAttempt, runId,
+                        requiredReviewRefs, implementationAttempt, blocked);
+                run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(
+                        TestEngineeringWorkflow.EventType.REVIEW_REJECTED, blockedArtifact));
+                steps.add(step(steps, "REVIEW_CONTRACT", Status.BLOCKED, reviewCall.durationMillis(),
+                        reviewCall.inputBytes(), reviewCall.outputBytes(), reviewValidation.reason().name()));
+                run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(
+                        TestEngineeringWorkflow.EventType.REQUIRE_HUMAN_REVIEW));
+                return result(run, steps, metrics);
+            }
+            ArtifactEnvelope<CodeReviewResult> reviewArtifact = ArtifactEnvelope.create(
+                    "review-" + implementationAttempt, runId,
+                    List.of(implementationArtifact.artifactId(), compileSuccessArtifact.artifactId(),
+                            qualityArtifact.artifactId(), executionArtifact.artifactId()),
+                    implementationAttempt, review);
             TestEngineeringWorkflow.EventType reviewEvent = review.verdict() == CodeReviewResult.Verdict.APPROVE
                     ? TestEngineeringWorkflow.EventType.REVIEW_APPROVED
                     : TestEngineeringWorkflow.EventType.REVIEW_REJECTED;
             run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(reviewEvent, reviewArtifact));
-            steps.add(step(steps, "REVIEW", review.verdict() == CodeReviewResult.Verdict.APPROVE
-                    ? Status.APPROVE : Status.REQUEST_CHANGES, reviewCall.durationMillis(), reviewCall.inputBytes(),
+            Status reviewStatus = switch (review.verdict()) {
+                case APPROVE -> Status.APPROVE;
+                case REQUEST_CHANGES -> Status.REQUEST_CHANGES;
+                case BLOCK -> Status.BLOCKED;
+            };
+            steps.add(step(steps, "REVIEW", reviewStatus, reviewCall.durationMillis(), reviewCall.inputBytes(),
                     reviewCall.outputBytes(), review.verdict().name()));
-            return result(run, steps, metrics);
+            if (review.verdict() == CodeReviewResult.Verdict.APPROVE) return result(run, steps, metrics);
+            if (review.verdict() == CodeReviewResult.Verdict.BLOCK) {
+                run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(
+                        TestEngineeringWorkflow.EventType.REQUIRE_HUMAN_REVIEW));
+                return result(run, steps, metrics);
+            }
+            if (!workflow.canRequestCorrection(run)
+                    || implementationAttempt >= configuration.maxImplementationAttempts()) {
+                run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(
+                        TestEngineeringWorkflow.EventType.REQUIRE_HUMAN_REVIEW));
+                return result(run, steps, metrics);
+            }
+            previousReviewArtifact = reviewArtifact;
+            previousQualityArtifact = qualityArtifact;
+            previousExecutionArtifact = executionArtifact;
+            continue;
         }
 
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(
@@ -221,15 +344,17 @@ public final class AgentWorkflowCoordinator {
         steps.add(step(steps, "EXECUTION_FAIL", Status.FAIL, executionMillis, 0, 0,
                 execution.failureSummary()));
         FailureClassification classification = classifier.classify(execution);
-        ArtifactEnvelope<FailureClassification> classificationArtifact = ArtifactEnvelope.create("classification-1", runId,
-                List.of(executionArtifact.artifactId()), 1, classification);
+        ArtifactEnvelope<FailureClassification> classificationArtifact = ArtifactEnvelope.create(
+                "classification-" + implementationAttempt, runId,
+                List.of(executionArtifact.artifactId()), implementationAttempt, classification);
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(
                 TestEngineeringWorkflow.EventType.CLASSIFY_FAILURE, classificationArtifact));
         steps.add(step(steps, "FAILURE_CLASSIFIED", Status.PASS, 0, 0, 0, classification.category().name()));
         Optional<RepairProposal> repair = stabilizer.propose(classification, execution);
         if (repair.isPresent()) {
-            ArtifactEnvelope<RepairProposal> repairArtifact = ArtifactEnvelope.create("repair-1", runId,
-                    List.of(classificationArtifact.artifactId()), 1, repair.orElseThrow());
+            ArtifactEnvelope<RepairProposal> repairArtifact = ArtifactEnvelope.create(
+                    "repair-" + implementationAttempt, runId,
+                    List.of(classificationArtifact.artifactId()), implementationAttempt, repair.orElseThrow());
             run = workflow.reduce(run, TestEngineeringWorkflow.Event.withArtifact(
                     TestEngineeringWorkflow.EventType.PROPOSE_REPAIR, repairArtifact));
             steps.add(step(steps, "REPAIR_PROPOSED", Status.PROPOSE_ONLY, 0, 0, 0,
@@ -239,6 +364,8 @@ public final class AgentWorkflowCoordinator {
         run = workflow.reduce(run, TestEngineeringWorkflow.Event.of(
                 TestEngineeringWorkflow.EventType.REQUIRE_HUMAN_REVIEW));
         return result(run, steps, metrics);
+        }
+        throw new IllegalStateException("Implementation attempt bound ended without a terminal result");
     }
 
     private AgentCall call(String runId, AgentExecutor.Role role, List<ArtifactEnvelope<?>> inputs,
@@ -257,6 +384,14 @@ public final class AgentWorkflowCoordinator {
         return new AgentCall(result.artifact().payload(), inputBytes, outputBytes, duration);
     }
 
+    private String currentPageObjectSourceFingerprint(AgentContextPack context) {
+        String value = currentPageObjectSourceFingerprint.get();
+        if (value != null && !value.isBlank()) return value;
+        if (context.pageObjectCapabilities() == null
+                || context.pageObjectCapabilities().sourceFingerprint() == null) return "";
+        return context.pageObjectCapabilities().sourceFingerprint();
+    }
+
     private TargetedJavaCompiler.CompilationResult compile(TestImplementationProposal implementation) {
         String current = configuration.currentSource();
         String expected = ArtifactEnvelope.digest(current == null ? new byte[0]
@@ -269,7 +404,7 @@ public final class AgentWorkflowCoordinator {
     }
 
     private static TestExecutionResult execution(TargetedTestExecutor.ExecutionResult result, long duration,
-                                                 String scenarioId) {
+                                                 String scenarioId, String compileEvidenceRef) {
         TestExecutionResult.Outcome outcome = switch (result.status()) {
             case PASS -> TestExecutionResult.Outcome.PASS;
             case FAIL -> TestExecutionResult.Outcome.FAIL;
@@ -279,8 +414,181 @@ public final class AgentWorkflowCoordinator {
                 result.successful() ? ContractHeader.Status.COMPLETED : ContractHeader.Status.FAILED,
                 result.boundedEvidence(), List.of(), ContractHeader.Confidence.OBSERVED);
         return new TestExecutionResult(header, scenarioId, TestExecutionResult.Outcome.PASS, outcome,
-                "tests=" + result.tests(), duration, List.of("compile:pass"), result.boundedEvidence(), List.of(),
+                "tests=" + result.tests(), duration, List.of(compileEvidenceRef), result.boundedEvidence(), List.of(),
                 result.boundedEvidence(), List.of(), List.of(), result.successful() ? null : "Targeted test failed");
+    }
+
+    private static ReviewValidation validateReview(CodeReviewResult review, List<String> allowedRefs,
+                                                   List<String> requiredRefs,
+                                                   ReviewerEvidence.QualityEvidence quality,
+                                                   TestExecutionResult execution,
+                                                   ArtifactEnvelope<TestImplementationProposal> implementationArtifact,
+                                                   ArtifactEnvelope<ReviewerEvidence.CompilationEvidence> compilationArtifact,
+                                                   String currentSourceFingerprint,
+                                                   ReviewerEvidencePack evidencePack,
+                                                   List<ArtifactEnvelope<?>> evidenceArtifacts) {
+        ReviewerEvidencePack.IntegrityStatus integrity=evidencePack.verify(evidenceArtifacts,currentSourceFingerprint);
+        if(integrity!=ReviewerEvidencePack.IntegrityStatus.VALID){
+            return new ReviewValidation(false,switch(integrity){
+                case EVIDENCE_UNAVAILABLE->ReviewValidationFailure.EVIDENCE_UNAVAILABLE;
+                case EVIDENCE_DIGEST_MISMATCH->ReviewValidationFailure.EVIDENCE_DIGEST_MISMATCH;
+                case EVIDENCE_LINEAGE_INVALID->ReviewValidationFailure.EVIDENCE_LINEAGE_INVALID;
+                case IMPLEMENTATION_FINGERPRINT_MISMATCH->ReviewValidationFailure.IMPLEMENTATION_FINGERPRINT_MISMATCH;
+                case VALID->throw new IllegalStateException("valid evidence cannot be rejected");
+            });
+        }
+        String currentImplementationDigest = ArtifactEnvelope.digest(
+                implementationArtifact.payload().sourcePatch().getBytes(StandardCharsets.UTF_8));
+        if (!quality.implementationDigest().equals(currentImplementationDigest)
+                || !compilationArtifact.payload().implementationDigest().equals(currentImplementationDigest)
+                || !compilationArtifact.parents().contains(implementationArtifact.artifactId())
+                || currentSourceFingerprint == null || currentSourceFingerprint.isBlank()
+                || !quality.sourceFingerprint().equals(currentSourceFingerprint)) {
+            return new ReviewValidation(false, currentSourceFingerprint == null
+                    || !quality.sourceFingerprint().equals(currentSourceFingerprint)
+                    ? ReviewValidationFailure.IMPLEMENTATION_FINGERPRINT_MISMATCH
+                    : ReviewValidationFailure.EVIDENCE_DIGEST_MISMATCH);
+        }
+        if (!allowedRefs.containsAll(review.reviewedArtifactRefs())
+                || !review.reviewedArtifactRefs().containsAll(requiredRefs)) {
+            return new ReviewValidation(false, ReviewValidationFailure.ARTIFACT_REFERENCE_INVALID);
+        }
+        if (review.findings().stream().anyMatch(finding -> !allowedRefs.contains(finding.artifactRef()))) {
+            return new ReviewValidation(false, ReviewValidationFailure.FINDING_ARTIFACT_INVALID);
+        }
+        if (review.findings().stream().anyMatch(finding -> !findingAllowed(evidencePack, finding))) {
+            return new ReviewValidation(false, ReviewValidationFailure.FEEDBACK_UNSUBSTANTIATED);
+        }
+        if (review.verdict() == CodeReviewResult.Verdict.APPROVE) {
+            if (!review.findings().isEmpty() || !quality.completeForApproval()
+                    || execution.compileOutcome() != TestExecutionResult.Outcome.PASS
+                    || execution.executionOutcome() != TestExecutionResult.Outcome.PASS
+                    || !hasExecutedTests(execution.frameworkResult())
+                    || execution.compileEvidenceRefs().isEmpty()) {
+                return new ReviewValidation(false, ReviewValidationFailure.APPROVAL_EVIDENCE_INCOMPLETE);
+            }
+            return new ReviewValidation(true, ReviewValidationFailure.NONE);
+        }
+        boolean substantiated = !review.findings().isEmpty() && review.findings().stream().allMatch(finding ->
+                finding.severity() == CodeReviewResult.Severity.ERROR
+                        && finding.evidenceAvailability() == CodeReviewResult.EvidenceAvailability.VERIFIED
+                        && findingSupportedByQuality(finding, quality));
+        return substantiated
+                ? new ReviewValidation(true, ReviewValidationFailure.NONE)
+                : new ReviewValidation(false, ReviewValidationFailure.FEEDBACK_UNSUBSTANTIATED);
+    }
+
+    private static boolean findingAllowed(ReviewerEvidencePack pack, CodeReviewResult.Finding finding) {
+        return pack.evidence().stream().filter(value -> value.artifactId().equals(finding.artifactRef()))
+                .anyMatch(value -> value.availability() == ReviewerEvidencePack.Availability.AVAILABLE
+                        && value.supportedFindingContracts().stream().anyMatch(contract -> contract.matches(finding)));
+    }
+
+    private static ReviewerEvidencePack evidencePack(String runId, int attempt,
+                                                     List<ArtifactEnvelope<?>> artifacts,
+                                                     List<String> requiredRefs,
+                                                     ArtifactEnvelope<TestImplementationProposal> implementation,
+                                                     String sourceFingerprint) {
+        List<ReviewerEvidencePack.Evidence> catalog = artifacts.stream().map(artifact -> evidenceEntry(
+                artifact, requiredRefs.contains(artifact.artifactId()))).toList();
+        String implementationDigest = ArtifactEnvelope.digest(implementation.payload().sourcePatch()
+                .getBytes(StandardCharsets.UTF_8));
+        List<String> allowedRules = catalog.stream().flatMap(value -> value.allowedRuleIds().stream())
+                .distinct().sorted().toList();
+        return new ReviewerEvidencePack(runId, attempt, implementation.artifactId(), implementationDigest,
+                sourceFingerprint, catalog, requiredRefs, allowedRules);
+    }
+
+    private static ReviewerEvidencePack.Evidence evidenceEntry(ArtifactEnvelope<?> artifact,
+                                                               boolean requiredForApproval) {
+        ReviewerEvidencePack.ArtifactType type;
+        List<CodeReviewResult.Category> categories;
+        List<String> rules;
+        Object payload = artifact.payload();
+        if (payload instanceof AgentContextPack) {
+            type = ReviewerEvidencePack.ArtifactType.CONTEXT;
+            categories = List.of(CodeReviewResult.Category.REQUIREMENT_NOT_COVERED);
+            rules = List.of(CodeReviewResult.RuleId.REQUIREMENT_COVERAGE_REQUIRED.name());
+        } else if (payload instanceof TestPlan) {
+            type = ReviewerEvidencePack.ArtifactType.PLAN;
+            categories = List.of(CodeReviewResult.Category.REQUIREMENT_NOT_COVERED);
+            rules = List.of(CodeReviewResult.RuleId.REQUIREMENT_COVERAGE_REQUIRED.name());
+        } else if (payload instanceof TestImplementationProposal) {
+            type = ReviewerEvidencePack.ArtifactType.IMPLEMENTATION;
+            categories = List.of();
+            rules = List.of();
+        } else if (payload instanceof ReviewerEvidence.CompilationEvidence) {
+            type = ReviewerEvidencePack.ArtifactType.COMPILATION;
+            categories = List.of();
+            rules = List.of();
+        } else if (payload instanceof ReviewerEvidence.QualityEvidence) {
+            type = ReviewerEvidencePack.ArtifactType.QUALITY;
+            categories = List.of(CodeReviewResult.Category.ASSERTION_INSUFFICIENT,
+                    CodeReviewResult.Category.REQUIREMENT_NOT_COVERED,
+                    CodeReviewResult.Category.TEST_LIFECYCLE_PROBLEM);
+            rules = List.of(CodeReviewResult.RuleId.ASSERTION_REQUIRED.name(),
+                    CodeReviewResult.RuleId.REQUIREMENT_COVERAGE_REQUIRED.name(),
+                    CodeReviewResult.RuleId.LIFECYCLE_INTEGRITY.name());
+        } else if (payload instanceof TestExecutionResult) {
+            type = ReviewerEvidencePack.ArtifactType.EXECUTION;
+            categories = List.of();
+            rules = List.of();
+        } else {
+            throw new IllegalArgumentException("unsupported reviewer evidence payload");
+        }
+        return new ReviewerEvidencePack.Evidence(artifact.artifactId(), type, artifact.runId(), artifact.attempt(),
+                artifact.payloadDigest(), artifact.parents(), ReviewerEvidencePack.Availability.AVAILABLE,
+                requiredForApproval, categories, rules);
+    }
+
+    private static CodeReviewResult hostBlockedReview(ReviewValidationFailure failure, List<String> reviewedRefs) {
+        CodeReviewResult.RuleId rule = switch (failure) {
+            case ARTIFACT_REFERENCE_INVALID, FINDING_ARTIFACT_INVALID -> CodeReviewResult.RuleId.ARTIFACT_REFERENCE_INVALID;
+            case EVIDENCE_UNAVAILABLE -> CodeReviewResult.RuleId.EVIDENCE_UNAVAILABLE;
+            case EVIDENCE_DIGEST_MISMATCH -> CodeReviewResult.RuleId.EVIDENCE_DIGEST_MISMATCH;
+            case EVIDENCE_LINEAGE_INVALID -> CodeReviewResult.RuleId.EVIDENCE_LINEAGE_INVALID;
+            case IMPLEMENTATION_FINGERPRINT_MISMATCH -> CodeReviewResult.RuleId.IMPLEMENTATION_FINGERPRINT_MISMATCH;
+            case FEEDBACK_UNSUBSTANTIATED -> CodeReviewResult.RuleId.FEEDBACK_UNSUBSTANTIATED;
+            case APPROVAL_EVIDENCE_INCOMPLETE, DECISION_CONTRADICTORY -> CodeReviewResult.RuleId.DECISION_CONTRADICTORY;
+            case NONE -> throw new IllegalArgumentException("cannot block an accepted review");
+        };
+        ContractHeader header = new ContractHeader(ContractHeader.SCHEMA_VERSION, ContractHeader.Status.BLOCKED,
+                List.of(), List.of(), ContractHeader.Confidence.OBSERVED);
+        CodeReviewResult.EvidenceAvailability availability = switch (failure) {
+            case EVIDENCE_UNAVAILABLE -> CodeReviewResult.EvidenceAvailability.UNAVAILABLE;
+            case EVIDENCE_DIGEST_MISMATCH, EVIDENCE_LINEAGE_INVALID,
+                    IMPLEMENTATION_FINGERPRINT_MISMATCH -> CodeReviewResult.EvidenceAvailability.PARTIAL;
+            default -> CodeReviewResult.EvidenceAvailability.VERIFIED;
+        };
+        CodeReviewResult.Finding finding = new CodeReviewResult.Finding(
+                CodeReviewResult.Category.REVIEW_UNSUBSTANTIATED, CodeReviewResult.Severity.ERROR, rule.name(),
+                reviewedRefs.get(0), CodeReviewResult.ProblemCategory.REVIEW_CONTRACT,
+                CodeReviewResult.RequiredAction.HUMAN_REVIEW, CodeReviewResult.SafeLocation.EXECUTION_EVIDENCE,
+                availability);
+        return new CodeReviewResult(header, CodeReviewResult.Verdict.BLOCK, reviewedRefs, List.of(finding));
+    }
+
+    private static boolean findingSupportedByQuality(CodeReviewResult.Finding finding,
+                                                     ReviewerEvidence.QualityEvidence quality) {
+        return switch (finding.category()) {
+            case ASSERTION_INSUFFICIENT -> quality.assertionCount() == 0
+                    || quality.requiredApiInsideAssertion() == ReviewerEvidence.RequiredApiAssertionStatus.NOT_VERIFIED;
+            case TEST_LIFECYCLE_PROBLEM -> quality.controlPath() == ReviewerEvidence.ControlPathStatus.EARLY_RETURN_PRESENT
+                    || quality.swallowedFailures() == ReviewerEvidence.SwallowedFailureStatus.PRESENT;
+            case EXECUTION_EVIDENCE_INSUFFICIENT -> false;
+            case REQUIREMENT_NOT_COVERED -> quality.requiredApiInsideAssertion()
+                    == ReviewerEvidence.RequiredApiAssertionStatus.NOT_VERIFIED;
+            case PAGE_OBJECT_MISUSE, TEST_DATA_INVALID, UNSAFE_IMPLEMENTATION, REVIEW_UNSUBSTANTIATED -> false;
+        };
+    }
+
+    private static boolean hasExecutedTests(String frameworkResult) {
+        if (frameworkResult == null || !frameworkResult.startsWith("tests=")) return false;
+        try {
+            return Integer.parseInt(frameworkResult.substring("tests=".length())) > 0;
+        } catch (NumberFormatException ignored) {
+            return false;
+        }
     }
 
     private static Step step(List<Step> existing, String name, Status status, long duration,
@@ -361,6 +669,12 @@ public final class AgentWorkflowCoordinator {
     public enum Status { PASS, FAIL, BLOCKED, PROPOSE_ONLY, APPROVE, REQUEST_CHANGES }
 
     private record AgentCall(Object payload, long inputBytes, long outputBytes, long durationMillis) { }
+    private record ReviewValidation(boolean accepted, ReviewValidationFailure reason) { }
+    private enum ReviewValidationFailure {
+        NONE, ARTIFACT_REFERENCE_INVALID, FINDING_ARTIFACT_INVALID, APPROVAL_EVIDENCE_INCOMPLETE,
+        FEEDBACK_UNSUBSTANTIATED, EVIDENCE_UNAVAILABLE, EVIDENCE_DIGEST_MISMATCH,
+        EVIDENCE_LINEAGE_INVALID, IMPLEMENTATION_FINGERPRINT_MISMATCH, DECISION_CONTRADICTORY
+    }
     public record CompilationFeedback(List<Diagnostic> diagnostics) {
         public CompilationFeedback { diagnostics = List.copyOf(diagnostics); }
         static CompilationFeedback from(TargetedJavaCompiler.CompilationResult result) {

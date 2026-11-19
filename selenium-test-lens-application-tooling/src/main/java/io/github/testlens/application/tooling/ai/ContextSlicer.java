@@ -7,6 +7,7 @@ import io.github.testlens.selector.tooling.ExistingProjectIndex;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -27,24 +28,31 @@ public final class ContextSlicer {
         Set<String>pageIds=base.pages().stream().map(AgentContextPack.PageContext::pageId).collect(java.util.stream.Collectors.toSet());
         Set<String>elementIds=base.pages().stream().flatMap(page->page.elements().stream()).map(AgentContextPack.ElementContext::elementId).collect(java.util.stream.Collectors.toSet());
         Map<String,String>classPages=new HashMap<>();
-        correlation.classes().stream().filter(value->pageIds.contains(value.pageId())&&trusted(value.state())).forEach(value->classPages.put(value.classId(),value.pageId()));
+        Map<String,PageObjectCorrelation.State>classCorrelationStates=new HashMap<>();
+        correlation.classes().stream().filter(value->pageIds.contains(value.pageId())&&trusted(value.state())).forEach(value->{classPages.put(value.classId(),value.pageId());classCorrelationStates.put(value.classId(),value.state());});
         Map<String,PageObjectCorrelation.ElementCorrelation>sourceCorrelations=new HashMap<>();
         correlation.elements().stream().filter(value->elementIds.contains(value.applicationElementId())&&value.sourceElementId()!=null&&trusted(value.state())).forEach(value->sourceCorrelations.put(value.sourceElementId(),value));
         Map<String,ExistingProjectIndex.ClassEntry>classesById=new HashMap<>();sourceIndex.classes().forEach(value->classesById.put(value.id(),value));
         Map<String,ExistingProjectIndex.ElementEntry>elementsById=new HashMap<>();sourceIndex.elements().forEach(value->elementsById.put(value.id(),value));
         List<AgentContextPack.ScopeDecision>included=new ArrayList<>(base.included()),excluded=new ArrayList<>(base.excluded());
-        List<AgentContextPack.PageObjectClassContext>classes=new ArrayList<>();int estimated=0;boolean truncated=false;
+        List<AgentContextPack.PageObjectClassContext>classes=new ArrayList<>();Set<String>selectedSourceClassIds=new LinkedHashSet<>();int estimated=0;boolean truncated=false;
         for(var entry:sourceIndex.classes())if(classPages.containsKey(entry.id())){
             if(classes.size()>=sourceLimits.maxClasses()){excluded.add(new AgentContextPack.ScopeDecision(entry.id(),"PAGE_OBJECT_CLASS","maxClasses reached"));truncated=true;continue;}
             var value=new AgentContextPack.PageObjectClassContext(redaction.redact(entry.id()),redaction.redact(classPages.get(entry.id())),redaction.redact(entry.qualifiedName()),redaction.redact(entry.logicalPath()),entry.classification().name(),entry.origin().name(),List.of("CORRELATED_TO_INCLUDED_PAGE"));
-            estimated+=estimate(value);if(estimated>sourceLimits.maxSerializedCharacters()){excluded.add(new AgentContextPack.ScopeDecision(entry.id(),"PAGE_OBJECT_CLASS","maxSerializedCharacters reached"));truncated=true;break;}classes.add(value);included.add(new AgentContextPack.ScopeDecision(entry.id(),"PAGE_OBJECT_CLASS","Evidence-backed correlation to included page"));
+            estimated+=estimate(value);if(estimated>sourceLimits.maxSerializedCharacters()){excluded.add(new AgentContextPack.ScopeDecision(entry.id(),"PAGE_OBJECT_CLASS","maxSerializedCharacters reached"));truncated=true;break;}classes.add(value);selectedSourceClassIds.add(entry.id());included.add(new AgentContextPack.ScopeDecision(entry.id(),"PAGE_OBJECT_CLASS","Evidence-backed correlation to included page"));
         }
-        Set<String>classIds=classes.stream().map(AgentContextPack.PageObjectClassContext::classId).collect(java.util.stream.Collectors.toSet());
+        Set<String>classIds=selectedSourceClassIds;
         List<AgentContextPack.SourceDeclarationContext>declarations=new ArrayList<>();Map<String,String>declarationToApp=new HashMap<>();
         for(var entry:sourceIndex.elements())if(classIds.contains(entry.ownerClassId())&&sourceCorrelations.containsKey(entry.id())){
             if(declarations.size()>=sourceLimits.maxDeclarations()){excluded.add(new AgentContextPack.ScopeDecision(entry.declarationRef(),"SOURCE_DECLARATION","maxDeclarations reached"));truncated=true;continue;}
             var corr=sourceCorrelations.get(entry.id());var value=new AgentContextPack.SourceDeclarationContext(redaction.redact(entry.declarationRef()),redaction.redact(entry.ownerClassId()),redaction.redact(entry.name()),redaction.redact(entry.strategy()),entry.valueProjection()==null?null:redaction.redact(entry.valueProjection().fingerprint()),redaction.redact(corr.applicationElementId()),corr.state().name(),List.of("CORRELATED_APPLICATION_ELEMENT"));
             estimated+=estimate(value);if(estimated>sourceLimits.maxSerializedCharacters()){excluded.add(new AgentContextPack.ScopeDecision(entry.declarationRef(),"SOURCE_DECLARATION","maxSerializedCharacters reached"));truncated=true;break;}declarations.add(value);declarationToApp.put(entry.declarationRef(),corr.applicationElementId());included.add(new AgentContextPack.ScopeDecision(entry.declarationRef(),"SOURCE_DECLARATION","Referenced by correlated Page Object"));
+        }
+        ManifestBuild manifestBuild=capabilityManifest(sourceIndex,classPages,classCorrelationStates,selectedSourceClassIds,
+                declarationToApp,redaction,sourceLimits,truncated);
+        if(manifestBuild.truncated()){
+            excluded.add(new AgentContextPack.ScopeDecision("page-object-capabilities","PAGE_OBJECT_CAPABILITY_MANIFEST","Capability manifest limits reached"));
+            truncated=true;
         }
         Set<String>declarationRefs=declarations.stream().map(AgentContextPack.SourceDeclarationContext::declarationRef).collect(java.util.stream.Collectors.toSet());
         Map<String,List<String>>methodDeclarations=new HashMap<>();for(var edge:sourceIndex.edges())if(edge.type()==ExistingProjectIndex.EdgeType.METHOD_TO_DECLARATION&&declarationRefs.contains(edge.toId()))methodDeclarations.computeIfAbsent(edge.fromId(),key->new ArrayList<>()).add(edge.toId());
@@ -71,7 +79,7 @@ public final class ContextSlicer {
         AgentContextPack.SourceContext source=new AgentContextPack.SourceContext(classes,methods,declarations,tests);
         AgentContextPack.Completeness completeness=base.completeness()==AgentContextPack.Completeness.PARTIAL||truncated||sourceIndex.completeness()==ExistingProjectIndex.Completeness.PARTIAL?AgentContextPack.Completeness.PARTIAL:base.completeness();
         ContractHeader header=completeness==AgentContextPack.Completeness.PARTIAL?new ContractHeader(base.header().schemaVersion(),ContractHeader.Status.PARTIAL,base.header().evidence(),merge(base.header().limitations(),"Source context is partial or bounded"),base.header().confidence()):base.header();
-        return new AgentContextPack(header,base.task(),base.pages(),base.pageObjectApis(),base.existingTestConventions(),source,included,excluded,completeness);
+        return new AgentContextPack(header,base.task(),base.pages(),canonicalApis(manifestBuild.manifest()),base.existingTestConventions(),source,manifestBuild.manifest(),included,excluded,completeness);
     }
     public AgentContextPack slice(ApplicationModel model,AgentTask task,Map<String,List<String>>pageObjectApis,
                                   List<String>existingTestConventions,RedactionPolicy redaction,Limits limits){
@@ -113,6 +121,173 @@ public final class ContextSlicer {
     }
     private static AgentContextPack.TransitionContext transition(Budget budget,ApplicationModel.Transition t){return new AgentContextPack.TransitionContext(budget.text(t.transitionId()),budget.text(t.action().name()),budget.text(t.elementId()),budget.text(t.targetPageId()),budget.text(t.targetStateId()),budget.text(t.confidence().name()));}
     private static AgentContextPack.ScopeDecision decision(Budget budget,String id,String kind,String reason){String safeId=budget.text(id);return safeId==null||safeId.isBlank()?null:new AgentContextPack.ScopeDecision(safeId,kind,reason);}
+    private static ManifestBuild capabilityManifest(ExistingProjectIndex index,Map<String,String>classPages,
+                                                     Map<String,PageObjectCorrelation.State>classCorrelationStates,
+                                                     Set<String>selectedClassIds,Map<String,String>declarationToApp,
+                                                     RedactionPolicy redaction,SourceLimits limits,boolean inputPartial){
+        List<AgentContextPack.PageObjectCapability>classes=new ArrayList<>();
+        Map<String,String>qualifiedByClassId=new HashMap<>();
+        index.classes().forEach(value->qualifiedByClassId.put(value.id(),value.qualifiedName()));
+        List<String>limitations=new ArrayList<>();
+        int methodCount=0,characters=0;boolean truncated=false;
+        for(var entry:index.classes()){
+            if(!selectedClassIds.contains(entry.id()))continue;
+            if(classes.size()>=limits.maxClasses()){
+                truncated=true;limitations.add("maxClasses reached");break;
+            }
+            List<AgentContextPack.ConstructorCapability>constructors=entry.constructors().stream().map(value->
+                    new AgentContextPack.ConstructorCapability(redaction.redact(value.signature()),
+                            value.parameters().stream().map(parameter->new AgentContextPack.CapabilityParameter(
+                                    redaction.redact(parameter.name()),redaction.redact(parameter.type()))).toList(),
+                            value.accessibility().name(),
+                            entry.directlyInstantiable()
+                                    &&entry.accessibility()==ExistingProjectIndex.Accessibility.PUBLIC
+                                    &&value.accessibility()==ExistingProjectIndex.Accessibility.PUBLIC?"DIRECT_CONSTRUCTION":null,
+                            value.implicit())).toList();
+            List<AgentContextPack.MethodCapability>methods=new ArrayList<>();
+            AgentContextPack.PageObjectCapability classShell=new AgentContextPack.PageObjectCapability(
+                    redaction.redact(entry.id()),redaction.redact(classPages.get(entry.id())),
+                    redaction.redact(entry.qualifiedName()),redaction.redact(entry.logicalPath()),entry.accessibility().name(),
+                    constructors,List.of());
+            int classCharacters=estimate(classShell);
+            if(characters+classCharacters>limits.maxSerializedCharacters()){
+                truncated=true;limitations.add("maxSerializedCharacters reached");break;
+            }
+            for(var method:callableMethods(entry,index)){
+                if(methodCount>=limits.maxMethods()){
+                    truncated=true;limitations.add("maxMethods reached");break;
+                }
+                List<String>applicationRefs=method.declarationRefs().stream().map(declarationToApp::get)
+                        .filter(Objects::nonNull).distinct().sorted().map(redaction::redact).toList();
+                AgentContextPack.MethodCapability capability=new AgentContextPack.MethodCapability(
+                        redaction.redact(method.id()),redaction.redact(method.name()),redaction.redact(method.signature()),
+                        method.parameters().stream().map(parameter->new AgentContextPack.CapabilityParameter(
+                                redaction.redact(parameter.name()),redaction.redact(parameter.type()))).toList(),
+                        redaction.redact(method.returnType()),method.staticMethod(),
+                        redaction.redact(qualifiedByClassId.get(method.ownerClassId())),
+                        method.classification().name(),applicationRefs);
+                int projected=estimate(capability);
+                if(characters+classCharacters+projected>limits.maxSerializedCharacters()){
+                    truncated=true;limitations.add("maxSerializedCharacters reached");break;
+                }
+                methods.add(capability);classCharacters+=projected;methodCount++;
+            }
+            AgentContextPack.PageObjectCapability capability=new AgentContextPack.PageObjectCapability(
+                    redaction.redact(entry.id()),redaction.redact(classPages.get(entry.id())),
+                    redaction.redact(entry.qualifiedName()),redaction.redact(entry.logicalPath()),entry.accessibility().name(),
+                    constructors,methods);
+            classes.add(capability);characters+=estimate(capability);
+        }
+        java.util.EnumSet<AgentContextPack.ManifestPartialReason>reasons=
+                java.util.EnumSet.noneOf(AgentContextPack.ManifestPartialReason.class);
+        if(truncated||inputPartial)reasons.add(AgentContextPack.ManifestPartialReason.MANIFEST_TRUNCATED);
+        if(classes.isEmpty()){
+            reasons.add(AgentContextPack.ManifestPartialReason.REQUIRED_CLASS_MISSING);
+            limitations.add("No trusted correlated Page Object class is available for the requested scope");
+        }
+        AgentContextPack.ManifestCorrelationStatus correlationStatus=correlationStatus(selectedClassIds,classCorrelationStates);
+        if(correlationStatus==AgentContextPack.ManifestCorrelationStatus.INSUFFICIENT)
+            reasons.add(AgentContextPack.ManifestPartialReason.CORRELATION_INSUFFICIENT);
+        AgentContextPack.ManifestConstructionStatus constructionStatus=constructionStatus(classes);
+        if(constructionStatus==AgentContextPack.ManifestConstructionStatus.UNRESOLVED)
+            reasons.add(AgentContextPack.ManifestPartialReason.CONSTRUCTION_UNRESOLVED);
+        AgentContextPack.ManifestInheritedApiStatus inheritedStatus=inheritedStatus(index,selectedClassIds);
+        if(inheritedStatus==AgentContextPack.ManifestInheritedApiStatus.UNRESOLVED)
+            reasons.add(AgentContextPack.ManifestPartialReason.REQUIRED_API_UNRESOLVED);
+        if(classes.stream().anyMatch(value->value.methods().isEmpty()))
+            reasons.add(AgentContextPack.ManifestPartialReason.REQUIRED_API_UNRESOLVED);
+        if(index.limitations().stream().map(ExistingProjectIndex.Limitation::code).anyMatch(ContextSlicer::blocksCapabilitySurface))
+            reasons.add(AgentContextPack.ManifestPartialReason.SOURCE_INDEX_INCOMPLETE);
+        limitations.addAll(reasons.stream().map(Enum::name).toList());
+        int unresolvedClasses=(int)classes.stream().filter(value->value.methods().isEmpty()
+                ||(value.methods().stream().anyMatch(method->!method.staticMethod())&&!supportedConstruction(value))).count();
+        AgentContextPack.ManifestProvenance provenance=new AgentContextPack.ManifestProvenance(
+                index.projectFingerprint(),AgentContextPack.ManifestOriginStage.SOURCE_CONTEXT_SLICE,
+                index.completeness().name(),selectedClassIds.size(),classes.size()-unresolvedClasses,methodCount,
+                unresolvedClasses,constructionStatus,inheritedStatus,correlationStatus,truncated||inputPartial,
+                limits.maxClasses(),limits.maxMethods(),limits.maxSerializedCharacters(),false,List.copyOf(reasons));
+        boolean partial=!reasons.isEmpty();
+        return new ManifestBuild(new AgentContextPack.PageObjectCapabilityManifest(index.projectFingerprint(),
+                partial?AgentContextPack.ManifestCompleteness.PARTIAL:AgentContextPack.ManifestCompleteness.COMPLETE,
+                classes,limitations,provenance),truncated);
+    }
+    private static boolean blocksCapabilitySurface(String code){return Set.of("FILES_LIMIT","UNINDEXED_FILES",
+            "TYPES_LIMIT","METHODS_LIMIT","DECLARATIONS_LIMIT").contains(code);}
+    private static AgentContextPack.ManifestCorrelationStatus correlationStatus(Set<String>selected,
+            Map<String,PageObjectCorrelation.State>states){
+        if(selected.isEmpty()||!states.keySet().containsAll(selected))return AgentContextPack.ManifestCorrelationStatus.INSUFFICIENT;
+        Set<PageObjectCorrelation.State>values=selected.stream().map(states::get).collect(java.util.stream.Collectors.toSet());
+        if(values.equals(Set.of(PageObjectCorrelation.State.EXACT)))return AgentContextPack.ManifestCorrelationStatus.EXACT;
+        if(values.equals(Set.of(PageObjectCorrelation.State.STRONG)))return AgentContextPack.ManifestCorrelationStatus.STRONG;
+        return values.stream().allMatch(ContextSlicer::trusted)?AgentContextPack.ManifestCorrelationStatus.MIXED
+                :AgentContextPack.ManifestCorrelationStatus.INSUFFICIENT;
+    }
+    private static AgentContextPack.ManifestConstructionStatus constructionStatus(
+            List<AgentContextPack.PageObjectCapability>classes){
+        boolean required=classes.stream().anyMatch(value->value.methods().stream().anyMatch(method->!method.staticMethod()));
+        if(!required)return AgentContextPack.ManifestConstructionStatus.NOT_REQUIRED;
+        return classes.stream().filter(value->value.methods().stream().anyMatch(method->!method.staticMethod()))
+                .allMatch(ContextSlicer::supportedConstruction)?AgentContextPack.ManifestConstructionStatus.VERIFIED
+                :AgentContextPack.ManifestConstructionStatus.UNRESOLVED;
+    }
+    private static boolean supportedConstruction(AgentContextPack.PageObjectCapability value){
+        return value.constructors().stream().anyMatch(constructor->"PUBLIC".equals(constructor.accessibility())
+                &&"DIRECT_CONSTRUCTION".equals(constructor.acquisition())
+                &&(constructor.parameters().isEmpty()||(constructor.parameters().size()==1
+                &&"org.openqa.selenium.WebDriver".equals(constructor.parameters().get(0).type()))));
+    }
+    private static AgentContextPack.ManifestInheritedApiStatus inheritedStatus(ExistingProjectIndex index,
+            Set<String>selectedClassIds){
+        Map<String,ExistingProjectIndex.ClassEntry>byQualified=index.classes().stream().collect(
+                java.util.stream.Collectors.toMap(ExistingProjectIndex.ClassEntry::qualifiedName,value->value));
+        Map<String,List<ExistingProjectIndex.ClassEntry>>bySimple=index.classes().stream().collect(
+                java.util.stream.Collectors.groupingBy(ExistingProjectIndex.ClassEntry::simpleName));
+        boolean inherited=false;
+        for(var entry:index.classes())if(selectedClassIds.contains(entry.id()))for(String declared:entry.extendsTypes()){
+            inherited=true;String raw=declared.replaceAll("<.*>","").trim();
+            ExistingProjectIndex.ClassEntry parent=byQualified.get(raw);
+            if(parent==null){int separator=entry.qualifiedName().lastIndexOf('.');String samePackage=separator<0?raw:entry.qualifiedName().substring(0,separator+1)+raw;parent=byQualified.get(samePackage);}
+            if(parent==null){String simple=raw.substring(raw.lastIndexOf('.')+1);List<ExistingProjectIndex.ClassEntry>matches=bySimple.getOrDefault(simple,List.of());if(matches.size()==1)parent=matches.get(0);}
+            if(parent==null)return AgentContextPack.ManifestInheritedApiStatus.UNRESOLVED;
+        }
+        return inherited?AgentContextPack.ManifestInheritedApiStatus.VERIFIED
+                :AgentContextPack.ManifestInheritedApiStatus.NOT_APPLICABLE;
+    }
+    private static Map<String,List<String>>canonicalApis(AgentContextPack.PageObjectCapabilityManifest manifest){
+        Map<String,List<String>>result=new java.util.TreeMap<>();
+        for(var owner:manifest.classes())result.computeIfAbsent(owner.pageId(),ignored->new ArrayList<>()).addAll(
+                owner.methods().stream().map(method->CanonicalPageObjectApiReference.of(owner.qualifiedName(),method).render()).toList());
+        result.replaceAll((ignored,values)->values.stream().distinct().sorted().toList());
+        return Map.copyOf(result);
+    }
+    private static List<ExistingProjectIndex.MethodEntry>callableMethods(ExistingProjectIndex.ClassEntry entry,
+                                                                          ExistingProjectIndex index){
+        Map<String,ExistingProjectIndex.ClassEntry>byQualified=new HashMap<>();
+        Map<String,List<ExistingProjectIndex.ClassEntry>>bySimple=new HashMap<>();
+        for(var value:index.classes()){
+            byQualified.put(value.qualifiedName(),value);
+            bySimple.computeIfAbsent(value.simpleName(),ignored->new ArrayList<>()).add(value);
+        }
+        List<String>owners=new ArrayList<>();Set<String>seen=new HashSet<>();
+        java.util.ArrayDeque<ExistingProjectIndex.ClassEntry>pending=new java.util.ArrayDeque<>();pending.add(entry);
+        while(!pending.isEmpty()){
+            var current=pending.removeFirst();if(!seen.add(current.id()))continue;owners.add(current.id());
+            for(String declared:current.extendsTypes()){
+                String raw=declared.replaceAll("<.*>","").trim();
+                ExistingProjectIndex.ClassEntry parent=byQualified.get(raw);
+                if(parent==null){int separator=current.qualifiedName().lastIndexOf('.');String samePackage=separator<0?raw:current.qualifiedName().substring(0,separator+1)+raw;parent=byQualified.get(samePackage);}
+                if(parent==null){String simple=raw.substring(raw.lastIndexOf('.')+1);List<ExistingProjectIndex.ClassEntry>matches=bySimple.getOrDefault(simple,List.of());if(matches.size()==1)parent=matches.get(0);}
+                if(parent!=null)pending.addLast(parent);
+            }
+        }
+        Map<String,ExistingProjectIndex.MethodEntry>visible=new LinkedHashMap<>();
+        for(String owner:owners)index.methods().stream().filter(value->value.ownerClassId().equals(owner))
+                .filter(value->value.accessibility()==ExistingProjectIndex.Accessibility.PUBLIC)
+                .sorted(Comparator.comparing(ExistingProjectIndex.MethodEntry::signature).thenComparing(ExistingProjectIndex.MethodEntry::id))
+                .forEach(value->visible.putIfAbsent(value.signature(),value));
+        return List.copyOf(visible.values());
+    }
+    private record ManifestBuild(AgentContextPack.PageObjectCapabilityManifest manifest,boolean truncated){}
     private record QueueEntry(String pageId,int depth){}
     public record SourceLimits(int maxClasses,int maxMethods,int maxDeclarations,int maxTests,int maxSerializedCharacters){public SourceLimits{if(maxClasses<1||maxClasses>5_000||maxMethods<1||maxMethods>50_000||maxDeclarations<1||maxDeclarations>50_000||maxTests<0||maxTests>50_000||maxSerializedCharacters<512||maxSerializedCharacters>16_777_216)throw new IllegalArgumentException("Source context limits are outside supported bounds");}public static SourceLimits defaults(){return new SourceLimits(24,160,160,24,256_000);}}
     private static boolean trusted(PageObjectCorrelation.State state){return state==PageObjectCorrelation.State.EXACT||state==PageObjectCorrelation.State.STRONG;}

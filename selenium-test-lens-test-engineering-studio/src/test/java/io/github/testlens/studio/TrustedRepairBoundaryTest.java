@@ -48,6 +48,21 @@ class TrustedRepairBoundaryTest {
         assertNull(fixture.service().workflow(second).repair().decision());
     }
 
+    @Test void rerunIsUnavailableUntilTheRepairWasExplicitlyApprovedAndApplied() throws Exception {
+        Fixture fixture=fixture();String before=Files.readString(fixture.source());
+        fixture.service().registerRepairProposal(fixture.runId(),fixture.proposal());
+
+        assertFalse(fixture.service().workflow(fixture.runId()).availableActions().contains("RERUN"));
+        assertThrows(IllegalStateException.class,()->fixture.service().rerun(fixture.runId()));
+        assertEquals(before,Files.readString(fixture.source()));
+
+        fixture.service().rejectRepair(fixture.runId(),fixture.proposal().proposalId());
+
+        assertFalse(fixture.service().workflow(fixture.runId()).availableActions().contains("RERUN"));
+        assertThrows(IllegalStateException.class,()->fixture.service().rerun(fixture.runId()));
+        assertEquals(before,Files.readString(fixture.source()),"rejection must preserve the original Page Object");
+    }
+
     private Fixture fixture() throws Exception {
         Path sourceRoot=root.resolve("src/test/java"),source=sourceRoot.resolve("LoginPage.java");Files.createDirectories(sourceRoot);
         Files.writeString(source,"import org.openqa.selenium.By; class LoginPage { private final By loginButton = By.id(\"old-login\"); }");

@@ -84,6 +84,11 @@ The extension owns the driver returned by the factory. It finalizes reports befo
 
 ## TestNG
 
+!!! note "Runtime support versus Studio execution"
+    The published TestNG adapter remains supported for ordinary Test Lens runtime lifecycle integration. The complete
+    Test Engineering Studio generated-test execution workflow currently targets JUnit 5; it does not execute generated
+    TestNG tests.
+
 Use the `selenium-test-lens-testng` listener rather than copying `@BeforeMethod`/`@AfterMethod` lifecycle code:
 
 ```java
@@ -133,7 +138,7 @@ React/SPA resilience helpers are separate from the main runtime. Add the module 
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-react</artifactId>
-    <version>0.5.0</version>
+    <version>0.5.1</version>
 </dependency>
 ```
 

@@ -6,7 +6,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 if ($ExpectedVersion -notmatch '^\d+\.\d+\.\d+$') { throw "ExpectedVersion must be an exact non-SNAPSHOT semantic version" }
-if ([int]($ExpectedVersion.Split('.')[2]) -lt 1) { throw "ExpectedVersion must identify a 0.4.x patch release (patch component >= 1)" }
+if ([int]($ExpectedVersion.Split('.')[2]) -lt 1) { throw "ExpectedVersion must identify a patch release (patch component >= 1)" }
 $root = [IO.Path]::GetFullPath($RepositoryRoot)
 & (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $root -ExpectedVersion $ExpectedVersion
 if ($LASTEXITCODE -ne 0) { throw "Normal reactor version validation failed" }
@@ -23,7 +23,7 @@ if ($LASTEXITCODE -eq 0) { throw "Local tag v$ExpectedVersion already exists" }
 if (-not $SkipApiChecks) {
     & (Join-Path $PSScriptRoot "check-public-api.ps1")
     if ($LASTEXITCODE -ne 0) { throw "Public API inventory failed" }
-    & (Join-Path $PSScriptRoot "check-public-api-since.ps1") -BaselineTag v0.3.1 -ExpectedSince 0.4.0
+    & (Join-Path $PSScriptRoot "check-public-api-since.ps1")
     if ($LASTEXITCODE -ne 0) { throw "Public API @since validation failed" }
 }
 Write-Output "Patch release check PASS for $ExpectedVersion. This script did not commit, tag, push, publish, or deploy documentation."

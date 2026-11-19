@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -49,6 +50,43 @@ class CodexCliProfilesTest {
         Map<String, Object> schema = StrictJson.readObject(codec.outputSchema(AgentExecutor.Role.TEST_IMPLEMENTER));
         assertEquals("object", schema.get("type"));
         assertEquals(false, schema.get("additionalProperties"));
+        assertEquals(Set.of("schemaVersion", "result"),
+                Set.copyOf(assertInstanceOf(List.class, schema.get("required"))));
+        assertFalse(schema.containsKey("anyOf"));
+        assertFalse(schema.containsKey("oneOf"));
+        Map<?, ?> rootProperties = assertInstanceOf(Map.class, schema.get("properties"));
+        Map<?, ?> result = assertInstanceOf(Map.class, rootProperties.get("result"));
+        List<?> alternatives = assertInstanceOf(List.class, result.get("anyOf"));
+        assertEquals(3, alternatives.size());
+        Map<String, Set<String>> payloadFields = Map.of(
+                "TEST_IMPLEMENTATION_PROPOSAL", Set.of("header", "scenarioId", "sourcePatch",
+                        "selectorAccessPolicy", "pageObjectApisUsed", "missingCapabilities"),
+                "PAGE_OBJECT_CAPABILITY_MISSING", Set.of("pageId", "capability", "reason"),
+                "PAGE_OBJECT_EXTENSION_PROPOSAL", Set.of("missing", "extensionClass", "proposedMethod", "evidence"));
+        for (Object value : alternatives) {
+            Map<?, ?> branch = assertInstanceOf(Map.class, value);
+            assertEquals("object", branch.get("type"));
+            assertEquals(false, branch.get("additionalProperties"));
+            assertEquals(Set.of("resultType", "payload"),
+                    Set.copyOf(assertInstanceOf(List.class, branch.get("required"))));
+            Map<?, ?> properties = assertInstanceOf(Map.class, branch.get("properties"));
+            Map<?, ?> resultType = assertInstanceOf(Map.class, properties.get("resultType"));
+            String discriminator = assertInstanceOf(String.class, resultType.get("const"));
+            Map<?, ?> payload = assertInstanceOf(Map.class, properties.get("payload"));
+            assertEquals("object", payload.get("type"));
+            assertEquals(false, payload.get("additionalProperties"));
+            Set<String> expectedFields = payloadFields.get(discriminator);
+            assertNotNull(expectedFields, "unexpected Implementer result discriminator");
+            assertEquals(expectedFields, Set.copyOf(assertInstanceOf(List.class, payload.get("required"))));
+            assertEquals(expectedFields,
+                    assertInstanceOf(Map.class, payload.get("properties")).keySet());
+        }
+        assertEquals(payloadFields.keySet(), alternatives.stream()
+                .map(Map.class::cast)
+                .map(branch -> Map.class.cast(branch.get("properties")))
+                .map(properties -> Map.class.cast(properties.get("resultType")))
+                .map(resultType -> String.class.cast(resultType.get("const")))
+                .collect(java.util.stream.Collectors.toSet()));
 
         byte[] unknown = """
                 {"schemaVersion":1,"resultType":"TEST_IMPLEMENTATION_PROPOSAL","payload":{

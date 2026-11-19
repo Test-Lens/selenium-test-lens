@@ -7,13 +7,16 @@ import io.github.testlens.application.tooling.ai.TestExecutionResult;
 import io.github.testlens.application.tooling.ai.TestImplementationProposal;
 import io.github.testlens.application.tooling.ai.TestPlan;
 import io.github.testlens.application.tooling.ai.security.AgentArtifactSecurityGate;
+import io.github.testlens.application.tooling.json.StrictJson;
 import io.github.testlens.core.redaction.RedactionPolicy;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static io.github.testlens.application.tooling.ai.workflow.TestEngineeringRun.State;
 
@@ -32,6 +35,12 @@ public final class TestEngineeringWorkflow {
         this.secretCanaries = List.copyOf(secretCanaries == null ? List.of() : secretCanaries);
     }
 
+    /** Whether one more bounded implementation correction may be requested for this run. */
+    public boolean canRequestCorrection(TestEngineeringRun run) {
+        Objects.requireNonNull(run, "run");
+        return run.metrics().corrections() < policy.maxCorrections();
+    }
+
     public TestEngineeringRun reduce(TestEngineeringRun run, Event event) {
         Objects.requireNonNull(run, "run");
         Objects.requireNonNull(event, "event");
@@ -42,7 +51,7 @@ public final class TestEngineeringWorkflow {
 
         requireSafe(run.request().toString(), List.of());
         requireSafe(event.evidence(), List.of());
-        if (event.artifact() != null) requireSafe(event.artifact().payload().toString(), List.of(event.artifact().artifactId()));
+        if (event.artifact() != null) requireSafeArtifact(event.artifact());
 
         validateArtifact(run, event.artifact());
         validateEventPayload(event);
@@ -77,6 +86,21 @@ public final class TestEngineeringWorkflow {
         }
     }
 
+    private void requireSafeArtifact(ArtifactEnvelope<?> artifact) {
+        if (!(artifact.payload() instanceof TestImplementationProposal implementation)) {
+            requireSafe(artifact.payload().toString(), List.of(artifact.artifactId()));
+            return;
+        }
+        String structured = new String(StrictJson.write(Map.of("payload", implementation)),
+                StandardCharsets.UTF_8);
+        var result = securityGate.validateStructuredAgentOutput(structured, redaction, secretCanaries,
+                Set.of("$.payload.sourcePatch", "$.payload.pageObjectApisUsed[]"));
+        if (result.status() != AgentArtifactSecurityGate.Status.PASS) {
+            throw new SecurityException("Workflow input blocked: " + result.findings().stream()
+                    .map(AgentArtifactSecurityGate.Finding::code).toList());
+        }
+    }
+
     private State target(TestEngineeringRun run, Event event) {
         if (event.type() == EventType.REQUEST_CORRECTION && run.metrics().corrections() >= policy.maxCorrections()) return State.NEEDS_HUMAN_REVIEW;
         if (event.type() == EventType.PROPOSE_REPAIR && run.metrics().repairs() >= policy.maxRepairs()) return State.NEEDS_HUMAN_REVIEW;
@@ -87,6 +111,7 @@ public final class TestEngineeringWorkflow {
             case PLAN_PRODUCED -> State.PLAN_READY;
             case REQUEST_IMPLEMENTATION, REQUEST_CORRECTION -> State.IMPLEMENTATION_REQUESTED;
             case IMPLEMENTATION_PRODUCED -> State.IMPLEMENTATION_READY;
+            case QUALITY_VERIFIED -> State.QUALITY_READY;
             case COMPILE_SUCCEEDED -> State.EXECUTION_READY;
             case COMPILE_FAILED -> State.COMPILE_FAILED;
             case EXECUTION_SUCCEEDED -> State.REVIEW_REQUESTED;
@@ -97,7 +122,8 @@ public final class TestEngineeringWorkflow {
             case TRUSTED_APPLY_RECORDED -> State.RERUN_REQUIRED;
             case REVIEW_APPROVED -> State.SUCCESS;
             case RERUN_REQUESTED -> State.IMPLEMENTATION_READY;
-            case REVIEW_REJECTED, REJECT -> State.REJECTED;
+            case REVIEW_REJECTED -> State.REVIEW_CHANGES_REQUESTED;
+            case REJECT -> State.REJECTED;
             case CAPABILITY_MISSING -> State.BLOCKED;
             case FAIL -> State.FAILED;
             case REQUIRE_HUMAN_REVIEW -> State.NEEDS_HUMAN_REVIEW;
@@ -135,6 +161,8 @@ public final class TestEngineeringWorkflow {
         boolean valid = switch (event.type()) {
             case PLAN_PRODUCED -> payload instanceof TestPlan;
             case IMPLEMENTATION_PRODUCED -> payload instanceof TestImplementationProposal;
+            case QUALITY_VERIFIED -> payload instanceof ReviewerEvidence.QualityEvidence;
+            case COMPILE_SUCCEEDED -> payload == null || payload instanceof ReviewerEvidence.CompilationEvidence;
             case COMPILE_FAILED -> payload instanceof TargetedJavaCompiler.CompilationResult result && !result.successful();
             case EXECUTION_SUCCEEDED -> payload instanceof TestExecutionResult result
                     && result.compileOutcome() == TestExecutionResult.Outcome.PASS
@@ -162,7 +190,9 @@ public final class TestEngineeringWorkflow {
         allow(map, State.PLAN_REQUESTED, EventType.PLAN_PRODUCED);
         allow(map, State.PLAN_READY, EventType.REQUEST_IMPLEMENTATION);
         allow(map, State.IMPLEMENTATION_REQUESTED, EventType.IMPLEMENTATION_PRODUCED, EventType.CAPABILITY_MISSING);
-        allow(map, State.IMPLEMENTATION_READY, EventType.COMPILE_SUCCEEDED, EventType.COMPILE_FAILED);
+        allow(map, State.IMPLEMENTATION_READY, EventType.QUALITY_VERIFIED, EventType.COMPILE_SUCCEEDED,
+                EventType.COMPILE_FAILED);
+        allow(map, State.QUALITY_READY, EventType.COMPILE_SUCCEEDED, EventType.COMPILE_FAILED);
         allow(map, State.COMPILE_FAILED, EventType.REQUEST_CORRECTION, EventType.REJECT);
         allow(map, State.EXECUTION_READY, EventType.EXECUTION_SUCCEEDED, EventType.EXECUTION_FAILED);
         allow(map, State.EXECUTION_FAILED, EventType.CLASSIFY_FAILURE);
@@ -171,6 +201,7 @@ public final class TestEngineeringWorkflow {
         allow(map, State.AWAITING_TRUSTED_APPLY, EventType.TRUSTED_APPLY_RECORDED, EventType.REJECT);
         allow(map, State.RERUN_REQUIRED, EventType.RERUN_REQUESTED);
         allow(map, State.REVIEW_REQUESTED, EventType.REVIEW_APPROVED, EventType.REVIEW_REJECTED);
+        allow(map, State.REVIEW_CHANGES_REQUESTED, EventType.REQUEST_CORRECTION, EventType.REJECT);
         for (State state : State.values()) if (!state.terminal()) {
             map.computeIfAbsent(state, ignored -> EnumSet.noneOf(EventType.class))
                     .addAll(EnumSet.of(EventType.FAIL, EventType.REQUIRE_HUMAN_REVIEW));
@@ -196,7 +227,7 @@ public final class TestEngineeringWorkflow {
 
     public enum EventType {
         PREPARE_CONTEXT, REQUEST_PLAN, PLAN_PRODUCED(true), REQUEST_IMPLEMENTATION,
-        IMPLEMENTATION_PRODUCED(true), COMPILE_SUCCEEDED, COMPILE_FAILED(true), REQUEST_CORRECTION,
+        IMPLEMENTATION_PRODUCED(true), QUALITY_VERIFIED(true), COMPILE_SUCCEEDED, COMPILE_FAILED(true), REQUEST_CORRECTION,
         EXECUTION_SUCCEEDED(true), EXECUTION_FAILED(true), CLASSIFY_FAILURE(true), PROPOSE_REPAIR(true),
         REQUEST_TRUSTED_APPLY, TRUSTED_APPLY_RECORDED, RERUN_REQUESTED,
         REVIEW_APPROVED(true), REVIEW_REJECTED(true), CAPABILITY_MISSING(true), REJECT, FAIL,

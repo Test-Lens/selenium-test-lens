@@ -157,6 +157,147 @@ class ExistingProjectIndexerTest {
                 .map(ElementEntry::name).sorted().toList());
     }
 
+    @Test
+    void indexesConstructionAndCallableSurfaceWithoutCollapsingSimilarMethods() throws Exception {
+        Fixture fixture = fixture();
+        fixture.source("sample/LoginPage.java", """
+                package sample;
+                import org.openqa.selenium.WebDriver;
+                public class LoginPage implements LoginActions {
+                    public LoginPage(WebDriver driver) {}
+                    protected LoginPage(String profile) {}
+                    LoginPage(int port) {}
+                    private LoginPage() {}
+
+                    public LoginPage loginAs(String username, String password) { return this; }
+                    public boolean loginErrorVisible() { return true; }
+                    public boolean loginErrorHidden() { return false; }
+                    public static LoginPage open(WebDriver driver) { return new LoginPage(driver); }
+                    protected void resetForSubclass() {}
+                    void packageHelper() {}
+                    private void internalSecret() {}
+                }
+                """);
+        fixture.source("sample/LoginActions.java", """
+                package sample;
+                public interface LoginActions {
+                    default boolean loginErrorFromContract() { return true; }
+                }
+                """);
+        fixture.source("sample/DashboardPage.java", """
+                package sample;
+                public class DashboardPage { public boolean loaded() { return true; } }
+                """);
+        fixture.source("sample/AbstractPage.java", """
+                package sample;
+                public abstract class AbstractPage { public boolean loaded() { return true; } }
+                """);
+        fixture.source("sample/Outer.java", """
+                package sample;
+                public class Outer {
+                    public class InnerPage { public boolean loaded() { return true; } }
+                    public static class StaticPage { public boolean loaded() { return true; } }
+                }
+                """);
+
+        ExistingProjectIndex index = fixture.index();
+        ClassEntry login = index.classes().stream()
+                .filter(value -> value.qualifiedName().equals("sample.LoginPage")).findFirst().orElseThrow();
+
+        assertEquals(Accessibility.PUBLIC, login.accessibility());
+        assertEquals(List.of("LoginActions"),login.extendsTypes());
+        assertEquals(List.of("LoginPage()", "LoginPage(String)", "LoginPage(WebDriver)", "LoginPage(int)"),
+                login.constructors().stream().map(ConstructorEntry::signature).toList());
+        assertEquals(Accessibility.PUBLIC, constructor(login, "LoginPage(WebDriver)").accessibility());
+        assertEquals(List.of(new Parameter("driver", "org.openqa.selenium.WebDriver")),
+                constructor(login, "LoginPage(WebDriver)").parameters());
+        assertEquals(Accessibility.PROTECTED, constructor(login, "LoginPage(String)").accessibility());
+        assertEquals(Accessibility.PACKAGE_PRIVATE, constructor(login, "LoginPage(int)").accessibility());
+        assertEquals(Accessibility.PRIVATE, constructor(login, "LoginPage()").accessibility());
+        assertTrue(login.constructors().stream().noneMatch(ConstructorEntry::implicit));
+
+        ClassEntry dashboard = index.classes().stream()
+                .filter(value -> value.qualifiedName().equals("sample.DashboardPage")).findFirst().orElseThrow();
+        assertEquals(List.of(new ConstructorEntry("DashboardPage()", List.of(), Accessibility.PUBLIC, true)),
+                dashboard.constructors(), "a public implicit constructor is part of the callable surface");
+        assertTrue(dashboard.directlyInstantiable());
+        assertFalse(index.classes().stream().filter(value -> value.qualifiedName().equals("sample.AbstractPage"))
+                .findFirst().orElseThrow().directlyInstantiable());
+        assertFalse(index.classes().stream().filter(value -> value.qualifiedName().equals("sample.Outer.InnerPage"))
+                .findFirst().orElseThrow().directlyInstantiable());
+        assertTrue(index.classes().stream().filter(value -> value.qualifiedName().equals("sample.Outer.StaticPage"))
+                .findFirst().orElseThrow().directlyInstantiable());
+
+        MethodEntry loginAs = method(index, login.id(), "loginAs");
+        assertEquals(Accessibility.PUBLIC, loginAs.accessibility());
+        assertEquals(List.of(new Parameter("username", "String"), new Parameter("password", "String")),
+                loginAs.parameters());
+        assertEquals("LoginPage", loginAs.returnType());
+        assertFalse(loginAs.staticMethod());
+
+        MethodEntry open = method(index, login.id(), "open");
+        assertEquals(Accessibility.PUBLIC, open.accessibility());
+        assertTrue(open.staticMethod());
+        assertEquals("LoginPage", open.returnType());
+
+        assertEquals(List.of("loginErrorHidden", "loginErrorVisible"), index.methods().stream()
+                .filter(value -> value.ownerClassId().equals(login.id()) && value.name().startsWith("loginError"))
+                .map(MethodEntry::name).sorted().toList(),
+                "similar names with opposite semantics must remain separate capabilities");
+        assertEquals(Accessibility.PROTECTED, method(index, login.id(), "resetForSubclass").accessibility());
+        assertEquals(Accessibility.PACKAGE_PRIVATE, method(index, login.id(), "packageHelper").accessibility());
+        assertEquals(Accessibility.PRIVATE, method(index, login.id(), "internalSecret").accessibility());
+        ClassEntry actions=index.classes().stream().filter(value->value.qualifiedName().equals("sample.LoginActions"))
+                .findFirst().orElseThrow();
+        assertEquals(Accessibility.PUBLIC,method(index,actions.id(),"loginErrorFromContract").accessibility(),
+                "interface methods are public even without an explicit modifier");
+        assertEquals(index.methods().stream().map(MethodEntry::id).sorted().toList(),
+                index.methods().stream().map(MethodEntry::id).toList());
+    }
+
+    @Test
+    void explicitImportResolvesInheritedParentWhenSimpleNamesCollide() throws Exception {
+        Fixture fixture=fixture();
+        fixture.source("trusted/BasePage.java", """
+                package trusted;
+                public class BasePage { public boolean inheritedVisible() { return true; } }
+                """);
+        fixture.source("other/BasePage.java", """
+                package other;
+                public class BasePage { public boolean unrelated() { return true; } }
+                """);
+        fixture.source("child/LoginPage.java", """
+                package child;
+                import trusted.BasePage;
+                public class LoginPage extends BasePage { public boolean local() { return true; } }
+                """);
+
+        ExistingProjectIndex index=fixture.index();
+        ClassEntry login=index.classes().stream()
+                .filter(value->value.qualifiedName().equals("child.LoginPage")).findFirst().orElseThrow();
+
+        assertEquals(List.of("trusted.BasePage"),login.extendsTypes());
+    }
+
+    @Test
+    void preservesVarargsInIndexedMethodParameterTypes() throws Exception {
+        Fixture fixture = fixture();
+        fixture.source("sample/LoginPage.java", """
+                package sample;
+                public class LoginPage {
+                    public boolean invalidLogin(String username, String... passwords) { return true; }
+                }
+                """);
+
+        ExistingProjectIndex index = fixture.index();
+        ClassEntry owner = index.classes().stream()
+                .filter(value -> value.qualifiedName().equals("sample.LoginPage")).findFirst().orElseThrow();
+        MethodEntry method = method(index, owner.id(), "invalidLogin");
+
+        assertEquals(List.of("String", "String..."),
+                method.parameters().stream().map(Parameter::type).toList());
+    }
+
     private ClassClassification classification(ExistingProjectIndex index, String simpleName) {
         return index.classes().stream().filter(value -> value.simpleName().equals(simpleName)).findFirst()
                 .orElseThrow().classification();
@@ -172,6 +313,8 @@ class ExistingProjectIndexerTest {
                   public static By cssSelector(String value) { return null; }
                 }
                 """);
+        write(types, "org/openqa/selenium/WebDriver.java",
+                "package org.openqa.selenium; public interface WebDriver {}");
         write(types, "io/github/testlens/selenium/locator/UiLocator.java", """
                 package io.github.testlens.selenium.locator; public class UiLocator { public void click() {} }
                 """);
@@ -182,6 +325,16 @@ class ExistingProjectIndexerTest {
         write(types, "org/testng/annotations/Test.java",
                 "package org.testng.annotations; public @interface Test { String[] groups() default {}; }");
         return new Fixture(root, sources, types);
+    }
+
+    private static ConstructorEntry constructor(ClassEntry owner, String signature) {
+        return owner.constructors().stream().filter(value -> value.signature().equals(signature))
+                .findFirst().orElseThrow();
+    }
+
+    private static MethodEntry method(ExistingProjectIndex index, String ownerClassId, String name) {
+        return index.methods().stream().filter(value -> value.ownerClassId().equals(ownerClassId)
+                && value.name().equals(name)).findFirst().orElseThrow();
     }
 
     private Path write(Path root, String relative, String content) throws IOException {

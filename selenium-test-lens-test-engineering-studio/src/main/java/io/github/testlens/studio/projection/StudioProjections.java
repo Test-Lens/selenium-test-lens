@@ -48,14 +48,57 @@ public final class StudioProjections {
                                       List<String> affectedIds, List<String> counterEvidence) { }
     public record RepairProjection(StageProjection stage, String proposalId, String decision, String applyStatus,
                                    String logicalPath, String oldSelector, String newSelector,
-                                   List<String> selectorEvidence, List<String> affectedMethods,
+                                   List<String> selectorEvidence, boolean candidateUnique, String sameTarget,
+                                   List<String> affectedMethods,
                                    List<String> affectedTests, List<String> risks) { }
     public record WorkflowDetailProjection(String runId, String requirement, TestPlanProjection plan,
                                            ImplementationProjection implementation, ExecutionProjection execution,
                                            DiagnosisProjection diagnosis, RepairProjection repair,
                                            List<TimelineItem> timeline, WorkflowMetrics metrics, String status,
                                            String freshness,boolean resumed,List<String> availableActions,
-                                           List<String> limitations,String updatedAt) { }
+                                           List<String> limitations,String updatedAt,
+                                           AgentFailureProjection agentFailure,ReviewProjection review,
+                                           List<ReviewCycleProjection> reviewHistory,RunDiagnosticProjection runDiagnostic) {
+        public WorkflowDetailProjection(String runId,String requirement,TestPlanProjection plan,
+                ImplementationProjection implementation,ExecutionProjection execution,DiagnosisProjection diagnosis,
+                RepairProjection repair,List<TimelineItem> timeline,WorkflowMetrics metrics,String status,
+                String freshness,boolean resumed,List<String> availableActions,List<String> limitations,String updatedAt){
+            this(runId,requirement,plan,implementation,execution,diagnosis,repair,timeline,metrics,status,freshness,
+                    resumed,availableActions,limitations,updatedAt,null,null,List.of(),null);
+        }
+        public WorkflowDetailProjection(String runId,String requirement,TestPlanProjection plan,
+                ImplementationProjection implementation,ExecutionProjection execution,DiagnosisProjection diagnosis,
+                RepairProjection repair,List<TimelineItem> timeline,WorkflowMetrics metrics,String status,
+                String freshness,boolean resumed,List<String> availableActions,List<String> limitations,String updatedAt,
+                AgentFailureProjection agentFailure){
+            this(runId,requirement,plan,implementation,execution,diagnosis,repair,timeline,metrics,status,freshness,
+                    resumed,availableActions,limitations,updatedAt,agentFailure,null,List.of(),null);
+        }
+        public WorkflowDetailProjection(String runId,String requirement,TestPlanProjection plan,
+                ImplementationProjection implementation,ExecutionProjection execution,DiagnosisProjection diagnosis,
+                RepairProjection repair,List<TimelineItem> timeline,WorkflowMetrics metrics,String status,
+                String freshness,boolean resumed,List<String> availableActions,List<String> limitations,String updatedAt,
+                AgentFailureProjection agentFailure,ReviewProjection review,List<ReviewCycleProjection> reviewHistory){
+            this(runId,requirement,plan,implementation,execution,diagnosis,repair,timeline,metrics,status,freshness,
+                    resumed,availableActions,limitations,updatedAt,agentFailure,review,reviewHistory,null);
+        }
+    }
+    public record RunDiagnosticProjection(String reason,String status,String location,boolean recoveryPersisted){ }
+    public record ReviewProjection(String verdict,List<String> reviewedArtifactRefs,List<ReviewFindingProjection> findings,
+                                   ReviewContractDiagnosticProjection contractDiagnostic){
+        public ReviewProjection(String verdict,List<String> reviewedArtifactRefs,List<ReviewFindingProjection> findings){
+            this(verdict,reviewedArtifactRefs,findings,null);
+        }
+    }
+    public record ReviewContractDiagnosticProjection(String validationStage,String reasonCode,String location,
+            String category,int contractVersion,String artifactRef,String evidenceAvailability){ }
+    public record ReviewFindingProjection(String category,String severity,String ruleId,String artifactRef,
+            String problemCategory,String requiredAction,String location,String evidenceAvailability){ }
+    public record ReviewCycleProjection(int implementationVersion,String implementationArtifactRef,
+            String executionArtifactRef,String reviewArtifactRef,String compileOutcome,String executionOutcome,
+            long durationMillis,ReviewProjection review){ }
+    public record AgentFailureProjection(String code,String stage,String reasonCode,String location,String message,
+                                         Map<String,String> metadata) { }
     public record WorkflowSummaryProjection(String runId,String requirement,String state,String freshness,
                                             String updatedAt,boolean resumed,List<String> availableActions){ }
     public record StudioSnapshot(ProjectStatusProjection project, ApplicationOverviewProjection application,

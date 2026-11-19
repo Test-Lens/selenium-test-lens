@@ -19,10 +19,11 @@ if (-not $targetMatch.Success) { throw "mkdocs.yml must define one concrete AI i
 $targetRelease = $targetMatch.Groups[1].Value
 
 foreach ($contract in @(
-    'title: Selenium Test Lens',
-    '# Understand what your Selenium test did',
-    '[Get started](getting-started.md)',
-    '[Integrate with AI](ai-assisted-integration.md)',
+    'title: Selenium observability and diagnostic evidence',
+    'description: Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects.',
+    ('# Test Lens ' + [char]0x2014 + ' Selenium observability and diagnostic evidence'),
+    '[Use Test Lens in your Selenium tests](getting-started.md)',
+    '[AI Integration Prompt Builder](ai-assisted-integration.md)',
     '[Explore capabilities](#product-capabilities)',
     '## What Test Lens adds to Selenium',
     '## Why teams add Test Lens',
@@ -72,25 +73,39 @@ foreach ($mapContract in @(
     if (-not $capabilityMap.Contains($mapContract)) { throw "Capability map is missing contract: $mapContract" }
 }
 
-$overviewNav = $mkdocs.IndexOf('- Overview: index.md')
-$gettingNav = $mkdocs.IndexOf('- Getting Started:')
-$releasesNav = $mkdocs.IndexOf('- Releases:')
-if ($overviewNav -lt 0 -or $gettingNav -le $overviewNav -or $releasesNav -le $gettingNav) {
-    throw "Navigation must separate Overview, Getting Started, and Releases in that order."
+$nav = ($mkdocs -split '(?m)^nav:\s*$')[1] -split '(?m)^markdown_extensions:' | Select-Object -First 1
+if ($overview -match 'Test Engineering Studio|test-engineering-studio|generate-tests-with-ai' -or $nav -match 'test-engineering-studio|generate-tests-with-ai|ai/workflow-orchestration|ai/test-engineering\.md|ai/0.5.0-publication-candidates') {
+    throw "Experimental Studio must not be promoted on the homepage or in navigation."
 }
+foreach ($kept in @('HUD Studio: observability/hud-studio.md', 'AI Integration Prompt Builder: ai-assisted-integration.md')) {
+    if (-not $nav.Contains($kept)) { throw "Required independent tool is missing: $kept" }
+}
+foreach ($page in @('test-engineering-studio', 'test-engineering-studio-getting-started', 'generate-tests-with-ai', 'workflow-orchestration', 'test-engineering', '0.5.0-publication-candidates')) {
+    $source = [IO.File]::ReadAllText((Join-Path $root "docs/ai/$page.md"))
+    $notice = 'Experimental feature ' + [char]0x2014 + ' temporarily unavailable'
+    if (-not $source.Contains($notice)) { throw "Missing availability notice: $page" }
+    if ($SiteDirectory) {
+        $built = [IO.File]::ReadAllText((Join-Path $SiteDirectory "ai/$page/index.html"))
+        if (-not $built.Contains($notice)) { throw "Missing rendered availability notice: $page" }
+    }
+}
+$readme = [IO.File]::ReadAllText((Join-Path $root 'README.md'))
+if ($readme -match 'test-engineering-studio|:studio') { throw "README must not link to or launch Studio." }
+$gateway = [IO.File]::ReadAllText((Join-Path $root 'overrides/mike-root.html'))
+if ($gateway -match 'Test Engineering Studio|test-engineering-studio') { throw "Root gateway must not promote Studio." }
 
 if ($SiteDirectory) {
     $htmlPath = Join-Path $SiteDirectory "index.html"
     if (-not (Test-Path -LiteralPath $htmlPath -PathType Leaf)) { throw "Built overview is missing: $htmlPath" }
     $html = [IO.File]::ReadAllText($htmlPath)
     foreach ($renderedContract in @(
-        '<title>Selenium Test Lens',
-        'name="description" content="Add observable Selenium interactions',
+        '<title>Selenium observability and diagnostic evidence - Test Lens</title>',
+        'name="description" content="Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects.',
         'href="getting-started/"',
         'href="ai-assisted-integration/"',
         'href="#product-capabilities"',
         'id="product-capabilities"',
-        'alt="Selenium Test Lens"',
+        'alt="Test Lens"',
         'width="720"',
         'height="184"',
         'loading="lazy"'

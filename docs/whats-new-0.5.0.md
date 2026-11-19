@@ -25,7 +25,7 @@ The published selector and application artifacts are tooling dependencies. Their
 
 Studio sends a task-specific projection rather than an entire repository or raw DOM. Provider-neutral contracts separate the architect, implementer, verifier, stabilizer, and reviewer roles. The default Codex CLI adapter is an external subprocess integration; CI can use the deterministic scripted provider.
 
-Generated tests are checked before compilation. Raw selectors, direct `WebDriver.findElement(...)`, `Thread.sleep(...)`, direct JavaScript execution, and writes outside the approved test target are rejected by default.
+Generated tests are checked as complete Java 17 sources before compilation. Raw selectors, direct `WebDriver.findElement(...)`, Java `Thread.sleep` calls and method references, direct JavaScript execution, retry constructs, assertion-failure swallowing, parse failures, and writes outside the approved test target are rejected. Ordinary iteration, Page Object calls, expected-exception assertions, and catches that always propagate the assertion failure remain allowed. This static gate prevents known unsafe constructs; it does not prove that a generated test is business-correct.
 
 ## Execution and repair safety
 

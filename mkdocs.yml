@@ -1,5 +1,5 @@
 site_name: Test Lens
-site_description: Test Lens for Selenium provides observable, retryable interactions and diagnostic evidence for an existing WebDriver.
+site_description: Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects.
 site_url: https://test-lens.github.io/selenium-test-lens/
 repo_name: Test-Lens/selenium-test-lens
 repo_url: https://github.com/Test-Lens/selenium-test-lens
@@ -19,6 +19,12 @@ exclude_docs: |
 
 not_in_nav: |
   reference/public-api/*.md
+  ai/test-engineering-studio.md
+  ai/test-engineering-studio-getting-started.md
+  ai/generate-tests-with-ai.md
+  ai/workflow-orchestration.md
+  ai/test-engineering.md
+  ai/0.5.0-publication-candidates.md
 
 theme:
   name: material
@@ -55,10 +61,10 @@ theme:
     - toc.follow
 
 nav:
-  - Overview: index.md
+  - Test Lens Overview: index.md
   - Getting Started:
       - Installation & first test: getting-started.md
-      - AI-assisted integration: ai-assisted-integration.md
+      - AI Integration Prompt Builder: ai-assisted-integration.md
       - Existing WebDriver integration: framework-integration.md
       - Configuration: configuration.md
   - Using Test Lens:
@@ -104,11 +110,6 @@ nav:
           - Existing Page Object correlation: advanced/application-mapping/existing-page-objects.md
           - Page Object generation: advanced/application-mapping/page-object-generation.md
           - Drift, security & troubleshooting: advanced/application-mapping/drift-security-troubleshooting.md
-      - AI test engineering foundation: ai/test-engineering.md
-      - AI workflow orchestration: ai/workflow-orchestration.md
-      - Studio getting started: ai/test-engineering-studio-getting-started.md
-      - Test Engineering Studio: ai/test-engineering-studio.md
-      - 0.5.0 publication candidates: ai/0.5.0-publication-candidates.md
       - Steps & business assertions: advanced/steps-business-assertions.md
       - Network diagnostics: advanced/network.md
       - Overlay policies: advanced/overlay-policies.md
@@ -122,6 +123,7 @@ nav:
   - Migration:
       - From raw Selenium: migration.md
   - Releases:
+      - What's new in 0.5.1: whats-new-0.5.1.md
       - What's new in 0.5.0: whats-new-0.5.0.md
       - What's new in 0.4.0: whats-new-0.4.0.md
       - What's new in 0.3.1: whats-new-0.3.1.md
@@ -158,8 +160,8 @@ nav:
       - Compatibility run manifests: maintainers/compatibility-run-manifests.md
       - Migration Git preflight and checkpoints: maintainers/migration-git-checkpoints.md
       - Changelog: https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md
-      - Maven Central: https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.0
-      - Javadoc: https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.0/
+      - Maven Central: https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1
+      - Javadoc: https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/
 markdown_extensions:
   - admonition
   - attr_list
@@ -190,14 +192,14 @@ validation:
 
 extra:
   ai_integration:
-    target_release: 0.5.0
+    target_release: 0.5.1
     public_docs_root: https://test-lens.github.io/selenium-test-lens/
   build:
     source_revision: !ENV [DOCS_SOURCE_REVISION, local-unverified]
   version:
     provider: mike
     default: latest
-    current: 0.5.0
+    current: 0.5.1
     is_dev: true
     is_snapshot: false
     stable_url: https://test-lens.github.io/selenium-test-lens/latest/
