@@ -16,7 +16,7 @@
 | `0.2.0` | Historical release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0) | [Documentation — 0.2.0](https://test-lens.github.io/selenium-test-lens/0.2.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.2.0) |
 | `0.1.0` | Historical release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0) | [Documentation — 0.1.0](https://test-lens.github.io/selenium-test-lens/0.1.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.1.0) |
 
-**Prepared 0.5.2 is not published.** It repairs BiDi binary compatibility and capture lifecycle behavior; published 0.5.1 remains affected on Selenium 4.41.0+. See [0.5.2 changes and upgrade instructions](docs/whats-new-0.5.2.md) and the [tested Selenium matrix](docs/selenium-compatibility.md).
+**Prepared 0.5.2 is not published.** It repairs BiDi binary compatibility and capture lifecycle, potentially repeated click/input actions, cancellation, critical cleanup errors, measured durations, terminal HUD status and unsafe HTML artifact links. Published 0.5.1 remains affected on Selenium 4.41.0+. Public API and test-source compatibility are preserved. See [0.5.2 changes and upgrade instructions](docs/whats-new-0.5.2.md), the [tested Selenium matrix](docs/selenium-compatibility.md) and [release coverage](docs/maintainers/production-release-0.5.2.md).
 
 Install published release 0.5.1 (Java 17 or newer):
 

@@ -13,12 +13,18 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 - Prevented a delayed restart health check from replacing or leaking a newer capture generation. Added deterministic source-ownership regression and server-journal comparisons of JSON/HTML/failure-bundle data across the same-JAR matrix.
 - Initialized lazy BiDi connections and privately augment raw remote drivers when required; preserve the caller-owned driver and foreign listeners. Added same-connection health checks to protect successful assertions/waits and stopped-snapshot preservation. The health command can add up to 30 seconds on the baseline. Legacy Selenium 4.39 through 4.45 may retain server event interest until connection closure.
 
-### Runtime reliability
+### Fixed runtime regressions
 
 - Prevented ambiguous click/input redispatch, including outer locator recovery and checkbox confirmation after a completed click.
 - Stopped cancelled waits and React recovery promptly; replaced fixed overlay-dismissal sleeps with conditional observation within the existing limit. Made null input consistent between overlay modes.
 - Preserved critical finalization failures, cleanup interruption and fatal locator-metadata errors without changing public signatures.
 - Preserved measured trace durations and terminal HUD status; rejected executable artifact-link schemes in HTML exports. Added regression coverage for redaction, Unicode and report boundaries.
+
+### Migration
+
+- Update Lens and its optional JUnit 5/TestNG/React integrations together to 0.5.2 when the release is available. No public API or test-source migration is required. Keep Selenium explicitly configured with one aligned version, preferably through its BOM; do not downgrade applications that need newer Selenium APIs.
+- Users of 0.5.1 who disabled Lens diagnostic network capture as a workaround can re-enable it after upgrading and verifying a known response. Browser/Grid BiDi capability configuration remains required.
+- Ambiguous transport failures now fail the action instead of possibly repeating a delivered click/input. A checkbox confirmation failure no longer clicks again. Handle such failures explicitly; do not add blind application-level retries.
 
 ### Tested compatibility
 
