@@ -4,7 +4,7 @@ Production publication is in progress. No tag or immutable artifact is claimed u
 
 ## Source and documentation coverage
 
-The prepared source is `release/bidi-0.5.2`, originally `c2d4fece`, containing 11 isolated commits after `94189e1`. Actual baseline is `v0.5.1` (`e6e2a19`). Seven intervening baseline commits concern documentation/branding and the withdrawal of Studio recommendations; they are not new runtime features. The only changes in the Studio module are its parent-version bump. No uncommitted Studio/Playground work is included.
+The prepared source is `release/bidi-0.5.2`, originally `c2d4fece`, with current preparation HEAD `cdcc9344`. Actual baseline is `v0.5.1` (`e6e2a19`). Seven intervening baseline commits concern documentation/branding and the withdrawal of Studio recommendations; they are not new runtime features. The only changes in the Studio module are its parent-version bump. No uncommitted Studio/Playground work is included.
 
 Each entry below is described in the 0.5.2 changelog and release notes. No public API/test-source migration is required. Browser capability setup, consumer-owned Selenium alignment and optional capture activation remain required.
 
@@ -12,6 +12,8 @@ Each entry below is described in the 0.5.2 changelog and release notes. No publi
 | --- | --- | --- | --- | --- |
 | Primitive/boxed sizes and numeric/string listener IDs | `e10cb2b1` | `SeleniumBiDiCompatibilityTest`, `BinaryArtifactTest`, legacy bytecode consumer | Fixed | [Network](../advanced/network.md), [compatibility](../selenium-compatibility.md) |
 | Owned listeners, partial cleanup, lazy remote initialization, capture failure invalidation | `e10cb2b1` | network source/diagnostics regressions; `BrowserBinaryTest` | Fixed | Network, compatibility |
+| Preserve real redirect-hop request metadata when `beforeRequestSent` is absent; deduplicate by request ID and hop; retain observation timestamp and provenance | `2d971211` | `SeleniumBiDiNetworkCaptureSourceTest`: redirect projection, deduplication, bounded storage and trace provenance; focused source regressions 82 PASS locally | Fixed | [Network](../advanced/network.md), [release notes](release-notes-0.5.2.md) |
+| Optional raw-wire probes default OFF; actual HTTP server-journal assertions retained | `cdcc9344` | Journal-based browser/report assertions: final local matrix 1359 PASS, zero failures/skips | Tested compatibility | Network, release notes |
 | Overlapping restart generation | `e10cb2b1` | overlapping start source-ownership regression | Fixed | Network, BiDi audit |
 | Same-JAR matrix and report server-journal/body-byte checks | `3a2df0df`, `5dfb1e1b` | `BinaryArtifactTest`, `NetworkReportCorrectnessTest` | Compatibility | Compatibility, regression audit |
 | Release/CI/API gate correction and BOM alignment | `a4d24058` | prepared-policy, release tooling and API projection fixtures | Compatibility | [Release validation](selenium-bidi-release-0.5.2.md) |
@@ -52,13 +54,15 @@ The 25 example methods are enumerated in the checked local `target/release-052-s
 
 The existing `central-release` Maven profile creates sources/Javadoc, signs with GPG and stages through Sonatype's Central plugin. `autoPublish=false` / `waitUntil=validated` requires explicit publication of the validated deployment. There is no Central publishing GitHub workflow; Release Check validates packaging without signing. This release follows the existing safe ordering: merge verified source, stage and publish Central, verify artifacts, then create the immutable tag which triggers documentation publication.
 
-Initial preflight: GitHub authentication works, local Maven server `central` has configured credentials, one GPG secret-key record exists. Values are never included in reports. A noninteractive signing probe cannot unlock the key; local key unlock is required before signed staging can be certified. GitHub protection API reports main unprotected; no rule bypass is authorized. `origin/main` is `cb13a290`, one cleanup-only commit outside the candidate ancestry. Its merge base is `22e0177d`; main also lacks six commits already included in the published `v0.5.1`. A direct release PR would therefore include already-published Studio changes from 0.5.1. Baseline synchronization must be explicitly separated from the 0.5.2 patch rather than silently expanding its scope or deleting released contracts. Local release worktree remains isolated; integration must preserve main's cleanup and all original dirty work.
+Signing preflight is complete. The signing key was verified against the public 0.5.1 signature fingerprint `7C21B14451B2C876E87796C2723272178ED7A876`. Interactive local signing and verification passed, and Maven parent-POM signing and verification passed. No password or private key was exported. These checks establish signing readiness, not a Central deployment or publication.
+
+Baseline synchronization was separated from the patch: [PR #2](https://github.com/Test-Lens/selenium-test-lens/pull/2) merged as `2935dbede2e819725554a34d1896449532b7f578` after [CI run 44515897545](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44515897545) passed. [Release PR #3](https://github.com/Test-Lens/selenium-test-lens/pull/3) exists. Local release work remains isolated and preserves the original dirty work. The existing local Maven `central-release` profile remains the staging path, with `autoPublish=false`; no Actions publication workflow has been introduced.
 
 Release version 0.5.2 was absent from local/remote tags, GitHub Releases and Central at initial preflight. Availability is checked again immediately before immutable actions. PR, hosted run IDs, merge SHA, Central deployment/public artifacts, tag, documentation URLs and post-release consumer evidence are recorded here as each completes.
 
 ## Current status
 
-IN PROGRESS. BrowserStack remains NOT RUN. Production publication, hosted gates and post-release smoke are not yet claimed as PASS.
+PREPARED, UNPUBLISHED. Commit `2d971211` corrects a hosted Chrome 158 redirect-observation gap using real request metadata from response events. Its focused source regressions passed 82 tests locally and independent review found no concrete defects. Commit `cdcc9344` leaves optional raw-wire probes OFF by default without changing actual journal assertions. The new local nine-version same-JAR matrix passed 1359 tests with zero failures/skips, including Chrome 158, Grid and server-journal report comparisons. Lens SHA-256: `972981F9C86FA796706768A36CF34D518ADDF8D46FDE8B55DB5832C6F79104FB`. Hosted release gates remain pending. Earlier completed matrices below and in linked reports do not certify this new HEAD. No Central publication, immutable tag or GitHub Release exists yet. BrowserStack remains NOT RUN; post-release smoke is pending publication.
 
 ## Complete documentation-example skip inventory
 

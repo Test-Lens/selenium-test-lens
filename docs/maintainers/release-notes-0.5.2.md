@@ -1,5 +1,7 @@
 # Selenium Test Lens 0.5.2
 
+**Prepared, unpublished.** Central publication, the immutable tag and GitHub Release have not been completed. Final validation of the current preparation HEAD is still in progress.
+
 ## Overview
 
 This patch fixes Selenium BiDi binary incompatibility and reproduced runtime regressions in 0.5.1. Upgrade especially if you use diagnostic network capture with Selenium 4.41 or newer, recovery actions, cancellation or managed cleanup. There are no new public APIs or Studio features in this patch.
@@ -16,6 +18,7 @@ This patch fixes Selenium BiDi binary incompatibility and reproduced runtime reg
 - BiDi size getter primitive/boxed changes at Selenium 4.41 and string listener IDs at 4.46 are handled by a cached internal compatibility boundary. Unavailable response sizes remain unavailable.
 - Callback failures invalidate capture, wake waiters and prevent assertions against incomplete traffic. Lazy RemoteWebDriver initialization, partial subscription cleanup, concurrent stop and overlapping restart are covered.
 - Lens removes its own listeners and preserves application listeners on shared connections.
+- Redirect hops whose `beforeRequestSent` event is absent retain the real `RequestData` supplied by `responseStarted` or `responseCompleted`. This fixes an observation gap reproduced in hosted Chrome 158. Request observations are deduplicated by request ID and redirect hop; timestamps identify actual observation, not an invented request start. Trace metadata records `requestObservationSource`. Responses are never fabricated, and public signatures are unchanged.
 - Ambiguous transport errors no longer trigger another potentially delivered click/input. Checkbox confirmation cannot repeat an already completed click.
 - Interrupted overlay waits/actions and React recovery stop before further work while retaining cancellation. Dismissal observes disappearance within the existing 500 ms cap instead of always sleeping for 500 ms. Null input behavior is consistent across overlay modes.
 
@@ -41,6 +44,8 @@ If you disabled only Lens diagnostic capture as a 0.5.1 workaround, re-enable it
 ## Verification
 
 The clean local reactor passed **1806 tests**, with **39 classified skips** and zero failures. The same-JAR matrix passed **1242 tests with zero failures/skips**, including local Chrome, Grid and report-data comparisons. Headed and headless runtime smokes each passed 5/5. Public API, strict documentation and packaging checks passed. Hosted release evidence is recorded separately in the production release report; local execution is not presented as hosted CI.
+
+Those completed runs precede the latest redirect correction. Commit `2d971211` passed **82 focused source regressions locally** and independent review found no concrete defects. The new nine-version matrix passed locally on `cdcc9344`: **1359 tests, zero failures and zero skips**, including Chrome 158, Grid and server-journal report comparisons. The identical Lens JAR SHA-256 was `972981F9C86FA796706768A36CF34D518ADDF8D46FDE8B55DB5832C6F79104FB`. Hosted release gates remain pending. Optional raw-wire probes are OFF by default; actual controlled-server journal assertions remain unchanged.
 
 ## Known limitations
 

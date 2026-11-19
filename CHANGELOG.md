@@ -10,6 +10,7 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 - Isolated Selenium BiDi size-getter and listener-ID descriptor changes behind a cached internal compatibility boundary while retaining the Selenium 4.39.0 compile baseline. Network callbacks invalidate capture on mapping/linkage failure, wake waiters and reject assertions against incomplete snapshots.
 - Replaced event-type-wide Network cleanup with removal of Lens-owned listener IDs, preserving other listeners on shared BiDi connections and cleaning up partial subscriptions.
+- Preserved real redirect-hop `RequestData` from `responseStarted`/`responseCompleted` when `beforeRequestSent` is missing, as reproduced in hosted Chrome 158. Deduplicated request observations by ID and redirect count, retained actual observation timestamps and trace provenance (`requestObservationSource`), and added focused regressions. No responses or request-start times are invented; public signatures are unchanged.
 - Prevented a delayed restart health check from replacing or leaking a newer capture generation. Added deterministic source-ownership regression and server-journal comparisons of JSON/HTML/failure-bundle data across the same-JAR matrix.
 - Initialized lazy BiDi connections and privately augment raw remote drivers when required; preserve the caller-owned driver and foreign listeners. Added same-connection health checks to protect successful assertions/waits and stopped-snapshot preservation. The health command can add up to 30 seconds on the baseline. Legacy Selenium 4.39 through 4.45 may retain server event interest until connection closure.
 
@@ -27,6 +28,8 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 - Ambiguous transport failures now fail the action instead of possibly repeating a delivered click/input. A checkbox confirmation failure no longer clicks again. Handle such failures explicitly; do not add blind application-level retries.
 
 ### Tested compatibility
+
+- The redirect correction passed 82 focused source regressions locally and independent review. The new nine-version same-JAR matrix passed locally with 1359 tests, zero failures and zero skips, including Chrome 158 and Grid. Hosted release gates remain pending. Optional raw-wire probes default OFF; actual controlled-server journal assertions remain unchanged.
 
 - Retained Java 17 and Selenium 4.39.0 as compile/minimum tested baselines. Verified nine Selenium runtimes through 4.53.0 on Java 21 with Chrome 157 locally and through Grid 4.53.0; BrowserStack remains NOT RUN. See `docs/whats-new-0.5.2.md` for upgrade instructions and limits.
 - Added an independent same-JAR Selenium runtime matrix, a frozen 4.39 bytecode regression reproducer, artifact hash/version checks and Chrome/Grid smoke coverage in CI. Imported Selenium BOM to align reactor dependencies. See the development Selenium compatibility policy and audit report for executed results; published 0.5.1 is unchanged.
