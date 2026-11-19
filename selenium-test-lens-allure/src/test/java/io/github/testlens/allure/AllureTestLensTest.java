@@ -8,6 +8,8 @@ import io.qameta.allure.AllureResultsWriter;
 import io.qameta.allure.model.TestResult;
 import io.qameta.allure.model.TestResultContainer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
@@ -23,6 +25,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AllureTestLensTest {
     @TempDir Path temp;
+    private AllureLifecycle originalLifecycle;
+
+    @BeforeEach
+    void retainRunnerLifecycle() {
+        originalLifecycle = Allure.getLifecycle();
+    }
+
+    @AfterEach
+    void restoreRunnerLifecycle() {
+        Allure.setLifecycle(originalLifecycle);
+    }
 
     @Test
     void returnsSafeSkipWithoutActiveAllureContext() throws Exception {
