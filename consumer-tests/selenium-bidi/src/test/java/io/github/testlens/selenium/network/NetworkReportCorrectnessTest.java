@@ -32,8 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 
@@ -78,6 +80,7 @@ class NetworkReportCorrectnessTest {
         // Both sessions start on the same origin, including after the first HTML report is opened.
         driver.get(peer.origin + "/page");
         peer.journal.clear();
+        peer.completed = new CountDownLatch(failed ? 20 : 18);
         peer.credentialsObserved = false;
         String secret = UUID.randomUUID().toString();
         peer.secret = secret;
@@ -112,6 +115,7 @@ class NetworkReportCorrectnessTest {
                 fetch(driver, "/case/server-error", "GET", null, null);
             }
             fetch(driver, "/case/barrier", "GET", null, null);
+            assertTrue(peer.completed.await(5, TimeUnit.SECONDS), "HTTP peer must finish journaling every transmitted response");
             List<Observed> journal = List.copyOf(peer.journal);
             assertEquals(failed ? 20 : 18, journal.size(), "Fixture must issue its complete traffic matrix");
             assertTrue(peer.credentialsObserved, "Peer must receive the original credential");
@@ -138,6 +142,7 @@ class NetworkReportCorrectnessTest {
             network.stop();
             List<NetworkEvent> events = network.events();
             assertTraffic(journal, events, peer.origin);
+            assertExportedBodySizeAvailability(object(exported), events);
             NetworkRequest post = events.stream().filter(event -> event.request() != null
                     && event.url().endsWith("/case/post")).findFirst().orElseThrow().request();
             assertEquals("application/json", header(post.headers(), "Content-Type"));
@@ -176,7 +181,9 @@ class NetworkReportCorrectnessTest {
             assertSafe(Files.readString(result.jsonReport()), secret);
             assertTraceReport(journal, object(Files.readString(result.jsonReport())));
             assertSafe(Files.readString(result.htmlReport()), secret);
-            assertExport(journal, object(Files.readString(attached)), peer.origin, "");
+            Map<String, Object> attachedExport = object(Files.readString(attached));
+            assertExport(journal, attachedExport, peer.origin, "");
+            assertExportedBodySizeAvailability(attachedExport, events);
             if (failed) assertBundle(result, journal, secret);
             else assertTrue(result.failureBundleArchive().isEmpty());
 
@@ -220,6 +227,7 @@ class NetworkReportCorrectnessTest {
                 + event.attributes().get("redirectCount")).distinct().count(), "One response per ID and hop");
         for (NetworkEvent response : responses) {
             assertFalse(response.response().requestId().isBlank());
+            assertResponseBodySize(journal, response.url(), response.response().status(), response.attributes(), origin);
             assertEquals(1, requests.stream().filter(request -> request.request().id().equals(response.response().requestId())
                     && request.url().equals(response.url())
                     && request.attributes().get("redirectCount").equals(response.attributes().get("redirectCount"))).count(),
@@ -247,6 +255,8 @@ class NetworkReportCorrectnessTest {
         List<Map<String, Object>> requests = events.stream().filter(event -> event.get("request") instanceof Map).toList();
         for (Map<String, Object> responseEvent : events.stream().filter(event -> event.get("response") instanceof Map).toList()) {
             Map<String, Object> response = object(responseEvent.get("response"));
+            assertResponseBodySize(journal, (String) response.get("url"), (int) number(response.get("status")),
+                    object(responseEvent.get("attributes")), origin);
             assertEquals(1, requests.stream().filter(requestEvent -> {
                 Map<String, Object> request = object(requestEvent.get("request"));
                 return request.get("id").equals(response.get("requestId"))
@@ -254,6 +264,31 @@ class NetworkReportCorrectnessTest {
                         && object(requestEvent.get("attributes")).get("redirectCount")
                         .equals(object(responseEvent.get("attributes")).get("redirectCount"));
             }).count(), "Exported response IDs and hops must correlate to exactly one exported request");
+        }
+    }
+
+    private static void assertResponseBodySize(List<Observed> journal, String url, int status,
+                                               Map<String, ?> attributes, String origin) {
+        if (!attributes.containsKey("bodySize")) return; // Unavailable is distinct from a measured zero.
+        List<Long> transmittedSizes = journal.stream()
+                .filter(item -> (origin + item.path).equals(url) && item.status == status)
+                .map(Observed::responseBodyBytes).distinct().toList();
+        assertEquals(1, transmittedSizes.size(), "The peer must supply an unambiguous transmitted body size");
+        assertEquals(transmittedSizes.get(0).longValue(), Long.parseLong(String.valueOf(attributes.get("bodySize"))),
+                "Available BiDi bodySize must equal bytes actually sent by the uncompressed HTTP peer: " + url);
+    }
+
+    private static void assertExportedBodySizeAvailability(Map<String, Object> exported, List<NetworkEvent> captured) {
+        Map<String, NetworkEvent> byId = captured.stream().collect(Collectors.toMap(NetworkEvent::id, event -> event));
+        for (Map<String, Object> event : objects(exported.get("events"))) {
+            if (!(event.get("response") instanceof Map)) continue;
+            NetworkEvent source = byId.get(event.get("id"));
+            assertNotNull(source, "Every exported response must come from the captured snapshot");
+            Map<String, Object> attributes = object(event.get("attributes"));
+            assertEquals(source.attributes().containsKey("bodySize"), attributes.containsKey("bodySize"),
+                    "An unavailable response body size must remain absent in JSON, never become zero");
+            assertEquals(source.attributes().get("bodySize"), attributes.get("bodySize"),
+                    "JSON must preserve the captured response body size");
         }
     }
 
@@ -340,10 +375,11 @@ class NetworkReportCorrectnessTest {
     @SuppressWarnings("unchecked") private static Map<String, Object> object(Object value) { return (Map<String, Object>) value; }
     @SuppressWarnings("unchecked") private static List<Map<String, Object>> objects(Object value) { return (List<Map<String, Object>>) value; }
 
-    private record Observed(String method, String path, int status, String body) {}
+    private record Observed(String method, String path, int status, String body, long responseBodyBytes) {}
 
     private static final class Peer implements AutoCloseable {
         final HttpServer server;
+        volatile CountDownLatch completed = new CountDownLatch(0);
         final ExecutorService executor = Executors.newCachedThreadPool();
         final List<Observed> journal = new CopyOnWriteArrayList<>();
         final String origin;
@@ -378,12 +414,16 @@ class NetworkReportCorrectnessTest {
                     credentialsObserved = !secret.isBlank() && secret.equals(exchange.getRequestHeaders().getFirst("X-Api-Key"));
                     exchange.getResponseHeaders().set("Set-Cookie", "session=" + secret + "; HttpOnly");
                 }
-                if (path.startsWith("/case/")) journal.add(new Observed(exchange.getRequestMethod(), path, status, body));
                 byte[] bytes = (path.equals("/report") ? report : path.equals("/page")
                         ? "<!doctype html><title>Network peer</title><link rel=\"icon\" href=\"data:,\"><p>Ready</p>"
                         : "{\"ok\":true}").getBytes(StandardCharsets.UTF_8);
                 exchange.sendResponseHeaders(status, status == 204 || status == 302 ? -1 : bytes.length);
                 if (status != 204 && status != 302) exchange.getResponseBody().write(bytes);
+                if (path.startsWith("/case/")) {
+                    journal.add(new Observed(exchange.getRequestMethod(), path, status, body,
+                            status == 204 || status == 302 ? 0L : bytes.length));
+                    completed.countDown();
+                }
             }
         }
 
