@@ -34,7 +34,7 @@ jobs:
           curl --fail --location --retry 2 -o target/selenium-server.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.53.0/selenium-server-4.53.0.jar
           java "-Dwebdriver.chrome.driver=$BIDI_CHROMEDRIVER" -jar target/selenium-server.jar standalone --host 127.0.0.1 --port 4444 > target/selenium-bidi-compatibility/grid.log 2>&1 &
           echo "$!" > target/selenium-bidi-compatibility/grid.pid
-          for attempt in $(seq 1 60); do
+          for ((attempt = 1; attempt <= 60; attempt++)); do
             if curl --fail --silent http://127.0.0.1:4444/status | grep -q '"ready": true'; then exit 0; fi
             sleep 1
           done
