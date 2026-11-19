@@ -18,6 +18,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -29,6 +31,7 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
     private final Map<String, String> diagnostics;
     private boolean closed;
     private boolean callbackFailed;
+    private final Set<RequestHop> observedRedirectRequests = new LinkedHashSet<>();
 
     private SeleniumBiDiNetworkCaptureSource(Module network, Map<String, String> diagnostics) {
         this.network = network;
@@ -73,8 +76,14 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
         try {
             SeleniumBiDiNetworkCaptureSource source = new SeleniumBiDiNetworkCaptureSource(network, diagnostics);
             network.onFailure(failure -> source.callback(() -> { throw failure; }, sink));
-            network.onBeforeRequestSent(event -> source.callback(() -> beforeRequest(event, options, sink), sink));
-            network.onResponseCompleted(event -> source.callback(() -> responseCompleted(event, options, sink), sink));
+            network.onBeforeRequestSent(event -> source.callback(() ->
+                    source.observeRequest(event, event.getRequest(), "beforeRequestSent", options, sink, true), sink));
+            network.onResponseStarted(event -> source.callback(() ->
+                    source.observeRequest(event, event.getRequest(), "responseStarted", options, sink, false), sink));
+            network.onResponseCompleted(event -> source.callback(() -> {
+                source.observeRequest(event, event.getRequest(), "responseCompleted", options, sink, false);
+                responseCompleted(event, options, sink);
+            }, sink));
             network.onFetchError(event -> source.callback(() -> fetchError(event, options, sink), sink));
             return source;
         } catch (RuntimeException | LinkageError failure) {
@@ -120,14 +129,24 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
 
     @Override public void verifyHealth() { network.verifyHealth(); }
 
-    private static void beforeRequest(BeforeRequestSent event, NetworkDiagnosticsOptions options, NetworkCaptureSink sink) {
-        RequestData request = event.getRequest();
+    private void observeRequest(BaseParameters event, RequestData request, String observationSource,
+                                NetworkDiagnosticsOptions options, NetworkCaptureSink sink, boolean before) {
+        // Only redirect response events can supply a missing standalone request observation.
+        // Their timestamp identifies when this metadata was observed, not a reconstructed request start.
+        if (!before && (event.getRedirectCount() <= 0 || request == null || safe(request.getRequestId()).isBlank())) return;
         String url = request == null ? "" : safe(request.getUrl());
         if (options.isIgnored(url)) {
-            sink.ignored();
+            if (before) sink.ignored();
             return;
         }
+        if (event.getRedirectCount() > 0 && request != null && !safe(request.getRequestId()).isBlank()) {
+            RequestHop key = new RequestHop(request.getRequestId(), event.getRedirectCount());
+            if (observedRedirectRequests.contains(key)) return;
+            if (observedRedirectRequests.size() < options.maxCapturedEvents()) observedRedirectRequests.add(key);
+            else if (!before) return;
+        }
         Map<String, String> attributes = baseAttributes(event);
+        attributes.put("requestObservationSource", observationSource);
         attributes.put("resourceTypeAvailable", "false");
         if (request != null) sizeAttribute(attributes, "requestHeadersSize", request, "getHeadersSize");
         NetworkRequest mapped = new NetworkRequest(
@@ -297,16 +316,19 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
         synchronized (this) {
             if (closed) return;
             closed = true;
+            observedRedirectRequests.clear();
         }
         network.close();
     }
 
     private record DurationValue(Duration value, boolean available) {}
+    private record RequestHop(String requestId, long redirectCount) {}
 
     interface Module extends AutoCloseable {
         default void verifyHealth() {}
         default void onFailure(Consumer<RuntimeException> consumer) {}
         void onBeforeRequestSent(Consumer<BeforeRequestSent> consumer);
+        default void onResponseStarted(Consumer<ResponseDetails> consumer) {}
         void onResponseCompleted(Consumer<ResponseDetails> consumer);
         void onFetchError(Consumer<FetchError> consumer);
         @Override void close();
@@ -357,6 +379,9 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
         }
         @Override public void onBeforeRequestSent(Consumer<BeforeRequestSent> consumer) {
             listen("network.beforeRequestSent", BeforeRequestSent::fromJsonMap, consumer);
+        }
+        @Override public void onResponseStarted(Consumer<ResponseDetails> consumer) {
+            listen("network.responseStarted", ResponseDetails::fromJsonMap, consumer);
         }
         @Override public void onResponseCompleted(Consumer<ResponseDetails> consumer) {
             listen("network.responseCompleted", ResponseDetails::fromJsonMap, consumer);

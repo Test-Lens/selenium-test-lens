@@ -826,6 +826,9 @@ public final class NetworkDiagnostics {
         metadata.put("resourceType", details.resourceType());
         metadata.put("resourceTypeAvailable", String.valueOf(!details.resourceType().isBlank()));
         metadata.put("redirectCount", event.attributes().getOrDefault("redirectCount", ""));
+        if (event.attributes().containsKey("requestObservationSource")) {
+            metadata.put("requestObservationSource", event.attributes().get("requestObservationSource"));
+        }
         metadata.put("durationMs", details.durationMs());
         metadata.put("hudVisible", String.valueOf(emission.hudVisible()));
         emit(eventType, UiTestLensStatus.INFO, UiTestLensLogLevel.INFO,

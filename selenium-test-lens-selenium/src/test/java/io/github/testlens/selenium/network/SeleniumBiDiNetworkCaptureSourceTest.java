@@ -1,6 +1,12 @@
 package io.github.testlens.selenium.network;
 
+import io.github.testlens.core.OverlayLogger;
+import io.github.testlens.core.logging.UiTestLensLogEntry;
+import io.github.testlens.core.logging.UiTestLensLogger;
+import io.github.testlens.core.logging.UiTestLensEventType;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.WebDriver;
+import java.lang.reflect.Proxy;
 import org.openqa.selenium.bidi.network.BeforeRequestSent;
 import org.openqa.selenium.bidi.network.FetchError;
 import org.openqa.selenium.bidi.network.ResponseDetails;
@@ -19,6 +25,104 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SeleniumBiDiNetworkCaptureSourceTest {
+    @Test
+    void observesActualRedirectRequestFromCompletionAndDeduplicatesLateBefore() {
+        FakeModule module = new FakeModule();
+        RecordingSink sink = new RecordingSink();
+        SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.builder().includeHeaders(true).build(), sink);
+        Map<String, Object> completed = response("shared", "/case/final", 1, 200, 150, 10, 37);
+        @SuppressWarnings("unchecked") Map<String, Object> request = (Map<String, Object>) completed.get("request");
+        request.put("headersSize", 81L);
+        request.put("headers", List.of(header("Authorization", "string", "OBSERVED_SECRET"), header("Content-Type", "string", "application/json")));
+        module.response.accept(ResponseDetails.fromJsonMap(completed));
+        List<NetworkEvent> requests = sink.events.stream().filter(event -> event.request() != null).toList();
+        assertEquals(1, requests.size(), "The completed event contains an actual request model");
+        NetworkEvent observed = requests.get(0);
+        assertEquals("shared", observed.request().id());
+        assertEquals("/case/final", observed.request().url());
+        assertEquals("POST", observed.request().method());
+        assertEquals(Instant.ofEpochMilli(150), observed.timestamp());
+        assertEquals(observed.timestamp(), observed.request().timestamp());
+        assertEquals("responseCompleted", observed.attributes().get("requestObservationSource"));
+        assertEquals("1", observed.attributes().get("redirectCount"));
+        assertEquals("81", observed.attributes().get("requestHeadersSize"));
+        assertEquals("***", observed.request().headers().get("Authorization"));
+        assertEquals("application/json", observed.request().headers().get("Content-Type"));
+        module.before.accept(BeforeRequestSent.fromJsonMap(base("shared", "/case/final", 1, 100)));
+        assertEquals(1, sink.events.stream().filter(event -> event.request() != null).count());
+        assertEquals(1, sink.events.stream().filter(event -> event.response() != null).count());
+    }
+
+    @Test
+    void startedObservationWinsOnceAcrossCompletionAndLateBefore() {
+        FakeModule module = new FakeModule();
+        RecordingSink sink = new RecordingSink();
+        SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.defaults(), sink);
+        assertNotNull(module.started);
+        module.started.accept(ResponseDetails.fromJsonMap(response("shared", "/case/final", 1, 200, 120, 10, 37)));
+        assertEquals(1, sink.events.size());
+        module.response.accept(ResponseDetails.fromJsonMap(response("shared", "/case/final", 1, 200, 150, 10, 37)));
+        module.before.accept(BeforeRequestSent.fromJsonMap(base("shared", "/case/final", 1, 100)));
+        List<NetworkEvent> requests = sink.events.stream().filter(event -> event.request() != null).toList();
+        assertEquals(1, requests.size());
+        assertEquals(Instant.ofEpochMilli(120), requests.get(0).timestamp());
+        assertEquals("responseStarted", requests.get(0).attributes().get("requestObservationSource"));
+        assertEquals(1, sink.events.stream().filter(event -> event.response() != null).count());
+    }
+
+    @Test
+    void observationsKeepIndependentIdsAndHopsWithoutProjectingNormalRequests() {
+        FakeModule module = new FakeModule();
+        RecordingSink sink = new RecordingSink();
+        SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.defaults(), sink);
+        module.response.accept(ResponseDetails.fromJsonMap(response("normal", "/case/normal", 0, 200, 100, 10, 37)));
+        assertEquals(0, sink.events.stream().filter(event -> event.request() != null).count());
+        module.before.accept(BeforeRequestSent.fromJsonMap(base("shared", "/case/one", 1, 101)));
+        module.response.accept(ResponseDetails.fromJsonMap(response("shared", "/case/one", 1, 200, 120, 10, 37)));
+        module.response.accept(ResponseDetails.fromJsonMap(response("shared", "/case/two", 2, 200, 130, 10, 37)));
+        module.response.accept(ResponseDetails.fromJsonMap(response("other", "/case/other", 1, 200, 140, 10, 37)));
+        List<NetworkEvent> requests = sink.events.stream().filter(event -> event.request() != null).toList();
+        assertEquals(3, requests.size());
+        assertEquals(List.of("beforeRequestSent", "responseCompleted", "responseCompleted"), requests.stream().map(event -> event.attributes().get("requestObservationSource")).toList());
+        assertEquals(3, requests.stream().map(event -> event.request().id() + "#" + event.attributes().get("redirectCount")).distinct().count());
+    }
+
+    @Test
+    void redirectProjectionIsBoundedAndClosedCallbacksAreIgnored() {
+        FakeModule module = new FakeModule();
+        RecordingSink sink = new RecordingSink();
+        NetworkCaptureSource source = SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.builder().maxCapturedEvents(2).build(), sink);
+        for (int index = 0; index < 3; index++) module.response.accept(ResponseDetails.fromJsonMap(response("id-" + index, "/case/" + index, 1, 200, 100 + index, 10, 37)));
+        assertEquals(2, sink.events.stream().filter(event -> event.request() != null).count());
+        int retained = sink.events.size();
+        source.close();
+        module.response.accept(ResponseDetails.fromJsonMap(response("late", "/case/late", 1, 200, 200, 10, 37)));
+        assertEquals(retained, sink.events.size());
+    }
+
+    @Test
+    void requestObservationProvenanceReachesRecordedTraceMetadata() {
+        FakeModule module = new FakeModule();
+        List<UiTestLensLogEntry> entries = new ArrayList<>();
+        WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[]{WebDriver.class}, (proxy, method, args) -> null);
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(driver,
+                OverlayLogger.from(UiTestLensLogger.builder().sink(entries::add).build()),
+                (ignored, options, sink) -> SeleniumBiDiNetworkCaptureSource.subscribe(module, options, sink))
+                .start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI).build());
+        try {
+            module.started.accept(ResponseDetails.fromJsonMap(response("observed", "/case/final", 1, 200, 120, 10, 37)));
+            UiTestLensLogEntry request = entries.stream().filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_REQUEST_RECORDED)
+                    .findFirst().orElseThrow();
+            assertEquals("responseStarted", request.metadata().get("requestObservationSource"));
+            assertEquals("1", request.metadata().get("redirectCount"));
+            assertEquals("observed", request.metadata().get("requestId"));
+            assertEquals(1, diagnostics.summary().totalRequests());
+            assertEquals(0, diagnostics.summary().totalResponses());
+            assertTrue(diagnostics.exportJson().contains("responseStarted"));
+        } finally { diagnostics.stop(); }
+    }
+
     @Test
     void unsubscribeCanWaitForAnAlreadyQueuedCallbackWithoutDeadlock() {
         FakeModule module = new FakeModule();
@@ -43,12 +147,13 @@ class SeleniumBiDiNetworkCaptureSourceTest {
     }
 
     @Test
-    void registersExactlyThreeOfficialListenersAndClosesOnce() {
+    void registersExactlyFourOfficialListenersAndClosesOnce() {
         FakeModule module = new FakeModule();
         NetworkCaptureSource source = SeleniumBiDiNetworkCaptureSource.subscribe(
                 module, NetworkDiagnosticsOptions.defaults(), new RecordingSink());
 
         assertEquals(1, module.beforeRegistrations);
+        assertEquals(1, module.startedRegistrations);
         assertEquals(1, module.responseRegistrations);
         assertEquals(1, module.errorRegistrations);
 
@@ -213,38 +318,26 @@ class SeleniumBiDiNetworkCaptureSourceTest {
     }
 
     @Test
-    void responseBeforeRequestRetainsRequestDataWithoutCreatingADuplicateRequestEvent() {
+    void responseBeforeRequestRetainsObservedRequestAndDeduplicatesTheLateCallback() {
         FakeModule module = new FakeModule();
         RecordingSink sink = new RecordingSink();
         SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.defaults(), sink);
-
         module.response.accept(ResponseDetails.fromJsonMap(response(
                 "race", "/api/final", 1, 201, 1_700_000_000_150L, 10, 37)));
-
-        List<NetworkEvent> responseSnapshot = List.copyOf(sink.events);
-        assertEquals(1, responseSnapshot.size());
-        assertEquals(NetworkEventType.RESPONSE, responseSnapshot.get(0).type());
-        assertEquals("race", responseSnapshot.get(0).correlatedRequest().id());
-        assertEquals("1", responseSnapshot.get(0).attributes().get("redirectCount"));
-        assertEquals(0, responseSnapshot.stream()
-                .filter(event -> event.type() == NetworkEventType.REQUEST).count());
-
+        List<NetworkEvent> observed = List.copyOf(sink.events);
+        assertEquals(2, observed.size());
+        assertEquals(NetworkEventType.REQUEST, observed.get(0).type());
+        assertEquals(NetworkEventType.RESPONSE, observed.get(1).type());
+        assertEquals("responseCompleted", observed.get(0).attributes().get("requestObservationSource"));
+        assertEquals("race", observed.get(1).correlatedRequest().id());
+        assertEquals("1", observed.get(1).attributes().get("redirectCount"));
         module.before.accept(BeforeRequestSent.fromJsonMap(base(
                 "race", "/api/final", 1, 1_700_000_000_123L)));
-
-        List<NetworkEvent> completeSnapshot = List.copyOf(sink.events);
-        assertEquals(2, completeSnapshot.size());
-        assertEquals(NetworkEventType.RESPONSE, completeSnapshot.get(0).type());
-        assertEquals(NetworkEventType.REQUEST, completeSnapshot.get(1).type());
-        assertEquals("race", completeSnapshot.get(1).request().id());
-        assertEquals("1", completeSnapshot.get(1).attributes().get("redirectCount"));
-        assertEquals(completeSnapshot.get(0).response().requestId(), completeSnapshot.get(1).request().id());
-        assertEquals(completeSnapshot.get(0).attributes().get("redirectCount"),
-                completeSnapshot.get(1).attributes().get("redirectCount"));
-        assertEquals(1, completeSnapshot.stream()
-                .filter(event -> event.type() == NetworkEventType.REQUEST).count());
-        assertEquals(1, completeSnapshot.stream()
-                .filter(event -> event.type() == NetworkEventType.RESPONSE).count());
+        assertEquals(observed, sink.events, "A delayed callback must preserve the original observation and event identity");
+        assertEquals(observed.get(1).response().requestId(), observed.get(0).request().id());
+        assertEquals(observed.get(1).attributes().get("redirectCount"), observed.get(0).attributes().get("redirectCount"));
+        assertEquals(1, sink.events.stream().filter(event -> event.type() == NetworkEventType.REQUEST).count());
+        assertEquals(1, sink.events.stream().filter(event -> event.type() == NetworkEventType.RESPONSE).count());
     }
 
     @Test
@@ -486,6 +579,8 @@ class SeleniumBiDiNetworkCaptureSourceTest {
     private static final class FakeModule implements SeleniumBiDiNetworkCaptureSource.Module {
         private Consumer<BeforeRequestSent> before;
         private Consumer<ResponseDetails> response;
+        private Consumer<ResponseDetails> started;
+        private int startedRegistrations;
         private Consumer<FetchError> error;
         private int beforeRegistrations;
         private int responseRegistrations;
@@ -498,6 +593,10 @@ class SeleniumBiDiNetworkCaptureSourceTest {
         @Override public void onBeforeRequestSent(Consumer<BeforeRequestSent> consumer) {
             beforeRegistrations++;
             before = consumer;
+        }
+        @Override public void onResponseStarted(Consumer<ResponseDetails> consumer) {
+            startedRegistrations++;
+            started = consumer;
         }
         @Override public void onResponseCompleted(Consumer<ResponseDetails> consumer) {
             responseRegistrations++;
