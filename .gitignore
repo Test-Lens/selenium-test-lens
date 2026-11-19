@@ -23,3 +23,15 @@ target/ui-test-lens/auth/
 
 # Local maintainer documentation
 /private/
+
+
+/lens-codex-kit.patch
+
+# Local coding-assistant configuration
+/.agents/
+/.codex/
+/AGENTS.md
+
+# Generated root workspace; keep only reviewable project configuration
+/.test-lens/*
+!/.test-lens/project.json

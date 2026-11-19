@@ -34,7 +34,7 @@ All clips use Firefox, a headed browser, a requested 1024×640 window, the local
 | `native-selenium-observation.webp` | capture IT, `?scenario=native`; runtime contract is covered by `NativeSeleniumObservationIT#nativeSeleniumRemainsExactlyOnceAcrossDriverElementAndDerivedContexts` | DEFAULT / COMPACT | observed `sendKeys` and click update one ACTION row each; input is masked; click ends SUCCESS/executed once | 6.4 s | Getting Started |
 | `smart-click-fallback.webp` | capture IT, `?scenario=smart-click`; represents `RealBrowserContractsIT#smartClickFallsBackToJavascriptWithoutRemovingARealCoveringOverlay` | DEFAULT with DEBUG details | one ACTION row; NATIVE, ACTIONS, POINT, JS diagnostic details; one terminal SUCCESS; overlay stays until JS dispatch | 7.6 s | element actions |
 
-Do not show IDE or terminal chrome, browser history, profiles, real accounts, production sites, E.ON/internal pages, credentials, or private data. Keep the fixture's light page theme and dark HUD, preserve the full panel and target, and regenerate all five clips after a semantic renderer or demo timing change.
+Do not show IDE or terminal chrome, browser history, profiles, real accounts, production sites, internal company pages, credentials, or private data. Keep the fixture's light page theme and dark HUD, preserve the full panel and target, and regenerate all five clips after a semantic renderer or demo timing change.
 
 ## Visual acceptance
 
