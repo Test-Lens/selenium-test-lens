@@ -30,6 +30,8 @@ final class LocatorObservationMetadata {
                 }
                 return new Locator(strategy, "", "UNAVAILABLE", genericDisplay(by),
                         "REMOTE_COMPLEX", safeLabel, by.getClass().getName());
+            } catch (VirtualMachineError | ThreadDeath | LinkageError fatal) {
+                throw fatal;
             } catch (Throwable ignored) {
                 return new Locator("custom", "", "UNAVAILABLE", safeDisplay(by),
                         "CUSTOM_OPAQUE", safeLabel, by.getClass().getName());
@@ -102,6 +104,8 @@ final class LocatorObservationMetadata {
         try {
             String value = by.toString();
             if (value != null && !value.isBlank()) return truncate(value);
+        } catch (VirtualMachineError | ThreadDeath | LinkageError fatal) {
+            throw fatal;
         } catch (Throwable ignored) {
             // Display diagnostics cannot alter the Selenium command.
         }

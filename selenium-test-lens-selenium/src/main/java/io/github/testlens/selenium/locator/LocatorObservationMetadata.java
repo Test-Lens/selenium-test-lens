@@ -42,6 +42,8 @@ final class LocatorObservationMetadata {
         try {
             String value = by.toString();
             if (value != null && !value.isBlank()) return truncate(value);
+        } catch (VirtualMachineError | ThreadDeath | LinkageError fatal) {
+            throw fatal;
         } catch (Throwable ignored) {
             // A diagnostic display must not change the locator operation.
         }
@@ -127,6 +129,8 @@ final class LocatorObservationMetadata {
                         safeDisplay, "STRUCTURED", safeLabel, "");
                 return new Locator(strategy, "", "UNAVAILABLE", genericDisplay(by),
                         "REMOTE_COMPLEX", safeLabel, by.getClass().getName());
+            } catch (VirtualMachineError | ThreadDeath | LinkageError fatal) {
+                throw fatal;
             } catch (Throwable ignored) {
                 // Fall through to an opaque, non-fatal representation.
             }
