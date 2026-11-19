@@ -6,17 +6,13 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Use Test Engineering Studio 0.5.0 to scan a Selenium project, map its application, review generated tests, run them, and approve evidence-backed repairs.">
+        <meta name="description" content="Use Test Engineering Studio 0.5.1 to scan a Selenium project, map its application, review generated JUnit 5 tests, run them, and approve evidence-backed repairs.">
       
       
       
         <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/ai/test-engineering-studio/">
       
       
-        <link rel="prev" href="../test-engineering-studio-getting-started/">
-      
-      
-        <link rel="next" href="../0.5.0-publication-candidates/">
       
       
         
@@ -82,22 +78,22 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Test Lens">
   <meta property="og:title" content="Test Engineering Studio - Test Lens">
-  <meta property="og:description" content="Use Test Engineering Studio 0.5.0 to scan a Selenium project, map its application, review generated tests, run them, and approve evidence-backed repairs.">
+  <meta property="og:description" content="Use Test Engineering Studio 0.5.1 to scan a Selenium project, map its application, review generated JUnit 5 tests, run them, and approve evidence-backed repairs.">
   <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/ai/test-engineering-studio/">
   <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
   <meta property="og:image:alt" content="Test Lens">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Test Engineering Studio - Test Lens">
-  <meta name="twitter:description" content="Use Test Engineering Studio 0.5.0 to scan a Selenium project, map its application, review generated tests, run them, and approve evidence-backed repairs.">
+  <meta name="twitter:description" content="Use Test Engineering Studio 0.5.1 to scan a Selenium project, map its application, review generated JUnit 5 tests, run them, and approve evidence-backed repairs.">
   <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
   
     <meta name="robots" content="noindex,follow">
   
   
-    <meta name="test-lens-integration-target" content="0.5.0">
+    <meta name="test-lens-integration-target" content="0.5.1">
     <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
     <meta name="test-lens-docs-source-kind" content="development">
-    <meta name="test-lens-docs-source-revision" content="cb13a290a0d27cd2eb38864b2f3e838d322e8a68">
+    <meta name="test-lens-docs-source-revision" content="2935dbede2e819725554a34d1896449532b7f578">
   
 
   </head>
@@ -169,7 +165,7 @@
   </script>
   
     
-      Documentation source for <strong>0.5.0</strong>.
+      Documentation source for <strong>0.5.1</strong>.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -327,7 +323,7 @@
   
     
   
-  Overview
+  Test Lens Overview
 
       </a>
     </li>
@@ -418,12 +414,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../../advanced/" class="md-tabs__link">
           
   
@@ -484,7 +478,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../whats-new-0.5.0/" class="md-tabs__link">
+        <a href="../../whats-new-0.5.1/" class="md-tabs__link">
           
   
   
@@ -574,7 +568,7 @@
   <span class="md-ellipsis">
     
   
-    Overview
+    Test Lens Overview
   
 
     
@@ -681,7 +675,7 @@
   <span class="md-ellipsis">
     
   
-    AI-assisted integration
+    AI Integration Prompt Builder
   
 
     
@@ -1899,31 +1893,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
@@ -1941,7 +1930,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1993,20 +1982,17 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_2" >
         
           
-          <label class="md-nav__link" for="__nav_6_2" id="__nav_6_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_2" id="__nav_6_2_label" tabindex="0">
             
   
   
@@ -2178,320 +2164,6 @@
           </ul>
         </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../test-engineering/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    AI test engineering foundation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../workflow-orchestration/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    AI workflow orchestration
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../test-engineering-studio-getting-started/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Studio getting started
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Test Engineering Studio
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Test Engineering Studio
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#alternative-source-checkout-launcher" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Alternative source-checkout launcher
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration-and-autodiscovery" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configuration and autodiscovery
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#project-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Project setup
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#create-and-review-a-test" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Create and review a test
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#run-and-diagnose" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Run and diagnose
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#review-a-repair" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Review a repair
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#workspace-and-artifacts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Workspace and artifacts
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Workspace and artifacts">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#moving-a-project" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Moving a project
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#local-transport-security" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Local transport security
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#run-the-development-fixture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Run the development fixture
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Troubleshooting
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../0.5.0-publication-candidates/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    0.5.0 publication candidates
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -2953,6 +2625,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.5.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -4000,7 +3700,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.0" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1" class="md-nav__link">
         
   
   
@@ -4028,7 +3728,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.0/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/" class="md-nav__link">
         
   
   
@@ -4235,12 +3935,16 @@
 
 
 <h1 id="test-engineering-studio">Test Engineering Studio<a class="headerlink" href="#test-engineering-studio" title="Permanent link">&para;</a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Experimental feature — temporarily unavailable</p>
+<p>Test Engineering Studio is undergoing further stabilization and is not currently recommended for production use. Public documentation will be restored after end-to-end certification.</p>
+</div>
 <div class="admonition info">
 <p class="admonition-title">Local opt-in tooling</p>
-<p>Test Engineering Studio 0.5.0 is launched explicitly from the Maven plugin. It is a loopback-only local tool, not a remotely hosted service or a background feature of the runtime dependency.</p>
+<p>Test Engineering Studio 0.5.1 is launched explicitly from the Maven plugin. It is a loopback-only local tool, not a remotely hosted service or a background feature of the runtime dependency.</p>
 </div>
 <p>Test Engineering Studio is a local, persistent interface over the deterministic Application Mapper, existing-Page-Object index, <code>ContextSlicer</code>, S12 agent workflow, targeted compiler and trusted repair boundary. It is separate from the runtime HUD.</p>
-<p>Start with the <a href="../test-engineering-studio-getting-started/">Maven getting-started guide</a> for the canonical 0.5.0 goal, project/local configuration split, preflight and repository policy.</p>
+<p>Start with the <a href="../test-engineering-studio-getting-started/">Maven getting-started guide</a> for the canonical 0.5.1 goal, project/local configuration split, preflight and repository policy.</p>
 <p><img alt="Project overview populated by the browser fixture" src="../../assets/media/test-engineering-studio/project-overview.png" /></p>
 <h2 id="alternative-source-checkout-launcher">Alternative source-checkout launcher<a class="headerlink" href="#alternative-source-checkout-launcher" title="Permanent link">&para;</a></h2>
 <p>The canonical consumer entry point is the Maven goal in <a href="../test-engineering-studio-getting-started/">Getting started</a>. Contributors can instead use the Studio module's <code>exec-maven-plugin</code>. Build the development reactor once, then start the loopback host for one explicit project root:</p>
@@ -4294,8 +3998,15 @@
 <li><strong>Run</strong> replays those reviewed artifacts into the existing S12 coordinator, then performs policy validation, compilation, targeted execution and review.</li>
 </ul>
 <p>Viewing a plan or proposed patch never compiles or starts a browser test. Page-Objects-only policy still rejects raw <code>By</code>, direct <code>findElement</code>, sleeps and JavaScript workarounds before execution.</p>
+<p>Before compilation, Studio requires a ready Page Object capability manifest and resolves referenced classes and methods
+through the canonical indexed API. Missing, ambiguous, stale, or incompatible references stop the run with bounded
+Source API Verification diagnostics. The full generated-test execution path is JUnit 5; the separately published
+TestNG runtime adapter remains supported, but TestNG execution is outside this Studio workflow.</p>
 <h2 id="run-and-diagnose">Run and diagnose<a class="headerlink" href="#run-and-diagnose" title="Permanent link">&para;</a></h2>
 <p>The run view presents compilation and execution status, bounded diagnostics, Test Lens trace references, duration and workflow attempts. Raw diagnostics remain behind progressive disclosure. Agent failures retain their structured code, including <code>AGENT_TIMEOUT</code>, <code>AGENT_OUTPUT_INVALID</code> and <code>AGENT_CONTEXT_REJECTED</code>.</p>
+<p>Reviewer status is backed by a structured Reviewer Evidence Pack covering compilation, required API assertions,
+swallowed-failure checks, control-path status, and quality findings. A successful process exit is not sufficient evidence
+for approval, and a test that can swallow an assertion failure is rejected as a false green.</p>
 <p>When execution fails, the diagnosis projection shows the existing <code>FailureClassification</code>, evidence, counter-evidence and affected source scope. Studio does not reinterpret a product defect as a selector problem.</p>
 <h2 id="review-a-repair">Review a repair<a class="headerlink" href="#review-a-repair" title="Permanent link">&para;</a></h2>
 <p><img alt="A real Selector Intelligence proposal awaiting explicit approval" src="../../assets/media/test-engineering-studio/diagnosis-repair.png" /></p>
@@ -4327,6 +4038,9 @@
 <p>The UI reads projections instead of transferring full models or source trees on every request. Correlations and problems are paged with bounded offsets and limits. Refreshing the browser performs read-only <code>GET</code> requests; it does not rerun agents, tests, mapping or repair application.</p>
 <p>Each workflow also has a versioned snapshot under <code>&lt;resolved-workspace&gt;/ai/sessions/&lt;runId&gt;.json</code> (by default <code>.test-lens/ai/sessions/&lt;runId&gt;.json</code>). Studio lists the bounded workflow summaries and loads one selected detail by <code>runId</code>; selecting a workflow is read-only.</p>
 <p>On host restart, snapshots are validated before they are exposed. A successfully restored workflow is marked <code>resumed</code>. Work that was in <code>PLAN_GENERATING</code> or <code>IMPLEMENTATION_GENERATING</code> becomes <code>AGENT_EXECUTION_INTERRUPTED</code>; work that was executing or verifying becomes <code>EXECUTION_INTERRUPTED</code>. Studio never assumes an interrupted process completed.</p>
+<p>For a recovered RUN, the UI uses only <code>availableActions</code> returned by the backend. It does not reconstruct a successful
+result from a partial snapshot or resume an old child process in place; reviewed artifacts and current source
+fingerprints must still satisfy the normal run gates.</p>
 <p>Freshness compares the persisted source fingerprint with the currently indexed project:</p>
 <ul>
 <li><code>FRESH</code> workflows expose only actions valid for their restored state;</li>
@@ -4342,10 +4056,13 @@
 <p>The tooling host binds an ephemeral port on <code>127.0.0.1</code> only. It uses a random 256-bit session token, exact Host and same-origin checks, bounded JSON bodies, CSP, an action allowlist and one in-process operation lock. It exposes no arbitrary file-write or command endpoint. Backend strings and source diffs are rendered as text, not HTML.</p>
 <p>Requirements and context use the existing <code>RedactionPolicy</code>. Cookies, authorization headers, browser storage, auth-state files and agent prompts are not Studio projections.</p>
 <h2 id="run-the-development-fixture">Run the development fixture<a class="headerlink" href="#run-the-development-fixture" title="Permanent link">&para;</a></h2>
-<p>From the repository root, run the complete Chrome fixture:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">mvn</span> <span class="n">-pl</span> <span class="n">selenium-test-lens-test-engineering-studio</span> <span class="n">test</span>
+<p>From the repository root, run the complete Chrome fixture, including the real-DOM Studio navigation regression, through the Studio Failsafe profile:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">mvn</span> <span class="n">-Pbrowser-it</span> <span class="n">-pl</span> <span class="n">selenium-test-lens-test-engineering-studio</span> <span class="n">-am</span> <span class="p">`</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  <span class="n">-Dbrowser</span><span class="p">=</span><span class="n">chrome</span> <span class="n">-Dheaded</span><span class="p">=</span><span class="n">false</span> <span class="p">`</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  <span class="n">-Dit</span><span class="p">.</span><span class="n">test</span><span class="p">=</span><span class="n">TestEngineeringStudioBrowserIT</span> <span class="n">verify</span>
 </span></code></pre></div>
-<p>The fixture starts the loopback Studio host and a local login application, scans hand-written Page Objects, maps and correlates the live page, generates and reviews a scripted provider-neutral plan/test, compiles and executes it in Chrome, creates a real Selector Intelligence repair after selector drift, verifies that viewing the proposal does not mutate source, then applies it only after the browser clicks <strong>Approve and apply</strong>. A Firefox test selector exists, but this page does not treat it or the scripted agent as certification of the complete external-provider repair workflow.</p>
+<p>The successful run creates <code>selenium-test-lens-test-engineering-studio/target/failsafe-reports/io.github.testlens.studio.TestEngineeringStudioBrowserIT.txt</code>. In the current module, Surefire also discovers this class because its name starts with <code>Test</code>; do not infer that behavior for arbitrary <code>*IT</code> names. The Failsafe report above is the explicit evidence for the documented <code>browser-it</code> command.</p>
+<p>The fixture starts the loopback Studio host and a local login application, checks active navigation in a real DOM, scans hand-written Page Objects, maps and correlates the live page, generates and reviews a scripted provider-neutral plan/test, compiles and executes it in Chrome, creates a real Selector Intelligence repair after selector drift, verifies that viewing the proposal does not mutate source, then applies it only after the browser clicks <strong>Approve and apply</strong>. A Firefox selector exists, but neither this fixture nor its <code>ScriptedAgentExecutor</code> certifies the quality of a real model or the complete external-provider repair workflow.</p>
 <p>Screenshots are written to <code>selenium-test-lens-test-engineering-studio/target/studio-screenshots/</code>.</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <ul>
@@ -4358,7 +4075,7 @@
 <li>Empty correlations: scan and map before correlation, then verify source roots and page identity.</li>
 </ul>
 <p>See <a href="../workflow-orchestration/">AI workflow orchestration</a> for S11/S12 contracts and <a href="../../advanced/application-mapping/existing-page-objects/">existing Page Object correlation</a> for evidence semantics.</p>
-<p>For the packaging boundary between source-only development modules and a future consumer release, see <a href="../0.5.0-publication-candidates/">0.5.0 publication candidates</a>.</p>
+<p>For the historical decision record behind the 0.5.0 publication boundary, see <a href="../0.5.0-publication-candidates/">0.5.0 publication candidates</a>.</p>
 
 
 
@@ -4395,44 +4112,6 @@
         <footer class="md-footer">
   
     
-      
-      <nav class="md-footer__inner md-grid" aria-label="Footer" >
-        
-          
-          <a href="../test-engineering-studio-getting-started/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Studio getting started">
-            <div class="md-footer__button md-icon">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
-            </div>
-            <div class="md-footer__title">
-              <span class="md-footer__direction">
-                Previous
-              </span>
-              <div class="md-ellipsis">
-                Studio getting started
-              </div>
-            </div>
-          </a>
-        
-        
-          
-          <a href="../0.5.0-publication-candidates/" class="md-footer__link md-footer__link--next" aria-label="Next: 0.5.0 publication candidates">
-            <div class="md-footer__title">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              <div class="md-ellipsis">
-                0.5.0 publication candidates
-              </div>
-            </div>
-            <div class="md-footer__button md-icon">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
-            </div>
-          </a>
-        
-      </nav>
-    
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -4459,7 +4138,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.0", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.1", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
