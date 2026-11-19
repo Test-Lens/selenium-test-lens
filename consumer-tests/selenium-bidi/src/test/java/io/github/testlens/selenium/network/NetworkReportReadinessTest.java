@@ -123,6 +123,78 @@ class NetworkReportReadinessTest {
         assertNull(NetworkReportCorrectnessTest.rawTrafficRow(secret, payload));
     }
 
+    @Test
+    void rawWireDiagnosticsAreDisabledByDefaultWithoutReadingTheDriver() {
+        withWireDiagnostics(null, () -> {
+            WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                    new Class<?>[]{WebDriver.class, org.openqa.selenium.bidi.HasBiDi.class},
+                    (proxy, method, args) -> { throw new AssertionError("Disabled probe must not access the driver"); });
+            var probe = NetworkReportCorrectnessTest.RawTrafficProbe.open(driver, null);
+            assertTrue(probe.snapshot().startsWith("DISABLED (bidi.wire.diagnostics=false)"));
+            probe.close();
+            probe.close();
+        });
+    }
+
+    @Test
+    void unknownLensCaptureSourceDoesNotOpenAnotherConnection() {
+        withWireDiagnostics("true", () -> {
+            WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                    new Class<?>[]{WebDriver.class},
+                    (proxy, method, args) -> { throw new AssertionError("Probe must not augment or access a raw driver"); });
+            NetworkDiagnostics network = new NetworkDiagnostics(driver, OverlayLogger.noop(),
+                    (ignored, options, sink) -> () -> {}).start(
+                    NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI).build());
+            try {
+                var probe = NetworkReportCorrectnessTest.RawTrafficProbe.open(driver, network);
+                assertTrue(probe.snapshot().startsWith("UNAVAILABLE (Lens capture source not recognized; no extra connection opened)"));
+                probe.close();
+                probe.close();
+                assertTrue(network.isStarted(), "Probe does not own or stop the Lens capture source");
+            } finally { network.stop(); }
+        });
+    }
+
+    @Test
+    void enabledRawWireProbeDoesNotHideCriticalDriverErrors() {
+        withWireDiagnostics("true", () -> {
+            LinkageError failure = new LinkageError("synthetic public BiDi accessor failure");
+            WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                    new Class<?>[]{WebDriver.class, org.openqa.selenium.bidi.HasBiDi.class},
+                    (proxy, method, args) -> { throw failure; });
+            assertSame(failure, assertThrows(LinkageError.class,
+                    () -> NetworkReportCorrectnessTest.RawTrafficProbe.open(driver, null)));
+        });
+    }
+
+    @Test
+    void rawWireRowsAreBoundedAndClosedProbeIgnoresFurtherEvents() {
+        var probe = new NetworkReportCorrectnessTest.RawTrafficProbe(null, "TEST_FIXTURE");
+        Map<String, Object> payload = Map.of("redirectCount", 1L,
+                "request", Map.of("method", "GET", "url", "http://user:password@peer.invalid/case/final?token=SECRET"));
+        for (int index = 0; index < 200; index++) probe.record("network.beforeRequestSent", payload);
+        String snapshot = probe.snapshot();
+        assertEquals(128, snapshot.split("network.beforeRequestSent", -1).length - 1);
+        assertTrue(snapshot.startsWith("TEST_FIXTURE"));
+        assertFalse(snapshot.contains("SECRET"));
+        assertFalse(snapshot.contains("password"));
+        probe.close();
+        probe.close();
+        probe.record("network.responseCompleted", payload);
+        assertEquals(snapshot, probe.snapshot());
+    }
+
+    private static void withWireDiagnostics(String value, Runnable assertions) {
+        String previous = System.getProperty("bidi.wire.diagnostics");
+        try {
+            if (value == null) System.clearProperty("bidi.wire.diagnostics");
+            else System.setProperty("bidi.wire.diagnostics", value);
+            assertions.run();
+        } finally {
+            if (previous == null) System.clearProperty("bidi.wire.diagnostics");
+            else System.setProperty("bidi.wire.diagnostics", previous);
+        }
+    }
     private static NetworkEvent request(String url, int hop) {
         return NetworkEvent.request(requestData(url), Instant.now(), Map.of("redirectCount", String.valueOf(hop)));
     }

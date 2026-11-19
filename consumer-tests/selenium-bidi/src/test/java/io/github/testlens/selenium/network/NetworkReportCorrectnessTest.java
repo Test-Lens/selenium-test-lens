@@ -97,7 +97,8 @@ class NetworkReportCorrectnessTest {
                         .diagnosticScreenshot(false).cleanScreenshot(false).build()).build());
         var session = lens.startSession(failed ? "network-report-failure" : "network-report-success");
         NetworkDiagnostics network = lens.network();
-        RawTrafficProbe wire = new RawTrafficProbe(null);
+        RawTrafficProbe wire = new RawTrafficProbe(null, "NOT_OPENED");
+        Throwable sessionFailure = null;
         try {
             if (failed) {
                 assertThrows(NetworkAssertionError.class, network::assertNoFailedRequests,
@@ -107,7 +108,7 @@ class NetworkReportCorrectnessTest {
                     .includeHeaders(true).build());
             assertTrue(network.isStarted(), "Real BiDi capture must start");
             assertEquals(NetworkCaptureMode.BIDI, network.activeCaptureMode().orElseThrow());
-            wire = RawTrafficProbe.open(driver);
+            wire = RawTrafficProbe.open(driver, network);
 
             fetch(driver, "/case/ok", "GET", null, null);
             fetch(driver, "/case/post", "POST", "{\"message\":\"journal-proof\"}", null);
@@ -154,6 +155,7 @@ class NetworkReportCorrectnessTest {
             String exported = network.exportJson();
             assertSafe(exported, secret);
             assertExport(journal, object(exported), peer.origin, "BIDI");
+            wire.close();
             network.stop();
             List<NetworkEvent> events = network.events();
             assertTraffic(journal, events, peer.origin);
@@ -222,12 +224,12 @@ class NetworkReportCorrectnessTest {
                 if (event.request() != null) assertTrue(rendered.contains(event.request().id()),
                         "HTML must retain request correlation identifiers");
             }
+        } catch (Throwable failure) {
+            sessionFailure = failure;
+            throw failure;
         } finally {
-            try { network.stop(); }
-            finally {
-                try { wire.close(); }
-                finally { peer.secret = ""; }
-            }
+            try { closeSession(wire, network, sessionFailure); }
+            finally { peer.secret = ""; }
         }
     }
 
@@ -245,18 +247,53 @@ class NetworkReportCorrectnessTest {
                 + " responseStatus=" + status + " responseUrl=" + responseUrl;
     }
 
-    private static final class RawTrafficProbe implements AutoCloseable {
+    private static void closeSession(RawTrafficProbe wire, NetworkDiagnostics network, Throwable original) {
+        Throwable failure = original;
+        try { wire.close(); }
+        catch (RuntimeException | Error cleanup) {
+            if (failure == null) failure = cleanup;
+            else if (failure != cleanup) failure.addSuppressed(cleanup);
+        }
+        try { network.stop(); }
+        catch (RuntimeException | Error cleanup) {
+            if (failure == null) failure = cleanup;
+            else if (failure != cleanup) failure.addSuppressed(cleanup);
+        }
+        if (original == null) {
+            if (failure instanceof Error error) throw error;
+            if (failure instanceof RuntimeException runtime) throw runtime;
+        }
+    }
+
+    static final class RawTrafficProbe implements AutoCloseable {
         private final BiDi connection;
+        private final String provenance;
         private final List<Object> listeners = new java.util.ArrayList<>();
         private final List<String> rows = new CopyOnWriteArrayList<>();
         private boolean closed;
 
-        RawTrafficProbe(BiDi connection) { this.connection = connection; }
+        RawTrafficProbe(BiDi connection, String provenance) {
+            this.connection = connection;
+            this.provenance = provenance;
+        }
 
-        static RawTrafficProbe open(WebDriver driver) {
-            // Never augment a Grid driver or initialize another connection for diagnostic observation.
-            if (!(driver instanceof ChromeDriver) || !(driver instanceof HasBiDi hasBiDi)) return new RawTrafficProbe(null);
-            RawTrafficProbe probe = new RawTrafficProbe(hasBiDi.getBiDi());
+        static RawTrafficProbe open(WebDriver driver, NetworkDiagnostics network) {
+            if (!Boolean.getBoolean("bidi.wire.diagnostics")) {
+                return new RawTrafficProbe(null, "DISABLED (bidi.wire.diagnostics=false)");
+            }
+            BiDi connection;
+            String provenance;
+            if (driver instanceof HasBiDi hasBiDi) {
+                connection = hasBiDi.getBiDi();
+                provenance = "DRIVER_HAS_BIDI_CONNECTION";
+            } else {
+                connection = lensConnection(network);
+                provenance = "LENS_CAPTURE_CONNECTION";
+            }
+            if (connection == null) {
+                return new RawTrafficProbe(null, "UNAVAILABLE (Lens capture source not recognized; no extra connection opened)");
+            }
+            RawTrafficProbe probe = new RawTrafficProbe(connection, provenance);
             try {
                 for (String type : List.of("network.beforeRequestSent", "network.responseStarted", "network.responseCompleted", "network.fetchError")) {
                     Event<Map<String, Object>> event = new Event<>(type, payload -> payload);
@@ -264,22 +301,40 @@ class NetworkReportCorrectnessTest {
                             payload -> probe.record(type, payload)));
                 }
                 return probe;
-            } catch (RuntimeException | LinkageError failure) {
+            } catch (RuntimeException | Error failure) {
                 try { probe.close(); }
-                catch (RuntimeException cleanup) { failure.addSuppressed(cleanup); }
+                catch (RuntimeException | Error cleanup) { if (cleanup != failure) failure.addSuppressed(cleanup); }
                 throw failure;
             }
         }
 
-        private synchronized void record(String type, Map<String, Object> payload) {
+        private static BiDi lensConnection(NetworkDiagnostics network) {
+            // Test-only reflection of known Lens ownership fields, never Selenium internals.
+            String prefix = "io.github.testlens.selenium.network.";
+            try {
+                Object source = lensField(network, prefix + "NetworkDiagnostics", "captureSource");
+                Object module = lensField(source, prefix + "SeleniumBiDiNetworkCaptureSource", "network");
+                Object connection = lensField(module, prefix + "SeleniumBiDiNetworkCaptureSource$OfficialModule", "connection");
+                return connection instanceof BiDi bidi ? bidi : null;
+            } catch (ReflectiveOperationException unavailable) {
+                return null;
+            }
+        }
+
+        private static Object lensField(Object owner, String expectedClass, String name) throws ReflectiveOperationException {
+            if (owner == null || !owner.getClass().getName().equals(expectedClass)) return null;
+            java.lang.reflect.Field field = owner.getClass().getDeclaredField(name);
+            field.setAccessible(true);
+            return field.get(owner);
+        }
+
+        synchronized void record(String type, Map<String, Object> payload) {
             if (closed || rows.size() >= 128) return;
             String row = rawTrafficRow(type, payload);
             if (row != null) rows.add(row);
         }
 
-        String snapshot() {
-            return connection == null ? "UNAVAILABLE (Grid/raw driver: no extra connection opened)" : rows.toString();
-        }
+        String snapshot() { return provenance + " " + rows; }
 
         @Override public void close() {
             List<Object> owned;
@@ -288,18 +343,18 @@ class NetworkReportCorrectnessTest {
                 closed = true;
                 owned = List.copyOf(listeners);
             }
-            RuntimeException failure = null;
+            Throwable failure = null;
             for (Object listener : owned) {
                 try { SeleniumBiDiCompatibility.removeListener(connection, listener); }
-                catch (RuntimeException cleanup) {
+                catch (RuntimeException | Error cleanup) {
                     if (failure == null) failure = cleanup;
-                    else failure.addSuppressed(cleanup);
+                    else if (failure != cleanup) failure.addSuppressed(cleanup);
                 }
             }
-            if (failure != null) throw failure;
+            if (failure instanceof Error error) throw error;
+            if (failure instanceof RuntimeException runtime) throw runtime;
         }
     }
-
     static String trafficDiagnostic(NetworkDiagnostics network, Map<String, Long> expectedRequests,
                                     Map<String, Long> expectedResponses) {
         List<NetworkEvent> events = network.events();
