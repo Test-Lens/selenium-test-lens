@@ -16,7 +16,9 @@
 | `0.2.0` | Historical release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0) | [Documentation — 0.2.0](https://test-lens.github.io/selenium-test-lens/0.2.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.2.0) |
 | `0.1.0` | Historical release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0) | [Documentation — 0.1.0](https://test-lens.github.io/selenium-test-lens/0.1.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.1.0) |
 
-Install release 0.5.1 (Java 17 or newer):
+**Prepared 0.5.2 is not published.** It repairs BiDi binary compatibility and capture lifecycle behavior; published 0.5.1 remains affected on Selenium 4.41.0+. See [0.5.2 changes and upgrade instructions](docs/whats-new-0.5.2.md) and the [tested Selenium matrix](docs/selenium-compatibility.md).
+
+Install published release 0.5.1 (Java 17 or newer):
 
 ```xml
 <dependency>
@@ -122,7 +124,7 @@ Text redaction is not pixel processing. `VisualRedactionOptions` separately mask
 ## Advanced capabilities
 
 - **Selector Intelligence (0.5.1 tooling):** browser-free declaration discovery, evidence-first stability policy, Find Similar, offline Audit, and live candidate analysis back mapping and controlled repair. Published tooling artifacts remain outside the stable Java compatibility promise. [Capability and availability guide](docs/features/selector-intelligence.md)
-- **WebDriver BiDi network diagnostics (0.2.0):** passive observation, correlation, waits, assertions, safe snapshots, and HUD filtering. It is not interception, mocking, or CDP. The manual event/wait/assertion path existed in `0.1.0`. [Network diagnostics](docs/advanced/network.md)
+- **WebDriver BiDi network diagnostics (0.2.0):** passive observation, correlation, waits, assertions, safe snapshots, and HUD filtering. It is not interception, mocking, or CDP. The manual event/wait/assertion path existed in `0.1.0`. [Network diagnostics](docs/advanced/network.md). Prepared 0.5.2 adds a [tested Selenium compatibility policy and same-JAR regression gate](docs/selenium-compatibility.md); released 0.5.1 still has the BiDi size-getter incompatibility on Selenium 4.41.0+.
 - **Managed Auth State (0.3.0):** restore/validate/recreate cookies and web storage with tri-state validation, one-login maximum, canonical-path locking and atomic replacement; low-level origin-isolated capture/restore remains available. [Authentication state](docs/advanced/auth-state.md)
 - **Managed Test State & Resources (0.3.0):** typed state isolated to one physical invocation, explicitly shared suite/run state, and exactly-once LIFO cleanup for temporary resources across pass, failure, skip, retry, and parallel runner execution. [Managed test state](docs/features/managed-test-state.md)
 - **Page and SPA waits:** document readiness plus an intentionally limited XHR/fetch-idle heuristic. It sees only XHR/fetch started after tracker installation—not images, CSS, scripts, WebSocket, EventSource, or beacon traffic. [Waiting](docs/elements/waiting.md)

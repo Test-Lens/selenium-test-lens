@@ -2,6 +2,8 @@
 
 Manual network events, waits, and assertions are available in `0.1.0`.
 
+The compatibility, health-check and selective-cleanup corrections below describe **prepared, unpublished 0.5.2**. Published 0.5.1 remains affected on Selenium 4.41.0+; see [release and upgrade details](../whats-new-0.5.2.md).
+
 Package: `io.github.testlens.selenium.network`<br>
 Module: `selenium-test-lens-selenium`<br>
 API level: **Advanced**
@@ -23,7 +25,7 @@ NetworkEvent addManualEvent(NetworkEvent event)
 String exportJson()
 ```
 
-`MANUAL` remains the default and accepts caller-supplied events. `BIDI` passively subscribes through Selenium 4.39's beta `org.openqa.selenium.bidi.module.Network`; the browser session must have BiDi enabled when it is created. `AUTO` attempts the same subscription and reports `UNSUPPORTED` when it cannot establish it. Neither mode falls back to `MANUAL` or performance logs. `PERFORMANCE_LOGS` remains unsupported and `OFF` remains stopped.
+`MANUAL` remains the default and accepts caller-supplied events. `BIDI` passively subscribes to Selenium's public WebDriver BiDi events through an internal compatibility boundary; the browser session must have BiDi enabled when it is created. `AUTO` attempts the same subscription and reports `UNSUPPORTED` when it cannot establish it. Neither mode falls back to `MANUAL` or performance logs. `PERFORMANCE_LOGS` remains unsupported and `OFF` remains stopped. The compile/minimum tested baseline is Selenium 4.39.0; consult the [release-specific compatibility matrix](../selenium-compatibility.md) before choosing a newer runtime. The fix described here is unreleased and is not included in published Lens 0.5.1.
 
 BiDi capture observes traffic. It does not intercept, modify, block, mock, or replay requests, and it is not a CDP fallback.
 
@@ -107,9 +109,11 @@ WebDriver driver = new FirefoxDriver(browserOptions);
 
 Lens cannot add BiDi to a browser session that was created without it. For an already BiDi-enabled local driver, Lens uses `HasBiDi.getBiDi()` so Selenium may initialize a lazy connection; an empty `maybeGetBiDi()` before first use is not treated as unsupported. Official `WrapsDriver` and Selenium `Decorated` chains are inspected with cycle/depth protection without replacing the consumer's driver reference.
 
-Selenium 4.39's raw `RemoteWebDriver` does not directly implement `HasBiDi`. When the remote session returns a valid `webSocketUrl`, Lens applies Selenium's `Augmenter` once to a private BiDi view of that same session, initializes the connection, and gives that view only to Selenium's Network module. Normal application commands continue through the original driver/decorator. Lens closes subscriptions and any connection it created, but never calls `quit()` during network finalization. The capability is diagnostic evidence, while the Selenium interface and successful connection remain the authority for activation.
+Selenium 4.39's raw `RemoteWebDriver` does not directly implement `HasBiDi`; newer releases can expose it directly. When augmentation is needed and the remote session returns a valid `webSocketUrl`, Lens applies Selenium's `Augmenter` once to a private BiDi view of that same session and initializes its lazy connection. Normal application commands continue through the original driver/decorator. Lens removes only its own listener IDs and closes any connection it created through its private augmentation, but never calls `quit()` during network finalization. It does not close a shared application connection or clear other consumers' listeners by event type. The capability is diagnostic evidence, while the Selenium interface and successful connection remain the authority for activation.
 
 ### BrowserStack prerequisite
+
+**Provider execution: NOT RUN.** This configuration example is not BrowserStack certification.
 
 BrowserStack's current Selenium documentation requires `seleniumBidi: true` under `bstack:options`; BrowserStack then requests/returns the standard `webSocketUrl` needed by Selenium. The provider also recommends selecting a Selenium 4 version. This example uses the repository's supported Selenium version and contains no credentials:
 
@@ -134,7 +138,11 @@ See BrowserStack's [official Selenium BiDi instructions](https://www.browserstac
 
 ### Startup diagnostics and graceful degradation
 
-BiDi startup diagnostics distinguish `UNSUPPORTED`, `INITIALIZATION_FAILED`, `REMOTE_ENDPOINT_UNAVAILABLE`, `SESSION_CLOSED`, `PROTOCOL_ERROR`, and `CAPTURE_START_FAILED` internally. HUD/log lifecycle entries use the semantic `SYSTEM` category: successful activation is informational/running capture state, while unsupported or failed optional capture is a warning rather than a failed test action. Metadata records only safe facts such as driver type, local/remote shape, `HasBiDi` availability, whether `webSocketUrl` was present, lazy/initialized state, augmentation, bounded attempt count, category, and stage. Endpoint values, credentials, headers, cookies, and tokens are not logged.
+BiDi diagnostics distinguish unavailable capability, initialization/remote endpoint/session failure, protocol/subscription failure, binary API incompatibility, and callback failure. HUD/log lifecycle entries use the semantic `SYSTEM` category: successful activation is informational/running capture state, while unsupported or failed optional capture is a warning rather than a failed test action. Metadata records only safe facts such as driver type, Selenium release, local/remote shape, `HasBiDi` availability, whether `webSocketUrl` was present, lazy/initialized state, augmentation, bounded attempt count, category, and stage. Endpoint values, credentials, headers, cookies, and tokens are not logged.
+
+A callback mapping or decoding failure (including `LinkageError`) changes the generation to `FAILED`, clears its active mode, invalidates its assertion snapshot and wakes waiters. It cannot become a successful empty capture or an ordinary missing-response timeout. Failure causes remain available through redacted diagnostic errors. A later `stop()` or a stale callback does not restore validity. A new start creates a fresh generation.
+
+Positive assertions, successful waits, ordinary timeout results and preserving a stopped snapshot include a same-connection `session.status` health check outside lifecycle locks. Transport/protocol failure invalidates capture. This command uses Selenium's timeout (up to 30 seconds on the baseline), so it can extend the event wait's elapsed time. See [compatibility limitations](../selenium-compatibility.md#verify-the-connection-and-the-capture) for the distinction between transport responsiveness and guaranteed event delivery.
 
 `BIDI` and `AUTO` startup remains non-throwing: inspect `isStarted()`, `summary()`, and `activeCaptureMode()` before relying on capture. An unavailable optional source does not fail the Selenium test, does not silently switch to manual capture, and cannot produce a valid network assertion snapshot. Existing network assertions still fail closed if the requested capture never became active.
 

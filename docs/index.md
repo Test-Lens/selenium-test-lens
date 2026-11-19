@@ -10,7 +10,9 @@ hide:
 
 <img class="lens-home-logo" src="assets/brand/test-lens-logo-horizontal.png" alt="Test Lens" width="720" height="184">
 
-<span class="lens-release-badge">Current stable release: 0.5.1</span>
+<span class="lens-release-badge">Prepared release: 0.5.2 (unpublished)</span>
+
+Published release: 0.5.1. The BiDi correction requires the prepared 0.5.2 artifact.
 
 # Test Lens — Selenium observability and diagnostic evidence
 
@@ -24,7 +26,7 @@ Adopt it gradually: keep your runner, WebDriver factory, Page Objects, raw Selen
 [AI Integration Prompt Builder](ai-assisted-integration.md){ .md-button }
 [Explore capabilities](#product-capabilities){ .md-button }
 
-<small>This source targets versioned release 0.5.1; the production `latest` alias is changed only by the separate documentation publication step. [Read what changed in 0.5.1](whats-new-0.5.1.md) or [browse exact public signatures](reference/public-api-catalog.md).</small>
+<small>This development source targets prepared, unpublished 0.5.2; the production `latest` alias is changed only by the separate documentation publication step. [Read what changes in 0.5.2](whats-new-0.5.2.md) or [browse exact public signatures](reference/public-api-catalog.md).</small>
 
 </div>
 
@@ -245,28 +247,20 @@ The [AI Integration Builder](ai-assisted-integration.md) creates a version-bound
 
 | Surface | Requirement and boundary |
 |---|---|
-| Base library | Java 17+, the `io.github.test-lens:selenium-test-lens:0.5.1` artifact, and Selenium kept as an explicit consumer dependency. Lens attaches to a caller-owned driver. |
+| Base library | Java 17+, the `io.github.test-lens:selenium-test-lens:0.5.2` prepared artifact (install locally until publication), and Selenium kept as an explicit consumer dependency. Lens attaches to a caller-owned driver. |
 | JUnit 5 / TestNG | Optional published adapter artifacts. Use them only when the adapter should own the configured driver/session lifecycle. |
 | Allure | Optional `selenium-test-lens-allure` artifact and an active Allure lifecycle. It publishes finalized evidence; it is not the evidence collector. |
 | React/SPA | Optional `selenium-test-lens-react` artifact. Detection is based on observable DOM states and known markup conventions. |
-| BiDi network capture | Selenium Java 4.39.0+, a compatible browser/driver/transport, BiDi enabled when creating the session, and explicit capture startup. |
+| BiDi network capture | Selenium Java 4.39.0 minimum, a runtime from the [verified matrix](selenium-compatibility.md), a compatible browser/driver/transport, BiDi enabled when creating the session, and explicit capture startup. |
 | Source Navigation | Captured source metadata, an enabled feature, active navigation mode, valid local project mapping, and a supported local provider. |
 | Evidence and upload | Local files remain local unless the consumer or CI stores them, Allure attaches them, or `ReportUploader` explicitly sends a package. |
 
 Selector/application tooling artifacts are separately published implementation dependencies in 0.5.1; their technical Java surfaces are not all stable USER API. Compatibility tooling, migration tooling, Selector Lab, examples, and browser-test modules remain unpublished. [See the maintained product capability inventory](maintainers/product-capability-map.md) for the release boundary and evidence behind this overview.
 
-## What's new in 0.5.1
+## What's new in 0.5.2
 
-The patch release preserves existing runtime contracts and adds structured redaction findings. Experimental AI test engineering is temporarily withdrawn from publicly recommended features pending further stabilization and end-to-end certification.
+Prepared 0.5.2 repairs Selenium BiDi size-getter and listener-ID binary changes, initializes lazy remote connections and preserves foreign listeners. Failed callbacks and health checks invalidate capture before successful network assertions. Java 17 and Selenium 4.39.0 remain the baseline; the nine-version same-JAR matrix reaches Selenium 4.53.0 with Chrome 157 and Grid 4.53.0 on Java 21. BrowserStack is NOT RUN.
 
-[Read the complete 0.5.1 release overview](whats-new-0.5.1.md) · [Read the changelog](https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md)
+**0.5.2 is unpublished.** Published 0.5.1 remains affected on Selenium 4.41.0+.
 
-## Explore the documentation
-
-- [Capabilities and ownership boundaries](capabilities.md)
-- [Elements: locators, actions, waits, assertions, and collections](elements/index.md)
-- [Observability and persistent artifacts](observability/index.md)
-- [Security boundaries](security/redaction.md)
-- [Integrations](integrations/index.md)
-- [Configuration](configuration.md)
-- [Exact public API catalog](reference/public-api-catalog.md)
+[Read the 0.5.2 changes and upgrade instructions](whats-new-0.5.2.md) | [Read the changelog](https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md)

@@ -1,5 +1,7 @@
 # TestNG integration
 
+This development guide uses prepared, unpublished 0.5.2 coordinates. Install the prepared build locally before using them; see [upgrade instructions](../whats-new-0.5.2.md).
+
 The optional `selenium-test-lens-testng` module defaults to one `WebDriver`, `TestLens`, and session for every physical TestNG test-method invocation. Release 0.4.0 also offers explicit class-scoped driver reuse while retaining a separate Test Lens session and report for every invocation. Adding the dependency alone does not register a listener.
 
 `TestLensTestNgContext.current().lens().expectPage()` polls URL or title in the active window of that physical invocation. Assertion polling stays within the session and does not become a TestNG retry or a recovery retry; popup selection remains an explicit Selenium/Lens context operation.
@@ -10,7 +12,7 @@ The optional `selenium-test-lens-testng` module defaults to one `WebDriver`, `Te
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-testng</artifactId>
-    <version>0.5.1</version>
+    <version>0.5.2</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -18,9 +20,9 @@ The optional `selenium-test-lens-testng` module defaults to one `WebDriver`, `Te
 Declare Selenium separately at the version selected by the test project. TestNG is a dependency of this adapter only; core, overlay, the main runtime, React, and the JUnit 5 adapter do not depend on it.
 
 Gradle Kotlin DSL uses
-`testImplementation("io.github.test-lens:selenium-test-lens-testng:0.5.1")`;
+`testImplementation("io.github.test-lens:selenium-test-lens-testng:0.5.2")`;
 Groovy DSL uses
-`testImplementation 'io.github.test-lens:selenium-test-lens-testng:0.5.1'`.
+`testImplementation 'io.github.test-lens:selenium-test-lens-testng:0.5.2'`.
 These coordinates are part of the 0.5.1 release.
 
 !!! note "Test Engineering Studio scope"
@@ -213,6 +215,8 @@ The default name contains the class, method, public TestNG invocation counter, a
 Return configured `TestLensOptions` from the factory. A policy violation from an otherwise successful method is written into the completed reports, then the listener explicitly changes its `ITestResult` to `FAILURE` and installs the `RetryPolicyViolationException` as throwable. Driver quit still happens exactly once; later cleanup errors are suppressed. `IRetryAnalyzer` attempts remain independent sessions rather than one aggregated summary.
 
 Lens-owned network capture is stopped by every invocation finalizer. A later `PER_CLASS` invocation may start a new capture generation on the same driver without retaining the prior invocation's buffer or listeners; the driver is quit only after the class-instance lifecycle. Requests still in flight at the boundary cannot be reassigned perfectly when the browser protocol supplies no invocation correlation, so tests should await material requests before returning. A factory that selects `BIDI` or `AUTO` must create local or remote Chrome/Firefox options with BiDi enabled. One remote provider session can therefore contain several independent Test Lens reports; Test Lens does not overwrite provider status or take ownership from a provider SDK.
+
+Keep Selenium modules aligned with one version/BOM and consult the [Lens release-specific compatibility matrix](../selenium-compatibility.md). On Grid, enable BiDi in the factory and verify the returned WebSocket endpoint is reachable. A successful connection is only the first check: verify a known response and capture state before relying on assertions. The unreleased compatibility fix preserves application listeners and fails assertions after a capture failure; it is not present in the published 0.5.1 JAR.
 
 ## Local 0.4.0 validation
 
