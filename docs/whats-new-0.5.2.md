@@ -1,4 +1,4 @@
-# Prepared 0.5.2: Selenium BiDi compatibility
+# Prepared 0.5.2: Selenium BiDi and runtime reliability
 
 **0.5.2 is prepared and unpublished.** The source changes described here are implemented and tested; Maven Central, GitHub Release and versioned documentation publication have not been performed. Published 0.5.1 remains affected by Selenium's BiDi size-getter binary changes on 4.41.0 and newer. Upgrading Selenium alone cannot repair the compiled 0.5.1 JAR. Until a corrected Lens artifact is available, disable Lens diagnostic network capture in an affected 0.5.1 application.
 
@@ -12,7 +12,19 @@ Overlapping restarts retain the newer generation even when an earlier health che
 
 Before a positive assertion, matched wait, ordinary wait timeout or preserving a stopped snapshot, a public `session.status` command checks the same connection outside lifecycle locks. Failure invalidates capture. The command can add **up to 30 seconds** on the 4.39 baseline, separately from the event wait deadline. A responsive command does not guarantee every event was delivered: malformed JSON rejected before Selenium dispatch and the absence of a common passive socket-close callback remain limits.
 
-## Verified boundary
+## Runtime regression fixes
+
+The patch also addresses reproduced defects in the 0.5.1 runtime, without adding public API:
+
+- Ambiguous transport failures no longer trigger another click or input merely because a nested exception resembles a rejected action. Checkbox confirmation cannot redispatch an already completed click.
+- Cancellation stops overlay waits and React recovery before another Selenium operation. Overlay dismissal observes disappearance instead of always sleeping for 500 ms; the existing maximum wait and boolean contract remain unchanged.
+- Finalization preserves critical cleanup errors and interrupted status, performs emergency cleanup once, and retains the original test failure. Fatal JVM/linkage errors in locator metadata are propagated; optional diagnostic failures retain their fallback.
+- Measured operation durations reach JSON and HTML instead of being displayed as zero. Sub-millisecond durations may still correctly render as zero milliseconds.
+- Late nonterminal HUD events cannot replace a terminal operation result. Report artifact links reject executable URL schemes while preserving escaped diagnostic text.
+
+See the [0.5.1 regression audit](maintainers/selenium-051-regression-audit.md) for reproducers, validation and remaining limits.
+
+## Tested Selenium versions
 
 Java **17** and Selenium **4.39.0** remain the compile and minimum tested BiDi baselines. The same frozen Lens JAR was exercised against **4.39.0, 4.40.0, 4.41.0, 4.45.0, 4.46.0, 4.47.0, 4.51.0, 4.52.0 and 4.53.0**. The newest verified stable runtime is **4.53.0**, using Java 21, Chrome 157 locally and Grid 4.53.0. The richer baseline browser suite also ran on Java 17. These results do not certify every Selenium 4.x version or every browser/provider combination.
 

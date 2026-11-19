@@ -146,6 +146,7 @@ nav:
       - Selenium compatibility: selenium-compatibility.md
       - BiDi compatibility audit: maintainers/selenium-bidi-audit.md
       - 0.5.2 release validation: maintainers/selenium-bidi-release-0.5.2.md
+      - 0.5.1 regression audit: maintainers/selenium-051-regression-audit.md
       - Consumer compatibility: consumer-compatibility.md
       - Publishing versioned docs: maintainers/documentation-versioning.md
       - Search Console recovery: maintainers/search-console-recovery.md

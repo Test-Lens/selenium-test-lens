@@ -1,5 +1,7 @@
 # Test Lens 0.5.2 release validation
 
+This records the completed **BiDi hardening milestone**, before the additional confirmed runtime regressions were fixed. Its test totals and frozen artifact hash identify that milestone. The [0.5.1 regression audit](selenium-051-regression-audit.md) records the final combined candidate, clean-checkout validation and replacement artifact hash; use that report for final release readiness.
+
 Verdict: **READY WITH DOCUMENTED LIMITATIONS**. The candidate is prepared locally and has not been published, tagged, pushed, or deployed. Hosted GitHub Actions and BrowserStack remain NOT RUN. The publication policy still records **0.5.1** as actually released and declares **0.5.2** separately as prepared.
 
 ## Scope and isolation
