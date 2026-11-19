@@ -9,6 +9,16 @@ Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
 Import-Module (Join-Path $PSScriptRoot "StudioCertificationSupport.psm1") -Force
 Import-Module (Join-Path $PSScriptRoot "PublicApiReleaseLine.psm1") -Force
 
+$projectionRows = @(
+    [pscustomobject]@{Type='example.Stable'; Classification='USER_API'},
+    [pscustomobject]@{Type='example.Promoted'; Classification='INTERNAL'}
+)
+$projectionMembers = @('TYPE example.Stable', '  public void stable()', 'TYPE example.Promoted', '  public void promoted()')
+$legacyProjection = Read-TestLensApiCompatibilityProjection -ManifestLines $projectionMembers -ClassificationRows $projectionRows -Label 'legacy fixture'
+if ($legacyProjection.Types.Count -ne 1 -or $legacyProjection.Callables -ne 1) { throw 'Legacy exhaustive manifests must retain classification filtering' }
+$projected = Read-TestLensApiCompatibilityProjection -ManifestLines (@('# Generated stable/advanced API compatibility manifest. Do not edit by hand.') + $projectionMembers) -ClassificationRows $projectionRows -Label 'already projected fixture'
+if ($projected.Types.Count -ne 2 -or $projected.Callables -ne 2) { throw 'Projected manifests must retain policy-promoted API types without false additions' }
+
 $release040 = Resolve-TestLensApiReleaseLine -CurrentVersion "0.4.0" -ReleaseTags @("v0.3.1")
 if ($release040.BaselineTag -ne "v0.3.1" -or $release040.ExpectedSince -ne "0.4.0") {
     throw "0.4.0 API release-line contract regression"
@@ -189,12 +199,18 @@ function Assert-ThrowsLike([scriptblock]$Action, [string]$Pattern, [string]$Name
 
 try {
     New-Item -ItemType Directory -Force -Path $fixtureRoot, $releaseSourceRoot, $consumerRoot | Out-Null
+    $sourcePom = Read-TestLensPom (Join-Path $repositoryRoot "pom.xml")
+    $sourceVersion = Get-TestLensPomText $sourcePom "/m:project/m:version"
     foreach ($relative in @(git -C $repositoryRoot ls-files -- "pom.xml" ":(glob)**/pom.xml")) {
         $destination = Join-Path $fixtureRoot $relative
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
-        Copy-Item -LiteralPath (Join-Path $repositoryRoot $relative) -Destination $destination
+        # This fixture deliberately models the already published 0.5.1 line,
+        # independently of the candidate version currently being prepared.
+        $fixtureText = [IO.File]::ReadAllText((Join-Path $repositoryRoot $relative))
+        [IO.File]::WriteAllText($destination, $fixtureText.Replace("<version>$sourceVersion</version>", "<version>0.5.1</version>"))
     }
     & git -C $fixtureRoot init -q
+    & git -C $fixtureRoot config core.autocrlf false
     & git -C $fixtureRoot add -- .
     if ($LASTEXITCODE -ne 0) { throw "Cannot initialize release-tooling fixture" }
     & git -C $fixtureRoot -c user.name=release-fixture -c user.email=release-fixture.invalid commit -q -m initial
@@ -277,14 +293,14 @@ try {
     $trackedPoms = @(& git -C $fixtureRoot ls-files -- "pom.xml" ":(glob)**/pom.xml")
     foreach ($relative in $trackedPoms) {
         $path = Join-Path $fixtureRoot $relative
-        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.1", "0.5.2"))
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.1", "9.9.8"))
     }
     Assert-ThrowsLike {
         & (Join-Path $PSScriptRoot "check-reactor-versions.ps1") -RepositoryRoot $fixtureRoot
     } "*must equal publication policy latestReleasedVersion '0.5.1'*" "release version differs from policy"
     foreach ($relative in $trackedPoms) {
         $path = Join-Path $fixtureRoot $relative
-        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("0.5.2", "0.5.1-SNAPSHOT"))
+        [IO.File]::WriteAllText($path, ([IO.File]::ReadAllText($path)).Replace("9.9.8", "0.5.1-SNAPSHOT"))
     }
     $snapshotPom = Read-TestLensPom (Join-Path $fixtureRoot "pom.xml")
     if ((Get-TestLensPomText $snapshotPom "/m:project/m:version") -ne "0.5.1-SNAPSHOT") {

@@ -32,6 +32,13 @@ function Read-TestLensPublicationPolicy([string]$Path) {
     if ($latestReleasedVersion -notmatch '^\d+\.\d+\.\d+$') {
         throw "Publication policy latestReleasedVersion '$latestReleasedVersion' is not an exact semantic version"
     }
+    $preparedReleaseVersion = ""
+    if ($policy.PSObject.Properties.Name -contains "preparedReleaseVersion") {
+        $preparedReleaseVersion = $policy.preparedReleaseVersion.ToString().Trim()
+        if ($preparedReleaseVersion -notmatch '^\d+\.\d+\.\d+$' -or [version]$preparedReleaseVersion -le [version]$latestReleasedVersion) {
+            throw "Publication policy preparedReleaseVersion must be an exact version newer than latestReleasedVersion"
+        }
+    }
     $allowedRoles = @("PUBLISHED_STABLE", "PUBLISHED_TOOLING", "INTERNAL", "TEST_ONLY", "DEMO", "FUTURE")
     $declaredRoles = @($policy.roles.PSObject.Properties.Name)
     $unknownRoles = @($declaredRoles | Where-Object { $_ -notin $allowedRoles })
@@ -71,6 +78,7 @@ function Read-TestLensPublicationPolicy([string]$Path) {
         Future = @($artifactsByRole.FUTURE)
         ArtifactsByRole = $artifactsByRole
         LatestReleasedVersion = $latestReleasedVersion
+        PreparedReleaseVersion = $preparedReleaseVersion
         Classified = @($classified)
         CentralExcluded = @($nonpublished | Sort-Object -Unique)
         NonReactorPomPaths = @($nonReactorPomPaths)
@@ -112,8 +120,8 @@ function Assert-TestLensDevelopmentVersion {
         if ($developmentBase -le $latestRelease) {
             throw "Development version '$Version' must be newer than $latestLabel"
         }
-    } elseif ($developmentBase -ne $declaredRelease) {
-        throw "Release version '$Version' must equal publication policy latestReleasedVersion '$($policy.LatestReleasedVersion)'"
+    } elseif ($developmentBase -ne $declaredRelease -and $Version -ne $policy.PreparedReleaseVersion) {
+        throw "Release version '$Version' must equal publication policy latestReleasedVersion '$($policy.LatestReleasedVersion)' or explicitly declared preparedReleaseVersion '$($policy.PreparedReleaseVersion)'"
     }
 }
 

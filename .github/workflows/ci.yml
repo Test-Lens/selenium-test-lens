@@ -8,6 +8,56 @@ on:
   workflow_dispatch:
 
 jobs:
+  selenium-bidi-binary:
+    name: Same-JAR Selenium BiDi compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - uses: browser-actions/setup-chrome@v2
+        id: bidi-chrome
+        with:
+          install-chromedriver: true
+      - name: Start loopback Selenium Grid
+        shell: bash
+        env:
+          BIDI_CHROMEDRIVER: ${{ steps.bidi-chrome.outputs.chromedriver-path }}
+        run: |
+          mkdir -p target/selenium-bidi-compatibility
+          curl --fail --location --retry 2 -o target/selenium-server.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.53.0/selenium-server-4.53.0.jar
+          java "-Dwebdriver.chrome.driver=$BIDI_CHROMEDRIVER" -jar target/selenium-server.jar standalone --host 127.0.0.1 --port 4444 > target/selenium-bidi-compatibility/grid.log 2>&1 &
+          echo "$!" > target/selenium-bidi-compatibility/grid.pid
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:4444/status | grep -q '"ready": true'; then exit 0; fi
+            sleep 1
+          done
+          cat target/selenium-bidi-compatibility/grid.log
+          exit 1
+      - name: Build once and test the frozen JAR against the Selenium matrix
+        shell: pwsh
+        run: >-
+          ./scripts/test-selenium-bidi-compatibility.ps1 -BrowserTests -GridUrl http://127.0.0.1:4444
+          -ChromeBinary '${{ steps.bidi-chrome.outputs.chrome-path }}'
+          -ChromeDriver '${{ steps.bidi-chrome.outputs.chromedriver-path }}'
+      - name: Stop test Grid
+        if: always()
+        shell: bash
+        run: |
+          if test -f target/selenium-bidi-compatibility/grid.pid; then kill "$(cat target/selenium-bidi-compatibility/grid.pid)" || true; fi
+      - name: Preserve binary provenance and per-version results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-bidi-binary
+          path: target/selenium-bidi-compatibility/**
+
   consumer-compatibility:
     name: Consumer compatibility (JDK ${{ matrix.java }})
     runs-on: ubuntu-latest
@@ -67,6 +117,10 @@ jobs:
       - name: Check reactor version
         shell: pwsh
         run: ./scripts/check-reactor-versions.ps1
+
+      - name: Check prepared release policy
+        shell: pwsh
+        run: ./scripts/test-prepared-release-policy.ps1
 
       - name: Run tests
         run: mvn -q test

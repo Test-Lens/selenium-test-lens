@@ -146,7 +146,7 @@
       '',
       '- If the resolved stable version is below 4.39.0, print this clear warning using the real resolved version: "Test Lens BiDi/network diagnostics require Selenium Java 4.39.0 or newer. This project currently resolves Selenium X.Y.Z, so Test Lens BiDi-based functionality cannot be enabled with the current dependency set." Do not configure apparently working Lens BiDi. Identify the minimal controlling dependency/property change, assess framework/browser/Grid/cloud impact, and avoid unrelated upgrades. If that one upgrade is safe and required, perform it minimally and run full validation; otherwise integrate core Lens without BiDi and report the limitation.',
       '- If the resolved value is a prerelease or SNAPSHOT, do not treat its numeric core as proof that the supported stable baseline is met. Identify the exact artifact, qualifier and resolved modules, then verify compatibility explicitly. Do not declare it automatically incompatible solely because it is prerelease.',
-      '- If the resolved stable version is 4.39.0 or newer, do not treat the version check as sufficient. Verify the actual browser, driver, session construction, enableBiDi()/webSocketUrl capability, local versus RemoteWebDriver path, Grid/cloud provider support and successful BiDi transport at runtime.',
+      '- If the resolved stable version is 4.39.0 or newer, do not treat the version check as sufficient. Verify the selected Lens release against its tested Selenium compatibility matrix and align all Selenium modules with one version/BOM. Published Lens 0.5.1 has a known BiDi size-getter binary incompatibility with Selenium 4.41.0+; a development fix does not patch that published JAR. Verify the actual browser, driver, session construction, enableBiDi()/webSocketUrl capability, local versus RemoteWebDriver path, Grid/cloud provider support and successful event capture at runtime.',
       '',
       'Use public NetworkDiagnostics with BIDI or AUTO only after those checks. Capture is passive request/response/redirect/fetch-error evidence with waits/assertions over captured state. It is not interception, blocking, mocking, replay, request/response body capture, CDP, performance-log fallback or a general BiDi wrapper. Preserve redaction and header masking. Check startup/status results; unsupported or failed capture must not be reported as zero failures.'
     ],
@@ -330,7 +330,9 @@
     var publicDocsRoot = normalizePublicRoot(metadata && metadata.publicDocsRoot);
     var sourceKind = String(metadata && metadata.sourceKind || '').trim();
     var sourceRevision = String(metadata && metadata.sourceRevision || '').trim();
+    var releaseStatus = String(metadata && metadata.releaseStatus || 'published').trim();
     var errors = [];
+    if (releaseStatus !== 'published' && releaseStatus !== 'prepared') errors.push('Release status metadata is invalid.');
     if (!/^\d+\.\d+\.\d+$/.test(targetRelease)) errors.push('Target release metadata must be a concrete MAJOR.MINOR.PATCH version.');
     if (!publicDocsRoot) errors.push('Public documentation root metadata is missing or unsafe.');
     if (sourceKind !== 'development' && sourceKind !== 'release') errors.push('Documentation source kind metadata is missing or invalid.');
@@ -348,7 +350,8 @@
       publicDocsRoot: publicDocsRoot,
       docsBase: errors.length || !publicDocsRoot ? null : publicDocsRoot + targetRelease + '/',
       sourceKind: sourceKind,
-      sourceRevision: sourceRevision || 'unavailable'
+      sourceRevision: sourceRevision || 'unavailable',
+      releaseStatus: releaseStatus
     };
   }
 
@@ -412,6 +415,7 @@
     var targetRelease = String(options && options.targetRelease || '').trim();
     var publicDocsRoot = normalizePublicRoot(options && options.publicDocsRoot);
     var sourceKind = options && options.sourceKind === 'development' ? 'development' : 'release';
+    var prepared = options && options.releaseStatus === 'prepared';
     if (!/^\d+\.\d+\.\d+$/.test(targetRelease) || !publicDocsRoot) throw new Error('Trusted target-release metadata is required before a prompt can be generated.');
     var resolution = resolveCapabilities(options && options.capabilities);
     var capabilities = resolution.effective;
@@ -434,7 +438,16 @@
     sections.push(documentationSection(style, capabilities, publicDocsRoot + targetRelease + '/').join('\n'));
     sections.push(renderModule('VALIDATION', targetRelease));
     sections.push(renderModule('FINAL_REPORT', targetRelease));
-    return sections.join('\n\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
+    var rendered = sections.join('\n\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
+    if (prepared) {
+      rendered = rendered.replace('public, published APIs', 'public APIs from the locally installed candidate')
+        .replace(/published io\.github\.test-lens:/g, 'locally installed candidate io.github.test-lens:')
+        .replace('published adapter coordinate', 'candidate adapter coordinate')
+        .replace('Do not use internal source modules, unpublished artifacts, roadmap functionality, or APIs inferred only from implementation classes.', 'Use only locally built candidate artifacts for the selected public capabilities; do not use internal source modules, roadmap functionality or APIs inferred only from implementation classes.')
+        .replace('stable ' + targetRelease + ' consumer contract', 'prepared ' + targetRelease + ' consumer contract');
+      rendered = '## Prepared release ' + targetRelease + ' (unpublished)\n\nBuild and install this candidate locally before integration. It is not available from Maven Central. Numeric documentation links below identify intended release paths; use this worktree\'s rendered documentation until publication.\n\n' + rendered;
+    }
+    return rendered;
   }
 
   function init(document, location, navigator) {
@@ -460,6 +473,7 @@
       targetRelease: metadataValue('test-lens-integration-target'),
       publicDocsRoot: metadataValue('test-lens-docs-public-root'),
       sourceKind: metadataValue('test-lens-docs-source-kind'),
+      releaseStatus: metadataValue('test-lens-docs-release-status') || 'published',
       sourceRevision: metadataValue('test-lens-docs-source-revision')
     }, location.href);
     var explicitCapabilities = new Set(featureInputs.filter(function (input) { return input.checked; }).map(function (input) { return input.dataset.feature; }));
@@ -475,6 +489,7 @@
     }
     targetStatus.textContent = (target.sourceKind === 'development' ? 'Development preview' : 'Versioned documentation') + ' — integration target Test Lens ' + target.targetRelease + '; API links are pinned to /' + target.targetRelease + '/. Source revision: ' + target.sourceRevision + '.';
     targetStatus.dataset.state = target.sourceKind;
+    if (target.releaseStatus === 'prepared') targetStatus.textContent = 'Prepared release ' + target.targetRelease + ' (unpublished). Install the candidate locally; release documentation paths are not published yet.';
 
     function style() {
       var selected = styleInputs.find(function (input) { return input.checked; });
@@ -529,7 +544,8 @@
         seleniumVersion: versionInput.value,
         targetRelease: target.targetRelease,
         publicDocsRoot: target.publicDocsRoot,
-        sourceKind: target.sourceKind
+        sourceKind: target.sourceKind,
+        releaseStatus: target.releaseStatus
       });
       copyStatus.textContent = '';
     }

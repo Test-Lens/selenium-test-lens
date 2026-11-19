@@ -29,6 +29,7 @@
     <meta name="test-lens-integration-target" content="{{ config.extra.ai_integration.target_release | e }}">
     <meta name="test-lens-docs-public-root" content="{{ config.extra.ai_integration.public_docs_root | e }}">
     <meta name="test-lens-docs-source-kind" content="{% if config.extra.version.is_dev %}development{% else %}release{% endif %}">
+    <meta name="test-lens-docs-release-status" content="{{ config.extra.ai_integration.release_status | default('published') | e }}">
     <meta name="test-lens-docs-source-revision" content="{{ config.extra.build.source_revision | e }}">
   {% endif %}
 {% endblock %}
