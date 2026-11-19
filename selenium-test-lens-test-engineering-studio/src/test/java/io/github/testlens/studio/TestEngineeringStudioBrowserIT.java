@@ -355,7 +355,16 @@ class TestEngineeringStudioBrowserIT {
     }
     private record WorkflowExecution(boolean passed,Throwable failure,UiTestLensSession session){}
 
-    private static void click(WebDriver driver,String text) { new WebDriverWait(driver,Duration.ofSeconds(20)).until(d -> d.findElements(By.xpath("//button[normalize-space()="+quote(text)+"]")).stream().filter(WebElement::isEnabled).findFirst().orElse(null)).click(); }
+    private static void click(WebDriver driver,String text) {
+        new WebDriverWait(driver,Duration.ofSeconds(20)).until(d -> {
+            // Action text can already exist while the preceding asynchronous action is
+            // still refreshing state. Wait for its final render before navigating/typing.
+            if (d.findElement(By.id("operation-status")).isDisplayed()) return null;
+            return d.findElements(By.xpath("//button[normalize-space()="+quote(text)+"]"))
+                    .stream().filter(WebElement::isDisplayed).filter(WebElement::isEnabled)
+                    .findFirst().orElse(null);
+        }).click();
+    }
     private static void assertRealDomNavigation(WebDriver driver) {
         List<WebElement> views = driver.findElements(By.cssSelector("nav [data-view]"));
         assertEquals(9, views.size(), "the complete Studio navigation must be present in the real DOM");
