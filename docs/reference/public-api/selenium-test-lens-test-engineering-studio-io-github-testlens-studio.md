@@ -46,6 +46,44 @@ public io.github.testlens.application.tooling.ai.workflow.WorkflowReport run(jav
 public static void main(java.lang.String[])
 ```
 
+## `io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory` {#io-github-testlens-studio-pageobjectcapabilityexception-refusalcategory}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio`
+- Classification: `INTERNAL`
+- Type kind: `enum`
+
+```java
+public static final io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory PAGE_OBJECT_METHOD_MISSING
+public static final io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory PAGE_OBJECT_CONSTRUCTION_MISSING
+public static final io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory BROWSER_SESSION_BINDING_MISSING
+public static final io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory TEST_SETUP_MISSING
+public static final io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory TEST_DATA_MISSING
+public static final io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory ASSERTION_INCOMPATIBLE
+public static final io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory CONTEXT_INCOMPLETE
+public static final io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory CAPABILITY_PRESENT_BUT_REJECTED
+public static final io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory UNKNOWN
+public static io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory[] values()
+public static io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory valueOf(java.lang.String)
+```
+
+## `io.github.testlens.studio.PageObjectCapabilityException` {#io-github-testlens-studio-pageobjectcapabilityexception}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio`
+- Classification: `INTERNAL`
+- Type kind: `class`
+
+```java
+public java.lang.String reasonCode()
+public java.lang.String location()
+public java.lang.String nextAction()
+public io.github.testlens.studio.PageObjectCapabilityException$RefusalCategory refusalCategory()
+public java.lang.String verifiedPageId()
+public boolean sourceFingerprintMatched()
+public java.util.Map<java.lang.String, java.lang.String> diagnosticMetadata()
+```
+
 ## `io.github.testlens.studio.ReviewableCoordinatorWorkflowGateway$RepairSourceCompiler` {#io-github-testlens-studio-reviewablecoordinatorworkflowgateway-repairsourcecompiler}
 
 - Artifact/module: `selenium-test-lens-test-engineering-studio`
@@ -69,14 +107,20 @@ public io.github.testlens.studio.ReviewableCoordinatorWorkflowGateway(io.github.
 public io.github.testlens.studio.ReviewableCoordinatorWorkflowGateway(io.github.testlens.application.tooling.ai.workflow.AgentExecutor, java.util.function.BiFunction<io.github.testlens.application.tooling.ai.workflow.AgentExecutor, io.github.testlens.studio.CoordinatorWorkflowGateway$Input, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator>)
 public io.github.testlens.studio.ReviewableCoordinatorWorkflowGateway(io.github.testlens.application.tooling.ai.workflow.AgentExecutor, java.util.function.Function<io.github.testlens.application.tooling.ai.workflow.AgentExecutor, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator>, io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator, java.util.function.Function<io.github.testlens.application.tooling.ai.workflow.TestEngineeringRequest, java.nio.file.Path>, io.github.testlens.studio.ReviewableCoordinatorWorkflowGateway$RepairSourceCompiler)
 public io.github.testlens.studio.ReviewableCoordinatorWorkflowGateway(io.github.testlens.application.tooling.ai.workflow.AgentExecutor, java.util.function.BiFunction<io.github.testlens.application.tooling.ai.workflow.AgentExecutor, io.github.testlens.studio.CoordinatorWorkflowGateway$Input, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator>, io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator, java.util.function.Function<io.github.testlens.application.tooling.ai.workflow.TestEngineeringRequest, java.nio.file.Path>, io.github.testlens.studio.ReviewableCoordinatorWorkflowGateway$RepairSourceCompiler)
+public io.github.testlens.studio.ReviewableCoordinatorWorkflowGateway(io.github.testlens.application.tooling.ai.workflow.AgentExecutor, java.util.function.BiFunction<io.github.testlens.application.tooling.ai.workflow.AgentExecutor, io.github.testlens.studio.CoordinatorWorkflowGateway$Input, io.github.testlens.application.tooling.ai.workflow.AgentWorkflowCoordinator>, io.github.testlens.application.tooling.ai.workflow.GeneratedTestPolicyValidator, java.util.function.Function<io.github.testlens.application.tooling.ai.workflow.TestEngineeringRequest, java.nio.file.Path>, io.github.testlens.studio.ReviewableCoordinatorWorkflowGateway$RepairSourceCompiler, java.util.function.Supplier<java.lang.String>)
 public void prepare(java.lang.String, io.github.testlens.application.tooling.ai.workflow.TestEngineeringRequest, io.github.testlens.application.tooling.ai.AgentContextPack)
 public void restoreReviewedArtifacts(java.lang.String, io.github.testlens.application.tooling.ai.TestPlan, io.github.testlens.application.tooling.ai.TestImplementationProposal)
+public boolean supportsTrustedRepairContextRefresh()
+public void refreshTrustedRepairContext(java.lang.String, io.github.testlens.application.tooling.ai.AgentContextPack)
 public io.github.testlens.application.tooling.ai.TestPlan generatePlan(java.lang.String, java.lang.String) throws io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException
 public io.github.testlens.application.tooling.ai.TestImplementationProposal generateImplementation(java.lang.String) throws io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException
 public io.github.testlens.application.tooling.ai.workflow.WorkflowReport run(java.lang.String) throws io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException
 public io.github.testlens.application.tooling.ai.TestExecutionResult execution(java.lang.String)
+public io.github.testlens.application.tooling.ai.TestImplementationProposal implementation(java.lang.String)
 public io.github.testlens.application.tooling.ai.FailureClassification diagnosis(java.lang.String)
 public io.github.testlens.application.tooling.ai.RepairProposal repair(java.lang.String)
+public io.github.testlens.application.tooling.ai.CodeReviewResult review(java.lang.String)
+public java.util.List<io.github.testlens.studio.StudioWorkflowGateway$ReviewCycle> reviewHistory(java.lang.String)
 public java.util.List<io.github.testlens.studio.StudioWorkflowGateway$PolicyCheck> implementationPolicy(java.lang.String)
 public io.github.testlens.application.tooling.ai.workflow.WorkflowReport rerun(java.lang.String, io.github.testlens.application.tooling.ai.RepairProposal) throws io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException
 public boolean supportsReviewedArtifactRestore()
@@ -99,6 +143,26 @@ public boolean passed()
 public java.lang.String detail()
 ```
 
+## `io.github.testlens.studio.StudioWorkflowGateway$ReviewCycle` {#io-github-testlens-studio-studioworkflowgateway-reviewcycle}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio`
+- Classification: `INTERNAL`
+- Type kind: `record`
+
+```java
+public io.github.testlens.studio.StudioWorkflowGateway$ReviewCycle(int, java.lang.String, java.lang.String, java.lang.String, io.github.testlens.application.tooling.ai.TestExecutionResult, io.github.testlens.application.tooling.ai.CodeReviewResult)
+public final java.lang.String toString()
+public final int hashCode()
+public final boolean equals(java.lang.Object)
+public int implementationVersion()
+public java.lang.String implementationArtifactRef()
+public java.lang.String executionArtifactRef()
+public java.lang.String reviewArtifactRef()
+public io.github.testlens.application.tooling.ai.TestExecutionResult execution()
+public io.github.testlens.application.tooling.ai.CodeReviewResult review()
+```
+
 ## `io.github.testlens.studio.StudioWorkflowGateway` {#io-github-testlens-studio-studioworkflowgateway}
 
 - Artifact/module: `selenium-test-lens-test-engineering-studio`
@@ -110,13 +174,18 @@ public java.lang.String detail()
 public default void prepare(java.lang.String, io.github.testlens.application.tooling.ai.workflow.TestEngineeringRequest, io.github.testlens.application.tooling.ai.AgentContextPack)
 public default boolean supportsReviewedArtifactRestore()
 public default void restoreReviewedArtifacts(java.lang.String, io.github.testlens.application.tooling.ai.TestPlan, io.github.testlens.application.tooling.ai.TestImplementationProposal)
+public default boolean supportsTrustedRepairContextRefresh()
+public default void refreshTrustedRepairContext(java.lang.String, io.github.testlens.application.tooling.ai.AgentContextPack)
 public default io.github.testlens.application.tooling.ai.TestPlan generatePlan(java.lang.String, java.lang.String) throws io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException
 public default io.github.testlens.application.tooling.ai.TestImplementationProposal generateImplementation(java.lang.String) throws io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException
 public default java.util.List<io.github.testlens.studio.StudioWorkflowGateway$PolicyCheck> implementationPolicy(java.lang.String)
+public default io.github.testlens.application.tooling.ai.TestImplementationProposal implementation(java.lang.String)
 public abstract io.github.testlens.application.tooling.ai.workflow.WorkflowReport run(java.lang.String) throws io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException
 public default io.github.testlens.application.tooling.ai.TestExecutionResult execution(java.lang.String)
 public default io.github.testlens.application.tooling.ai.FailureClassification diagnosis(java.lang.String)
 public default io.github.testlens.application.tooling.ai.RepairProposal repair(java.lang.String)
+public default io.github.testlens.application.tooling.ai.CodeReviewResult review(java.lang.String)
+public default java.util.List<io.github.testlens.studio.StudioWorkflowGateway$ReviewCycle> reviewHistory(java.lang.String)
 public default io.github.testlens.application.tooling.ai.workflow.WorkflowReport rerun(java.lang.String, io.github.testlens.application.tooling.ai.RepairProposal) throws io.github.testlens.application.tooling.ai.workflow.AgentExecutor$AgentExecutionException
 ```
 
@@ -215,6 +284,20 @@ public java.util.List<java.nio.file.Path> sourceRoots()
 public java.util.List<java.nio.file.Path> classpathEntries()
 public java.util.List<java.lang.String> allowedRepairPrefixes()
 public java.lang.String applicationName()
+```
+
+## `io.github.testlens.studio.TestEngineeringStudioService$RunLifecycleException` {#io-github-testlens-studio-testengineeringstudioservice-runlifecycleexception}
+
+- Artifact/module: `selenium-test-lens-test-engineering-studio`
+- Package: `io.github.testlens.studio`
+- Classification: `INTERNAL`
+- Type kind: `class`
+
+```java
+public io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunReason reason()
+public io.github.testlens.studio.workspace.WorkflowSessionSnapshot$RunStatus status()
+public java.lang.String location()
+public boolean recoveryPersisted()
 ```
 
 ## `io.github.testlens.studio.TestEngineeringStudioService` {#io-github-testlens-studio-testengineeringstudioservice}

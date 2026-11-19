@@ -2,8 +2,8 @@
 
 The Page Object generator consumes an `ApplicationModel`; it does not inspect the DOM and it does not ask an LLM to invent selectors. Output is deterministic for an equivalent canonical model and generation options.
 
-!!! warning "Development availability"
-    `selenium-test-lens-application-tooling` is source-only development work for 0.5.0 and is not published with Maven 0.4.0.
+!!! info "Tooling availability"
+    `selenium-test-lens-application-tooling` is published as an opt-in 0.5.1 tooling artifact. Its technically public implementation classes remain classified separately from the stable USER API.
 
 ## Generate Lens-native source
 
@@ -61,4 +61,3 @@ Treat `.test-lens/generated` as generated source, not as the location for hand-w
 The generator itself has no Selenium compile dependency because it emits source text offline. The generated source imports `TestLens`, `UiLocator`, and Selenium `By`, so compile it against the same Test Lens and Selenium classpath as the consuming tests. The repository browser contract uses the JDK compiler and then executes a generated Page Object against the fixture application; a string snapshot alone is not the generation contract.
 
 For semantic changes, use `PageObjectGenerator.diff(before, after, options)`. It returns before/after source plus the associated `ApplicationDrift.Change` records, rather than presenting an unexplained textual diff.
-

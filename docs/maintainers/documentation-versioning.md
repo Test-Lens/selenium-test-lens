@@ -61,5 +61,30 @@ It rebuilds only that version, moves `latest` to it, and sets the root default t
 move the release tag and must never be used to change the semantics of an already released API.
 Normal tag-driven `release` publication remains immutable and rejects an existing version.
 
+### 0.5.1 Studio documentation withdrawal
+
+The current `/latest/` publication is **0.5.1**. Apply the documentation withdrawal commit to
+`release/0.5.1`, preserving the approved post-tag documentation repairs already on that branch.
+Do not deploy from an older release branch or change POM versions to make a branch pass validation.
+
+1. Fetch `origin` and tags. Confirm `release/0.5.1` descends from `v0.5.1`, its root and reactor
+   POMs still declare `0.5.1`, and its diff from the tag contains only approved documentation repairs.
+   Run `./scripts/check-release-doc-repair.ps1 -Version 0.5.1 -SourceRef release/0.5.1` and
+   `./scripts/check-reactor-versions.ps1 -ExpectedVersion 0.5.1` on that branch.
+2. Inspect `mike list --branch gh-pages` against the freshly fetched publication branch. Confirm
+   `0.5.1` exists and owns `latest`. Stop and reassess if a newer release owns the alias.
+3. Push the reviewed documentation commit on `release/0.5.1`. Run the **Documentation** workflow
+   from `main` with `operation=redeploy-release`, `version=0.5.1`, `source_ref=release/0.5.1`,
+   and `confirmation=redeploy-docs-0.5.1`.
+4. Confirm the deployed source revision matches that release-branch commit. Check both `/0.5.1/`
+   and `/latest/`: no Studio homepage CTA or menu entry; retained `ai/test-engineering-studio/`,
+   `ai/test-engineering-studio-getting-started/`, and `ai/generate-tests-with-ai/` URLs show the
+   temporary-unavailability notice. Confirm `observability/hud-studio/` and `ai-assisted-integration/`
+   remain available. Verify older version entries and the `latest` owner in Mike are unchanged.
+
+`publish-dev` updates only `/dev/`; `redeploy-pages` only republishes the existing tree and cannot
+apply this source change. Do not create a Maven release, run a release workflow, recreate a tag,
+or use `publish-missing-release` for the already published 0.5.1 documentation.
+
 If a `mike` push conflicts, let the serialized workflow fail, inspect the remote branch, and rerun
 the same operation. Never force-push or rebuild old versions from `main`.

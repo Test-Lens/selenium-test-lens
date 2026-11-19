@@ -5,7 +5,7 @@ package io.github.testlens.studio.browser;
  * Implementations used for targeted test execution must expose a public no-argument constructor so the
  * isolated test JVM can reconstruct the provider without transferring browser state or credentials.
  *
- * @since 0.5.0
+ * @since 0.5.1
  */
 public interface BrowserSessionProvider {
     BrowserAvailability preflight(BrowserRequest request);

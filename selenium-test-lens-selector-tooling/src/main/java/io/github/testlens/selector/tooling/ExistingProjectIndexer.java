@@ -1,13 +1,17 @@
 package io.github.testlens.selector.tooling;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -137,6 +141,9 @@ public final class ExistingProjectIndexer {
 
         private List<ClassDraft> collectClasses(List<Limitation> limitations) {
             List<ClassDraft> result = new ArrayList<>();
+            Map<String,Long> simpleNameCounts=units.stream().flatMap(value->value.unit().findAll(TypeDeclaration.class).stream())
+                    .collect(java.util.stream.Collectors.groupingBy(value->value.getNameAsString(),
+                            java.util.stream.Collectors.counting()));
             outer: for (UnitFacts facts : units) {
                 for (TypeDeclaration<?> type : facts.unit().findAll(TypeDeclaration.class)) {
                     if (result.size() >= bounds.maxTypes()) {
@@ -147,11 +154,19 @@ public final class ExistingProjectIndexer {
                             + nestedName(type));
                     String id = id("class", facts.logicalPath(), qualified);
                     List<String> parents = type instanceof ClassOrInterfaceDeclaration declaration
-                            ? declaration.getExtendedTypes().stream().map(Node::toString).sorted().toList()
+                            ? java.util.stream.Stream.concat(declaration.getExtendedTypes().stream(),
+                                    declaration.getImplementedTypes().stream())
+                                    .map(parent -> simpleNameCounts.getOrDefault(parent.getNameAsString(),0L)>1
+                                            || hasExplicitParentImport(parent,facts.unit())
+                                            ? resolvedParentName(parent, facts.unit()):parent.toString())
+                                    .distinct().sorted().toList()
                             : List.of();
                     ClassClassification classification = classifyType(type, facts.declarations(), qualified, parents);
+                    Accessibility accessibility = accessibility(type);
+                    List<ConstructorEntry> constructors = constructors(type, accessibility);
                     result.add(new ClassDraft(type, new ClassEntry(id, facts.logicalPath(), qualified,
-                            type.getNameAsString(), classification, origin(type), parents)));
+                            type.getNameAsString(), classification, origin(type), parents, accessibility, constructors,
+                            directlyInstantiable(type))));
                 }
             }
             return result;
@@ -200,7 +215,8 @@ public final class ExistingProjectIndexer {
                     String signature = method.getSignature().asString();
                     String methodId = id("method", ownerId, signature);
                     List<Parameter> parameters = method.getParameters().stream()
-                            .map(value -> new Parameter(value.getNameAsString(), value.getTypeAsString())).toList();
+                            .map(value -> new Parameter(value.getNameAsString(), value.getTypeAsString()
+                                    + (value.isVarArgs() ? "..." : ""))).toList();
                     List<String> actions = method.findAll(MethodCallExpr.class).stream()
                             .map(call -> call.getNameAsString()).distinct().sorted().toList();
                     Set<String> referencedNames = method.findAll(com.github.javaparser.ast.expr.NameExpr.class).stream()
@@ -215,7 +231,7 @@ public final class ExistingProjectIndexer {
                             .filter(Objects::nonNull).distinct().sorted().toList();
                     MethodEntry entry = new MethodEntry(methodId, ownerId, method.getNameAsString(), signature,
                             parameters, method.getTypeAsString(), actions, declarationRefs, outgoingTypes,
-                            classifyMethod(method, actions));
+                            classifyMethod(method, actions), methodAccessibility(method), method.isStatic());
                     drafts.add(new MethodDraft(facts.logicalPath(), method, entry));
                 }
             }
@@ -251,7 +267,11 @@ public final class ExistingProjectIndexer {
             Map<String, List<ElementEntry>> elementsByName = new HashMap<>();
             elements.forEach(element -> elementsByName.computeIfAbsent(element.name(), ignored -> new ArrayList<>()).add(element));
             Map<String,ClassEntry>classesById=classes.stream().collect(java.util.stream.Collectors.toMap(ClassEntry::id,value->value));
-            Map<String,String>classIdsByName=new HashMap<>();classes.forEach(value->{classIdsByName.put(value.qualifiedName(),value.id());classIdsByName.putIfAbsent(value.simpleName(),value.id());});
+            Map<String,String>classIdsByName=new HashMap<>();
+            Map<String,List<ClassEntry>>classesBySimple=new HashMap<>();
+            classes.forEach(value->{classIdsByName.put(value.qualifiedName(),value.id());
+                classesBySimple.computeIfAbsent(value.simpleName(),ignored->new ArrayList<>()).add(value);});
+            classesBySimple.forEach((name,matches)->{if(matches.size()==1)classIdsByName.put(name,matches.get(0).id());});
             LinkedHashMap<String, Edge> result = new LinkedHashMap<>();
             for (MethodDraft source : methods.drafts()) {
                 Set<String>allowedOwners=ownerHierarchy(source.entry().ownerClassId(),classesById,classIdsByName);
@@ -300,7 +320,25 @@ public final class ExistingProjectIndexer {
             return new ArrayList<>(result.values());
         }
 
-        private Set<String> ownerHierarchy(String ownerId,Map<String,ClassEntry>classesById,Map<String,String>classIdsByName){Set<String>result=new LinkedHashSet<>();java.util.ArrayDeque<String>queue=new java.util.ArrayDeque<>();queue.add(ownerId);while(!queue.isEmpty()&&result.size()<=classesById.size()){String current=queue.removeFirst();if(!result.add(current))continue;ClassEntry entry=classesById.get(current);if(entry==null)continue;for(String parent:entry.extendsTypes()){String parentId=classIdsByName.get(parent);if(parentId==null&&parent.contains("."))parentId=classIdsByName.get(parent.substring(parent.lastIndexOf('.')+1));if(parentId!=null)queue.addLast(parentId);}}return result;}
+        private Set<String> ownerHierarchy(String ownerId,Map<String,ClassEntry>classesById,Map<String,String>classIdsByName){Set<String>result=new LinkedHashSet<>();java.util.ArrayDeque<String>queue=new java.util.ArrayDeque<>();queue.add(ownerId);while(!queue.isEmpty()&&result.size()<=classesById.size()){String current=queue.removeFirst();if(!result.add(current))continue;ClassEntry entry=classesById.get(current);if(entry==null)continue;for(String parent:entry.extendsTypes()){String raw=parent.replaceAll("<.*>","").trim();String parentId=classIdsByName.get(raw);if(parentId!=null)queue.addLast(parentId);}}return result;}
+
+        private String resolvedParentName(ClassOrInterfaceType parent,CompilationUnit unit){
+            try{return parent.resolve().describe();}catch(RuntimeException unresolved){
+                String raw=parent.getNameWithScope();
+                String first=raw.substring(0,raw.indexOf('.')<0?raw.length():raw.indexOf('.'));
+                List<String>explicit=unit.getImports().stream().filter(value->!value.isStatic()&&!value.isAsterisk())
+                        .map(value->value.getNameAsString()).filter(value->value.endsWith("."+first)).distinct().toList();
+                if(explicit.size()==1)return explicit.get(0)+raw.substring(first.length());
+                if(raw.indexOf('.')>0&&Character.isLowerCase(raw.charAt(0)))return raw;
+                return packagePrefix(unit)+raw;
+            }
+        }
+
+        private boolean hasExplicitParentImport(ClassOrInterfaceType parent,CompilationUnit unit){
+            String raw=parent.getNameWithScope();String first=raw.substring(0,raw.indexOf('.')<0?raw.length():raw.indexOf('.'));
+            return unit.getImports().stream().filter(value->!value.isStatic()&&!value.isAsterisk())
+                    .map(value->value.getNameAsString()).anyMatch(value->value.endsWith("."+first));
+        }
 
         private void addEdge(Map<String, Edge> edges, EdgeType type, String from, String to,
                              List<Limitation> limitations, String path, String subject) {
@@ -333,6 +371,55 @@ public final class ExistingProjectIndexer {
             if (name.endsWith("generatedbase") || name.startsWith("generated")) return Origin.GENERATED_BASE;
             if (name.endsWith("generated") || name.endsWith("extension")) return Origin.GENERATED_EXTENSION;
             return Origin.HAND_WRITTEN;
+        }
+
+        private List<ConstructorEntry> constructors(TypeDeclaration<?> type, Accessibility classAccessibility) {
+            if (!(type instanceof ClassOrInterfaceDeclaration declaration) || declaration.isInterface()) {
+                return List.of();
+            }
+            List<ConstructorDeclaration> declared = declaration.getConstructors();
+            if (declared.isEmpty()) {
+                return List.of(new ConstructorEntry(type.getNameAsString() + "()", List.of(),
+                        classAccessibility, true));
+            }
+            return declared.stream().map(constructor -> new ConstructorEntry(
+                    constructor.getSignature().asString(),
+                    constructor.getParameters().stream()
+                            .map(value -> new Parameter(value.getNameAsString(),
+                                    qualifiedImportedType(type, value.getTypeAsString())
+                                            + (value.isVarArgs() ? "..." : ""))).toList(),
+                    accessibility(constructor), false)).sorted(Comparator.comparing(ConstructorEntry::signature)).toList();
+        }
+
+        private String qualifiedImportedType(TypeDeclaration<?> owner, String type) {
+            if (!type.matches("[A-Za-z_$][A-Za-z0-9_$]*")) return type;
+            return owner.findCompilationUnit().stream().flatMap(unit -> unit.getImports().stream())
+                    .filter(value -> !value.isStatic() && !value.isAsterisk())
+                    .map(ImportDeclaration::getNameAsString)
+                    .filter(value -> value.endsWith("." + type))
+                    .findFirst().orElse(type);
+        }
+
+        private boolean directlyInstantiable(TypeDeclaration<?> type) {
+            if (!(type instanceof ClassOrInterfaceDeclaration declaration)
+                    || declaration.isInterface() || declaration.isAbstract()) return false;
+            boolean nested = type.getParentNode().filter(TypeDeclaration.class::isInstance).isPresent();
+            return !nested || type.hasModifier(Modifier.Keyword.STATIC);
+        }
+
+        private Accessibility accessibility(com.github.javaparser.ast.nodeTypes.NodeWithModifiers<?> declaration) {
+            if (declaration.hasModifier(Modifier.Keyword.PUBLIC)) return Accessibility.PUBLIC;
+            if (declaration.hasModifier(Modifier.Keyword.PROTECTED)) return Accessibility.PROTECTED;
+            if (declaration.hasModifier(Modifier.Keyword.PRIVATE)) return Accessibility.PRIVATE;
+            return Accessibility.PACKAGE_PRIVATE;
+        }
+
+        private Accessibility methodAccessibility(MethodDeclaration method) {
+            Accessibility explicit=accessibility(method);
+            if(explicit!=Accessibility.PACKAGE_PRIVATE)return explicit;
+            boolean interfaceMethod=method.findAncestor(ClassOrInterfaceDeclaration.class)
+                    .map(ClassOrInterfaceDeclaration::isInterface).orElse(false);
+            return interfaceMethod?Accessibility.PUBLIC:Accessibility.PACKAGE_PRIVATE;
         }
 
         private MethodClassification classifyMethod(MethodDeclaration method, List<String> actions) {

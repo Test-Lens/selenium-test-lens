@@ -9,9 +9,12 @@ import java.util.*;
 
 /** Deterministic requirement/source-usage scope seed for the domain ContextSlicer. */
 final class RequirementContextSelector {
-    record Selection(List<String> pageIds,List<String> stateIds,List<String> elementIds){}
+    record Selection(List<String> pageIds,List<String> stateIds,List<String> elementIds,List<String> methodIds){
+        Selection{pageIds=List.copyOf(pageIds);stateIds=List.copyOf(stateIds);elementIds=List.copyOf(elementIds);methodIds=List.copyOf(methodIds);}
+    }
     Selection select(String requirement,ApplicationModel application,ExistingProjectIndex source,PageObjectCorrelation correlation){
-        Set<String> tokens=Arrays.stream(requirement.toLowerCase(Locale.ROOT).split("[^\\p{L}\\p{N}]+"))
+        String normalizedRequirement=requirement.toLowerCase(Locale.ROOT);
+        Set<String> tokens=Arrays.stream(normalizedRequirement.split("[^\\p{L}\\p{N}]+"))
                 .filter(value->value.length()>=3).filter(value->!Set.of("the","and","for","with","should","when","then","display","show").contains(value)).collect(java.util.stream.Collectors.toCollection(TreeSet::new));
         if(tokens.isEmpty())throw new IllegalArgumentException("Requirement does not contain a specific application or source term");
         Map<String,Integer> scores=new HashMap<>();Map<String,ApplicationModel.PageModel> pages=new HashMap<>();
@@ -24,10 +27,13 @@ final class RequirementContextSelector {
         Map<String,String> classPages=new HashMap<>();correlation.classes().stream().filter(value->value.state()==PageObjectCorrelation.State.EXACT||value.state()==PageObjectCorrelation.State.STRONG).forEach(value->classPages.put(value.classId(),value.pageId()));
         Map<String,ExistingProjectIndex.ClassEntry> classes=new HashMap<>();source.classes().forEach(value->classes.put(value.id(),value));
         Map<String,ExistingProjectIndex.MethodEntry> methods=new HashMap<>();source.methods().forEach(value->methods.put(value.id(),value));
+        Set<String> directlyRequiredDeclarations=new HashSet<>();
+        Set<String> directlyRequiredMethods=new TreeSet<>();
         for(var method:source.methods())if(classPages.containsKey(method.ownerClassId())){
             int score=matches(tokens,method.name())*7+matches(tokens,method.signature())*5+method.actions().stream().mapToInt(value->matches(tokens,value)*2).sum();
             ExistingProjectIndex.ClassEntry owner=classes.get(method.ownerClassId());if(owner!=null)score+=matches(tokens,owner.simpleName())*6;
             if(score>0)scores.merge(classPages.get(method.ownerClassId()),score,Integer::sum);
+            if(mentionsIdentifier(requirement,method.name())){directlyRequiredDeclarations.addAll(method.declarationRefs());directlyRequiredMethods.add(method.id());}
         }
         for(var origin:source.methods()){
             int relevance=matches(tokens,origin.name())*7+matches(tokens,origin.signature())*5;if(relevance==0)continue;
@@ -46,11 +52,25 @@ final class RequirementContextSelector {
                 .limit(ContextSlicer.Limits.defaults().maxPages()).map(Map.Entry::getKey).toList();
         if(pageIds.isEmpty())throw new IllegalArgumentException("Requirement could not be related to mapped application or indexed source usage");
         Set<String> selectedPages=Set.copyOf(pageIds);
+        Set<String> directlyRequiredSourceElements=source.elements().stream().filter(value->directlyRequiredDeclarations.contains(value.declarationRef()))
+                .map(ExistingProjectIndex.ElementEntry::id).collect(java.util.stream.Collectors.toSet());
+        Set<String> directlyRequiredApplicationElements=correlation.elements().stream()
+                .filter(value->value.sourceElementId()!=null&&directlyRequiredSourceElements.contains(value.sourceElementId()))
+                .filter(value->value.state()==PageObjectCorrelation.State.EXACT||value.state()==PageObjectCorrelation.State.STRONG)
+                .map(PageObjectCorrelation.ElementCorrelation::applicationElementId).collect(java.util.stream.Collectors.toSet());
         List<String> elementIds=application.pages().stream().filter(value->selectedPages.contains(value.pageId())).flatMap(value->value.elements().stream())
-                .filter(value->matches(tokens,value.semanticName())+matches(tokens,value.label())+matches(tokens,value.accessibleName())>0).map(ApplicationModel.ElementModel::elementId).sorted().toList();
+                .filter(value->directlyRequiredApplicationElements.isEmpty()
+                        ?matches(tokens,value.semanticName())+matches(tokens,value.label())+matches(tokens,value.accessibleName())>0
+                        :directlyRequiredApplicationElements.contains(value.elementId()))
+                .map(ApplicationModel.ElementModel::elementId).sorted().toList();
         List<String> stateIds=application.pages().stream().filter(value->selectedPages.contains(value.pageId())).flatMap(value->value.states().stream())
                 .filter(value->matches(tokens,value.semanticName())>0).map(ApplicationModel.PageState::stateId).sorted().toList();
-        return new Selection(pageIds,stateIds,elementIds);
+        return new Selection(pageIds,stateIds,elementIds,List.copyOf(directlyRequiredMethods));
     }
     private static int matches(Set<String> tokens,String value){if(value==null)return 0;String normalized=value.replaceAll("([a-z])([A-Z])","$1 $2").toLowerCase(Locale.ROOT);return(int)tokens.stream().filter(normalized::contains).count();}
+    private static boolean mentionsIdentifier(String text,String identifier){
+        if(text==null||identifier==null||identifier.isBlank())return false;
+        return java.util.regex.Pattern.compile("(?<![\\p{L}\\p{N}_$])"+java.util.regex.Pattern.quote(identifier)+"(?![\\p{L}\\p{N}_$])",
+                java.util.regex.Pattern.CASE_INSENSITIVE|java.util.regex.Pattern.UNICODE_CASE).matcher(text).find();
+    }
 }

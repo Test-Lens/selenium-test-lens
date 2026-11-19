@@ -1,16 +1,21 @@
 ---
 title: Test Engineering Studio
-description: Use Test Engineering Studio 0.5.0 to scan a Selenium project, map its application, review generated tests, run them, and approve evidence-backed repairs.
+description: Use Test Engineering Studio 0.5.1 to scan a Selenium project, map its application, review generated JUnit 5 tests, run them, and approve evidence-backed repairs.
 ---
 
 # Test Engineering Studio
 
+!!! warning "Experimental feature — temporarily unavailable"
+
+    Test Engineering Studio is undergoing further stabilization and is not currently recommended for production use. Public documentation will be restored after end-to-end certification.
+
+
 !!! info "Local opt-in tooling"
-    Test Engineering Studio 0.5.0 is launched explicitly from the Maven plugin. It is a loopback-only local tool, not a remotely hosted service or a background feature of the runtime dependency.
+    Test Engineering Studio 0.5.1 is launched explicitly from the Maven plugin. It is a loopback-only local tool, not a remotely hosted service or a background feature of the runtime dependency.
 
 Test Engineering Studio is a local, persistent interface over the deterministic Application Mapper, existing-Page-Object index, `ContextSlicer`, S12 agent workflow, targeted compiler and trusted repair boundary. It is separate from the runtime HUD.
 
-Start with the [Maven getting-started guide](test-engineering-studio-getting-started.md) for the canonical 0.5.0 goal, project/local configuration split, preflight and repository policy.
+Start with the [Maven getting-started guide](test-engineering-studio-getting-started.md) for the canonical 0.5.1 goal, project/local configuration split, preflight and repository policy.
 
 ![Project overview populated by the browser fixture](../assets/media/test-engineering-studio/project-overview.png)
 
@@ -86,9 +91,18 @@ The reviewable workflow deliberately separates three actions:
 
 Viewing a plan or proposed patch never compiles or starts a browser test. Page-Objects-only policy still rejects raw `By`, direct `findElement`, sleeps and JavaScript workarounds before execution.
 
+Before compilation, Studio requires a ready Page Object capability manifest and resolves referenced classes and methods
+through the canonical indexed API. Missing, ambiguous, stale, or incompatible references stop the run with bounded
+Source API Verification diagnostics. The full generated-test execution path is JUnit 5; the separately published
+TestNG runtime adapter remains supported, but TestNG execution is outside this Studio workflow.
+
 ## Run and diagnose
 
 The run view presents compilation and execution status, bounded diagnostics, Test Lens trace references, duration and workflow attempts. Raw diagnostics remain behind progressive disclosure. Agent failures retain their structured code, including `AGENT_TIMEOUT`, `AGENT_OUTPUT_INVALID` and `AGENT_CONTEXT_REJECTED`.
+
+Reviewer status is backed by a structured Reviewer Evidence Pack covering compilation, required API assertions,
+swallowed-failure checks, control-path status, and quality findings. A successful process exit is not sufficient evidence
+for approval, and a test that can swallow an assertion failure is rejected as a false green.
 
 When execution fails, the diagnosis projection shows the existing `FailureClassification`, evidence, counter-evidence and affected source scope. Studio does not reinterpret a product defect as a selector problem.
 
@@ -135,6 +149,10 @@ Each workflow also has a versioned snapshot under `<resolved-workspace>/ai/sessi
 
 On host restart, snapshots are validated before they are exposed. A successfully restored workflow is marked `resumed`. Work that was in `PLAN_GENERATING` or `IMPLEMENTATION_GENERATING` becomes `AGENT_EXECUTION_INTERRUPTED`; work that was executing or verifying becomes `EXECUTION_INTERRUPTED`. Studio never assumes an interrupted process completed.
 
+For a recovered RUN, the UI uses only `availableActions` returned by the backend. It does not reconstruct a successful
+result from a partial snapshot or resume an old child process in place; reviewed artifacts and current source
+fingerprints must still satisfy the normal run gates.
+
 Freshness compares the persisted source fingerprint with the currently indexed project:
 
 - `FRESH` workflows expose only actions valid for their restored state;
@@ -158,13 +176,17 @@ Requirements and context use the existing `RedactionPolicy`. Cookies, authorizat
 
 ## Run the development fixture
 
-From the repository root, run the complete Chrome fixture:
+From the repository root, run the complete Chrome fixture, including the real-DOM Studio navigation regression, through the Studio Failsafe profile:
 
 ```powershell
-mvn -pl selenium-test-lens-test-engineering-studio test
+mvn -Pbrowser-it -pl selenium-test-lens-test-engineering-studio -am `
+  -Dbrowser=chrome -Dheaded=false `
+  -Dit.test=TestEngineeringStudioBrowserIT verify
 ```
 
-The fixture starts the loopback Studio host and a local login application, scans hand-written Page Objects, maps and correlates the live page, generates and reviews a scripted provider-neutral plan/test, compiles and executes it in Chrome, creates a real Selector Intelligence repair after selector drift, verifies that viewing the proposal does not mutate source, then applies it only after the browser clicks **Approve and apply**. A Firefox test selector exists, but this page does not treat it or the scripted agent as certification of the complete external-provider repair workflow.
+The successful run creates `selenium-test-lens-test-engineering-studio/target/failsafe-reports/io.github.testlens.studio.TestEngineeringStudioBrowserIT.txt`. In the current module, Surefire also discovers this class because its name starts with `Test`; do not infer that behavior for arbitrary `*IT` names. The Failsafe report above is the explicit evidence for the documented `browser-it` command.
+
+The fixture starts the loopback Studio host and a local login application, checks active navigation in a real DOM, scans hand-written Page Objects, maps and correlates the live page, generates and reviews a scripted provider-neutral plan/test, compiles and executes it in Chrome, creates a real Selector Intelligence repair after selector drift, verifies that viewing the proposal does not mutate source, then applies it only after the browser clicks **Approve and apply**. A Firefox selector exists, but neither this fixture nor its `ScriptedAgentExecutor` certifies the quality of a real model or the complete external-provider repair workflow.
 
 Screenshots are written to `selenium-test-lens-test-engineering-studio/target/studio-screenshots/`.
 
@@ -180,4 +202,4 @@ Screenshots are written to `selenium-test-lens-test-engineering-studio/target/st
 
 See [AI workflow orchestration](workflow-orchestration.md) for S11/S12 contracts and [existing Page Object correlation](../advanced/application-mapping/existing-page-objects.md) for evidence semantics.
 
-For the packaging boundary between source-only development modules and a future consumer release, see [0.5.0 publication candidates](0.5.0-publication-candidates.md).
+For the historical decision record behind the 0.5.0 publication boundary, see [0.5.0 publication candidates](0.5.0-publication-candidates.md).

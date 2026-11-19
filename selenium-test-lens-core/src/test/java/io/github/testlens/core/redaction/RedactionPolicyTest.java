@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.function.UnaryOperator;
@@ -13,6 +14,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RedactionPolicyTest {
     private static final String SECRET = "canary-secret-7f18d2";
+    private static final String STRUCTURAL_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+            + "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlN5bnRoZXRpYyBVc2VyIiwiYWRtaW4iOnRydWV9."
+            + "c3ludGhldGljLXNpZ25hdHVyZQ";
+    private static final String JAVA_API_REFERENCE =
+            "benchmark.LoginPage.invalidPasswordShowsExpectedError(String,String)";
 
     @Test
     void structurallyRedactsJsonStringsContainingApostrophesAndEscapes() {
@@ -200,6 +206,161 @@ class RedactionPolicyTest {
     }
 
     @Test
+    void structuredAgentInspectionDistinguishesJavaAssignmentsFromSensitiveContent() {
+        RedactionPolicy policy = RedactionPolicy.builder().secret(SECRET).build();
+        String safe = "{\"payload\":{\"sourcePatch\":\"String password = \\\"fixture-invalid\\\";\"}}";
+
+        assertTrue(policy.inspectStructuredAgentOutput(safe, Set.of("$.payload.sourcePatch")).isEmpty());
+
+        var literal = policy.inspectStructuredAgentOutput(
+                "{\"payload\":{\"sourcePatch\":\"String value = \\\"" + SECRET + "\\\";\"}}",
+                Set.of("$.payload.sourcePatch"));
+        assertTrue(literal.stream().anyMatch(finding -> finding.rule().equals("LITERAL_SECRET")
+                && finding.location().equals("$.payload.sourcePatch")));
+
+        var nestedKey = policy.inspectStructuredAgentOutput(
+                "{\"payload\":{\"sourcePatch\":\"safe\",\"nested\":{\"password\":\"fixture\"}}}",
+                Set.of("$.payload.sourcePatch"));
+        assertTrue(nestedKey.stream().anyMatch(finding -> finding.rule().equals("SENSITIVE_KEY_VALUE")
+                && finding.category().equals("JSON_KEY")
+                && finding.location().equals("$.payload.[field].[sensitive]")));
+
+        var plainPair = policy.inspectStructuredAgentOutput(
+                "{\"payload\":{\"reason\":\"password=fixture-invalid\"}}",
+                Set.of("$.payload.sourcePatch"));
+        assertEquals(List.of(new RedactionPolicy.StructuredRedactionFinding(
+                "SENSITIVE_KEY_VALUE", "JSON_STRING", "$.payload.reason")), plainPair);
+
+        String secretKey = "configured-secret-canary";
+        var secretAncestor = policy.inspectStructuredAgentOutput(
+                "{\"payload\":{\"" + secretKey + "\":{\"password\":\"fixture\"}}}", Set.of());
+        assertFalse(secretAncestor.isEmpty());
+        assertTrue(secretAncestor.stream().noneMatch(finding -> finding.location().contains(secretKey)));
+        assertTrue(secretAncestor.stream().allMatch(finding -> finding.location().length() <= 160));
+
+        String longKey = "untrusted".repeat(40);
+        var longAncestor = policy.inspectStructuredAgentOutput(
+                "{\"payload\":{\"" + longKey + "\":{\"password\":\"fixture\"}}}", Set.of());
+        assertFalse(longAncestor.isEmpty());
+        assertTrue(longAncestor.stream().noneMatch(finding -> finding.location().contains(longKey)));
+        assertTrue(longAncestor.stream().allMatch(finding -> finding.location().length() <= 160));
+    }
+
+    @Test
+    void structuredProtocolResultPathIsPreservedWhileUnknownSiblingRemainsMasked() {
+        RedactionPolicy policy = RedactionPolicy.builder().secret(SECRET).build();
+        String document = "{\"result\":{\"payload\":{\"sourcePatch\":\"String value = \\\""
+                + SECRET + "\\\";\"}},\"unknownSibling\":{\"password\":\"fixture\"}}";
+
+        var findings = policy.inspectStructuredAgentOutput(document, Set.of("$.result.payload.sourcePatch"));
+
+        assertTrue(findings.stream().anyMatch(finding -> finding.rule().equals("LITERAL_SECRET")
+                && finding.location().equals("$.result.payload.sourcePatch")));
+        assertTrue(findings.stream().anyMatch(finding -> finding.rule().equals("SENSITIVE_KEY_VALUE")
+                && finding.location().equals("$.[field].[sensitive]")));
+        assertTrue(findings.stream().noneMatch(finding -> finding.location().contains("unknownSibling")));
+    }
+
+    @Test
+    void generatedSourceInspectionKeepsCredentialJwtAndUrlProtection() {
+        RedactionPolicy policy = RedactionPolicy.defaults();
+        assertEquals(List.of(RedactionPolicy.SensitiveContentRule.AUTHORIZATION_CREDENTIAL),
+                policy.inspectGeneratedSource("String header = \"Authorization: Bearer synthetic-value\";")
+                        .stream().map(RedactionPolicy.SensitiveContentFinding::rule).toList());
+        assertEquals(List.of(RedactionPolicy.SensitiveContentRule.JWT),
+                policy.inspectGeneratedSource("String jwt = \"aaaaaaaa.bbbbbbbb.cccccccc\";")
+                        .stream().map(RedactionPolicy.SensitiveContentFinding::rule).toList());
+        assertTrue(policy.inspectGeneratedSource(
+                "applicationtooling.securitygate.validationrules.check();").isEmpty(),
+                "a qualified Java identifier is not a JWT credential");
+        assertTrue(policy.inspectGeneratedSource(JAVA_API_REFERENCE + ";").isEmpty(),
+                "the reproduced Page Object reference is safe when used as Java code");
+        assertTrue(policy.inspectStructuredAgentOutput(
+                "{\"payload\":{\"sourcePatch\":\"applicationtooling.securitygate.validationrules.check();\"}}",
+                Set.of("$.payload.sourcePatch")).isEmpty(),
+                "the production structured gate must preserve qualified Java identifiers");
+        assertEquals(List.of(RedactionPolicy.SensitiveContentRule.JWT),
+                policy.inspectGeneratedSource("// aaaaaaaa.bbbbbbbb.cccccccc")
+                        .stream().map(RedactionPolicy.SensitiveContentFinding::rule).toList());
+        assertEquals(List.of(RedactionPolicy.SensitiveContentRule.CREDENTIAL_URL),
+                policy.inspectGeneratedSource("String url = \"https://example.test/?token=synthetic\";")
+                        .stream().map(RedactionPolicy.SensitiveContentFinding::rule).toList());
+        assertTrue(policy.inspectGeneratedSource(
+                "String url = \"https://example.test/?mode=synthetic\";").isEmpty());
+        assertEquals(List.of(RedactionPolicy.SensitiveContentRule.SENSITIVE_JSON_KEY_VALUE),
+                policy.inspectGeneratedSource(
+                                "String nested = \"{\\\"password\\\":\\\"synthetic\\\"}\";")
+                        .stream().map(RedactionPolicy.SensitiveContentFinding::rule).toList());
+        assertEquals(List.of(RedactionPolicy.SensitiveContentRule.SENSITIVE_JSON_KEY_VALUE),
+                policy.inspectGeneratedSource("String nested = \"\"\"{\"password\":\"synthetic\"}\"\"\";")
+                        .stream().map(RedactionPolicy.SensitiveContentFinding::rule).toList());
+    }
+
+    @Test
+    void trustedJavaApiReferenceSuppressesOnlyJwtLikeFalsePositive() {
+        RedactionPolicy policy = RedactionPolicy.defaults();
+        String safe = "{\"payload\":{\"pageObjectApisUsed\":[\"" + JAVA_API_REFERENCE + "\"]}}";
+
+        assertTrue(policy.inspectStructuredAgentOutput(safe, Set.of(),
+                (path, value) -> path.equals("$.payload.pageObjectApisUsed[]")
+                        && value.equals(JAVA_API_REFERENCE)).isEmpty());
+
+        String jwt = "{\"payload\":{\"pageObjectApisUsed\":[\"" + STRUCTURAL_JWT + "\"]}}";
+        var findings = policy.inspectStructuredAgentOutput(jwt, Set.of(), (path, value) -> true);
+        assertTrue(findings.stream().anyMatch(finding -> finding.rule().equals("JWT")
+                && finding.location().equals("$.payload.pageObjectApisUsed[item]")));
+    }
+
+    @Test
+    void structuralJwtIsBlockedAcrossPlainSourceNestedAndEscapedJsonContexts() {
+        RedactionPolicy policy = RedactionPolicy.defaults();
+        assertTrue(policy.inspectStructuredAgentOutput(
+                "{\"message\":\"" + STRUCTURAL_JWT + "\"}", Set.of()).stream()
+                .anyMatch(finding -> finding.rule().equals("JWT")));
+        assertTrue(policy.inspectGeneratedSource("String jwt = \"" + STRUCTURAL_JWT + "\";").stream()
+                .anyMatch(finding -> finding.rule() == RedactionPolicy.SensitiveContentRule.JWT));
+        assertTrue(policy.inspectGeneratedSource("// " + STRUCTURAL_JWT).stream()
+                .anyMatch(finding -> finding.rule() == RedactionPolicy.SensitiveContentRule.JWT));
+        assertTrue(policy.inspectStructuredAgentOutput(
+                "{\"outer\":{\"inner\":\"" + STRUCTURAL_JWT + "\"}}", Set.of()).stream()
+                .anyMatch(finding -> finding.rule().equals("JWT")));
+        String escaped = "{\"payload\":{\"sourcePatch\":\"String nested = \\\"{\\\\\\\"safe\\\\\\\":"
+                + "\\\\\\\"" + STRUCTURAL_JWT + "\\\\\\\"}\\\";\"}}";
+        assertTrue(policy.inspectStructuredAgentOutput(escaped, Set.of("$.payload.sourcePatch")).stream()
+                .anyMatch(finding -> finding.rule().equals("JWT")));
+        assertTrue(policy.inspectStructuredAgentOutput(
+                "{\"message\":\"safe=" + STRUCTURAL_JWT + "\"}", Set.of(), (path, value) -> true).stream()
+                .anyMatch(finding -> finding.rule().equals("JWT")));
+    }
+
+    @Test
+    void structuralJwtRequiresCanonicalJoseHeaderClaimsObjectAndConsistentSignature() {
+        RedactionPolicy policy = RedactionPolicy.defaults();
+        String hsHeader = "eyJhbGciOiJIUzI1NiJ9";
+        String claims = "e30";
+        String signature = "c3ludGhldGljLXNpZ25hdHVyZQ";
+        String noneHeader = "eyJhbGciOiJub25lIn0";
+
+        assertTrustedValueBlocked(policy, hsHeader + "." + claims + "." + signature);
+        assertTrustedValueBlocked(policy, noneHeader + "." + claims + ".");
+
+        for (String malformed : List.of(
+                hsHeader + "=." + claims + "." + signature,
+                "_w." + claims + "." + signature,
+                "eyJtZXRhIjp7ImFsZyI6IkhTMjU2In19." + claims + "." + signature,
+                "eyJhbGciOjF9." + claims + "." + signature,
+                hsHeader + ".W10." + signature,
+                hsHeader + ".MQ." + signature,
+                hsHeader + "." + claims + ".",
+                noneHeader + "." + claims + "." + signature,
+                hsHeader + "." + claims + "." + signature + ".ZXh0cmE")) {
+            assertTrue(policy.inspectStructuredAgentOutput(
+                    "{\"value\":\"" + malformed + "\"}", Set.of(), (path, value) -> true).isEmpty(),
+                    malformed);
+        }
+    }
+
+    @Test
     void oneImmutableInstanceIsSafeForConcurrentUse() throws Exception {
         RedactionPolicy policy = RedactionPolicy.builder().secret(SECRET).build();
         var executor = Executors.newFixedThreadPool(8);
@@ -233,6 +394,12 @@ class RedactionPolicyTest {
 
     private static void assertValidJson(String value) {
         assertNotNull(JsonRedactor.redact(value, ignored -> false, UnaryOperator.identity(), "unused"));
+    }
+
+    private static void assertTrustedValueBlocked(RedactionPolicy policy, String value) {
+        assertTrue(policy.inspectStructuredAgentOutput(
+                "{\"value\":\"" + value + "\"}", Set.of(), (path, candidate) -> true).stream()
+                .anyMatch(finding -> finding.rule().equals("JWT")), value);
     }
 
     private static String jsonEscape(String value) {

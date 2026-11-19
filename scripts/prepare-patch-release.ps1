@@ -9,7 +9,7 @@ Import-Module (Join-Path $PSScriptRoot "ReleaseReactor.psm1") -Force
 $root = [IO.Path]::GetFullPath($RepositoryRoot)
 $model = Get-TestLensReactorModel -RepositoryRoot $root -IncludeBrowserIt
 if ($TargetVersion -notmatch '^\d+\.\d+\.\d+$') { throw "TargetVersion must be an exact non-SNAPSHOT semantic version" }
-if ([int]($TargetVersion.Split('.')[2]) -lt 1) { throw "TargetVersion must identify a 0.4.x patch release (patch component >= 1)" }
+if ([int]($TargetVersion.Split('.')[2]) -lt 1) { throw "TargetVersion must identify a patch release (patch component >= 1)" }
 if ($model.RootVersion -notmatch '^(\d+)\.(\d+)\.(\d+)-SNAPSHOT$') { throw "Current version '$($model.RootVersion)' is not a patch-development SNAPSHOT" }
 $expectedTarget = "$($Matches[1]).$($Matches[2]).$($Matches[3])"
 if ($TargetVersion -ne $expectedTarget) { throw "TargetVersion '$TargetVersion' must match current development version '$expectedTarget'" }

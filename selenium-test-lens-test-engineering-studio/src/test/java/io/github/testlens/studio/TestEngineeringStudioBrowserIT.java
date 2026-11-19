@@ -15,6 +15,11 @@ import io.github.testlens.selector.tooling.*;
 import io.github.testlens.studio.transport.TestEngineeringStudioServer;
 import io.github.testlens.studio.launcher.StudioLauncherService;
 import io.github.testlens.studio.project.ProjectDiscovery;
+import io.github.testlens.studio.browser.Browser;
+import io.github.testlens.studio.browser.BrowserRequest;
+import io.github.testlens.studio.browser.DefaultLocalBrowserSessionProvider;
+import io.github.testlens.studio.browser.Ownership;
+import io.github.testlens.studio.browser.Purpose;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.openqa.selenium.*;
@@ -23,6 +28,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -86,30 +92,33 @@ class TestEngineeringStudioBrowserIT {
                 ScriptedAgentExecutor agents = scripted(plan(), implementation(), review());
                 String fixtureClasspath=pageObjectClasses+System.getProperty("path.separator")+System.getProperty("java.class.path");
                 ReviewableCoordinatorWorkflowGateway gateway = new ReviewableCoordinatorWorkflowGateway(agents,
-                        replay -> coordinator(replay, target, app.uri(), pageObjectClasses, before, after,
+                        (replay,ignored) -> coordinator(replay, target, app.uri(), pageObjectClasses, before, after,
                                 source, impact, baselineIndex, workflowFailure, workflowClassification,
                                 workflowProposal, workflowExecutions),
                         new GeneratedTestPolicyValidator(GeneratedTestPolicyValidator.Policy.defaults()),
                         ignored->Path.of("src/test/java/generated/InvalidPasswordTest.java"),
-                        new TargetedRepairSourceCompiler(project,17,fixtureClasspath));
+                        new TargetedRepairSourceCompiler(project,17,fixtureClasspath),
+                        ()->indexProject().projectFingerprint());
                 Files.writeString(project.resolve("pom.xml"),"<project><modelVersion>4.0.0</modelVersion><artifactId>fixture-app</artifactId></project>");
                 var descriptor=new ProjectDiscovery().discover(project);
                 StudioLauncherService launcher=new StudioLauncherService(gateway,()->target);
                 try (var launched=launcher.launch(descriptor,new StudioLauncherService.LaunchOptions(false))) {
                     TestEngineeringStudioService service=launched.service();studio.get(launched.uri().toString());
+                    assertRealDomNavigation(studio);
                     click(studio, "Scan project"); awaitText(studio, "2 files scanned"); screenshot(studio, "project-overview");
                     click(studio, "Start mapping"); awaitText(studio, "pages mapped");
                     click(studio, "Correlate"); awaitText(studio, "elements correlated");
 
                     click(studio, "Requirements");
-                    WebElement requirement = studio.findElement(By.id("requirement-input"));
+                    WebElement requirement = new WebDriverWait(studio, Duration.ofSeconds(20))
+                            .until(ExpectedConditions.elementToBeClickable(By.id("requirement-input")));
                     requirement.sendKeys("Invalid password should display an error message");
                     click(studio, "Generate plan"); awaitText(studio, "Invalid password"); screenshot(studio, "requirement-plan");
                     click(studio, "Generate test"); awaitText(studio, "Proposed test");
                     assertEquals(io.github.testlens.studio.projection.StageStatus.PASS,service.workflow(null).implementation().stage().status(),service.workflow(null).implementation().policyResults().toString());
                     assertFalse(implementation().sourcePatch().contains("By."));
                     assertFalse(implementation().sourcePatch().contains("findElement"));
-                    assertTrue(implementation().sourcePatch().contains("new LoginPage(driver).invalidPassword"));
+                    assertTrue(implementation().sourcePatch().contains("new LoginPage().invalidPassword"));
 
                     app.changed.set(true);
                     target.get(app.uri());
@@ -168,6 +177,47 @@ class TestEngineeringStudioBrowserIT {
         }
     }
 
+    @Test void generatedJUnitUsesNoArgPageObjectBoundToRealStudioBrowserSession() throws Exception {
+        writeBrowserBoundPageObject();
+        Path pageObjectClasses=project.resolve("target/browser-bound-page-object-classes");
+        compilePageObject(pageObjectClasses);
+        String source="""
+                package generated;
+                import example.LoginPage;
+                import org.junit.jupiter.api.Test;
+                import static org.junit.jupiter.api.Assertions.assertTrue;
+                public final class BrowserBoundInvalidPasswordTest {
+                  @Test void invalidPassword() {
+                    assertTrue(new LoginPage().invalidPasswordShowsExpectedError("test-user","invalid-value"));
+                  }
+                }
+                """;
+        assertTrue(source.contains("assertTrue(new LoginPage().invalidPasswordShowsExpectedError(\"test-user\",\"invalid-value\"))"));
+        Path generatedPath=Path.of("src/test/java/generated/BrowserBoundInvalidPasswordTest.java");
+        TargetedJavaCompiler.CompilationResult compilation=new TargetedJavaCompiler().compile(
+                new TargetedJavaCompiler.CompilationRequest(List.of(new TargetedJavaCompiler.SourceUnit(
+                        generatedPath,"generated.BrowserBoundInvalidPasswordTest",source,ArtifactEnvelope.digest(""))),
+                        17,pageObjectClasses+System.getProperty("path.separator")+System.getProperty("java.class.path"),20),
+                Map.of());
+        assertTrue(compilation.successful(),compilation.diagnostics().toString());
+
+        try(FixtureApplication app=new FixtureApplication()) {
+            JUnitTargetedTestExecutor executor=new JUnitTargetedTestExecutor(
+                    new DefaultLocalBrowserSessionProvider(),
+                    new BrowserRequest(Purpose.TEST_EXECUTION,Browser.CHROME,Ownership.STUDIO_OWNED,true,
+                            "browser-bound-page-object-it-"+UUID.randomUUID()),List.of(pageObjectClasses),
+                    java.net.URI.create(app.uri()));
+
+            TargetedTestExecutor.ExecutionResult result=executor.execute(
+                    new TargetedTestExecutor.ExecutionRequest("browser-bound-it",
+                            "generated.BrowserBoundInvalidPasswordTest",List.of(),Duration.ofSeconds(30)),
+                    compilation.output());
+
+            assertEquals(TargetedTestExecutor.Status.PASS,result.status(),result.boundedEvidence().toString());
+            assertEquals(1,result.tests());
+        }
+    }
+
     private AgentWorkflowCoordinator coordinator(AgentExecutor executor,WebDriver target,String url,Path pageObjectClasses,
             ApplicationModel.ElementModel before,AtomicReference<ApplicationModel.ElementModel> after,
             PageObjectCorrelation.ElementCorrelation source,SourceImpact impact,ExistingProjectIndex baselineIndex,
@@ -200,7 +250,8 @@ class TestEngineeringStudioBrowserIT {
                             "trace:studio-real-failure","mapping:changed-login");workflowProposal.set(proposal);return Optional.of(proposal);},
                 new AgentWorkflowCoordinator.Configuration(Path.of("src/test/java/generated/InvalidPasswordTest.java"),
                         GENERATED_BINARY, null, 17, fixtureClasspath, 10,
-                        Duration.ofSeconds(15), List.of("generated.InvalidPasswordTest"), 2));
+                        Duration.ofSeconds(15), List.of("generated.InvalidPasswordTest"), 2),
+                baselineIndex::projectFingerprint);
     }
 
     private void writeExistingProject() throws Exception {
@@ -213,6 +264,7 @@ class TestEngineeringStudioBrowserIT {
                   private final By username = By.id("username");
                   private final By password = By.id("password");
                   private final By loginButton = By.id("old-login-button");
+                  public LoginPage() { this(io.github.testlens.studio.browser.BrowserSessionContext.currentDriver()); }
                   public LoginPage(org.openqa.selenium.WebDriver driver) { this.driver = driver; }
                   public boolean invalidPassword(String user, String passwordValue) {
                     driver.findElement(username).sendKeys(user);
@@ -229,6 +281,29 @@ class TestEngineeringStudioBrowserIT {
                 """);
     }
 
+    private void writeBrowserBoundPageObject() throws Exception {
+        Path source=project.resolve("src/test/java/example");Files.createDirectories(source);
+        Files.writeString(source.resolve("LoginPage.java"),"""
+                package example;
+                import io.github.testlens.studio.browser.BrowserSessionContext;
+                import org.openqa.selenium.By;
+                import org.openqa.selenium.WebDriver;
+                public final class LoginPage {
+                  private final WebDriver driver;
+                  private final By username=By.id("username");
+                  private final By password=By.id("password");
+                  private final By loginButton=By.id("old-login-button");
+                  public LoginPage() { this.driver=BrowserSessionContext.currentDriver(); }
+                  public boolean invalidPasswordShowsExpectedError(String user,String passwordValue) {
+                    driver.findElement(username).sendKeys(user);
+                    driver.findElement(password).sendKeys(passwordValue);
+                    driver.findElement(loginButton).click();
+                    return driver.findElement(By.id("login-error")).isDisplayed();
+                  }
+                }
+                """);
+    }
+
     private static TestPlan plan() {
         var scenario = new TestPlan.TestScenario("invalid-password", "Invalid password", TestPlan.Priority.HIGH,
                 List.of("Login page available"), List.of(new TestPlan.TestStep(1,"Submit invalid credentials",null,null,"INVALID_PASSWORD")),
@@ -239,10 +314,12 @@ class TestEngineeringStudioBrowserIT {
     }
     private static TestImplementationProposal implementation() {
         return new TestImplementationProposal(ready(), "invalid-password",
-                "package generated; import example.LoginPage; import org.openqa.selenium.WebDriver; public final class InvalidPasswordTest { public static boolean execute(WebDriver driver) { return new LoginPage(driver).invalidPassword(\"demo\", \"invalid\"); } }",
-                TestImplementationProposal.SelectorAccessPolicy.PAGE_OBJECTS_ONLY,List.of("LoginPage.invalidPassword"),List.of());
+                "package generated; import example.LoginPage; import org.junit.jupiter.api.Test; import static org.junit.jupiter.api.Assertions.assertTrue; public final class InvalidPasswordTest { @Test public void invalidPasswordIsRejected() { assertTrue(new LoginPage().invalidPassword(\"demo\", \"invalid\")); } }",
+                TestImplementationProposal.SelectorAccessPolicy.PAGE_OBJECTS_ONLY,
+                List.of("example.LoginPage.invalidPassword(String,String)"),List.of());
     }
-    private static CodeReviewResult review() { return new CodeReviewResult(ready(), CodeReviewResult.Verdict.APPROVE,List.of("implementation"),List.of()); }
+    private static CodeReviewResult review() { return new CodeReviewResult(ready(), CodeReviewResult.Verdict.APPROVE,
+            List.of("implementation-1","quality-1","compile-success-1","execution-1"),List.of()); }
     private static ContractHeader ready() { return new ContractHeader(ContractHeader.SCHEMA_VERSION,ContractHeader.Status.READY,List.of("real fixture"),List.of(),ContractHeader.Confidence.OBSERVED); }
     private static ScriptedAgentExecutor scripted(Object... values) { List<AgentExecutor.AgentResult> results=new ArrayList<>();for(int i=0;i<values.length;i++)results.add(new AgentExecutor.AgentResult("scripted-"+i,ArtifactEnvelope.create("artifact-"+i,"studio",List.of(),1,values[i])));return new ScriptedAgentExecutor(results); }
 
@@ -263,9 +340,11 @@ class TestEngineeringStudioBrowserIT {
     private WorkflowExecution executeGenerated(WebDriver raw,String url,Path classes,TargetedJavaCompiler.CompiledOutput output,String sessionName)throws Exception{
         raw.get(url);TestLens lens=TestLens.attach(raw);WebDriver observed=lens.observeDriver();UiTestLensSession session=lens.startSession(sessionName);
         Throwable failure=null;boolean passed=false;
-        try(URLClassLoader pageObjects=new URLClassLoader(new java.net.URL[]{classes.toUri().toURL()},getClass().getClassLoader())){
-            Class<?> test=output.loadClass(GENERATED_BINARY,pageObjects);Object result=test.getMethod("execute",WebDriver.class).invoke(null,observed);passed=Boolean.TRUE.equals(result);
-            if(passed)lens.finishPassed();else{failure=new AssertionError("Login error was not visible");lens.finishFailed(failure);}
+        try(URLClassLoader pageObjects=new URLClassLoader(new java.net.URL[]{classes.toUri().toURL()},getClass().getClassLoader());
+            io.github.testlens.studio.browser.BrowserSessionContext.Scope ignored=
+                    io.github.testlens.studio.browser.BrowserSessionContext.bind(observed)){
+            Class<?> test=output.loadClass(GENERATED_BINARY,pageObjects);Object instance=test.getDeclaredConstructor().newInstance();
+            test.getMethod("invalidPasswordIsRejected").invoke(instance);passed=true;lens.finishPassed();
         }catch(InvocationTargetException invocation){failure=invocation.getCause();lens.finishFailed(failure);}
         return new WorkflowExecution(passed,failure,session);
     }
@@ -277,6 +356,25 @@ class TestEngineeringStudioBrowserIT {
     private record WorkflowExecution(boolean passed,Throwable failure,UiTestLensSession session){}
 
     private static void click(WebDriver driver,String text) { new WebDriverWait(driver,Duration.ofSeconds(20)).until(d -> d.findElements(By.xpath("//button[normalize-space()="+quote(text)+"]")).stream().filter(WebElement::isEnabled).findFirst().orElse(null)).click(); }
+    private static void assertRealDomNavigation(WebDriver driver) {
+        List<WebElement> views = driver.findElements(By.cssSelector("nav [data-view]"));
+        assertEquals(9, views.size(), "the complete Studio navigation must be present in the real DOM");
+        WebElement previous = null;
+        for (WebElement view : views) {
+            view.click();
+            assertEquals("page", view.getAttribute("aria-current"));
+            assertEquals(1, driver.findElements(By.cssSelector("nav [data-view][aria-current='page']")).size(),
+                    "exactly one real DOM navigation item must be current");
+            if (previous != null) assertEquals("false", previous.getAttribute("aria-current"));
+            previous = view;
+        }
+        WebElement back = views.get(views.size() - 2);
+        back.click();
+        assertEquals("page", back.getAttribute("aria-current"), "back navigation must select the prior view");
+        assertEquals("false", previous.getAttribute("aria-current"));
+        views.get(0).click();
+        assertEquals("page", views.get(0).getAttribute("aria-current"), "rerender must retain the selected view");
+    }
     private static void awaitText(WebDriver driver,String text) { new WebDriverWait(driver,Duration.ofSeconds(30)).until(d -> d.findElement(By.tagName("body")).getText().contains(text)); }
     private static String quote(String value) { return "'"+value.replace("'","")+"'"; }
     private static void screenshot(WebDriver driver,String name) throws Exception { Path out=Path.of("target","studio-screenshots",name+"-"+System.getProperty("studio.browser","chrome")+".png");Files.createDirectories(out.getParent());Files.write(out,((TakesScreenshot)driver).getScreenshotAs(OutputType.BYTES)); }

@@ -18,7 +18,7 @@ import java.util.function.Function;
 /**
  * Lazy local provider. Selenium Manager is consulted only by an explicit preflight/open call,
  * and a real browser is constructed only by {@link #open(BrowserRequest)}.
- * @since 0.5.0
+ * @since 0.5.1
  */
 public final class DefaultLocalBrowserSessionProvider implements BrowserSessionProvider {
     static final String SELENIUM_BROWSER_PATH = "SE_BROWSER_PATH";

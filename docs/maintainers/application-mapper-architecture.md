@@ -15,7 +15,7 @@ application-tooling (persistence, code generation, drift, AI contracts)
         -> selector-tooling (existing-source index / Selector Audit)
 ```
 
-The three application modules remain unpublished while the selector modules they consume are internal. The vertical slice is compile- and browser-tested from the source reactor; publication is a separate API/product decision for a later release.
+The application model, mapper, and tooling modules are published in 0.5.1 as opt-in tooling artifacts. Their catalog classifications remain authoritative: publication does not promote technically public implementation classes into the stable USER API.
 
 ## Why a neutral model
 
@@ -49,4 +49,4 @@ Existing-project source correlation and workflow orchestration extend this bound
 
 ## User documentation
 
-The source-only development contract is documented under [Application mapping](../advanced/application-mapping/index.md), with a separate [guided tutorial](../advanced/application-mapping/tutorial.md), [existing Page Object correlation](../advanced/application-mapping/existing-page-objects.md), [Page Object generation](../advanced/application-mapping/page-object-generation.md), [drift and security guidance](../advanced/application-mapping/drift-security-troubleshooting.md), [AI test engineering](../ai/test-engineering.md), and [workflow orchestration](../ai/workflow-orchestration.md). Every page states that these 0.5.0 development modules are not Maven 0.4.0 artifacts.
+The opt-in tooling contract is documented under [Application mapping](../advanced/application-mapping/index.md), with a separate [guided tutorial](../advanced/application-mapping/tutorial.md), [existing Page Object correlation](../advanced/application-mapping/existing-page-objects.md), [Page Object generation](../advanced/application-mapping/page-object-generation.md), [drift and security guidance](../advanced/application-mapping/drift-security-troubleshooting.md), [AI test engineering](../ai/test-engineering.md), and [workflow orchestration](../ai/workflow-orchestration.md). These pages distinguish the published 0.5.1 tooling artifacts from the lightweight runtime and from stable USER API.
