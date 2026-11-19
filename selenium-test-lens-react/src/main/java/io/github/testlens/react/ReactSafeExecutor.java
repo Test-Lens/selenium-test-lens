@@ -5,6 +5,7 @@ import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -61,6 +62,7 @@ public class ReactSafeExecutor {
         NoSuchElementException lastNse = null;
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            ensureNotInterrupted();
             boolean operationStarted = false;
             long operationStartedAt = 0;
             try {
@@ -80,6 +82,7 @@ public class ReactSafeExecutor {
 
                 operationStartedAt = System.nanoTime();
                 operationStarted = true;
+                ensureNotInterrupted();
                 return op.apply(element);
 
             } catch (StaleElementReferenceException e) {
@@ -119,11 +122,20 @@ public class ReactSafeExecutor {
             Thread.sleep(d.toMillis());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            throw new WebDriverException("React-safe action interrupted during retry delay", e);
+        }
+    }
+
+    private static void ensureNotInterrupted() {
+        if (Thread.currentThread().isInterrupted()) {
+            throw new WebDriverException("React-safe action interrupted before another operation",
+                    new InterruptedException("React action cancellation"));
         }
     }
 
     private void recordRecoveryRetry(boolean operationStarted, By locator, String action, int attempt,
                                      long operationStartedAt, RuntimeException failure) {
+        ensureNotInterrupted();
         if (!operationStarted || attempt >= maxRetries) return;
         try {
             retryTraceSink.record(action, locator.toString(), attempt, attempt + 1, failure,
