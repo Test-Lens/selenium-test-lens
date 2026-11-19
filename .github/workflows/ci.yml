@@ -52,6 +52,21 @@ jobs:
           -ChromeBinary '${{ steps.bidi-chrome.outputs.chrome-path }}'
           -ChromeDriver '${{ steps.bidi-chrome.outputs.chromedriver-path }}'
           -WireDiagnostics:$${{ inputs.bidi_wire_diagnostics == true }}
+      - name: Diagnose redirect integrity without Lens
+        if: ${{ !cancelled() && inputs.bidi_wire_diagnostics == true }}
+        shell: pwsh
+        run: >-
+          mvn -B -f consumer-tests/selenium-bidi/protocol-reproducer/pom.xml test
+          -Dbidi.grid=http://127.0.0.1:4444
+          '-Dtest.chrome.binary=${{ steps.bidi-chrome.outputs.chrome-path }}'
+          '-Dwebdriver.chrome.driver=${{ steps.bidi-chrome.outputs.chromedriver-path }}'
+          '-Dprobe.output=${{ github.workspace }}/target/selenium-bidi-compatibility/protocol-reproducer'
+      - name: Preserve standalone protocol test results
+        if: ${{ always() && inputs.bidi_wire_diagnostics == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-bidi-protocol-reproducer
+          path: consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports/**
       - name: Stop test Grid
         if: always()
         shell: bash
