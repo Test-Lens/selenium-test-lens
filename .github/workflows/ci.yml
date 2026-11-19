@@ -6,6 +6,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      bidi_wire_diagnostics:
+        description: Capture bounded, sanitized BiDi fixture event phases for diagnosis
+        type: boolean
+        default: false
 
 jobs:
   selenium-bidi-binary:
@@ -46,6 +51,7 @@ jobs:
           ./scripts/test-selenium-bidi-compatibility.ps1 -BrowserTests -GridUrl http://127.0.0.1:4444
           -ChromeBinary '${{ steps.bidi-chrome.outputs.chrome-path }}'
           -ChromeDriver '${{ steps.bidi-chrome.outputs.chromedriver-path }}'
+          -WireDiagnostics:$${{ inputs.bidi_wire_diagnostics == true }}
       - name: Stop test Grid
         if: always()
         shell: bash

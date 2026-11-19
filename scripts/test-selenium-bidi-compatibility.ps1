@@ -1,6 +1,7 @@
 param(
     [string[]]$Versions,
     [switch]$BrowserTests,
+    [switch]$WireDiagnostics,
     [string]$GridUrl = '',
     [string]$ReuseFrozenRun = '',
     [string]$ChromeBinary = '',
@@ -69,6 +70,7 @@ try {
             "-Dselenium.version=$version", "-Dfrozen.dir=$frozen", "-Dlegacy.jar=$legacy",
             "-Drun.dir=$output", "-Dlens.tests=$(Join-Path $repo 'selenium-test-lens-selenium/src/test/java')",
             "-Dbidi.report.output=$(Join-Path $output 'report-artifacts')",
+            "-Dbidi.wire.diagnostics=$($WireDiagnostics.IsPresent.ToString().ToLowerInvariant())",
             "-Dlens.sha256=$($hashes.lens)", "-Dbidi.browser=$($BrowserTests.IsPresent.ToString().ToLowerInvariant())", "-Dbidi.grid=$GridUrl")
         if ($ChromeBinary) { $arguments += "-Dtest.chrome.binary=$ChromeBinary" }
         if ($ChromeDriver) { $arguments += "-Dwebdriver.chrome.driver=$ChromeDriver" }
