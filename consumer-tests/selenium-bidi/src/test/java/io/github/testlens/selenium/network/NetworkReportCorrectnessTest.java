@@ -123,9 +123,12 @@ class NetworkReportCorrectnessTest {
                     && item.method.equals("POST") && item.body.equals("{\"message\":\"journal-proof\"}")),
                     "Peer must receive the JSON POST body");
 
+            Map<String, Long> expectedRequests = multiset(journal.stream()
+                    .map(item -> item.method + " " + peer.origin + item.path).toList());
+            Map<String, Long> expectedResponses = multiset(journal.stream()
+                    .map(item -> item.status + " " + peer.origin + item.path).toList());
             new WebDriverWait(driver, Duration.ofSeconds(10)).until(ignored ->
-                    network.events().stream().filter(event -> event.response() != null
-                            && event.url().startsWith(peer.origin + "/case/")).count() >= journal.size());
+                    trafficComplete(network.events(), expectedRequests, expectedResponses));
             // Correlation is verified through the public wait result, including each redirect hop.
             for (Observed item : journal.stream().distinct().toList()) {
                 NetworkWaitResult result = network.waitForResponse(NetworkWaitCondition.builder()
@@ -211,6 +214,17 @@ class NetworkReportCorrectnessTest {
             network.stop();
             peer.secret = "";
         }
+    }
+
+    static boolean trafficComplete(List<NetworkEvent> events, Map<String, Long> expectedRequests,
+                                   Map<String, Long> expectedResponses) {
+        Map<String, Long> requests = multiset(events.stream().filter(event -> event.request() != null)
+                .map(event -> event.request().method() + " " + event.url())
+                .filter(expectedRequests::containsKey).toList());
+        Map<String, Long> responses = multiset(events.stream().filter(event -> event.response() != null)
+                .map(event -> event.response().status() + " " + event.url())
+                .filter(expectedResponses::containsKey).toList());
+        return expectedRequests.equals(requests) && expectedResponses.equals(responses);
     }
 
     private static void assertTraffic(List<Observed> journal, List<NetworkEvent> events, String origin) {

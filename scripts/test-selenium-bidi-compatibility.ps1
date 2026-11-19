@@ -61,7 +61,7 @@ try {
     $hashes | ConvertTo-Json | Set-Content (Join-Path $run 'artifact-sha256.json')
     $frozen | Set-Content (Join-Path $run 'frozen-artifacts-path.txt')
     $results = @()
-    $requiredBinaryClasses = @('BinaryArtifactTest') + @(Get-ChildItem -LiteralPath (Join-Path $repo 'selenium-test-lens-selenium/src/test/java/io/github/testlens/selenium/network') -Filter '*Test.java' | ForEach-Object { $_.BaseName })
+    $requiredBinaryClasses = @('BinaryArtifactTest', 'NetworkReportReadinessTest') + @(Get-ChildItem -LiteralPath (Join-Path $repo 'selenium-test-lens-selenium/src/test/java/io/github/testlens/selenium/network') -Filter '*Test.java' | ForEach-Object { $_.BaseName })
     foreach ($version in $Versions) {
         $output = Join-Path $run $version
         New-Item -ItemType Directory -Path $output -Force | Out-Null
