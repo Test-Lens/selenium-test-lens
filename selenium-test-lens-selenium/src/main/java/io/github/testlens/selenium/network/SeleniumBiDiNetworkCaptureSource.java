@@ -2,7 +2,8 @@ package io.github.testlens.selenium.network;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.bidi.BiDi;
-import org.openqa.selenium.bidi.module.Network;
+import org.openqa.selenium.bidi.Event;
+import org.openqa.selenium.bidi.HasBiDi;
 import org.openqa.selenium.bidi.network.BaseParameters;
 import org.openqa.selenium.bidi.network.BeforeRequestSent;
 import org.openqa.selenium.bidi.network.BytesValue;
@@ -15,17 +16,19 @@ import org.openqa.selenium.bidi.network.ResponseDetails;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
-/** Official Selenium 4.39 WebDriver BiDi network adapter. */
+/** WebDriver BiDi network adapter using Selenium's public event and listener APIs. */
 final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
     private final Module network;
     private final Map<String, String> diagnostics;
     private boolean closed;
+    private boolean callbackFailed;
 
     private SeleniumBiDiNetworkCaptureSource(Module network, Map<String, String> diagnostics) {
         this.network = network;
@@ -33,10 +36,17 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
     }
 
     static NetworkCaptureSource open(WebDriver driver, NetworkDiagnosticsOptions options, NetworkCaptureSink sink) {
-        BiDiDriverResolver.ResolvedBiDiDriver resolved = BiDiDriverResolver.resolve(driver);
+        BiDiDriverResolver.ResolvedBiDiDriver resolved;
+        try { resolved = BiDiDriverResolver.resolve(driver); }
+        catch (LinkageError failure) {
+            throw SeleniumBiDiCompatibility.incompatible("Selenium BiDi driver initialization is incompatible", failure);
+        }
         Module network;
         try {
-            network = new OfficialModule(new Network(resolved.driver()), resolved.ownedConnection());
+            network = new OfficialModule(((HasBiDi) resolved.driver()).getBiDi(), resolved.ownedConnection());
+        } catch (LinkageError failure) {
+            closeOwned(resolved.ownedConnection(), failure);
+            throw SeleniumBiDiCompatibility.incompatible("Selenium BiDi module creation is incompatible", failure);
         } catch (RuntimeException failure) {
             closeOwned(resolved.ownedConnection(), failure);
             throw captureFailure(BiDiFailureCategory.CAPTURE_START_FAILED,
@@ -61,14 +71,16 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
     private static NetworkCaptureSource subscribe(Module network, NetworkDiagnosticsOptions options,
                                                    NetworkCaptureSink sink, Map<String, String> diagnostics) {
         try {
-            NetworkCaptureSource source = new SeleniumBiDiNetworkCaptureSource(network, diagnostics);
-            network.onBeforeRequestSent(event -> beforeRequest(event, options, sink));
-            network.onResponseCompleted(event -> responseCompleted(event, options, sink));
-            network.onFetchError(event -> fetchError(event, options, sink));
+            SeleniumBiDiNetworkCaptureSource source = new SeleniumBiDiNetworkCaptureSource(network, diagnostics);
+            network.onFailure(failure -> source.callback(() -> { throw failure; }, sink));
+            network.onBeforeRequestSent(event -> source.callback(() -> beforeRequest(event, options, sink), sink));
+            network.onResponseCompleted(event -> source.callback(() -> responseCompleted(event, options, sink), sink));
+            network.onFetchError(event -> source.callback(() -> fetchError(event, options, sink), sink));
             return source;
-        } catch (RuntimeException failure) {
+        } catch (RuntimeException | LinkageError failure) {
             closeAfterFailure(network, failure);
-            throw failure;
+            if (failure instanceof LinkageError) throw SeleniumBiDiCompatibility.incompatible("Selenium BiDi registration incompatible", failure);
+            throw (RuntimeException) failure;
         }
     }
 
@@ -76,27 +88,27 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
                                                         String message,
                                                         Map<String, String> sourceDiagnostics,
                                                         String stage,
-                                                        RuntimeException cause) {
+                                                        Throwable cause) {
         Map<String, String> diagnostics = new LinkedHashMap<>(sourceDiagnostics);
         diagnostics.put("failureCategory", category.name());
         diagnostics.put("initializationStage", stage);
         return new BiDiCaptureException(category, message, diagnostics, cause);
     }
 
-    private static void closeOwned(BiDi connection, RuntimeException failure) {
+    private static void closeOwned(BiDi connection, Throwable failure) {
         if (connection == null) return;
         try {
             connection.close();
-        } catch (RuntimeException closeFailure) {
+        } catch (RuntimeException | LinkageError closeFailure) {
             failure.addSuppressed(closeFailure);
         }
     }
 
-    private static void closeAfterFailure(Module network, RuntimeException failure) {
+    private static void closeAfterFailure(Module network, Throwable failure) {
         if (network == null) return;
         try {
             network.close();
-        } catch (RuntimeException closeFailure) {
+        } catch (RuntimeException | LinkageError closeFailure) {
             failure.addSuppressed(closeFailure);
         }
     }
@@ -105,6 +117,8 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
     public Map<String, String> diagnostics() {
         return diagnostics;
     }
+
+    @Override public void verifyHealth() { network.verifyHealth(); }
 
     private static void beforeRequest(BeforeRequestSent event, NetworkDiagnosticsOptions options, NetworkCaptureSink sink) {
         RequestData request = event.getRequest();
@@ -115,7 +129,7 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
         }
         Map<String, String> attributes = baseAttributes(event);
         attributes.put("resourceTypeAvailable", "false");
-        attributes.put("requestHeadersSize", request == null ? "0" : String.valueOf(request.getHeadersSize()));
+        if (request != null) sizeAttribute(attributes, "requestHeadersSize", request, "getHeadersSize");
         NetworkRequest mapped = new NetworkRequest(
                 request == null ? "" : request.getRequestId(),
                 request == null ? "" : request.getMethod(),
@@ -140,9 +154,9 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
         if (response != null) {
             attributes.put("fromCache", String.valueOf(response.isFromCache()));
             attributes.put("protocol", safe(response.getProtocol()));
-            attributes.put("bytesReceived", String.valueOf(response.getBytesReceived()));
-            attributes.put("headersSize", String.valueOf(response.getHeadersSize()));
-            attributes.put("bodySize", String.valueOf(response.getBodySize()));
+            sizeAttribute(attributes, "bytesReceived", response, "getBytesReceived");
+            sizeAttribute(attributes, "headersSize", response, "getHeadersSize");
+            sizeAttribute(attributes, "bodySize", response, "getBodySize");
         }
         NetworkResponse mapped = new NetworkResponse(
                 request == null ? "" : request.getRequestId(),
@@ -155,6 +169,24 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
                 headers(response == null ? List.of() : response.getHeaders(), options));
         NetworkRequest correlatedRequest = correlatedRequest(request, event.getTimestamp(), options);
         sink.recorded(NetworkEvent.response(mapped, correlatedRequest, timestamp(event.getTimestamp()), attributes));
+    }
+
+    private static void sizeAttribute(Map<String, String> attributes, String name, Object value, String getter) {
+        Object size = SeleniumBiDiCompatibility.size(value, getter);
+        if (size instanceof Number number && number.longValue() >= 0) attributes.put(name, String.valueOf(size));
+    }
+
+    private synchronized void callback(Runnable mapping, NetworkCaptureSink sink) {
+        if (closed || callbackFailed) return;
+        try { mapping.run(); }
+        catch (RuntimeException | LinkageError failure) {
+            callbackFailed = true;
+            BiDiCaptureException reported = failure instanceof BiDiCaptureException bidi ? bidi
+                    : captureFailure(failure instanceof LinkageError ? BiDiFailureCategory.BINARY_INCOMPATIBILITY
+                            : BiDiFailureCategory.CAPTURE_CALLBACK_FAILED,
+                            "WebDriver BiDi event processing failed", diagnostics, "PROCESS_EVENT", failure);
+            sink.failed(reported);
+        }
     }
 
     private static String responseUrl(RequestData request, ResponseData response) {
@@ -261,44 +293,96 @@ final class SeleniumBiDiNetworkCaptureSource implements NetworkCaptureSource {
     }
 
     @Override
-    public synchronized void close() {
-        if (closed) return;
-        closed = true;
+    public void close() {
+        synchronized (this) {
+            if (closed) return;
+            closed = true;
+        }
         network.close();
     }
 
     private record DurationValue(Duration value, boolean available) {}
 
     interface Module extends AutoCloseable {
+        default void verifyHealth() {}
+        default void onFailure(Consumer<RuntimeException> consumer) {}
         void onBeforeRequestSent(Consumer<BeforeRequestSent> consumer);
         void onResponseCompleted(Consumer<ResponseDetails> consumer);
         void onFetchError(Consumer<FetchError> consumer);
         @Override void close();
     }
 
-    private record OfficialModule(Network delegate, BiDi ownedConnection) implements Module {
+    static final class OfficialModule implements Module {
+        private final BiDi connection;
+        private final BiDi ownedConnection;
+        private final List<Object> listeners = new ArrayList<>();
+        private Consumer<RuntimeException> failureConsumer = failure -> {};
+        private boolean closed;
+
+        OfficialModule(BiDi connection, BiDi ownedConnection) {
+            this.connection = connection;
+            this.ownedConnection = ownedConnection;
+        }
+        @Override public synchronized void onFailure(Consumer<RuntimeException> consumer) {
+            failureConsumer = consumer;
+        }
+        @Override public void verifyHealth() {
+            try { connection.getBidiSessionStatus(); }
+            catch (LinkageError failure) {
+                throw SeleniumBiDiCompatibility.incompatible("Selenium BiDi health verification is incompatible", failure);
+            } catch (RuntimeException failure) {
+                BiDiFailureCategory category = failure instanceof org.openqa.selenium.TimeoutException
+                        || failure instanceof org.openqa.selenium.NoSuchSessionException
+                        || failure instanceof java.io.UncheckedIOException
+                        ? BiDiFailureCategory.TRANSPORT_ERROR : BiDiFailureCategory.PROTOCOL_ERROR;
+                throw captureFailure(category, "Unable to verify WebDriver BiDi capture health",
+                        Map.of(), "VERIFY_CONNECTION", failure);
+            }
+        }
+        private synchronized <T> void listen(String name, java.util.function.Function<Map<String, Object>, T> mapper,
+                                             Consumer<T> consumer) {
+            if (closed) throw new IllegalStateException("BiDi network capture is closed");
+            Event<T> event = new Event<>(name, payload -> {
+                try { return mapper.apply(SeleniumBiDiCompatibility.normalizeSizes(payload)); }
+                catch (RuntimeException | LinkageError failure) {
+                    RuntimeException reported = failure instanceof RuntimeException runtime ? runtime
+                            : SeleniumBiDiCompatibility.incompatible("Selenium BiDi event decoding is incompatible", failure);
+                    failureConsumer.accept(reported);
+                    return null;
+                }
+            });
+            listeners.add(SeleniumBiDiCompatibility.addListener(connection, event, value -> {
+                if (value != null) consumer.accept(value);
+            }));
+        }
         @Override public void onBeforeRequestSent(Consumer<BeforeRequestSent> consumer) {
-            delegate.onBeforeRequestSent(consumer);
+            listen("network.beforeRequestSent", BeforeRequestSent::fromJsonMap, consumer);
         }
         @Override public void onResponseCompleted(Consumer<ResponseDetails> consumer) {
-            delegate.onResponseCompleted(consumer);
+            listen("network.responseCompleted", ResponseDetails::fromJsonMap, consumer);
         }
         @Override public void onFetchError(Consumer<FetchError> consumer) {
-            delegate.onFetchError(consumer);
+            listen("network.fetchError", FetchError::fromJsonMap, consumer);
         }
-        @Override public void close() {
+        @Override public synchronized void close() {
+            if (closed) return;
+            closed = true;
             RuntimeException failure = null;
-            try {
-                delegate.close();
-            } catch (RuntimeException closeFailure) {
-                failure = closeFailure;
-            }
-            if (ownedConnection != null) {
-                try {
-                    ownedConnection.close();
-                } catch (RuntimeException closeFailure) {
+            for (Object listener : listeners) {
+                try { SeleniumBiDiCompatibility.removeListener(connection, listener); }
+                catch (RuntimeException closeFailure) {
                     if (failure == null) failure = closeFailure;
                     else failure.addSuppressed(closeFailure);
+                }
+            }
+            listeners.clear();
+            if (ownedConnection != null) {
+                try { ownedConnection.close(); }
+                catch (RuntimeException | LinkageError closeFailure) {
+                    RuntimeException reported = closeFailure instanceof RuntimeException runtime ? runtime
+                            : SeleniumBiDiCompatibility.incompatible("Selenium BiDi close incompatible", closeFailure);
+                    if (failure == null) failure = reported;
+                    else failure.addSuppressed(reported);
                 }
             }
             if (failure != null) throw failure;

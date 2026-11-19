@@ -31,6 +31,212 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class NetworkDiagnosticsBiDiTest {
     @Test
+    void delayedRestartHealthProbeCannotReplaceANewerStartedCaptureOrLeakItsSource() throws Exception {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+        FakeSource original = factory.latest();
+        CountDownLatch firstProbeEntered = new CountDownLatch(1);
+        CountDownLatch releaseFirstProbe = new CountDownLatch(1);
+        AtomicInteger probes = new AtomicInteger();
+        original.healthAction = () -> {
+            if (probes.incrementAndGet() == 1) {
+                firstProbeEntered.countDown();
+                await(releaseFirstProbe);
+            }
+        };
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> delayedRestart = executor.submit(() -> diagnostics.start(options(NetworkCaptureMode.BIDI)));
+            assertTrue(firstProbeEntered.await(1, TimeUnit.SECONDS));
+            diagnostics.start(options(NetworkCaptureMode.BIDI));
+            FakeSource newer = factory.latest();
+            assertNotSame(original, newer);
+            releaseFirstProbe.countDown();
+            delayedRestart.get(1, TimeUnit.SECONDS);
+
+            assertEquals(2, factory.opens.get(), "A superseded restart must not open another capture source");
+            assertEquals(1, original.closes.get());
+            assertEquals(0, newer.closes.get(), "The newer capture must remain active");
+            assertTrue(diagnostics.isStarted());
+            newer.fire(response("newer", "/newer-still-active", 200, 0));
+            assertEquals(NetworkWaitStatus.MATCHED, diagnostics.waitForResponse("/newer-still-active", 200).status());
+            assertDoesNotThrow(diagnostics::assertNoFailedRequests);
+
+            diagnostics.stop();
+            assertEquals(1, newer.closes.get(), "Stopping must close the remaining source exactly once");
+            assertEquals(NetworkDiagnosticsStatus.STOPPED, diagnostics.summary().status());
+        } finally {
+            releaseFirstProbe.countDown();
+            diagnostics.stop();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void concurrentStopsPreserveTheHealthyStoppedSnapshot() throws Exception {
+        assertHealthySnapshotWhileStopProbeIsBlocked(true);
+    }
+
+    @Test
+    void assertionDuringStopHealthProbeCanUseTheHealthyActiveSnapshot() throws Exception {
+        assertHealthySnapshotWhileStopProbeIsBlocked(false);
+    }
+
+    private void assertHealthySnapshotWhileStopProbeIsBlocked(boolean stopAgain) throws Exception {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+        FakeSource source = factory.latest();
+        source.fire(response("healthy", "/healthy", 200, 0));
+        CountDownLatch firstProbeEntered = new CountDownLatch(1);
+        CountDownLatch releaseFirstProbe = new CountDownLatch(1);
+        AtomicInteger probes = new AtomicInteger();
+        source.healthAction = () -> {
+            if (probes.incrementAndGet() == 1) {
+                firstProbeEntered.countDown();
+                await(releaseFirstProbe);
+            }
+        };
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> firstStop = executor.submit(diagnostics::stop);
+            assertTrue(firstProbeEntered.await(1, TimeUnit.SECONDS));
+            if (stopAgain) {
+                assertDoesNotThrow(diagnostics::stop);
+                assertEquals(NetworkDiagnosticsStatus.STOPPED, diagnostics.summary().status());
+            } else {
+                assertTrue(diagnostics.isStarted());
+            }
+            assertDoesNotThrow(diagnostics::assertNoFailedRequests);
+            releaseFirstProbe.countDown();
+            firstStop.get(1, TimeUnit.SECONDS);
+
+            assertEquals(NetworkDiagnosticsStatus.STOPPED, diagnostics.summary().status());
+            assertEquals(1, source.closes.get());
+            assertEquals(1, diagnostics.summary().totalResponses());
+            assertDoesNotThrow(diagnostics::assertNoFailedRequests);
+        } finally {
+            releaseFirstProbe.countDown();
+            diagnostics.stop();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void stoppingADisconnectedCaptureDoesNotMakeItsSnapshotPassAssertions() {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+        factory.latest().fire(response("old", "/previous", 200, 0));
+        factory.latest().healthAction = () -> { throw new IllegalStateException("transport disconnected"); };
+        assertDoesNotThrow(diagnostics::stop);
+        assertEquals(NetworkDiagnosticsStatus.STOPPED, diagnostics.summary().status());
+        assertThrows(NetworkAssertionError.class, diagnostics::assertNoFailedRequests);
+    }
+
+    @Test
+    void connectionHealthFailureCannotPassAssertionOrMatchOrTimeOut() {
+        for (String operation : List.of("assertion", "match", "timeout")) {
+            FakeFactory factory = new FakeFactory();
+            NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+            factory.latest().fire(response("previous", "/previous", 200, 0));
+            factory.latest().healthAction = () -> { throw new IllegalStateException("transport disconnected"); };
+            if (operation.equals("assertion")) {
+                assertThrows(NetworkAssertionError.class, diagnostics::assertNoFailedRequests);
+            } else {
+                NetworkWaitResult result = diagnostics.waitForResponse(NetworkWaitCondition.builder()
+                        .urlContains(operation.equals("match") ? "/previous" : "/never")
+                        .status(200).timeout(Duration.ofMillis(1)).build());
+                assertEquals(NetworkWaitStatus.FAILED, result.status(), operation);
+                assertEquals(NetworkWaitFailureReason.CAPTURE_START_FAILED, result.failureReason());
+            }
+            assertEquals(NetworkDiagnosticsStatus.FAILED, diagnostics.summary().status(), operation);
+            assertFalse(diagnostics.isStarted());
+        }
+    }
+
+    @Test
+    void delayedHealthFailureCannotInvalidateANewerCaptureGeneration() throws Exception {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+        CountDownLatch probeEntered = new CountDownLatch(1);
+        CountDownLatch releaseProbe = new CountDownLatch(1);
+        AtomicInteger probeCalls = new AtomicInteger();
+        factory.latest().healthAction = () -> {
+            if (probeCalls.incrementAndGet() == 1) {
+                probeEntered.countDown();
+                await(releaseProbe);
+                throw new IllegalStateException("old connection disconnected");
+            }
+        };
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> oldAssertion = executor.submit(() ->
+                    assertThrows(NetworkAssertionError.class, diagnostics::assertNoFailedRequests));
+            assertTrue(probeEntered.await(1, TimeUnit.SECONDS));
+            diagnostics.start(options(NetworkCaptureMode.BIDI));
+            releaseProbe.countDown();
+            oldAssertion.get(1, TimeUnit.SECONDS);
+
+            assertEquals(NetworkDiagnosticsStatus.STARTED, diagnostics.summary().status());
+            assertTrue(diagnostics.isStarted());
+            assertDoesNotThrow(diagnostics::assertNoFailedRequests);
+        } finally {
+            releaseProbe.countDown();
+            diagnostics.stop();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void callbackBinaryFailureInvalidatesSnapshotWakesWaitAndPreventsPassingAssertions() throws Exception {
+        FakeFactory factory = new FakeFactory();
+        CountDownLatch waitStarted = new CountDownLatch(1);
+        OverlayLogger logger = OverlayLogger.from(UiTestLensLogger.builder().sink(entry -> {
+            if (entry.eventType() == UiTestLensEventType.NETWORK_WAIT_STARTED) waitStarted.countDown();
+        }).build());
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(), logger, factory)
+                .start(options(NetworkCaptureMode.BIDI));
+        factory.latest().fire(response("previous", "/previous", 200, 0));
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<NetworkWaitResult> waiting = executor.submit(() -> diagnostics.waitForResponse(
+                    NetworkWaitCondition.builder().urlContains("/never")
+                            .timeout(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(5)).build()));
+            assertTrue(waitStarted.await(1, TimeUnit.SECONDS));
+            factory.latest().sink.failed(new BiDiCaptureException(BiDiFailureCategory.BINARY_INCOMPATIBILITY,
+                    "Incompatible callback API", Map.of(), new NoSuchMethodError("changed accessor")));
+
+            NetworkWaitResult result = waiting.get(1, TimeUnit.SECONDS);
+            assertEquals(NetworkDiagnosticsStatus.FAILED, diagnostics.summary().status());
+            assertFalse(diagnostics.isStarted());
+            assertTrue(diagnostics.activeCaptureMode().isEmpty());
+            assertEquals(NetworkWaitStatus.FAILED, result.status());
+            assertEquals(NetworkWaitFailureReason.CAPTURE_START_FAILED, result.failureReason());
+            assertNotNull(result.exception());
+            assertThrows(NetworkAssertionError.class, diagnostics::assertNoFailedRequests);
+            assertThrows(NetworkAssertionError.class, () -> diagnostics.expectResponse()
+                    .urlContains("/previous").status(200).waitNow());
+        } finally {
+            diagnostics.stop();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void failureCallbackFromPreviousGenerationCannotInvalidateRestartedCapture() {
+        FakeFactory factory = new FakeFactory();
+        NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
+        FakeSource old = factory.latest();
+        diagnostics.start(options(NetworkCaptureMode.BIDI));
+        old.sink.failed(new IllegalStateException("stale callback failure"));
+        factory.latest().fire(response("new", "/current", 200, 0));
+
+        assertTrue(diagnostics.isStarted());
+        assertEquals(NetworkDiagnosticsStatus.STARTED, diagnostics.summary().status());
+        assertEquals(NetworkWaitStatus.MATCHED, diagnostics.waitForResponse("/current", 200).status());
+        assertDoesNotThrow(diagnostics::assertNoFailedRequests);
+    }
+
+    @Test
     void stopDuringBlockedInitializationCannotBeUndoneByLateSuccessfulOpen() throws Exception {
         FakeFactory factory = new FakeFactory();
         factory.blockOpen = true;
@@ -1047,6 +1253,7 @@ class NetworkDiagnosticsBiDiTest {
         private final Map<String, String> diagnostics;
         private final AtomicInteger closes = new AtomicInteger();
         private RuntimeException closeFailure;
+        private Runnable healthAction = () -> {};
         private FakeSource(NetworkCaptureSink sink) { this(sink, Map.of()); }
         private FakeSource(NetworkCaptureSink sink, Map<String, String> diagnostics) {
             this.sink = sink;
@@ -1054,6 +1261,7 @@ class NetworkDiagnosticsBiDiTest {
         }
         void fire(NetworkEvent event) { sink.recorded(event); }
         @Override public Map<String, String> diagnostics() { return diagnostics; }
+        @Override public void verifyHealth() { healthAction.run(); }
         @Override public void close() {
             closes.incrementAndGet();
             if (closeFailure != null) throw closeFailure;

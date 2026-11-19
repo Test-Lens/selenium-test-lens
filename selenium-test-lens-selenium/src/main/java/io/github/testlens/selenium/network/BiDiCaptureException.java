@@ -16,6 +16,7 @@ class BiDiCaptureException extends RuntimeException {
                 ? new LinkedHashMap<>()
                 : new LinkedHashMap<>(diagnostics);
         values.putIfAbsent("failureCategory", category.name());
+        values.putIfAbsent("seleniumVersion", new org.openqa.selenium.BuildInfo().getReleaseLabel());
         this.diagnostics = Map.copyOf(values);
     }
 

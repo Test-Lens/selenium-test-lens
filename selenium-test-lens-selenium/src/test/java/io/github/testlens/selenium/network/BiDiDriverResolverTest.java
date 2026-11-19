@@ -80,47 +80,63 @@ class BiDiDriverResolverTest {
     }
 
     @Test
-    void rawRemoteWebDriverWithWebSocketCapabilityIsAugmentedOnce() {
+    void rawRemoteWebDriverUsesNativeBiDiOrIsAugmentedOnce() {
         WebDriver remote = new StubRemoteWebDriver(new ImmutableCapabilities(
                 "browserName", "chrome", "webSocketUrl", "wss://remote.invalid/session"));
         WebDriver augmented = bidiDriver(false);
         AtomicInteger augmentations = new AtomicInteger();
         AtomicInteger initializations = new AtomicInteger();
+        WebDriver expected = remote instanceof HasBiDi ? remote : augmented;
 
         BiDiDriverResolver.ResolvedBiDiDriver resolved = BiDiDriverResolver.resolve(remote, candidate -> {
             augmentations.incrementAndGet();
             assertSame(remote, candidate);
             return augmented;
-        }, ignored -> {
+        }, initialized -> {
+            assertSame(expected, initialized);
             initializations.incrementAndGet();
             return null;
         });
 
-        assertSame(augmented, resolved.driver());
-        assertEquals(1, augmentations.get());
+        assertSame(expected, resolved.driver());
+        assertEquals(remote instanceof HasBiDi ? 0 : 1, augmentations.get());
         assertEquals(1, initializations.get());
         assertEquals("true", resolved.diagnostics().get("remoteSession"));
         assertEquals("true", resolved.diagnostics().get("webSocketUrlCapability"));
-        assertEquals("true", resolved.diagnostics().get("driverAugmented"));
+        assertEquals(String.valueOf(!(remote instanceof HasBiDi)), resolved.diagnostics().get("driverAugmented"));
         assertTrue(resolved.diagnostics().values().stream()
                 .noneMatch(value -> value.contains("remote.invalid")));
     }
 
     @Test
-    void seleniumDecoratorIsPreservedAsTheAugmentationInput() {
+    void seleniumDecoratorPreservesNativeBiDiOrTheAugmentationInput() {
         WebDriver remote = new StubRemoteWebDriver(new ImmutableCapabilities(
                 "browserName", "firefox", "webSocketUrl", "wss://remote.invalid/session"));
         WebDriver decorated = new WebDriverDecorator<>().decorate(remote);
         WebDriver augmented = bidiDriver(false);
         AtomicReference<WebDriver> augmentationInput = new AtomicReference<>();
+        WebDriver expected = decorated instanceof HasBiDi ? decorated
+                : remote instanceof HasBiDi ? remote : augmented;
+        AtomicInteger initializations = new AtomicInteger();
 
         BiDiDriverResolver.ResolvedBiDiDriver resolved = BiDiDriverResolver.resolve(decorated, candidate -> {
             augmentationInput.set(candidate);
             return augmented;
-        }, ignored -> null);
+        }, initialized -> {
+            assertSame(expected, initialized);
+            initializations.incrementAndGet();
+            return null;
+        });
 
-        assertSame(decorated, augmentationInput.get());
-        assertSame(augmented, resolved.driver());
+        if (remote instanceof HasBiDi || decorated instanceof HasBiDi) {
+            assertSame(null, augmentationInput.get());
+            assertEquals("false", resolved.diagnostics().get("driverAugmented"));
+        } else {
+            assertSame(decorated, augmentationInput.get());
+            assertEquals("true", resolved.diagnostics().get("driverAugmented"));
+        }
+        assertSame(expected, resolved.driver());
+        assertEquals(1, initializations.get());
         assertEquals("true", resolved.diagnostics().get("remoteSession"));
     }
 
@@ -200,19 +216,42 @@ class BiDiDriverResolverTest {
     }
 
     @Test
-    void twoRemoteSessionsUseIndependentAugmentedViews() {
+    void twoRemoteSessionsUseIndependentNativeOrAugmentedViews() {
         WebDriver firstRemote = new StubRemoteWebDriver(new ImmutableCapabilities("webSocketUrl", "wss://one.invalid"));
         WebDriver secondRemote = new StubRemoteWebDriver(new ImmutableCapabilities("webSocketUrl", "wss://two.invalid"));
         WebDriver firstAugmented = bidiDriver(false);
         WebDriver secondAugmented = bidiDriver(false);
+        WebDriver firstExpected = firstRemote instanceof HasBiDi ? firstRemote : firstAugmented;
+        WebDriver secondExpected = secondRemote instanceof HasBiDi ? secondRemote : secondAugmented;
+        AtomicInteger augmentations = new AtomicInteger();
+        AtomicInteger initializations = new AtomicInteger();
 
         BiDiDriverResolver.ResolvedBiDiDriver first = BiDiDriverResolver.resolve(
-                firstRemote, ignored -> firstAugmented, ignored -> null);
+                firstRemote, candidate -> {
+                    assertSame(firstRemote, candidate);
+                    augmentations.incrementAndGet();
+                    return firstAugmented;
+                }, initialized -> {
+                    assertSame(firstExpected, initialized);
+                    initializations.incrementAndGet();
+                    return null;
+                });
         BiDiDriverResolver.ResolvedBiDiDriver second = BiDiDriverResolver.resolve(
-                secondRemote, ignored -> secondAugmented, ignored -> null);
+                secondRemote, candidate -> {
+                    assertSame(secondRemote, candidate);
+                    augmentations.incrementAndGet();
+                    return secondAugmented;
+                }, initialized -> {
+                    assertSame(secondExpected, initialized);
+                    initializations.incrementAndGet();
+                    return null;
+                });
 
-        assertSame(firstAugmented, first.driver());
-        assertSame(secondAugmented, second.driver());
+        assertSame(firstExpected, first.driver());
+        assertSame(secondExpected, second.driver());
+        assertEquals((firstRemote instanceof HasBiDi ? 0 : 1)
+                + (secondRemote instanceof HasBiDi ? 0 : 1), augmentations.get());
+        assertEquals(2, initializations.get());
         assertFalse(first.driver() == second.driver());
     }
 

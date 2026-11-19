@@ -13,10 +13,35 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class SeleniumBiDiNetworkCaptureSourceTest {
+    @Test
+    void unsubscribeCanWaitForAnAlreadyQueuedCallbackWithoutDeadlock() {
+        FakeModule module = new FakeModule();
+        RecordingSink sink = new RecordingSink();
+        NetworkCaptureSource source = SeleniumBiDiNetworkCaptureSource.subscribe(
+                module, NetworkDiagnosticsOptions.defaults(), sink);
+        var executor = Executors.newSingleThreadExecutor();
+        module.closeAction = () -> {
+            try {
+                executor.submit(() -> module.before.accept(BeforeRequestSent.fromJsonMap(
+                        base("queued", "/queued", 0, 1000)))).get(1, TimeUnit.SECONDS);
+            } catch (Exception failure) {
+                throw new AssertionError("Unsubscribe could not drain the queued callback", failure);
+            }
+        };
+        try {
+            assertDoesNotThrow(source::close);
+            assertTrue(sink.events.isEmpty());
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
     @Test
     void registersExactlyThreeOfficialListenersAndClosesOnce() {
         FakeModule module = new FakeModule();
@@ -47,6 +72,106 @@ class SeleniumBiDiNetworkCaptureSourceTest {
         assertEquals(1, module.responseRegistrations);
         assertEquals(0, module.errorRegistrations);
         assertEquals(1, module.closes.get());
+    }
+
+    @Test
+    void partialRegistrationLinkageFailureClosesModuleAndPreservesCleanupFailure() {
+        FakeModule module = new FakeModule();
+        LinkageError registration = new NoSuchMethodError("incompatible subscription API");
+        LinkageError cleanup = new NoClassDefFoundError("incompatible cleanup API");
+        module.registrationFailure = registration;
+        module.closeFailure = cleanup;
+
+        BiDiCaptureException actual = assertThrows(BiDiCaptureException.class,
+                () -> SeleniumBiDiNetworkCaptureSource.subscribe(
+                        module, NetworkDiagnosticsOptions.defaults(), new RecordingSink()));
+
+        assertSame(registration, actual.getCause());
+        assertEquals(1, module.closes.get());
+        assertArrayEquals(new Throwable[]{cleanup}, registration.getSuppressed());
+    }
+
+    @Test
+    void closedSourceIgnoresQueuedRequestResponseAndErrorCallbacks() {
+        FakeModule module = new FakeModule();
+        RecordingSink sink = new RecordingSink();
+        NetworkCaptureSource source = SeleniumBiDiNetworkCaptureSource.subscribe(
+                module, NetworkDiagnosticsOptions.defaults(), sink);
+        source.close();
+
+        module.before.accept(BeforeRequestSent.fromJsonMap(base("late", "/late", 0, 1000)));
+        module.response.accept(ResponseDetails.fromJsonMap(response("late", "/late", 0, 200, 1001, 1, 2)));
+        module.error.accept(FetchError.fromJsonMap(fetchError("late", "/late", 0, 1002)));
+
+        assertTrue(sink.events.isEmpty());
+        assertEquals(0, sink.ignored.get());
+    }
+
+    @Test
+    void callbackLinkageFailureIsReportedOnceAndDoesNotEscapeDispatcher() {
+        FakeModule module = new FakeModule();
+        LinkageError linkage = new NoSuchMethodError("changed accessor");
+        List<RuntimeException> failures = new ArrayList<>();
+        SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.defaults(),
+                new NetworkCaptureSink() {
+                    @Override public void recorded(NetworkEvent event) { throw linkage; }
+                    @Override public void ignored() { fail("Unexpected ignored event"); }
+                    @Override public void failed(RuntimeException failure) { failures.add(failure); }
+                });
+
+        BeforeRequestSent request = BeforeRequestSent.fromJsonMap(base("req", "/api", 0, 1000));
+        assertDoesNotThrow(() -> module.before.accept(request));
+        assertDoesNotThrow(() -> module.before.accept(request));
+        assertEquals(1, failures.size());
+        assertInstanceOf(BiDiCaptureException.class, failures.get(0));
+        assertSame(linkage, failures.get(0).getCause());
+    }
+
+    @Test
+    void largeProtocolSizesRemainExact() {
+        FakeModule module = new FakeModule();
+        RecordingSink sink = new RecordingSink();
+        SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.defaults(), sink);
+        Map<String, Object> large = response("large", "/large", 0, 200, 1000, 1, 2);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> response = (Map<String, Object>) large.get("response");
+        long size = (long) Integer.MAX_VALUE + 9876;
+        response.put("bytesReceived", size);
+        response.put("bodySize", size);
+        response.put("headersSize", size);
+        module.response.accept(ResponseDetails.fromJsonMap(large));
+
+        assertEquals(String.valueOf(size), sink.events.get(0).attributes().get("bytesReceived"));
+        assertEquals(String.valueOf(size), sink.events.get(0).attributes().get("bodySize"));
+        assertEquals(String.valueOf(size), sink.events.get(0).attributes().get("headersSize"));
+    }
+
+    @Test
+    void nullableResponseSizesAreOmitted() {
+        FakeModule module = new FakeModule();
+        RecordingSink sink = new RecordingSink();
+        SeleniumBiDiNetworkCaptureSource.subscribe(module, NetworkDiagnosticsOptions.defaults(), sink);
+        Map<String, Object> event = response("unknown", "/unknown", 0, 200, 1000, 1, 2);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> response = (Map<String, Object>) event.get("response");
+        response.put("headersSize", null);
+        response.put("bodySize", null);
+        module.response.accept(ResponseDetails.fromJsonMap(SeleniumBiDiCompatibility.normalizeSizes(event)));
+        assertEquals(1, sink.events.size());
+        assertFalse(sink.events.get(0).attributes().containsKey("headersSize"));
+        assertFalse(sink.events.get(0).attributes().containsKey("bodySize"));
+    }
+
+    @Test
+    void malformedNullableRequestSizeFailsClosed() {
+        Map<String, Object> requestEvent = base("unavailable", "/unavailable", 0, 1001);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> request = (Map<String, Object>) requestEvent.get("request");
+        request.put("headersSize", null);
+        BiDiCaptureException failure = assertThrows(BiDiCaptureException.class,
+                () -> SeleniumBiDiCompatibility.normalizeSizes(requestEvent));
+        assertEquals(BiDiFailureCategory.PROTOCOL_ERROR, failure.category());
+        assertNull(request.get("headersSize"));
     }
 
     @Test
@@ -326,10 +451,14 @@ class SeleniumBiDiNetworkCaptureSourceTest {
     }
 
     private static Map<String, Object> request(String id, String url, double requestTime, double responseEnd) {
-        return new LinkedHashMap<>(Map.of(
+        Map<String, Object> request = new LinkedHashMap<>(Map.of(
                 "request", id, "url", url, "method", "POST", "headers", new ArrayList<>(),
                 "cookies", new ArrayList<>(), "headersSize", 0L,
                 "timings", timings(requestTime, responseEnd)));
+        request.put("bodySize", null);
+        request.put("destination", "");
+        request.put("initiatorType", "");
+        return request;
     }
 
     private static Map<String, Object> timings(double requestTime, double responseEnd) {
@@ -361,7 +490,9 @@ class SeleniumBiDiNetworkCaptureSourceTest {
         private int beforeRegistrations;
         private int responseRegistrations;
         private int errorRegistrations;
-        private RuntimeException registrationFailure;
+        private Throwable registrationFailure;
+        private Throwable closeFailure;
+        private Runnable closeAction = () -> {};
         private final AtomicInteger closes = new AtomicInteger();
 
         @Override public void onBeforeRequestSent(Consumer<BeforeRequestSent> consumer) {
@@ -370,13 +501,21 @@ class SeleniumBiDiNetworkCaptureSourceTest {
         }
         @Override public void onResponseCompleted(Consumer<ResponseDetails> consumer) {
             responseRegistrations++;
-            if (registrationFailure != null) throw registrationFailure;
+            rethrow(registrationFailure);
             response = consumer;
         }
         @Override public void onFetchError(Consumer<FetchError> consumer) {
             errorRegistrations++;
             error = consumer;
         }
-        @Override public void close() { closes.incrementAndGet(); }
+        @Override public void close() {
+            closes.incrementAndGet();
+            closeAction.run();
+            rethrow(closeFailure);
+        }
+        private static void rethrow(Throwable failure) {
+            if (failure instanceof RuntimeException runtime) throw runtime;
+            if (failure instanceof Error error) throw error;
+        }
     }
 }
