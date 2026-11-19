@@ -28,6 +28,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -109,7 +110,8 @@ class TestEngineeringStudioBrowserIT {
                     click(studio, "Correlate"); awaitText(studio, "elements correlated");
 
                     click(studio, "Requirements");
-                    WebElement requirement = studio.findElement(By.id("requirement-input"));
+                    WebElement requirement = new WebDriverWait(studio, Duration.ofSeconds(20))
+                            .until(ExpectedConditions.elementToBeClickable(By.id("requirement-input")));
                     requirement.sendKeys("Invalid password should display an error message");
                     click(studio, "Generate plan"); awaitText(studio, "Invalid password"); screenshot(studio, "requirement-plan");
                     click(studio, "Generate test"); awaitText(studio, "Proposed test");
