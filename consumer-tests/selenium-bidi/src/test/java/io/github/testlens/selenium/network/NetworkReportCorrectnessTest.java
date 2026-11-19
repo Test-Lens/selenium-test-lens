@@ -15,6 +15,9 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.bidi.BiDi;
+import org.openqa.selenium.bidi.Event;
+import org.openqa.selenium.bidi.HasBiDi;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.json.Json;
@@ -94,6 +97,7 @@ class NetworkReportCorrectnessTest {
                         .diagnosticScreenshot(false).cleanScreenshot(false).build()).build());
         var session = lens.startSession(failed ? "network-report-failure" : "network-report-success");
         NetworkDiagnostics network = lens.network();
+        RawTrafficProbe wire = new RawTrafficProbe(null);
         try {
             if (failed) {
                 assertThrows(NetworkAssertionError.class, network::assertNoFailedRequests,
@@ -103,6 +107,7 @@ class NetworkReportCorrectnessTest {
                     .includeHeaders(true).build());
             assertTrue(network.isStarted(), "Real BiDi capture must start");
             assertEquals(NetworkCaptureMode.BIDI, network.activeCaptureMode().orElseThrow());
+            wire = RawTrafficProbe.open(driver);
 
             fetch(driver, "/case/ok", "GET", null, null);
             fetch(driver, "/case/post", "POST", "{\"message\":\"journal-proof\"}", null);
@@ -133,7 +138,8 @@ class NetworkReportCorrectnessTest {
                         trafficComplete(network.events(), expectedRequests, expectedResponses));
             } catch (TimeoutException timeout) {
                 throw new AssertionError("Incomplete BiDi fixture traffic: "
-                        + trafficDiagnostic(network, expectedRequests, expectedResponses), timeout);
+                        + trafficDiagnostic(network, expectedRequests, expectedResponses)
+                        + "; wire=" + wire.snapshot(), timeout);
             }
             // Correlation is verified through the public wait result, including each redirect hop.
             for (Observed item : journal.stream().distinct().toList()) {
@@ -217,8 +223,80 @@ class NetworkReportCorrectnessTest {
                         "HTML must retain request correlation identifiers");
             }
         } finally {
-            network.stop();
-            peer.secret = "";
+            try { network.stop(); }
+            finally {
+                try { wire.close(); }
+                finally { peer.secret = ""; }
+            }
+        }
+    }
+
+    static String rawTrafficRow(String type, Map<String, Object> payload) {
+        if (!List.of("network.beforeRequestSent", "network.responseCompleted", "network.fetchError").contains(type)) return null;
+        Map<?, ?> request = payload.get("request") instanceof Map<?, ?> value ? value : Map.of();
+        Map<?, ?> response = payload.get("response") instanceof Map<?, ?> value ? value : Map.of();
+        String requestUrl = diagnosticUrl(request.get("url") instanceof String value ? value : "");
+        String responseUrl = diagnosticUrl(response.get("url") instanceof String value ? value : "");
+        if (!requestUrl.startsWith("/case/") && !responseUrl.startsWith("/case/")) return null;
+        String method = diagnosticMethod(request.get("method") instanceof String value ? value : "");
+        String hop = payload.get("redirectCount") instanceof Number value ? String.valueOf(value.longValue()) : "<unavailable>";
+        String status = response.get("status") instanceof Number value ? String.valueOf(value.intValue()) : "<unavailable>";
+        return type + " method=" + method + " requestUrl=" + requestUrl + " hop=" + hop
+                + " responseStatus=" + status + " responseUrl=" + responseUrl;
+    }
+
+    private static final class RawTrafficProbe implements AutoCloseable {
+        private final BiDi connection;
+        private final List<Object> listeners = new java.util.ArrayList<>();
+        private final List<String> rows = new CopyOnWriteArrayList<>();
+        private boolean closed;
+
+        RawTrafficProbe(BiDi connection) { this.connection = connection; }
+
+        static RawTrafficProbe open(WebDriver driver) {
+            // Never augment a Grid driver or initialize another connection for diagnostic observation.
+            if (!(driver instanceof ChromeDriver) || !(driver instanceof HasBiDi hasBiDi)) return new RawTrafficProbe(null);
+            RawTrafficProbe probe = new RawTrafficProbe(hasBiDi.getBiDi());
+            try {
+                for (String type : List.of("network.beforeRequestSent", "network.responseCompleted", "network.fetchError")) {
+                    Event<Map<String, Object>> event = new Event<>(type, payload -> payload);
+                    probe.listeners.add(SeleniumBiDiCompatibility.addListener(probe.connection, event,
+                            payload -> probe.record(type, payload)));
+                }
+                return probe;
+            } catch (RuntimeException | LinkageError failure) {
+                try { probe.close(); }
+                catch (RuntimeException cleanup) { failure.addSuppressed(cleanup); }
+                throw failure;
+            }
+        }
+
+        private synchronized void record(String type, Map<String, Object> payload) {
+            if (closed || rows.size() >= 128) return;
+            String row = rawTrafficRow(type, payload);
+            if (row != null) rows.add(row);
+        }
+
+        String snapshot() {
+            return connection == null ? "UNAVAILABLE (Grid/raw driver: no extra connection opened)" : rows.toString();
+        }
+
+        @Override public void close() {
+            List<Object> owned;
+            synchronized (this) {
+                if (closed) return;
+                closed = true;
+                owned = List.copyOf(listeners);
+            }
+            RuntimeException failure = null;
+            for (Object listener : owned) {
+                try { SeleniumBiDiCompatibility.removeListener(connection, listener); }
+                catch (RuntimeException cleanup) {
+                    if (failure == null) failure = cleanup;
+                    else failure.addSuppressed(cleanup);
+                }
+            }
+            if (failure != null) throw failure;
         }
     }
 

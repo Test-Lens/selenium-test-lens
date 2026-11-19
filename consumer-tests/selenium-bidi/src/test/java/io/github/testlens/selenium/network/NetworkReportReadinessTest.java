@@ -102,6 +102,23 @@ class NetworkReportReadinessTest {
         } finally { network.stop(); }
     }
 
+    @Test
+    void rawTrafficObservationRetainsOnlySafeFixtureMetadata() {
+        String secret = "RAW_WIRE_SECRET";
+        Map<String, Object> payload = Map.of("redirectCount", 1L,
+                "request", Map.of("method", "GET", "url", "http://user:password@peer.invalid/case/final?token=" + secret,
+                        "headers", Map.of("Authorization", secret), "body", secret, "request", secret),
+                "response", Map.of("status", 200L, "url", "http://peer.invalid/case/redirect#" + secret,
+                        "headers", Map.of("Set-Cookie", secret), "body", secret));
+        String row = NetworkReportCorrectnessTest.rawTrafficRow("network.responseCompleted", payload);
+        assertEquals("network.responseCompleted method=GET requestUrl=/case/final hop=1 responseStatus=200 responseUrl=/case/redirect", row);
+        assertFalse(row.contains(secret));
+        assertFalse(row.contains("password"));
+        assertNull(NetworkReportCorrectnessTest.rawTrafficRow("network.beforeRequestSent",
+                Map.of("request", Map.of("url", "https://outside.invalid/" + secret))));
+        assertNull(NetworkReportCorrectnessTest.rawTrafficRow(secret, payload));
+    }
+
     private static NetworkEvent request(String url, int hop) {
         return NetworkEvent.request(requestData(url), Instant.now(), Map.of("redirectCount", String.valueOf(hop)));
     }
