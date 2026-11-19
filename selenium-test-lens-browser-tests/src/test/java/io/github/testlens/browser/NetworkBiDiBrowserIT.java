@@ -20,12 +20,20 @@ import io.github.testlens.selenium.network.NetworkRequest;
 import io.github.testlens.selenium.network.NetworkWaitCondition;
 import io.github.testlens.selenium.network.NetworkWaitResult;
 import io.github.testlens.selenium.network.NetworkWaitStatus;
+import io.github.testlens.selenium.network.NetworkWaitFailureReason;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.bidi.HasBiDi;
+import org.openqa.selenium.bidi.module.Network;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.remote.Augmenter;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.IOException;
@@ -41,6 +49,8 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipFile;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,16 +61,103 @@ class NetworkBiDiBrowserIT {
 
     @BeforeAll
     static void startServer() throws IOException {
-        server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server = HttpServer.create(new InetSocketAddress(
+                System.getProperty("test.network.bind", "127.0.0.1"), 0), 0);
         server.createContext("/", NetworkBiDiBrowserIT::serve);
         server.start();
-        baseUrl = "http://127.0.0.1:" + server.getAddress().getPort();
+        baseUrl = "http://" + System.getProperty("test.network.host", "127.0.0.1")
+                + ":" + server.getAddress().getPort();
         System.out.println("Dedicated network integration tests: WebDriver BiDi enabled for " + browserName());
     }
 
     @AfterAll
     static void stopServer() {
         if (server != null) server.stop(0);
+    }
+
+    @Test
+    void closedBiDiConnectionCannotReusePreviouslySuccessfulTraffic() {
+        WebDriver driver = createBiDiDriver();
+        NetworkDiagnostics network = new NetworkDiagnostics(driver);
+        try {
+            network.start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI).build());
+            assertTrue(network.isStarted());
+            driver.get(baseUrl + "/network-page");
+            fetch(driver, "/api/success", false);
+            assertEquals(NetworkWaitStatus.MATCHED, network.waitForResponse("/api/success", 201).status());
+
+            ((HasBiDi) driver).getBiDi().close();
+            assertThrows(NetworkAssertionError.class, network::assertNoFailedRequests);
+            NetworkWaitResult result = network.waitForResponse("/api/success", 201);
+            assertEquals(NetworkWaitStatus.FAILED, result.status());
+            assertEquals(NetworkWaitFailureReason.CAPTURE_START_FAILED, result.failureReason());
+            assertFalse(driver.getTitle().isBlank());
+        } finally {
+            network.stop();
+            driver.quit();
+        }
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "test.grid.url", matches = ".+")
+    void rawRemoteDriverCapturesBeforeConsumerAugmentationAndSurvivesRestart() throws Exception {
+        WebDriver driver = createRemoteBiDiDriver(false);
+        NetworkDiagnostics network = new NetworkDiagnostics(driver);
+        try {
+            // Deliberately start Lens before calling Augmenter or HasBiDi on the consumer side.
+            network.start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI).build());
+            assertTrue(network.isStarted());
+            driver.get(baseUrl + "/network-page");
+            fetch(driver, "/api/success", false);
+            assertEquals(NetworkWaitStatus.MATCHED, network.waitForResponse("/api/success", 201).status());
+            network.start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI).build());
+            assertTrue(network.isStarted());
+            fetch(driver, "/api/restart", false);
+            assertEquals(NetworkWaitStatus.MATCHED, network.waitForResponse("/api/restart", 200).status());
+            network.stop();
+            assertFalse(driver.getTitle().isBlank());
+        } finally {
+            network.stop();
+            driver.quit();
+        }
+    }
+
+    @Test
+    void stoppingAndRestartingCapturePreservesForeignBiDiListeners() throws Exception {
+        WebDriver driver = createBiDiDriver();
+        Network foreign = null;
+        NetworkDiagnostics diagnostics = null;
+        try {
+            assertInstanceOf(HasBiDi.class, driver);
+            foreign = new Network(driver);
+            LinkedBlockingQueue<String> observed = new LinkedBlockingQueue<>();
+            foreign.onResponseCompleted(event -> {
+                String url = event.getRequest().getUrl();
+                if (url.contains("/api/restart") || url.contains("/api/after-stop")) observed.add(url);
+            });
+            diagnostics = new NetworkDiagnostics(driver).start(NetworkDiagnosticsOptions.builder()
+                    .captureMode(NetworkCaptureMode.BIDI).build());
+            assertTrue(diagnostics.isStarted());
+            driver.get(baseUrl + "/network-page");
+
+            diagnostics.start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI).build());
+            assertTrue(diagnostics.isStarted());
+            fetch(driver, "/api/restart", false);
+            assertEquals(baseUrl + "/api/restart", observed.poll(5, TimeUnit.SECONDS));
+            assertEquals(NetworkWaitStatus.MATCHED, diagnostics.waitForResponse("/api/restart", 200).status());
+
+            diagnostics.stop();
+            fetch(driver, "/api/after-stop", false);
+            assertEquals(baseUrl + "/api/after-stop", observed.poll(5, TimeUnit.SECONDS));
+            assertFalse(driver.getTitle().isBlank());
+        } finally {
+            if (diagnostics != null) diagnostics.stop();
+            try {
+                if (foreign != null) foreign.close();
+            } finally {
+                driver.quit();
+            }
+        }
     }
 
     @Test
@@ -432,7 +529,12 @@ class NetworkBiDiBrowserIT {
         NetworkWaitResult failedStatus = network.waitForResponse(NetworkWaitCondition.builder()
                 .urlContains("/api/failure").status(503).includeFailedResponses(true)
                 .timeout(Duration.ofSeconds(5)).build());
-        assertEquals(NetworkWaitStatus.MATCHED, failedStatus.status());
+        assertEquals(NetworkWaitStatus.MATCHED, failedStatus.status(),
+                () -> failedStatus.message() + "; cause=" + failedStatus.exception()
+                        + "; nested=" + (failedStatus.exception() == null ? null : failedStatus.exception().getCause())
+                        + "; origin=" + (failedStatus.exception() == null || failedStatus.exception().getCause() == null
+                        || failedStatus.exception().getCause().getStackTrace().length == 0 ? ""
+                        : failedStatus.exception().getCause().getStackTrace()[0]));
         new WebDriverWait(driver, Duration.ofSeconds(5)).until(ignored -> {
             var snapshot = network.summary();
             return snapshot.failedResponses() >= failedResponses
@@ -449,7 +551,11 @@ class NetworkBiDiBrowserIT {
                 .build());
         assertEquals(NetworkWaitStatus.MATCHED, result.status(),
                 () -> "Final redirect response was not correlated through its BiDi RequestData:\n"
-                        + redirectDiagnostic(network.events()));
+                        + redirectDiagnostic(network.events()) + result.message() + "; cause=" + result.exception()
+                        + "; nested=" + (result.exception() == null ? null : result.exception().getCause())
+                        + "; origin=" + (result.exception() == null || result.exception().getCause() == null
+                        || result.exception().getCause().getStackTrace().length == 0 ? ""
+                        : result.exception().getCause().getStackTrace()[0]));
         NetworkEvent finalResponse = result.matchedEvent();
         NetworkRequest correlatedRequest = result.matchedRequest();
         assertNotNull(finalResponse);
@@ -540,7 +646,29 @@ class NetworkBiDiBrowserIT {
     }
 
     private static WebDriver createBiDiDriver() {
+        String grid = System.getProperty("test.grid.url", "").trim();
+        if (!grid.isEmpty()) {
+            return createRemoteBiDiDriver(true);
+        }
         return BrowserTestHarness.createBiDiDriver();
+    }
+
+    private static WebDriver createRemoteBiDiDriver(boolean augment) {
+        String grid = System.getProperty("test.grid.url", "").trim();
+        var options = browserName().equals("firefox")
+                ? new FirefoxOptions().enableBiDi() : new ChromeOptions().enableBiDi();
+        RemoteWebDriver remote;
+        try {
+            remote = new RemoteWebDriver(URI.create(grid).toURL(), options);
+        } catch (java.net.MalformedURLException invalidUrl) {
+            throw new IllegalArgumentException("Invalid test.grid.url", invalidUrl);
+        }
+        try {
+            return augment ? new Augmenter().augment(remote) : remote;
+        } catch (RuntimeException | Error failure) {
+            remote.quit();
+            throw failure;
+        }
     }
 
     private static String browserName() {
