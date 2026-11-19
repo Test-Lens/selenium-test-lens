@@ -1257,7 +1257,11 @@ class RealBrowserContractsIT {
         assertEquals("A", passive.get("tag"));
         assertEquals("0", passive.get("tabIndex"));
         assertEquals("10.5px", passive.get("fontSize"));
-        assertTrue(passive.get("fontFamily").toString().startsWith("\"JetBrains Mono\""), passive.toString());
+        String primaryFont = passive.get("fontFamily").toString().split(",")[0].trim();
+        if (primaryFont.startsWith("\"") && primaryFont.endsWith("\"")) {
+            primaryFont = primaryFont.substring(1, primaryFont.length() - 1);
+        }
+        assertEquals("JetBrains Mono", primaryFont, passive.toString());
         assertEquals("400", passive.get("fontWeight"));
         assertEquals("-0.2625px", passive.get("letterSpacing"));
         assertEquals("rgb(167, 139, 250)", passive.get("color"));
