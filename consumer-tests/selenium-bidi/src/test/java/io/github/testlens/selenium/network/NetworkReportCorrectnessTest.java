@@ -13,6 +13,7 @@ import io.github.testlens.selenium.evidence.FailureBundleOptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -127,8 +128,13 @@ class NetworkReportCorrectnessTest {
                     .map(item -> item.method + " " + peer.origin + item.path).toList());
             Map<String, Long> expectedResponses = multiset(journal.stream()
                     .map(item -> item.status + " " + peer.origin + item.path).toList());
-            new WebDriverWait(driver, Duration.ofSeconds(10)).until(ignored ->
-                    trafficComplete(network.events(), expectedRequests, expectedResponses));
+            try {
+                new WebDriverWait(driver, Duration.ofSeconds(10)).until(ignored ->
+                        trafficComplete(network.events(), expectedRequests, expectedResponses));
+            } catch (TimeoutException timeout) {
+                throw new AssertionError("Incomplete BiDi fixture traffic: "
+                        + trafficDiagnostic(network, expectedRequests, expectedResponses), timeout);
+            }
             // Correlation is verified through the public wait result, including each redirect hop.
             for (Observed item : journal.stream().distinct().toList()) {
                 NetworkWaitResult result = network.waitForResponse(NetworkWaitCondition.builder()
@@ -214,6 +220,73 @@ class NetworkReportCorrectnessTest {
             network.stop();
             peer.secret = "";
         }
+    }
+
+    static String trafficDiagnostic(NetworkDiagnostics network, Map<String, Long> expectedRequests,
+                                    Map<String, Long> expectedResponses) {
+        List<NetworkEvent> events = network.events();
+        NetworkSummary summary = network.summary();
+        Map<String, Long> actualRequests = multiset(events.stream().filter(event -> event.request() != null)
+                .map(event -> diagnosticMethod(event.request().method()) + " " + diagnosticUrl(event.url())).toList());
+        Map<String, Long> actualResponses = multiset(events.stream().filter(event -> event.response() != null)
+                .map(event -> event.response().status() + " " + diagnosticUrl(event.url())).toList());
+        Map<String, Long> actualFailures = multiset(events.stream().filter(event -> event.failure() != null)
+                .map(event -> diagnosticUrl(event.url())).toList());
+        List<String> categories = events.stream().map(NetworkEvent::message)
+                .flatMap(message -> java.util.regex.Pattern.compile(
+                        "UNSUPPORTED|INITIALIZATION_FAILED|REMOTE_ENDPOINT_UNAVAILABLE|SESSION_CLOSED|PROTOCOL_ERROR|"
+                                + "TRANSPORT_ERROR|BINARY_INCOMPATIBILITY|CAPTURE_CALLBACK_FAILED|CAPTURE_START_FAILED")
+                        .matcher(message).results().map(java.util.regex.MatchResult::group))
+                .distinct().toList();
+        String failureTypes = "[]";
+        if (summary.status() == NetworkDiagnosticsStatus.FAILED) {
+            try { network.assertNoFailedRequests(); }
+            catch (NetworkAssertionError captureFailure) { failureTypes = failureTypes(captureFailure); }
+        }
+        return "started=" + network.isStarted() + "; activeMode=" + network.activeCaptureMode()
+                + "; status=" + summary.status() + "; categories=" + categories + "; failureTypes=" + failureTypes
+                + "; counts={requests=" + summary.totalRequests() + ", responses=" + summary.totalResponses()
+                + ", failedRequests=" + summary.failedRequests() + ", dropped=" + summary.droppedEvents()
+                + ", ignored=" + summary.ignoredEvents() + "}"
+                + "; expectedRequests=" + diagnosticExpected(expectedRequests)
+                + "; actualRequests=" + actualRequests + "; expectedResponses=" + diagnosticExpected(expectedResponses)
+                + "; actualResponses=" + actualResponses + "; actualFailures=" + actualFailures;
+    }
+
+    private static Map<String, Long> diagnosticExpected(Map<String, Long> expected) {
+        return expected.entrySet().stream().collect(Collectors.toMap(entry -> {
+            int separator = entry.getKey().indexOf(' ');
+            String prefix = entry.getKey().substring(0, separator);
+            String safePrefix = prefix.matches("[0-9]{3}") ? prefix : diagnosticMethod(prefix);
+            return safePrefix + " " + diagnosticUrl(entry.getKey().substring(separator + 1));
+        }, Map.Entry::getValue, Long::sum));
+    }
+
+    private static String diagnosticMethod(String method) {
+        return List.of("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS").contains(method)
+                ? method : "<other-method>";
+    }
+
+    private static String diagnosticUrl(String url) {
+        try {
+            String path = URI.create(url).getPath();
+            return path != null && path.matches("/case/(ok|post|redirect|final|no-body|repeated|burst/[0-7]|secret|not-found|server-error|barrier)")
+                    ? path : "<outside-fixture>";
+        } catch (IllegalArgumentException malformed) { return "<malformed-url>"; }
+    }
+
+    private static String failureTypes(Throwable failure) {
+        List<String> types = new java.util.ArrayList<>();
+        for (int depth = 0; failure != null && depth < 12; depth++, failure = failure.getCause()) {
+            String rendered = failure.toString();
+            int separator = rendered.indexOf(':');
+            String originalType = separator < 0 ? rendered : rendered.substring(0, separator);
+            String type = originalType.matches("[A-Za-z_$][A-Za-z0-9_.$]*")
+                    ? originalType : failure.getClass().getName();
+            StackTraceElement[] frames = failure.getStackTrace();
+            types.add(type + (frames.length == 0 ? "" : "@" + frames[0]));
+        }
+        return types.toString();
     }
 
     static boolean trafficComplete(List<NetworkEvent> events, Map<String, Long> expectedRequests,

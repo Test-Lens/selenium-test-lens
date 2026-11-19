@@ -50,6 +50,58 @@ class NetworkReportReadinessTest {
         }
     }
 
+    @Test
+    void timeoutDiagnosticRetainsTrafficCountsWithoutHeadersCredentialsOrUrlSecrets() {
+        String secret = "DIAGNOSTIC_SECRET_SENTINEL";
+        AtomicReference<NetworkCaptureSink> callbacks = new AtomicReference<>();
+        WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[]{WebDriver.class}, (proxy, method, args) -> null);
+        NetworkDiagnostics network = new NetworkDiagnostics(driver, OverlayLogger.noop(), (ignored, options, sink) -> {
+            callbacks.set(sink);
+            return () -> {};
+        }).start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI).build());
+        try {
+            String url = "http://user:password@peer.invalid/case/final?token=" + secret + "#" + secret;
+            NetworkRequest request = new NetworkRequest("shared-redirect", "GET", url, "", Instant.now(),
+                    Map.of("Authorization", secret, "Cookie", secret));
+            callbacks.get().recorded(NetworkEvent.request(request));
+            callbacks.get().recorded(response(url, 200, 1));
+            callbacks.get().recorded(NetworkEvent.warning(secret));
+            String diagnostic = NetworkReportCorrectnessTest.trafficDiagnostic(network,
+                    Map.of("GET http://peer.invalid/case/final", 1L),
+                    Map.of("200 http://peer.invalid/case/final", 1L));
+            assertTrue(diagnostic.contains("actualRequests={GET /case/final=1}"));
+            assertTrue(diagnostic.contains("actualResponses={200 /case/final=1}"));
+            assertTrue(diagnostic.contains("status=STARTED"));
+            assertFalse(diagnostic.contains(secret));
+            assertFalse(diagnostic.contains("password"));
+            assertFalse(diagnostic.contains("Authorization"));
+            assertFalse(diagnostic.contains("Cookie"));
+            assertFalse(diagnostic.contains("token="));
+        } finally { network.stop(); }
+    }
+
+    @Test
+    void timeoutDiagnosticIdentifiesCaptureFailureWithoutPrintingItsMessage() {
+        String secret = "FAILURE_DIAGNOSTIC_SECRET";
+        AtomicReference<NetworkCaptureSink> callbacks = new AtomicReference<>();
+        WebDriver driver = (WebDriver) Proxy.newProxyInstance(getClass().getClassLoader(),
+                new Class<?>[]{WebDriver.class}, (proxy, method, args) -> null);
+        NetworkDiagnostics network = new NetworkDiagnostics(driver, OverlayLogger.noop(), (ignored, options, sink) -> {
+            callbacks.set(sink);
+            return () -> {};
+        }).start(NetworkDiagnosticsOptions.builder().captureMode(NetworkCaptureMode.BIDI).build());
+        try {
+            callbacks.get().failed(new BiDiCaptureException(BiDiFailureCategory.PROTOCOL_ERROR, secret,
+                    Map.of(), new IllegalArgumentException(secret)));
+            String diagnostic = NetworkReportCorrectnessTest.trafficDiagnostic(network, Map.of(), Map.of());
+            assertTrue(diagnostic.contains("status=FAILED"));
+            assertTrue(diagnostic.contains("PROTOCOL_ERROR"));
+            assertTrue(diagnostic.contains("java.lang.IllegalArgumentException@"));
+            assertFalse(diagnostic.contains(secret));
+        } finally { network.stop(); }
+    }
+
     private static NetworkEvent request(String url, int hop) {
         return NetworkEvent.request(requestData(url), Instant.now(), Map.of("redirectCount", String.valueOf(hop)));
     }
