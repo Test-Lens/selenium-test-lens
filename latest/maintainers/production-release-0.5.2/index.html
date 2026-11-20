@@ -1,0 +1,4992 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects.">
+      
+      
+      
+        <link rel="canonical" href="https://test-lens.github.io/selenium-test-lens/latest/maintainers/production-release-0.5.2/">
+      
+      
+        <link rel="prev" href="../selenium-051-regression-audit/">
+      
+      
+        <link rel="next" href="../release-notes-0.5.2/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>0.5.2 production release - Test Lens</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/ai-integration-builder.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-T0B0XE6MS1"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-T0B0XE6MS1",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-T0B0XE6MS1",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  
+  
+    
+  
+  
+  
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Test Lens">
+  <meta property="og:title" content="0.5.2 production release - Test Lens">
+  <meta property="og:description" content="Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects.">
+  <meta property="og:url" content="https://test-lens.github.io/selenium-test-lens/latest/maintainers/production-release-0.5.2/">
+  <meta property="og:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+  <meta property="og:image:alt" content="Test Lens">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="0.5.2 production release - Test Lens">
+  <meta name="twitter:description" content="Test Lens provides observable Selenium interactions, retryable actions, polling assertions, browser HUD, and diagnostic evidence for Java WebDriver projects.">
+  <meta name="twitter:image" content="https://test-lens.github.io/selenium-test-lens/latest/assets/brand/test-lens-logo-horizontal.png">
+  
+  
+    <meta name="test-lens-integration-target" content="0.5.2">
+    <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
+    <meta name="test-lens-docs-source-kind" content="release">
+    <meta name="test-lens-docs-release-status" content="published">
+    <meta name="test-lens-docs-source-revision" content="4ad79ccc3345232ad46f0c545fb697e75705c655">
+  
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#test-lens-052-production-release" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+            
+  <style>.tl-version-switcher{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-bottom:.25rem}.tl-version-switcher select{max-width:15rem}</style>
+  <nav class="tl-version-switcher" aria-label="Documentation version"
+       data-current-version="0.5.2">
+    <strong>Version:</strong>
+    <select aria-label="Choose documentation version" data-tl-version-select>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.1.0/">0.1.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/0.2.0/">0.2.0</option>
+      <option value="https://test-lens.github.io/selenium-test-lens/dev/">dev</option>
+    </select>
+    <span data-tl-mike-metadata="/selenium-test-lens/versions.json" hidden></span>
+  </nav>
+  <script>
+    (() => {
+      const nav = document.currentScript.previousElementSibling;
+      const select = nav.querySelector("[data-tl-version-select]");
+      const base = "https://test-lens.github.io/selenium-test-lens/";
+      const selectCurrent = () => {
+        const current = nav.dataset.currentVersion;
+        for (const option of select.options) option.selected = option.textContent === current;
+      };
+      select.addEventListener("change", () => { window.location.assign(select.value); });
+      selectCurrent();
+      fetch(base + "versions.json", { credentials: "same-origin" })
+        .then(response => response.ok ? response.json() : Promise.reject())
+        .then(versions => {
+          select.replaceChildren(...versions.map(item => {
+            const option = document.createElement("option");
+            option.value = base + item.version + "/";
+            option.textContent = item.title || item.version;
+            option.dataset.version = item.version;
+            option.selected = item.version === nav.dataset.currentVersion;
+            return option;
+          }));
+        })
+        .catch(() => selectCurrent());
+    })();
+  </script>
+  
+
+          </div>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Test Lens" class="md-header__button md-logo" aria-label="Test Lens" data-md-component="logo">
+      
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Test Lens
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              0.5.2 production release
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Test-Lens/selenium-test-lens" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Test-Lens/selenium-test-lens
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Test Lens Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../capabilities/" class="md-tabs__link">
+          
+  
+  
+  Using Test Lens
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../observability/" class="md-tabs__link">
+          
+  
+  
+  Observability
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../security/redaction/" class="md-tabs__link">
+          
+  
+  
+  Security
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../advanced/" class="md-tabs__link">
+          
+  
+  
+  Advanced Features
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../integrations/" class="md-tabs__link">
+          
+  
+  
+  Integrations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../migration/" class="md-tabs__link">
+          
+  
+  
+  Migration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../whats-new-0.5.2/" class="md-tabs__link">
+          
+  
+  
+  Releases
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../reference/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Test Lens" class="md-nav__button md-logo" aria-label="Test Lens" data-md-component="logo">
+      
+  <img src="../../assets/brand/test-lens-icon.png" alt="logo">
+
+    </a>
+    Test Lens
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Test-Lens/selenium-test-lens" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Test-Lens/selenium-test-lens
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Test Lens Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation & first test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai-assisted-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Integration Prompt Builder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../framework-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Existing WebDriver integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Test Lens
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Using Test Lens
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/selector-intelligence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector Intelligence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/react-spa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    React & SPA resilience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/auth-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managed Auth State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/managed-test-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Managed Test State & Resources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elements
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Elements
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Elements overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/locators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Locators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Actions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/waiting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Waiting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/assertions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/information/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Element information
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../elements/select-controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Select controls
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser Context
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Browser Context
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Browser context overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/windows-tabs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Windows & tabs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-context/alerts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerts, confirms & prompts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Observability
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/visual-diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live HUD & configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/hud-studio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HUD Studio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/screenshots-evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Screenshots & evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/trace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Trace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTML, JSON & ZIP reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/report-upload/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Report upload
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/flakiness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Flakiness and retry outcomes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/failure-bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Failure bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../observability/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Security
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensitive-data redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/visual-redaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual redaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced features overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_2" id="__nav_6_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Application Mapping
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Application Mapping
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/application-mapping/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview and models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/application-mapping/tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guided end-to-end tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/application-mapping/existing-page-objects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Existing Page Object correlation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/application-mapping/page-object-generation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Page Object generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/application-mapping/drift-security-troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drift, security & troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/steps-business-assertions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Steps & business assertions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Network diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/overlay-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overlay policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/visual-helpers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visual helpers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/js-overlay-debug/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JsOverlayDebug advanced facade
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/junit5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JUnit 5
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/testng/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestNG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/allure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Allure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Migration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    From raw Selenium
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Releases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.5.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.5.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.4.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.3.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../whats-new-0.3.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.3.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migrating-0.2-to-0.3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating from 0.2.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complete API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/test-lens/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestLens
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration builders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/result-types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result & data types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/core-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/advanced-low-level/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced / low-level API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../product-capability-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product capability map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/public-api-catalog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Binary API catalog (optional)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../application-mapper-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Application Mapper architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../existing-project-ai-workflow-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Existing-project AI workflow ADR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../selenium-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selenium compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selenium-bidi-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BiDi compatibility audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selenium-bidi-release-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 release validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selenium-051-regression-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.1 regression audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 production release
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 production release
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#source-and-documentation-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source and documentation coverage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-39-local-skipped-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The 39 local skipped tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publication-process-and-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publication process and evidence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Publication process and evidence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-signing-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local signing validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current status
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Current status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#three-failed-ci-runs-primary-and-secondary-signatures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three failed CI runs: primary and secondary signatures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#controlled-http-abc-diagnosis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controlled HTTP A/B/C diagnosis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rejected-linux-stable-chrome-158-with-official-mapper-159" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejected Linux stable Chrome 158 with official mapper 159
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rejected-linux-stock-chrome-156-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejected Linux stock Chrome 156 fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bounded-mapper-experiment-not-a-release-candidate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bounded mapper experiment; not a release candidate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verified-windows-stock-157-configuration-and-final-source-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verified Windows stock 157 configuration and final-source gate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rejected-linux-stock-chrome-157-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejected Linux stock Chrome 157 gate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#historical-finalization-checks-and-chrome-158-redirect-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Historical finalization checks and Chrome 158 redirect failure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-documentation-example-skip-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete documentation-example skip inventory
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-notes-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 GitHub release notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../consumer-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Consumer compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing versioned docs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../search-console-recovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Search Console recovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-0.4.x/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releasing Test Lens 0.4.x
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-certification-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 release certification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../media-inventory-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.0 media inventory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recording-0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recording 0.4.0 media
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../patch-release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.4.x patch-release lane
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../browser-integration-tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Real-browser integration tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../performance-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime performance audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-declaration-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Static locator declaration index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-stability-policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector stability policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-candidate-live-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector candidate live analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-find-similar-history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selector similarity and cross-run history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Offline Selector Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selector-lab-readonly/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read-only Selector Lab
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compatibility-run-manifests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility run manifests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migration-git-checkpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Git preflight and checkpoints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/Test-Lens/selenium-test-lens/blob/main/CHANGELOG.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.2" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maven Central
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Javadoc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#source-and-documentation-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source and documentation coverage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-39-local-skipped-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The 39 local skipped tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publication-process-and-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publication process and evidence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Publication process and evidence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-signing-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local signing validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current status
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Current status">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#three-failed-ci-runs-primary-and-secondary-signatures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three failed CI runs: primary and secondary signatures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#controlled-http-abc-diagnosis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controlled HTTP A/B/C diagnosis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rejected-linux-stable-chrome-158-with-official-mapper-159" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejected Linux stable Chrome 158 with official mapper 159
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rejected-linux-stock-chrome-156-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejected Linux stock Chrome 156 fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bounded-mapper-experiment-not-a-release-candidate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bounded mapper experiment; not a release candidate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verified-windows-stock-157-configuration-and-final-source-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verified Windows stock 157 configuration and final-source gate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rejected-linux-stock-chrome-157-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rejected Linux stock Chrome 157 gate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#historical-finalization-checks-and-chrome-158-redirect-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Historical finalization checks and Chrome 158 redirect failure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-documentation-example-skip-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete documentation-example skip inventory
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/Test-Lens/selenium-test-lens/edit/v0.5.2/docs/maintainers/production-release-0.5.2.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="test-lens-052-production-release">Test Lens 0.5.2 production release<a class="headerlink" href="#test-lens-052-production-release" title="Permanent link">&para;</a></h1>
+<p>This document records the release-gating policy and pre-publication audit milestones. Source metadata is prepared in publication form; authoritative completion receipts for the immutable release will be recorded only after complete validation and publication. No external publication or tag is claimed here. Required hosted validation of runtime source <code>9f13b89b1928b7cbb9de46d3c9568733dcd5201a</code> passed; the subsequent documentation-only candidate still requires its own checks before publication. The earlier <a href="../selenium-051-regression-audit/">regression audit</a> and <a href="../selenium-bidi-release-0.5.2/">BiDi milestone</a> retain their historical local results.</p>
+<h2 id="source-and-documentation-coverage">Source and documentation coverage<a class="headerlink" href="#source-and-documentation-coverage" title="Permanent link">&para;</a></h2>
+<p>The prepared source is <code>release/bidi-0.5.2</code>, originally <code>c2d4fece</code>; <code>cdcc9344</code> identifies the earlier redirect-correction milestone, not the final candidate. The Linux stock-157 gate has been rejected, as has the official-mapper configuration introduced in CI commit <code>537f8cab</code>. The separate Windows stock-157 configuration passed the complete matrix at <code>d4700cc46c5d0916d344d190d09ae20a5a9ba8e6</code>; the integrated runtime source <code>9f13b89b1928b7cbb9de46d3c9568733dcd5201a</code> subsequently passed every required hosted check. The official-159 hosted gate ran at <code>bb7ba9fc</code>; independent native/CDP evidence followed at <code>12959089bb5c3410e1960d6ef82422dcb9d94f83</code>, and the Chrome-156 fallback failed its full report gate at <code>7caf2e49b953582e91347e7469f42276ea95bb75</code>. Windows and Linux qualifications are separate; the final runtime source passed required checks with one shared frozen artifact as recorded below. Actual baseline is <code>v0.5.1</code> (<code>e6e2a19</code>). Seven intervening baseline commits concern documentation/branding and the withdrawal of Studio recommendations; they are not new runtime features. The only changes in the Studio module are its parent-version bump. No uncommitted Studio/Playground work is included.</p>
+<p>Each entry below is described in the 0.5.2 changelog and release notes. No public API/test-source migration is required. Browser capability setup, consumer-owned Selenium alignment and optional capture activation remain required.</p>
+<table>
+<thead>
+<tr>
+<th>Change</th>
+<th>Commit</th>
+<th>Regression test</th>
+<th>Changelog</th>
+<th>Documentation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primitive/boxed sizes and numeric/string listener IDs</td>
+<td><code>e10cb2b1</code></td>
+<td><code>SeleniumBiDiCompatibilityTest</code>, <code>BinaryArtifactTest</code>, legacy bytecode consumer</td>
+<td>Fixed</td>
+<td><a href="../../advanced/network/">Network</a>, <a href="../../selenium-compatibility/">compatibility</a></td>
+</tr>
+<tr>
+<td>Owned listeners, partial cleanup, lazy remote initialization, capture failure invalidation</td>
+<td><code>e10cb2b1</code></td>
+<td>network source/diagnostics regressions; <code>BrowserBinaryTest</code></td>
+<td>Fixed</td>
+<td>Network, compatibility</td>
+</tr>
+<tr>
+<td>Preserve real redirect-hop request metadata when <code>beforeRequestSent</code> is absent; deduplicate by request ID and hop; retain observation timestamp and provenance</td>
+<td><code>2d971211</code></td>
+<td><code>SeleniumBiDiNetworkCaptureSourceTest</code>: redirect projection, deduplication, bounded storage and trace provenance; focused source regressions 82 PASS locally</td>
+<td>Fixed</td>
+<td><a href="../../advanced/network/">Network</a>, <a href="../release-notes-0.5.2/">release notes</a></td>
+</tr>
+<tr>
+<td>Optional raw-wire probes default OFF; actual HTTP server-journal assertions retained</td>
+<td><code>cdcc9344</code></td>
+<td>Journal-based browser/report assertions: final local matrix 1359 PASS, zero failures/skips</td>
+<td>Tested compatibility</td>
+<td>Network, release notes</td>
+</tr>
+<tr>
+<td>Overlapping restart generation</td>
+<td><code>e10cb2b1</code></td>
+<td>overlapping start source-ownership regression</td>
+<td>Fixed</td>
+<td>Network, BiDi audit</td>
+</tr>
+<tr>
+<td>Same-JAR matrix and report server-journal/body-byte checks</td>
+<td><code>3a2df0df</code>, <code>5dfb1e1b</code></td>
+<td><code>BinaryArtifactTest</code>, <code>NetworkReportCorrectnessTest</code></td>
+<td>Compatibility</td>
+<td>Compatibility, regression audit</td>
+</tr>
+<tr>
+<td>Release/CI/API gate correction and BOM alignment</td>
+<td><code>a4d24058</code></td>
+<td>prepared-policy, release tooling and API projection fixtures</td>
+<td>Compatibility</td>
+<td><a href="../selenium-bidi-release-0.5.2/">Release validation</a></td>
+</tr>
+<tr>
+<td>Potentially delivered action cannot be blindly repeated; checkbox post-click confirmation</td>
+<td><code>9a034be2</code></td>
+<td><code>SmartClickFallbackCascadeTest</code>, <code>RuntimeInputRegressionTest</code>, <code>UiLocatorAmbiguousActionRegressionTest</code>, <code>RuntimeOverlayBrowserAuditIT</code></td>
+<td>Fixed runtime regressions, Migration</td>
+<td><a href="../../elements/actions/">Actions</a></td>
+</tr>
+<tr>
+<td>Overlay cancellation/conditional dismissal, consistent null input</td>
+<td><code>9a034be2</code></td>
+<td><code>OverlayWaitCancellationRegressionTest</code>, <code>LegacyOverlayRecoveryRegressionTest</code>, <code>RuntimeInputRegressionTest</code>, browser smoke</td>
+<td>Fixed runtime regressions</td>
+<td>Actions, <a href="../../elements/waiting/">waiting</a></td>
+</tr>
+<tr>
+<td>React cancellation before another lookup/action</td>
+<td><code>00bf23f1</code></td>
+<td><code>ReactSafeExecutorCancellationAuditTest</code></td>
+<td>Fixed runtime regressions</td>
+<td><a href="../../features/react-spa/">React/SPA</a></td>
+</tr>
+<tr>
+<td>Critical finalization failures, cleanup and interrupted flag</td>
+<td><code>36c61081</code></td>
+<td><code>LifecycleFailureAuditTest</code>, existing JUnit/TestNG lifecycle suites</td>
+<td>Fixed runtime regressions</td>
+<td><a href="../../reference/test-lens/">TestLens lifecycle</a></td>
+</tr>
+<tr>
+<td>Fatal errors preserved by both locator metadata encoders</td>
+<td><code>80e50f1c</code></td>
+<td><code>LocatorObservationFatalAuditTest</code>, <code>LocatorObservationMetadataFatalRegressionTest</code></td>
+<td>Fixed runtime regressions</td>
+<td>TestLens lifecycle, regression audit</td>
+</tr>
+<tr>
+<td>Measured durations and terminal HUD preservation</td>
+<td><code>c0496789</code></td>
+<td><code>MeasuredOperationDurationAuditTest</code>, <code>HudPanelJsTest</code></td>
+<td>Fixed runtime regressions</td>
+<td><a href="../../observability/trace/">Trace</a>, <a href="../../observability/visual-diagnostics/">visual diagnostics</a></td>
+</tr>
+<tr>
+<td>Safe HTML artifact/archive links and report boundaries</td>
+<td><code>c0496789</code></td>
+<td><code>ReportLinkSecurityAuditTest</code>, <code>ReportDataBoundaryAuditTest</code></td>
+<td>Fixed runtime regressions</td>
+<td><a href="../../observability/reports/">Reports</a></td>
+</tr>
+<tr>
+<td>Version-specific setup, upgrade and limitations</td>
+<td><code>35690ba1</code>, <code>c2d4fece</code></td>
+<td>strict builds, signature/link/version-boundary gates</td>
+<td>Migration, Compatibility</td>
+<td><a href="../../whats-new-0.5.2/">What's new</a>, README and integration guides</td>
+</tr>
+</tbody>
+</table>
+<p>These fixes change erroneous behavior: an ambiguous failed action now fails rather than redispatching; interrupted work stops; critical errors propagate; measured durations and terminal HUD status become accurate. Existing timeout/fallback defaults remain. Legacy overlay dismissal retains its 500 ms cap and boolean meaning (dismissal invoked, not guaranteed disappearance). JavaScript dispatch is not declared equivalent to native input.</p>
+<h2 id="the-39-local-skipped-tests">The 39 local skipped tests<a class="headerlink" href="#the-39-local-skipped-tests" title="Permanent link">&para;</a></h2>
+<p>Classification uses every <code>&lt;skipped&gt;</code> testcase in the clean 1845-test reactor XML, not only suite names. The source conditions were inspected.</p>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Count</th>
+<th>Reason / environment</th>
+<th>Release-gate decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Documentation-only example methods</td>
+<td>25</td>
+<td>Explicitly disabled examples require a real driver, authenticated application or caller-supplied video; not executable generic fixtures</td>
+<td>Intentional. Compile examples; use dedicated deterministic Chrome/Grid integration gates instead. No setup failure or regression established</td>
+</tr>
+<tr>
+<td>Opt-in diagnostic/performance harnesses</td>
+<td>9</td>
+<td>Explicit properties absent: <code>compatibility.compare.performance</code>, <code>compatibility.performance</code>, <code>compat.static.performance</code>, <code>compat.static.selfAudit</code>, <code>testlens.selector.policy.performance</code>, <code>testlens.selector.engine.performance</code>, <code>selector.audit.perf</code>, <code>selector.history.perf</code>, <code>selector.tooling.perf</code></td>
+<td>Intentional offline/scale diagnostics, not correctness gates; no external service required. Not counted as PASS</td>
+</tr>
+<tr>
+<td>Windows symbolic-link assumptions</td>
+<td>5</td>
+<td>The platform cannot create fixture symbolic links</td>
+<td>Expected local environmental skips; must execute on capable hosted Linux. Not silently accepted if Linux setup fails</td>
+</tr>
+</tbody>
+</table>
+<p>The five platform-dependent testcases are:</p>
+<ul>
+<li><code>TrustedRepairApplierTest#rejectsDeclarationRangesWithZeroOrMultipleMatchingSelectorExpressions</code></li>
+<li><code>ApplicationModelStoreTest#oversizedFileIsRejectedAsStoreExceptionAtPersistenceBoundary</code></li>
+<li><code>MigrationAdditionalGitFixturesTest#detectsSparseCheckoutWhenSupported</code></li>
+<li><code>JavaLocatorScannerTest#isolatesMalformedFilesAndReportsKotlinAndIncompleteClasspath</code></li>
+<li><code>ReportUploaderTest#bearerCustomHeadersAndResponseDiagnosticsAreBoundedAndRedacted</code></li>
+</ul>
+<p>The nine opt-in methods are <code>CompatibilityComparisonPerformanceTest#measuresHeadlessAndObservabilityComparisonPipeline</code>, <code>CompatibilityManifestPerformanceTest#offlineBuildSerializeReadMatrix</code>, <code>StaticCompatibilityHarnessTest#offlineScaleHarness</code>, <code>StaticCompatibilityHarnessTest#selfAuditRepository</code>, <code>PolicyFeedbackPerformanceHarnessTest#measuresDraftAndPatternPreviewScalingWithoutCiThresholds</code>, <code>SelectorEnginePerformanceHarnessTest#measuresOfflineScalingWithoutCiThresholds</code>, <code>SelectorAuditPerformanceHarnessTest#measuresAuditScaling</code>, <code>SelectorHistoryPerformanceHarnessTest#measuresSimilarityHistoryAndPolicyPreviewScaling</code>, and <code>SelectorToolingPerformanceHarnessTest#recordsOfflineSmallMediumAndLargeScanMetrics</code>.</p>
+<p>The 25 example methods are enumerated in the checked local <code>target/release-052-skips.json</code> and are all the skipped methods in <code>selenium-test-lens-examples</code>; their annotation reasons identify driver/auth/video prerequisites. Hosted and local results must be reported separately. The 1242-test same-JAR matrix and each selected 5-test browser smoke have zero skips.</p>
+<h2 id="publication-process-and-evidence">Publication process and evidence<a class="headerlink" href="#publication-process-and-evidence" title="Permanent link">&para;</a></h2>
+<p>The existing <code>central-release</code> Maven profile creates sources/Javadoc, signs with GPG and stages through Sonatype's Central plugin. <code>autoPublish=false</code> / <code>waitUntil=validated</code> requires explicit publication of the validated deployment. There is no Central publishing GitHub workflow; Release Check validates packaging without signing. This release follows the existing safe ordering: merge verified source, stage and publish Central, verify artifacts, then create the immutable tag which triggers documentation publication.</p>
+<p>Signing preflight is complete. The signing key was verified against the public 0.5.1 signature fingerprint <code>7C21B14451B2C876E87796C2723272178ED7A876</code>. Interactive local signing and verification passed, and Maven parent-POM signing and verification passed. No password or private key was exported. These checks establish signing readiness, not a Central deployment or publication.</p>
+<p>Baseline synchronization was separated from the patch: <a href="https://github.com/Test-Lens/selenium-test-lens/pull/2">PR #2</a> merged as <code>2935dbede2e819725554a34d1896449532b7f578</code> after <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44515897545">CI run 44515897545</a> passed. <a href="https://github.com/Test-Lens/selenium-test-lens/pull/3">Release PR #3</a> exists. Local release work remains isolated and preserves the original dirty work. The existing local Maven <code>central-release</code> profile remains the staging path, with <code>autoPublish=false</code>; no Actions publication workflow has been introduced.</p>
+<p>Release version 0.5.2 was absent from local/remote tags, GitHub Releases and Central at initial preflight. Availability is checked again immediately before immutable actions. PR, hosted run IDs, merge SHA, Central deployment/public artifacts, tag, documentation URLs and post-release consumer evidence are recorded here as each completes.</p>
+<h3 id="local-signing-validation">Local signing validation<a class="headerlink" href="#local-signing-validation" title="Permanent link">&para;</a></h3>
+<p>After the maintainer entered the passphrase through local GPG pinentry, a new detached proof signature verified successfully. On the clean <code>cd00bef8</code> checkout the existing Maven profile then completed signed verification in 23.630 seconds. <strong>All 61 signatures across the 16 publishable coordinates verified against the expected fingerprint</strong>, covering the parent POM, 15 module POMs, main JARs, sources and Javadoc. The local inventory records each file's SHA-256 and signer in <code>target/gpg-release-preflight/all-published-artifact-signatures.json</code>. This is local signing/packaging evidence, not a Central deployment or final release certification.</p>
+<p>The signing command used the existing <code>central-release</code> profile and configured local <code>central</code> server credentials; their values were not logged. The explicit nonsecret overrides were:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">mvn</span> <span class="n">-B</span> <span class="n">-Pcentral-release</span> <span class="n">-DskipTests</span> <span class="p">`</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  <span class="s1">'-Dgpg.keyname=7C21B14451B2C876E87796C2723272178ED7A876'</span> <span class="p">`</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  <span class="s1">'-Dgpg.executable=C:/Program Files/GnuPG/bin/gpg.exe'</span> <span class="p">`</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  <span class="s1">'-Dgpg.useagent=true'</span> <span class="n">verify</span>
+</span></code></pre></div>
+<p>The profile's batch/loopback arguments require an already primed <code>gpg-agent</code> cache; a separate <code>gpg --pinentry-mode ask --armor --detach-sign</code> proof provides the local pinentry step when that cache expires. No passphrase property, settings entry, environment variable, private-key export or key change was introduced. The GitHub runner has no access to the local key; the existing Release Check remains an unsigned validation workflow. Publication would use the established local, manually validated Central deployment process only after the release blocker is resolved.</p>
+<h2 id="current-status">Current status<a class="headerlink" href="#current-status" title="Permanent link">&para;</a></h2>
+<p><strong>REQUIRED RUNTIME-SOURCE GATES PASSED; PUBLICATION RECEIPTS NOT YET CLAIMED.</strong> Under the authorized condition-C exception, the exact Windows Chrome/ChromeDriver 157.0.8103.78 configuration is the browser gate. It passed all unchanged nine-version matrix/report checks and both standalone 50-redirect probes. Required CI now builds once on Linux, uploads the frozen artifacts, then runs the blocking Windows browser matrix against those same JARs. Linux stock 157/158 network integrity remains uncertified; stock-158 canaries retain visible actual outcomes. No custom or official mapper override is used by this gate. No new external publication receipt or tag is claimed; publication-form metadata is source preparation. BrowserStack remains NOT RUN.</p>
+<h3 id="three-failed-ci-runs-primary-and-secondary-signatures">Three failed CI runs: primary and secondary signatures<a class="headerlink" href="#three-failed-ci-runs-primary-and-secondary-signatures" title="Permanent link">&para;</a></h3>
+<p>The first failing assertion in each of these Linux Chrome <strong>156.0.8078.80</strong> runs is <code>NetworkReportCorrectnessTest.rawRemoteReportDataMatchesServerJournal</code>, first matrix row Selenium <strong>4.39.0</strong>: an uncompressed <code>/case/ok</code> response actually contains <strong>11 bytes</strong>, while BiDi reports <strong><code>bodySize=144</code></strong>. Report/Grid checks fail in all nine rows. This repeated report failure is distinct from the secondary redirect-protocol failures below.</p>
+<table>
+<thead>
+<tr>
+<th>Run / source</th>
+<th>Primary failure</th>
+<th>Secondary raw redirect probe</th>
+<th>Stock-158 canaries</th>
+<th>Windows qualification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44690269902">44690269902</a>, <code>55c90dcf</code></td>
+<td>Body size 11 ≠ 144</td>
+<td>Chrome 156 direct: stimulus 4</td>
+<td>Grid FAIL at stimulus 17</td>
+<td>Separate Windows run 44690264321: local PASS; Grid process unavailable</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44691010963">44691010963</a>, <code>d4700cc4</code></td>
+<td>Same body-size assertion</td>
+<td>Chrome 156 Grid: stimulus 20</td>
+<td>Direct and Grid PASS</td>
+<td>Complete Windows matrix and both standalone transports PASS</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44691016972">44691016972</a>, <code>d4700cc4</code></td>
+<td>Same body-size assertion</td>
+<td>Chrome 156 Grid: stimulus 21</td>
+<td>Grid FAIL at stimulus 31; direct protocol NOT RUN because Maven Central returned HTTP 429 resolving Selenium BOM 4.53.0</td>
+<td>Not requested; SKIP</td>
+</tr>
+</tbody>
+</table>
+<p>The intervening workflow fix kept Windows Grid startup, probes and cleanup in one process lifetime. It could resolve Windows Grid connectivity, but could not correct the unchanged Linux Chrome-156 body-size mapping. The direct canary's dependency-resolution failure is infrastructure failure, not a protocol result.</p>
+<p>Exact browser-tag source identifies the Chrome-156 size defect: <a href="https://github.com/chromium/chromium/blob/156.0.8078.80/third_party/chromium-bidi/src/bidiMapper/modules/network/NetworkRequest.ts#L618"><code>NetworkRequest.ts</code> in 156.0.8078.80</a> assigns <code>encodedDataLength</code> to the field returned as <code>bodySize</code>. <a href="https://github.com/chromium/chromium/blob/157.0.8103.78/third_party/chromium-bidi/src/bidiMapper/modules/network/NetworkRequest.ts#L621">157.0.8103.78 separates <code>encodedDataLength</code> and <code>encodedBodyLength</code></a>. The <a href="https://github.com/chromium/chromium/blob/157.0.8103.78/third_party/blink/public/devtools_protocol/domains/Network.pdl#L1295">exact 157 CDP schema</a> defines the former as total received bytes and the latter as body bytes excluding headers and transfer framing. This proves the wrong-field formula; the difference of 133 bytes is not a measured header size.</p>
+<h3 id="controlled-http-abc-diagnosis">Controlled HTTP A/B/C diagnosis<a class="headerlink" href="#controlled-http-abc-diagnosis" title="Permanent link">&para;</a></h3>
+<p>A separate <a href="https://github.com/Test-Lens/selenium-test-lens/tree/8dfab5293519100f8bb8340665381a361ab13c43">diagnostic branch</a>, <code>diagnostic/bidi-http-upgrade-0.5.2</code>, ran <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44695845304">44695845304</a> at immutable commit <strong><code>8dfab5293519100f8bb8340665381a361ab13c43</code></strong>. Its replacement diagnostic workflow must not be merged into the release. No Lens artifact was rebuilt: modes B/C used the frozen <code>9f13b89b</code> JAR above. All cases used Java 21, Selenium 4.53.0, <code>--headless=new</code> and matching stock browser/driver pairs <strong>157.0.8103.78</strong> or <strong>158.0.8127.36</strong>. No mapper override or HTTPS-feature override was used for loopback cases.</p>
+<ul>
+<li><strong>A:</strong> public Selenium raw BiDi through direct ChromeDriver, with no Lens JAR on the classpath.</li>
+<li><strong>B:</strong> the same raw listener plus Lens capture through direct ChromeDriver.</li>
+<li><strong>C:</strong> raw listener plus Lens through <code>RemoteWebDriver</code> and real Grid 4.53.0.</li>
+</ul>
+<p>The common JDK HTTP fixture serves <code>/ok</code> (200), <code>/redirect</code> (302 → <code>/ok</code>) and <code>/json</code> (200). Its independent journal records actual method/full URL, unique server request ID, receive/finish timestamps, <code>Location</code> and sent bytes. The raw observer records <code>beforeRequestSent</code>, <code>responseStarted</code>, <code>responseCompleted</code> and <code>fetchError</code>, with full scheme/host/port, pseudonymous request ID, hop and timestamps. Raw events, passive CDP, journal and Lens export remain separate artifact files under each case; no expected redirect is synthesized.</p>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th><code>127.0.0.1</code> A / B / C</th>
+<th><code>localhost</code> A / B / C</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows 157</td>
+<td>50 / 50 / 50 PASS</td>
+<td>50 / 50 / 50 PASS</td>
+<td>Supports the qualified Windows configuration</td>
+</tr>
+<tr>
+<td>Windows 158</td>
+<td>50 / 50 / 50 PASS</td>
+<td>50 / 50 / 50 PASS</td>
+<td>Diagnostic scope only; does not certify Linux 158 or replace the release gate</td>
+</tr>
+<tr>
+<td>Linux 157</td>
+<td>FAIL: 50 / 50 / 4 completed</td>
+<td>FAIL: 7 / 50 / 50 completed</td>
+<td>Some cases completed all terminal responses but lacked final-hop <code>beforeRequestSent</code>; counts alone are not PASS</td>
+</tr>
+<tr>
+<td>Linux 158</td>
+<td>FAIL: 50 / 50 / 4 completed</td>
+<td>FAIL: 50 / 50 / 50 completed</td>
+<td>Same distinction; C/127 also has incorrect redirect status and missing final completion at stimulus 5</td>
+</tr>
+</tbody>
+</table>
+<p>A missing request-start event and a missing terminal response are different failures. Lens 0.5.2 can retain real request metadata from observed response events when <code>beforeRequestSent</code> is absent. It cannot reconstruct an absent terminal response or correct a raw false status truthfully. These Linux raw events occur in mode A as well, so Lens is not required to produce the raw observation gap; terminal failures also occur through direct transport in the retained evidence, so Grid is not required either.</p>
+<p>For <strong>stock Linux Chrome 158</strong>, C/127 stimulus <strong>5</strong>, pseudonymous request <strong><code>request-7</code></strong>, the failing passive CDP capture now establishes the exact ordering, rather than inferring it from the official-159 experiment. Event indices 42–49 contain: request A <code>/redirect</code>; request ExtraInfo A; response ExtraInfo <strong>302 A</strong>; request ExtraInfo <strong>B</strong>; response ExtraInfo <strong>200 B</strong>; request B <code>/ok</code> carrying <code>redirectResponse=302</code> and <code>redirectHasExtraInfo=true</code>; <code>responseReceived=200 B</code>; <code>loadingFinished</code> with body <strong>85</strong> / total <strong>226</strong> bytes. The independent server finished both GETs, <strong>302 then 200</strong>, and sent the final 85 bytes. Raw BiDi instead completed <strong>200 <code>/redirect</code></strong>, started <strong>200 <code>/ok</code></strong>, and never completed <code>/ok</code> within the declared deadline.</p>
+<p>The <a href="https://github.com/chromium/chromium/blob/158.0.8127.36/third_party/chromium-bidi/src/bidiMapper/modules/network/NetworkStorage.ts#L132">exact stock-158 <code>NetworkStorage.ts</code></a> routes early ExtraInfo to the current request A before creating request B. <a href="https://github.com/chromium/chromium/blob/158.0.8127.36/third_party/chromium-bidi/src/bidiMapper/modules/network/NetworkRequest.ts#L623"><code>NetworkRequest.ts</code></a> overwrites the stored ExtraInfo. Its status getter prefers the overwritten 200 ExtraInfo even though redirect handling supplies 302; the newly created B lacks the ExtraInfo needed to emit <code>beforeRequestSent</code> and <code>responseCompleted</code>, while <code>responseStarted</code> has a different gate. The failing stock-158 trace and exact embedded source establish this hop-association defect for this captured case. They do not establish one universal cause for every missing event on all versions.</p>
+<p>Every URL in this captured failing case remains <strong>HTTP on 127.0.0.1 with an explicit high port</strong> in raw/CDP/server evidence. The original report fixtures also use loopback with explicit high ports. No HTTP→HTTPS rewrite occurred in the captured failure, so HTTPS upgrading cannot explain it. The <a href="https://github.com/microsoft/playwright/issues/43871">Playwright public-host/port-80 issue</a> concerns a separate condition.</p>
+<p>A deliberately separate public-host positive control maps <code>staging.example.org:80</code> to the same local fixture. Default runs on all four environments show a synthetic <strong>307 HTTP→HTTPS</strong>, <code>fetchError</code>, and <strong>zero server requests</strong>. The first paired feature-disabled control is <strong>invalid (PROBE_BUG)</strong>: duplicate feature values passed to <code>Set.of</code> after ChromeDriver merged its base feature list. Its failure must not be interpreted as browser behavior. The diagnostic-only correction uses <code>LinkedHashSet</code>, retaining the actual base features plus the two tested HTTPS features. The local Windows-157 repeat then recorded default FAIL/zero journal entries and feature-disabled <strong>50 PASS / 102 server requests</strong>. The corrected hosted HTTPS-only control ran as <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44696634236">44696634236</a> at immutable diagnostic commit <a href="https://github.com/Test-Lens/selenium-test-lens/tree/c2f1185db9c9a5e1a4c7059610e79f6239a003f5"><code>c2f1185db9c9a5e1a4c7059610e79f6239a003f5</code></a>. It did not rerun the loopback or release matrix.</p>
+<table>
+<thead>
+<tr>
+<th>Public-host HTTPS-only environment</th>
+<th>Default features</th>
+<th>Paired HTTPS-feature control</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows 157</td>
+<td>FAIL: synthetic HTTP?HTTPS 307, <code>fetchError</code>, zero server requests</td>
+<td>PASS: 50 stimuli / 102 server requests; all HTTP</td>
+</tr>
+<tr>
+<td>Windows 158</td>
+<td>FAIL: same upgrade / zero server requests</td>
+<td>PASS: 50 stimuli / 102 server requests; all HTTP</td>
+</tr>
+<tr>
+<td>Linux 157</td>
+<td>FAIL: same upgrade / zero server requests</td>
+<td>FAIL on first redirect despite all URLs remaining HTTP; server finished 302 and 200 (four total journal rows including page/JSON), so the distinct BiDi failure persists after suppressing the upgrade</td>
+</tr>
+<tr>
+<td>Linux 158</td>
+<td>NOT RUN</td>
+<td>NOT RUN: dependency-classpath resolution failed before Java execution; no specific HTTP error is established because that private Maven log was not uploaded</td>
+</tr>
+</tbody>
+</table>
+<p>The earlier all-case run still supplies Linux-158 default-upgrade evidence; it does not supply a valid feature-disabled result. Corrected control command-line features were captured for the three executed environments, preserving ChromeDriver base features while allowing repeated feature values. Workflow/job success is not per-case success: these diagnostic jobs preserve actual FAIL/NOT RUN results. Together the controls demonstrate two independent conditions: public-host HTTPS upgrading and a Linux BiDi redirect defect which remains when the request stays HTTP. Lens receives no blanket security-disabling flags, and its qualified Windows-157 gate uses stock features.</p>
+<h3 id="rejected-linux-stable-chrome-158-with-official-mapper-159">Rejected Linux stable Chrome 158 with official mapper 159<a class="headerlink" href="#rejected-linux-stable-chrome-158-with-official-mapper-159" title="Permanent link">&para;</a></h3>
+<p>CI commit <code>537f8cab</code> introduces stable <strong>Chrome/ChromeDriver 158.0.8127.36</strong> with official npm <strong><code>chromium-bidi@159.0.8154-29</code></strong>. Hosted <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44685534676">run 44685534676</a> at <code>bb7ba9fc</code> rejected this configuration. The bundle contains the <a href="https://github.com/GoogleChromeLabs/chromium-bidi/commit/089ef52586b3dcac9390ce6c938008c742ad9449">upstream redirect-hop correction</a> absent from npm <code>158.0.8127-72</code>. No newer stable Chrome was available. This uses a mapper bundle, not Chrome 159 Beta; the Beta browser is not used or recommended.</p>
+<p>The <a href="https://github.com/Test-Lens/selenium-test-lens/blob/537f8cab/.github/actions/setup-bidi-browser/action.yml">CI composite for the rejected configuration</a> downloads the <a href="https://registry.npmjs.org/chromium-bidi/-/chromium-bidi-159.0.8154-29.tgz">official tarball</a>, verifies its pinned SHA-512 before extraction, then verifies this entry separately:</p>
+<ul>
+<li>Entry: <code>package/out/Default/gen/src/mapperTab.js</code>.</li>
+<li>Mapper SHA-256: <code>223556758eb4543c8e6fb206a9205192d2122942fc939148dfa1a30d7c48e4b5</code>.</li>
+<li>Chrome and ChromeDriver: matching <code>158.0.8127.36</code>.</li>
+<li>Public ChromeDriver service argument: <code>--bidi-mapper-path=&lt;absolute verified mapper path&gt;</code>.</li>
+</ul>
+<p>The flag is exposed in ChromeDriver help and consumed by its <a href="https://chromium.googlesource.com/chromium/src/+/refs/tags/158.0.8127.36/chrome/test/chromedriver/session_commands.cc">session setup</a>; <a href="https://chromium.googlesource.com/chromium/src/+/refs/tags/158.0.8127.36/chrome/test/chromedriver/server/chromedriver_server.cc">server option declarations</a> provide the other source boundary. For example, after verifying the official bundle, the rejected experimental service was launched with:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>chromedriver --port=9515 --bidi-mapper-path=/absolute/verified/mapperTab.js
+</span></code></pre></div>
+<p>This is a <strong>ChromeDriver service flag</strong>, not a Chrome browser argument, session capability or Lens API. CI wraps the actual ChromeDriver service executable so both direct and Grid-launched services receive the override, records launch/provenance artifacts and keeps stock canaries separate. There is no production Lens injection, custom mapper patch, manual BiDi initialization or <code>getHandle()</code> workaround. Public API, test sources' HTTP expectations, response counts, terminal-completion requirements and report assertions are unchanged. An official cross-version bundle is not a blanket compatibility guarantee; only the exact configuration can be certified after complete tests.</p>
+<p>A Windows direct ChromeDriver service trial on port 9515 completed <strong>50 stimuli PASS</strong> with the official override. It was not a true Grid run and is not hosted-Linux evidence. Subsequent Linux verification failed. Any replacement must pass the unchanged frozen-JAR matrix on <strong>4.39.0, 4.40.0, 4.41.0, 4.45.0, 4.46.0, 4.47.0, 4.51.0, 4.52.0 and 4.53.0</strong>, exact server-journal/report checks, and <strong>50 standalone redirects each through direct ChromeDriver and real Grid 4.53.0</strong>. API, full reactor, packaging and strict documentation gates must pass on the final source. No failed stimulus is retried or relabeled as skipped.</p>
+<p>Stock Chrome/ChromeDriver <strong>158.0.8127.36 direct/Grid canaries</strong> remain separate and nonblocking, preserving actual PASS/FAIL/NOT RUN outcomes, summaries, XML and raw/peer artifacts. Passing mapper experiments would not certify unpatched stock 158. Transient stock-157 or stock-158 passes do not erase independently observed failures.</p>
+<p>Independent <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44688547436">native JSON/CDP run 44688547436</a> at <code>12959089bb5c3410e1960d6ef82422dcb9d94f83</code> eliminates Selenium and Lens parsing from the failure path. Stimulus 1 completes; at stimulus 2, CDP records final-hop request ExtraInfo <strong>before</strong> its <code>requestWillBeSent</code>, followed by response ExtraInfo 200, <code>responseReceived</code> 200 and <code>loadingFinished</code>. BiDi emits only the redirect hop (correct 302), with no final-hop events within the declared deadline. The server journal independently contains exactly one 302 redirect and one 200 final response. Mapper 159 routes the early ExtraInfo to the previous hop, overwrites its stored ExtraInfo, then creates a final hop that waits for an event already consumed. This is direct trace and source evidence, not certification of an experimental patch.</p>
+<h3 id="rejected-linux-stock-chrome-156-fallback">Rejected Linux stock Chrome 156 fallback<a class="headerlink" href="#rejected-linux-stock-chrome-156-fallback" title="Permanent link">&para;</a></h3>
+<p><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44689160257">Run 44689160257</a> at <code>7caf2e49b953582e91347e7469f42276ea95bb75</code> passed all <strong>9 binary</strong> and <strong>9 basic-browser</strong> matrix rows; the latter cover local and remote execution, totaling <strong>18 basic-browser cases</strong>. The complete matrix recorded <strong>1368 tests: 1350 PASS, 18 FAIL, 0 SKIP</strong>. Standalone direct ChromeDriver and real Grid each passed <strong>50 distinct redirects</strong>. However, <strong>all 18 report scenarios failed</strong>: for an uncompressed 11-byte server response, BiDi reported <code>bodySize=144</code>. Redirect-only success does not waive report correctness. Stock Chrome 156 is therefore rejected as a complete release configuration.</p>
+<h3 id="bounded-mapper-experiment-not-a-release-candidate">Bounded mapper experiment; not a release candidate<a class="headerlink" href="#bounded-mapper-experiment-not-a-release-candidate" title="Permanent link">&para;</a></h3>
+<p>A local experiment against the official npm 159 modules reproduced early ExtraInfo routing with upstream network tests and additional regressions. The original modules passed 124 of 131 tests; a narrow FIFO derivative passed 130 of 131. The remaining test, <code>FIFO boundary: early first ExtraInfo does not belong to a no-ExtraInfo predecessor</code>, still observes the wrong hop when <code>redirectHasExtraInfo=false</code>. The failing assertion remains enabled. Correcting already-emitted data would require a broader change to event/interception semantics; the derivative is <strong>NOT PRODUCTION READY</strong> and is not used by release gates or Lens production code.</p>
+<p>This experiment used esbuild-transpiled upstream TypeScript tests with the actual npm modules, not Chromium's official GN/Ninja build. Its isolated commands, patch, baseline/fixed logs and hashes are retained locally in <code>target/mapper-fifo-experiment/README.md</code> and <code>candidate/provenance.json</code>. The derivative mapper SHA-256 is <code>d247d662f23e19da07c162664ddd9b97a9ced8db7b0600b1638ffc3253ff1695</code>; it has no browser certification. These results do not establish an available release fix.</p>
+<h3 id="verified-windows-stock-157-configuration-and-final-source-gate">Verified Windows stock 157 configuration and final-source gate<a class="headerlink" href="#verified-windows-stock-157-configuration-and-final-source-gate" title="Permanent link">&para;</a></h3>
+<p><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44690264321">Run 44690264321</a> at <code>55c90dcf</code> first passed all nine binary, local-browser and local-report rows and the standalone 50-redirect direct probe on Windows. Its Grid scenarios could not connect after a process started in a previous workflow step; they are not protocol evidence or PASS.</p>
+<p><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44691010963">Run 44691010963</a> at <code>d4700cc46c5d0916d344d190d09ae20a5a9ba8e6</code> kept Grid startup, all unchanged probes and cleanup within the same owned-process lifetime. With matching stock Chrome/ChromeDriver <strong>157.0.8103.78 on Windows</strong>, all <strong>nine Selenium rows passed: 152 tests each, 1368 PASS, 0 FAIL, 0 ERROR, 0 SKIP</strong>. This includes direct/local and Grid browser scenarios and report/server-journal comparisons across the existing nine Selenium runtimes. The independent standalone direct and real-Grid probes each completed <strong>50 distinct redirects PASS</strong>. No status, response-count, body-size or completion assertion was relaxed; no failed stimulus was retried. The frozen Lens JAR SHA-256 is <code>15252599CC308060461AEA7128281999618C7D47796910EF7FB40235689364B4</code>.</p>
+<p>CI commit <code>fb155a29</code> established the cross-OS contract. Final runtime source <strong><code>9f13b89b1928b7cbb9de46d3c9568733dcd5201a</code></strong> passed <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44692428506">manual CI 44692428506</a>, <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44692436487">automatic CI 44692436487</a>, <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44692436568">Documentation 44692436568</a> and <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44692432759">Release Check 44692432759</a>. Linux built the artifacts once; the blocking Windows matrix reused the uploaded frozen JARs without rebuilding. Lens JAR SHA-256: <strong><code>DD1D2D55E6D99FE1C47E5D030A30C378AB8F75574DC17E7809E886BB12EC1EE6</code></strong>.</p>
+<p>The retained reactor XML totals are <strong>1851 tests: 1817 PASS, 34 intentional SKIP, 0 FAIL</strong>. The 34 skips are the 25 documentation examples and nine opt-in diagnostic/performance methods classified above; all five Windows-only symbolic-link skips executed on Linux. Linux's nine binary rows passed <strong>1332 tests</strong>, with 36 browser scenarios explicitly NOT RUN in that binary-only job. Windows passed the complete nine-version browser/report matrix: <strong>1368 PASS, 0 FAIL, 0 SKIP</strong>, plus <strong>50 distinct redirects each</strong> through direct ChromeDriver and real Grid. The current Chrome and headed integration profiles each recorded <strong>132 tests: 121 PASS, 11 intentional SKIP, 0 FAIL</strong>; Firefox integration and the 17/21-test consumer suites passed. The eleven skips per profile comprise two HUD documentation layouts (<code>hudStudioDocsUrl</code> absent), one Grid method (<code>test.grid.url</code> absent in the generic profile), five opt-in performance methods (<code>perf.audit</code> / <code>perf.selectorLive</code> absent), one real Codex workflow (<code>testlens.codex.dogfood</code> absent), one documentation landing method (<code>documentationLandingUrl</code> absent), and one media capture (<code>testLens.captureDocsMedia</code> absent). The separate required same-JAR Grid matrix executes its actual Grid cases; the generic-profile skip is not a waiver. Historical five-test smoke totals below retain their original scope. Public API comparison retained all <strong>791 types</strong>, with no stable/advanced delta. These are validation receipts for that source; the documentation-only candidate must pass its own checks, and external publication requires separate actual receipts.</p>
+<table>
+<thead>
+<tr>
+<th>Required evidence</th>
+<th>Current state</th>
+<th>Completion record</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chrome 158 / official mapper 159</td>
+<td>REJECTED</td>
+<td>Hosted run 44685534676 at <code>bb7ba9fc</code>; independent native/CDP run 44688547436 at <code>12959089bb5c3410e1960d6ef82422dcb9d94f83</code>, failing stimulus 2</td>
+</tr>
+<tr>
+<td>Chrome 156 nine-version binary and basic-browser matrix</td>
+<td>9 binary PASS; 9 basic-browser rows / 18 local+remote cases PASS</td>
+<td>Run 44689160257 at <code>7caf2e49b953582e91347e7469f42276ea95bb75</code></td>
+</tr>
+<tr>
+<td>Chrome 156 standalone direct and real Grid</td>
+<td>50 redirects PASS each</td>
+<td>Same run; narrower than the complete report gate</td>
+</tr>
+<tr>
+<td>Chrome 156 report matrix</td>
+<td>18 FAIL</td>
+<td>Expected body size 11; reported 144; no assertions relaxed</td>
+</tr>
+<tr>
+<td>Qualified browser/transport configuration</td>
+<td>Windows stock Chrome/ChromeDriver 157.0.8103.78 PASS</td>
+<td>Run 44691010963 at <code>d4700cc46c5d0916d344d190d09ae20a5a9ba8e6</code>; 1368 matrix tests and 50 redirects each direct/Grid</td>
+</tr>
+<tr>
+<td>Runtime source and shared-artifact CI</td>
+<td>PASS at <code>9f13b89b1928b7cbb9de46d3c9568733dcd5201a</code></td>
+<td>Runs 44692428506 / 44692436487; Linux binary 1332 PASS and 36 browser NOT RUN; same frozen JAR on Windows, 1368 PASS plus 50 direct / 50 Grid</td>
+</tr>
+<tr>
+<td>Reactor, packaging, API and strict documentation</td>
+<td>PASS at the same runtime source</td>
+<td>Reactor 1817 PASS / 34 intentional SKIP; 791 API types unchanged; Documentation 44692436568 and Release Check 44692432759. Subsequent docs-only candidate checks remain required</td>
+</tr>
+<tr>
+<td>Immutable publication and public consumer smoke</td>
+<td>No new publication/tag or receipt</td>
+<td>Source publication form and historical signing checks do not establish external publication</td>
+</tr>
+</tbody>
+</table>
+<p>The existing 61-signature/16-coordinate signing evidence remains historical evidence for its recorded source; no new signing result is asserted. The following preflights and failures retain their original scope.</p>
+<h3 id="rejected-linux-stock-chrome-157-gate">Rejected Linux stock Chrome 157 gate<a class="headerlink" href="#rejected-linux-stock-chrome-157-gate" title="Permanent link">&para;</a></h3>
+<p>In <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44683766883">run 44683766883</a> at <code>f195</code>, the unchanged standalone stock-157 Linux direct probe failed at <strong>stimulus 43</strong>: the peer journal contained 302/redirect followed by 200/final, while raw BiDi supplied 200/redirect and omitted the required 302 redirect completion and 200 final completion. All nine Lens matrix rows passed in that run and Grid completed 50 stimuli; exact matrix totals await the retained reports and are not inferred here. Those passes do not waive the standalone failure. This run rejects the Linux stock-157 strategy despite the earlier passing preflight below; it does not negate the separately verified Windows configuration.</p>
+<p>Preflight <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44682004928">44682004928</a> at <code>375c9b08</code> verified the exact 157 browser/driver pair, all nine Chrome/Grid/report rows and both 50-stimulus standalone paths. The workflow itself failed because <code>stopAndAssertionObserveAConsistentValidSnapshot</code> incorrectly demanded PASS for every concurrent stop/assertion interleaving. Production intentionally releases the lock around health I/O and rejects a changed generation. Test-only commit <code>f9b7dddb</code> replaces the scheduling race with two controlled cases: a generation change must produce the exact rejection with zero PASS logs, while a fresh assertion of the valid stopped snapshot passes; ordered active/stop/stopped assertions pass. No production code or HTTP expectation changed. All <strong>83</strong> focused tests passed, including <strong>46</strong> lifecycle tests against the exact preflight frozen JAR with Selenium 4.40.0. Independent review found no actionable issue. The corrected test is part of the required final matrix, not a waiver for the failed preflight.</p>
+<h3 id="historical-finalization-checks-and-chrome-158-redirect-failure">Historical finalization checks and Chrome 158 redirect failure<a class="headerlink" href="#historical-finalization-checks-and-chrome-158-redirect-failure" title="Permanent link">&para;</a></h3>
+<p>Commit <code>2d971211</code> retains real redirect request metadata with its observation phase; <code>cdcc9344</code> keeps optional raw-wire probes OFF by default. The focused source regressions passed 82 tests. Independent reviews found no actionable defects in either change. The new local nine-version same-JAR matrix passed <strong>1359 tests, zero failures/skips</strong>, including Chrome 158, Grid and server-journal report comparisons. Lens SHA-256: <code>972981F9C86FA796706768A36CF34D518ADDF8D46FDE8B55DB5832C6F79104FB</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Observed result</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fresh checkout, full reactor and release-profile packaging</td>
+<td>PASS: 1811 tests, 39 classified skips, zero failures; sources/Javadoc and publication whitelist checked without signing</td>
+<td>Clean <code>cd00bef8</code> checkout; local <code>production-final-verify-unsigned.log</code> and <code>production-packaging-check.log</code></td>
+</tr>
+<tr>
+<td>Hosted Linux reactor</td>
+<td>PASS: 1816 tests, 34 intentional skips, zero failures; all five Windows-only skipped tests executed successfully</td>
+<td><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44526160581">CI 44526160581</a>, <code>reactor-test-results</code> artifact; the complete workflow is not a PASS because its matrix failed</td>
+</tr>
+<tr>
+<td>Hosted same-JAR matrix</td>
+<td>1359 PASS on one complete run; an independent repeat failed the Grid redirect journal comparison</td>
+<td><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44525749243">44525749243</a>, <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44526160581">44526160581</a></td>
+</tr>
+<tr>
+<td>Hosted complete manual CI, including headed Chrome and Firefox</td>
+<td>PASS at <code>cd00bef8</code>, retained as evidence of that run, not a waiver for the intermittent failure</td>
+<td><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44526149198">44526149198</a></td>
+</tr>
+<tr>
+<td>Hosted release packaging/clean-room gate</td>
+<td>PASS at <code>cdcc9344</code>, signing intentionally disabled</td>
+<td><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44525892997">Release Check 44525892997</a></td>
+</tr>
+<tr>
+<td>Public API</td>
+<td>PASS: 791 types / 5700 callables; stable/advanced baseline delta zero</td>
+<td><code>check-public-api.ps1</code>, <code>check-public-api-since.ps1</code></td>
+</tr>
+<tr>
+<td>Hosted strict documentation</td>
+<td>PASS at <code>ad8605ac</code></td>
+<td><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44527264850">Documentation 44527264850</a></td>
+</tr>
+</tbody>
+</table>
+<p>The failing Grid scenario on Chrome <strong>158.0.8127.36</strong>, Grid <strong>4.53.0</strong>, and Java <strong>21</strong> received a raw <code>network.responseStarted</code> and <code>network.responseCompleted</code> carrying <strong>200 /case/redirect</strong>, then <code>responseStarted</code> for <strong>200 /case/final</strong>, but no completed final response and no 302 response in any observed phase. The controlled HTTP peer journal contains <strong>302 /case/redirect → 200 /case/final</strong>. This was reproduced with client 4.39.0 in <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44527256815">diagnostic CI 44527256815</a>; a normal run without probes failed with client 4.45.0. The bounded raw observer used Lens's existing connection and did not map through Lens's response model. Status remained STARTED with no callback failure or dropped events, so connection health alone does not establish complete or accurate traffic.</p>
+<p>Changing Lens's URL preference cannot restore the missing 302 response or the response count. Fabricating it from the expected server behavior is not an acceptable fix. At this historical checkpoint, the browser/Grid component responsible had not been identified; this evidence alone did not assign the defect exclusively to Chrome. The controlled stock-158 CDP/source evidence above now identifies a mapper hop-association defect for its captured failing case. A standalone public-Selenium-only reproducer is supplied in <code>consumer-tests/selenium-bidi/protocol-reproducer</code>, with no Lens dependency and no retry of failed stimuli. It tests 50 distinct redirects and writes bounded, sanitized raw events and peer journals. Local Windows runs are not evidence that the hosted Linux defect is fixed.</p>
+<p>The standalone reproducer subsequently established that <strong>neither Lens nor Grid is necessary for the failure</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Standalone Selenium-only run</th>
+<th>Environment</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44530948312">44530948312</a>, <code>9819d4ca</code></td>
+<td>Linux, client 4.53.0, Grid 4.53.0, Chrome/ChromeDriver 158.0.8127.36</td>
+<td>FAIL at distinct stimulus 20: peer 302 <code>/redirect/20</code> then 200 <code>/final/20</code>; raw completed 200 <code>/redirect/20</code>, no completed final response</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44531701988">44531701988</a>, <code>1c755c44</code></td>
+<td>Same hosted Linux versions, Grid</td>
+<td>PASS for 50 distinct stimuli; this passing repeat does not waive the failure</td>
+</tr>
+<tr>
+<td>Same paired run, direct <code>ChromeDriver</code>, no Grid</td>
+<td>Linux, client 4.53.0, Chrome/ChromeDriver 158.0.8127.36</td>
+<td>FAIL at stimulus 41 with the same incorrect 200/redirect and missing 302 redirect completion and 200 final completion</td>
+</tr>
+<tr>
+<td>Local Windows probes</td>
+<td>Grid 4.53.0, Chrome 158, clients 4.53.0 and 4.45.0</td>
+<td>50 stimuli PASS per run; not a hosted-Linux certification</td>
+</tr>
+</tbody>
+</table>
+<p>Both hosted failures set <code>outcome=PROTOCOL_MISMATCH</code>, <code>evidenceOverflow=false</code>, with one failing JUnit test and zero skipped tests. The tests stop at the first mismatch; the 50 stimuli are different requests, not retries of a failed action. Separate Grid and local Surefire artifacts and raw-event/peer-journal JSON are retained. The earlier diagnostic launch <a href="https://github.com/Test-Lens/selenium-test-lens/actions/runs/44530051630">44530051630</a> failed before executing this standalone test because a PowerShell Maven property needed quoting; <code>743a8da4</code> corrected it. That launch is NOT RUN for the standalone scenario, not a protocol failure or PASS.</p>
+<p>These historical observations identified the Linux Chrome/ChromeDriver BiDi path without pinpointing a vendor component. The later independent traces above identify early ExtraInfo routing in the official-159 experiment and the captured stock-158 failure. No Linux mapper correction has passed the complete release gate; the qualified Windows stock-157 configuration separately passed it. Missing responses cannot be repaired truthfully from the Selenium event fields alone. These observations originally caused an absolute release hold. The attempted Linux stock-157 exception subsequently failed as well. The official-mapper configuration above has since failed hosted verification; every earlier passing and failing result retains its scope.</p>
+<p>The final runtime source completed unchanged required CI using the qualified Windows stock-157 configuration and the same Linux-built frozen JAR, plus every other required gate, with all rejected Linux configurations explicit. The following documentation-only candidate still needs its checks; actual publication receipts follow publication. Any later correction or newer component must still pass the unchanged standalone and report assertions before Chrome 158 is certified; compatibility is not inferred from a version number or an individual passing repeat.</p>
+<p>Separately, <a href="https://github.com/Test-Lens/selenium-test-lens/pull/4">PR #4</a> fixed only an existing Studio browser fixture's readiness race. Its complete hosted checks passed before merge <code>5a47e7b0</code>; the release branch merges that approved baseline. There are no Studio production changes in the 0.5.2 diff, and the only Studio module change relative to current main remains its parent-version bump. The original working tree's HEAD, index, status and all 256 recorded file hashes remain unchanged.</p>
+<p>Public documentation checks after that merge confirmed identical SHA-256 values for all seven existing version index pages (0.1.0, 0.2.0, 0.3.0, 0.3.1, 0.4.0, 0.5.0, 0.5.1). At that preflight checkpoint, <code>versions.json</code> assigned <code>latest</code> to 0.5.1 and the 0.5.2 main JAR was absent from public Central (HTTP 404); no release tag or immutable publication had been created. These are historical checkpoint facts, not the final publication receipt.</p>
+<h2 id="complete-documentation-example-skip-inventory">Complete documentation-example skip inventory<a class="headerlink" href="#complete-documentation-example-skip-inventory" title="Permanent link">&para;</a></h2>
+<p>All 25 are intentionally disabled illustrative methods, not hosted browser gate failures:</p>
+<ul>
+<li><code>ActionabilityExampleTest#checkElementActionabilityBeforeClicking</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>AuthSessionStateExampleTest#authSessionStateUsage</code> — Documentation-only example; requires a real WebDriver and authenticated app.</li>
+<li><code>BrowserExecutionConfigExampleTest#manualFactoryResolvesExecutionIntentBeforeCreatingTheDriver</code> — Documentation-only example; requires a real Chrome installation.</li>
+<li><code>BusinessAssertionsExampleTest#businessAssertionsUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>BusinessStepDslExampleTest#businessStepDslUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>HtmlTraceReportExampleTest#logOnlyHtmlReportUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>HudThemeExampleTest#blackAndColorsHudThemeUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>HudThemeExampleTest#hudThemeUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>HudThemeExampleTest#customHudThemeUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>NativeSeleniumObservationExampleTest#existingPageObjectsCanKeepUsingNativeSelenium</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>NetworkDiagnosticsExampleTest#networkDiagnosticsUsage</code> — Documentation-only example; requires a real browser/network-capable WebDriver.</li>
+<li><code>NetworkWaitForResponseExampleTest#waitForResponseUsage</code> — Documentation-only example; requires a real browser/network-capable WebDriver.</li>
+<li><code>OverlayPolicyExampleTest#configureKnownBlockingOverlays</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>PlaywrightStyleLocatorsExampleTest#playwrightStyleLocatorsUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>ReactActionabilityExampleTest#checkReactReadinessBeforeClicking</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>ReactUsageExampleTest#reactSafeUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>RetryableAssertionsExampleTest#retryableAssertionsUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>RetryableLocatorExampleTest#retryableLocatorUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>ScreenshotEvidenceExampleTest#screenshotEvidenceUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>ScreenshotEvidenceExampleTest#screenshotOnFailedStepUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>SeleniumUsageExampleTest#seleniumOverlayUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>SeleniumUsageExampleTest#fastObservabilityKeepsTestSemantics</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>TraceEventMappingExampleTest#traceEventMappingUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>TraceEvidenceModelExampleTest#traceEvidenceModelUsage</code> — Documentation-only example; requires a real WebDriver.</li>
+<li><code>VideoEvidenceExampleTest#videoEvidenceUsage</code> — Documentation-only example; requires external video artifact.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../selenium-051-regression-audit/" class="md-footer__link md-footer__link--prev" aria-label="Previous: 0.5.1 regression audit">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                0.5.1 regression audit
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../release-notes-0.5.2/" class="md-footer__link md-footer__link--next" aria-label="Next: 0.5.2 GitHub release notes">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                0.5.2 GitHub release notes
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.2", "default": "latest", "is_dev": false, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

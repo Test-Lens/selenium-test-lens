@@ -965,6 +965,11 @@
 
     var logs = ensureLogs(panel, config);
     var row = operationRow(logs, semantic.operationId, semantic.category);
+    if (row) {
+      var previousPhase = row.getAttribute ? row.getAttribute('data-phase') : row.attributes && row.attributes['data-phase'];
+      if ((previousPhase === 'PASSED' || previousPhase === 'FAILED')
+          && semantic.phase !== 'PASSED' && semantic.phase !== 'FAILED') return;
+    }
     var newRow = !row;
     if (!row) row = document.createElement('div');
     else {
