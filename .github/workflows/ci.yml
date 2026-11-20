@@ -36,7 +36,7 @@ jobs:
         with:
           chrome-version: "157.0.8103.78"
           install-chromedriver: true
-      - name: Verify stock browser pair and start owned loopback Grid
+      - name: Verify pair and run every unchanged probe within the owned Grid lifetime
         env:
           CHROME_BINARY: ${{ steps.browser.outputs.chrome-path }}
           DRIVER_BINARY: ${{ steps.browser.outputs.chromedriver-path }}
@@ -54,28 +54,37 @@ jobs:
           $jar = (Resolve-Path target/windows-bidi-diagnostic/selenium-server.jar).Path
           $process = Start-Process -FilePath "$env:JAVA_HOME/bin/java.exe" -ArgumentList @("-Dwebdriver.chrome.driver=`"$env:DRIVER_BINARY`"", '-jar', "`"$jar`"", 'standalone', '--host', '127.0.0.1', '--port', '4444') -WindowStyle Hidden -PassThru -RedirectStandardOutput target/windows-bidi-diagnostic/grid.stdout.log -RedirectStandardError target/windows-bidi-diagnostic/grid.stderr.log
           $process.Id | Set-Content target/windows-bidi-diagnostic/grid.pid
-          for ($attempt = 0; $attempt -lt 60; $attempt++) {
-            if ($process.HasExited) { throw 'Owned Grid exited during setup' }
-            try { if ((Invoke-RestMethod http://127.0.0.1:4444/status).value.ready) { exit 0 } } catch {}
-            Start-Sleep -Seconds 1
+          $outcomes = [ordered]@{}
+          try {
+            $ready = $false
+            for ($attempt = 0; $attempt -lt 60; $attempt++) {
+              if ($process.HasExited) { throw 'Owned Grid exited during setup' }
+              try { $ready = (Invoke-RestMethod http://127.0.0.1:4444/status).value.ready } catch {}
+              if ($ready) { break }
+              Start-Sleep -Seconds 1
+            }
+            if (-not $ready) { throw 'Owned Grid did not become ready' }
+            try {
+              ./scripts/test-selenium-bidi-compatibility.ps1 -BrowserTests -GridUrl http://127.0.0.1:4444 -ChromeBinary $env:CHROME_BINARY -ChromeDriver $env:DRIVER_BINARY -WireDiagnostics:$false
+              $outcomes.matrix = 'PASS'
+            } catch {
+              $outcomes.matrix = 'FAIL'
+              Write-Host $_
+            }
+            foreach ($mode in @('local', 'grid')) {
+              $arguments = @('-B', '-f', 'consumer-tests/selenium-bidi/protocol-reproducer/pom.xml', 'clean', 'test', "-Dtest.chrome.binary=$env:CHROME_BINARY", "-Dwebdriver.chrome.driver=$env:DRIVER_BINARY", "-Dprobe.output=$PWD/target/windows-bidi-diagnostic/protocol-$mode")
+              if ($mode -eq 'grid') { $arguments += '-Dbidi.grid=http://127.0.0.1:4444' }
+              & mvn @arguments *> "target/windows-bidi-diagnostic/protocol-$mode.log"
+              $probeExit = $LASTEXITCODE
+              if (Test-Path consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports) { Copy-Item consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports "target/windows-bidi-diagnostic/$mode-surefire" -Recurse }
+              $outcomes[$mode] = if ($probeExit -eq 0) { 'PASS' } else { 'FAIL' }
+              Write-Host "Standalone $mode (50 unchanged stimuli): $($outcomes[$mode])"
+            }
+          } finally {
+            Stop-Process -Id $process.Id -ErrorAction SilentlyContinue
+            $outcomes | ConvertTo-Json | Set-Content target/windows-bidi-diagnostic/outcomes.json
           }
-          throw 'Owned Grid did not become ready'
-      - name: Unchanged nine-version same-JAR capture and report assertions
-        run: ./scripts/test-selenium-bidi-compatibility.ps1 -BrowserTests -GridUrl http://127.0.0.1:4444 -ChromeBinary '${{ steps.browser.outputs.chrome-path }}' -ChromeDriver '${{ steps.browser.outputs.chromedriver-path }}' -WireDiagnostics:$false
-      - name: Unchanged standalone direct probe (50 stimuli)
-        if: always()
-        run: |
-          mvn -B -f consumer-tests/selenium-bidi/protocol-reproducer/pom.xml clean test '-Dtest.chrome.binary=${{ steps.browser.outputs.chrome-path }}' '-Dwebdriver.chrome.driver=${{ steps.browser.outputs.chromedriver-path }}' '-Dprobe.output=${{ github.workspace }}/target/windows-bidi-diagnostic/protocol-local'
-          $probeExit = $LASTEXITCODE
-          if (Test-Path consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports) { Copy-Item consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports target/windows-bidi-diagnostic/direct-surefire -Recurse }
-          if ($probeExit -ne 0) { exit $probeExit }
-      - name: Unchanged standalone Grid probe (50 stimuli)
-        if: always()
-        run: |
-          mvn -B -f consumer-tests/selenium-bidi/protocol-reproducer/pom.xml clean test '-Dbidi.grid=http://127.0.0.1:4444' '-Dtest.chrome.binary=${{ steps.browser.outputs.chrome-path }}' '-Dwebdriver.chrome.driver=${{ steps.browser.outputs.chromedriver-path }}' '-Dprobe.output=${{ github.workspace }}/target/windows-bidi-diagnostic/protocol-grid'
-          $probeExit = $LASTEXITCODE
-          if (Test-Path consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports) { Copy-Item consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports target/windows-bidi-diagnostic/grid-surefire -Recurse }
-          if ($probeExit -ne 0) { exit $probeExit }
+          if ($outcomes.Count -ne 3 -or $outcomes.Values -contains 'FAIL') { throw 'Windows configuration diagnostic failed; inspect independent outcomes and XML' }
       - name: Stop only the owned Grid process
         if: always()
         run: |
