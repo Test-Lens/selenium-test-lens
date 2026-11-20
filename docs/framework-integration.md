@@ -1,5 +1,8 @@
 # Integrating Test Lens with an existing Selenium project
 
+For BiDi network capture, stock Chrome/ChromeDriver 157.0.8103.78 on Windows passed the complete nine-version local/Grid matrix and both 50-redirect probes. Release CI verifies the same Linux-built frozen JAR on Windows; Linux stock 157/158 network integrity remains uncertified. No custom mapper is required; follow the [exact browser/transport boundary](selenium-compatibility.md). It requires no Lens API or test-source change.
+
+
 Test Lens is designed to fit into an existing Selenium test stack. Keep your current driver factory, test runner, Page Objects and reporting tools.
 
 If a coding agent will make the changes, use the [AI Integration Builder](ai-assisted-integration.md) to generate a complete prompt for this workflow without guessing the project's lifecycle, resolved Selenium version, retry model or CI.

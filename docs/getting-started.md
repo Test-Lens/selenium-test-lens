@@ -1,5 +1,8 @@
 # Getting started
 
+For BiDi network capture, stock Chrome/ChromeDriver 157.0.8103.78 on Windows passed the complete nine-version local/Grid matrix and both 50-redirect probes. Release CI verifies the same Linux-built frozen JAR on Windows; Linux stock 157/158 network integrity remains uncertified. No custom mapper is required; follow the [exact browser/transport boundary](selenium-compatibility.md). It requires no Lens API or test-source change.
+
+
 !!! tip "Using a coding agent?"
     Open [AI-assisted integration](ai-assisted-integration.md) to generate one complete, repository-aware prompt with the lifecycle, compatibility, security and validation rules for the public capabilities you choose.
 

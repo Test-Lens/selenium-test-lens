@@ -1,5 +1,8 @@
 # TestNG integration
 
+For BiDi network capture, stock Chrome/ChromeDriver 157.0.8103.78 on Windows passed the complete nine-version local/Grid matrix and both 50-redirect probes. Release CI verifies the same Linux-built frozen JAR on Windows; Linux stock 157/158 network integrity remains uncertified. No custom mapper is required; follow the [exact browser/transport boundary](../selenium-compatibility.md). It requires no Lens API or test-source change.
+
+
 Use Test Lens 0.5.2 runtime and adapter versions together; see [upgrade instructions](../whats-new-0.5.2.md).
 
 The optional `selenium-test-lens-testng` module defaults to one `WebDriver`, `TestLens`, and session for every physical TestNG test-method invocation. Release 0.4.0 also offers explicit class-scoped driver reuse while retaining a separate Test Lens session and report for every invocation. Adding the dependency alone does not register a listener.

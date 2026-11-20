@@ -1,8 +1,8 @@
 # Selenium Test Lens 0.5.2
 
-Browser contract: Chrome/ChromeDriver 157.0.8103.78. Chrome 158 network reliability is not certified.
+**Release-gating browser configuration: Windows stock Chrome/ChromeDriver 157.0.8103.78.** Stock Chrome/ChromeDriver **157.0.8103.78 on Windows** passed the unchanged nine-version Selenium matrix, local/Grid report checks and 50 standalone redirects through each transport. Required CI builds the frozen JAR once on Linux and verifies that same artifact on Windows. Linux stock 157/158 network failures remain known; this Windows result does not certify them. No custom mapper is used in the release gate.
 
-Exact final validation and external publication receipts are recorded in the [production release report](production-release-0.5.2.md).
+The [production release report](production-release-0.5.2.md) records pre-publication milestones. Final release-specific CI, artifact/signature inventory and isolated public-consumer receipts belong in the [GitHub Release](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.2) and its [release verification attachment](https://github.com/Test-Lens/selenium-test-lens/releases/download/v0.5.2/release-verification.json) after actual completion. Prepared source is not an external publication receipt.
 
 ## Overview
 
@@ -12,7 +12,7 @@ This patch fixes Selenium BiDi binary incompatibility and reproduced runtime reg
 
 - Java 17 remains the minimum and compile baseline.
 - Selenium 4.39.0 remains the minimum tested BiDi version. The newest verified version is 4.53.0.
-- The same compiled Lens JAR passed on **4.39.0, 4.40.0, 4.41.0, 4.45.0, 4.46.0, 4.47.0, 4.51.0, 4.52.0 and 4.53.0**, using Java 21, Chrome 157 and Grid 4.53.0. This is an explicit list, not a promise covering every Selenium 4.x release.
+- Historical execution of the same compiled Lens JAR passed on **4.39.0, 4.40.0, 4.41.0, 4.45.0, 4.46.0, 4.47.0, 4.51.0, 4.52.0 and 4.53.0**, using Java 21, Chrome 157 and Grid 4.53.0. This is an explicit historical runtime list, not a promise covering every Selenium 4.x release or stock Chrome 157 redirect integrity on Linux. The official-mapper configuration has since failed hosted verification; Windows stock 157 has separately passed the complete configuration gate.
 - All 791 published public types retain their 0.5.1 declarations and members.
 
 ## Bug fixes
@@ -45,11 +45,11 @@ If you disabled only Lens diagnostic capture as a 0.5.1 workaround, re-enable it
 
 ## Verification
 
-The release gate uses Chrome/ChromeDriver **157.0.8103.78**, Java 21 and Grid 4.53.0. It validates one frozen Lens JAR across all nine listed Selenium versions, exact controlled-server request/response journals, JSON/HTML/failure-bundle data and redaction, plus 50 distinct standalone redirects each through direct ChromeDriver and Grid. API, reactor, packaging and strict documentation gates must also pass on the release source. No HTTP status, terminal-response or report assertion is relaxed.
+**Release-gating browser configuration: Windows stock Chrome/ChromeDriver 157.0.8103.78.** Stock Chrome/ChromeDriver **157.0.8103.78 on Windows** passed the unchanged nine-version Selenium matrix, local/Grid report checks and 50 standalone redirects through each transport. Required CI builds the frozen JAR once on Linux and verifies that same artifact on Windows. Linux stock 157/158 network failures remain known; this Windows result does not certify them. No custom mapper is used in the release gate. No HTTP status, terminal-response or report assertion is relaxed.
 
-Chrome 158 direct/Grid canaries are explicitly nonblocking and preserve their actual results. Neither a 157 PASS nor a transient 158 PASS certifies Chrome 158 network reliability. The investigation found no verified stable correction; Beta 159 contains an upstream routing correction but remains unverified and is not the release recommendation.
+The rejected Linux stock-157 gate failed the unchanged standalone direct probe at stimulus 43 in [run 44683766883](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44683766883) at `f195`. The same run passed all nine Lens matrix rows and Grid's 50 stimuli; those results do not waive the direct failure. The official mapper had a Windows direct-service 50-stimulus PASS but failed hosted verification. Independent native JSON/CDP evidence reproduces missing final-hop events at stimulus 2. That rejected experiment used stable Chrome 158; Chrome 159 Beta was not used. Stock-158 canaries retain separate actual outcomes.
 
-The final source SHA, hosted run URLs, test totals, artifact/signature inventory and isolated public-Central consumer results are recorded in the GitHub Release and its [release verification attachment](https://github.com/Test-Lens/selenium-test-lens/releases/download/v0.5.2/release-verification.json). The [production audit](https://test-lens.github.io/selenium-test-lens/0.5.2/maintainers/production-release-0.5.2/) retains the earlier milestones and failure analysis with their original scope.
+The final source SHA, hosted run URLs, exact test totals, transport provenance, artifact/signature inventory and isolated public-Central consumer results must be completed before release authorization. No external publication receipt is claimed here. The [production audit](production-release-0.5.2.md) retains earlier passing and failing milestones with their original scope.
 
 ## Known limitations
 

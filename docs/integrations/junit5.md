@@ -1,5 +1,8 @@
 # JUnit 5 integration
 
+For BiDi network capture, stock Chrome/ChromeDriver 157.0.8103.78 on Windows passed the complete nine-version local/Grid matrix and both 50-redirect probes. Release CI verifies the same Linux-built frozen JAR on Windows; Linux stock 157/158 network integrity remains uncertified. No custom mapper is required; follow the [exact browser/transport boundary](../selenium-compatibility.md). It requires no Lens API or test-source change.
+
+
 Use Test Lens 0.5.2 runtime and adapter versions together; see [upgrade instructions](../whats-new-0.5.2.md).
 
 The `selenium-test-lens-junit5` module is the recommended JUnit Jupiter integration. It creates one `WebDriver`, `TestLens`, and trace session for every test invocation, injects the driver and Lens into the test method, finalizes diagnostics, and only then closes the driver.
