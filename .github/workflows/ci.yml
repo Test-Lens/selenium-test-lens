@@ -622,3 +622,158 @@ jobs:
             **/target/surefire-reports/**
             **/target/failsafe-reports/**
             **/target/ui-test-lens/**
+
+  raw-bidi-wire-diagnostic:
+    name: Raw BiDi wire diagnostic (${{ matrix.chrome }}, ${{ matrix.mapper }}, non-blocking)
+    if: github.event_name == 'workflow_dispatch' && inputs.bidi_wire_diagnostics
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - chrome: "156.0.8078.80"
+            mapper: stock
+          - chrome: "157.0.8103.78"
+            mapper: stock
+          - chrome: "158.0.8127.36"
+            mapper: stock
+          - chrome: "158.0.8127.36"
+            mapper: official-159
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: browser-actions/setup-chrome@v2
+        if: matrix.mapper == 'stock'
+        id: stock
+        with:
+          chrome-version: ${{ matrix.chrome }}
+          install-chromedriver: true
+      - uses: ./.github/actions/setup-bidi-browser
+        if: matrix.mapper == 'official-159'
+        id: official
+        with:
+          chrome-version: ${{ matrix.chrome }}
+      - name: Record exact browser pair and diagnostic provenance
+        shell: bash
+        env:
+          CHROME_BINARY: ${{ steps.stock.outputs.chrome-path || steps.official.outputs.chrome-path }}
+          DRIVER_BINARY: ${{ steps.stock.outputs.chromedriver-path || steps.official.outputs.chromedriver-path }}
+          MAPPER_INFO: ${{ steps.official.outputs.mapper-info }}
+          EXPECTED_CHROME: ${{ matrix.chrome }}
+          MAPPER: ${{ matrix.mapper }}
+        run: |
+          set -euo pipefail
+          mkdir -p target/raw-protocol/classes
+          export ACTUAL_CHROME ACTUAL_DRIVER
+          ACTUAL_CHROME="$("$CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+          ACTUAL_DRIVER="$("$DRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          const e = process.env;
+          const root = 'consumer-tests/selenium-bidi/protocol-reproducer/raw/';
+          const sources = Object.fromEntries(['RawWireFixture.java', 'raw-bidi.mjs', 'scrub-cdp.mjs'].map(name =>
+            [name, crypto.createHash('sha256').update(fs.readFileSync(root + name)).digest('hex')]));
+          const mapper = e.MAPPER_INFO ? JSON.parse(fs.readFileSync(e.MAPPER_INFO, 'utf8')) : {type: 'stock'};
+          fs.writeFileSync('target/raw-protocol/provenance.json', JSON.stringify({
+            expectedChrome: e.EXPECTED_CHROME, chromeVersion: e.ACTUAL_CHROME,
+            chromeDriverVersion: e.ACTUAL_DRIVER, mapperLabel: e.MAPPER, mapper, sources
+          }, null, 2) + '\n');
+          NODE
+          test "$ACTUAL_CHROME" = "$EXPECTED_CHROME"
+          test "$ACTUAL_DRIVER" = "$ACTUAL_CHROME"
+      - name: Probe raw HTTP and native WebSocket without Selenium
+        id: probe
+        shell: bash
+        env:
+          CHROME_BINARY: ${{ steps.stock.outputs.chrome-path || steps.official.outputs.chrome-path }}
+          DRIVER_BINARY: ${{ steps.stock.outputs.chromedriver-path || steps.official.outputs.chromedriver-path }}
+        run: |
+          set -euo pipefail
+          fixture_pid=''
+          driver_pid=''
+          cleanup() {
+            if [[ -n "$driver_pid" ]]; then kill "$driver_pid" 2>/dev/null || true; wait "$driver_pid" 2>/dev/null || true; fi
+            if [[ -n "$fixture_pid" ]]; then kill "$fixture_pid" 2>/dev/null || true; wait "$fixture_pid" 2>/dev/null || true; fi
+          }
+          trap cleanup EXIT
+          raw=consumer-tests/selenium-bidi/protocol-reproducer/raw
+          ready="$RUNNER_TEMP/raw-fixture-url.txt"
+          rm -f "$ready"
+          javac -d target/raw-protocol/classes "$raw/RawWireFixture.java"
+          java -cp target/raw-protocol/classes RawWireFixture "$ready" > "$RUNNER_TEMP/raw-fixture.log" 2>&1 &
+          fixture_pid=$!
+          "$DRIVER_BINARY" --port=19515 --verbose --log-path="$RUNNER_TEMP/raw-driver.log" > "$RUNNER_TEMP/raw-driver-console.log" 2>&1 &
+          driver_pid=$!
+          started=false
+          for ((attempt = 1; attempt <= 50; attempt++)); do
+            kill -0 "$fixture_pid" && kill -0 "$driver_pid"
+            if test -s "$ready" && curl --fail --silent --max-time 1 http://127.0.0.1:19515/status > /dev/null; then
+              started=true
+              break
+            fi
+            sleep 0.1
+          done
+          test "$started" = true
+          echo 'started=true' >> "$GITHUB_OUTPUT"
+          node "$raw/raw-bidi.mjs" --webdriver http://127.0.0.1:19515 --fixture-file "$ready" --chrome-binary "$CHROME_BINARY" --output target/raw-protocol/evidence.json
+      - name: Scrub CDP evidence before any artifact upload
+        if: always()
+        id: scrub
+        shell: bash
+        run: |
+          mkdir -p target/raw-protocol
+          node consumer-tests/selenium-bidi/protocol-reproducer/raw/scrub-cdp.mjs --input "$RUNNER_TEMP/raw-driver.log" --output target/raw-protocol/cdp.json
+      - name: Summarize actual raw protocol result
+        if: always()
+        shell: bash
+        env:
+          PROBE_OUTCOME: ${{ steps.probe.outcome }}
+          PROBE_STARTED: ${{ steps.probe.outputs.started }}
+          CHROME: ${{ matrix.chrome }}
+          MAPPER: ${{ matrix.mapper }}
+        run: |
+          mkdir -p target/raw-protocol
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const file = 'target/raw-protocol/evidence.json';
+          let status = 'NOTRUN';
+          let evidenceOutcome = 'MISSING';
+          if (fs.existsSync(file)) {
+            try {
+              const evidence = JSON.parse(fs.readFileSync(file, 'utf8'));
+              evidenceOutcome = evidence.outcome;
+              status = evidenceOutcome === 'PASS' && process.env.PROBE_OUTCOME === 'success'
+                && evidence.evidenceOverflow === false && evidence.jsonParseFailures === 0 ? 'PASS' : 'FAIL';
+            } catch { status = 'FAIL'; evidenceOutcome = 'INVALID_JSON'; }
+          } else if (process.env.PROBE_STARTED === 'true') status = 'FAIL';
+          const provenanceFile = 'target/raw-protocol/provenance.json';
+          const provenance = fs.existsSync(provenanceFile) ? JSON.parse(fs.readFileSync(provenanceFile, 'utf8')) : {};
+          const result = {status, evidenceOutcome, probeStepOutcome: process.env.PROBE_OUTCOME,
+            chrome: process.env.CHROME, mapper: process.env.MAPPER,
+            actualChrome: provenance.chromeVersion || 'NOTRUN', actualDriver: provenance.chromeDriverVersion || 'NOTRUN'};
+          fs.writeFileSync('target/raw-protocol/summary.json', JSON.stringify(result, null, 2) + '\n');
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            `### Raw BiDi wire diagnostic (${result.chrome}, ${result.mapper})\nResult: ${status}\nEvidence: ${evidenceOutcome}\nProbe step: ${result.probeStepOutcome}\nActual Chrome: ${result.actualChrome}\nActual ChromeDriver: ${result.actualDriver}\nManual, non-blocking diagnostic; required release gates remain in force.\n`);
+          NODE
+      - name: Preserve only sanitized JSON evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-bidi-wire-${{ matrix.chrome }}-${{ matrix.mapper }}
+          if-no-files-found: warn
+          path: |
+            target/raw-protocol/evidence.json
+            target/raw-protocol/cdp.json
+            target/raw-protocol/provenance.json
+            target/raw-protocol/summary.json
