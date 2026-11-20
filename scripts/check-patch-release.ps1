@@ -14,7 +14,7 @@ if ($LASTEXITCODE -ne 0) { throw "Normal reactor version validation failed" }
 if ($LASTEXITCODE -ne 0) { throw "Browser reactor version validation failed" }
 & (Join-Path $PSScriptRoot "validate-release-packaging.ps1") -RepositoryRoot $root -Version $ExpectedVersion -MatrixOnly
 if ($LASTEXITCODE -ne 0) { throw "Publication matrix validation failed" }
-$mkdocs = [IO.File]::ReadAllText((Join-Path $root "mkdocs.yml"))
+$mkdocs = [IO.File]::ReadAllText((Join-Path $root "mkdocs.yml")).Replace("`r`n", "`n")
 if ($mkdocs -notmatch "(?m)^    current: $([regex]::Escape($ExpectedVersion))$") { throw "mkdocs.yml current version is not $ExpectedVersion" }
 $changelog = [IO.File]::ReadAllText((Join-Path $root "CHANGELOG.md"))
 if ($changelog -notmatch "(?m)^## \[$([regex]::Escape($ExpectedVersion))\]") { throw "CHANGELOG.md lacks a $ExpectedVersion release section" }

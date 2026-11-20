@@ -54,7 +54,7 @@ Related: [Assertions](assertions.md), [`UiLocatorOptions`](../reference/configur
 
 ## Retryable failures
 
-`StaleElementReferenceException`, `ElementClickInterceptedException`, and `ElementNotInteractableException` are retried only when their corresponding flags are enabled. Wrapped failures are classified by their exception cause chain, never by message text. Other WebDriver exceptions fail immediately. The historical name `maxRetries` is retained for compatibility, but its value is the maximum number of physical **attempts**, not retries: three failed attempts schedule only two retries. Poll/timeout durations must be positive.
+`StaleElementReferenceException`, `ElementClickInterceptedException`, and `ElementNotInteractableException` are retried only when their corresponding flags are enabled. In 0.5.2, a started locator action requires one of these exceptions to be reported directly before another action attempt is allowed. A generic WebDriver failure with a retryable nested cause can represent an already delivered action and is terminal. Read-only observations and locator resolution retain their existing cause-chain classification; retry classification never uses message text. Other WebDriver exceptions fail immediately. The historical name `maxRetries` is retained for compatibility, but its value is the maximum number of physical **attempts**, not retries: three failed attempts schedule only two retries. Poll/timeout durations must be positive.
 
 Runner-level retry is separate again: for example, every TestNG `IRetryAnalyzer` attempt owns a new Lens session and is not aggregated across sessions. See [Flakiness and retry outcomes](../observability/flakiness.md).
 
@@ -63,6 +63,8 @@ Assertions have their own [`UiAssertionOptions`](../reference/configuration.md#u
 State assertions such as `toHaveCount`, `toHaveAttribute`, `toBeChecked`, and `toBeAttached` use that assertion loop and take exactly one current observation per attempt. Their `ASSERTION_RETRY` events remain polling diagnostics and do not contribute to recovery-retry flakiness.
 
 Page assertions created by `expectPage()` follow the same distinction: each attempt performs one `getCurrentUrl()` or `getTitle()` on the active window. A mismatch is assertion polling, not recovery retry; the assertion never wraps a second `WebDriverWait` or changes the active window.
+
+In 0.5.2, `OverlayWait.until(...)` checks interruption before invoking the next condition. Smart click/input, `TypingActions`, and the legacy overlay-close helpers also stop at their interruption checkpoints and preserve the thread's interrupt flag. `ReactSafeExecutor` has its own [cancellation checkpoints](../features/react-spa.md#rerender-recovery-with-reactsafeexecutor). These guarantees concern those patched paths; other waits retain their documented Selenium or helper-specific behavior.
 
 ## Page and JavaScript waits
 

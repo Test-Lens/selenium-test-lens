@@ -4,6 +4,35 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-11-20
+
+### Fixed
+
+- Isolated Selenium BiDi size-getter and listener-ID descriptor changes behind a cached internal compatibility boundary while retaining the Selenium 4.39.0 compile baseline. Network callbacks invalidate capture on mapping/linkage failure, wake waiters and reject assertions against incomplete snapshots.
+- Replaced event-type-wide Network cleanup with removal of Lens-owned listener IDs, preserving other listeners on shared BiDi connections and cleaning up partial subscriptions.
+- Preserved real redirect-hop `RequestData` from `responseStarted`/`responseCompleted` when `beforeRequestSent` is missing, as reproduced in hosted Chrome 158. Deduplicated request observations by ID and redirect count, retained actual observation timestamps and trace provenance (`requestObservationSource`), and added focused regressions. No responses or request-start times are invented; public signatures are unchanged.
+- Prevented a delayed restart health check from replacing or leaking a newer capture generation. Added deterministic source-ownership regression and server-journal comparisons of JSON/HTML/failure-bundle data across the same-JAR matrix.
+- Initialized lazy BiDi connections and privately augment raw remote drivers when required; preserve the caller-owned driver and foreign listeners. Added same-connection health checks to protect successful assertions/waits and stopped-snapshot preservation. The health command can add up to 30 seconds on the baseline. Legacy Selenium 4.39 through 4.45 may retain server event interest until connection closure.
+
+### Fixed runtime regressions
+
+- Prevented ambiguous click/input redispatch, including outer locator recovery and checkbox confirmation after a completed click.
+- Stopped cancelled waits and React recovery promptly; replaced fixed overlay-dismissal sleeps with conditional observation within the existing limit. Made null input consistent between overlay modes.
+- Preserved critical finalization failures, cleanup interruption and fatal locator-metadata errors without changing public signatures.
+- Preserved measured trace durations and terminal HUD status; rejected executable artifact-link schemes in HTML exports. Added regression coverage for redaction, Unicode and report boundaries.
+
+### Migration
+
+- Update Lens and its optional JUnit 5/TestNG/React integrations together to 0.5.2. No public API or test-source migration is required. Keep Selenium explicitly configured with one aligned version, preferably through its BOM; do not downgrade applications that need newer Selenium APIs.
+- Users of 0.5.1 who disabled Lens diagnostic network capture as a workaround can re-enable it after upgrading and verifying a known response. Browser/Grid BiDi capability configuration remains required.
+- Ambiguous transport failures now fail the action instead of possibly repeating a delivered click/input. A checkbox confirmation failure no longer clicks again. Handle such failures explicitly; do not add blind application-level retries.
+
+### Tested compatibility
+
+- Retained Java 17 and Selenium 4.39.0 as compile/minimum tested baselines. Required hosted CI at `9f13b89b1928b7cbb9de46d3c9568733dcd5201a` passed all nine Selenium runtimes through 4.53.0 using one Linux-built frozen JAR: Linux binary 1332 PASS (36 browser scenarios explicitly NOT RUN there); Windows stock Chrome/ChromeDriver 157.0.8103.78 browser/report matrix **1368 PASS, zero failures/skips**, plus **50 standalone redirects each direct/Grid 4.53.0**. Reactor: **1817 PASS, 34 intentional SKIP, zero failures**. Chrome and headed integration profiles each recorded 121 PASS / 11 optional SKIP; Firefox integration, consumer, API, packaging and strict documentation gates passed. Subsequent documentation-only candidate checks and publication receipts remain separate.
+- Kept Linux stock Chrome 157/158 network limitations explicit. Controlled raw-Selenium/Lens/Grid HTTP diagnostics show request-start gaps and terminal failures; a failing stock-158 CDP trace and exact mapper source identify early ExtraInfo assigned to the previous redirect hop in that case. Loopback high-port HTTP evidence rules out HTTPS upgrading for the original failures. Separate public-host HTTPS controls do not change Lens browser security defaults. Chrome 156 was rejected for total-transfer/body-size confusion (144 reported versus 11 actual bytes); the official mapper-159 override also failed its hosted gate. No HTTP, body-size, response-count or completion assertion was weakened. Windows-158 diagnostic passes do not certify Linux 158 or change the release gate. BrowserStack remains NOT RUN.
+- Added an independent same-JAR Selenium runtime matrix, a frozen 4.39 bytecode regression reproducer, artifact hash/version checks and Chrome/Grid coverage in CI. Imported Selenium BOM to align dependencies. All 791 published public types retain their declarations and members. Optional raw-wire probes default OFF. See `docs/maintainers/production-release-0.5.2.md` for exact failed/passing runs, A/B/C evidence and limitations; `docs/whats-new-0.5.2.md` covers migration. Published 0.5.1 is unchanged.
+
 ## [0.5.1] - 2026-10-11
 
 ### Documentation availability update
@@ -310,7 +339,8 @@ Test Engineering Studio remains experimental and has been temporarily withdrawn 
 - Central Publisher Portal publication remains a manual, reviewed operation.
 - Legacy browser runtime aliases are still maintained for compatibility.
 
-[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.1...v0.4.0

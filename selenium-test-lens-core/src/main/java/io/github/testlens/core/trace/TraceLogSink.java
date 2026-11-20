@@ -26,6 +26,7 @@ public final class TraceLogSink implements UiTestLensLogSink {
         TraceEvent.Builder builder = TraceEvent.builder(typeFor(entry.eventType(), recoveryRetry), statusFor(entry.status(), entry.level()), nameFor(entry))
                 .timestamp(entry.timestamp())
                 .message(entry.message())
+                .duration(measuredDuration(entry))
                 .attribute("uiEventType", entry.eventType() == null ? "" : entry.eventType().name())
                 .attribute("logEventType", entry.eventType() == null ? "" : entry.eventType().name())
                 .attribute("logLevel", entry.level() == null ? "" : entry.level().name())
@@ -135,6 +136,23 @@ public final class TraceLogSink implements UiTestLensLogSink {
     private static boolean isRecoveryRetry(UiTestLensLogEntry entry) {
         return entry.eventType() == UiTestLensEventType.LOCATOR_RETRY
                 && "recovery".equals(entry.metadata().get("retryKind"));
+    }
+
+    private static Duration measuredDuration(UiTestLensLogEntry entry) {
+        if (entry.status() != UiTestLensStatus.PASSED && entry.status() != UiTestLensStatus.FAILED) {
+            return Duration.ZERO;
+        }
+        boolean measured = !entry.metadata().getOrDefault("operationId", "").isBlank()
+                || entry.eventType() == UiTestLensEventType.SCREENSHOT_CAPTURE_PASSED
+                || entry.eventType() == UiTestLensEventType.SCREENSHOT_CAPTURE_FAILED;
+        if (!measured) return Duration.ZERO;
+        String nanos = entry.metadata().get("durationNanos");
+        if (nanos != null) return duration(nanos);
+        try {
+            return Duration.ofMillis(Math.max(0L, Long.parseLong(entry.metadata().get("durationMs"))));
+        } catch (NumberFormatException ignored) {
+            return Duration.ZERO;
+        }
     }
 
     private static Duration duration(String nanos) {

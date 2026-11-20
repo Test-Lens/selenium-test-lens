@@ -510,9 +510,14 @@ public final class TraceHtmlExporter {
                 .toList();
         if (captures.isEmpty()) return;
         String archive = captures.get(0).attributes().getOrDefault("archive", "failure-bundle.zip");
-        out.append("<section><h2>Failure bundle</h2><p><a class=\"mono\" href=\"")
-                .append(escape(archive)).append("\">Download failure-bundle.zip</a></p>")
-                .append("<div class=\"table-wrap\"><table><thead><tr>")
+        out.append("<section><h2>Failure bundle</h2><p>");
+        if (safeArtifactLink(archive)) {
+            out.append("<a class=\"mono\" href=\"").append(escape(archive))
+                    .append("\">Download failure-bundle.zip</a>");
+        } else {
+            out.append("<span class=\"mono\">").append(escape(archive)).append("</span>");
+        }
+        out.append("</p><div class=\"table-wrap\"><table><thead><tr>")
                 .append("<th>Component</th><th>Status</th><th>Size</th><th>Path</th><th>Message</th>")
                 .append("</tr></thead><tbody>");
         captures.stream().sorted(Comparator.comparing(event -> event.attributes().getOrDefault("component", "")))
@@ -1002,11 +1007,24 @@ public final class TraceHtmlExporter {
                 + "</span>";
     }
 
+    private static boolean safeArtifactLink(String value) {
+        // Browsers strip ASCII whitespace/control characters when parsing URL schemes.
+        String normalized = value.replaceAll("[\\x00-\\x20]", "").replace('\\', '/');
+        int colon = normalized.indexOf(':');
+        int slash = normalized.indexOf('/');
+        if (colon < 0 || slash >= 0 && slash < colon) return true;
+        String scheme = normalized.substring(0, colon).toLowerCase(java.util.Locale.ROOT);
+        return scheme.equals("http") || scheme.equals("https") || scheme.equals("file")
+                || scheme.length() == 1 && Character.isLetter(scheme.charAt(0))
+                   && colon + 1 < normalized.length() && normalized.charAt(colon + 1) == '/';
+    }
+
     private String linkOrText(String value) {
         if (value == null || value.isBlank()) {
             return "<span class=\"muted\">-</span>";
         }
         String escaped = escape(value);
+        if (!safeArtifactLink(value)) return "<span class=\"mono\">" + escaped + "</span>";
         return "<a class=\"mono\" href=\"" + escaped + "\">" + escaped + "</a>";
     }
 
@@ -1040,6 +1058,7 @@ public final class TraceHtmlExporter {
             }
         }
         href = href.replace('\\', '/');
+        if (!safeArtifactLink(href)) return "<span class=\"mono\">" + escape(value) + "</span>";
         String escapedHref = escape(href);
         String escapedLabel = escape(override == null || override.isBlank() ? value : href);
         String link = "<a class=\"mono\" href=\"" + escapedHref + "\">" + escapedLabel + "</a>";

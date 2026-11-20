@@ -1,11 +1,13 @@
-# Product capability map for release 0.5.1
+# Product capability map for release 0.5.2
 
-This inventory is the maintenance source behind the documentation landing page. It records behavior shipped by the immutable `v0.5.1` release, separates supported consumer entry points from published implementation dependencies, and does not treat every technically public Java class as stable API.
+**Release state: prepared, unpublished 0.5.2.** The BiDi correction and its verified matrix are described in [the release preparation notes](../whats-new-0.5.2.md). Historical 0.5.1 evidence below establishes the inherited capability surface, not publication of 0.5.2.
+
+This inventory is the maintenance source behind the documentation landing page. It records inherited behavior shipped by the immutable `v0.5.1` release, separates supported consumer entry points from published implementation dependencies, and does not treat every technically public Java class as stable API.
 
 ## Audit boundary
 
-- **Consumer target:** `io.github.test-lens:*:0.5.1`.
-- **Release implementation:** annotated tag `v0.5.1` (`9584d67b8efaf57ef76120786c0e245236e08041`).
+- **Consumer target:** prepared `io.github.test-lens:*:0.5.2` (local installation required until publication); published predecessor `0.5.1`.
+- **Predecessor implementation evidence:** annotated tag `v0.5.1` (`9584d67b8efaf57ef76120786c0e245236e08041`).
 - **Repairable documentation source:** an explicitly reviewed post-tag documentation commit on `release/0.5.1`; `publish-missing-release` verifies that the versioned documentation is absent, publishes documentation only from the named release branch, and does not move the tag or change released runtime/API semantics.
 - **Published stable artifacts:** parent POM, `selenium-test-lens-core`, `selenium-test-lens-overlay`, `selenium-test-lens`, `selenium-test-lens-junit5`, `selenium-test-lens-testng`, `selenium-test-lens-allure`, and `selenium-test-lens-react`.
 - **Published tooling dependencies:** `selenium-test-lens-application-model`, `selenium-test-lens-application-mapper`, `selenium-test-lens-application-tooling`, `selenium-test-lens-selector-engine`, `selenium-test-lens-selector-live`, `selenium-test-lens-selector-tooling`, `selenium-test-lens-test-engineering-studio`, and `test-lens-test-engineering-maven-plugin`.
@@ -111,7 +113,7 @@ The exact public type and callable inventory remains generated in the [public AP
 
 ## Version evidence policy
 
-The landing page uses 0.5.1 as the current stable release. A capability belongs here only when the immutable release tag, staged artifact set, focused tests, and clean-room certification support it. Publication of an implementation dependency does not promote all of its public classes into the compatibility promise. When a first version is stated in this map, it is supported by a release tag, archived documentation/release notes, and tests or examples from that line; `@since` alone is not the evidence.
+The predecessor landing page used 0.5.1 as the current stable release. A capability belongs here only when the immutable release tag, staged artifact set, focused tests, and clean-room certification support it. Publication of an implementation dependency does not promote all of its public classes into the compatibility promise. When a first version is stated in this map, it is supported by a release tag, archived documentation/release notes, and tests or examples from that line; `@since` alone is not the evidence.
 
 When maintaining this map:
 

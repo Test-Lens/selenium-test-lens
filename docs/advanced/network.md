@@ -2,6 +2,8 @@
 
 Manual network events, waits, and assertions are available in `0.1.0`.
 
+The compatibility, health-check and selective-cleanup corrections below describe **Test Lens 0.5.2**. Published 0.5.1 remains affected on Selenium 4.41.0+; see [release and upgrade details](../whats-new-0.5.2.md).
+
 Package: `io.github.testlens.selenium.network`<br>
 Module: `selenium-test-lens-selenium`<br>
 API level: **Advanced**
@@ -23,13 +25,13 @@ NetworkEvent addManualEvent(NetworkEvent event)
 String exportJson()
 ```
 
-`MANUAL` remains the default and accepts caller-supplied events. `BIDI` passively subscribes through Selenium 4.39's beta `org.openqa.selenium.bidi.module.Network`; the browser session must have BiDi enabled when it is created. `AUTO` attempts the same subscription and reports `UNSUPPORTED` when it cannot establish it. Neither mode falls back to `MANUAL` or performance logs. `PERFORMANCE_LOGS` remains unsupported and `OFF` remains stopped.
+`MANUAL` remains the default and accepts caller-supplied events. `BIDI` passively subscribes to Selenium's public WebDriver BiDi events through an internal compatibility boundary; the browser session must have BiDi enabled when it is created. `AUTO` attempts the same subscription and reports `UNSUPPORTED` when it cannot establish it. Neither mode falls back to `MANUAL` or performance logs. `PERFORMANCE_LOGS` remains unsupported and `OFF` remains stopped. The compile/minimum tested baseline is Selenium 4.39.0; consult the [release-specific compatibility matrix](../selenium-compatibility.md) before choosing a newer runtime. The fix is included in 0.5.2 and is not present in the 0.5.1 JAR.
 
 BiDi capture observes traffic. It does not intercept, modify, block, mock, or replay requests, and it is not a CDP fallback.
 
 WebDriver BiDi and Selenium DevTools/CDP modules are separate mechanisms. The Test Lens BiDi flows documented here do not require a browser-version-matched `selenium-devtools-v*` artifact. A Selenium warning that no matching CDP implementation is available therefore does not by itself make an enabled BiDi session unavailable; activation still depends on `HasBiDi`/augmentation, the returned `webSocketUrl`, a successful connection, and listener subscription.
 
-`captureMode()` is the requested mode. `activeCaptureMode()` is present only while a source is active: `MANUAL` for manual capture and `BIDI` for both successful `BIDI` and `AUTO`. A successful start registers one listener each for before-request, response-completed, and fetch-error; `stop()` removes the module subscriptions without closing the driver. `stop()` also invalidates an initialization that is still registering its source: a late success or failure cannot reactivate capture or overwrite `STOPPED`, and any source returned afterward is closed without holding the lifecycle lock. Repeated starts replace the prior generation, and late callbacks are discarded. Event snapshots are immutable and safe while BiDi callback threads are active. Connection initialization is attempted at most twice, without a fixed sleep, and only before any listener is registered; subscription failures are never retried because registration may be ambiguous.
+`captureMode()` is the requested mode. `activeCaptureMode()` is present only while a source is active: `MANUAL` for manual capture and `BIDI` for both successful `BIDI` and `AUTO`. A successful start registers one listener each for before-request, response-started, response-completed, and fetch-error; `stop()` removes the module subscriptions without closing the driver. `stop()` also invalidates an initialization that is still registering its source: a late success or failure cannot reactivate capture or overwrite `STOPPED`, and any source returned afterward is closed without holding the lifecycle lock. Repeated starts replace the prior generation, and late callbacks are discarded. Event snapshots are immutable and safe while BiDi callback threads are active. Connection initialization is attempted at most twice, without a fixed sleep, and only before any listener is registered; subscription failures are never retried because registration may be ambiguous.
 
 ## HUD-only filtering
 
@@ -107,9 +109,11 @@ WebDriver driver = new FirefoxDriver(browserOptions);
 
 Lens cannot add BiDi to a browser session that was created without it. For an already BiDi-enabled local driver, Lens uses `HasBiDi.getBiDi()` so Selenium may initialize a lazy connection; an empty `maybeGetBiDi()` before first use is not treated as unsupported. Official `WrapsDriver` and Selenium `Decorated` chains are inspected with cycle/depth protection without replacing the consumer's driver reference.
 
-Selenium 4.39's raw `RemoteWebDriver` does not directly implement `HasBiDi`. When the remote session returns a valid `webSocketUrl`, Lens applies Selenium's `Augmenter` once to a private BiDi view of that same session, initializes the connection, and gives that view only to Selenium's Network module. Normal application commands continue through the original driver/decorator. Lens closes subscriptions and any connection it created, but never calls `quit()` during network finalization. The capability is diagnostic evidence, while the Selenium interface and successful connection remain the authority for activation.
+Selenium 4.39's raw `RemoteWebDriver` does not directly implement `HasBiDi`; newer releases can expose it directly. When augmentation is needed and the remote session returns a valid `webSocketUrl`, Lens applies Selenium's `Augmenter` once to a private BiDi view of that same session and initializes its lazy connection. Normal application commands continue through the original driver/decorator. Lens removes only its own listener IDs and closes any connection it created through its private augmentation, but never calls `quit()` during network finalization. It does not close a shared application connection or clear other consumers' listeners by event type. The capability is diagnostic evidence, while the Selenium interface and successful connection remain the authority for activation.
 
 ### BrowserStack prerequisite
+
+**Provider execution: NOT RUN.** This configuration example is not BrowserStack certification.
 
 BrowserStack's current Selenium documentation requires `seleniumBidi: true` under `bstack:options`; BrowserStack then requests/returns the standard `webSocketUrl` needed by Selenium. The provider also recommends selecting a Selenium 4 version. This example uses the repository's supported Selenium version and contains no credentials:
 
@@ -134,7 +138,11 @@ See BrowserStack's [official Selenium BiDi instructions](https://www.browserstac
 
 ### Startup diagnostics and graceful degradation
 
-BiDi startup diagnostics distinguish `UNSUPPORTED`, `INITIALIZATION_FAILED`, `REMOTE_ENDPOINT_UNAVAILABLE`, `SESSION_CLOSED`, `PROTOCOL_ERROR`, and `CAPTURE_START_FAILED` internally. HUD/log lifecycle entries use the semantic `SYSTEM` category: successful activation is informational/running capture state, while unsupported or failed optional capture is a warning rather than a failed test action. Metadata records only safe facts such as driver type, local/remote shape, `HasBiDi` availability, whether `webSocketUrl` was present, lazy/initialized state, augmentation, bounded attempt count, category, and stage. Endpoint values, credentials, headers, cookies, and tokens are not logged.
+BiDi diagnostics distinguish unavailable capability, initialization/remote endpoint/session failure, protocol/subscription failure, binary API incompatibility, and callback failure. HUD/log lifecycle entries use the semantic `SYSTEM` category: successful activation is informational/running capture state, while unsupported or failed optional capture is a warning rather than a failed test action. Metadata records only safe facts such as driver type, Selenium release, local/remote shape, `HasBiDi` availability, whether `webSocketUrl` was present, lazy/initialized state, augmentation, bounded attempt count, category, and stage. Endpoint values, credentials, headers, cookies, and tokens are not logged.
+
+A callback mapping or decoding failure (including `LinkageError`) changes the generation to `FAILED`, clears its active mode, invalidates its assertion snapshot and wakes waiters. It cannot become a successful empty capture or an ordinary missing-response timeout. Failure causes remain available through redacted diagnostic errors. A later `stop()` or a stale callback does not restore validity. A new start creates a fresh generation.
+
+Positive assertions, successful waits, ordinary timeout results and preserving a stopped snapshot include a same-connection `session.status` health check outside lifecycle locks. Transport/protocol failure invalidates capture. This command uses Selenium's timeout (up to 30 seconds on the baseline), so it can extend the event wait's elapsed time. See [compatibility limitations](../selenium-compatibility.md#verify-the-connection-and-the-capture) for the distinction between transport responsiveness and guaranteed event delivery.
 
 `BIDI` and `AUTO` startup remains non-throwing: inspect `isStarted()`, `summary()`, and `activeCaptureMode()` before relying on capture. An unavailable optional source does not fail the Selenium test, does not silently switch to manual capture, and cannot produce a valid network assertion snapshot. Existing network assertions still fail closed if the requested capture never became active.
 
@@ -185,6 +193,18 @@ Exports/attaches network JSON evidence. Attachment occurs only when one of these
 ## Supporting results and statuses
 
 `NetworkEvent` classifies captured activity with `NetworkEventType` (`REQUEST`, `RESPONSE`, `FAILED`, `INFO`, or `WARNING`). BiDi request IDs are preserved. Redirect correlation uses request ID plus redirect count, and response/fetch-error events are retained even if capture began after their request event. HTTP 4xx/5xx remain responses; `failedStatusThreshold` controls failed-response counts. The JSON object records requested/active modes, status, ignored/dropped counts, events, timestamps, and correlation attributes.
+
+For a redirect hop greater than zero, Selenium may deliver `responseStarted` or `responseCompleted` without a corresponding `beforeRequestSent` event, as reproduced in hosted Chrome 158. Version 0.5.2 retains the real `RequestData` from that response event as a request observation, deduplicated by request ID and redirect count. Its timestamp is when the metadata was observed, not a reconstructed request-start time. The `requestObservationSource` attribute identifies `beforeRequestSent`, `responseStarted` or `responseCompleted` and is retained in trace metadata. This does not invent responses or guarantee delivery of a missing browser event. The correction changes no public API. Optional raw-wire test probes are OFF by default; controlled-server journal assertions still validate actual captured traffic.
+
+**Release-gating browser configuration: Windows stock Chrome/ChromeDriver 157.0.8103.78.** Stock Chrome/ChromeDriver **157.0.8103.78 on Windows** passed the unchanged nine-version Selenium matrix, local/Grid report checks and 50 standalone redirects through each transport. Required CI builds the frozen JAR once on Linux and verifies that same artifact on Windows. Linux stock 157/158 network failures remain known; this Windows result does not certify them. No custom mapper is used in the release gate. A responsive connection and STARTED capture do not prove complete, correct browser events; Lens cannot reconstruct missing HTTP responses. See the [production evidence](../maintainers/production-release-0.5.2.md).
+
+For reproducing the rejected official-mapper experiment, after verifying the official bundle and the extracted mapper, the ChromeDriver service accepts:
+
+```text
+chromedriver --port=9515 --bidi-mapper-path=/absolute/verified/mapperTab.js
+```
+
+Pass this to the **ChromeDriver service**, including the actual service started by a Grid node. It is not a Chrome browser argument or Lens initialization step. The [rejected-experiment CI composite](https://github.com/Test-Lens/selenium-test-lens/blob/537f8cab/.github/actions/setup-bidi-browser/action.yml) records the exact official tarball, SHA-512 integrity check and mapper SHA-256. The entry is `package/out/Default/gen/src/mapperTab.js` from npm `chromium-bidi@159.0.8154-29`; hosted Linux verification rejected this configuration. No manual `getBiDi()`/`getHandle()` workaround is required by Lens.
 
 `NetworkDiagnosticsStatus` reports started, stopped, attached, assertion-passed, assertion-failed, unsupported, or failed service outcomes. `NetworkWaitStatus` reports matched, timed-out, failed, or skipped waits, while `NetworkWaitFailureReason` distinguishes no matching response/request, a matching failed response, capture not started, unsupported capture mode, and unknown failures. `NetworkDiagnosticsException` is the service exception type; result-returning operations should still be checked before assuming that output was attached.
 

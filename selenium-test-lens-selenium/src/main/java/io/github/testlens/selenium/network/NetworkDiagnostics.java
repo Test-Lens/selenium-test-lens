@@ -79,13 +79,16 @@ public final class NetworkDiagnostics {
      * from that generation cannot reactivate capture.
      */
     public NetworkDiagnostics start(NetworkDiagnosticsOptions requestedOptions) {
-        stop();
+        long stoppedGeneration = stopGeneration();
         NetworkDiagnosticsOptions effective = requestedOptions == null
                 ? NetworkDiagnosticsOptions.defaults() : requestedOptions;
         NetworkCaptureMode requestedMode = effective.captureMode();
         long token;
         lock.lock();
         try {
+            // A later start/stop may finish while the old source performs health/cleanup I/O.
+            // An older restart must not reset or leak that newer generation's source.
+            if (stoppedGeneration < 0 || generation != stoppedGeneration) return this;
             options = effective;
             generation++;
             token = generation;
@@ -139,6 +142,11 @@ public final class NetworkDiagnostics {
                 public void ignored() {
                     recordIgnored(token);
                 }
+
+                @Override
+                public void failed(RuntimeException failure) {
+                    recordCaptureFailure(token, failure);
+                }
             });
             boolean accepted;
             lock.lock();
@@ -165,6 +173,9 @@ public final class NetworkDiagnostics {
             }
         } catch (NetworkCaptureUnsupportedException unsupported) {
             markStartUnsupported(token, requestedMode, unsupported);
+        } catch (LinkageError failure) {
+            markStartFailed(token, requestedMode,
+                    SeleniumBiDiCompatibility.incompatible("Selenium BiDi startup is incompatible", failure));
         } catch (RuntimeException failure) {
             markStartFailed(token, requestedMode, failure);
         } finally {
@@ -183,11 +194,19 @@ public final class NetworkDiagnostics {
      * WebDriver. A successfully activated generation remains a valid diagnostic snapshot after it is stopped.
      */
     public NetworkDiagnostics stop() {
+        stopGeneration();
+        return this;
+    }
+
+    private long stopGeneration() {
         NetworkCaptureSource source;
+        long stoppedGeneration;
         lock.lock();
         try {
-            if (!started && captureSource == null && !startInProgress) return this;
+            if (!started && captureSource == null && !startInProgress) return generation;
+            if (!verifyCaptureHealthLocked()) return -1;
             generation++;
+            stoppedGeneration = generation;
             started = false;
             startInProgress = false;
             activeMode = null;
@@ -213,7 +232,7 @@ public final class NetworkDiagnostics {
             emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STOPPED, UiTestLensStatus.PASSED,
                     UiTestLensLogLevel.INFO, "Network diagnostics stopped", null, null);
         }
-        return this;
+        return stoppedGeneration;
     }
 
     public boolean isStarted() {
@@ -277,11 +296,19 @@ public final class NetworkDiagnostics {
      */
     public NetworkDiagnosticsResult assertNoFailedRequests() {
         Instant startedAt = Instant.now();
-        AssertionCaptureSnapshot snapshot = assertionCaptureSnapshot();
+        boolean sameGeneration;
+        AssertionCaptureSnapshot snapshot;
+        lock.lock();
+        try {
+            sameGeneration = verifyCaptureHealthLocked();
+            snapshot = assertionCaptureSnapshot();
+        }
+        finally { lock.unlock(); }
         NetworkSummary current = NetworkSummary.from(snapshot.events(), snapshot.ignoredEvents(),
                 snapshot.droppedEvents(), snapshot.failedStatusThreshold(), snapshot.status());
-        if (!snapshot.valid()) {
-            String message = invalidCaptureAssertionMessage(snapshot);
+        if (!snapshot.valid() || !sameGeneration) {
+            String message = !sameGeneration ? "Network capture changed while verifying connection health"
+                    : invalidCaptureAssertionMessage(snapshot);
             NetworkDiagnosticsResult result = NetworkDiagnosticsResult.of(
                     NetworkDiagnosticsStatus.ASSERTION_FAILED, message, current, elapsedSince(startedAt));
             emit(UiTestLensEventType.NETWORK_ASSERTION_FAILED, UiTestLensStatus.FAILED,
@@ -513,6 +540,49 @@ public final class NetworkDiagnostics {
         } finally { lock.unlock(); }
     }
 
+    private void recordCaptureFailure(long token, RuntimeException failure) {
+        lock.lock();
+        try {
+            if (generation != token || (!started && !startInProgress)) return;
+            started = false;
+            startInProgress = false;
+            activeMode = null;
+            captureSnapshotValid = false;
+            status = NetworkDiagnosticsStatus.FAILED;
+            startFailure = failure;
+            startDiagnostics = failureDiagnostics(failure);
+            statusMessage = "WebDriver BiDi network capture failed ("
+                    + startDiagnostics.getOrDefault("failureCategory", "CAPTURE_CALLBACK_FAILED")
+                    + "; Selenium " + startDiagnostics.getOrDefault("seleniumVersion", "unknown") + ")";
+            addInternal(NetworkEvent.warning(statusMessage));
+            eventArrived.signalAll();
+        } finally { lock.unlock(); }
+        emit(UiTestLensEventType.NETWORK_DIAGNOSTICS_STARTED, UiTestLensStatus.FAILED,
+                UiTestLensLogLevel.WARN, "WebDriver BiDi network capture failed", null, failure,
+                failureDiagnostics(failure));
+    }
+
+    /** Called with one lock hold; network I/O must not block stop/restart or event callbacks. */
+    private boolean verifyCaptureHealthLocked() {
+        NetworkCaptureSource source = captureSource;
+        long token = generation;
+        if (source == null || !started) return true;
+        RuntimeException failure = null;
+        lock.unlock();
+        try { source.verifyHealth(); }
+        catch (RuntimeException problem) { failure = problem; }
+        catch (LinkageError problem) {
+            failure = SeleniumBiDiCompatibility.incompatible("Selenium BiDi health verification is incompatible", problem);
+        } finally { lock.lock(); }
+        if (generation != token || captureSource != source) return false;
+        if (failure != null) {
+            lock.unlock();
+            try { recordCaptureFailure(token, failure); }
+            finally { lock.lock(); }
+        }
+        return generation == token && captureSource == source;
+    }
+
     private AddResult addCaptured(NetworkEvent event) {
         if (isCapturedEvent(event) && capturedEvents >= options.maxCapturedEvents()) {
             droppedEvents++;
@@ -545,6 +615,9 @@ public final class NetworkDiagnostics {
         int attempts = 0;
         while (true) {
             attempts++;
+            if (status == NetworkDiagnosticsStatus.FAILED) return NetworkWaitResult.failed(condition,
+                    statusMessage, NetworkWaitFailureReason.CAPTURE_START_FAILED,
+                    startFailure, attempts, elapsedSince(startedAt));
             List<NetworkEvent> snapshot = List.copyOf(events);
             Optional<NetworkEvent> failed = snapshot.stream()
                     .filter(event -> condition.matchesFailedResponse(event, snapshot)).findFirst();
@@ -554,6 +627,10 @@ public final class NetworkDiagnostics {
             Optional<NetworkEvent> matched = snapshot.stream()
                     .filter(event -> condition.matches(event, snapshot)).findFirst();
             if (matched.isPresent()) {
+                if (!verifyCaptureHealthLocked()) return NetworkWaitResult.skipped(condition,
+                        "Network capture changed while verifying connection health",
+                        NetworkWaitFailureReason.CAPTURE_NOT_STARTED, attempts, elapsedSince(startedAt));
+                if (status == NetworkDiagnosticsStatus.FAILED) continue;
                 NetworkRequest request = matched.get().request();
                 if (request == null) request = findRequestFor(matched.get(), snapshot).orElse(null);
                 return NetworkWaitResult.matched(condition, matched.get(), request, attempts, elapsedSince(startedAt));
@@ -562,9 +639,16 @@ public final class NetworkDiagnostics {
                     "Network diagnostics capture stopped while waiting",
                     NetworkWaitFailureReason.CAPTURE_NOT_STARTED, attempts, elapsedSince(startedAt));
             long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return NetworkWaitResult.timedOut(condition, attempts,
-                    elapsedSince(startedAt), NetworkSummary.from(events, ignoredEvents, droppedEvents,
-                            options.failedStatusThreshold(), status));
+            if (remaining <= 0) {
+                if (!verifyCaptureHealthLocked()) return NetworkWaitResult.skipped(condition,
+                        "Network capture changed while verifying connection health",
+                        NetworkWaitFailureReason.CAPTURE_NOT_STARTED, attempts, elapsedSince(startedAt));
+                if (status == NetworkDiagnosticsStatus.FAILED) continue;
+                if (events.size() != snapshot.size()) continue;
+                return NetworkWaitResult.timedOut(condition, attempts,
+                        elapsedSince(startedAt), NetworkSummary.from(events, ignoredEvents, droppedEvents,
+                                options.failedStatusThreshold(), status));
+            }
             try {
                 eventArrived.awaitNanos(Math.min(remaining, condition.pollInterval().toNanos()));
             } catch (InterruptedException interrupted) {
@@ -742,6 +826,9 @@ public final class NetworkDiagnostics {
         metadata.put("resourceType", details.resourceType());
         metadata.put("resourceTypeAvailable", String.valueOf(!details.resourceType().isBlank()));
         metadata.put("redirectCount", event.attributes().getOrDefault("redirectCount", ""));
+        if (event.attributes().containsKey("requestObservationSource")) {
+            metadata.put("requestObservationSource", event.attributes().get("requestObservationSource"));
+        }
         metadata.put("durationMs", details.durationMs());
         metadata.put("hudVisible", String.valueOf(emission.hudVisible()));
         emit(eventType, UiTestLensStatus.INFO, UiTestLensLogLevel.INFO,

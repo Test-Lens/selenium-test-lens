@@ -4,6 +4,8 @@ Element actions use native Selenium operations and feed the same HUD, log, and t
 
 Actions resolve the current element and return the same `UiLocator` for chaining. Resolution/action retry is governed by [`UiLocatorOptions`](../reference/configuration.md#uilocatoroptions). A physical action/read failure that schedules another attempt emits a dedicated recovery `RETRY`; a terminal failure does not. Condition polling is separate and does not create recovery-retry evidence. A final failure is wrapped as `UiLocatorException`, with the underlying WebDriver failure retained as its cause.
 
+In 0.5.2, a started locator action can retry a directly reported `StaleElementReferenceException`, `ElementClickInterceptedException`, or `ElementNotInteractableException` under its configured retry flags. A generic transport/session failure can mean the action was already delivered: a retryable exception somewhere in its cause chain does not authorize another click, fill, key, select, or JavaScript action. Read-only observations retain their existing wrapped-cause recovery behavior.
+
 ## Click contract: bounded fallback cascade
 
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
@@ -50,6 +52,10 @@ The same locator.
 ### Failure behavior
 
 Throws `UiLocatorException` after the shared locator deadline/retry budget or on a non-retryable or ambiguous WebDriver failure. Overlay policy can also fail the click when a required blocker cannot be handled.
+
+The 0.5.2 safety checks retain the existing click deadline, attempt limit, and default JS fallback. Strategy changes do not create another timeout budget; JS activation still does not represent a physical pointer sequence.
+
+The legacy overlay-close helpers now observe the known overlay root, or the close control when no root is known, instead of always pausing for 500 ms. They return early when it is hidden or removed, treat a stale reference as removal, and retain the existing 500 ms maximum. Their boolean still means a close control was clicked; it does not guarantee the overlay disappeared before that limit.
 
 ### Trace, HUD, highlight, and evidence
 
@@ -100,6 +106,8 @@ boolean isChecked()
 For a native input hidden behind standard form styling, the locator may point to the input, its associated `label`, or a descendant of that label. Test Lens resolves the state-bearing input through `label.control`/`input.labels` semantics and clicks the visible label; it does not guess from CSS classes, text, or `data-*` attributes. Custom controls must use `role="checkbox"`, `role="switch"`, or `role="radio"` with a valid `aria-checked` value. Disabled controls fail without activation.
 
 After one activation, Test Lens polls only the freshly resolved control state until the locator timeout. This supports asynchronous rerenders without a second click. Confirmation polling is not a recovery retry and does not mark the session flaky. A mixed/indeterminate state makes `isChecked()` return `false`; `check()` or `uncheck()` still performs at most one activation and requires the requested final state.
+
+In 0.5.2, once the activation returns successfully, a stale lookup or timeout during confirmation cannot restart the activation cycle. An unconfirmed final state is reported as a failure without redispatching the acknowledged click.
 
 ```java
 lens.getByLabel("Accept terms").check();

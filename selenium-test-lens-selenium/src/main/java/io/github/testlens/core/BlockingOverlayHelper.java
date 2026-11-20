@@ -5,6 +5,10 @@ import io.github.testlens.actions.HighlightActions;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriverException;
+
+import java.util.concurrent.TimeUnit;
 
 public class BlockingOverlayHelper {
 
@@ -30,6 +34,7 @@ public class BlockingOverlayHelper {
      * This operation is independent of a specific interaction target.
      */
     public boolean handleGlobalOverlayIfPresent(String overlayLabel, String closeButtonLabel) {
+        requireNotInterrupted();
         String selector = config.getGlobalOverlayCloseButtonSelector();
         if (selector == null || selector.isBlank()) {
             return false;
@@ -53,13 +58,10 @@ public class BlockingOverlayHelper {
             highlightActions.automaticAction(btn,
                     closeButtonLabel != null ? closeButtonLabel : "CLOSE");
         }
+        requireNotInterrupted();
         btn.click();
 
-        try {
-            Thread.sleep(500); // daj czas, żeby popup zniknął
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        awaitDisappearance(btn);
 
         return true;
     }
@@ -75,6 +77,7 @@ public class BlockingOverlayHelper {
     public boolean handleBlockingOverlayFor(WebElement target,
                                             String overlayLabel,
                                             String closeButtonLabel) {
+        requireNotInterrupted();
         WebElement overlay = findBlockingOverlay(target);
         if (overlay == null) {
             return false;
@@ -95,17 +98,40 @@ public class BlockingOverlayHelper {
             highlightActions.automaticAction(closeButton,
                     closeButtonLabel != null ? closeButtonLabel : "CLOSE");
         }
+        requireNotInterrupted();
         closeButton.click();
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        awaitDisappearance(overlay);
 
         return true;
     }
 
+    static void requireNotInterrupted() {
+        if (Thread.currentThread().isInterrupted()) {
+            throw new WebDriverException("Overlay handling interrupted");
+        }
+    }
+
+    static void awaitDisappearance(WebElement element) {
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(500);
+        while (true) {
+            requireNotInterrupted();
+            try {
+                if (!element.isDisplayed()) return;
+            } catch (StaleElementReferenceException gone) {
+                return;
+            }
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0) return;
+            try {
+                TimeUnit.NANOSECONDS.sleep(Math.min(remaining,
+                        TimeUnit.MILLISECONDS.toNanos(25)));
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                throw new WebDriverException("Overlay handling interrupted", interrupted);
+            }
+        }
+    }
     static String globalOverlayCloseButtonScript() {
         return "var sel = arguments[0];" +
                 "var btn = document.querySelector(sel);" +

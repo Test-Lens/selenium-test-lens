@@ -339,10 +339,40 @@ public final class TestLens {
             try {
                 finalization.complete(runFinalization(session, finalization.request()));
             } catch (Throwable failure) {
-                finalization.complete(new FinalizationCompletion(null, failure));
+                // A critical evidence failure must not abandon invocation-owned resources.
+                try {
+                    abortFinalization(session, finalization.request(), failure);
+                } finally {
+                    finalization.complete(new FinalizationCompletion(null, failure));
+                }
             }
         }
         return finalization.await();
+    }
+
+    private void abortFinalization(UiTestLensSession session, FinalizationRequest request, Throwable failure) {
+        Throwable original = request.originalFailure();
+        if (original != null) addSuppressed(original, failure);
+        try {
+            Throwable cleanupFailure = cleanupScenario(session);
+            if (cleanupFailure != null) addSuppressed(failure, cleanupFailure);
+        } catch (Throwable cleanupFailure) {
+            addSuppressed(failure, cleanupFailure);
+        } finally {
+            try {
+                delegate.stopNetworkDiagnostics();
+            } catch (Throwable stopFailure) {
+                addSuppressed(failure, stopFailure);
+            } finally {
+                if (session.metadata().status() == TraceStatus.STARTED) {
+                    try {
+                        session.finishFailed(original == null ? failure : original);
+                    } catch (Throwable finishFailure) {
+                        addSuppressed(failure, finishFailure);
+                    }
+                }
+            }
+        }
     }
 
     private FinalizationRequest requestFor(UiTestLensSession session, FinalizationOutcome requested,
@@ -459,6 +489,9 @@ public final class TestLens {
         List<Throwable> safeDiagnostics = safeDiagnostics(diagnostics);
         TestLensFinalizationResult result = new TestLensFinalizationResult(
                 session, directory, json, html, screenshotPath, safeDiagnostics);
+        if (cleanupFailure instanceof Error) {
+            return new FinalizationCompletion(result, cleanupFailure);
+        }
         if (policyViolation != null) {
             RetryPolicyViolationException finalPolicyViolation = policyViolation;
             safeDiagnostics.forEach(failure -> {
@@ -499,6 +532,12 @@ public final class TestLens {
             }
         }
         if (failures.isEmpty()) return null;
+        for (Throwable failure : failures) {
+            if (failure instanceof Error) {
+                for (Throwable secondary : failures) addSuppressed(failure, secondary);
+                return failure;
+            }
+        }
         TestStateException aggregate = new TestStateException("One or more scenario resources could not be cleaned",
                 failures.get(0));
         for (int index = 1; index < failures.size(); index++) aggregate.addSuppressed(failures.get(index));

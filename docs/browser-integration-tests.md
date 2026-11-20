@@ -66,6 +66,14 @@ The required `browser-integration` job runs a matrix of Chrome and Firefox on `u
 mvn -Pbrowser-it -Dbrowser=<browser> -Dheaded=false verify
 ```
 
-A workflow-dispatch-only Chrome job runs the suite headed under `xvfb-run` and is non-blocking. On failure, both jobs upload Surefire/Failsafe reports and any `target/ui-test-lens` diagnostics. Edge and live `RemoteWebDriver` grids are not covered by the current matrix.
+A workflow-dispatch-only Chrome job runs the suite headed under `xvfb-run` and is non-blocking. On failure, both jobs upload Surefire/Failsafe reports and any `target/ui-test-lens` diagnostics. The separate `selenium-bidi-binary` job builds Lens once, freezes and hashes the JARs, and runs an independent consumer across the [Selenium matrix](selenium-compatibility.md), including local Chrome and a temporary loopback Selenium Grid with raw `RemoteWebDriver`. BrowserStack is not run by this credential-free job.
 
-The required job prints the selected browser and driver paths/versions and notes that BiDi is enabled for the dedicated network contracts. The remote-style regression does not contact a provider. Real BrowserStack/Grid execution remains an optional credentialed smoke test and is reported separately rather than inferred from local contracts.
+For the richer network suite against an existing Grid whose browser can reach this machine's fixture:
+
+```text
+mvn -Pbrowser-it -pl selenium-test-lens-browser-tests -am verify -Dit.test=NetworkBiDiBrowserIT -Dbrowser=chrome -Dheaded=false -Dtest.grid.url=http://127.0.0.1:4444
+```
+
+For a Grid on another host, set `-Dtest.network.bind=0.0.0.0 -Dtest.network.host=<test-runner-address-reachable-by-node>` in an isolated test network. The dedicated raw-remote test starts Lens before any external BiDi initialization. Foreign-listener tests also verify that stopping and restarting Lens preserves application subscriptions. No credentials should be placed in command-line URLs or diagnostic logs.
+
+The required job prints the selected browser and driver paths/versions and notes that BiDi is enabled for the dedicated network contracts. The remote-style regression does not contact a provider. The prepared 0.5.2 audit executed local Chrome 157 and loopback Grid 4.53.0 scenarios for the nine-version matrix. BrowserStack execution is NOT RUN; any external provider smoke test is reported separately rather than inferred from local or loopback contracts.

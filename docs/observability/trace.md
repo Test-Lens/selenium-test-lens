@@ -107,3 +107,7 @@ Exports one session or suite to a string/default/custom path. `TraceJsonExportOp
 In suite snapshots, `STARTED` means that the source session had not been finalized when it was observed. The suite summary reports these sessions separately as `started`; they do not contribute to `passed` or `failed`. Export is read-only and leaves metadata, events, artifacts, and the ability to perform the later first terminal finalization unchanged.
 
 See [Reports](reports.md) for defaults and bundle behavior.
+
+## Duration corrections in 0.5.2
+
+Terminal events with an existing measured operation now carry that elapsed duration into the top-level trace event used by JSON and HTML. The mapper prefers monotonic durationNanos over durationMs; it does not measure a different interval or impose a minimum of 1 ms. An operation below one millisecond can correctly render as 0 ms after conversion. An empty descriptive step without measured body time does not acquire an invented duration. Nested steps and session wall-clock timestamps retain their existing meaning. Regression probes compare waits around 60 ms and 1100 ms with exported JSON and both HTML paths.

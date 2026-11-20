@@ -17,6 +17,8 @@ $mkdocs = [IO.File]::ReadAllText($mkdocsPath)
 $targetMatch = [regex]::Match($mkdocs, '(?m)^\s{4}target_release:\s*(\d+\.\d+\.\d+)\s*$')
 if (-not $targetMatch.Success) { throw "mkdocs.yml must define one concrete AI integration target_release." }
 $targetRelease = $targetMatch.Groups[1].Value
+$publicationPolicy = [IO.File]::ReadAllText((Join-Path $root 'scripts/config/publication-policy.json')) | ConvertFrom-Json
+$publishedRelease = $publicationPolicy.latestReleasedVersion
 
 foreach ($contract in @(
     'title: Selenium observability and diagnostic evidence',
@@ -50,8 +52,16 @@ foreach ($contract in @(
 if ($overview.Contains("## $targetRelease at a glance") -or $overview -match '(?m)^## 0\.3\.0 foundations\s*$') {
     throw "The landing page must not use release history as its primary information architecture."
 }
-if (-not $overview.Contains("Current stable release: $targetRelease")) {
-    throw "Overview stable-release badge does not match mkdocs target_release $targetRelease."
+if ($targetRelease -eq $publishedRelease) {
+    if (-not $overview.Contains("Current stable release: $targetRelease")) {
+        throw "Overview stable-release badge does not match the published release."
+    }
+} elseif ($targetRelease -eq $publicationPolicy.preparedReleaseVersion) {
+    if (-not $overview.Contains("Prepared release: $targetRelease (unpublished)") -or -not $overview.Contains("Published release: $publishedRelease.")) {
+        throw "Overview must distinguish the unpublished prepared release from the actual published release."
+    }
+} else {
+    throw "Overview target release is neither published nor explicitly prepared."
 }
 
 foreach ($mapContract in @(

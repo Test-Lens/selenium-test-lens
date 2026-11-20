@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.github.test-lens.consumer</groupId><artifactId>bidi-binary-consumer</artifactId><version>1</version>
+  <!-- Deliberately no reactor parent: production classes come exclusively from frozen JARs. -->
+  <properties>
+    <maven.compiler.release>17</maven.compiler.release><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <selenium.version>4.39.0</selenium.version>
+  </properties>
+  <dependencyManagement><dependencies><dependency>
+    <groupId>org.seleniumhq.selenium</groupId><artifactId>selenium-bom</artifactId><version>${selenium.version}</version><type>pom</type><scope>import</scope>
+  </dependency></dependencies></dependencyManagement>
+  <dependencies>
+    <dependency><groupId>io.github.test-lens.frozen</groupId><artifactId>lens</artifactId><version>1</version><scope>system</scope><systemPath>${frozen.dir}/lens.jar</systemPath></dependency>
+    <dependency><groupId>io.github.test-lens.frozen</groupId><artifactId>core</artifactId><version>1</version><scope>system</scope><systemPath>${frozen.dir}/core.jar</systemPath></dependency>
+    <dependency><groupId>io.github.test-lens.frozen</groupId><artifactId>overlay</artifactId><version>1</version><scope>system</scope><systemPath>${frozen.dir}/overlay.jar</systemPath></dependency>
+    <dependency><groupId>io.github.test-lens.consumer</groupId><artifactId>legacy-size-calls</artifactId><version>1</version><scope>system</scope><systemPath>${legacy.jar}</systemPath></dependency>
+    <dependency><groupId>org.seleniumhq.selenium</groupId><artifactId>selenium-java</artifactId></dependency>
+    <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>5.10.2</version><scope>test</scope></dependency>
+  </dependencies>
+  <build><directory>${run.dir}</directory><plugins>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.11.0</version><configuration><testIncludes><testInclude>**/network/*.java</testInclude></testIncludes></configuration></plugin>
+    <plugin><groupId>org.codehaus.mojo</groupId><artifactId>build-helper-maven-plugin</artifactId><version>3.6.1</version><executions><execution><id>network-behavior-contracts</id><phase>generate-test-sources</phase><goals><goal>add-test-source</goal></goals><configuration><sources><source>${lens.tests}</source></sources></configuration></execution></executions></plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.2.5</version><configuration>
+      <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
+      <forkedProcessExitTimeoutInSeconds>15</forkedProcessExitTimeoutInSeconds>
+      <includes><include>**/network/*Test.java</include></includes>
+      <systemPropertyVariables><expected.selenium>${selenium.version}</expected.selenium><expected.lens.sha256>${lens.sha256}</expected.lens.sha256><frozen.dir>${frozen.dir}</frozen.dir></systemPropertyVariables>
+    </configuration></plugin>
+  </plugins></build>
+</project>

@@ -121,7 +121,12 @@ public class OverlayWait {
 
         Status status = Status.ERROR;
         try {
-            T result = wait.until(condition);
+            T result = wait.until(currentDriver -> {
+                if (Thread.currentThread().isInterrupted()) {
+                    throw new WebDriverException("Wait interrupted");
+                }
+                return condition.apply(currentDriver);
+            });
             status = Status.DONE;
             return result;
 

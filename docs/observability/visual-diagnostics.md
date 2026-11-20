@@ -339,3 +339,7 @@ When explicit `HudOptions` and legacy HUD setters are combined, `HudOptions` is 
 ## Low-level HUD API
 
 `HudPanel`, `ApiOverlayPanel`, JS resource wrappers, `OverlayRootManager`, and related `*Js` types are formally public but intended for custom integrations and internal-style use. See [advanced/low-level API](../reference/advanced-low-level.md).
+
+## Terminal event ordering in 0.5.2
+
+A late nonterminal update for the same operation and category cannot replace its completed HUD result. A genuine later failure is still visible. This fixes event ordering rather than introducing a new preset, category, color or highlight API. Action/assertion lifecycle and existing highlight durations remain in effect; technical diagnostic rows retain their own identity.

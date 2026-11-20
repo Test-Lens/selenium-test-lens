@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SmartClickFallbackCascadeTest {
 
@@ -141,6 +142,29 @@ class SmartClickFallbackCascadeTest {
         assertEquals(0, fixture.javascriptClicks.get());
     }
 
+    @Test
+    void ambiguousLegacyFailureWithInterceptionCauseMustNotRepeatClick() {
+        Fixture fixture = fixture((click, ignored) -> {
+            click.incrementAndGet();
+            throw new WebDriverException("transport outcome unknown",
+                    new ElementClickInterceptedException("earlier intercepted command"));
+        }, false, List.of());
+        assertThrows(WebDriverException.class, () -> fixture.actions.clickLegacy(fixture.element));
+        assertEquals(1, fixture.nativeClicks.get());
+    }
+
+    @Test
+    void canceledConfiguredClickMustNotDispatch() {
+        Fixture fixture = fixture((click, ignored) -> click.incrementAndGet(), false, List.of());
+        Thread.currentThread().interrupt();
+        try {
+            assertThrows(WebDriverException.class, () -> fixture.actions.click(fixture.element, true));
+            assertEquals(0, fixture.nativeClicks.get());
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+        }
+    }
     private static Fixture fixture(NativeClick nativeClick, boolean centerOwned, List<Map<String, Object>> points) {
         return fixture(nativeClick, centerOwned, points, true);
     }

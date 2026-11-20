@@ -1,5 +1,10 @@
 # JUnit 5 integration
 
+For BiDi network capture, stock Chrome/ChromeDriver 157.0.8103.78 on Windows passed the complete nine-version local/Grid matrix and both 50-redirect probes. Release CI verifies the same Linux-built frozen JAR on Windows; Linux stock 157/158 network integrity remains uncertified. No custom mapper is required; follow the [exact browser/transport boundary](../selenium-compatibility.md). It requires no Lens API or test-source change.
+
+
+Use Test Lens 0.5.2 runtime and adapter versions together; see [upgrade instructions](../whats-new-0.5.2.md).
+
 The `selenium-test-lens-junit5` module is the recommended JUnit Jupiter integration. It creates one `WebDriver`, `TestLens`, and trace session for every test invocation, injects the driver and Lens into the test method, finalizes diagnostics, and only then closes the driver.
 
 Inside a test, `lens.expectPage()` polls URL or title on that invocation's active window. These checks use the normal Lens assertion events and results; they are neither JUnit retries nor recovery retries. Explicitly switch a popup before asserting its URL or title.
@@ -12,7 +17,7 @@ Add the extension in test scope and keep Selenium explicit at the version manage
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-junit5</artifactId>
-    <version>0.5.1</version>
+    <version>0.5.2</version>
     <scope>test</scope>
 </dependency>
 
@@ -30,7 +35,7 @@ Gradle users can use Kotlin DSL:
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.test-lens:selenium-test-lens-junit5:0.5.1")
+    testImplementation("io.github.test-lens:selenium-test-lens-junit5:0.5.2")
 }
 ```
 
@@ -38,7 +43,7 @@ or Groovy DSL:
 
 ```groovy
 dependencies {
-    testImplementation 'io.github.test-lens:selenium-test-lens-junit5:0.5.1'
+    testImplementation 'io.github.test-lens:selenium-test-lens-junit5:0.5.2'
 }
 ```
 
@@ -138,6 +143,8 @@ Your driver factory and application test data must still be parallel-safe. Do no
 Pass the policy through `lensOptions(...)`. If `finishPassed()` raises `RetryPolicyViolationException`, the extension fails that invocation after JSON/HTML and the optional failure screenshot are produced, then quits the driver. A quit failure is suppressed on the policy violation, and the session is not finalized a second time. Parameterized and repeated invocations each evaluate their own session summary.
 
 If a test starts `lens.network()`, all three Lens finalizers stop its active capture before session completion and before the extension calls `quit()`. To use `BIDI` or `AUTO`, the extension's driver factory must create options with `enableBiDi()`; the adapter does not retrofit the capability or fall back to manual capture.
+
+Use one aligned Selenium runtime across the adapter and application. Select its version from the [Lens release-specific compatibility matrix](../selenium-compatibility.md), then verify a real request/response on the actual local or remote session. Connection availability alone does not certify working capture; mapping or transport failure invalidates network assertions.
 
 For final `FAILED`, the extension waits for the complete failure-bundle pipeline—including reports, HUD cleanup, manifest, and ZIP—before `driver.quit()`. Partial evidence never replaces the test throwable. Configure it through the same `lensOptions(...)`; raw page source and browser console remain opt-in.
 

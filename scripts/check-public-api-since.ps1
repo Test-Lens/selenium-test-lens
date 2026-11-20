@@ -40,24 +40,7 @@ function Read-PublicTypes([string[]]$Lines) {
 }
 
 function Read-CompatibilityProjection([string[]]$ManifestLines, [object[]]$ClassificationRows, [string]$Label) {
-    $compatibility = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
-    @($ClassificationRows | Where-Object { $_.Classification -in @("USER_API", "ADVANCED_API") }) |
-        ForEach-Object { [void]$compatibility.Add($_.Type) }
-    if ($compatibility.Count -eq 0) { throw "$Label classification has no USER_API or ADVANCED_API types" }
-
-    $types = [Collections.Generic.List[string]]::new()
-    $callables = 0
-    $included = $false
-    foreach ($line in $ManifestLines) {
-        if ($line -like 'TYPE *') {
-            $type = $line.Substring(5)
-            $included = $compatibility.Contains($type)
-            if ($included) { $types.Add($type) }
-        } elseif ($included -and $line -match '^\s+public .*\(') {
-            $callables++
-        }
-    }
-    return [pscustomobject]@{ Types = $types.ToArray(); Callables = $callables }
+    return Read-TestLensApiCompatibilityProjection -ManifestLines $ManifestLines -ClassificationRows $ClassificationRows -Label $Label
 }
 
 function Get-RepositoryRelativePath([string]$Root, [string]$Path) {

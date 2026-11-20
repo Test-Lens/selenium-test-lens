@@ -197,10 +197,11 @@ class AllureReleaseConsumerTest {
     (Join-Path $allureConsumer "src/test/java/cleanroom/AllureReleaseConsumerTest.java"), $allureSmoke)
 
 $repoArg = "-Dmaven.repo.local=$emptyM2"
+$dependencyTreeGoal = 'org.apache.maven.plugins:maven-dependency-plugin:3.7.0:tree'
 $baseGraph = Join-Path $work "base-dependency-tree.txt"
 Push-Location $consumer
 try {
-    & $mavenCommand $repoArg dependency:tree "-DoutputFile=$baseGraph" "-DoutputType=text"
+    & $mavenCommand $repoArg $dependencyTreeGoal "-DoutputFile=$baseGraph" "-DoutputType=text"
     if ($LASTEXITCODE -ne 0) { throw "Clean-room dependency tree failed" }
     & $mavenCommand $repoArg test-compile
     if ($LASTEXITCODE -ne 0) { throw "Clean-room test compilation failed" }
@@ -219,7 +220,7 @@ if ($baseGraphText.Contains("-SNAPSHOT")) { throw "Base Maven consumer resolved 
 $allureGraph = Join-Path $work "allure-dependency-tree.txt"
 Push-Location $allureConsumer
 try {
-    & $mavenCommand $repoArg dependency:tree "-DoutputFile=$allureGraph" "-DoutputType=text"
+    & $mavenCommand $repoArg $dependencyTreeGoal "-DoutputFile=$allureGraph" "-DoutputType=text"
     if ($LASTEXITCODE -ne 0) { throw "Allure clean-room dependency tree failed" }
     & $mavenCommand $repoArg test
     if ($LASTEXITCODE -ne 0) { throw "Allure clean-room smoke failed" }

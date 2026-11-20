@@ -7,7 +7,7 @@
 
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens-parent</artifactId>
-    <version>0.5.1</version>
+    <version>0.5.2</version>
     <packaging>pom</packaging>
     <name>Test Lens for Selenium</name>
     <description>Test Lens observability, diagnostics, and evidence tooling for Selenium test automation.</description>
@@ -91,6 +91,14 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Keep all Selenium artifacts aligned, including explicit API/remote-driver dependencies. -->
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-bom</artifactId>
+                <version>${selenium.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.seleniumhq.selenium</groupId>
                 <artifactId>selenium-java</artifactId>

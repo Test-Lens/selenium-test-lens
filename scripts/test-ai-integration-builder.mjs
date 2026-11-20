@@ -41,6 +41,12 @@ assert.doesNotMatch(pinnedPrompt, /selenium-test-lens\/(?:latest|dev)\//);
 assert.doesNotMatch(pinnedPrompt, /localhost|127\.0\.0\.1|file:\/\//);
 const repeatedPrompt = builder.buildPrompt({ ...release, style: 'manual', capabilities: ['hud'] });
 assert.equal(repeatedPrompt, pinnedPrompt, 'release prompt remains deterministically pinned');
+const candidatePrompt = promptFor({ targetRelease: '0.5.2', releaseStatus: 'prepared', capabilities: ['bidiNetwork'] });
+assert.match(candidatePrompt, /Prepared release 0\.5\.2 \(unpublished\)/);
+assert.match(candidatePrompt, /not available from Maven Central/);
+assert.doesNotMatch(candidatePrompt, /Use the published|public, published APIs/);
+assert.match(candidatePrompt, /intended release paths/);
+assert.equal(builder.resolveDocumentationTarget({ ...release, releaseStatus: 'invalid' }, 'https://test-lens.github.io/selenium-test-lens/latest/').valid, false);
 
 assert.equal(builder.seleniumAssessment('', true).kind, 'unknown');
 assert.equal(builder.seleniumAssessment('not-a-version', true).kind, 'invalid');

@@ -67,6 +67,8 @@ ReactSelectHelper select()
 
 Each attempt re-resolves a present element, optionally updates/highlights it through the overlay, and retries stale, missing, or intercepted failures. Non-positive `maxRetries` falls back to 3; null delay/wait use 200 ms/15 s. Other operation failures propagate. This executor has its own retry settings, separate from `UiLocatorOptions`.
 
+In 0.5.2, `ReactSafeExecutor` preserves the interrupt flag and throws `WebDriverException` when cancellation is observed before an attempt, before the operation callback, while preparing a recovery retry, or during the retry delay. It stops before another lookup or callback instead of continuing recovery on an interrupted thread. Its existing attempt count, retry delay, per-attempt wait, and exception recovery settings remain unchanged. This is the executor's cancellation behavior, not a new cancellation contract for every SPA wait or helper.
+
 ## React Select helpers
 
 `resolveReactSelectBaseId` derives a `react-select-*` base id from ARIA/live-region/placeholder conventions. `jsClickReactSelectOptionContaining` clicks the first visible matching option using JavaScript. `pickByLabel` types, resolves an option id, clicks by text substring, and confirms a hidden input. It is coupled to React Select DOM/id conventions and can break when markup differs. `textContent`, `xpathLiteral`, and `cssEscape` are utility methods.

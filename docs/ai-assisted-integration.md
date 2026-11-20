@@ -10,7 +10,7 @@ Use the **AI Integration Prompt Builder** to prepare one complete prompt for an 
 !!! tip "Start new integrations from latest"
     This page follows the current [`latest` documentation](https://test-lens.github.io/selenium-test-lens/latest/), which is the recommended starting point for a new integration. Older Test Lens versions and their documentation remain available and may still work correctly. They can produce a less complete or less effective integration because later releases may include fixes, improved APIs and lifecycle adapters, newer diagnostics and observability, or corrected integration patterns.
 
-The builder's selectable surface is the published 0.5.1 runtime consumer boundary:
+The builder's selectable surface is the prepared 0.5.2 runtime consumer boundary. **0.5.2 is not published**: use a locally installed prepared build until publication and retain the selected release's compatibility limits:
 
 | Choice | Public artifact/API |
 |---|---|
@@ -193,7 +193,7 @@ Every generated prompt requires the effective Selenium Java dependency on the re
 
 The optional version field is only a user-entered early hint. It is never described as dependency-resolution evidence. Stable releases, prerelease/SNAPSHOT values, invalid input and missing input are assessed separately. A prerelease with numeric core `4.39.0` is not treated as equivalent evidence to stable `4.39.0`, but it is not declared incompatible solely because it has a qualifier.
 
-For Test Lens WebDriver BiDi/network integration, Selenium Java **4.39.0 is the minimum supported integration baseline** in the current release. A lower version blocks Lens BiDi configuration until a safe minimal upgrade is made. Version 4.39.0 or newer only clears the dependency-version gate: browser, driver, session capabilities, `webSocketUrl`/BiDi connection, Grid and cloud-provider transport still require runtime verification. This is a Test Lens support boundary, not a claim that earlier Selenium versions have no BiDi functionality.
+For Test Lens WebDriver BiDi/network integration, Selenium Java **4.39.0 is the minimum tested integration baseline**. A lower version blocks Lens BiDi configuration until a safe minimal upgrade is made. A numerically higher version only clears the dependency-version gate: it does not certify binary compatibility. Match the selected Lens release to its [tested Selenium matrix](selenium-compatibility.md), keep all Selenium artifacts aligned, then verify browser, driver, session capabilities, `webSocketUrl`/BiDi connection, Grid and cloud-provider transport. Published Lens 0.5.1 has a known size-getter binary incompatibility on Selenium 4.41.0+; the fix is included in prepared, unpublished 0.5.2 and requires that corrected Lens artifact. This boundary is not a claim that earlier Selenium versions have no BiDi functionality.
 
 ## Integration invariants
 
