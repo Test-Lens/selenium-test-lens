@@ -13,11 +13,11 @@ This guide shows the shortest path from the Maven dependency to a working Lens s
 - Maven 3.x or Gradle
 - A Selenium `WebDriver` created by your test project
 
-This development guide targets **prepared, unpublished Test Lens 0.5.2**. Its coordinates below require a locally installed prepared build until publication. The published release remains 0.5.1 and has a known BiDi binary incompatibility on Selenium 4.41.0+. See [0.5.2 upgrade instructions](whats-new-0.5.2.md).
+This guide targets **Test Lens 0.5.2**. See [0.5.2 upgrade instructions](whats-new-0.5.2.md) when upgrading from an earlier version.
 
-The development tree includes an unreleased fix for BiDi binary changes after Selenium 4.39.0. Before selecting a Selenium runtime, consult the [compatibility matrix and release-specific limits](selenium-compatibility.md). Keep all Selenium modules on one version, preferably through `selenium-bom`; the minimum tested BiDi baseline remains 4.39.0. These development results do not retroactively certify the published 0.5.1 JAR.
+Version 0.5.2 fixes BiDi binary changes after Selenium 4.39.0. Consult the [compatibility matrix and browser limits](selenium-compatibility.md), and keep all Selenium modules on one version, preferably through `selenium-bom`. The minimum tested BiDi baseline remains 4.39.0; these results do not retroactively certify the 0.5.1 JAR.
 
-For the prepared 0.5.2 build, Selenium **4.53.0** is the newest verified stable runtime (Java 21, Chrome/Grid); retain the verified 4.39.0 baseline when that meets the application's needs. BrowserStack still requires separate provider validation.
+For Test Lens 0.5.2, Selenium **4.53.0** is the newest verified stable runtime (Java 21, Chrome/Grid); retain the verified 4.39.0 baseline when that meets the application's needs. BrowserStack still requires separate provider validation.
 
 Looking to assess selectors across an existing project? The 0.4.0 source includes browser-free Selector Audit,
 stability-policy, Find Similar, and read-only Lab foundations. They are not yet exposed by a supported public 0.4.x
@@ -36,7 +36,7 @@ Add the main Test Lens for Selenium runtime to your Maven project:
 </dependency>
 ```
 
-The same prepared version can be used by Gradle after installing the build locally.
+The same version can be used by Gradle.
 
 === "Kotlin DSL"
 
@@ -232,7 +232,7 @@ The HUD is only a diagnostic aid and does not change test execution or assertion
 - [Use the JUnit 5 lifecycle extension](integrations/junit5.md)
 - [Use locators, actions, waits, and assertions](elements/index.md)
 - [Configure Test Lens](configuration.md)
-- [Review the prepared 0.5.2 changes](whats-new-0.5.2.md)
+- [Review the 0.5.2 changes](whats-new-0.5.2.md)
 - [Migrate from 0.2.x](migrating-0.2-to-0.3.md)
 - [Migrate incrementally from raw Selenium](migration.md)
 - [Add the optional React/SPA helpers module](framework-integration.md#optional-reactspa-helpers-module)

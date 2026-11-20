@@ -1,7 +1,6 @@
 {
   "schemaVersion": 2,
-  "latestReleasedVersion": "0.5.1",
-  "preparedReleaseVersion": "0.5.2",
+  "latestReleasedVersion": "0.5.2",
   "nonReactorPomPaths": [
     "consumer-tests/selenium-bidi/pom.xml",
     "consumer-tests/selenium-bidi/legacy/pom.xml",

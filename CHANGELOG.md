@@ -4,7 +4,7 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ## [Unreleased]
 
-## [0.5.2] - Prepared, unpublished
+## [0.5.2] - 2026-11-20
 
 ### Fixed
 
@@ -23,14 +23,14 @@ All notable changes to Test Lens for Selenium will be documented in this file.
 
 ### Migration
 
-- Update Lens and its optional JUnit 5/TestNG/React integrations together to 0.5.2 when the release is available. No public API or test-source migration is required. Keep Selenium explicitly configured with one aligned version, preferably through its BOM; do not downgrade applications that need newer Selenium APIs.
+- Update Lens and its optional JUnit 5/TestNG/React integrations together to 0.5.2. No public API or test-source migration is required. Keep Selenium explicitly configured with one aligned version, preferably through its BOM; do not downgrade applications that need newer Selenium APIs.
 - Users of 0.5.1 who disabled Lens diagnostic network capture as a workaround can re-enable it after upgrading and verifying a known response. Browser/Grid BiDi capability configuration remains required.
 - Ambiguous transport failures now fail the action instead of possibly repeating a delivered click/input. A checkbox confirmation failure no longer clicks again. Handle such failures explicitly; do not add blind application-level retries.
 
 ### Tested compatibility
 
 - The redirect correction passed 82 focused source regressions locally and independent review. The new nine-version same-JAR matrix passed locally with 1359 tests, zero failures and zero skips, including Chrome 158 and Grid. Independent hosted repeats subsequently exposed intermittent incorrect raw redirect traffic on Linux Chrome 158.0.8127.36 without Lens or Grid; all failing and passing runs remain recorded. Optional raw-wire probes default OFF; actual controlled-server journal assertions remain unchanged.
-- Prepared a conditional browser policy: required gates pin Chrome/ChromeDriver 157.0.8103.78 with the unchanged nine-version Selenium/report matrix and 50 standalone redirect stimuli each through direct ChromeDriver and Grid. A separate nonblocking Chrome/ChromeDriver 158.0.8127.36 canary retains visible direct/Grid results and artifacts. Fresh hosted verification and the no-available-correction assessment are PENDING; 157 results do not certify 158 or complete release authorization. See the production release report.
+- The browser CI contract pins Chrome/ChromeDriver 157.0.8103.78 with the unchanged nine-version Selenium/report matrix and 50 standalone redirect stimuli each through direct ChromeDriver and Grid. A separate nonblocking Chrome/ChromeDriver 158.0.8127.36 canary retains visible direct/Grid results and artifacts. Chrome 158 has known independently reproduced network unreliability; neither a 157 PASS nor a transient 158 PASS certifies it. Exact final validation and publication evidence is recorded in the production release report.
 
 - Retained Java 17 and Selenium 4.39.0 as compile/minimum tested baselines. Verified nine Selenium runtimes through 4.53.0 on Java 21 with Chrome 157 locally and through Grid 4.53.0; BrowserStack remains NOT RUN. See `docs/whats-new-0.5.2.md` for upgrade instructions and limits.
 - Added an independent same-JAR Selenium runtime matrix, a frozen 4.39 bytecode regression reproducer, artifact hash/version checks and Chrome/Grid smoke coverage in CI. Imported Selenium BOM to align reactor dependencies. See the development Selenium compatibility policy and audit report for executed results; published 0.5.1 is unchanged.
@@ -341,7 +341,8 @@ Test Engineering Studio remains experimental and has been temporarily withdrawn 
 - Central Publisher Portal publication remains a manual, reviewed operation.
 - Legacy browser runtime aliases are still maintained for compatibility.
 
-[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/Test-Lens/selenium-test-lens/compare/v0.3.1...v0.4.0

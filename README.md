@@ -8,7 +8,8 @@
 
 | Version | Status | Maven Central | Documentation | GitHub Release |
 |---|---|---|---|---|
-| `0.5.1` | Current release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1) | [Documentation — 0.5.1](https://test-lens.github.io/selenium-test-lens/0.5.1/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.1) |
+| `0.5.2` | Current release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.2) | [Documentation - 0.5.2](https://test-lens.github.io/selenium-test-lens/0.5.2/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.2) |
+| `0.5.1` | Previous release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1) | [Documentation — 0.5.1](https://test-lens.github.io/selenium-test-lens/0.5.1/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.1) |
 | `0.5.0` | Previous release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.0) | [Documentation — 0.5.0](https://test-lens.github.io/selenium-test-lens/0.5.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.0) |
 | `0.4.0` | Previous release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.4.0) | [Documentation — 0.4.0](https://test-lens.github.io/selenium-test-lens/0.4.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.4.0) |
 | `0.3.1` | Previous release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.3.1) | [Documentation — 0.3.1](https://test-lens.github.io/selenium-test-lens/0.3.1/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.3.1) |
@@ -16,17 +17,17 @@
 | `0.2.0` | Historical release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.2.0) | [Documentation — 0.2.0](https://test-lens.github.io/selenium-test-lens/0.2.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.2.0) |
 | `0.1.0` | Historical release | [Artifact](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.1.0) | [Documentation — 0.1.0](https://test-lens.github.io/selenium-test-lens/0.1.0/) | [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.1.0) |
 
-**Prepared 0.5.2 is not published.** It repairs BiDi binary compatibility and capture lifecycle, potentially repeated click/input actions, cancellation, critical cleanup errors, measured durations, terminal HUD status and unsafe HTML artifact links. Published 0.5.1 remains affected on Selenium 4.41.0+. Public API and test-source compatibility are preserved. See [0.5.2 changes and upgrade instructions](docs/whats-new-0.5.2.md), the [tested Selenium matrix](docs/selenium-compatibility.md) and [release coverage](docs/maintainers/production-release-0.5.2.md).
+**Test Lens 0.5.2** repairs BiDi binary compatibility and capture lifecycle, potentially repeated click/input actions, cancellation, critical cleanup errors, measured durations, terminal HUD status and unsafe HTML artifact links. Version 0.5.1 remains affected on Selenium 4.41.0+. Public API and test-source compatibility are preserved. See [0.5.2 changes and upgrade instructions](docs/whats-new-0.5.2.md), the [tested Selenium matrix](docs/selenium-compatibility.md) and [release coverage](docs/maintainers/production-release-0.5.2.md).
 
-Release validation is PENDING under a controlled browser policy: required gates pin Chrome/ChromeDriver 157.0.8103.78 and retain the same nine Selenium versions and exact report-data assertions, plus 50 standalone redirect stimuli each through direct ChromeDriver and Grid. Linux Chrome/ChromeDriver 158.0.8127.36 has independently reproduced network unreliability without Lens or Grid and is tracked by a separate nonblocking direct/Grid canary with visible results. A 157 PASS does not certify 158. The exception requires fresh hosted evidence and confirmation that no available correction resolves the external failure; see the release evidence above. Published version links and `latest` remain on 0.5.1.
+The CI browser contract pins Chrome/ChromeDriver 157.0.8103.78 with unchanged nine-version Selenium/report assertions and 50 standalone redirect stimuli each through direct ChromeDriver and Grid. Linux Chrome/ChromeDriver 158.0.8127.36 has independently reproduced network unreliability without Lens or Grid; separate nonblocking canaries retain visible direct/Grid outcomes. Neither a 157 PASS nor a transient 158 PASS certifies Chrome 158. See the release evidence above for exact source revisions, final gates and publication receipts.
 
-Install published release 0.5.1 (Java 17 or newer):
+Install release 0.5.2 (Java 17 or newer):
 
 ```xml
 <dependency>
     <groupId>io.github.test-lens</groupId>
     <artifactId>selenium-test-lens</artifactId>
-    <version>0.5.1</version>
+    <version>0.5.2</version>
 </dependency>
 ```
 
@@ -49,7 +50,7 @@ try {
 }
 ```
 
-[Product overview](https://test-lens.github.io/selenium-test-lens/0.5.1/) · [Getting started](https://test-lens.github.io/selenium-test-lens/0.5.1/getting-started/) · [What's new in 0.5.1](https://test-lens.github.io/selenium-test-lens/0.5.1/whats-new-0.5.1/) · [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.1) · [Development documentation](https://test-lens.github.io/selenium-test-lens/dev/)
+[Product overview](https://test-lens.github.io/selenium-test-lens/0.5.2/) · [Getting started](https://test-lens.github.io/selenium-test-lens/0.5.2/getting-started/) · [What's new in 0.5.2](https://test-lens.github.io/selenium-test-lens/0.5.2/whats-new-0.5.2/) · [Release notes](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.2) · [Development documentation](https://test-lens.github.io/selenium-test-lens/dev/)
 
 ![Test Lens 0.4.0 semantic action and assertion lifecycle](docs/assets/media/hud-action-assertion-lifecycle.webp)
 
@@ -126,7 +127,7 @@ Text redaction is not pixel processing. `VisualRedactionOptions` separately mask
 ## Advanced capabilities
 
 - **Selector Intelligence (0.5.1 tooling):** browser-free declaration discovery, evidence-first stability policy, Find Similar, offline Audit, and live candidate analysis back mapping and controlled repair. Published tooling artifacts remain outside the stable Java compatibility promise. [Capability and availability guide](docs/features/selector-intelligence.md)
-- **WebDriver BiDi network diagnostics (0.2.0):** passive observation, correlation, waits, assertions, safe snapshots, and HUD filtering. It is not interception, mocking, or CDP. The manual event/wait/assertion path existed in `0.1.0`. [Network diagnostics](docs/advanced/network.md). Prepared 0.5.2 adds a [tested Selenium compatibility policy and same-JAR regression gate](docs/selenium-compatibility.md); released 0.5.1 still has the BiDi size-getter incompatibility on Selenium 4.41.0+.
+- **WebDriver BiDi network diagnostics (0.2.0):** passive observation, correlation, waits, assertions, safe snapshots, and HUD filtering. It is not interception, mocking, or CDP. The manual event/wait/assertion path existed in `0.1.0`. [Network diagnostics](docs/advanced/network.md). Release 0.5.2 adds a [tested Selenium compatibility policy and same-JAR regression gate](docs/selenium-compatibility.md); released 0.5.1 still has the BiDi size-getter incompatibility on Selenium 4.41.0+.
 - **Managed Auth State (0.3.0):** restore/validate/recreate cookies and web storage with tri-state validation, one-login maximum, canonical-path locking and atomic replacement; low-level origin-isolated capture/restore remains available. [Authentication state](docs/advanced/auth-state.md)
 - **Managed Test State & Resources (0.3.0):** typed state isolated to one physical invocation, explicitly shared suite/run state, and exactly-once LIFO cleanup for temporary resources across pass, failure, skip, retry, and parallel runner execution. [Managed test state](docs/features/managed-test-state.md)
 - **Page and SPA waits:** document readiness plus an intentionally limited XHR/fetch-idle heuristic. It sees only XHR/fetch started after tracker installation—not images, CSS, scripts, WebSocket, EventSource, or beacon traffic. [Waiting](docs/elements/waiting.md)
@@ -143,7 +144,7 @@ Gradle Kotlin DSL:
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.test-lens:selenium-test-lens:0.5.1")
+    testImplementation("io.github.test-lens:selenium-test-lens:0.5.2")
 }
 ```
 
@@ -151,7 +152,7 @@ Gradle Groovy DSL:
 
 ```groovy
 dependencies {
-    testImplementation 'io.github.test-lens:selenium-test-lens:0.5.1'
+    testImplementation 'io.github.test-lens:selenium-test-lens:0.5.2'
 }
 ```
 
@@ -170,7 +171,7 @@ mvn -Pbrowser-it -Dbrowser=chrome -Dheaded=false verify
 mvn -Pbrowser-it -Dbrowser=firefox -Dheaded=false verify
 ```
 
-See [browser integration tests](docs/browser-integration-tests.md), the [changelog](CHANGELOG.md), [Maven Central 0.5.1](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1), [GitHub Releases](https://github.com/Test-Lens/selenium-test-lens/releases), and the [published Javadoc for 0.5.1](https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/).
+See [browser integration tests](docs/browser-integration-tests.md), the [changelog](CHANGELOG.md), [Maven Central 0.5.2](https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.2), [GitHub Releases](https://github.com/Test-Lens/selenium-test-lens/releases), and the [published Javadoc for 0.5.2](https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.2/).
 
 ## License
 

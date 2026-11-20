@@ -1,8 +1,8 @@
 # Selenium Test Lens 0.5.2
 
-**Draft, unpublished. Conditional Chrome 157 release-gate verification is PENDING; Chrome 158 network reliability is not certified.**
+Browser contract: Chrome/ChromeDriver 157.0.8103.78. Chrome 158 network reliability is not certified.
 
-**Prepared, unpublished.** Central publication, the immutable tag and GitHub Release have not been completed. Final validation of the current preparation HEAD is still in progress.
+Exact final validation and external publication receipts are recorded in the [production release report](production-release-0.5.2.md).
 
 ## Overview
 
@@ -45,13 +45,11 @@ If you disabled only Lens diagnostic capture as a 0.5.1 workaround, re-enable it
 
 ## Verification
 
-The clean local reactor passed **1806 tests**, with **39 classified skips** and zero failures. The same-JAR matrix passed **1242 tests with zero failures/skips**, including local Chrome, Grid and report-data comparisons. Headed and headless runtime smokes each passed 5/5. Public API, strict documentation and packaging checks passed. Hosted release evidence is recorded separately in the production release report; local execution is not presented as hosted CI.
+The release gate uses Chrome/ChromeDriver **157.0.8103.78**, Java 21 and Grid 4.53.0. It validates one frozen Lens JAR across all nine listed Selenium versions, exact controlled-server request/response journals, JSON/HTML/failure-bundle data and redaction, plus 50 distinct standalone redirects each through direct ChromeDriver and Grid. API, reactor, packaging and strict documentation gates must also pass on the release source. No HTTP status, terminal-response or report assertion is relaxed.
 
-Those completed runs precede the latest redirect correction. Commit `2d971211` passed **82 focused source regressions locally** and independent review found no concrete defects. The new nine-version matrix passed locally on `cdcc9344`: **1359 tests, zero failures and zero skips**, including Chrome 158, Grid and server-journal report comparisons. The identical Lens JAR SHA-256 was `972981F9C86FA796706768A36CF34D518ADDF8D46FDE8B55DB5832C6F79104FB`. A fresh local reactor passed **1811 tests with 39 classified skips**; the hosted Linux reactor passed **1816 with 34 skips**, including all five platform-dependent tests. Optional raw-wire probes are OFF by default; actual controlled-server journal assertions remain unchanged.
+Chrome 158 direct/Grid canaries are explicitly nonblocking and preserve their actual results. Neither a 157 PASS nor a transient 158 PASS certifies Chrome 158 network reliability. The investigation found no verified stable correction; Beta 159 contains an upstream routing correction but remains unverified and is not the release recommendation.
 
-One complete hosted manual run passed, but independent repeats exposed intermittent incorrect raw redirect traffic on Linux Chrome 158.0.8127.36. A standalone Selenium 4.53.0 consumer reproduced it both through Grid 4.53.0 and through direct ChromeDriver, without Lens. The production report preserves both passing and failing results. These failures remain evidence against Chrome 158 network reliability.
-
-The maintainer permits a controlled exception only if fresh unchanged tests prove Chrome/ChromeDriver **157.0.8103.78** and the independently reproduced 158 failure has no available correction. Required gates retain the nine Selenium versions and exact journal/report assertions, plus **50 standalone redirect stimuli each through direct ChromeDriver and Grid**. A separate nonblocking Chrome/ChromeDriver **158.0.8127.36** canary must expose direct/Grid outcomes, summaries and XML artifacts. Fresh hosted runs, exact counts and the no-available-fix assessment are **PENDING**. A 157 PASS is not a 158 PASS or a claim of full Chrome 158 support. This draft does not declare the release gate complete.
+The final source SHA, hosted run URLs, test totals, artifact/signature inventory and isolated public-Central consumer results are recorded in the GitHub Release and its [release verification attachment](https://github.com/Test-Lens/selenium-test-lens/releases/download/v0.5.2/release-verification.json). The [production audit](https://test-lens.github.io/selenium-test-lens/0.5.2/maintainers/production-release-0.5.2/) retains the earlier milestones and failure analysis with their original scope.
 
 ## Known limitations
 

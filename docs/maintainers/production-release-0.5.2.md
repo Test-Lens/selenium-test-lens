@@ -1,6 +1,6 @@
 # Test Lens 0.5.2 production release
 
-Release preparation is in progress under the conditional browser policy below; fresh hosted verification is PENDING. No tag or immutable artifact is claimed until its external verification is recorded below. The earlier [regression audit](selenium-051-regression-audit.md) and [BiDi milestone](selenium-bidi-release-0.5.2.md) retain their historical local results.
+This document records the release-gating policy and pre-publication audit milestones. Source metadata is prepared in publication form; authoritative completion receipts for the immutable release are recorded in the GitHub Release and its verification attachment. The earlier [regression audit](selenium-051-regression-audit.md) and [BiDi milestone](selenium-bidi-release-0.5.2.md) retain their historical local results.
 
 ## Source and documentation coverage
 
@@ -77,7 +77,7 @@ The profile's batch/loopback arguments require an already primed `gpg-agent` cac
 
 ## Current status
 
-**PREPARED, UNPUBLISHED; CONDITIONAL VERIFICATION PENDING.** The maintainer superseded the absolute Chrome 158 hold with permission for a controlled Chrome 157 release gate, provided unchanged tests prove 157 and the independently reproduced external 158 failure has no available correction. This permission does not establish those results: fresh hosted evidence and the final assessment remain PENDING. No Central publication, immutable tag or GitHub Release has been created. BrowserStack and the public-artifact post-release smoke remain NOT RUN.
+**Release validation policy and pre-publication evidence, 2026-11-20.** The maintainer superseded the absolute Chrome 158 hold with permission for a controlled Chrome 157 release gate, provided unchanged tests prove 157 and no verified stable correction is available for the independently reproduced 158 failure. Publication-form version metadata is preparation, not an external publication receipt. Final source-specific CI, immutable tag, Central artifact hashes/signatures, documentation URLs and the isolated public-consumer smoke are recorded in the [GitHub Release](https://github.com/Test-Lens/selenium-test-lens/releases/tag/v0.5.2) and its `release-verification.json` attachment. This source audit retains earlier results with their original scope; it does not substitute them for the final gates. BrowserStack remains NOT RUN.
 
 ### Conditional Chrome 157 gate and visible Chrome 158 canary
 
@@ -89,18 +89,19 @@ The official Chrome for Testing metadata dated **2026-11-19** still identifies *
 
 Upstream research identified official Chromium BiDi commit [089ef525, “Match redirect ExtraInfo events to the correct hop”](https://github.com/GoogleChromeLabs/chromium-bidi/commit/089ef52586b3dcac9390ce6c938008c742ad9449), dated November 5, describing late CDP ExtraInfo being assigned to the wrong redirect hop. Stable Chrome 158.0.8127.36 at revision **1727472** lacks the correction at position **1736133**. Direct inspection of the shipped [158 source](https://raw.githubusercontent.com/chromium/chromium/158.0.8127.36/third_party/chromium-bidi/src/bidiMapper/modules/network/NetworkRequest.ts) and [159 Beta source](https://raw.githubusercontent.com/chromium/chromium/159.0.8154.13/third_party/chromium-bidi/src/bidiMapper/modules/network/NetworkRequest.ts) confirms that the latter includes the previous-hop/late-ExtraInfo routing correction. Chrome **159.0.8154.13 is Beta**, not stable; effectiveness against this reproducer remains UNVERIFIED. No verified stable correction for Chrome 158 was found. This is a concrete component-level candidate, not proof that this exact change resolves the observed failure; paired raw WebSocket/CDP evidence would be needed to assign the precise failing transition. The unchanged assertions already exclude a mere assumption about callback ordering: eventual HTTP status and terminal completion are required irrespective of arrival order.
 
-| Final evidence required | Current state | Completion evidence to record |
+| Required release evidence | Enforcement / recorded milestone | Final receipt |
 | --- | --- | --- |
-| Final candidate and unchanged test/assertion scope | PENDING | Source SHA, CI configuration SHA and probe/report assertion comparison |
-| Required Chrome 157 browser pair and nine-version same-JAR matrix | PENDING | Fresh hosted run URL, exact browser/driver versions, frozen JAR SHA-256, per-version test/failure/error/skip totals |
-| Required standalone Chrome 157 direct path | PENDING | Hosted run URL, 50 completed distinct stimuli, JUnit totals and peer/raw artifact references |
-| Required standalone Chrome 157 Grid path | PENDING | Hosted run URL, matching browser/driver and Grid versions, 50 completed distinct stimuli, JUnit totals and peer/raw artifacts |
-| Separate Chrome 158 direct/Grid canaries | PENDING | Each actual outcome, executed stimuli, JUnit totals, visible summary and artifact references, including any FAIL |
-| External failure and no available correction | Prior independent failures retained; final assessment PENDING | Current upstream/version check, examined correction options and conclusion tied to the final validation date |
-| Other required hosted CI, release packaging and documentation | PENDING for final candidate | Run URLs, source SHA, exact results and classified skips |
-| Immutable publication and public-artifact consumer smoke | NOT RUN | Central deployment/public artifacts, tag, GitHub Release, documentation URLs and clean public consumer evidence after authorization |
+| Final source and unchanged HTTP assertions | Probe source SHA-256 `36CFC7842B4FC24634DC80CC1C44E7BFCA90F8436785210F154174EBD4DDD0FD`; protocol, report and HTTP status assertions unchanged | Exact tag/merge SHA and CI runs in release verification |
+| Chrome 157 exact pair; nine-version same-JAR matrix | Required blocking job, all Chrome/Grid/report scenarios passed in preflight `375c9b08` | Per-version totals, final run and JAR hash in release verification |
+| Chrome 157 direct and Grid standalone probes | Required blocking checks, each 50 distinct stimuli; both passed in preflight | Final JUnit and bounded peer/raw artifacts |
+| Chrome 158 direct/Grid canaries | Only these jobs are explicitly nonblocking; actual PASS/FAIL/NOT RUN preserved | Job summaries, XML and raw artifacts; no 158 certification |
+| External failure and stable correction assessment | Independent failures and exact upstream/stable-source checks below | Stable 158 still lacks the candidate correction; Beta effectiveness unverified |
+| Other hosted CI, packaging, API and strict documentation | Must pass on the release source before immutable publication | Run URLs, source SHA, exact totals and classified skips |
+| Public artifacts and isolated Maven consumer | Must use public Central, fresh Maven repository, Selenium 4.51.0 and the downloaded JAR's hash | Central/GitHub/docs URLs, signatures and public smoke results in release verification |
 
-The signing/packaging evidence above remains valid for its recorded source and is not repeated as a new signing result. Existing passing and failing rows below are historical evidence, not substitutes for these pending final checks.
+The signing/packaging evidence above remains valid for its recorded source and is not repeated as a new signing result. Existing passing and failing rows below are historical evidence, not substitutes for the final checks.
+
+Preflight [44682004928](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44682004928) at `375c9b08` verified the exact 157 browser/driver pair, all nine Chrome/Grid/report rows and both 50-stimulus standalone paths. The workflow itself failed because `stopAndAssertionObserveAConsistentValidSnapshot` incorrectly demanded PASS for every concurrent stop/assertion interleaving. Production intentionally releases the lock around health I/O and rejects a changed generation. Test-only commit `f9b7dddb` replaces the scheduling race with two controlled cases: a generation change must produce the exact rejection with zero PASS logs, while a fresh assertion of the valid stopped snapshot passes; ordered active/stop/stopped assertions pass. No production code or HTTP expectation changed. All **83** focused tests passed, including **46** lifecycle tests against the exact preflight frozen JAR with Selenium 4.40.0. Independent review found no actionable issue. The corrected test is part of the required final matrix, not a waiver for the failed preflight.
 
 ### Historical finalization checks and Chrome 158 redirect failure
 
@@ -137,7 +138,7 @@ Release authorization now depends on completing the conditional Chrome 157 polic
 
 Separately, [PR #4](https://github.com/Test-Lens/selenium-test-lens/pull/4) fixed only an existing Studio browser fixture's readiness race. Its complete hosted checks passed before merge `5a47e7b0`; the release branch merges that approved baseline. There are no Studio production changes in the 0.5.2 diff, and the only Studio module change relative to current main remains its parent-version bump. The original working tree's HEAD, index, status and all 256 recorded file hashes remain unchanged.
 
-Public documentation checks after that merge confirmed identical SHA-256 values for all seven existing version index pages (0.1.0, 0.2.0, 0.3.0, 0.3.1, 0.4.0, 0.5.0, 0.5.1). `versions.json` still assigns `latest` to 0.5.1. The 0.5.2 main JAR remains absent from public Central (HTTP 404); no release tag or immutable publication has been created by this work.
+Public documentation checks after that merge confirmed identical SHA-256 values for all seven existing version index pages (0.1.0, 0.2.0, 0.3.0, 0.3.1, 0.4.0, 0.5.0, 0.5.1). At that preflight checkpoint, `versions.json` assigned `latest` to 0.5.1 and the 0.5.2 main JAR was absent from public Central (HTTP 404); no release tag or immutable publication had been created. These are historical checkpoint facts, not the final publication receipt.
 
 ## Complete documentation-example skip inventory
 

@@ -1,6 +1,6 @@
 # JUnit 5 integration
 
-This development guide uses prepared, unpublished 0.5.2 coordinates. Install the prepared build locally before using them; see [upgrade instructions](../whats-new-0.5.2.md).
+Use Test Lens 0.5.2 runtime and adapter versions together; see [upgrade instructions](../whats-new-0.5.2.md).
 
 The `selenium-test-lens-junit5` module is the recommended JUnit Jupiter integration. It creates one `WebDriver`, `TestLens`, and trace session for every test invocation, injects the driver and Lens into the test method, finalizes diagnostics, and only then closes the driver.
 

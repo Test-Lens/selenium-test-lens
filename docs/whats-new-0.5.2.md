@@ -1,6 +1,6 @@
-# Prepared 0.5.2: Selenium BiDi and runtime reliability
+# 0.5.2: Selenium BiDi and runtime reliability
 
-**0.5.2 is prepared and unpublished.** The source changes described here are implemented and tested; Maven Central, GitHub Release and versioned documentation publication have not been performed. Published 0.5.1 remains affected by Selenium's BiDi size-getter binary changes on 4.41.0 and newer. Upgrading Selenium alone cannot repair the compiled 0.5.1 JAR. Until a corrected Lens artifact is available, disable Lens diagnostic network capture in an affected 0.5.1 application.
+**0.5.2 fixes Selenium BiDi compatibility and runtime reliability.** Version 0.5.1 remains affected by Selenium size-getter binary changes on 4.41.0 and newer; upgrading Selenium alone cannot repair that compiled JAR. Upgrade Lens and its optional integrations together to 0.5.2, then verify capture against a known response.
 
 ## What changes
 
@@ -28,11 +28,15 @@ See the [0.5.1 regression audit](maintainers/selenium-051-regression-audit.md) f
 
 Java **17** and Selenium **4.39.0** remain the compile and minimum tested BiDi baselines. The same frozen Lens JAR was exercised against **4.39.0, 4.40.0, 4.41.0, 4.45.0, 4.46.0, 4.47.0, 4.51.0, 4.52.0 and 4.53.0**. The newest verified stable runtime is **4.53.0**, using Java 21, Chrome 157 locally and Grid 4.53.0. The richer baseline browser suite also ran on Java 17. These results do not certify every Selenium 4.x version or every browser/provider combination.
 
+The CI browser contract pins **Chrome/ChromeDriver 157.0.8103.78**, retains exact server-journal/report assertions for all nine Selenium versions, and requires **50 standalone redirects each through direct ChromeDriver and Grid**. Chrome 158.0.8127.36 has independently reproduced network unreliability without Lens or Grid. Separate nonblocking direct/Grid canaries preserve actual outcomes; neither a 157 PASS nor a transient 158 PASS certifies 158. The transport may respond while supplying incorrect or incomplete events, and Lens does not invent missing responses. See [production release evidence](maintainers/production-release-0.5.2.md) for final source-specific gates and receipts.
+
+No verified stable Chrome 158 correction was found. An upstream redirect correction is present in Chrome 159 Beta but remains unverified against this reproducer; Beta is not recommended as the release baseline. See the [compatibility policy](selenium-compatibility.md) for the exact upstream change and verification boundary.
+
 **BrowserStack: NOT RUN.** Configure its provider-specific `seleniumBidi: true` option under `bstack:options`; the returned `webSocketUrl` must be reachable by the client. Requesting the capability, or an initially empty `maybeGetBiDi()`, does not settle capture availability. Verify activation and a known response in the actual provider environment. See [network setup and provider example](advanced/network.md#browserstack-prerequisite), [compatibility policy](selenium-compatibility.md) and [audit evidence](maintainers/selenium-bidi-audit.md).
 
 ## Upgrade a consumer
 
-Until publication, install the prepared build locally before resolving the following coordinates. After publication, use the same versions from the released repository. Update Lens runtime and optional JUnit 5/TestNG adapters together to `0.5.2`. Keep Selenium explicitly owned by the consumer and align its modules with a BOM; explicit dependency versions can override that management.
+Update Lens runtime and optional JUnit 5/TestNG adapters together to `0.5.2` using the coordinates below. No public API or test-source migration is required. Keep Selenium explicitly owned by the consumer and align its modules with a BOM; explicit dependency versions can override that management.
 
 ```xml
 <properties>
