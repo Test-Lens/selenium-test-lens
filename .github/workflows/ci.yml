@@ -29,7 +29,22 @@ jobs:
       - uses: browser-actions/setup-chrome@v2
         id: bidi-chrome
         with:
+          chrome-version: "157.0.8103.78"
           install-chromedriver: true
+      - name: Verify pinned browser pair and record probe source
+        shell: bash
+        env:
+          CHROME_BINARY: ${{ steps.bidi-chrome.outputs.chrome-path }}
+          CHROMEDRIVER_BINARY: ${{ steps.bidi-chrome.outputs.chromedriver-path }}
+        run: |
+          mkdir -p target/selenium-bidi-compatibility
+          chrome_version="$("$CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+          driver_version="$("$CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+          printf 'Chrome=%s\nChromeDriver=%s\n' "$chrome_version" "$driver_version" | tee target/selenium-bidi-compatibility/browser-pair.txt
+          test "$chrome_version" = '157.0.8103.78'
+          test "$driver_version" = "$chrome_version"
+          sha256sum consumer-tests/selenium-bidi/protocol-reproducer/src/test/java/release/diagnostic/ProtocolRedirectIntegrityTest.java | tee target/selenium-bidi-compatibility/probe-source.sha256
+          cat target/selenium-bidi-compatibility/browser-pair.txt target/selenium-bidi-compatibility/probe-source.sha256 >> "$GITHUB_STEP_SUMMARY"
       - name: Start loopback Selenium Grid
         shell: bash
         env:
@@ -52,8 +67,8 @@ jobs:
           -ChromeBinary '${{ steps.bidi-chrome.outputs.chrome-path }}'
           -ChromeDriver '${{ steps.bidi-chrome.outputs.chromedriver-path }}'
           -WireDiagnostics:$${{ inputs.bidi_wire_diagnostics == true }}
-      - name: Diagnose redirect integrity without Lens
-        if: ${{ !cancelled() && inputs.bidi_wire_diagnostics == true }}
+      - name: Require raw redirect integrity on Chrome 157 Grid without Lens
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: >-
           mvn -B -f consumer-tests/selenium-bidi/protocol-reproducer/pom.xml test
@@ -62,13 +77,13 @@ jobs:
           '-Dwebdriver.chrome.driver=${{ steps.bidi-chrome.outputs.chromedriver-path }}'
           '-Dprobe.output=${{ github.workspace }}/target/selenium-bidi-compatibility/protocol-reproducer'
       - name: Preserve standalone protocol test results
-        if: ${{ always() && inputs.bidi_wire_diagnostics == true }}
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: selenium-bidi-protocol-reproducer
+          name: selenium-bidi-protocol-reproducer-157-grid
           path: consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports/**
-      - name: Compare standalone redirects on local Chrome
-        if: ${{ !cancelled() && inputs.bidi_wire_diagnostics == true }}
+      - name: Require raw redirect integrity on local Chrome 157 without Lens
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: >-
           mvn -B -f consumer-tests/selenium-bidi/protocol-reproducer/pom.xml test
@@ -76,10 +91,10 @@ jobs:
           '-Dwebdriver.chrome.driver=${{ steps.bidi-chrome.outputs.chromedriver-path }}'
           '-Dprobe.output=${{ github.workspace }}/target/selenium-bidi-compatibility/protocol-reproducer-local'
       - name: Preserve local protocol test results
-        if: ${{ always() && inputs.bidi_wire_diagnostics == true }}
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: selenium-bidi-protocol-reproducer-local
+          name: selenium-bidi-protocol-reproducer-157-local
           path: consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports/**
       - name: Stop test Grid
         if: always()
@@ -92,6 +107,109 @@ jobs:
         with:
           name: selenium-bidi-binary
           path: target/selenium-bidi-compatibility/**
+
+  chrome-158-protocol-canary:
+    name: Chrome 158 protocol canary (${{ matrix.mode }}, non-blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [local, grid]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - uses: browser-actions/setup-chrome@v2
+        id: canary-chrome
+        with:
+          chrome-version: "158.0.8127.36"
+          install-chromedriver: true
+      - name: Verify canary browser pair and record unchanged probe source
+        shell: bash
+        env:
+          CHROME_BINARY: ${{ steps.canary-chrome.outputs.chrome-path }}
+          CHROMEDRIVER_BINARY: ${{ steps.canary-chrome.outputs.chromedriver-path }}
+        run: |
+          mkdir -p target/chrome-158-protocol-canary
+          chrome_version="$("$CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+          driver_version="$("$CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+          printf 'Chrome=%s\nChromeDriver=%s\n' "$chrome_version" "$driver_version" | tee target/chrome-158-protocol-canary/browser-pair.txt
+          test "$chrome_version" = '158.0.8127.36'
+          test "$driver_version" = "$chrome_version"
+          sha256sum consumer-tests/selenium-bidi/protocol-reproducer/src/test/java/release/diagnostic/ProtocolRedirectIntegrityTest.java | tee target/chrome-158-protocol-canary/probe-source.sha256
+      - name: Start owned canary Grid
+        if: matrix.mode == 'grid'
+        shell: bash
+        env:
+          CHROMEDRIVER_BINARY: ${{ steps.canary-chrome.outputs.chromedriver-path }}
+        run: |
+          curl --fail --location --retry 2 -o target/canary-selenium-server.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.53.0/selenium-server-4.53.0.jar
+          java "-Dwebdriver.chrome.driver=$CHROMEDRIVER_BINARY" -jar target/canary-selenium-server.jar standalone --host 127.0.0.1 --port 4444 > target/chrome-158-protocol-canary/grid.log 2>&1 &
+          echo "$!" > target/chrome-158-protocol-canary/grid.pid
+          for ((attempt = 1; attempt <= 60; attempt++)); do
+            if curl --fail --silent http://127.0.0.1:4444/status | grep -q '"ready": true'; then exit 0; fi
+            sleep 1
+          done
+          cat target/chrome-158-protocol-canary/grid.log
+          exit 1
+      - name: Run unchanged raw protocol assertions on Chrome 158
+        id: protocol
+        shell: pwsh
+        env:
+          PROBE_MODE: ${{ matrix.mode }}
+          CHROME_BINARY: ${{ steps.canary-chrome.outputs.chrome-path }}
+          CHROMEDRIVER_BINARY: ${{ steps.canary-chrome.outputs.chromedriver-path }}
+        run: |
+          $arguments = @('-B', '-f', 'consumer-tests/selenium-bidi/protocol-reproducer/pom.xml', 'test',
+            "-Dtest.chrome.binary=$env:CHROME_BINARY", "-Dwebdriver.chrome.driver=$env:CHROMEDRIVER_BINARY",
+            "-Dprobe.output=$env:GITHUB_WORKSPACE/target/chrome-158-protocol-canary")
+          if ($env:PROBE_MODE -eq 'grid') { $arguments += '-Dbidi.grid=http://127.0.0.1:4444' }
+          & mvn @arguments
+          exit $LASTEXITCODE
+      - name: Summarize actual canary test outcome
+        if: always()
+        shell: pwsh
+        env:
+          PROBE_MODE: ${{ matrix.mode }}
+          PROBE_STEP_OUTCOME: ${{ steps.protocol.outcome }}
+        run: |
+          New-Item -ItemType Directory -Force -Path target/chrome-158-protocol-canary | Out-Null
+          $report = 'consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports/TEST-release.diagnostic.ProtocolRedirectIntegrityTest.xml'
+          $status = 'NOT RUN (no JUnit report)'
+          if (Test-Path -LiteralPath $report) {
+            [xml]$junit = Get-Content -LiteralPath $report -Raw
+            $status = if ([int]$junit.testsuite.failures -gt 0 -or [int]$junit.testsuite.errors -gt 0) { 'FAIL' }
+              elseif ([int]$junit.testsuite.tests -eq 1 -and [int]$junit.testsuite.skipped -eq 0) { 'PASS' }
+              else { 'INCOMPLETE' }
+          }
+          $lines = @("### Chrome 158 protocol canary ($env:PROBE_MODE)",
+            "JUnit result: $status", "Maven step outcome: $env:PROBE_STEP_OUTCOME",
+            'This canary is non-blocking; failed assertions remain failures. Chrome 157 is the release gate.')
+          foreach ($path in @('target/chrome-158-protocol-canary/browser-pair.txt', 'target/chrome-158-protocol-canary/probe-source.sha256')) {
+            if (Test-Path -LiteralPath $path) { $lines += Get-Content -LiteralPath $path }
+          }
+          $lines | Tee-Object -FilePath target/chrome-158-protocol-canary/summary.txt | Out-Host
+          $lines | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY
+      - name: Stop owned canary Grid
+        if: always()
+        shell: bash
+        run: |
+          if test -f target/chrome-158-protocol-canary/grid.pid; then kill "$(cat target/chrome-158-protocol-canary/grid.pid)" || true; fi
+      - name: Preserve canary evidence and actual test failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-158-protocol-canary-${{ matrix.mode }}
+          path: |
+            target/chrome-158-protocol-canary/**
+            consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports/**
 
   consumer-compatibility:
     name: Consumer compatibility (JDK ${{ matrix.java }})
@@ -217,6 +335,7 @@ jobs:
         id: setup-chrome
         uses: browser-actions/setup-chrome@v2
         with:
+          chrome-version: "157.0.8103.78"
           install-chromedriver: true
 
       - name: Set up Firefox
@@ -257,6 +376,10 @@ jobs:
           "$TEST_CHROME_BINARY" --version
           echo "ChromeDriver binary: $TEST_CHROMEDRIVER_BINARY"
           "$TEST_CHROMEDRIVER_BINARY" --version
+          chrome_version="$("$TEST_CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+          driver_version="$("$TEST_CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+          test "$chrome_version" = '157.0.8103.78'
+          test "$driver_version" = "$chrome_version"
           echo "WebDriver BiDi: enabled for dedicated network integration tests"
 
       - name: Report selected Firefox binaries
@@ -326,6 +449,7 @@ jobs:
         id: setup-chrome
         uses: browser-actions/setup-chrome@v2
         with:
+          chrome-version: "157.0.8103.78"
           install-chromedriver: true
 
       - name: Report Linux certification environment
@@ -343,6 +467,10 @@ jobs:
           "$TEST_CHROME_BINARY" --version
           test -x "$TEST_CHROMEDRIVER_BINARY"
           "$TEST_CHROMEDRIVER_BINARY" --version
+          chrome_version="$("$TEST_CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+          driver_version="$("$TEST_CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+          test "$chrome_version" = '157.0.8103.78'
+          test "$driver_version" = "$chrome_version"
           echo "SE_BROWSER_PATH=${SE_BROWSER_PATH:-<unset>}"
           echo "SE_BROWSER_NO_SANDBOX=${SE_BROWSER_NO_SANDBOX:-<unset>}"
           echo "webdriver.chrome.driver=<not supplied by certification job>"
@@ -433,6 +561,7 @@ jobs:
         id: setup-chrome
         uses: browser-actions/setup-chrome@v2
         with:
+          chrome-version: "157.0.8103.78"
           install-chromedriver: true
 
       - name: Report selected Chrome binaries
@@ -444,6 +573,10 @@ jobs:
           "$TEST_CHROME_BINARY" --version
           echo "ChromeDriver binary: $TEST_CHROMEDRIVER_BINARY"
           "$TEST_CHROMEDRIVER_BINARY" --version
+          chrome_version="$("$TEST_CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+          driver_version="$("$TEST_CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+          test "$chrome_version" = '157.0.8103.78'
+          test "$driver_version" = "$chrome_version"
 
       - name: Run headed Chrome smoke under Xvfb
         env:
