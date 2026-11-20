@@ -26,11 +26,10 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-      - uses: browser-actions/setup-chrome@v2
+      - uses: ./.github/actions/setup-bidi-browser
         id: bidi-chrome
         with:
-          chrome-version: "157.0.8103.78"
-          install-chromedriver: true
+          chrome-version: "158.0.8127.36"
       - name: Verify pinned browser pair and record probe source
         shell: bash
         env:
@@ -41,7 +40,7 @@ jobs:
           chrome_version="$("$CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
           driver_version="$("$CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
           printf 'Chrome=%s\nChromeDriver=%s\n' "$chrome_version" "$driver_version" | tee target/selenium-bidi-compatibility/browser-pair.txt
-          test "$chrome_version" = '157.0.8103.78'
+          test "$chrome_version" = '158.0.8127.36'
           test "$driver_version" = "$chrome_version"
           sha256sum consumer-tests/selenium-bidi/protocol-reproducer/src/test/java/release/diagnostic/ProtocolRedirectIntegrityTest.java | tee target/selenium-bidi-compatibility/probe-source.sha256
           cat target/selenium-bidi-compatibility/browser-pair.txt target/selenium-bidi-compatibility/probe-source.sha256 >> "$GITHUB_STEP_SUMMARY"
@@ -67,7 +66,7 @@ jobs:
           -ChromeBinary '${{ steps.bidi-chrome.outputs.chrome-path }}'
           -ChromeDriver '${{ steps.bidi-chrome.outputs.chromedriver-path }}'
           -WireDiagnostics:$${{ inputs.bidi_wire_diagnostics == true }}
-      - name: Require raw redirect integrity on Chrome 157 Grid without Lens
+      - name: Require raw redirect integrity on Chrome 158 Grid with official mapper without Lens
         if: ${{ !cancelled() }}
         shell: pwsh
         run: >-
@@ -80,9 +79,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: selenium-bidi-protocol-reproducer-157-grid
+          name: selenium-bidi-protocol-reproducer-158-official-mapper-grid
           path: consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports/**
-      - name: Require raw redirect integrity on local Chrome 157 without Lens
+      - name: Require raw redirect integrity on local Chrome 158 with official mapper without Lens
         if: ${{ !cancelled() }}
         shell: pwsh
         run: >-
@@ -94,7 +93,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: selenium-bidi-protocol-reproducer-157-local
+          name: selenium-bidi-protocol-reproducer-158-official-mapper-local
           path: consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports/**
       - name: Stop test Grid
         if: always()
@@ -106,7 +105,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: selenium-bidi-binary
-          path: target/selenium-bidi-compatibility/**
+          path: |
+            target/selenium-bidi-compatibility/**
+            target/bidi-browser-transport/**
 
   chrome-158-protocol-canary:
     name: Chrome 158 protocol canary (${{ matrix.mode }}, non-blocking)
@@ -191,7 +192,7 @@ jobs:
           }
           $lines = @("### Chrome 158 protocol canary ($env:PROBE_MODE)",
             "JUnit result: $status", "Maven step outcome: $env:PROBE_STEP_OUTCOME",
-            'This canary is non-blocking; failed assertions remain failures. Chrome 157 is the release gate.')
+            'This stock-mapper canary is non-blocking; failed assertions remain failures. Chrome 158 with the verified official mapper is the release gate.')
           foreach ($path in @('target/chrome-158-protocol-canary/browser-pair.txt', 'target/chrome-158-protocol-canary/probe-source.sha256')) {
             if (Test-Path -LiteralPath $path) { $lines += Get-Content -LiteralPath $path }
           }
@@ -333,10 +334,9 @@ jobs:
       - name: Set up Chrome
         if: matrix.browser == 'chrome'
         id: setup-chrome
-        uses: browser-actions/setup-chrome@v2
+        uses: ./.github/actions/setup-bidi-browser
         with:
-          chrome-version: "157.0.8103.78"
-          install-chromedriver: true
+          chrome-version: "158.0.8127.36"
 
       - name: Set up Firefox
         if: matrix.browser == 'firefox'
@@ -378,7 +378,7 @@ jobs:
           "$TEST_CHROMEDRIVER_BINARY" --version
           chrome_version="$("$TEST_CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
           driver_version="$("$TEST_CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
-          test "$chrome_version" = '157.0.8103.78'
+          test "$chrome_version" = '158.0.8127.36'
           test "$driver_version" = "$chrome_version"
           echo "WebDriver BiDi: enabled for dedicated network integration tests"
 
@@ -418,6 +418,15 @@ jobs:
           -Dwebdriver.gecko.driver="${{ steps.resolve-geckodriver.outputs.geckodriver-path }}"
           verify
 
+      - name: Verify ChromeDriver used the configured mapper
+        if: matrix.browser == 'chrome'
+        run: test -s target/bidi-browser-transport/driver-launches.log
+      - name: Preserve browser transport provenance
+        if: always() && matrix.browser == 'chrome'
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-integration-chrome-transport
+          path: target/bidi-browser-transport/**
       - name: Upload browser failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -447,10 +456,9 @@ jobs:
 
       - name: Set up Chrome
         id: setup-chrome
-        uses: browser-actions/setup-chrome@v2
+        uses: ./.github/actions/setup-bidi-browser
         with:
-          chrome-version: "157.0.8103.78"
-          install-chromedriver: true
+          chrome-version: "158.0.8127.36"
 
       - name: Report Linux certification environment
         env:
@@ -469,7 +477,7 @@ jobs:
           "$TEST_CHROMEDRIVER_BINARY" --version
           chrome_version="$("$TEST_CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
           driver_version="$("$TEST_CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
-          test "$chrome_version" = '157.0.8103.78'
+          test "$chrome_version" = '158.0.8127.36'
           test "$driver_version" = "$chrome_version"
           echo "SE_BROWSER_PATH=${SE_BROWSER_PATH:-<unset>}"
           echo "SE_BROWSER_NO_SANDBOX=${SE_BROWSER_NO_SANDBOX:-<unset>}"
@@ -530,6 +538,14 @@ jobs:
             Remove-TestLensCertificationTempRoot -Path $tempRoot
           }
 
+      - name: Verify Selenium Manager launched the configured mapper
+        run: test -s target/bidi-browser-transport/driver-launches.log
+      - name: Preserve external consumer transport provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: external-consumer-browser-transport
+          path: target/bidi-browser-transport/**
       - name: Upload external certification diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -559,10 +575,9 @@ jobs:
 
       - name: Set up Chrome
         id: setup-chrome
-        uses: browser-actions/setup-chrome@v2
+        uses: ./.github/actions/setup-bidi-browser
         with:
-          chrome-version: "157.0.8103.78"
-          install-chromedriver: true
+          chrome-version: "158.0.8127.36"
 
       - name: Report selected Chrome binaries
         env:
@@ -575,7 +590,7 @@ jobs:
           "$TEST_CHROMEDRIVER_BINARY" --version
           chrome_version="$("$TEST_CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
           driver_version="$("$TEST_CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
-          test "$chrome_version" = '157.0.8103.78'
+          test "$chrome_version" = '158.0.8127.36'
           test "$driver_version" = "$chrome_version"
 
       - name: Run headed Chrome smoke under Xvfb
@@ -589,6 +604,14 @@ jobs:
           -Dwebdriver.chrome.driver="${{ steps.setup-chrome.outputs.chromedriver-path }}"
           verify
 
+      - name: Verify headed Chrome used the configured mapper
+        run: test -s target/bidi-browser-transport/driver-launches.log
+      - name: Preserve headed browser transport provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: headed-chrome-browser-transport
+          path: target/bidi-browser-transport/**
       - name: Upload headed smoke failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4

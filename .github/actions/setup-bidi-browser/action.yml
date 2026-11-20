@@ -1,0 +1,95 @@
+name: Set up pinned Chrome with official BiDi mapper
+description: Install an exact Chrome/ChromeDriver pair and verified upstream mapper through ChromeDriver's public override flag.
+inputs:
+  chrome-version:
+    description: Exact Chrome for Testing and ChromeDriver version
+    required: false
+    default: "158.0.8127.36"
+outputs:
+  chrome-path:
+    description: Installed Chrome executable
+    value: ${{ steps.chrome.outputs.chrome-path }}
+  chromedriver-path:
+    description: ChromeDriver wrapper applying the verified mapper
+    value: ${{ steps.mapper.outputs.chromedriver-path }}
+  stock-chromedriver-path:
+    description: Unmodified upstream ChromeDriver executable
+    value: ${{ steps.chrome.outputs.chromedriver-path }}
+  mapper-info:
+    description: JSON transport provenance file
+    value: ${{ steps.mapper.outputs.mapper-info }}
+runs:
+  using: composite
+  steps:
+    - uses: browser-actions/setup-chrome@v2
+      id: chrome
+      with:
+        chrome-version: ${{ inputs.chrome-version }}
+        install-chromedriver: true
+    - name: Verify and configure official upstream mapper
+      id: mapper
+      shell: bash
+      env:
+        STOCK_CHROMEDRIVER: ${{ steps.chrome.outputs.chromedriver-path }}
+        CHROME_BINARY: ${{ steps.chrome.outputs.chrome-path }}
+        EXPECTED_CHROME_VERSION: ${{ inputs.chrome-version }}
+      run: |
+        set -euo pipefail
+        test "$RUNNER_OS" = Linux
+        root="$(mktemp -d "$RUNNER_TEMP/test-lens-bidi-mapper.XXXXXX")"
+        export MAPPER_ARCHIVE="$root/chromium-bidi.tgz"
+        export MAPPER_URL='https://registry.npmjs.org/chromium-bidi/-/chromium-bidi-159.0.8154-29.tgz'
+        export MAPPER_SHA512='eUvxzWTxhwaKQRyNq/Dz3YXOMFN+mGpQiDBWm/qrusBM1WMVtBQBZAqXTNGIQFnFOmwOsqCLHUWTigSM1mW8YQ=='
+        export MAPPER_SHA256='223556758eb4543c8e6fb206a9205192d2122942fc939148dfa1a30d7c48e4b5'
+        curl --fail --location --retry 2 --output "$MAPPER_ARCHIVE" "$MAPPER_URL"
+        # Verify the fixed official tarball before extracting any content. No npm install or scripts.
+        node <<'NODE'
+        const fs = require('node:fs'), crypto = require('node:crypto');
+        const actual = crypto.createHash('sha512').update(fs.readFileSync(process.env.MAPPER_ARCHIVE)).digest('base64');
+        if (actual !== process.env.MAPPER_SHA512) throw new Error('Official mapper tarball SHA512 mismatch');
+        NODE
+        tar -xzf "$MAPPER_ARCHIVE" -C "$root" -- package/out/Default/gen/src/mapperTab.js
+        export MAPPER_PATH="$root/package/out/Default/gen/src/mapperTab.js"
+        printf '%s  %s\n' "$MAPPER_SHA256" "$MAPPER_PATH" | sha256sum --check --status
+        export REAL_CHROMEDRIVER="$(realpath "$STOCK_CHROMEDRIVER")"
+        # Public support: chromium/src chrome/test/chromedriver/server/chromedriver_server.cc
+        # exposes --bidi-mapper-path; session_commands.cc loads it instead of kMapperScript.
+        "$REAL_CHROMEDRIVER" --help | grep -q -- '--bidi-mapper-path'
+        mkdir -p "$root/bin" "$GITHUB_WORKSPACE/target/bidi-browser-transport"
+        export WRAPPED_CHROMEDRIVER="$root/bin/chromedriver"
+        export DRIVER_LAUNCH_LOG="$GITHUB_WORKSPACE/target/bidi-browser-transport/driver-launches.log"
+        {
+          printf '#!/usr/bin/env bash\n'
+          printf 'for argument in "$@"; do\n  case "$argument" in --port=*) printf "official mapper service startup\\n" >> %q ;; esac\ndone\n' "$DRIVER_LAUNCH_LOG"
+          printf 'exec %q --bidi-mapper-path=%q "$@"\n' "$REAL_CHROMEDRIVER" "$MAPPER_PATH"
+        } > "$WRAPPED_CHROMEDRIVER"
+        chmod +x "$WRAPPED_CHROMEDRIVER"
+        export ACTUAL_CHROME_VERSION="$("$CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+        export ACTUAL_DRIVER_VERSION="$("$WRAPPED_CHROMEDRIVER" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
+        test "$ACTUAL_CHROME_VERSION" = "$EXPECTED_CHROME_VERSION"
+        test "$ACTUAL_DRIVER_VERSION" = "$ACTUAL_CHROME_VERSION"
+        export MAPPER_INFO="$GITHUB_WORKSPACE/target/bidi-browser-transport/mapper-info.json"
+        node <<'NODE'
+        const fs = require('node:fs');
+        const e = process.env;
+        fs.writeFileSync(e.MAPPER_INFO, JSON.stringify({
+          chromeVersion: e.ACTUAL_CHROME_VERSION, chromeDriverVersion: e.ACTUAL_DRIVER_VERSION,
+          package: 'chromium-bidi', packageVersion: '159.0.8154-29', url: e.MAPPER_URL,
+          tarballIntegrity: 'sha512-' + e.MAPPER_SHA512, mapperSha256: e.MAPPER_SHA256,
+          entry: 'package/out/Default/gen/src/mapperTab.js', mapperPath: e.MAPPER_PATH,
+          stockChromeDriver: e.REAL_CHROMEDRIVER, wrappedChromeDriver: e.WRAPPED_CHROMEDRIVER,
+          driverLaunchLog: e.DRIVER_LAUNCH_LOG,
+          publicFlag: '--bidi-mapper-path',
+          publicSource: 'https://chromium.googlesource.com/chromium/src/+/main/chrome/test/chromedriver/session_commands.cc'
+        }, null, 2) + '\n', 'utf8');
+        NODE
+        cat "$MAPPER_INFO"
+        {
+          echo '### Browser transport: Chrome 158 with pinned official BiDi mapper'
+          echo '```json'
+          cat "$MAPPER_INFO"
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
+        echo "$root/bin" >> "$GITHUB_PATH"
+        echo "chromedriver-path=$WRAPPED_CHROMEDRIVER" >> "$GITHUB_OUTPUT"
+        echo "mapper-info=$MAPPER_INFO" >> "$GITHUB_OUTPUT"
