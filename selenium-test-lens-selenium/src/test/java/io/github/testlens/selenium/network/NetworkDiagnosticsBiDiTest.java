@@ -769,32 +769,68 @@ class NetworkDiagnosticsBiDiTest {
     }
 
     @Test
-    void stopAndAssertionObserveAConsistentValidSnapshot() throws Exception {
+    void stopDuringAssertionHealthProbeFailsClosedAndPreservesTheStoppedSnapshot() throws Exception {
+        FakeFactory factory = new FakeFactory();
+        List<UiTestLensLogEntry> entries = new ArrayList<>();
+        NetworkDiagnostics diagnostics = new NetworkDiagnostics(fakeDriver(),
+                OverlayLogger.from(UiTestLensLogger.builder().sink(entries::add).build()), factory)
+                .start(options(NetworkCaptureMode.BIDI));
+        FakeSource source = factory.latest();
+        source.fire(response("ok", "/ok", 200, 0));
+        CountDownLatch assertionProbeEntered = new CountDownLatch(1);
+        CountDownLatch releaseAssertionProbe = new CountDownLatch(1);
+        AtomicInteger probes = new AtomicInteger();
+        source.healthAction = () -> {
+            if (probes.incrementAndGet() == 1) {
+                assertionProbeEntered.countDown();
+                await(releaseAssertionProbe);
+            }
+        };
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<NetworkAssertionError> asserting = executor.submit(() ->
+                    assertThrows(NetworkAssertionError.class, diagnostics::assertNoFailedRequests));
+            assertTrue(assertionProbeEntered.await(1, TimeUnit.SECONDS));
+            diagnostics.stop();
+            assertEquals(NetworkDiagnosticsStatus.STOPPED, diagnostics.summary().status());
+            assertEquals(1, source.closes.get());
+            releaseAssertionProbe.countDown();
+            NetworkAssertionError error = asserting.get(1, TimeUnit.SECONDS);
+            assertEquals("Network capture changed while verifying connection health", error.getMessage());
+            assertEquals(NetworkDiagnosticsStatus.STOPPED, error.summary().status());
+            assertEquals(1, error.summary().totalResponses());
+            assertEquals(1, entries.stream().filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_ASSERTION_FAILED).count());
+            assertEquals(0, entries.stream().filter(entry -> entry.eventType() == UiTestLensEventType.NETWORK_ASSERTION_PASSED).count(),
+                    "The assertion overlapping a generation change must never report PASS");
+
+            NetworkDiagnosticsResult stopped = diagnostics.assertNoFailedRequests();
+            assertEquals(NetworkDiagnosticsStatus.ASSERTION_PASSED, stopped.status());
+            assertEquals(NetworkDiagnosticsStatus.STOPPED, stopped.summary().status());
+            assertEquals(1, stopped.summary().totalResponses());
+        } finally {
+            releaseAssertionProbe.countDown();
+            executor.shutdownNow();
+            diagnostics.stop();
+        }
+    }
+
+    @Test
+    void assertionCompletedBeforeStopAndFreshStoppedAssertionBothUseValidSnapshots() {
         FakeFactory factory = new FakeFactory();
         NetworkDiagnostics diagnostics = diagnostics(factory).start(options(NetworkCaptureMode.BIDI));
         factory.latest().fire(response("ok", "/ok", 200, 0));
-        CountDownLatch go = new CountDownLatch(1);
-        ExecutorService executor = Executors.newFixedThreadPool(2);
         try {
-            Future<?> stopping = executor.submit(() -> {
-                await(go);
-                diagnostics.stop();
-            });
-            Future<NetworkDiagnosticsResult> asserting = executor.submit(() -> {
-                await(go);
-                return diagnostics.assertNoFailedRequests();
-            });
-            go.countDown();
-            NetworkDiagnosticsResult result = asserting.get(1, TimeUnit.SECONDS);
-            assertEquals(NetworkDiagnosticsStatus.ASSERTION_PASSED, result.status());
-            assertTrue(List.of(NetworkDiagnosticsStatus.STARTED, NetworkDiagnosticsStatus.STOPPED)
-                    .contains(result.summary().status()));
-            stopping.get(1, TimeUnit.SECONDS);
-            assertEquals(NetworkDiagnosticsStatus.ASSERTION_PASSED,
-                    diagnostics.assertNoFailedRequests().status());
-        } finally {
-            executor.shutdownNow();
-        }
+            NetworkDiagnosticsResult active = diagnostics.assertNoFailedRequests();
+            assertEquals(NetworkDiagnosticsStatus.ASSERTION_PASSED, active.status());
+            assertEquals(NetworkDiagnosticsStatus.STARTED, active.summary().status());
+            diagnostics.stop();
+            NetworkDiagnosticsResult stopped = diagnostics.assertNoFailedRequests();
+            assertEquals(NetworkDiagnosticsStatus.ASSERTION_PASSED, stopped.status());
+            assertEquals(NetworkDiagnosticsStatus.STOPPED, stopped.summary().status());
+            assertEquals(active.summary().totalResponses(), stopped.summary().totalResponses());
+            assertEquals(1, stopped.summary().totalResponses());
+            assertEquals(1, factory.latest().closes.get());
+        } finally { diagnostics.stop(); }
     }
 
     @Test
