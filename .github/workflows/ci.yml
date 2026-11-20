@@ -13,12 +13,11 @@ on:
         default: false
 
 jobs:
-  windows-bidi-configuration-diagnostic:
-    name: Windows Chrome 157 full configuration diagnostic (non-blocking)
-    if: github.event_name == 'workflow_dispatch' && inputs.bidi_wire_diagnostics
+  selenium-bidi-browser:
+    name: Same-JAR Chrome 157 capture, reports and Grid (Windows)
+    needs: selenium-bidi-binary
     runs-on: windows-latest
     timeout-minutes: 45
-    continue-on-error: true
     permissions:
       contents: read
     defaults:
@@ -36,6 +35,15 @@ jobs:
         with:
           chrome-version: "157.0.8103.78"
           install-chromedriver: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: selenium-bidi-binary
+          path: target/linux-frozen-artifacts
+      - name: Locate the single Linux-built artifact manifest
+        run: |
+          $manifests = @(Get-ChildItem target/linux-frozen-artifacts -Recurse -Filter artifact-sha256.json)
+          if ($manifests.Count -ne 1) { throw 'Expected exactly one Linux frozen-artifact manifest' }
+          "FROZEN_RUN=$($manifests[0].Directory.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Verify pair and run every unchanged probe within the owned Grid lifetime
         env:
           CHROME_BINARY: ${{ steps.browser.outputs.chrome-path }}
@@ -65,7 +73,7 @@ jobs:
             }
             if (-not $ready) { throw 'Owned Grid did not become ready' }
             try {
-              ./scripts/test-selenium-bidi-compatibility.ps1 -BrowserTests -GridUrl http://127.0.0.1:4444 -ChromeBinary $env:CHROME_BINARY -ChromeDriver $env:DRIVER_BINARY -WireDiagnostics:$false
+              ./scripts/test-selenium-bidi-compatibility.ps1 -BrowserTests -GridUrl http://127.0.0.1:4444 -ChromeBinary $env:CHROME_BINARY -ChromeDriver $env:DRIVER_BINARY -WireDiagnostics:$false -ReuseFrozenRun $env:FROZEN_RUN
               $outcomes.matrix = 'PASS'
             } catch {
               $outcomes.matrix = 'FAIL'
@@ -81,20 +89,15 @@ jobs:
               Write-Host "Standalone $mode (50 unchanged stimuli): $($outcomes[$mode])"
             }
           } finally {
-            Stop-Process -Id $process.Id -ErrorAction SilentlyContinue
+            Stop-Process -InputObject $process -ErrorAction SilentlyContinue
             $outcomes | ConvertTo-Json | Set-Content target/windows-bidi-diagnostic/outcomes.json
           }
           if ($outcomes.Count -ne 3 -or $outcomes.Values -contains 'FAIL') { throw 'Windows configuration diagnostic failed; inspect independent outcomes and XML' }
-      - name: Stop only the owned Grid process
-        if: always()
-        run: |
-          $pidFile = 'target/windows-bidi-diagnostic/grid.pid'
-          if (Test-Path -LiteralPath $pidFile) { Stop-Process -Id ([int](Get-Content -LiteralPath $pidFile)) -ErrorAction SilentlyContinue }
-      - name: Preserve actual Windows configuration outcomes
+      - name: Preserve every required Windows browser outcome
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: windows-chrome157-configuration-diagnostic
+          name: selenium-bidi-windows-browser
           path: |
             target/windows-bidi-diagnostic/*.json
             target/windows-bidi-diagnostic/*.log
@@ -107,7 +110,7 @@ jobs:
   selenium-bidi-binary:
     name: Same-JAR Selenium BiDi compatibility
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -117,89 +120,16 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-      - uses: browser-actions/setup-chrome@v2
-        id: bidi-chrome
-        with:
-          chrome-version: "156.0.8078.80"
-          install-chromedriver: true
-      - name: Verify pinned browser pair and record probe source
-        shell: bash
-        env:
-          CHROME_BINARY: ${{ steps.bidi-chrome.outputs.chrome-path }}
-          CHROMEDRIVER_BINARY: ${{ steps.bidi-chrome.outputs.chromedriver-path }}
-        run: |
-          mkdir -p target/selenium-bidi-compatibility
-          chrome_version="$("$CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
-          driver_version="$("$CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
-          printf 'Chrome=%s\nChromeDriver=%s\n' "$chrome_version" "$driver_version" | tee target/selenium-bidi-compatibility/browser-pair.txt
-          test "$chrome_version" = '156.0.8078.80'
-          test "$driver_version" = "$chrome_version"
-          sha256sum consumer-tests/selenium-bidi/protocol-reproducer/src/test/java/release/diagnostic/ProtocolRedirectIntegrityTest.java | tee target/selenium-bidi-compatibility/probe-source.sha256
-          cat target/selenium-bidi-compatibility/browser-pair.txt target/selenium-bidi-compatibility/probe-source.sha256 >> "$GITHUB_STEP_SUMMARY"
-      - name: Start loopback Selenium Grid
-        shell: bash
-        env:
-          BIDI_CHROMEDRIVER: ${{ steps.bidi-chrome.outputs.chromedriver-path }}
-        run: |
-          mkdir -p target/selenium-bidi-compatibility
-          curl --fail --location --retry 2 -o target/selenium-server.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.53.0/selenium-server-4.53.0.jar
-          java "-Dwebdriver.chrome.driver=$BIDI_CHROMEDRIVER" -jar target/selenium-server.jar standalone --host 127.0.0.1 --port 4444 > target/selenium-bidi-compatibility/grid.log 2>&1 &
-          echo "$!" > target/selenium-bidi-compatibility/grid.pid
-          for ((attempt = 1; attempt <= 60; attempt++)); do
-            if curl --fail --silent http://127.0.0.1:4444/status | grep -q '"ready": true'; then exit 0; fi
-            sleep 1
-          done
-          cat target/selenium-bidi-compatibility/grid.log
-          exit 1
-      - name: Build once and test the frozen JAR against the Selenium matrix
+      - name: Build once and verify all nine binary runtimes on Linux
         shell: pwsh
-        run: >-
-          ./scripts/test-selenium-bidi-compatibility.ps1 -BrowserTests -GridUrl http://127.0.0.1:4444
-          -ChromeBinary '${{ steps.bidi-chrome.outputs.chrome-path }}'
-          -ChromeDriver '${{ steps.bidi-chrome.outputs.chromedriver-path }}'
-          -WireDiagnostics:$${{ inputs.bidi_wire_diagnostics == true }}
-      - name: Require raw redirect integrity on stock Chrome 156 Grid without Lens
-        if: ${{ !cancelled() }}
-        shell: pwsh
-        run: >-
-          mvn -B -f consumer-tests/selenium-bidi/protocol-reproducer/pom.xml test
-          '-Dbidi.grid=http://127.0.0.1:4444'
-          '-Dtest.chrome.binary=${{ steps.bidi-chrome.outputs.chrome-path }}'
-          '-Dwebdriver.chrome.driver=${{ steps.bidi-chrome.outputs.chromedriver-path }}'
-          '-Dprobe.output=${{ github.workspace }}/target/selenium-bidi-compatibility/protocol-reproducer'
-      - name: Preserve standalone protocol test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: selenium-bidi-protocol-reproducer-156-stock-grid
-          path: consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports/**
-      - name: Require raw redirect integrity on local stock Chrome 156 without Lens
-        if: ${{ !cancelled() }}
-        shell: pwsh
-        run: >-
-          mvn -B -f consumer-tests/selenium-bidi/protocol-reproducer/pom.xml test
-          '-Dtest.chrome.binary=${{ steps.bidi-chrome.outputs.chrome-path }}'
-          '-Dwebdriver.chrome.driver=${{ steps.bidi-chrome.outputs.chromedriver-path }}'
-          '-Dprobe.output=${{ github.workspace }}/target/selenium-bidi-compatibility/protocol-reproducer-local'
-      - name: Preserve local protocol test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: selenium-bidi-protocol-reproducer-156-stock-local
-          path: consumer-tests/selenium-bidi/protocol-reproducer/target/surefire-reports/**
-      - name: Stop test Grid
-        if: always()
-        shell: bash
-        run: |
-          if test -f target/selenium-bidi-compatibility/grid.pid; then kill "$(cat target/selenium-bidi-compatibility/grid.pid)" || true; fi
-      - name: Preserve binary provenance and per-version results
+        run: ./scripts/test-selenium-bidi-compatibility.ps1
+      - name: Preserve the frozen JARs, hashes and every binary result
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: selenium-bidi-binary
-          path: |
-            target/selenium-bidi-compatibility/**
-            target/bidi-browser-transport/**
+          path: target/selenium-bidi-compatibility/**
+          if-no-files-found: error
 
   chrome-158-protocol-canary:
     name: Chrome 158 protocol canary (${{ matrix.mode }}, non-blocking)
@@ -428,7 +358,7 @@ jobs:
         id: setup-chrome
         uses: browser-actions/setup-chrome@v2
         with:
-          chrome-version: "156.0.8078.80"
+          chrome-version: "157.0.8103.78"
           install-chromedriver: true
 
       - name: Set up Firefox
@@ -471,7 +401,7 @@ jobs:
           "$TEST_CHROMEDRIVER_BINARY" --version
           chrome_version="$("$TEST_CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
           driver_version="$("$TEST_CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
-          test "$chrome_version" = '156.0.8078.80'
+          test "$chrome_version" = '157.0.8103.78'
           test "$driver_version" = "$chrome_version"
           mkdir -p target/bidi-browser-transport
           printf '{"chromeVersion":"%s","chromeDriverVersion":"%s","mapper":"stock"}\n' "$chrome_version" "$driver_version" > target/bidi-browser-transport/browser-pair.json
@@ -550,7 +480,7 @@ jobs:
         id: setup-chrome
         uses: browser-actions/setup-chrome@v2
         with:
-          chrome-version: "156.0.8078.80"
+          chrome-version: "157.0.8103.78"
           install-chromedriver: true
 
       - name: Report Linux certification environment
@@ -570,7 +500,7 @@ jobs:
           "$TEST_CHROMEDRIVER_BINARY" --version
           chrome_version="$("$TEST_CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
           driver_version="$("$TEST_CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
-          test "$chrome_version" = '156.0.8078.80'
+          test "$chrome_version" = '157.0.8103.78'
           test "$driver_version" = "$chrome_version"
           mkdir -p target/bidi-browser-transport
           printf '{"chromeVersion":"%s","chromeDriverVersion":"%s","mapper":"stock"}\n' "$chrome_version" "$driver_version" > target/bidi-browser-transport/browser-pair.json
@@ -650,9 +580,8 @@ jobs:
             ${{ runner.temp }}/test-lens-s15-temp/**/target/surefire-reports/**
 
   headed-chrome-smoke:
-    name: Headed Chrome smoke (non-blocking)
+    name: Headed Chrome smoke
     if: github.event_name == 'workflow_dispatch'
-    continue-on-error: true
     runs-on: ubuntu-latest
 
     steps:
@@ -670,7 +599,7 @@ jobs:
         id: setup-chrome
         uses: browser-actions/setup-chrome@v2
         with:
-          chrome-version: "156.0.8078.80"
+          chrome-version: "157.0.8103.78"
           install-chromedriver: true
 
       - name: Report selected Chrome binaries
@@ -684,7 +613,7 @@ jobs:
           "$TEST_CHROMEDRIVER_BINARY" --version
           chrome_version="$("$TEST_CHROME_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
           driver_version="$("$TEST_CHROMEDRIVER_BINARY" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)"
-          test "$chrome_version" = '156.0.8078.80'
+          test "$chrome_version" = '157.0.8103.78'
           test "$driver_version" = "$chrome_version"
           mkdir -p target/bidi-browser-transport
           printf '{"chromeVersion":"%s","chromeDriverVersion":"%s","mapper":"stock"}\n' "$chrome_version" "$driver_version" > target/bidi-browser-transport/browser-pair.json
