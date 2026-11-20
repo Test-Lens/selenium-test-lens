@@ -94,10 +94,11 @@
     <meta name="robots" content="noindex,follow">
   
   
-    <meta name="test-lens-integration-target" content="0.5.1">
+    <meta name="test-lens-integration-target" content="0.5.2">
     <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
     <meta name="test-lens-docs-source-kind" content="development">
-    <meta name="test-lens-docs-source-revision" content="5a47e7b04de7f85e82392f5421dd26c9cadca8e7">
+    <meta name="test-lens-docs-release-status" content="published">
+    <meta name="test-lens-docs-source-revision" content="4ad79ccc3345232ad46f0c545fb697e75705c655">
   
 
   </head>
@@ -169,7 +170,7 @@
   </script>
   
     
-      Documentation source for <strong>0.5.1</strong>.
+      Documentation source for <strong>0.5.2</strong>.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -484,7 +485,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../whats-new-0.5.1/" class="md-tabs__link">
+        <a href="../whats-new-0.5.2/" class="md-tabs__link">
           
   
   
@@ -2768,6 +2769,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../whats-new-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../whats-new-0.5.1/" class="md-nav__link">
         
   
@@ -3283,6 +3312,174 @@
     
   
     Existing-project AI workflow ADR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selenium-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selenium compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/selenium-bidi-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BiDi compatibility audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/selenium-bidi-release-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 release validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/selenium-051-regression-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.1 regression audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/production-release-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 production release
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainers/release-notes-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 GitHub release notes
   
 
     
@@ -3835,7 +4032,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.2" class="md-nav__link">
         
   
   
@@ -3863,7 +4060,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.2/" class="md-nav__link">
         
   
   
@@ -4020,6 +4217,7 @@
 
 
 <h1 id="integrating-test-lens-with-an-existing-selenium-project">Integrating Test Lens with an existing Selenium project<a class="headerlink" href="#integrating-test-lens-with-an-existing-selenium-project" title="Permanent link">&para;</a></h1>
+<p>For BiDi network capture, stock Chrome/ChromeDriver 157.0.8103.78 on Windows passed the complete nine-version local/Grid matrix and both 50-redirect probes. Release CI verifies the same Linux-built frozen JAR on Windows; Linux stock 157/158 network integrity remains uncertified. No custom mapper is required; follow the <a href="../selenium-compatibility/">exact browser/transport boundary</a>. It requires no Lens API or test-source change.</p>
 <p>Test Lens is designed to fit into an existing Selenium test stack. Keep your current driver factory, test runner, Page Objects and reporting tools.</p>
 <p>If a coding agent will make the changes, use the <a href="../ai-assisted-integration/">AI Integration Builder</a> to generate a complete prompt for this workflow without guessing the project's lifecycle, resolved Selenium version, retry model or CI.</p>
 <p>Create one <code>TestLens</code> instance for each driver/test invocation:</p>
@@ -4118,7 +4316,7 @@ TestNG tests.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">&lt;dependency&gt;</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="nt">&lt;groupId&gt;</span>io.github.test-lens<span class="nt">&lt;/groupId&gt;</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">&lt;artifactId&gt;</span>selenium-test-lens-react<span class="nt">&lt;/artifactId&gt;</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.5.1<span class="nt">&lt;/version&gt;</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.5.2<span class="nt">&lt;/version&gt;</span>
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nt">&lt;/dependency&gt;</span>
 </span></code></pre></div>
 <p>The main <code>selenium-test-lens</code> artifact has no React dependency. Standard DOM interactions can continue to use the <code>TestLens</code> facade; the React/SPA helpers module is optional. See its <a href="../features/react-spa/">capabilities and limitations</a>.</p>
@@ -4228,7 +4426,7 @@ TestNG tests.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.1", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.2", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>

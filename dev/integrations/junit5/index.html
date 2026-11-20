@@ -94,10 +94,11 @@
     <meta name="robots" content="noindex,follow">
   
   
-    <meta name="test-lens-integration-target" content="0.5.1">
+    <meta name="test-lens-integration-target" content="0.5.2">
     <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
     <meta name="test-lens-docs-source-kind" content="development">
-    <meta name="test-lens-docs-source-revision" content="5a47e7b04de7f85e82392f5421dd26c9cadca8e7">
+    <meta name="test-lens-docs-release-status" content="published">
+    <meta name="test-lens-docs-source-revision" content="4ad79ccc3345232ad46f0c545fb697e75705c655">
   
 
   </head>
@@ -169,7 +170,7 @@
   </script>
   
     
-      Documentation source for <strong>0.5.1</strong>.
+      Documentation source for <strong>0.5.2</strong>.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -484,7 +485,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../whats-new-0.5.1/" class="md-tabs__link">
+        <a href="../../whats-new-0.5.2/" class="md-tabs__link">
           
   
   
@@ -2757,6 +2758,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../whats-new-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../whats-new-0.5.1/" class="md-nav__link">
         
   
@@ -3272,6 +3301,174 @@
     
   
     Existing-project AI workflow ADR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../selenium-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selenium compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selenium-bidi-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BiDi compatibility audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selenium-bidi-release-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 release validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selenium-051-regression-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.1 regression audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/production-release-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 production release
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/release-notes-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 GitHub release notes
   
 
     
@@ -3824,7 +4021,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.2" class="md-nav__link">
         
   
   
@@ -3852,7 +4049,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.2/" class="md-nav__link">
         
   
   
@@ -3998,6 +4195,8 @@
 
 
 <h1 id="junit-5-integration">JUnit 5 integration<a class="headerlink" href="#junit-5-integration" title="Permanent link">&para;</a></h1>
+<p>For BiDi network capture, stock Chrome/ChromeDriver 157.0.8103.78 on Windows passed the complete nine-version local/Grid matrix and both 50-redirect probes. Release CI verifies the same Linux-built frozen JAR on Windows; Linux stock 157/158 network integrity remains uncertified. No custom mapper is required; follow the <a href="../../selenium-compatibility/">exact browser/transport boundary</a>. It requires no Lens API or test-source change.</p>
+<p>Use Test Lens 0.5.2 runtime and adapter versions together; see <a href="../../whats-new-0.5.2/">upgrade instructions</a>.</p>
 <p>The <code>selenium-test-lens-junit5</code> module is the recommended JUnit Jupiter integration. It creates one <code>WebDriver</code>, <code>TestLens</code>, and trace session for every test invocation, injects the driver and Lens into the test method, finalizes diagnostics, and only then closes the driver.</p>
 <p>Inside a test, <code>lens.expectPage()</code> polls URL or title on that invocation's active window. These checks use the normal Lens assertion events and results; they are neither JUnit retries nor recovery retries. Explicitly switch a popup before asserting its URL or title.</p>
 <h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
@@ -4005,7 +4204,7 @@
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;dependency&gt;</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nt">&lt;groupId&gt;</span>io.github.test-lens<span class="nt">&lt;/groupId&gt;</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&lt;artifactId&gt;</span>selenium-test-lens-junit5<span class="nt">&lt;/artifactId&gt;</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.5.1<span class="nt">&lt;/version&gt;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">&lt;version&gt;</span>0.5.2<span class="nt">&lt;/version&gt;</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">&lt;scope&gt;</span>test<span class="nt">&lt;/scope&gt;</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">&lt;/dependency&gt;</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
@@ -4019,12 +4218,12 @@
 <p>The extension artifact depends on <code>selenium-test-lens</code> and <code>junit-jupiter-api</code>. Its Selenium dependency is optional. JUnit engine, parameterized-test support, and Platform TestKit are not runtime dependencies of the artifact.</p>
 <p>Gradle users can use Kotlin DSL:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">dependencies</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"io.github.test-lens:selenium-test-lens-junit5:0.5.1"</span><span class="p">)</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"io.github.test-lens:selenium-test-lens-junit5:0.5.2"</span><span class="p">)</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">}</span>
 </span></code></pre></div>
 <p>or Groovy DSL:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">{</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="n">testImplementation</span><span class="w"> </span><span class="s1">'io.github.test-lens:selenium-test-lens-junit5:0.5.1'</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="n">testImplementation</span><span class="w"> </span><span class="s1">'io.github.test-lens:selenium-test-lens-junit5:0.5.2'</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="o">}</span>
 </span></code></pre></div>
 <h2 id="register-and-inject">Register and inject<a class="headerlink" href="#register-and-inject" title="Permanent link">&para;</a></h2>
@@ -4117,6 +4316,7 @@ unchanged for <code>UNSET</code>; a configured mode fails before <code>Supplier.
 <h2 id="recovery-retry-policy">Recovery-retry policy<a class="headerlink" href="#recovery-retry-policy" title="Permanent link">&para;</a></h2>
 <p>Pass the policy through <code>lensOptions(...)</code>. If <code>finishPassed()</code> raises <code>RetryPolicyViolationException</code>, the extension fails that invocation after JSON/HTML and the optional failure screenshot are produced, then quits the driver. A quit failure is suppressed on the policy violation, and the session is not finalized a second time. Parameterized and repeated invocations each evaluate their own session summary.</p>
 <p>If a test starts <code>lens.network()</code>, all three Lens finalizers stop its active capture before session completion and before the extension calls <code>quit()</code>. To use <code>BIDI</code> or <code>AUTO</code>, the extension's driver factory must create options with <code>enableBiDi()</code>; the adapter does not retrofit the capability or fall back to manual capture.</p>
+<p>Use one aligned Selenium runtime across the adapter and application. Select its version from the <a href="../../selenium-compatibility/">Lens release-specific compatibility matrix</a>, then verify a real request/response on the actual local or remote session. Connection availability alone does not certify working capture; mapping or transport failure invalidates network assertions.</p>
 <p>For final <code>FAILED</code>, the extension waits for the complete failure-bundle pipeline—including reports, HUD cleanup, manifest, and ZIP—before <code>driver.quit()</code>. Partial evidence never replaces the test throwable. Configure it through the same <code>lensOptions(...)</code>; raw page source and browser console remain opt-in.</p>
 <p>The extension propagates <code>TestLensOptions.redactionPolicy(...)</code> and <code>visualRedaction(...)</code> unchanged to every invocation. Redaction completes during Lens finalization before the extension's single <code>driver.quit()</code>; it neither replaces the execution throwable nor changes passed/failed/aborted mapping. Optional page source and console remain best-effort text protection, while configured visual masks protect screenshot pixels.</p>
 <h1 id="junit-5-integration_1">JUnit 5 integration<a class="headerlink" href="#junit-5-integration_1" title="Permanent link">&para;</a></h1>
@@ -4217,7 +4417,7 @@ unchanged for <code>UNSET</code>; a configured mode fails before <code>Supplier.
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.1", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.2", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

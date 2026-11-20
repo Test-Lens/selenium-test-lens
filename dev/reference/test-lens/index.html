@@ -94,10 +94,11 @@
     <meta name="robots" content="noindex,follow">
   
   
-    <meta name="test-lens-integration-target" content="0.5.1">
+    <meta name="test-lens-integration-target" content="0.5.2">
     <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
     <meta name="test-lens-docs-source-kind" content="development">
-    <meta name="test-lens-docs-source-revision" content="5a47e7b04de7f85e82392f5421dd26c9cadca8e7">
+    <meta name="test-lens-docs-release-status" content="published">
+    <meta name="test-lens-docs-source-revision" content="4ad79ccc3345232ad46f0c545fb697e75705c655">
   
 
   </head>
@@ -169,7 +170,7 @@
   </script>
   
     
-      Documentation source for <strong>0.5.1</strong>.
+      Documentation source for <strong>0.5.2</strong>.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -482,7 +483,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../whats-new-0.5.1/" class="md-tabs__link">
+        <a href="../../whats-new-0.5.2/" class="md-tabs__link">
           
   
   
@@ -2639,6 +2640,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../whats-new-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../whats-new-0.5.1/" class="md-nav__link">
         
   
@@ -3248,6 +3277,174 @@
   
   
     <li class="md-nav__item">
+      <a href="../../selenium-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selenium compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selenium-bidi-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BiDi compatibility audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selenium-bidi-release-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 release validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selenium-051-regression-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.1 regression audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/production-release-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 production release
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/release-notes-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 GitHub release notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../consumer-compatibility/" class="md-nav__link">
         
   
@@ -3780,7 +3977,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.2" class="md-nav__link">
         
   
   
@@ -3808,7 +4005,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.2/" class="md-nav__link">
         
   
   
@@ -3935,6 +4132,9 @@ API level: <strong>Recommended</strong></p>
 <p>All <code>attach</code> overloads require a usable existing driver; the first uses all defaults, the second changes overlay configuration, and the third accepts complete facade options. Lens never creates or closes the driver. <code>startSession</code> activates a new trace and attempts HUD initialization. <code>session</code> is empty before start.</p>
 <p>Finalization completes the active session, closes its managed state/resources, writes JSON and HTML, and applies configured HUD cleanup. The first terminal call wins: <code>finishPassed()</code>, <code>finishFailed(...)</code>, or <code>finishSkipped(...)</code> fixes the session status, completion time, failure/reason, and retry decision. Later or concurrent calls wait for that same facade pipeline and return the identical <code>TestLensFinalizationResult</code> without repeating resource cleanup, screenshots, network shutdown, exports, HUD cleanup, manifest, or ZIP creation. A session finished directly through <code>UiTestLensSession</code> likewise cannot be overwritten; the facade may complete its still-missing export pipeline once while respecting that terminal state.</p>
 <p><code>finishPassed()</code> normally records <code>PASSED</code>, but a configured retry fail policy can finalize it as <code>FAILED</code> and throw <code>RetryPolicyViolationException</code> only after evidence, reports, cleanup, manifest, and ZIP. That exact exception is retained and rethrown by later facade finalizers without rerunning the pipeline. <code>finishFailed(...)</code> always records <code>FAILED</code>, including when its argument is null; <code>finishSkipped(reason)</code> records <code>SKIPPED</code>. A policy never replaces explicit failed/skipped status. Any final <code>FAILED</code> status can request the automatic failure bundle. Diagnostics remain secondary. Calling a finish method without a session returns a diagnostic result. Starting a later session on the same facade creates independent finalization ownership. Finalization never closes the driver. <code>failureBundleDirectory()</code>, <code>failureBundleManifest()</code>, and <code>failureBundleArchive()</code> expose successfully created paths without changing the finalization-result record constructor.</p>
+<p>In 0.5.2, an <code>Error</code> from scenario-resource cleanup is retained and rethrown unchanged after the remaining resource cleanups are attempted. If the test already supplied a failure, that original failure remains the session failure and the cleanup error is attached to it as suppressed; secondary cleanup failures are suppressed on the selected cleanup error. A critical evidence failure also attempts resource cleanup and network shutdown before it is rethrown. Repeated finalizers rethrow the retained terminal error without running the finalization pipeline again.</p>
+<p>A resource cleanup that throws <code>InterruptedException</code> restores the thread's interrupt flag. Cleanup failure can make a still-active session fail, but an already terminal session remains immutable: completing its missing facade cleanup/export work cannot rewrite its earlier result.</p>
+<p>Locator metadata diagnostics also propagate <code>VirtualMachineError</code>, <code>ThreadDeath</code> and <code>LinkageError</code> from custom locator formatting or remote parameters. Ordinary optional diagnostic failures can still use an opaque description; fatal errors are not treated as successful metadata capture.</p>
 <p><code>TestLensOptions.redactionPolicy(...)</code> supplies one enabled-by-default policy to the facade, logger/HUD fan-out, session, network and API overlays, exports, and failure-bundle text. The exception returned to the runner remains the original; stored diagnostic throwable text is a redacted copy. See <a href="../../security/redaction/">Sensitive-data redaction</a>.</p>
 <p><code>scenarioState()</code> and <code>resources()</code> belong to the current session's unique invocation ID and close during facade finalization. <code>suiteState()</code> is available when a runner adapter or explicit <code>TestRunScope</code> supplied a logical run boundary. See <a href="../../features/managed-test-state/">Managed Test State &amp; Resources</a>.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">TestLens</span><span class="w"> </span><span class="n">lens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TestLens</span><span class="p">.</span><span class="na">attach</span><span class="p">(</span><span class="n">driver</span><span class="p">);</span>
@@ -4057,7 +4257,7 @@ API level: <strong>Recommended</strong></p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.1", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.2", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>

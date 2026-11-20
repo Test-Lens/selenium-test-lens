@@ -94,10 +94,11 @@
     <meta name="robots" content="noindex,follow">
   
   
-    <meta name="test-lens-integration-target" content="0.5.1">
+    <meta name="test-lens-integration-target" content="0.5.2">
     <meta name="test-lens-docs-public-root" content="https://test-lens.github.io/selenium-test-lens/">
     <meta name="test-lens-docs-source-kind" content="development">
-    <meta name="test-lens-docs-source-revision" content="5a47e7b04de7f85e82392f5421dd26c9cadca8e7">
+    <meta name="test-lens-docs-release-status" content="published">
+    <meta name="test-lens-docs-source-revision" content="4ad79ccc3345232ad46f0c545fb697e75705c655">
   
 
   </head>
@@ -169,7 +170,7 @@
   </script>
   
     
-      Documentation source for <strong>0.5.1</strong>.
+      Documentation source for <strong>0.5.2</strong>.
     
     <a href="https://test-lens.github.io/selenium-test-lens/latest/">Read the latest versioned documentation.</a>
   
@@ -484,7 +485,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../whats-new-0.5.1/" class="md-tabs__link">
+        <a href="../../whats-new-0.5.2/" class="md-tabs__link">
           
   
   
@@ -2870,6 +2871,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../whats-new-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What's new in 0.5.2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../whats-new-0.5.1/" class="md-nav__link">
         
   
@@ -3385,6 +3414,174 @@
     
   
     Existing-project AI workflow ADR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../selenium-compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Selenium compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selenium-bidi-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BiDi compatibility audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selenium-bidi-release-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 release validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/selenium-051-regression-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.1 regression audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/production-release-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 production release
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintainers/release-notes-0.5.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.5.2 GitHub release notes
   
 
     
@@ -3937,7 +4134,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.1" class="md-nav__link">
+      <a href="https://central.sonatype.com/artifact/io.github.test-lens/selenium-test-lens/0.5.2" class="md-nav__link">
         
   
   
@@ -3965,7 +4162,7 @@
   
   
     <li class="md-nav__item">
-      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.1/" class="md-nav__link">
+      <a href="https://javadoc.io/doc/io.github.test-lens/selenium-test-lens/0.5.2/" class="md-nav__link">
         
   
   
@@ -4218,6 +4415,7 @@
 <h1 id="element-actions">Element actions<a class="headerlink" href="#element-actions" title="Permanent link">&para;</a></h1>
 <p>Element actions use native Selenium operations and feed the same HUD, log, and trace pipeline as waits and assertions. The basic click, fill, clear, key, hover, and click-variant actions are available in <code>0.1.0</code>.</p>
 <p>Actions resolve the current element and return the same <code>UiLocator</code> for chaining. Resolution/action retry is governed by <a href="../../reference/configuration/#uilocatoroptions"><code>UiLocatorOptions</code></a>. A physical action/read failure that schedules another attempt emits a dedicated recovery <code>RETRY</code>; a terminal failure does not. Condition polling is separate and does not create recovery-retry evidence. A final failure is wrapped as <code>UiLocatorException</code>, with the underlying WebDriver failure retained as its cause.</p>
+<p>In 0.5.2, a started locator action can retry a directly reported <code>StaleElementReferenceException</code>, <code>ElementClickInterceptedException</code>, or <code>ElementNotInteractableException</code> under its configured retry flags. A generic transport/session failure can mean the action was already delivered: a retryable exception somewhere in its cause chain does not authorize another click, fill, key, select, or JavaScript action. Read-only observations retain their existing wrapped-cause recovery behavior.</p>
 <h2 id="click-contract-bounded-fallback-cascade">Click contract: bounded fallback cascade<a class="headerlink" href="#click-contract-bounded-fallback-cascade" title="Permanent link">&para;</a></h2>
 <!-- API SIGNATURES: io.github.testlens.selenium.locator.UiLocator -->
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">UiLocator</span><span class="w"> </span><span class="nf">click</span><span class="p">()</span>
@@ -4251,6 +4449,8 @@
 <p>The same locator.</p>
 <h3 id="failure-behavior">Failure behavior<a class="headerlink" href="#failure-behavior" title="Permanent link">&para;</a></h3>
 <p>Throws <code>UiLocatorException</code> after the shared locator deadline/retry budget or on a non-retryable or ambiguous WebDriver failure. Overlay policy can also fail the click when a required blocker cannot be handled.</p>
+<p>The 0.5.2 safety checks retain the existing click deadline, attempt limit, and default JS fallback. Strategy changes do not create another timeout budget; JS activation still does not represent a physical pointer sequence.</p>
+<p>The legacy overlay-close helpers now observe the known overlay root, or the close control when no root is known, instead of always pausing for 500 ms. They return early when it is hidden or removed, treat a stale reference as removal, and retain the existing 500 ms maximum. Their boolean still means a close control was clicked; it does not guarantee the overlay disappeared before that limit.</p>
 <h3 id="trace-hud-highlight-and-evidence">Trace, HUD, highlight, and evidence<a class="headerlink" href="#trace-hud-highlight-and-evidence" title="Permanent link">&para;</a></h3>
 <p>The locator emits one logical start/pass/failure lifecycle; strategy transitions are debug details such as <code>NATIVE=intercepted</code>, <code>ACTIONS=hit-test mismatch</code>, <code>POINT=no-valid-point</code>, and <code>JS=dispatched</code>. When overlays are enabled, internal transitions reuse one ACTION decoration followed by the normal terminal SUCCESS or FAILURE decoration. <code>click()</code> does not capture a screenshot by itself.</p>
 <p><img alt="Smart Click keeps one semantic action while DEBUG reveals the bounded fallback stages" src="../../assets/media/smart-click-fallback.webp" /></p>
@@ -4283,6 +4483,7 @@
 <p><code>check()</code> and <code>uncheck()</code> are idempotent: they resolve and read the current state first, then perform at most one native <code>WebElement.click()</code> activation when a change is required. Native checkbox inputs, native radios, ARIA checkboxes, ARIA switches, and ARIA radios are recognized from their standard HTML/ARIA semantics. Radios support <code>check()</code> and <code>isChecked()</code> but deliberately reject <code>uncheck()</code>.</p>
 <p>For a native input hidden behind standard form styling, the locator may point to the input, its associated <code>label</code>, or a descendant of that label. Test Lens resolves the state-bearing input through <code>label.control</code>/<code>input.labels</code> semantics and clicks the visible label; it does not guess from CSS classes, text, or <code>data-*</code> attributes. Custom controls must use <code>role="checkbox"</code>, <code>role="switch"</code>, or <code>role="radio"</code> with a valid <code>aria-checked</code> value. Disabled controls fail without activation.</p>
 <p>After one activation, Test Lens polls only the freshly resolved control state until the locator timeout. This supports asynchronous rerenders without a second click. Confirmation polling is not a recovery retry and does not mark the session flaky. A mixed/indeterminate state makes <code>isChecked()</code> return <code>false</code>; <code>check()</code> or <code>uncheck()</code> still performs at most one activation and requires the requested final state.</p>
+<p>In 0.5.2, once the activation returns successfully, a stale lookup or timeout during confirmation cannot restart the activation cycle. An unconfirmed final state is reported as a failure without redispatching the acknowledged click.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">lens</span><span class="p">.</span><span class="na">getByLabel</span><span class="p">(</span><span class="s">"Accept terms"</span><span class="p">).</span><span class="na">check</span><span class="p">();</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"newsletter"</span><span class="p">),</span><span class="w"> </span><span class="s">"Newsletter"</span><span class="p">).</span><span class="na">uncheck</span><span class="p">();</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kt">boolean</span><span class="w"> </span><span class="n">selected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lens</span><span class="p">.</span><span class="na">locator</span><span class="p">(</span><span class="n">By</span><span class="p">.</span><span class="na">id</span><span class="p">(</span><span class="s">"plan"</span><span class="p">),</span><span class="w"> </span><span class="s">"Plan"</span><span class="p">).</span><span class="na">isChecked</span><span class="p">();</span>
@@ -4438,7 +4639,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.1", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"current": "0.5.2", "default": "latest", "is_dev": true, "is_snapshot": false, "provider": "mike", "stable_url": "https://test-lens.github.io/selenium-test-lens/latest/"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
