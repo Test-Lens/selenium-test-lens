@@ -2,7 +2,7 @@
 
 Verified 2026-11-19 against Maven Central binary and source JARs, then remediated in the development tree prepared for 0.5.2. Version 0.5.2 is not published; the executed evidence below originated in the audit tree before the isolated release preparation. These results do not apply retroactively to the published 0.5.1 JAR.
 
-Subsequent production validation holds publication for a Chrome 158 redirect-integrity failure reproduced on hosted Linux without Lens or Grid. See the current [production release evidence](production-release-0.5.2.md); the earlier compatibility results below are retained as historical milestones, not final release authorization.
+Subsequent production validation reproduced a Chrome 158 redirect-integrity failure on hosted Linux without Lens or Grid. The current conditional policy pins required gates to Chrome/ChromeDriver 157.0.8103.78 with unchanged assertions and 50 standalone redirects per direct/Grid path; separate nonblocking Chrome/ChromeDriver 158.0.8127.36 canaries retain visible outcomes and artifacts. Fresh hosted verification and the no-available-correction assessment are PENDING. A 157 PASS does not certify 158. See the current [production release evidence](production-release-0.5.2.md); the earlier compatibility results below remain historical milestones, not final release authorization.
 
 ## Artifacts and reproducibility
 

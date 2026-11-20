@@ -1,6 +1,6 @@
 # Selenium Test Lens 0.5.2
 
-**Draft, unpublished. Production release is held pending resolution of the Chrome 158/Grid redirect integrity failure.**
+**Draft, unpublished. Conditional Chrome 157 release-gate verification is PENDING; Chrome 158 network reliability is not certified.**
 
 **Prepared, unpublished.** Central publication, the immutable tag and GitHub Release have not been completed. Final validation of the current preparation HEAD is still in progress.
 
@@ -49,7 +49,9 @@ The clean local reactor passed **1806 tests**, with **39 classified skips** and 
 
 Those completed runs precede the latest redirect correction. Commit `2d971211` passed **82 focused source regressions locally** and independent review found no concrete defects. The new nine-version matrix passed locally on `cdcc9344`: **1359 tests, zero failures and zero skips**, including Chrome 158, Grid and server-journal report comparisons. The identical Lens JAR SHA-256 was `972981F9C86FA796706768A36CF34D518ADDF8D46FDE8B55DB5832C6F79104FB`. A fresh local reactor passed **1811 tests with 39 classified skips**; the hosted Linux reactor passed **1816 with 34 skips**, including all five platform-dependent tests. Optional raw-wire probes are OFF by default; actual controlled-server journal assertions remain unchanged.
 
-One complete hosted manual run passed, but independent repeats exposed intermittent incorrect raw redirect traffic on Linux Chrome 158.0.8127.36. A standalone Selenium 4.53.0 consumer reproduced it both through Grid 4.53.0 and through direct ChromeDriver, without Lens. These failing report-data checks block publication and are not waived by passing runs. The production report records both results and the standalone reproducer. This draft is not a declaration that the release gate is complete.
+One complete hosted manual run passed, but independent repeats exposed intermittent incorrect raw redirect traffic on Linux Chrome 158.0.8127.36. A standalone Selenium 4.53.0 consumer reproduced it both through Grid 4.53.0 and through direct ChromeDriver, without Lens. The production report preserves both passing and failing results. These failures remain evidence against Chrome 158 network reliability.
+
+The maintainer permits a controlled exception only if fresh unchanged tests prove Chrome/ChromeDriver **157.0.8103.78** and the independently reproduced 158 failure has no available correction. Required gates retain the nine Selenium versions and exact journal/report assertions, plus **50 standalone redirect stimuli each through direct ChromeDriver and Grid**. A separate nonblocking Chrome/ChromeDriver **158.0.8127.36** canary must expose direct/Grid outcomes, summaries and XML artifacts. Fresh hosted runs, exact counts and the no-available-fix assessment are **PENDING**. A 157 PASS is not a 158 PASS or a claim of full Chrome 158 support. This draft does not declare the release gate complete.
 
 ## Known limitations
 

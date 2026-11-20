@@ -18,7 +18,7 @@
 
 **Prepared 0.5.2 is not published.** It repairs BiDi binary compatibility and capture lifecycle, potentially repeated click/input actions, cancellation, critical cleanup errors, measured durations, terminal HUD status and unsafe HTML artifact links. Published 0.5.1 remains affected on Selenium 4.41.0+. Public API and test-source compatibility are preserved. See [0.5.2 changes and upgrade instructions](docs/whats-new-0.5.2.md), the [tested Selenium matrix](docs/selenium-compatibility.md) and [release coverage](docs/maintainers/production-release-0.5.2.md).
 
-Production publication is held for intermittent incorrect Chrome 158 BiDi redirect traffic on hosted Linux, reproduced with standalone Selenium without Lens or Grid. The exact report-data checks remain blocking; see the release evidence above. Published version links and `latest` remain on 0.5.1.
+Release validation is PENDING under a controlled browser policy: required gates pin Chrome/ChromeDriver 157.0.8103.78 and retain the same nine Selenium versions and exact report-data assertions, plus 50 standalone redirect stimuli each through direct ChromeDriver and Grid. Linux Chrome/ChromeDriver 158.0.8127.36 has independently reproduced network unreliability without Lens or Grid and is tracked by a separate nonblocking direct/Grid canary with visible results. A 157 PASS does not certify 158. The exception requires fresh hosted evidence and confirmation that no available correction resolves the external failure; see the release evidence above. Published version links and `latest` remain on 0.5.1.
 
 Install published release 0.5.1 (Java 17 or newer):
 

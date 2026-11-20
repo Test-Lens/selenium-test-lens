@@ -1,10 +1,10 @@
 # Test Lens 0.5.2 production release
 
-Production publication is in progress. No tag or immutable artifact is claimed until its external verification is recorded below. The earlier [regression audit](selenium-051-regression-audit.md) and [BiDi milestone](selenium-bidi-release-0.5.2.md) retain their historical local results.
+Release preparation is in progress under the conditional browser policy below; fresh hosted verification is PENDING. No tag or immutable artifact is claimed until its external verification is recorded below. The earlier [regression audit](selenium-051-regression-audit.md) and [BiDi milestone](selenium-bidi-release-0.5.2.md) retain their historical local results.
 
 ## Source and documentation coverage
 
-The prepared source is `release/bidi-0.5.2`, originally `c2d4fece`, with current preparation HEAD `cdcc9344`. Actual baseline is `v0.5.1` (`e6e2a19`). Seven intervening baseline commits concern documentation/branding and the withdrawal of Studio recommendations; they are not new runtime features. The only changes in the Studio module are its parent-version bump. No uncommitted Studio/Playground work is included.
+The prepared source is `release/bidi-0.5.2`, originally `c2d4fece`; `cdcc9344` identifies the earlier redirect-correction milestone, not the final candidate. The final source SHA and fresh hosted results for the conditional Chrome 157 policy are PENDING. Actual baseline is `v0.5.1` (`e6e2a19`). Seven intervening baseline commits concern documentation/branding and the withdrawal of Studio recommendations; they are not new runtime features. The only changes in the Studio module are its parent-version bump. No uncommitted Studio/Playground work is included.
 
 Each entry below is described in the 0.5.2 changelog and release notes. No public API/test-source migration is required. Browser capability setup, consumer-owned Selenium alignment and optional capture activation remain required.
 
@@ -77,9 +77,32 @@ The profile's batch/loopback arguments require an already primed `gpg-agent` cac
 
 ## Current status
 
-**BLOCKED, UNPUBLISHED.** The maintainer explicitly requested holding publication until the Chrome 158 redirect issue below is resolved. No Central publication, immutable tag or GitHub Release has been created. BrowserStack and the public-artifact post-release smoke remain NOT RUN. No Chrome downgrade or weakened data assertion is used to pass the release gate.
+**PREPARED, UNPUBLISHED; CONDITIONAL VERIFICATION PENDING.** The maintainer superseded the absolute Chrome 158 hold with permission for a controlled Chrome 157 release gate, provided unchanged tests prove 157 and the independently reproduced external 158 failure has no available correction. This permission does not establish those results: fresh hosted evidence and the final assessment remain PENDING. No Central publication, immutable tag or GitHub Release has been created. BrowserStack and the public-artifact post-release smoke remain NOT RUN.
 
-### Finalization checks and the remaining redirect blocker
+### Conditional Chrome 157 gate and visible Chrome 158 canary
+
+Required CI browser checks pin **Chrome and ChromeDriver 157.0.8103.78** as a matching pair. The same frozen-JAR Selenium matrix remains **4.39.0, 4.40.0, 4.41.0, 4.45.0, 4.46.0, 4.47.0, 4.51.0, 4.52.0 and 4.53.0**, including unchanged exact server-journal and report-data assertions. Required standalone Selenium-only checks must each complete **50 distinct redirect stimuli**, both with direct ChromeDriver and through Grid 4.53.0. Failed stimuli are not retried or relabeled as skipped. The remaining required hosted gates must also pass on the final source.
+
+A separate **nonblocking Chrome/ChromeDriver 158.0.8127.36 canary** runs both direct and Grid paths. Its actual outcomes, including failing assertions, remain visible in summaries, JUnit XML and raw-event/peer-journal artifacts. A nonblocking outcome changes the release decision policy; it does not turn a failure into a PASS. A Chrome 157 PASS does not certify Chrome 158 network reliability or imply full Chrome 158 support.
+
+The official Chrome for Testing metadata dated **2026-11-19** still identifies **158.0.8127.36** as stable; no newer stable correction was available in that check. Earlier standalone Linux failures below establish that neither Lens nor Grid is necessary, and inspection of raw decoding found no input-map mutation. Attribution to a specific vendor component remains unproven. The final no-available-fix assessment must accompany the fresh hosted evidence; pinning 157 alone does not resolve the external failure.
+
+Upstream research identified official Chromium BiDi commit [089ef525, “Match redirect ExtraInfo events to the correct hop”](https://github.com/GoogleChromeLabs/chromium-bidi/commit/089ef52586b3dcac9390ce6c938008c742ad9449), dated November 5, describing late CDP ExtraInfo being assigned to the wrong redirect hop. Stable Chrome 158.0.8127.36 at revision **1727472** lacks the correction at position **1736133**. Direct inspection of the shipped [158 source](https://raw.githubusercontent.com/chromium/chromium/158.0.8127.36/third_party/chromium-bidi/src/bidiMapper/modules/network/NetworkRequest.ts) and [159 Beta source](https://raw.githubusercontent.com/chromium/chromium/159.0.8154.13/third_party/chromium-bidi/src/bidiMapper/modules/network/NetworkRequest.ts) confirms that the latter includes the previous-hop/late-ExtraInfo routing correction. Chrome **159.0.8154.13 is Beta**, not stable; effectiveness against this reproducer remains UNVERIFIED. No verified stable correction for Chrome 158 was found. This is a concrete component-level candidate, not proof that this exact change resolves the observed failure; paired raw WebSocket/CDP evidence would be needed to assign the precise failing transition. The unchanged assertions already exclude a mere assumption about callback ordering: eventual HTTP status and terminal completion are required irrespective of arrival order.
+
+| Final evidence required | Current state | Completion evidence to record |
+| --- | --- | --- |
+| Final candidate and unchanged test/assertion scope | PENDING | Source SHA, CI configuration SHA and probe/report assertion comparison |
+| Required Chrome 157 browser pair and nine-version same-JAR matrix | PENDING | Fresh hosted run URL, exact browser/driver versions, frozen JAR SHA-256, per-version test/failure/error/skip totals |
+| Required standalone Chrome 157 direct path | PENDING | Hosted run URL, 50 completed distinct stimuli, JUnit totals and peer/raw artifact references |
+| Required standalone Chrome 157 Grid path | PENDING | Hosted run URL, matching browser/driver and Grid versions, 50 completed distinct stimuli, JUnit totals and peer/raw artifacts |
+| Separate Chrome 158 direct/Grid canaries | PENDING | Each actual outcome, executed stimuli, JUnit totals, visible summary and artifact references, including any FAIL |
+| External failure and no available correction | Prior independent failures retained; final assessment PENDING | Current upstream/version check, examined correction options and conclusion tied to the final validation date |
+| Other required hosted CI, release packaging and documentation | PENDING for final candidate | Run URLs, source SHA, exact results and classified skips |
+| Immutable publication and public-artifact consumer smoke | NOT RUN | Central deployment/public artifacts, tag, GitHub Release, documentation URLs and clean public consumer evidence after authorization |
+
+The signing/packaging evidence above remains valid for its recorded source and is not repeated as a new signing result. Existing passing and failing rows below are historical evidence, not substitutes for these pending final checks.
+
+### Historical finalization checks and Chrome 158 redirect failure
 
 Commit `2d971211` retains real redirect request metadata with its observation phase; `cdcc9344` keeps optional raw-wire probes OFF by default. The focused source regressions passed 82 tests. Independent reviews found no actionable defects in either change. The new local nine-version same-JAR matrix passed **1359 tests, zero failures/skips**, including Chrome 158, Grid and server-journal report comparisons. Lens SHA-256: `972981F9C86FA796706768A36CF34D518ADDF8D46FDE8B55DB5832C6F79104FB`.
 
@@ -108,9 +131,9 @@ The standalone reproducer subsequently established that **neither Lens nor Grid 
 
 Both hosted failures set `outcome=PROTOCOL_MISMATCH`, `evidenceOverflow=false`, with one failing JUnit test and zero skipped tests. The tests stop at the first mismatch; the 50 stimuli are different requests, not retries of a failed action. Separate Grid and local Surefire artifacts and raw-event/peer-journal JSON are retained. The earlier diagnostic launch [44530051630](https://github.com/Test-Lens/selenium-test-lens/actions/runs/44530051630) failed before executing this standalone test because a PowerShell Maven property needed quoting; `743a8da4` corrected it. That launch is NOT RUN for the standalone scenario, not a protocol failure or PASS.
 
-The remaining boundary is the Linux Chrome/ChromeDriver BiDi path. Pinpointing the vendor component or supplying an upstream correction remains outstanding; the observed data cannot be repaired truthfully from the Selenium event fields alone. The default release gate still uses stable Chrome and unchanged exact server-journal assertions. No older Chrome is substituted to hide the failure. Publication remains explicitly held even when an individual full matrix happens to pass.
+The remaining boundary is the Linux Chrome/ChromeDriver BiDi path. Pinpointing the vendor component or supplying an upstream correction remains outstanding; the observed data cannot be repaired truthfully from the Selenium event fields alone. These observations originally caused an absolute release hold. The current conditional policy above replaces that decision rule while retaining every failing and passing result and the exact server-journal assertions.
 
-Release can resume only after a demonstrated correction produces correct real redirect traffic in the standalone probe and the unchanged same-JAR report assertions on Chrome 158/Grid, followed by all required hosted gates on the final source. A newer upstream component or a narrowly justified Lens correction must be tested, not assumed compatible.
+Release authorization now depends on completing the conditional Chrome 157 policy and all required hosted gates on the final source, with the external Chrome 158 limitation and no-available-fix assessment explicit. Any later correction or newer component must still pass the unchanged standalone and report assertions before Chrome 158 is certified; compatibility is not inferred from a version number or an individual passing repeat.
 
 Separately, [PR #4](https://github.com/Test-Lens/selenium-test-lens/pull/4) fixed only an existing Studio browser fixture's readiness race. Its complete hosted checks passed before merge `5a47e7b0`; the release branch merges that approved baseline. There are no Studio production changes in the 0.5.2 diff, and the only Studio module change relative to current main remains its parent-version bump. The original working tree's HEAD, index, status and all 256 recorded file hashes remain unchanged.
 

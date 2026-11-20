@@ -2,7 +2,7 @@
 
 Status: prepared, unpublished. This report separates reproduced product defects from unverified concerns and environment limitations. It supplements the [BiDi audit](selenium-bidi-audit.md) and [BiDi release validation](selenium-bidi-release-0.5.2.md).
 
-This is the completed local audit milestone. Subsequent production validation holds publication for a Chrome 158 BiDi redirect-integrity failure reproduced without Lens or Grid on hosted Linux. The current [production release evidence](production-release-0.5.2.md) supersedes this milestone's readiness verdict without changing its historical test results.
+This is the completed local audit milestone. Subsequent hosted Linux validation reproduced a Chrome 158 BiDi redirect-integrity failure without Lens or Grid. Current release policy conditionally permits required Chrome/ChromeDriver 157.0.8103.78 gates with unchanged assertions and 50 standalone redirects per direct/Grid path, while a separate nonblocking 158.0.8127.36 canary retains visible outcomes. Fresh hosted verification and the no-available-correction assessment are PENDING; 157 results do not certify 158. The current [production release evidence](production-release-0.5.2.md) supersedes this milestone's readiness verdict without changing its historical test results.
 
 ## A. Baseline and isolation
 
