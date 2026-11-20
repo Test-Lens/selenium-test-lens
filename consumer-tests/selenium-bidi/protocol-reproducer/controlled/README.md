@@ -20,4 +20,6 @@ Run the isolated workflow after pushing this diagnostic branch:
 gh workflow run ci.yml --ref diagnostic/bidi-http-upgrade-0.5.2
 ```
 
+To execute only the public-host default/control pair, use `-f case_set=https-only`. This leaves the earlier loopback A/B/C evidence intact instead of repeating those cases. The first controlled run exposed a probe-only error: ChromeDriver merges disabled-feature arguments and can retain duplicate feature names. The verifier now treats them as set membership while still requiring every baseline feature and both HTTPS controls; no HTTP/event assertion changes.
+
 The real release gates and publication remain on the release branch. Results from this branch must be labeled as transport diagnostics against the identified frozen artifact, not release-source CI certification.

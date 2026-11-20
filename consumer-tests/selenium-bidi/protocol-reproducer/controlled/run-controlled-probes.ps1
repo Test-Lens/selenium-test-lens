@@ -2,6 +2,7 @@ param(
     [Parameter(Mandatory)][string]$ChromeBinary,
     [Parameter(Mandatory)][string]$ChromeDriver,
     [Parameter(Mandatory)][ValidateSet('157.0.8103.78', '158.0.8127.36')][string]$ExpectedChrome,
+    [ValidateSet('all', 'https-only')][string]$CaseSet = 'all',
     [string]$RepositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '../../../..')).Path
 )
 $ErrorActionPreference = 'Stop'
@@ -11,9 +12,11 @@ $work = Join-Path $repo 'target/controlled-http-work'
 $evidenceRoot = Join-Path $repo 'target/controlled-http-evidence'
 New-Item -ItemType Directory -Force $work, $evidenceRoot | Out-Null
 $cases = @()
-foreach ($hostName in @('127.0.0.1', 'localhost')) {
-    foreach ($mode in @('A', 'B', 'C')) {
-        $cases += [pscustomobject]@{ case = "$hostName-$mode"; hostName = $hostName; mode = $mode; httpsControl = $false; status = 'NOTRUN'; exitCode = $null; reason = 'Setup did not complete' }
+if ($CaseSet -eq 'all') {
+    foreach ($hostName in @('127.0.0.1', 'localhost')) {
+        foreach ($mode in @('A', 'B', 'C')) {
+            $cases += [pscustomobject]@{ case = "$hostName-$mode"; hostName = $hostName; mode = $mode; httpsControl = $false; status = 'NOTRUN'; exitCode = $null; reason = 'Setup did not complete' }
+        }
     }
 }
 foreach ($control in @($false, $true)) {

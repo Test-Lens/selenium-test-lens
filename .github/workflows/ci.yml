@@ -2,6 +2,12 @@ name: Controlled HTTP upgrade diagnostic
 
 on:
   workflow_dispatch:
+    inputs:
+      case_set:
+        description: Run all cases or only the paired public-host HTTPS experiment
+        type: choice
+        default: all
+        options: [all, https-only]
 
 permissions:
   contents: read
@@ -62,7 +68,7 @@ jobs:
           DRIVER_BINARY: ${{ steps.browser.outputs.chromedriver-path }}
           EXPECTED_CHROME: ${{ matrix.chrome }}
         run: |
-          ./consumer-tests/selenium-bidi/protocol-reproducer/controlled/run-controlled-probes.ps1 -ChromeBinary $env:CHROME_BINARY -ChromeDriver $env:DRIVER_BINARY -ExpectedChrome $env:EXPECTED_CHROME
+          ./consumer-tests/selenium-bidi/protocol-reproducer/controlled/run-controlled-probes.ps1 -ChromeBinary $env:CHROME_BINARY -ChromeDriver $env:DRIVER_BINARY -ExpectedChrome $env:EXPECTED_CHROME -CaseSet '${{ inputs.case_set }}'
       - name: Publish actual case outcomes
         if: always()
         run: |

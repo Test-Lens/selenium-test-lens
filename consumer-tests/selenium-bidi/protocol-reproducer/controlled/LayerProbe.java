@@ -521,7 +521,7 @@ public final class LayerProbe {
             evidence.put("featureCommandLineOutcome", disabled.size() > 1 ? "AMBIGUOUS_MULTIPLE_DISABLE_FLAGS" : "CAPTURED");
             if (Boolean.getBoolean("probe.httpsControl")) {
                 require(disabled.size() == 1, "CONTROL_DISABLE_FEATURES_AMBIGUOUS");
-                Set<String> actual = Set.of(disabled.get(0).substring("--disable-features=".length()).split(","));
+                Set<String> actual = new LinkedHashSet<>(List.of(disabled.get(0).substring("--disable-features=".length()).split(",")));
                 for (String base : System.getProperty("probe.baseDisabledFeatures").split(",")) {
                     require(base.isBlank() || actual.contains(base), "CONTROL_DROPPED_DEFAULT_DISABLED_FEATURE");
                 }
